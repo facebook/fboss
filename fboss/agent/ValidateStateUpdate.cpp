@@ -227,6 +227,7 @@ bool StateUpdateValidator::isValidUpdate(
       return isStateUpdateValidMultiSwitch(
           delta, scopeResolver_, asicTable_->getHwAsics());
   }
+  throw FbossError("Invalid run mode: ", runMode_);
 }
 
 } // namespace facebook::fboss
