@@ -918,7 +918,7 @@ void SwSwitch::updateLldpStats() {
 
 HwBufferPoolStats SwSwitch::getBufferPoolStatsFromSwitchWatermarkStats() {
   uint64_t deviceWatermarkBytes{0};
-  auto lockedStats = hwSwitchStats_.wlock();
+  auto lockedStats = hwSwitchStats_.rlock();
   for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
     deviceWatermarkBytes = std::max<uint64_t>(
         deviceWatermarkBytes,
@@ -932,7 +932,7 @@ HwBufferPoolStats SwSwitch::getBufferPoolStatsFromSwitchWatermarkStats() {
 AgentStats SwSwitch::fillFsdbStats() {
   AgentStats agentStats;
   {
-    auto lockedStats = hwSwitchStats_.wlock();
+    auto lockedStats = hwSwitchStats_.rlock();
     // fill stats using hwswitch exported data if available
     for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
       // accumulate error stats from all switches in global values
