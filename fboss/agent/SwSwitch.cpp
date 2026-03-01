@@ -999,11 +999,19 @@ AgentStats SwSwitch::fillFsdbStats() {
   stats()->fillAgentStats(agentStats);
   getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
   // fill old fields using first switch values for backward compatibility
-  agentStats.hwResourceStats() =
-      agentStats.hwResourceStatsMap()->begin()->second;
-  agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
-  agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
-  agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
+  if (!agentStats.hwResourceStatsMap()->empty()) {
+    agentStats.hwResourceStats() =
+        agentStats.hwResourceStatsMap()->begin()->second;
+  }
+  if (!agentStats.teFlowStatsMap()->empty()) {
+    agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
+  }
+  if (!agentStats.sysPortStatsMap()->empty()) {
+    agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
+  }
+  if (!agentStats.flowletStatsMap()->empty()) {
+    agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
+  }
   // TODO: Remove this once switchWatermarkStats is rolled out to fleet!
   agentStats.bufferPoolStats() = getBufferPoolStatsFromSwitchWatermarkStats();
   return agentStats;
