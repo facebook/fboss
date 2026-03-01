@@ -2250,6 +2250,7 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  auto state = getState();
   if (getFabricLinkMonitoringManager()) {
     // This flow will be hit only for a subset of VoQ and Fabric switches
     // where fabric link monitoring manager is running.
@@ -2258,8 +2259,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     // for Fabric devices, hence staying with port check for now. Will
     // migrate to checking the packetType as below soon:
     // pkt->packetType().value() == PacketType::FABRIC_LINK_MONITORING
-    auto* port =
-        getState()->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
+    auto* port = state->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
     if (port && (port->getPortType() == cfg::PortType::FABRIC_PORT)) {
       Cursor c(pkt->buf());
       getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
@@ -2268,14 +2268,14 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   }
 
   if (FLAGS_intf_nbr_tables) {
-    auto intf = getState()->getInterfaces()->getNodeIf(
-        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
+    auto intf = state->getInterfaces()->getNodeIf(
+        state->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
     handlePacketImpl(std::move(pkt), intf);
   } else {
     // TODO: get rid of getVlanIDHelper, packet must have a valid vlan here if
     // vlans are maintained
     auto vlan =
-        getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
+        state->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
     handlePacketImpl(std::move(pkt), vlan);
   }
 }
