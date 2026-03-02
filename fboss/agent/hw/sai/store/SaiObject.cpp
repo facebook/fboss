@@ -206,6 +206,8 @@ folly::dynamic SaiObject<SaiWredTraits>::adapterHostKeyToFollyDynamic() {
       array, adapterHostKey_);
   addOptionalAttrToArray<SaiWredTraits::Attributes::EcnGreenMaxThreshold>(
       array, adapterHostKey_);
+  addOptionalAttrToArray<SaiWredTraits::Attributes::EcnGreenMarkProbability>(
+      array, adapterHostKey_);
   return array;
 }
 
@@ -236,6 +238,17 @@ SaiObject<SaiWredTraits>::follyDynamicToAdapterHostKey(
       json, key, 5);
   pupulateOptionalAttrtToKey<SaiWredTraits::Attributes::EcnGreenMaxThreshold>(
       json, key, 6);
+  // Handle upgrade: if 8th element exists, populate EcnGreenMarkProbability.
+  // Otherwise, default to 100 for warmboot from old format (7 elements) to new
+  // format (8 elements)
+  if (json.size() > 7) {
+    pupulateOptionalAttrtToKey<
+        SaiWredTraits::Attributes::EcnGreenMarkProbability>(json, key, 7);
+  } else {
+    // Default to 100 to be same as the SAI attribute default.
+    std::get<std::optional<SaiWredTraits::Attributes::EcnGreenMarkProbability>>(
+        key) = 100;
+  }
   return key;
 }
 

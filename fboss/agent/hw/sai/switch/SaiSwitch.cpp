@@ -5152,10 +5152,11 @@ void SaiSwitch::processAclTableGroupDelta(
 void SaiSwitch::initialStateApplied() {
   managerTable_->fdbManager().removeUnclaimedDynanicEntries();
   managerTable_->hashManager().removeUnclaimedDefaultHash();
-#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
-  // TODO(zecheng): Remove after devices warmbooted to 8.2.
+  // TODO(nivinl): Remove unclaimed WRED profiles to handle warm
+  // boot transitions with the introduction of ECN probability
+  // attribute. Remove this once binary with ECN probabilistic
+  // marking is rolled out to prod.
   managerTable_->wredManager().removeUnclaimedWredProfile();
-#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   // Sai spec 1.10.2 introduces the new attribute of Label for Acl counter.
   // Therefore, counters created before sai spec 1.10.2 will be treated as
