@@ -381,6 +381,10 @@ struct MirrorOnDropReportFields {
     switch_config.MirrorOnDropAgingGroup,
     i32
   > agingGroupAgingIntervalUsecs;
+  // Resolved fields - populated by TamManager when collector IP is resolved
+  16: bool isResolved = false;
+  17: optional string resolvedCollectorMac;
+  18: optional switch_config.PortDescriptor resolvedEgressPort;
 }
 
 struct ControlPlaneFields {
