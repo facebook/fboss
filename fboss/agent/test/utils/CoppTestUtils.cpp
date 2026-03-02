@@ -1404,14 +1404,17 @@ cfg::MatchAction getToQueueAction(
 CpuPortStats getLatestCpuStats(SwSwitch* sw, SwitchID switchId) {
   // Stats collection from SwSwitch is async, wait for stats
   // being available before returning here.
+  // hwSwitchStats_ is keyed by switchIndex, not SwitchID.
+  auto switchIndex =
+      sw->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
   CpuPortStats cpuStats;
   checkWithRetry(
-      [&cpuStats, switchId, sw]() {
+      [&cpuStats, switchIndex, sw]() {
         auto switchStats = sw->getHwSwitchStatsExpensive();
-        if (switchStats.find(switchId) == switchStats.end()) {
+        if (switchStats.find(switchIndex) == switchStats.end()) {
           return false;
         }
-        cpuStats = *switchStats.at(switchId).cpuPortStats();
+        cpuStats = *switchStats.at(switchIndex).cpuPortStats();
         return !cpuStats.queueInPackets_()->empty();
       },
       120,
@@ -1703,10 +1706,18 @@ void verifyCoppInvariantHelper(
 CpuPortStats getCpuPortStats(SwSwitch* sw, SwitchID switchId) {
   std::map<int, CpuPortStats> cpuStats;
   sw->getAllCpuPortStats(cpuStats);
-  if (cpuStats.find(switchId) == cpuStats.end()) {
-    throw FbossError("No cpu port stats found for switchId: ", switchId);
+  // cpuStats is keyed by switchIndex, not SwitchID.
+  auto switchIndex =
+      sw->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+  if (cpuStats.find(switchIndex) == cpuStats.end()) {
+    throw FbossError(
+        "No cpu port stats found for switchId: ",
+        switchId,
+        " (switchIndex: ",
+        switchIndex,
+        ")");
   }
-  return cpuStats.at(switchId);
+  return cpuStats.at(switchIndex);
 }
 
 /*
