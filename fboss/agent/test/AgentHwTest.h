@@ -271,6 +271,8 @@ class AgentHwTest : public ::testing::Test {
   void populateArpNeighborsToCache(const std::shared_ptr<Interface>& interface);
   void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
 
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
+
   std::optional<VlanID> getVlanIDForTx() const {
     return agentEnsemble_->getVlanIDForTx();
   }
