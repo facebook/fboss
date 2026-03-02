@@ -15,6 +15,30 @@
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "folly/IPAddress.h"
 
+namespace {
+
+void validateSrv6Fields(
+    const std::vector<folly::IPAddressV6>& srv6SegmentList,
+    const std::optional<facebook::fboss::TunnelType>& tunnelType,
+    const std::optional<std::string>& tunnelId) {
+  if (!srv6SegmentList.empty()) {
+    if (!tunnelType.has_value()) {
+      throw facebook::fboss::FbossError(
+          "tunnelType must be set when srv6SegmentList is not empty");
+    }
+    if (tunnelType.value() != facebook::fboss::TunnelType::SRV6_ENCAP) {
+      throw facebook::fboss::FbossError(
+          "tunnelType must be SRV6_ENCAP when srv6SegmentList is not empty");
+    }
+    if (!tunnelId.has_value() || tunnelId.value().empty()) {
+      throw facebook::fboss::FbossError(
+          "tunnelId must be set and non-empty when srv6SegmentList is not empty");
+    }
+  }
+}
+
+} // namespace
+
 namespace facebook::fboss {
 
 namespace util {
@@ -183,6 +207,54 @@ bool operator!=(const NextHop& a, const NextHop& b) {
   return !(a == b);
 }
 
+ResolvedNextHop::ResolvedNextHop(
+    const folly::IPAddress& addr,
+    InterfaceID intfID,
+    const NextHopWeight& weight,
+    const std::optional<LabelForwardingAction>& action,
+    const std::optional<bool>& disableTTLDecrement,
+    const std::optional<NetworkTopologyInformation>& topologyInfo,
+    const std::optional<NextHopWeight>& adjustedWeight,
+    const std::vector<folly::IPAddressV6>& srv6SegmentList,
+    const std::optional<TunnelType>& tunnelType,
+    const std::optional<std::string>& tunnelId)
+    : addr_(addr),
+      intfID_(intfID),
+      weight_(weight),
+      labelForwardingAction_(action),
+      disableTTLDecrement_(disableTTLDecrement),
+      topologyInfo_(topologyInfo),
+      adjustedWeight_(adjustedWeight),
+      srv6SegmentList_(srv6SegmentList),
+      tunnelType_(tunnelType),
+      tunnelId_(tunnelId) {
+  validateSrv6Fields(srv6SegmentList_, tunnelType_, tunnelId_);
+}
+
+ResolvedNextHop::ResolvedNextHop(
+    folly::IPAddress&& addr,
+    InterfaceID intfID,
+    const NextHopWeight& weight,
+    std::optional<LabelForwardingAction>&& action,
+    std::optional<bool>&& disableTTLDecrement,
+    const std::optional<NetworkTopologyInformation>&& topologyInfo,
+    const std::optional<NextHopWeight>& adjustedWeight,
+    std::vector<folly::IPAddressV6>&& srv6SegmentList,
+    std::optional<TunnelType>&& tunnelType,
+    std::optional<std::string>&& tunnelId)
+    : addr_(std::move(addr)),
+      intfID_(intfID),
+      weight_(weight),
+      labelForwardingAction_(std::move(action)),
+      disableTTLDecrement_(disableTTLDecrement),
+      topologyInfo_(topologyInfo),
+      adjustedWeight_(adjustedWeight),
+      srv6SegmentList_(std::move(srv6SegmentList)),
+      tunnelType_(std::move(tunnelType)),
+      tunnelId_(std::move(tunnelId)) {
+  validateSrv6Fields(srv6SegmentList_, tunnelType_, tunnelId_);
+}
+
 UnresolvedNextHop::UnresolvedNextHop(
     const folly::IPAddress& addr,
     const NextHopWeight& weight,
@@ -206,6 +278,7 @@ UnresolvedNextHop::UnresolvedNextHop(
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
   }
+  validateSrv6Fields(srv6SegmentList_, tunnelType_, tunnelId_);
 }
 
 UnresolvedNextHop::UnresolvedNextHop(
@@ -231,6 +304,7 @@ UnresolvedNextHop::UnresolvedNextHop(
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr_.str());
   }
+  validateSrv6Fields(srv6SegmentList_, tunnelType_, tunnelId_);
 }
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b) {
