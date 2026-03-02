@@ -64,6 +64,8 @@ struct NextHopThrift {
   3: optional mpls.MplsAction mplsAction;
   4: optional bool disableTTLDecrement;
   5: list<Address.BinaryAddress> srv6SegmentList;
+  6: optional TunnelType tunnelType;
+  7: optional string tunnelId;
 
   /**
   * For capturing topology information to assist Agent path pruning decisions

@@ -8499,6 +8499,8 @@ std::pair<strings::weight, Child<::std::int32_t, ::apache::thrift::type_class::i
 std::pair<strings::mplsAction, ChildThriftPath<::facebook::fboss::MplsAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<strings::disableTTLDecrement, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<strings::srv6SegmentList, ChildThriftPath<::std::vector<::facebook::network::thrift::BinaryAddress>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<strings::tunnelType, Child<::facebook::fboss::TunnelType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::TunnelType>>>,
+std::pair<strings::tunnelId, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
 std::pair<strings::adjustedWeight, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<strings::topologyInfo, ChildThriftPath<::facebook::fboss::NetworkTopologyInformation, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   using ChildrenById = fatal::tuple<   std::pair<std::integral_constant<apache::thrift::field_id_t, 1>, ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
@@ -8506,6 +8508,8 @@ std::pair<strings::topologyInfo, ChildThriftPath<::facebook::fboss::NetworkTopol
    std::pair<std::integral_constant<apache::thrift::field_id_t, 3>, ChildThriftPath<::facebook::fboss::MplsAction, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 4>, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 5>, ChildThriftPath<::std::vector<::facebook::network::thrift::BinaryAddress>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 6>, Child<::facebook::fboss::TunnelType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::TunnelType>>>,
+   std::pair<std::integral_constant<apache::thrift::field_id_t, 7>, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 15>, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
    std::pair<std::integral_constant<apache::thrift::field_id_t, 16>, ChildThriftPath<::facebook::fboss::NetworkTopologyInformation, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
   template <typename Name>
@@ -8514,6 +8518,8 @@ std::pair<strings::weight, std::integral_constant<apache::thrift::field_id_t, 2>
 std::pair<strings::mplsAction, std::integral_constant<apache::thrift::field_id_t, 3>>,
 std::pair<strings::disableTTLDecrement, std::integral_constant<apache::thrift::field_id_t, 4>>,
 std::pair<strings::srv6SegmentList, std::integral_constant<apache::thrift::field_id_t, 5>>,
+std::pair<strings::tunnelType, std::integral_constant<apache::thrift::field_id_t, 6>>,
+std::pair<strings::tunnelId, std::integral_constant<apache::thrift::field_id_t, 7>>,
 std::pair<strings::adjustedWeight, std::integral_constant<apache::thrift::field_id_t, 15>>,
 std::pair<strings::topologyInfo, std::integral_constant<apache::thrift::field_id_t, 16>>>::template type_of<Name>;
 
@@ -8526,6 +8532,8 @@ std::pair<strings::topologyInfo, std::integral_constant<apache::thrift::field_id
     STRUCT_CHILD_GETTERS(mplsAction, 3);
     STRUCT_CHILD_GETTERS(disableTTLDecrement, 4);
     STRUCT_CHILD_GETTERS(srv6SegmentList, 5);
+    STRUCT_CHILD_GETTERS(tunnelType, 6);
+    STRUCT_CHILD_GETTERS(tunnelId, 7);
     STRUCT_CHILD_GETTERS(adjustedWeight, 15);
     STRUCT_CHILD_GETTERS(topologyInfo, 16);
 
@@ -8536,6 +8544,8 @@ std::pair<strings::topologyInfo, std::integral_constant<apache::thrift::field_id
     else if constexpr (__id == 3) { return mplsAction(); }
     else if constexpr (__id == 4) { return disableTTLDecrement(); }
     else if constexpr (__id == 5) { return srv6SegmentList(); }
+    else if constexpr (__id == 6) { return tunnelType(); }
+    else if constexpr (__id == 7) { return tunnelId(); }
     else if constexpr (__id == 15) { return adjustedWeight(); }
     else if constexpr (__id == 16) { return topologyInfo(); }
   }
