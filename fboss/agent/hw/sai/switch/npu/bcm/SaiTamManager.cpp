@@ -410,13 +410,27 @@ void SaiTamManager::addDnxMirrorOnDropReport(
 #if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
 void SaiTamManager::addXgsMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
-  std::string destMac = getDestMacWithOverride(report->getFirstInterfaceMac());
+  // Only program the hardware if the collector IP has been resolved
+  if (!report->isResolved()) {
+    XLOG(INFO) << "Skipping MirrorOnDropReport " << report->getID()
+               << " - collector IP not yet resolved";
+    return;
+  }
+
+  std::string destMac = getDestMacWithOverride(
+      report->getResolvedCollectorMac().value().toString());
+
+  // Get the resolved egress port
+  auto resolvedPortDesc = report->getResolvedEgressPort().value();
+  PortID egressPort = PortID(*resolvedPortDesc.portId());
+
   XLOG(INFO) << "Creating XGS MirrorOnDropReport " << report->getID()
              << " srcIp=" << report->getLocalSrcIp().str()
              << " srcPort=" << report->getLocalSrcPort()
              << " collectorIp=" << report->getCollectorIp().str()
              << " collectorPort=" << report->getCollectorPort()
-             << " srcMac=" << report->getSwitchMac() << " dstMac=" << destMac;
+             << " srcMac=" << report->getSwitchMac() << " dstMac=" << destMac
+             << " egressPort=" << egressPort;
 
   auto reportObj = createTamReport(SAI_TAM_REPORT_TYPE_IPFIX);
   auto action = createTamAction(reportObj->adapterKey());
@@ -470,8 +484,8 @@ void SaiTamManager::addXgsMirrorOnDropReport(
       collector,
       events,
       tam,
-      report->getMirrorPortId());
-  bindTam(tam->adapterKey(), report->getMirrorPortId());
+      egressPort);
+  bindTam(tam->adapterKey(), egressPort);
 }
 #endif
 
@@ -486,9 +500,17 @@ void SaiTamManager::addMirrorOnDropReport(
 
 void SaiTamManager::removeMirrorOnDropReport(
     const std::shared_ptr<MirrorOnDropReport>& report) {
+  // Check if the report was ever added (it might not have been if unresolved)
+  auto it = tamHandles_.find(report->getID());
+  if (it == tamHandles_.end()) {
+    XLOG(INFO) << "MirrorOnDropReport " << report->getID()
+               << " was not programmed, nothing to remove";
+    return;
+  }
+
   XLOG(INFO) << "Removing MirrorOnDropReport " << report->getID();
-  auto handle = std::move(tamHandles_[report->getID()]);
-  tamHandles_.erase(report->getID());
+  auto handle = std::move(it->second);
+  tamHandles_.erase(it);
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   unbindTamObjectFromSwitchAndPort(

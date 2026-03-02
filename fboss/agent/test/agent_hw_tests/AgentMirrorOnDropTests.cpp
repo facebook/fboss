@@ -10,6 +10,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -1702,18 +1703,14 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
 
     cfg::MirrorOnDropReport report;
     report.name() = "xgs-mod-test";
-    report.mirrorPortId() = mirrorPortId;
     report.localSrcPort() = kMirrorSrcPort;
     report.collectorIp() = kCollectorIp_.str();
     report.collectorPort() = kMirrorDstPort;
     report.mtu() = 1500;
     report.dscp() = 0;
-    cfg::MirrorEgressPort egressPort;
-    egressPort.logicalID() = mirrorPortId;
     cfg::MirrorTunnel tunnel;
     tunnel.srcIp() = kSwitchIp_.str();
     cfg::MirrorDestination mirrorDest;
-    mirrorDest.egressPort() = egressPort;
     mirrorDest.tunnel() = tunnel;
     report.mirrorPort() = mirrorDest;
     // Skip aging group interval configuration
@@ -1722,8 +1719,10 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
     utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
     applyNewConfig(config);
 
-    // Setup route to collector IP
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+
+    // Wait for route to be fully installed and TamManager to resolve
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1757,5 +1756,4 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
-
 } // namespace facebook::fboss
