@@ -379,6 +379,7 @@ void AgentPortBandwidthTest::verifyQueueShaper() {
         kQueueId0(),
         utility::kQueueConfigAqmsEcnThresholdMinMax,
         utility::kQueueConfigAqmsEcnThresholdMinMax,
+        100, // probability
         isVoq);
     applyNewConfig(newCfg);
     setupHelper();

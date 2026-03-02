@@ -444,6 +444,7 @@ class AgentAqmTest : public AgentHwTest {
           queueId,
           utility::kQueueConfigAqmsEcnThresholdMinMax,
           utility::kQueueConfigAqmsEcnThresholdMinMax,
+          100, // probability
           isVoq);
     }
   }
