@@ -142,6 +142,7 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
       // updated
       applyNewConfig(newConfig);
 
+      updateCablePorts();
       EXPECT_NO_THROW(waitForAllCabledPorts(true, 60, 5s););
       createL3DataplaneFlood();
     };
