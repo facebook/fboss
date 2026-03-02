@@ -12,8 +12,15 @@ class HwAsic;
 class HwAsicTable;
 class HwSwitchHandler;
 class SwitchStats;
+class Port;
 
-bool isStateUpdateValidCommon(const StateDelta& delta);
+bool hasValidPortQueues(
+    const std::shared_ptr<Port>& port,
+    bool isEcnProbabilisticMarkingSupported);
+
+bool isStateUpdateValidCommon(
+    const StateDelta& delta,
+    const HwAsicTable* hwAsicTable);
 bool isStateUpdateValidMultiSwitch(
     const StateDelta& delta,
     const SwitchIdScopeResolver* resolver,
