@@ -6,52 +6,27 @@
 
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/Utils.h"
-#include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
-#include "fboss/agent/state/Route.h"
-
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
 
-#include "fboss/agent/platforms/common/PlatformMappingUtils.h"
-
-DECLARE_bool(intf_nbr_tables);
-
-template <typename AddrT>
-using NeighborEntryT =
-    typename facebook::fboss::MirrorManagerImpl<AddrT>::NeighborEntryT;
+namespace facebook::fboss {
 
 namespace {
-
-using facebook::fboss::Interface;
-using facebook::fboss::PortID;
-using facebook::fboss::SwitchState;
-
-template <typename AddrT>
-auto getNeighborEntryTableHelper(
-    const std::shared_ptr<SwitchState>& state,
-    const std::shared_ptr<Interface>& interface) {
-  if (FLAGS_intf_nbr_tables) {
-    return interface->template getNeighborEntryTable<AddrT>();
-  } else {
-    auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
-    return vlan->template getNeighborEntryTable<AddrT>();
-  }
-}
 
 folly::MacAddress getEventorPortInterfaceMac(
     const std::shared_ptr<SwitchState>& state,
     PortID portId) {
-  auto intfID =
-      state->getInterfaceIDForPort(facebook::fboss::PortDescriptor(portId));
+  auto intfID = state->getInterfaceIDForPort(PortDescriptor(portId));
   auto intf = state->getInterfaces()->getNodeIf(intfID);
   return intf->getMac();
 }
 
 } // namespace
-
-namespace facebook::fboss {
+template <typename AddrT>
+MirrorManagerImpl<AddrT>::MirrorManagerImpl(SwSwitch* sw)
+    : sw_(sw), destinationAddrResolver_(sw) {}
 
 template <typename AddrT>
 PortID MirrorManagerImpl<AddrT>::getEventorPortForSflowMirror(
@@ -74,7 +49,10 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   const AddrT destinationIp =
       getIPAddress<AddrT>(mirror->getDestinationIp().value());
   const auto state = sw_->getState();
-  const auto nexthops = resolveMirrorNextHops(state, destinationIp);
+
+  // Use NextHopResolver for route lookup
+  const auto nexthops =
+      destinationAddrResolver_.resolveNextHops(state, destinationIp);
 
   std::optional<PortDescriptor> egressPortDesc = std::nullopt;
   if (mirror->configHasEgressPort()) {
@@ -96,8 +74,10 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     if (isV4 != nexthop.addr().isV4()) {
       continue;
     }
-    const auto entry =
-        resolveMirrorNextHopNeighbor(state, mirror, destinationIp, nexthop);
+
+    // Use NextHopResolver for neighbor lookup
+    const auto entry = destinationAddrResolver_.resolveNextHopNeighbor(
+        state, destinationIp, nexthop);
 
     if (!entry || entry->zeroPort()) {
       // unresolved next hop
@@ -113,33 +93,9 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
       }
     }
 
-    std::optional<PortDescriptor> resolvedEgressPort{};
-    switch (neighborPort.type()) {
-      case PortDescriptor::PortType::PHYSICAL:
-      case PortDescriptor::PortType::SYSTEM_PORT:
-        resolvedEgressPort = entry->getPort();
-        break;
-      case PortDescriptor::PortType::AGGREGATE: {
-        // pick first forwarding member port
-        auto aggPort =
-            state->getAggregatePorts()->getNodeIf(entry->getPort().aggPortID());
-        if (!aggPort) {
-          XLOG(ERR) << "mirror resolved to non-existing aggregate port "
-                    << entry->getPort().aggPortID();
-          continue;
-        }
-        auto subportAndFwdStates = aggPort->subportAndFwdState();
-        if (subportAndFwdStates.begin() == subportAndFwdStates.end()) {
-          continue;
-        }
-        for (auto subPortAndFwdState : subportAndFwdStates) {
-          if (subPortAndFwdState.second == AggregatePort::Forwarding::ENABLED) {
-            resolvedEgressPort = PortDescriptor(subPortAndFwdState.first);
-            break;
-          }
-        }
-      } break;
-    }
+    // Use NextHopResolver for egress port resolution
+    auto resolvedEgressPort =
+        destinationAddrResolver_.resolveEgressPort(state, entry);
 
     if (!resolvedEgressPort) {
       continue;
@@ -182,50 +138,6 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
 }
 
 template <typename AddrT>
-RouteNextHopEntry::NextHopSet MirrorManagerImpl<AddrT>::resolveMirrorNextHops(
-    const std::shared_ptr<SwitchState>& state,
-    const AddrT& destinationIp) {
-  const auto route =
-      sw_->longestMatch<AddrT>(state, destinationIp, RouterID(0));
-  if (!route || !route->isResolved()) {
-    return RouteNextHopEntry::NextHopSet();
-  }
-  return route->getForwardInfo().getNextHopSet();
-}
-
-template <typename AddrT>
-std::shared_ptr<NeighborEntryT<AddrT>>
-MirrorManagerImpl<AddrT>::resolveMirrorNextHopNeighbor(
-    const std::shared_ptr<SwitchState>& state,
-    const std::shared_ptr<Mirror>& mirror,
-    const AddrT& destinationIp,
-    const NextHop& nexthop) const {
-  std::shared_ptr<NeighborEntryT> neighbor;
-  if (!nexthop.isResolved()) {
-    return std::shared_ptr<NeighborEntryT>(nullptr);
-  }
-  AddrT mirrorNextHopIp = getIPAddress<AddrT>(nexthop.addr());
-  InterfaceID mirrorEgressInterface = nexthop.intf();
-
-  auto interface = state->getInterfaces()->getNodeIf(mirrorEgressInterface);
-  if (!interface && state->getRemoteInterfaces()) {
-    XLOG(DBG2)
-        << "Interface: " << mirrorEgressInterface
-        << " not found in local interaces, looking up in remote interfaces";
-    interface = state->getRemoteInterfaces()->getNodeIf(mirrorEgressInterface);
-  }
-  if (interface->hasAddress(mirrorNextHopIp)) {
-    /* if mirror destination is directly connected */
-    neighbor = getNeighborEntryTableHelper<AddrT>(state, interface)
-                   ->getEntryIf(destinationIp);
-  } else {
-    neighbor = getNeighborEntryTableHelper<AddrT>(state, interface)
-                   ->getEntryIf(mirrorNextHopIp);
-  }
-  return neighbor;
-}
-
-template <typename AddrT>
 MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
     const std::shared_ptr<SwitchState>& state,
     const AddrT& destinationIp,
@@ -234,13 +146,9 @@ MirrorTunnel MirrorManagerImpl<AddrT>::resolveMirrorTunnel(
     const std::shared_ptr<NeighborEntryT>& neighbor,
     const std::optional<TunnelUdpPorts>& udpPorts) {
   InterfaceID mirrorEgressInterface = nextHop.intf();
-  auto interface = state->getInterfaces()->getNodeIf(mirrorEgressInterface);
-  if (!interface && state->getRemoteInterfaces()) {
-    XLOG(DBG2)
-        << "Interface: " << mirrorEgressInterface
-        << " not found in local interaces, looking up in remote interfaces";
-    interface = state->getRemoteInterfaces()->getNodeIf(mirrorEgressInterface);
-  }
+  // Use NextHopResolver for interface lookup
+  auto interface =
+      destinationAddrResolver_.getInterface(state, mirrorEgressInterface);
   const auto iter = interface->getAddressToReach(neighbor->getIP());
 
   if (udpPorts.has_value()) {
