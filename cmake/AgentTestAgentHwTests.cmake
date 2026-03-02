@@ -71,18 +71,43 @@ target_link_libraries(agent_voq_test_src
   Folly::folly
 )
 
+# ARS/Flowlet test library - tests related to adaptive routing and flowlet switching
+add_library(agent_ars_test_src
+  fboss/agent/test/agent_hw_tests/AgentArsBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentArsFlowletTest.cpp
+  fboss/agent/test/agent_hw_tests/AgentEcmpSpilloverTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentFlowletSwitchingTests.cpp
+)
+
+target_link_libraries(agent_ars_test_src
+  agent_hw_test
+  acl_test_utils
+  config_factory
+  copp_test_utils
+  ecmp_helper
+  load_balancer_test_utils
+  mirror_test_utils
+  network_ai_qos_utils
+  olympic_qos_utils
+  packet_factory
+  port_test_utils
+  qos_test_utils
+  route_test_utils
+  scale_test_utils
+  switch_asics
+  udf_test_utils
+  Folly::folly
+)
+
 add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentCoppTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDot1qMappingTest.cpp
   fboss/agent/test/agent_hw_tests/AgentDscpMarkingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDeepPacketInspectionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentDiagShellStressTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentEcmpSpilloverTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEcmpTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEmptyTests.cpp
   fboss/agent/test/agent_hw_tests/AgentEgressForwardingDiscardCounterTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentArsBase.cpp
-  fboss/agent/test/agent_hw_tests/AgentFlowletSwitchingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteOverDifferentAddressFamilyNhopTests.cpp
   fboss/agent/test/agent_hw_tests/AgentAclInDiscardCounterTests.cpp
   fboss/agent/test/agent_hw_tests/AgentJumboFramesTests.cpp
@@ -130,7 +155,6 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentSrv6EncapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwUdfTests.cpp
-  fboss/agent/test/agent_hw_tests/AgentArsFlowletTest.cpp
   fboss/agent/test/agent_hw_tests/AgentRouterInterfaceCounterTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcProvisionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteOverflowTests.cpp
@@ -139,6 +163,7 @@ add_library(agent_hw_test_src
 )
 
 target_link_libraries(agent_hw_test_src
+  agent_ars_test_src
   agent_qos_test_src
   agent_voq_test_src
   acl_test_utils
@@ -212,6 +237,7 @@ target_link_libraries(multi_switch_agent_hw_test
   copp_test_utils
   pkt_test_utils
   agent_hw_test_src
+  agent_ars_test_src
   agent_qos_test_src
   agent_voq_test_src
   agent_hw_test
@@ -240,6 +266,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_agent_hw_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     agent_hw_test_src
+    agent_ars_test_src
     agent_qos_test_src
     agent_voq_test_src
     ${SAI_IMPL_ARG}
