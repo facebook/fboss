@@ -35,6 +35,18 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
   if (nht.topologyInfo()) {
     topologyInfo = *nht.topologyInfo();
   }
+  std::optional<TunnelType> tunnelType = std::nullopt;
+  if (nht.tunnelType()) {
+    tunnelType = *nht.tunnelType();
+  }
+  std::optional<std::string> tunnelId = std::nullopt;
+  if (nht.tunnelId()) {
+    tunnelId = *nht.tunnelId();
+  }
+  std::vector<folly::IPAddressV6> srv6SegmentList;
+  for (const auto& binAddr : *nht.srv6SegmentList()) {
+    srv6SegmentList.push_back(network::toIPAddress(binAddr).asV6());
+  }
 
   auto address = network::toIPAddress(*nht.address());
   NextHopWeight weight = static_cast<NextHopWeight>(*nht.weight());
@@ -53,7 +65,10 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
         action,
         disableTTLDecrement,
         topologyInfo,
-        adjustedWeight);
+        adjustedWeight,
+        std::move(srv6SegmentList),
+        tunnelType,
+        tunnelId);
   } else {
     return UnresolvedNextHop(
         std::move(address),
@@ -61,7 +76,10 @@ NextHop fromThrift(const NextHopThrift& nht, bool allowV6NonLinkLocal) {
         action,
         disableTTLDecrement,
         topologyInfo,
-        adjustedWeight);
+        adjustedWeight,
+        std::move(srv6SegmentList),
+        tunnelType,
+        tunnelId);
   }
 }
 
@@ -126,8 +144,14 @@ bool operator<(const NextHop& a, const NextHop& b) {
     return a.disableTTLDecrement() < b.disableTTLDecrement();
   } else if (a.topologyInfo() != b.topologyInfo()) {
     return a.topologyInfo() < b.topologyInfo();
-  } else {
+  } else if (a.adjustedWeight() != b.adjustedWeight()) {
     return a.adjustedWeight() < b.adjustedWeight();
+  } else if (a.srv6SegmentList() != b.srv6SegmentList()) {
+    return a.srv6SegmentList() < b.srv6SegmentList();
+  } else if (a.tunnelType() != b.tunnelType()) {
+    return a.tunnelType() < b.tunnelType();
+  } else {
+    return a.tunnelId() < b.tunnelId();
   }
 }
 
@@ -150,7 +174,9 @@ bool operator==(const NextHop& a, const NextHop& b) {
       a.labelForwardingAction() == b.labelForwardingAction() &&
       a.disableTTLDecrement() == b.disableTTLDecrement() &&
       a.adjustedWeight() == b.adjustedWeight() &&
-      a.topologyInfo() == b.topologyInfo());
+      a.topologyInfo() == b.topologyInfo() &&
+      a.srv6SegmentList() == b.srv6SegmentList() &&
+      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId());
 }
 
 bool operator!=(const NextHop& a, const NextHop& b) {
@@ -163,13 +189,19 @@ UnresolvedNextHop::UnresolvedNextHop(
     const std::optional<LabelForwardingAction>& action,
     const std::optional<bool>& disableTTLDecrement,
     const std::optional<NetworkTopologyInformation>& topologyInfo,
-    const std::optional<NextHopWeight>& adjustedWeight)
+    const std::optional<NextHopWeight>& adjustedWeight,
+    const std::vector<folly::IPAddressV6>& srv6SegmentList,
+    const std::optional<TunnelType>& tunnelType,
+    const std::optional<std::string>& tunnelId)
     : addr_(addr),
       weight_(weight),
       labelForwardingAction_(action),
       disableTTLDecrement_(disableTTLDecrement),
       topologyInfo_(topologyInfo),
-      adjustedWeight_(adjustedWeight) {
+      adjustedWeight_(adjustedWeight),
+      srv6SegmentList_(srv6SegmentList),
+      tunnelType_(tunnelType),
+      tunnelId_(tunnelId) {
   if (addr_.isV6() && addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr.str());
@@ -182,13 +214,19 @@ UnresolvedNextHop::UnresolvedNextHop(
     std::optional<LabelForwardingAction>&& action,
     std::optional<bool>&& disableTTLDecrement,
     const std::optional<NetworkTopologyInformation>&& topologyInfo,
-    const std::optional<NextHopWeight>& adjustedWeight)
+    const std::optional<NextHopWeight>& adjustedWeight,
+    std::vector<folly::IPAddressV6>&& srv6SegmentList,
+    std::optional<TunnelType>&& tunnelType,
+    std::optional<std::string>&& tunnelId)
     : addr_(std::move(addr)),
       weight_(weight),
       labelForwardingAction_(std::move(action)),
       disableTTLDecrement_(disableTTLDecrement),
       topologyInfo_(topologyInfo),
-      adjustedWeight_(adjustedWeight) {
+      adjustedWeight_(adjustedWeight),
+      srv6SegmentList_(std::move(srv6SegmentList)),
+      tunnelType_(std::move(tunnelType)),
+      tunnelId_(std::move(tunnelId)) {
   if (addr_.isV6() && addr_.isLinkLocal()) {
     throw FbossError(
         "Missing interface scoping for link-local nexthop ", addr_.str());
@@ -202,7 +240,9 @@ bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b) {
       a.labelForwardingAction() == b.labelForwardingAction() &&
       a.disableTTLDecrement() == b.disableTTLDecrement() &&
       a.adjustedWeight() == b.adjustedWeight() &&
-      a.topologyInfo() == b.topologyInfo());
+      a.topologyInfo() == b.topologyInfo() &&
+      a.srv6SegmentList() == b.srv6SegmentList() &&
+      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId());
 }
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b) {
@@ -211,7 +251,9 @@ bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b) {
       a.labelForwardingAction() == b.labelForwardingAction() &&
       a.disableTTLDecrement() == b.disableTTLDecrement() &&
       a.adjustedWeight() == b.adjustedWeight() &&
-      a.topologyInfo() == b.topologyInfo());
+      a.topologyInfo() == b.topologyInfo() &&
+      a.srv6SegmentList() == b.srv6SegmentList() &&
+      a.tunnelType() == b.tunnelType() && a.tunnelId() == b.tunnelId());
 }
 
 } // namespace facebook::fboss
