@@ -290,7 +290,10 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<SwitchID> switchId) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
+  if (hwSwitchSyncers_.size() < 1) {
+    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
+    return false;
+  }
   if (switchId.has_value()) {
     auto iter = hwSwitchSyncers_.find(switchId.value());
     if (iter == hwSwitchSyncers_.end()) {
@@ -315,7 +318,10 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt,
     std::optional<SwitchID> switchId) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
+  if (hwSwitchSyncers_.size() < 1) {
+    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
+    return false;
+  }
   if (switchId.has_value()) {
     auto iter = hwSwitchSyncers_.find(switchId.value());
     if (iter == hwSwitchSyncers_.end()) {
