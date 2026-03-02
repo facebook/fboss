@@ -902,6 +902,7 @@ cpp_library(
         "NeighborUpdater.cpp",
         "NeighborUpdaterImpl.cpp",
         "NeighborUpdaterNoopImpl.cpp",
+        "NextHopResolver.cpp",
         "PortUpdateHandler.cpp",
         "RemoteNeighborUpdater.cpp",
         "ResolvedNexthopMonitor.cpp",
