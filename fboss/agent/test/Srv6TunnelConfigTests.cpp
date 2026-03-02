@@ -21,7 +21,7 @@ class Srv6TunnelConfigTest : public ::testing::Test {
     cfg::Srv6Tunnel tunnel;
     tunnel.srv6TunnelId() = id;
     tunnel.underlayIntfID() = 1;
-    tunnel.tunnelType() = cfg::TunnelType::SRV6_ENCAP;
+    tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
     tunnel.srcIp() = "2401:db00:11c:8202::1";
     tunnel.ttlMode() = cfg::TunnelMode::PIPE;
     tunnel.dscpMode() = cfg::TunnelMode::PIPE;
@@ -42,7 +42,7 @@ TEST_F(Srv6TunnelConfigTest, CreateSrv6Tunnel) {
 
   auto tunnel = state_->getSrv6Tunnels()->getNodeIf("srv6tunnel0");
   ASSERT_NE(tunnel, nullptr);
-  EXPECT_EQ(tunnel->getType(), cfg::TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_ENCAP);
   EXPECT_EQ(tunnel->getUnderlayIntfId(), InterfaceID(1));
   EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddress("2401:db00:11c:8202::1"));
   EXPECT_EQ(tunnel->getDstIP(), std::nullopt);
@@ -123,7 +123,7 @@ TEST_F(Srv6TunnelConfigTest, CreateSrv6TunnelMinimalConfig) {
   cfg::Srv6Tunnel tunnelCfg;
   tunnelCfg.srv6TunnelId() = "minimal";
   tunnelCfg.underlayIntfID() = 1;
-  tunnelCfg.tunnelType() = cfg::TunnelType::SRV6_ENCAP;
+  tunnelCfg.tunnelType() = TunnelType::SRV6_ENCAP;
   tunnelCfg.srcIp() = "2401:db00:11c:8202::1";
   config_.srv6Tunnels() = {tunnelCfg};
 
@@ -132,7 +132,7 @@ TEST_F(Srv6TunnelConfigTest, CreateSrv6TunnelMinimalConfig) {
 
   auto tunnel = state_->getSrv6Tunnels()->getNodeIf("minimal");
   ASSERT_NE(tunnel, nullptr);
-  EXPECT_EQ(tunnel->getType(), cfg::TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_ENCAP);
   EXPECT_EQ(tunnel->getUnderlayIntfId(), InterfaceID(1));
   EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddress("2401:db00:11c:8202::1"));
   EXPECT_EQ(tunnel->getDstIP(), std::nullopt);
@@ -146,7 +146,7 @@ TEST_F(Srv6TunnelConfigTest, RejectsNonSrv6EncapTunnelType) {
   cfg::Srv6Tunnel tunnelCfg;
   tunnelCfg.srv6TunnelId() = "bad_type";
   tunnelCfg.underlayIntfID() = 1;
-  tunnelCfg.tunnelType() = cfg::TunnelType::IP_IN_IP;
+  tunnelCfg.tunnelType() = TunnelType::IP_IN_IP;
   config_.srv6Tunnels() = {tunnelCfg};
   EXPECT_THROW(
       publishAndApplyConfig(state_, &config_, platform_.get()), FbossError);

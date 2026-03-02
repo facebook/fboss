@@ -41,7 +41,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
     cfg::Srv6Tunnel tunnel;
     tunnel.srv6TunnelId() = name;
     tunnel.underlayIntfID() = interfaceId;
-    tunnel.tunnelType() = cfg::TunnelType::SRV6_ENCAP;
+    tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
     tunnel.srcIp() = "2001:db8::1";
     return tunnel;
   }
@@ -61,7 +61,7 @@ TEST_F(AgentSrv6EncapTest, CreateSrv6Tunnel) {
         getProgrammedState()->getSrv6Tunnels()->getNodeIf("srv6Tunnel0");
     ASSERT_NE(tunnel, nullptr);
     EXPECT_EQ(tunnel->getID(), "srv6Tunnel0");
-    EXPECT_EQ(tunnel->getType(), cfg::TunnelType::SRV6_ENCAP);
+    EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_ENCAP);
     EXPECT_EQ(
         tunnel->getUnderlayIntfId(),
         InterfaceID(initialConfig(*getAgentEnsemble())

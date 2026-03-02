@@ -6361,7 +6361,7 @@ shared_ptr<IpTunnel> ThriftConfigApplier::updateIpInIpTunnel(
 shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     const cfg::IpInIpTunnel& config) {
   auto tunnel = make_shared<IpTunnel>(*config.ipInIpTunnelId());
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
   if (config.tunnelType().has_value()) {
     tunnel->setType(*config.tunnelType());
   }
@@ -6467,13 +6467,13 @@ shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
   if (config.dstIp().has_value()) {
     tunnel->setDstIP(folly::IPAddress(*config.dstIp()));
   }
-  if (tunnel->getType() != cfg::TunnelType::SRV6_ENCAP) {
+  if (tunnel->getType() != TunnelType::SRV6_ENCAP) {
     throw FbossError(
         "Unsupported tunnel type for: ",
         tunnel->getID(),
         ", only SRV6_ENCAP is supported");
   }
-  if (tunnel->getType() == cfg::TunnelType::SRV6_ENCAP) {
+  if (tunnel->getType() == TunnelType::SRV6_ENCAP) {
     if (!tunnel->getSrcIP()) {
       throw FbossError(
           "Src IP not set for: ", tunnel->getID(), ", SRv6 encap tunnel");

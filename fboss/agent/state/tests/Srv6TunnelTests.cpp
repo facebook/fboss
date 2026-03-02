@@ -15,7 +15,7 @@ HwSwitchMatcher scope() {
 std::shared_ptr<Srv6Tunnel> makeSrv6Tunnel(
     const std::string& tunnelId = "srv6tunnel0") {
   auto tunnel = std::make_shared<Srv6Tunnel>(tunnelId);
-  tunnel->setType(cfg::TunnelType::SRV6_ENCAP);
+  tunnel->setType(TunnelType::SRV6_ENCAP);
   tunnel->setUnderlayIntfId(InterfaceID(42));
   tunnel->setTTLMode(cfg::TunnelMode::PIPE);
   tunnel->setDscpMode(cfg::TunnelMode::PIPE);
@@ -30,7 +30,7 @@ std::shared_ptr<Srv6Tunnel> makeSrv6Tunnel(
 TEST(Srv6Tunnel, GettersReturnSetValues) {
   auto tunnel = makeSrv6Tunnel();
   EXPECT_EQ(tunnel->getID(), "srv6tunnel0");
-  EXPECT_EQ(tunnel->getType(), cfg::TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_ENCAP);
   EXPECT_EQ(tunnel->getUnderlayIntfId(), InterfaceID(42));
   EXPECT_EQ(tunnel->getTTLMode(), cfg::TunnelMode::PIPE);
   EXPECT_EQ(tunnel->getDscpMode(), cfg::TunnelMode::PIPE);
@@ -80,8 +80,8 @@ TEST(Srv6Tunnel, ModifyFields) {
   tunnel->setUnderlayIntfId(InterfaceID(99));
   EXPECT_EQ(tunnel->getUnderlayIntfId(), InterfaceID(99));
 
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
-  EXPECT_EQ(tunnel->getType(), cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
+  EXPECT_EQ(tunnel->getType(), TunnelType::IP_IN_IP);
 
   tunnel->setTTLMode(cfg::TunnelMode::UNIFORM);
   EXPECT_EQ(tunnel->getTTLMode(), cfg::TunnelMode::UNIFORM);

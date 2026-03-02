@@ -596,7 +596,7 @@ struct Srv6TunnelFields {
   6: optional switch_config.TunnelMode dscpMode;
   7: optional switch_config.TunnelMode ecnMode;
   8: optional switch_config.TunnelTerminationType tunnelTermType;
-  9: switch_config.TunnelType tunnelType;
+  9: common.TunnelType tunnelType;
 }
 
 struct QosPolicyFields {

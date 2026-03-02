@@ -118,6 +118,7 @@ cpp_unittest(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:thrift_based_warmboot_utils",
         "//fboss/agent:utils",
+        "//fboss/agent:validate_state_update",
         "//fboss/agent:voq_utils",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/hw/mock:pkt",

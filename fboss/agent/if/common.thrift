@@ -207,3 +207,8 @@ struct StateDeltaApplication {
   1: DeltaApplicationMode mode = DeltaApplicationMode.APPLY_ALL;
   2: optional i32 rollbackIndex;
 }
+
+enum TunnelType {
+  IP_IN_IP = 0,
+  SRV6_ENCAP = 1,
+}

@@ -11,7 +11,7 @@ using namespace facebook::fboss;
 std::shared_ptr<Srv6Tunnel> makeSrv6Tunnel(
     const std::string& tunnelId = "srv6tunnel0") {
   auto tunnel = std::make_shared<Srv6Tunnel>(tunnelId);
-  tunnel->setType(cfg::TunnelType::SRV6_ENCAP);
+  tunnel->setType(TunnelType::SRV6_ENCAP);
   tunnel->setUnderlayIntfId(InterfaceID(0));
   return tunnel;
 }

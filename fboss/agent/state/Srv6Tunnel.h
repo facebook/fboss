@@ -113,10 +113,10 @@ class Srv6Tunnel
     }
     set<switch_state_tags::tunnelTermType>(*type);
   }
-  cfg::TunnelType getType() const {
+  TunnelType getType() const {
     return get<switch_state_tags::tunnelType>()->cref();
   }
-  void setType(cfg::TunnelType type) {
+  void setType(TunnelType type) {
     set<switch_state_tags::tunnelType>(type);
   }
 

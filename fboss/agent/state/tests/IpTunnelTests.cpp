@@ -15,7 +15,7 @@ HwSwitchMatcher scope() {
 
 std::shared_ptr<IpTunnel> makeTunnel(const std::string& tunnelId = "tunnel0") {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
   tunnel->setUnderlayIntfId(InterfaceID(42));
   tunnel->setTTLMode(cfg::TunnelMode::PIPE);
   tunnel->setDscpMode(cfg::TunnelMode::PIPE);

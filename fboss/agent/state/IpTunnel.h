@@ -23,10 +23,10 @@ class IpTunnel : public ThriftStructNode<IpTunnel, state::IpTunnelFields> {
   std::string getID() const {
     return get<switch_state_tags::ipTunnelId>()->cref();
   }
-  cfg::TunnelType getType() const {
-    return static_cast<cfg::TunnelType>(get<switch_state_tags::type>()->cref());
+  TunnelType getType() const {
+    return static_cast<TunnelType>(get<switch_state_tags::type>()->cref());
   }
-  void setType(cfg::TunnelType type) {
+  void setType(TunnelType type) {
     set<switch_state_tags::type>(static_cast<int>(type));
   }
   InterfaceID getUnderlayIntfId() const {

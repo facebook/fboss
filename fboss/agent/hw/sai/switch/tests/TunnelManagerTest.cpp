@@ -18,7 +18,7 @@ std::shared_ptr<IpTunnel> makeTunnel(
     uint32_t intfID = 0,
     cfg::TunnelMode mode = cfg::TunnelMode::PIPE) {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
   tunnel->setUnderlayIntfId(InterfaceID(intfID));
   tunnel->setTTLMode(mode);
   tunnel->setDscpMode(mode);
