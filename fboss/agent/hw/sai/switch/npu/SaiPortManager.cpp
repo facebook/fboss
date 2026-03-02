@@ -463,6 +463,7 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
+  changeClm(oldPort, newPort);
 }
 
 void SaiPortManager::attributesFromSaiStore(

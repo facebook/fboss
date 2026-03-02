@@ -500,6 +500,9 @@ class SaiPortManager {
   void changePortFlowletConfig(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void changeClm(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
   void clearPortFlowletConfig(const PortID& portId);
   void programPfcDurationCounterEnable(
       const std::shared_ptr<Port>& swPort,
