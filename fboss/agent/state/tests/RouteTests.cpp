@@ -535,3 +535,123 @@ TEST(RouteNextHopEntry, toUnicastRouteNhopsEcmp) {
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action());
   EXPECT_EQ(2, unicastRoute.nextHops()->size());
 }
+
+TEST(Route, serializeRouteWithSrv6NextHops) {
+  ClientID clientId = ClientID(1);
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      folly::IPAddress("10.10.10.10"),
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1")));
+  nhops.emplace(
+      ResolvedNextHop(folly::IPAddress("11.11.11.11"), InterfaceID(2), 20));
+
+  RouteNextHopEntry nhopEntry(nhops, DISTANCE);
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
+  rt.setResolved(nhopEntry);
+  validateThriftStructNodeSerialization(rt);
+}
+
+TEST(Route, routeForwardInfoPreservesSrv6Fields) {
+  ClientID clientId = ClientID(1);
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1")};
+
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      folly::IPAddress("10.10.10.10"),
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1")));
+
+  RouteNextHopEntry nhopEntry(nhops, DISTANCE);
+  Route<IPAddressV4> rt(
+      Route<IPAddressV4>::makeThrift(
+          makePrefixV4("1.2.3.4/32"), clientId, nhopEntry));
+  rt.setResolved(nhopEntry);
+
+  const auto& fwdInfo = rt.getForwardInfo();
+  auto fwdNhops = fwdInfo.getNextHopSet();
+  ASSERT_EQ(fwdNhops.size(), 1);
+  const auto& nh = *fwdNhops.begin();
+  EXPECT_EQ(nh.srv6SegmentList(), segList);
+  EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+}
+
+TEST(Route, RouteNextHopsMultiWithSrv6) {
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1")};
+
+  RouteNextHopSet nhops;
+  nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("10.10.10.10"),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1")));
+
+  RouteNextHopsMulti nhm;
+  nhm.update(CLIENT_A, RouteNextHopEntry(nhops, DISTANCE));
+
+  validateThriftStructNodeSerialization<RouteNextHopsMulti>(nhm);
+
+  auto bestEntry = nhm.getBestEntry();
+  auto bestNhops = bestEntry.second->getNextHopSet();
+  ASSERT_EQ(bestNhops.size(), 1);
+  const auto& nh = *bestNhops.begin();
+  EXPECT_EQ(nh.srv6SegmentList(), segList);
+  EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+}
+
+TEST(RouteNextHopEntry, toUnicastRouteWithSrv6Nhops) {
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+
+  folly::CIDRNetwork nw{folly::IPAddress{"1::1"}, 64};
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      folly::IPAddress("1.1.1.10"),
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1")));
+
+  auto unicastRoute =
+      util::toUnicastRoute(nw, RouteNextHopEntry(nhops, DISTANCE));
+
+  EXPECT_EQ(RouteForwardAction::NEXTHOPS, unicastRoute.action());
+  ASSERT_EQ(1, unicastRoute.nextHops()->size());
+  const auto& thriftNh = unicastRoute.nextHops()->at(0);
+  EXPECT_EQ(thriftNh.srv6SegmentList()->size(), 2);
+  EXPECT_EQ(thriftNh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(thriftNh.tunnelId(), "tunnel_1");
+}
