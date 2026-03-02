@@ -17,6 +17,7 @@ cpp_library(
         "lldp_thrift_types.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":lldp_structs-cpp2-types",
         "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
@@ -31,7 +32,6 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp2:type_class",
     ],
-    exported_external_deps = ["glog"],
 )
 
 cpp_unittest(
