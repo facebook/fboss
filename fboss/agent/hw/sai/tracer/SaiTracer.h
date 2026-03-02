@@ -105,6 +105,27 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_object_type_t object_type);
 
+  void logBulkCreateFn(
+      const std::string& fn_name,
+      sai_object_id_t switch_id,
+      uint32_t object_count,
+      const uint32_t* attr_count,
+      const sai_attribute_t** attr_list,
+      sai_bulk_op_error_mode_t mode,
+      sai_object_id_t* object_id,
+      sai_status_t* object_statuses,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
+  void logBulkRemoveFn(
+      const std::string& fn_name,
+      uint32_t object_count,
+      const sai_object_id_t* object_id,
+      sai_bulk_op_error_mode_t mode,
+      sai_status_t* object_statuses,
+      sai_object_type_t object_type,
+      sai_status_t rv);
+
   void logRouteEntryRemoveFn(const sai_route_entry_t* route_entry);
 
   void logNeighborEntryRemoveFn(
@@ -798,7 +819,7 @@ class SaiTracer {
     return rv;                                                                 \
   }
 
-// TODO(zecheng): Add bulk create functions
+// Bulk create functions - calls logBulkCreateFn for proper bulk logging
 #define WRAP_BULK_CREATE_FUNC(obj_type, sai_obj_type, api_type)               \
   sai_status_t wrap_create_##obj_type##s(                                     \
       sai_object_id_t switch_id,                                              \
@@ -808,15 +829,6 @@ class SaiTracer {
       sai_bulk_op_error_mode_t mode,                                          \
       sai_object_id_t* object_id,                                             \
       sai_status_t* object_statuses) {                                        \
-    for (int i = 0; i < object_count; i++) {                                  \
-      auto varName = SaiTracer::getInstance()->logCreateFn(                   \
-          "create_" #obj_type "s",                                            \
-          0,                                                                  \
-          switch_id,                                                          \
-          attr_count[i],                                                      \
-          attr_list[i],                                                       \
-          sai_obj_type);                                                      \
-    }                                                                         \
     auto begin = FLAGS_enable_elapsed_time_log                                \
         ? std::chrono::system_clock::now()                                    \
         : std::chrono::system_clock::time_point::min();                       \
@@ -828,28 +840,44 @@ class SaiTracer {
         mode,                                                                 \
         object_id,                                                            \
         object_statuses);                                                     \
-    SaiTracer::getInstance()->logPostInvocation(rv, object_id[0], begin);     \
+    SaiTracer::getInstance()->logBulkCreateFn(                                \
+        "create_" #obj_type "s",                                              \
+        switch_id,                                                            \
+        object_count,                                                         \
+        attr_count,                                                           \
+        attr_list,                                                            \
+        mode,                                                                 \
+        object_id,                                                            \
+        object_statuses,                                                      \
+        sai_obj_type,                                                         \
+        rv);                                                                  \
+    SaiTracer::getInstance()->logPostInvocation(                              \
+        rv, object_count > 0 ? object_id[0] : SAI_NULL_OBJECT_ID, begin);     \
     return rv;                                                                \
   }
 
-// TODO(zecheng): Add bulk remove functions
+// Bulk remove functions - calls logBulkRemoveFn for proper bulk logging
 #define WRAP_BULK_REMOVE_FUNC(obj_type, sai_obj_type, api_type)               \
   sai_status_t wrap_remove_##obj_type##s(                                     \
       uint32_t object_count,                                                  \
       const sai_object_id_t* object_id,                                       \
       sai_bulk_op_error_mode_t mode,                                          \
       sai_status_t* object_statuses) {                                        \
-    for (int i = 0; i < object_count; i++) {                                  \
-      SaiTracer::getInstance()->logRemoveFn(                                  \
-          "remove_" #obj_type, object_id[i], sai_obj_type);                   \
-    }                                                                         \
     auto begin = FLAGS_enable_elapsed_time_log                                \
         ? std::chrono::system_clock::now()                                    \
         : std::chrono::system_clock::time_point::min();                       \
     auto rv = SaiTracer::getInstance()->api_type##Api_->remove_##obj_type##s( \
         object_count, object_id, mode, object_statuses);                      \
-                                                                              \
-    SaiTracer::getInstance()->logPostInvocation(rv, object_id[0], begin);     \
+    SaiTracer::getInstance()->logBulkRemoveFn(                                \
+        "remove_" #obj_type "s",                                              \
+        object_count,                                                         \
+        object_id,                                                            \
+        mode,                                                                 \
+        object_statuses,                                                      \
+        sai_obj_type,                                                         \
+        rv);                                                                  \
+    SaiTracer::getInstance()->logPostInvocation(                              \
+        rv, object_count > 0 ? object_id[0] : SAI_NULL_OBJECT_ID, begin);     \
     return rv;                                                                \
   }
 
