@@ -85,6 +85,7 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class MirrorManager;
+class TamManager;
 class PhySnapshotManager;
 class AclNexthopHandler;
 class LookupClassUpdater;
@@ -1356,6 +1357,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<MirrorManager> mirrorManager_;
+  std::unique_ptr<TamManager> tamManager_;
   std::unique_ptr<MPLSHandler> mplsHandler_;
   std::unique_ptr<PacketLogger> packetLogger_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;

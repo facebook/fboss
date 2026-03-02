@@ -72,6 +72,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwitchStatsObserver.h"
+#include "fboss/agent/TamManager.h"
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -459,6 +460,7 @@ SwSwitch::SwSwitch(
           agentDirUtil_->getPersistentStateDir(),
           pktObservers_.get())),
       mirrorManager_(new MirrorManager(this)),
+      tamManager_(new TamManager(this)),
       mplsHandler_(new MPLSHandler(this)),
       packetLogger_(new PacketLogger(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
