@@ -6479,17 +6479,15 @@ shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
         tunnel->getID(),
         ", only SRV6_ENCAP is supported");
   }
-  if (tunnel->getType() == TunnelType::SRV6_ENCAP) {
-    if (!tunnel->getSrcIP()) {
-      throw FbossError(
-          "Src IP not set for: ", tunnel->getID(), ", SRv6 encap tunnel");
-    }
-    if (tunnel->getDstIP()) {
-      throw FbossError(
-          "DST IP set for: ",
-          tunnel->getID(),
-          ", must not be set for tunnels of type SRv6 encap tunnel");
-    }
+  if (!tunnel->getSrcIP()) {
+    throw FbossError(
+        "Src IP not set for: ", tunnel->getID(), ", SRv6 encap tunnel");
+  }
+  if (tunnel->getDstIP()) {
+    throw FbossError(
+        "DST IP set for: ",
+        tunnel->getID(),
+        ", must not be set for tunnels of type SRv6 encap tunnel");
   }
   return tunnel;
 }
