@@ -52,6 +52,38 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
                 .push_back(folly::to<std::string>(label));
       }
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    else if (
+        auto srv6Ahk = std::get_if<SaiSrv6SidlistNextHopTraits::AdapterHostKey>(
+            &ahk.first)) {
+      object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
+          folly::to<std::string>(SAI_NEXT_HOP_TYPE_SRV6_SIDLIST);
+      object[AttributeName<
+          SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>::value] =
+          folly::to<std::string>(
+              std::get<
+                  SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>(
+                  *srv6Ahk)
+                  .value());
+      object
+          [AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::Ip>::value] =
+              std::get<SaiSrv6SidlistNextHopTraits::Attributes::Ip>(*srv6Ahk)
+                  .value()
+                  .str();
+      object[AttributeName<
+          SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>::value] =
+          folly::to<std::string>(
+              std::get<SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>(
+                  *srv6Ahk)
+                  .value());
+      object[AttributeName<
+          SaiSrv6SidlistNextHopTraits::Attributes::Srv6SidlistId>::value] =
+          folly::to<std::string>(
+              std::get<SaiSrv6SidlistNextHopTraits::Attributes::Srv6SidlistId>(
+                  *srv6Ahk)
+                  .value());
+    }
+#endif
 
     object[AttributeName<
         SaiNextHopGroupMemberTraits::Attributes::Weight>::value] = ahk.second;
@@ -130,6 +162,36 @@ void follyDynamicToNhopSet(
         std::get<SaiMplsNextHopTraits::Attributes::LabelStack>(mplsAhk) = stack;
         key.nhopMemberSet.insert(std::make_pair(mplsAhk, weight));
       } break;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_NEXT_HOP_TYPE_SRV6_SIDLIST: {
+        SaiSrv6SidlistNextHopTraits::AdapterHostKey srv6Ahk;
+
+        std::get<SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>(
+            srv6Ahk) =
+            folly::to<sai_object_id_t>(
+                object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
+                                         RouterInterfaceId>::value]
+                    .asString());
+        std::get<SaiSrv6SidlistNextHopTraits::Attributes::Ip>(srv6Ahk) =
+            folly::IPAddress(
+                object[AttributeName<
+                           SaiSrv6SidlistNextHopTraits::Attributes::Ip>::value]
+                    .asString());
+        std::get<SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>(srv6Ahk) =
+            folly::to<sai_object_id_t>(
+                object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
+                                         TunnelId>::value]
+                    .asString());
+        std::get<SaiSrv6SidlistNextHopTraits::Attributes::Srv6SidlistId>(
+            srv6Ahk) =
+            folly::to<sai_object_id_t>(
+                object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
+                                         Srv6SidlistId>::value]
+                    .asString());
+        key.nhopMemberSet.insert(std::make_pair(srv6Ahk, weight));
+      } break;
+#endif
 
       default:
         XLOG(FATAL) << "unsupported next hop type " << type;
