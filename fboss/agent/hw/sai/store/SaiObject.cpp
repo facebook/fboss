@@ -13,11 +13,11 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
   folly::dynamic memberList = folly::dynamic::array;
   for (auto& ahk : adapterHostKey_.nhopMemberSet) {
     folly::dynamic object = folly::dynamic::object;
-    object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
-        folly::to<std::string>(ahk.first.index());
 
     if (auto ipAhk =
             std::get_if<SaiIpNextHopTraits::AdapterHostKey>(&ahk.first)) {
+      object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
+          folly::to<std::string>(SAI_NEXT_HOP_TYPE_IP);
       object[AttributeName<
           SaiIpNextHopTraits::Attributes::RouterInterfaceId>::value] =
           folly::to<std::string>(
@@ -29,6 +29,8 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
     } else if (
         auto mplsAhk =
             std::get_if<SaiMplsNextHopTraits::AdapterHostKey>(&ahk.first)) {
+      object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
+          folly::to<std::string>(SAI_NEXT_HOP_TYPE_MPLS);
       object[AttributeName<
           SaiMplsNextHopTraits::Attributes::RouterInterfaceId>::value] =
           folly::to<std::string>(
