@@ -1168,4 +1168,135 @@ TEST_F(NextHopIDManagerTest, reconstructFromFibMultiSwitch) {
       newSetIter->second.id,
       NextHopSetID(kSetIdOffset + 4)); // max was +3, so next is +4
 }
+
+TEST_F(NextHopIDManagerTest, Srv6NextHopGetDistinctIDs) {
+  // Verify that SRv6 nexthops with different SRv6 fields get distinct IDs
+  const std::vector<folly::IPAddressV6> segList1{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+  const std::vector<folly::IPAddressV6> segList2{
+      folly::IPAddressV6("2001:db8::3")};
+
+  // SRv6 nexthop with segList1 and tunnel_1
+  NextHop srv6Nh1 = ResolvedNextHop(
+      folly::IPAddress("10.0.0.1"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt, // action
+      std::nullopt, // disableTTLDecrement
+      std::nullopt, // topologyInfo
+      std::nullopt, // adjustedWeight
+      segList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1"));
+
+  // SRv6 nexthop with same IP but different segment list
+  NextHop srv6Nh2 = ResolvedNextHop(
+      folly::IPAddress("10.0.0.1"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_2"));
+
+  // SRv6 nexthop with same IP but different tunnel ID
+  NextHop srv6Nh3 = ResolvedNextHop(
+      folly::IPAddress("10.0.0.1"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_3"));
+
+  // Regular nexthop with same IP (no SRv6 fields)
+  NextHop regularNh =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+
+  // Allocate IDs for all nexthops
+  auto iter1 = manager_->getOrAllocateNextHopID(srv6Nh1);
+  auto id1 = iter1->second.id;
+  auto iter2 = manager_->getOrAllocateNextHopID(srv6Nh2);
+  auto id2 = iter2->second.id;
+  auto iter3 = manager_->getOrAllocateNextHopID(srv6Nh3);
+  auto id3 = iter3->second.id;
+  auto iter4 = manager_->getOrAllocateNextHopID(regularNh);
+  auto id4 = iter4->second.id;
+
+  // All should get distinct IDs since SRv6 fields differ
+  EXPECT_NE(id1, id2);
+  EXPECT_NE(id1, id3);
+  EXPECT_NE(id1, id4);
+  EXPECT_NE(id2, id3);
+  EXPECT_NE(id2, id4);
+  EXPECT_NE(id3, id4);
+
+  // 4 distinct nexthops allocated
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+
+  // Re-allocating same SRv6 nexthop returns same ID
+  auto iterDup = manager_->getOrAllocateNextHopID(srv6Nh1);
+  EXPECT_EQ(iterDup->second.id, id1);
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
+
+  // Verify idToNextHop map stores SRv6 nexthops correctly
+  EXPECT_EQ(manager_->getIdToNextHop().at(id1), srv6Nh1);
+  EXPECT_EQ(manager_->getIdToNextHop().at(id2), srv6Nh2);
+  EXPECT_EQ(manager_->getIdToNextHop().at(id3), srv6Nh3);
+  EXPECT_EQ(manager_->getIdToNextHop().at(id4), regularNh);
+}
+
+TEST_F(NextHopIDManagerTest, Srv6NextHopSetID) {
+  // Verify that sets of SRv6 nexthops get proper set IDs
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1")};
+
+  NextHop srv6Nh1 = ResolvedNextHop(
+      folly::IPAddress("10.0.0.1"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1"));
+
+  NextHop srv6Nh2 = ResolvedNextHop(
+      folly::IPAddress("10.0.0.2"),
+      InterfaceID(1),
+      UCMP_DEFAULT_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_2"));
+
+  // Allocate individual NextHop IDs
+  auto nhIter1 = manager_->getOrAllocateNextHopID(srv6Nh1);
+  auto nhId1 = nhIter1->second.id;
+  auto nhIter2 = manager_->getOrAllocateNextHopID(srv6Nh2);
+  auto nhId2 = nhIter2->second.id;
+
+  // Allocate a set containing both SRv6 nexthops
+  NextHopIDSet srv6Set = {nhId1, nhId2};
+  auto setIter = manager_->getOrAllocateNextHopSetID(srv6Set);
+  auto setId = setIter->second.id;
+
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId), srv6Set);
+
+  // Re-allocating the same set returns the same ID
+  auto setIterDup = manager_->getOrAllocateNextHopSetID(srv6Set);
+  EXPECT_EQ(setIterDup->second.id, setId);
+}
 } // namespace facebook::fboss
