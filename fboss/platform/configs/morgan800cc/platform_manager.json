@@ -272,7 +272,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_4",
           "address": "0x12",
-          "kernelDeviceName": "adm1278",
+          "kernelDeviceName": "adm1278c",
           "pmUnitScopedName": "MCB_ADM1278_0X12"
         },
         {
