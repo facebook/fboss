@@ -45,6 +45,13 @@ bool isExpectedError(
     }
   }
 
+  if (*platformConfig.platformName() == "DARWIN" &&
+      errorType == ExplorationErrorType::IDPROM_READ &&
+      (devicePath == "/RACKMON_SLOT@0/[IDPROM]" ||
+       devicePath == "/PEM_SLOT@0/[IDPROM]")) {
+    return true;
+  }
+
   return false;
 }
 
