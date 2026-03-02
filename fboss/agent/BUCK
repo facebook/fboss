@@ -918,6 +918,7 @@ cpp_library(
         "SwitchInfoTable.cpp",
         "SwitchStats.cpp",
         "SwitchStatsObserver.cpp",
+        "TamManager.cpp",
         "TeFlowNexthopHandler.cpp",
         "TunIntf.cpp",
         "TunManager.cpp",
