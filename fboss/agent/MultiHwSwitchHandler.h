@@ -83,9 +83,17 @@ class MultiHwSwitchHandler {
       const PortID& portID,
       PacketType packetType) noexcept;
 
-  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
+  // TODO Migrate all callsites to explicitly pass switchID and then make
+  // SwitchID non-optional
+  bool sendPacketSwitchedSync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<SwitchID> switchId = std::nullopt) noexcept;
 
-  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
+  // TODO Migrate all callsites to explicitly pass switchID and then make
+  // SwitchID non-optional
+  bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<SwitchID> switchId = std::nullopt) noexcept;
 
   bool transactionsSupported() const;
 
