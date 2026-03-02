@@ -123,6 +123,10 @@ class StateDelta {
 
   const fsdb::OperDelta& getOperDelta() const;
 
+  // Check if routes or neighbors (ARP/NDP) changed.
+  // Shared by MirrorManager and TamManager for next-hop resolution.
+  bool hasRouteOrNeighborChanges() const;
+
  private:
   // Forbidden copy constructor and assignment operator
   StateDelta(StateDelta const&) = delete;

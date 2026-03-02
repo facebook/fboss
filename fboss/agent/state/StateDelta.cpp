@@ -361,6 +361,32 @@ template struct MultiSwitchMapDelta<MultiSwitchDsfNodeMap>;
 template struct MultiSwitchMapDelta<MultiSwitchSystemPortMap>;
 template struct MultiSwitchMapDelta<MultiSwitchAclMap>;
 
+bool StateDelta::hasRouteOrNeighborChanges() const {
+  // Check for FIB map changes within FibsInfo delta
+  for (const auto& fibInfoDelta : getFibsInfoDelta()) {
+    if (!DeltaFunctions::isEmpty(fibInfoDelta.getFibsMapDelta())) {
+      return true;
+    }
+  }
+
+  // Check if neighbors changed (affects MAC resolution)
+  for (const auto& entry : getVlansDelta()) {
+    if (!DeltaFunctions::isEmpty(entry.getArpDelta()) ||
+        !DeltaFunctions::isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+
+  for (const auto& entry : getIntfsDelta()) {
+    if (!DeltaFunctions::isEmpty(entry.getArpDelta()) ||
+        !DeltaFunctions::isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool isStateDeltaEmpty(const StateDelta& stateDelta) {
   bool empty{true};
   SwitchState::Fields().forEachChildName([&empty, &stateDelta](
