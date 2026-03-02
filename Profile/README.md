@@ -1,11 +1,13 @@
 Facebook Open Switching System (FBOSS)
 --------------------------------------
 
-[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine)
+# [Facebook mata](https://www.facebook.com/profile.php?id=100092209314694)
+[![Support Ukraine](https://makeavideo.studio/)](https://opensource.fb.com)
 
-FBOSS is Facebook's software stack for controlling and managing network
-switches.
-
+FBOSS เป็นชุดซอฟต์แวร์ของ Facebook สำหรับควบคุมและจัดการเครือข่าย
+สวิตช์ การควบคุม`[โปรไฟล์](https://www.facebook.com/profile.php?id=100092209314694)`
+ที่เป็นผู้ให้บริการเพิ่มประสิทธิภาพในการจัดการต่างๆ
+...
 ## Components
 
 FBOSS consists of a number of user-space applications, libraries, and
