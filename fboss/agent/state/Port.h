@@ -34,9 +34,10 @@ using PortFlowletCfgPtr = std::shared_ptr<PortFlowletCfg>;
 
 struct PortFields {
   struct VlanInfo {
-    explicit VlanInfo(bool emitTags) : tagged(emitTags) {}
+    explicit VlanInfo(bool emitTags, bool emitPriorityTags)
+        : tagged(emitTags), priorityTagged(emitPriorityTags) {}
     bool operator==(const VlanInfo& other) const {
-      return tagged == other.tagged;
+      return tagged == other.tagged && priorityTagged == other.priorityTagged;
     }
     bool operator!=(const VlanInfo& other) const {
       return !(*this == other);
@@ -44,6 +45,7 @@ struct PortFields {
     state::VlanInfo toThrift() const;
     static VlanInfo fromThrift(state::VlanInfo const&);
     bool tagged;
+    bool priorityTagged;
   };
 
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
@@ -321,9 +323,10 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::vlanMemberShips>(vlanMembership);
   }
 
-  void addVlan(VlanID id, bool tagged) {
+  void addVlan(VlanID id, bool tagged, bool priorityTagged) {
     auto vlanMembership = getVlans();
-    vlanMembership.emplace(std::make_pair(id, VlanInfo(tagged)));
+    vlanMembership.emplace(
+        std::make_pair(id, VlanInfo(tagged, priorityTagged)));
     setVlans(vlanMembership);
   }
 

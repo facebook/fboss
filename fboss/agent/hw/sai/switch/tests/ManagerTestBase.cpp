@@ -245,7 +245,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   VlanID vlan(testPort.id / 10);
   swPort->setIngressVlan(vlan);
   PortFields::VlanMembership vlanMemberShip{
-      {vlan, PortFields::VlanInfo{false}}};
+      {vlan, PortFields::VlanInfo{false, false}}};
   swPort->setVlans(vlanMemberShip);
   swPort->setSpeed(expectedSpeed ? *expectedSpeed : testPort.portSpeed);
   switch (swPort->getSpeed()) {
@@ -338,10 +338,12 @@ std::shared_ptr<Vlan> ManagerTestBase::makeVlan(
   Vlan::MemberPorts mps;
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
-    bool portInfo(false);
+    state::VlanInfo portInfo;
+    *portInfo.tagged() = false;
+    *portInfo.priorityTagged() = false;
     mps.insert(std::make_pair(portId, portInfo));
   }
-  swVlan->setPorts(mps);
+  swVlan->setPortsInfo(mps);
   return swVlan;
 }
 

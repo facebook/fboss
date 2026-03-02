@@ -116,7 +116,7 @@ boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
         } else if (intf.second->getType() == cfg::InterfaceType::VLAN) {
           auto vlan =
               sw->getState()->getVlans()->getNode(intf.second->getVlanID());
-          auto memberPorts = vlan->getPorts();
+          auto memberPorts = vlan->getPortsInfo();
           if (memberPorts.size() == 1) {
             ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
           }

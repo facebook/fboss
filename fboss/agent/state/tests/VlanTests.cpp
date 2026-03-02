@@ -42,6 +42,13 @@ static const string kVlan1299("Vlan1299");
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
+
+state::VlanInfo makeVlanInfo(bool tagged, bool priorityTagged) {
+  state::VlanInfo info;
+  *info.tagged() = tagged;
+  *info.priorityTagged() = priorityTagged;
+  return info;
+}
 } // namespace
 
 template <typename Entry>
@@ -74,7 +81,7 @@ TEST(Vlan, applyConfig) {
     EXPECT_FALSE(vlanV0->isPublished());
     EXPECT_EQ(VlanID(1234), vlanV0->getID());
     Vlan::MemberPorts emptyPorts;
-    EXPECT_EQ(emptyPorts, vlanV0->getPorts());
+    EXPECT_EQ(emptyPorts, vlanV0->getPortsInfo());
 
     vlanV0->publish();
     EXPECT_TRUE(vlanV0->isPublished());
@@ -108,8 +115,8 @@ TEST(Vlan, applyConfig) {
     config.interfaces()[0].vlanID() = 1234;
 
     Vlan::MemberPorts expectedPorts;
-    expectedPorts.insert(std::make_pair(1, false));
-    expectedPorts.insert(std::make_pair(2, true));
+    expectedPorts.insert(std::make_pair(1, makeVlanInfo(false, false)));
+    expectedPorts.insert(std::make_pair(2, makeVlanInfo(true, false)));
 
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     auto vlanV1 = stateV1->getVlans()->getNode(VlanID(1234));
@@ -121,7 +128,7 @@ TEST(Vlan, applyConfig) {
     EXPECT_FALSE(vlanV1->isPublished());
     EXPECT_EQ(VlanID(1234), vlanV1->getID());
     EXPECT_EQ(kVlan1234, vlanV1->getName());
-    EXPECT_EQ(expectedPorts, vlanV1->getPorts());
+    EXPECT_EQ(expectedPorts, vlanV1->getPortsInfo());
     EXPECT_EQ(0, vlanV1->getArpResponseTable()->size());
     EXPECT_EQ(InterfaceID(1234), vlanV1->getInterfaceID());
     EXPECT_EQ(folly::IPAddressV4("30.1.1.1"), vlanV1->getDhcpV4Relay());
@@ -162,7 +169,7 @@ TEST(Vlan, applyConfig) {
     EXPECT_FALSE(vlanV2->isPublished());
     EXPECT_EQ(VlanID(1), vlanV2->getID());
     EXPECT_EQ("vlan1", vlanV2->getName());
-    EXPECT_EQ(0, vlanV2->getPorts().size());
+    EXPECT_EQ(0, vlanV2->getPortsInfo().size());
     EXPECT_EQ(InterfaceID(1), vlanV2->getInterfaceID());
 
     if (use_intf_nbr_tables) {
@@ -424,11 +431,12 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(kVlan1234, vlan1234v0->getName());
   EXPECT_EQ(0, vlan1234v0->getGeneration());
   Vlan::MemberPorts ports1234v0;
-  ports1234v0.insert(make_pair(1, false));
-  ports1234v0.insert(make_pair(2, false));
-  ports1234v0.insert(make_pair(3, false));
-  ports1234v0.insert(make_pair(4, false));
-  EXPECT_EQ(ports1234v0, vlan1234v0->getPorts());
+  auto untaggedInfo = makeVlanInfo(false, false);
+  ports1234v0.insert(make_pair(1, untaggedInfo));
+  ports1234v0.insert(make_pair(2, untaggedInfo));
+  ports1234v0.insert(make_pair(3, untaggedInfo));
+  ports1234v0.insert(make_pair(4, untaggedInfo));
+  EXPECT_EQ(ports1234v0, vlan1234v0->getPortsInfo());
 
   // Check the new settings for VLAN 99
   auto vlan99v0 = vlansV1->getNode(VlanID(99));
@@ -441,10 +449,10 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(kVlan99, vlan99v0->getName());
   EXPECT_EQ(0, vlan99v0->getGeneration());
   Vlan::MemberPorts ports99v1;
-  ports99v1.insert(make_pair(9, false));
-  ports99v1.insert(make_pair(19, false));
-  ports99v1.insert(make_pair(29, false));
-  EXPECT_EQ(ports99v1, vlan99v0->getPorts());
+  ports99v1.insert(make_pair(9, untaggedInfo));
+  ports99v1.insert(make_pair(19, untaggedInfo));
+  ports99v1.insert(make_pair(29, untaggedInfo));
+  EXPECT_EQ(ports99v1, vlan99v0->getPortsInfo());
 
   // getVlan() should throw on a non-existent VLAN
   EXPECT_THROW(vlansV1->getNode(VlanID(1)), FbossError);
@@ -469,10 +477,10 @@ TEST(VlanMap, applyConfig) {
   EXPECT_NE(vlan1234v0, vlan1234v1);
   EXPECT_EQ(1, vlan1234v1->getGeneration());
   Vlan::MemberPorts ports1234v1;
-  ports1234v1.insert(make_pair(2, false));
-  ports1234v1.insert(make_pair(3, false));
-  ports1234v1.insert(make_pair(4, false));
-  EXPECT_EQ(ports1234v1, vlan1234v1->getPorts());
+  ports1234v1.insert(make_pair(2, untaggedInfo));
+  ports1234v1.insert(make_pair(3, untaggedInfo));
+  ports1234v1.insert(make_pair(4, untaggedInfo));
+  EXPECT_EQ(ports1234v1, vlan1234v1->getPortsInfo());
 
   // VLAN 99 should not have changed
   EXPECT_EQ(vlan99v0, vlansV2->getNode(VlanID(99)));

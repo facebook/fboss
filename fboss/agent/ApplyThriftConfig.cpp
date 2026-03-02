@@ -1685,14 +1685,20 @@ void ThriftConfigApplier::processVlanPorts() {
   for (const auto& vp : *cfg_->vlanPorts()) {
     PortID portID(*vp.logicalPort());
     VlanID vlanID(*vp.vlanID());
+    bool emitTags = *vp.emitTags();
+    bool emitPriorityTags = *vp.emitPriorityTags();
+
     auto ret1 = portVlans_[portID].insert(
-        std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags())));
+        std::make_pair(vlanID, Port::VlanInfo(emitTags, emitPriorityTags)));
     if (!ret1.second) {
       throw FbossError(
           "duplicate VlanPort for port ", portID, ", vlan ", vlanID);
     }
-    auto ret2 =
-        vlanPorts_[vlanID].insert(std::make_pair(portID, *vp.emitTags()));
+
+    state::VlanInfo vlanInfo;
+    *vlanInfo.tagged() = emitTags;
+    *vlanInfo.priorityTagged() = emitPriorityTags;
+    auto ret2 = vlanPorts_[vlanID].insert(std::make_pair(portID, vlanInfo));
     if (!ret2.second) {
       // This should never fail if the first insert succeeded above.
       throw FbossError(
@@ -3383,8 +3389,8 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
-  const auto& ports = vlanPorts_[VlanID(*config->id())];
-  auto vlan = make_shared<Vlan>(config, ports);
+  const auto& portsInfo = vlanPorts_[VlanID(*config->id())];
+  auto vlan = make_shared<Vlan>(config, portsInfo);
   updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
 
@@ -3435,7 +3441,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
     const cfg::Vlan* config,
     const std::set<PortDescriptor>& portSet) {
   CHECK_EQ(orig->getID(), VlanID(*config->id()));
-  const auto& ports = vlanPorts_[orig->getID()];
+  const auto& portsInfo = vlanPorts_[orig->getID()];
 
   auto newVlan = orig->clone();
   bool changed_neighbor_table =
@@ -3465,7 +3471,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 
   bool macChanged = updateMacTable(newVlan, portSet);
   if (orig->getName() == *config->name() && oldIntfID == newIntfID &&
-      orig->getPorts() == ports && oldDhcpV4Relay == newDhcpV4Relay &&
+      orig->getPortsInfo() == portsInfo && oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
       !changed_dhcp_overrides && !macChanged) {
     return nullptr;
@@ -3473,7 +3479,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 
   newVlan->setName(*config->name());
   newVlan->setInterfaceID(newIntfID);
-  newVlan->setPorts(ports);
+  newVlan->setPortsInfo(portsInfo);
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
 

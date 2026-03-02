@@ -210,7 +210,7 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
   // TODO - restrict vlan scope to L3 switches
   // Currently we create psuedo vlans on fabric switches
-  if (vlan->getPorts().empty()) {
+  if (vlan->getPortsInfo().empty()) {
     // VLANs corresponding to loopback intfs have no ports
     // associated with them. Also Psuedo vlans created
     // on fabric switches don't have ports associated with them.
@@ -223,7 +223,7 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
             {*allSwitchMatcher().switchIds().begin()}));
   }
   std::unordered_set<SwitchID> switchIds;
-  for (const auto& port : vlan->getPorts()) {
+  for (const auto& port : vlan->getPortsInfo()) {
     auto portSwitchIds = scope(PortID(port.first)).switchIds();
     switchIds.insert(portSwitchIds.begin(), portSwitchIds.end());
   }
@@ -292,7 +292,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       Vlan::MemberPorts vlanMembers;
       for (const auto& vlanPort : *cfg.vlanPorts()) {
         if (vlanPort.vlanID() == *vlanId) {
-          vlanMembers.emplace(std::make_pair(*vlanPort.logicalPort(), true));
+          state::VlanInfo vlanInfo;
+          *vlanInfo.tagged() = *vlanPort.emitTags();
+          *vlanInfo.priorityTagged() = *vlanPort.emitPriorityTags();
+          vlanMembers.emplace(*vlanPort.logicalPort(), vlanInfo);
         }
       }
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));

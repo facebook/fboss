@@ -190,7 +190,12 @@ TYPED_TEST(SwitchIdScopeResolverTest, sysPortScope) {
 
 TYPED_TEST(SwitchIdScopeResolverTest, vlanScope) {
   auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
-  vlan1->setPorts({{0, true}});
+  Vlan::MemberPorts ports;
+  state::VlanInfo vlanInfo;
+  *vlanInfo.tagged() = true;
+  *vlanInfo.priorityTagged() = false;
+  ports.insert(std::make_pair(0, vlanInfo));
+  vlan1->setPortsInfo(ports);
   this->expectSwitchId(vlan1);
   auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("Vlan2"));
   this->expectAll(vlan2);

@@ -4351,7 +4351,7 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
               if (vlanMap) {
                 auto vlan = vlanMap->getNodeIf(vlanID);
                 if (vlan) {
-                  for (auto memberPort : vlan->getPorts()) {
+                  for (auto memberPort : vlan->getPortsInfo()) {
                     auto port =
                         currentState->getPorts()->getNodeIf(memberPort.first);
                     if (port && port->isPortUp()) {

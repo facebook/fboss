@@ -640,6 +640,29 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
         std::make_shared<MultiSwitchForwardingInformationBaseMap>());
   }
 
+  // Migrate old ports field to new portsInfo field for warmboot compatibility
+  for (auto& vlanMapEntry : *state->ref<switch_state_tags::vlanMaps>()) {
+    for (auto& [vlanId, vlan] : *vlanMapEntry.second) {
+      // If new portsInfo field is empty but old ports field has data, migrate
+      // it
+      if (vlan->getPortsInfo().empty()) {
+        auto oldPorts = vlan->get<switch_state_tags::ports_DEPRECATED>();
+        if (oldPorts && !oldPorts->empty()) {
+          std::map<int16_t, state::VlanInfo> portsInfo;
+          for (const auto& [portId, taggedOpt] : *oldPorts) {
+            if (taggedOpt) {
+              state::VlanInfo vlanInfo;
+              *vlanInfo.tagged() = taggedOpt->cref();
+              *vlanInfo.priorityTagged() = false;
+              portsInfo.emplace(portId, vlanInfo);
+            }
+          }
+          vlan->set<switch_state_tags::portsInfo>(portsInfo);
+        }
+      }
+    }
+  }
+
   return state;
 }
 
@@ -876,6 +899,20 @@ state::SwitchState SwitchState::toThrift() const {
       }
     }
     data.fibsMap() = fibsMap;
+  }
+
+  // Migrate new portsInfo field to old ports field for warmboot compatibility
+  for (auto& [matcherKey, vlanMapThrift] : *data.vlanMaps()) {
+    for (auto& [vlanId, vlanThrift] : vlanMapThrift) {
+      // If new portsInfo field has data, populate old ports field
+      if (!vlanThrift.portsInfo()->empty()) {
+        std::map<int16_t, bool> ports;
+        for (const auto& [portId, vlanInfo] : *vlanThrift.portsInfo()) {
+          ports.emplace(portId, *vlanInfo.tagged());
+        }
+        vlanThrift.ports_DEPRECATED() = ports;
+      }
+    }
   }
 
   return data;
