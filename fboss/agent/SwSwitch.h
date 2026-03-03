@@ -226,9 +226,9 @@ class SwSwitch : public HwSwitchCallback {
     return hwSwitchThriftClientTable_.get();
   }
 
-  const ResourceAccountant* getResourceAccountant() const {
-    return resourceAccountant_.get();
-  }
+  const ResourceAccountant* getResourceAccountant() const;
+  ResourceAccountant* getResourceAccountant();
+
   /*
    * Initialize the switch.
    *
@@ -1397,7 +1397,6 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
-  std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;

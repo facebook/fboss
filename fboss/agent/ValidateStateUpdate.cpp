@@ -5,6 +5,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
@@ -262,11 +263,14 @@ StateUpdateValidator::StateUpdateValidator(
     : runMode_(runMode),
       hwSwitchHandler_(hwSwitchHandler),
       asicTable_(asicTable),
-      scopeResolver_(scopeResolver) {}
+      scopeResolver_(scopeResolver) {
+  resourceAccountant_ =
+      std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
+}
 
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
-    SwitchStats* /* stats */) const {
+    SwitchStats* /*stats*/) const {
   switch (runMode_) {
     case cfg::AgentRunMode::MONO: {
       return isStateUpdateValidCommon(delta, asicTable_) &&
@@ -281,4 +285,11 @@ bool StateUpdateValidator::isValidUpdate(
   throw FbossError("Invalid run mode: ", runMode_);
 }
 
+void StateUpdateValidator::resetResourceAccountant(
+    const std::shared_ptr<SwitchState>& oldState) {
+  resourceAccountant_ =
+      std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
+  resourceAccountant_->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), oldState));
+}
 } // namespace facebook::fboss

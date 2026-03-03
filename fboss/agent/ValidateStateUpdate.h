@@ -13,6 +13,8 @@ class HwAsicTable;
 class HwSwitchHandler;
 class SwitchStats;
 class Port;
+class ResourceAccountant;
+class SwitchState;
 
 bool hasValidPortQueues(
     const std::shared_ptr<Port>& port,
@@ -42,11 +44,20 @@ class StateUpdateValidator {
       const HwAsicTable* asicTable,
       const SwitchIdScopeResolver* scopeResolver);
 
+  ResourceAccountant* getResourceAccountant() {
+    return resourceAccountant_.get();
+  }
+  const ResourceAccountant* getResourceAccountant() const {
+    return resourceAccountant_.get();
+  }
+  void resetResourceAccountant(const std::shared_ptr<SwitchState>& oldState);
+
  private:
   cfg::AgentRunMode runMode_;
   const HwSwitchHandler* hwSwitchHandler_;
   const HwAsicTable* asicTable_;
   const SwitchIdScopeResolver* scopeResolver_;
+  std::unique_ptr<ResourceAccountant> resourceAccountant_;
 };
 
 } // namespace facebook::fboss
