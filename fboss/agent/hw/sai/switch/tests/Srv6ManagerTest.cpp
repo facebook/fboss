@@ -1,0 +1,135 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+
+#include "fboss/agent/hw/sai/api/Srv6Api.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
+
+#include <folly/IPAddressV6.h>
+
+using namespace facebook::fboss;
+
+class Srv6ManagerTest : public ManagerTestBase {
+ public:
+  void SetUp() override {
+    setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
+    ManagerTestBase::SetUp();
+  }
+
+  SaiSrv6SidListTraits::CreateAttributes makeCreateAttributes(
+      sai_int32_t type = SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+      const std::optional<std::vector<folly::IPAddressV6>>& segmentList =
+          std::nullopt) {
+    return SaiSrv6SidListTraits::CreateAttributes{
+        type, segmentList, std::nullopt};
+  }
+};
+
+TEST_F(Srv6ManagerTest, addSrv6SidList) {
+  auto attrs = makeCreateAttributes();
+  auto handle =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+  EXPECT_NE(handle, nullptr);
+  EXPECT_NE(handle->sidList, nullptr);
+}
+
+TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
+  std::vector<folly::IPAddressV6> segments{
+      folly::IPAddressV6("2001:db8::1"),
+      folly::IPAddressV6("2001:db8::2"),
+      folly::IPAddressV6("2001:db8::3")};
+  auto attrs = makeCreateAttributes(SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segments);
+  auto handle =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+  EXPECT_NE(handle, nullptr);
+  EXPECT_NE(handle->sidList, nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto gotType = srv6Api.getAttribute(
+      handle->sidList->adapterKey(), SaiSrv6SidListTraits::Attributes::Type{});
+  EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
+
+  auto gotSegments = srv6Api.getAttribute(
+      handle->sidList->adapterKey(),
+      SaiSrv6SidListTraits::Attributes::SegmentList{});
+  EXPECT_EQ(gotSegments.size(), 3);
+  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::1"));
+  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::2"));
+  EXPECT_EQ(gotSegments[2], folly::IPAddressV6("2001:db8::3"));
+}
+
+TEST_F(Srv6ManagerTest, reuseSrv6SidList) {
+  auto attrs = makeCreateAttributes();
+  auto handle1 =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+  auto handle2 =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+  // Same key should return the same handle
+  EXPECT_EQ(handle1, handle2);
+  EXPECT_EQ(handle1->sidList, handle2->sidList);
+}
+
+TEST_F(Srv6ManagerTest, getSrv6SidListHandle) {
+  auto attrs = makeCreateAttributes();
+  // Must hold the shared_ptr to keep the RefMap entry alive
+  auto holder =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+  auto* handle = saiManagerTable->srv6Manager().getSrv6SidListHandle(attrs);
+  EXPECT_NE(handle, nullptr);
+  EXPECT_NE(handle->sidList, nullptr);
+}
+
+TEST_F(Srv6ManagerTest, getNonexistentSrv6SidList) {
+  auto attrs = makeCreateAttributes();
+  auto* handle = saiManagerTable->srv6Manager().getSrv6SidListHandle(attrs);
+  EXPECT_EQ(handle, nullptr);
+}
+
+TEST_F(Srv6ManagerTest, addDifferentSidLists) {
+  auto attrs1 = makeCreateAttributes(SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
+  auto attrs2 = makeCreateAttributes(SAI_SRV6_SIDLIST_TYPE_INSERT_RED);
+
+  auto handle1 =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs1, attrs1);
+  auto handle2 =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs2, attrs2);
+  EXPECT_NE(handle1, handle2);
+  EXPECT_NE(handle1->sidList, nullptr);
+  EXPECT_NE(handle2->sidList, nullptr);
+  EXPECT_NE(handle1->sidList->adapterKey(), handle2->sidList->adapterKey());
+}
+
+TEST_F(Srv6ManagerTest, refCountRelease) {
+  auto attrs = makeCreateAttributes();
+  std::weak_ptr<SaiSrv6SidListHandle> weakHandle;
+  {
+    auto handle =
+        saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+    weakHandle = handle;
+    EXPECT_EQ(handle.use_count(), 1);
+  }
+  // After releasing the only reference, the handle should be expired
+  EXPECT_TRUE(weakHandle.expired());
+}
+
+TEST_F(Srv6ManagerTest, recreateAfterRelease) {
+  auto attrs = makeCreateAttributes();
+  sai_object_id_t firstAdapterKey;
+  {
+    auto handle =
+        saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+    firstAdapterKey = handle->sidList->adapterKey();
+  }
+  // Entry released; creating again should produce a fresh object
+  auto handle =
+      saiManagerTable->srv6Manager().addOrReuseSrv6SidList(attrs, attrs);
+  EXPECT_NE(handle, nullptr);
+  EXPECT_NE(handle->sidList, nullptr);
+  // New SAI object gets a different adapter key
+  EXPECT_NE(handle->sidList->adapterKey(), firstAdapterKey);
+}
+
+#endif

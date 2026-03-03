@@ -32,6 +32,7 @@ add_executable(switch_test
     fboss/agent/hw/sai/switch/tests/VlanManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/TunnelManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/Srv6TunnelManagerTest.cpp
+    fboss/agent/hw/sai/switch/tests/Srv6ManagerTest.cpp
 )
 
 target_link_libraries(switch_test
