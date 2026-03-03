@@ -249,7 +249,7 @@ class PortFlapCmd(cmds.FbossCmd):
             qsfp_info_map = utils.get_qsfp_info_map(
                 self._qsfp_client, None, continue_on_error=True
             )
-            resp = client.getPortStatus()
+            resp = client.getPortStatus([])
             flapped_ports = []
             for port, status in resp.items():
                 if status.enabled and not status.up:

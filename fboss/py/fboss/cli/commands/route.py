@@ -143,7 +143,9 @@ class RouteIpCmd(cmds.FbossCmd):
     def printIpRouteDetails(
         self, client, addr, vrf, vlan_aggregate_port_map, vlan_port_map
     ):
-        resp = client.getIpRouteDetails(addr, vrf)
+        # Boundary conversion: py-deprecated -> thrift-python
+        # Remove after migrating Address imports (D94128809)
+        resp = client.getIpRouteDetails(addr._to_python(), vrf)
         if not resp.nextHopMulti:
             print("No route to " + addr.addr + ", Vrf: %d" % vrf)
             return

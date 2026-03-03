@@ -151,7 +151,7 @@ def get_vlan_port_map(
 ) -> DefaultDict[str, DefaultDict[str, list[str]]]:
     """fetch port info and map vlan -> ports"""
     all_port_info_map = agent_client.getAllPortInfo()
-    port_status_map = agent_client.getPortStatus()
+    port_status_map = agent_client.getPortStatus([])
 
     qsfp_info_map = get_qsfp_info_map(qsfp_client, None, continue_on_error=True)
 
@@ -217,7 +217,7 @@ def get_system_port_map(
 ) -> DefaultDict[str, DefaultDict[str, list[str]]]:
     """fetch port info and map vlan -> ports"""
     all_port_info_map = agent_client.getAllPortInfo()
-    port_status_map = agent_client.getPortStatus()
+    port_status_map = agent_client.getPortStatus([])
     sys_ports = agent_client.getSystemPorts()
     dsf_nodes = agent_client.getDsfNodes()
     qsfp_info_map = get_qsfp_info_map(qsfp_client, None, continue_on_error=True)
