@@ -36,8 +36,7 @@ bool isStateUpdateValidMultiSwitch(
 
 class StateUpdateValidator {
  public:
-  bool isValidUpdate(const StateDelta& delta, SwitchStats* stats = nullptr)
-      const;
+  bool isValidUpdate(const StateDelta& delta, SwitchStats* stats) const;
   StateUpdateValidator(
       const cfg::AgentRunMode& runMode,
       const HwSwitchHandler* hwSwitchHandler,

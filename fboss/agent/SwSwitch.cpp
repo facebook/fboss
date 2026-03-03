@@ -2046,7 +2046,7 @@ SwSwitch::applyUpdate(
       XLOG(ERR) << "State updated rejected by resource accountant";
       break;
     }
-    if (!isValidStateUpdate(delta)) {
+    if (!isValidStateUpdate(delta, stats())) {
       updateRejected = true;
       XLOG(ERR) << "Attempted to apply invalid state update, rejected it";
       break;
@@ -3654,7 +3654,8 @@ void SwSwitch::applyConfigImpl(
             &routeUpdater,
             aclNexthopHandler_.get());
 
-        if (newState && !isValidStateUpdate(StateDelta(state, newState))) {
+        if (newState &&
+            !isValidStateUpdate(StateDelta(state, newState), stats())) {
           throw FbossError("Invalid config passed in, skipping");
         }
 
@@ -3724,8 +3725,9 @@ void SwSwitch::updateConfigAppliedInfo() {
                      : 0);
 }
 
-bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
-  return stateUpdateValidator_->isValidUpdate(delta);
+bool SwSwitch::isValidStateUpdate(const StateDelta& delta, SwitchStats* stats)
+    const {
+  return stateUpdateValidator_->isValidUpdate(delta, stats);
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {

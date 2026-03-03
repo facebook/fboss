@@ -478,7 +478,8 @@ class SwSwitch : public HwSwitchCallback {
    * For now we just check for the new port speeds being valid.
    * This could be extended as needed
    */
-  bool isValidStateUpdate(const StateDelta& delta) const;
+  bool isValidStateUpdate(const StateDelta& delta, SwitchStats* stats = nullptr)
+      const;
 
   /*
    * Get the PortStats for the specified port.
