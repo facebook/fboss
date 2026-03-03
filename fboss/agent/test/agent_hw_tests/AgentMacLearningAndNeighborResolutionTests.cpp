@@ -50,18 +50,6 @@ struct LearningModeAndPortTypesT {
 
   static cfg::SwitchConfig initialConfig(cfg::SwitchConfig config) {
     config.switchSettings()->l2LearningMode() = kLearningMode;
-    if (kIsTrunk) {
-      auto addTrunk = [&config](auto aggId, auto startIdx) {
-        std::vector<int> ports;
-        auto configPorts = config.vlanPorts();
-        for (auto i = startIdx; i < startIdx + 2; ++i) {
-          ports.push_back(*(configPorts[i].logicalPort()));
-        }
-        utility::addAggPort(aggId, ports, &config);
-      };
-      addTrunk(kAggID, 0);
-      addTrunk(kAggID2, 2);
-    }
     return config;
   }
 };
@@ -105,18 +93,16 @@ class AgentNeighborResolutionTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds())
-                        .switchId();
+    auto switchId = getSwitchIdUnderTest(ensemble);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
+        ensemble.getPlatformMapping(),
         asic,
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     return cfg;
   }
 
@@ -233,14 +219,31 @@ class AgentMacLearningAndNeighborResolutionTest
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(hwAsics);
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto configPorts = allConfigPorts(ensemble);
     auto inConfig = utility::oneL3IntfNPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
+        ensemble.getPlatformMapping(),
         asic,
-        allConfigPorts(ensemble),
+        configPorts,
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        true,
+        utility::kBaseVlanId,
+        true,
+        true,
+        ensemble.getSw()->getPlatformType());
+    if (kIsTrunk) {
+      auto addTrunk = [&inConfig, &configPorts](auto aggId, auto startIdx) {
+        std::vector<int> ports;
+        for (auto i = startIdx; i < startIdx + 2; ++i) {
+          ports.push_back(configPorts[i]);
+        }
+        utility::addAggPort(aggId, ports, &inConfig);
+      };
+      addTrunk(kAggID, 0);
+      addTrunk(kAggID2, 2);
+    }
     return LearningModeAndPortT::initialConfig(inConfig);
   }
   PortDescriptor portDescriptor() const {
@@ -391,15 +394,13 @@ class AgentMacLearningAndNeighborResolutionTest
     getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), phyPort);
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
-    auto firstVlanID = getProgrammedState()->getVlans()->getFirstVlanID();
-
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto srcIp =
         dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
-        firstVlanID,
+        kVlanID,
         srcMac, // src mac
         intfMac, // dst mac
         srcIp,

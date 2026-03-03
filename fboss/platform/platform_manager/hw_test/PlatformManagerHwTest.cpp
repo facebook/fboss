@@ -7,11 +7,13 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
+#include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -65,9 +67,8 @@ class PlatformExplorerWrapper : public PlatformExplorer {
  public:
   explicit PlatformExplorerWrapper(
       const PlatformConfig& config,
-      DataStore& dataStore,
-      ScubaLogger& scubaLogger)
-      : PlatformExplorer(config, dataStore, scubaLogger) {
+      DataStore& dataStore)
+      : PlatformExplorer(config, dataStore) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
   }
@@ -81,6 +82,16 @@ class PlatformExplorerWrapper : public PlatformExplorer {
 };
 class PlatformManagerHwTest : public ::testing::Test {
  public:
+  void SetUp() override {
+    thriftHandler_ = std::make_shared<PlatformManagerHandler>(
+        platformExplorer_, ds.value(), platformConfig_);
+    server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+        thriftHandler_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
+    pmClient_ =
+        server_->newClient<apache::thrift::Client<PlatformManagerService>>();
+  }
+
   PlatformManagerStatus getPmStatus() {
     PlatformManagerStatus pmStatus;
     pmClient_->sync_getLastPMStatus(pmStatus);
@@ -90,11 +101,22 @@ class PlatformManagerHwTest : public ::testing::Test {
     return platformExplorer_.updatedPmStatuses_;
   }
   void explorationOk() {
-    auto now = std::chrono::duration_cast<std::chrono::seconds>(
-                   std::chrono::system_clock::now().time_since_epoch())
-                   .count();
-    pkgManager_.processAll();
+    auto startTime = std::chrono::system_clock::now();
+    pkgManager_.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
     platformExplorer_.explore();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now() - startTime);
+    auto platformName = platformConfig_.platformName().value();
+    auto maxSetupTime = PlatformExplorer::kMaxSetupTime;
+    if (platformName == "MORGAN800CC") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMorgan800CC;
+    } else if (platformName == "MERU800BFA" || platformName == "MERU800BIA") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMeru800;
+    }
+    EXPECT_LE(duration, maxSetupTime) << fmt::format(
+        "Exploration time {}s exceeded maximum allowed {}s",
+        duration.count(),
+        maxSetupTime.count());
     auto pmStatus = getPmStatus();
     EXPECT_TRUE(
         *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
@@ -104,26 +126,24 @@ class PlatformManagerHwTest : public ::testing::Test {
                "Ended with unexpected exploration status {}",
                apache::thrift::util::enumNameSafe(
                    *pmStatus.explorationStatus()));
-    EXPECT_GE(*pmStatus.lastExplorationTime(), now);
+    EXPECT_GE(
+        *pmStatus.lastExplorationTime(),
+        std::chrono::duration_cast<std::chrono::seconds>(
+            startTime.time_since_epoch())
+            .count());
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
   DataStore dataStore_{platformConfig_};
-  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
-  PlatformExplorerWrapper platformExplorer_{
-      platformConfig_,
-      dataStore_,
-      scubaLogger_};
+  PlatformExplorerWrapper platformExplorer_{platformConfig_, dataStore_};
   PkgManager pkgManager_{platformConfig_};
   std::optional<DataStore> ds =
       platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
-  std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{
-      apache::thrift::makeTestClient<
-          apache::thrift::Client<PlatformManagerService>>(
-          std::make_unique<PlatformManagerHandler>(
-              platformExplorer_,
-              ds.value(),
-              platformConfig_))};
+
+  // Test Thrift Service related members
+  std::shared_ptr<PlatformManagerHandler> thriftHandler_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> server_;
+  std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_;
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
@@ -179,6 +199,12 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
+    if (isExpectedError(
+            platformConfig_,
+            ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+            devicePath)) {
+      continue;
+    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))

@@ -11,7 +11,6 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/fpga/FpgaDevice.h"
-#include "fboss/qsfp_service/StatsPublisher.h"
 
 namespace facebook::fboss {
 
@@ -35,7 +34,7 @@ void MultiPimPlatformSystemContainer::setPimContainer(
   // Always replace with new pim container. Although it shouldn't happen in
   // prod.
   pims_[pim] = std::move(pimContainer);
-  StatsPublisher::initPerPimFb303Stats(PimID(pim));
+  initPerPimFb303Stats(PimID(pim));
 }
 
 std::map<int, PimState> MultiPimPlatformSystemContainer::getPimStates() const {
@@ -53,6 +52,34 @@ std::map<int, PimState> MultiPimPlatformSystemContainer::getPimStates() const {
 
     pimStates.emplace(pimId, std::move(pimState));
   }
+
+  // Check for xphy getPortInfo failures in a separate loop to minimize lock
+  // hold time on pimToFailedXphyIds_
+  auto failedXphyIds = pimToFailedGetInfoXphyIds_.rlock();
+  for (auto& [pimId, xphyIds] : *failedXphyIds) {
+    if (!xphyIds.empty()) {
+      if (auto it = pimStates.find(static_cast<int>(pimId));
+          it != pimStates.end()) {
+        it->second.errors()->push_back(PimError::XPHY_GET_PORT_INFO_FAILED);
+      }
+    }
+  }
+
   return pimStates;
+}
+
+void MultiPimPlatformSystemContainer::recordXphyGetPortInfoFailure(
+    const PimID& pimId,
+    const GlobalXphyID& xphyId) {
+  pimToFailedGetInfoXphyIds_.wlock()->operator[](pimId).insert(xphyId);
+}
+
+void MultiPimPlatformSystemContainer::clearXphyGetPortInfoFailures(
+    const PimID& pimId,
+    const GlobalXphyID& xphyId) {
+  auto lockedMap = pimToFailedGetInfoXphyIds_.wlock();
+  if (auto pimItr = lockedMap->find(pimId); pimItr != lockedMap->end()) {
+    pimItr->second.erase(xphyId);
+  }
 }
 } // namespace facebook::fboss

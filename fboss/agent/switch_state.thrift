@@ -21,6 +21,7 @@ package;
 
 struct VlanInfo {
   1: bool tagged;
+  2: bool priorityTagged;
 }
 
 struct PortPgFields {
@@ -172,6 +173,8 @@ struct PortFields {
   63: optional i32 portSwitchId;
   // Serdes custom collection JSON string
   64: optional string serdesCustomCollection;
+  // Cable Length Measurement (CLM) enable configuration for this port
+  65: optional bool clmEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -311,12 +314,13 @@ struct VlanFields {
   5: string dhcpV6Relay = "::";
   6: map<string, string> dhcpRelayOverridesV4;
   7: map<string, string> dhcpRelayOverridesV6;
-  8: map<i16, bool> ports;
+  8: map<i16, bool> ports_DEPRECATED;
   9: NeighborEntries arpTable;
   10: map<string, NeighborResponseEntryFields> arpResponseTable;
   11: NeighborEntries ndpTable;
   12: map<string, NeighborResponseEntryFields> ndpResponseTable;
   13: map<string, MacEntryFields> macTable;
+  14: map<i16, VlanInfo> portsInfo;
 }
 
 struct LoadBalancerFields {
@@ -379,6 +383,10 @@ struct MirrorOnDropReportFields {
     switch_config.MirrorOnDropAgingGroup,
     i32
   > agingGroupAgingIntervalUsecs;
+  // Resolved fields - populated by TamManager when collector IP is resolved
+  16: bool isResolved = false;
+  17: optional string resolvedCollectorMac;
+  18: optional switch_config.PortDescriptor resolvedEgressPort;
 }
 
 struct ControlPlaneFields {
@@ -552,6 +560,8 @@ struct FibInfoFields {
   2: map<NextHopIdType, common.NextHopThrift> idToNextHop;
   // Map from NextHopSetID to set of NextHopIDs
   3: map<NextHopSetIdType, set<NextHopIdType>> idToNextHopIdSet;
+  // Map from named next-hop group name to NextHopSetID
+  4: map<string, NextHopSetIdType> nameToNextHopSetId;
 }
 
 struct TrafficClassToQosAttributeEntry {
@@ -577,6 +587,18 @@ struct IpTunnelFields {
   10: optional string srcIp;
   11: optional string dstIpMask;
   12: optional string srcIpMask;
+}
+
+struct Srv6TunnelFields {
+  1: string srv6TunnelId;
+  2: i32 underlayIntfId;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional switch_config.TunnelMode ttlMode;
+  6: optional switch_config.TunnelMode dscpMode;
+  7: optional switch_config.TunnelMode ecnMode;
+  8: optional switch_config.TunnelTerminationType tunnelTermType;
+  9: common.TunnelType tunnelType;
 }
 
 struct QosPolicyFields {
@@ -780,6 +802,7 @@ struct SwitchState {
     map<string, MirrorOnDropReportFields>
   > mirrorOnDropReportMaps;
   124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
+  125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

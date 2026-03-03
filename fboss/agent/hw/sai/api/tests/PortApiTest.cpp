@@ -94,6 +94,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // QosTcAndColorToDot1pMap
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }

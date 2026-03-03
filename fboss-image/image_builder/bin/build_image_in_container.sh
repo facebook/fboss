@@ -260,7 +260,7 @@ if [ -n "${BUILD_PXE}" ]; then
     kiwi-ng-3 \
       --profile FBOSS \
       --type oem \
-      system build \
+      ${KIWI_DEBUG} system build \
       --description ${DESCRIPTION_DIR} \
       --target-dir ${TARGET_DIR}/btrfs |&
       tee -a ${LOG_FILE} | awk '{print "PXE/USB Installer| " $0}'
@@ -277,7 +277,7 @@ if [ -n "${BUILD_ONIE}" ]; then
     kiwi-ng-3 \
       --profile FBOSS \
       --type tbz \
-      system build \
+      ${KIWI_DEBUG} system build \
       --description ${DESCRIPTION_DIR} \
       --target-dir ${TARGET_DIR}/onie |&
       tee -a ${LOG_FILE} | awk '{print "ONIE installer| " $0}'

@@ -38,15 +38,14 @@ RetType CmdShowNdp::queryClient(
   std::map<int32_t, facebook::fboss::PortInfoThrift> portEntries;
   std::map<int64_t, cfg::DsfNode> dsfNodes;
   auto client =
-      utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
 
   client->sync_getNdpTable(entries);
   client->sync_getAllPortInfo(portEntries);
   try {
-    // TODO: Remove try catch once wedge_agent with getDsfNodes API
-    // is rolled out
     client->sync_getDsfNodes(dsfNodes);
   } catch (const std::exception&) {
+    // getDsfNodes is not supported on non-DSF switches (e.g. wedge400)
   }
   return createModel(entries, queriedNdpEntries, portEntries, dsfNodes);
 }
@@ -85,7 +84,7 @@ void CmdShowNdp::printOutput(const RetType& model, std::ostream& out) {
 }
 
 RetType CmdShowNdp::createModel(
-    std::vector<facebook::fboss::NdpEntryThrift> ndpEntries,
+    const std::vector<facebook::fboss::NdpEntryThrift>& ndpEntries,
     const ObjectArgType& queriedNdpEntries,
     std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
     const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
@@ -131,7 +130,7 @@ RetType CmdShowNdp::createModel(
       ndpDetails.resolvedSince() = "--";
       if (entry.resolvedSince().has_value()) {
         time_t timestamp = static_cast<time_t>(entry.resolvedSince().value());
-        std::tm tm;
+        std::tm tm{};
         localtime_r(&timestamp, &tm);
         std::ostringstream oss;
         oss << std::put_time(&tm, "%Y-%m-%d %T");

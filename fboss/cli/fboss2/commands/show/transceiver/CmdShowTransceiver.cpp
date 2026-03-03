@@ -11,7 +11,6 @@
 #include "CmdShowTransceiver.h"
 
 #include <fmt/core.h>
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
 namespace facebook::fboss {
 

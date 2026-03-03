@@ -106,7 +106,7 @@ void SaiSwitch::tamEventCallback(
     return;
   }
 #else
-  // >= 25.5.5210, eventDesc->type is type of sai_tam_event_type_extensions_t
+  // >= 25.5.X, eventDesc->type is type of sai_tam_event_type_extensions_t
   // including SAI_TAM_EVENT_TYPE_SWITCH
   if (eventDesc->type != SAI_TAM_EVENT_TYPE_SWITCH) {
     // not a switch type event

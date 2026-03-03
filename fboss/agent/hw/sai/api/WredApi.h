@@ -68,7 +68,7 @@ struct SaiWredTraits {
         EnumType,
         SAI_WRED_ATTR_ECN_GREEN_MARK_PROBABILITY,
         sai_uint32_t,
-        SaiInt100Default<sai_uint32_t>>; /* Default probability is 100.*/
+        StdNullOptDefault<sai_uint32_t>>;
   };
 
   using AdapterKey = WredSaiId;

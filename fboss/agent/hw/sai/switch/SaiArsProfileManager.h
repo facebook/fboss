@@ -31,6 +31,7 @@ using SaiArsProfile = SaiObject<SaiArsProfileTraits>;
 struct SaiArsProfileHandle {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::shared_ptr<SaiArsProfile> arsProfile;
+  bool arsVirtualGroupsEnabled{false};
 #endif
 };
 

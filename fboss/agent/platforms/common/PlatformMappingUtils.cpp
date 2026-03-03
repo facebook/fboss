@@ -14,14 +14,17 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
+#include "fboss/agent/platforms/common/blackwolf800banw/Blackwolf800banwPlatformMapping.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
+#include "fboss/agent/platforms/common/icecube800banw/Icecube800banwPlatformMapping.h"
 #include "fboss/agent/platforms/common/icecube800bc/Icecube800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/icetea800bc/Icetea800bcPlatformMapping.h"
+#include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
@@ -31,6 +34,7 @@
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack/MinipackPlatformMapping.h"
+#include "fboss/agent/platforms/common/minipack3bta/Minipack3BTAPlatformMapping.h"
 #include "fboss/agent/platforms/common/minipack3n/Minipack3NPlatformMapping.h"
 #include "fboss/agent/platforms/common/montblanc/MontblancPlatformMapping.h"
 #include "fboss/agent/platforms/common/morgan800cc/Morgan800ccPlatformMapping.h"
@@ -181,6 +185,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<YangraPlatformMapping>()
           : std::make_unique<YangraPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_MINIPACK3BTA:
+      return platformMappingStr.empty()
+          ? std::make_unique<Minipack3BTAPlatformMapping>()
+          : std::make_unique<Minipack3BTAPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MINIPACK3N:
       return platformMappingStr.empty()
           ? std::make_unique<Minipack3NPlatformMapping>()
@@ -189,6 +197,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Icecube800bcPlatformMapping>()
           : std::make_unique<Icecube800bcPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_ICECUBE800BANW:
+      return platformMappingStr.empty()
+          ? std::make_unique<Icecube800banwPlatformMapping>()
+          : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800BACT:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge800BACTPlatformMapping>()
@@ -209,6 +221,15 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Ladakh800bclsPlatformMapping>()
           : std::make_unique<Ladakh800bclsPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_J4SIM:
+      return platformMappingStr.empty()
+          ? std::make_unique<J4SimPlatformMapping>()
+          : std::make_unique<J4SimPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      return platformMappingStr.empty()
+          ? std::make_unique<Blackwolf800banwPlatformMapping>()
+          : std::make_unique<Blackwolf800banwPlatformMapping>(
+                platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);

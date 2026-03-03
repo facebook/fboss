@@ -10,7 +10,6 @@
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/logging/Init.h>
-#include <folly/logging/LogLevel.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>

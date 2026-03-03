@@ -596,6 +596,16 @@ bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   return true;
 }
 
+bool verifyPortsForEdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Ports for EDSWs";
+  // for (const auto& edsw : topologyInfo->getEdsws()) {
+  //  TODO(daiweix): verify cable length of eth ports
+  //  TODO(daiweix): verify port up for hyper ports
+  //}
+
+  return true;
+}
+
 bool verifyPortsForFdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying Ports for FDSWs";
   for (const auto& fdsw : topologyInfo->getFdsws()) {
@@ -621,7 +631,8 @@ bool verifyPortsForSdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 bool verifyPorts(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying Ports";
   return verifyPortsForRdsws(topologyInfo) &&
-      verifyPortsForFdsws(topologyInfo) && verifyPortsForSdsws(topologyInfo);
+      verifyPortsForFdsws(topologyInfo) && verifyPortsForSdsws(topologyInfo) &&
+      verifyPortsForEdsws(topologyInfo);
 }
 
 bool verifySystemPortsForRdsw(
@@ -772,13 +783,18 @@ bool verifyDsfSessions(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
-    EXPECT_EVENTUALLY_TRUE(verifyFabricConnectivity(topologyInfo));
-    EXPECT_EVENTUALLY_TRUE(verifyFabricReachability(topologyInfo));
-    EXPECT_EVENTUALLY_TRUE(verifyPorts(topologyInfo));
-    EXPECT_EVENTUALLY_TRUE(verifySystemPorts(topologyInfo));
-    EXPECT_EVENTUALLY_TRUE(verifyRifs(topologyInfo));
-    EXPECT_EVENTUALLY_TRUE(verifyStaticNdpEntries(topologyInfo));
-    EXPECT_EVENTUALLY_TRUE(verifyDsfSessions(topologyInfo));
+    if (FLAGS_hyper_port) {
+      // TODO(daiweix): also verify LACP state
+      EXPECT_EVENTUALLY_TRUE(verifyPorts(topologyInfo));
+    } else {
+      EXPECT_EVENTUALLY_TRUE(verifyFabricConnectivity(topologyInfo));
+      EXPECT_EVENTUALLY_TRUE(verifyFabricReachability(topologyInfo));
+      EXPECT_EVENTUALLY_TRUE(verifyPorts(topologyInfo));
+      EXPECT_EVENTUALLY_TRUE(verifySystemPorts(topologyInfo));
+      EXPECT_EVENTUALLY_TRUE(verifyRifs(topologyInfo));
+      EXPECT_EVENTUALLY_TRUE(verifyStaticNdpEntries(topologyInfo));
+      EXPECT_EVENTUALLY_TRUE(verifyDsfSessions(topologyInfo));
+    }
   });
 }
 

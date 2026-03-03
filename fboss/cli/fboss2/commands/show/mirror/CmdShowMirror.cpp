@@ -10,8 +10,6 @@
 
 #include "CmdShowMirror.h"
 
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-
 namespace facebook::fboss {
 
 CmdShowMirror::RetType CmdShowMirror::queryClient(

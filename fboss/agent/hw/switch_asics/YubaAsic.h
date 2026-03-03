@@ -172,14 +172,14 @@ class YubaAsic : public TajoAsic {
     };
   }
 
-  cfg::IpTunnelMode getTunnelDscpMode() const override {
+  cfg::TunnelMode getTunnelDscpMode() const override {
     auto uniformDscpModeSdkVersion = getAsicSdkVersion("24.8.3001");
     // PIPE mode for YUBA ASIC is supported in SDK > 24.8.3001
     if (currentSdkVersion_.has_value() &&
         currentSdkVersion_ <= uniformDscpModeSdkVersion) {
-      return cfg::IpTunnelMode::UNIFORM;
+      return cfg::TunnelMode::UNIFORM;
     }
-    return cfg::IpTunnelMode::PIPE;
+    return cfg::TunnelMode::PIPE;
   }
 
  private:

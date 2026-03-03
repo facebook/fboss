@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","morgan800cc","PASSED"
+"FanServiceHwTest.ODSCounters","morgan800cc","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","morgan800cc","PASSED"
+"FanServiceHwTest.FanStatusesThrift","morgan800cc","PASSED"
+"FanServiceHwTest.FanControl","morgan800cc","PASSED"

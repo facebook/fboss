@@ -63,8 +63,8 @@ void addNetworkAIQosMaps(
 
   // configure cpu qos policy
   std::string cpuQosPolicyName = qosPolicyName;
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // create and apply a separate qos policy for Jericho3 cpu port
+  if (needsSeparateCpuQosPolicy(hwAsic)) {
+    // create and apply a separate qos policy for Jericho3/Q4D cpu port
     cpuQosPolicyName = qosPolicyName + "_cpu";
     cfg::QosMap cpuQosMap = qosMap;
     cpuQosMap.trafficClassToQueueId()->clear();
@@ -97,7 +97,7 @@ void addNetworkAIQosMaps(
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy() = cpuConfig;
 
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+  if (needsSeparateCpuQosPolicy(hwAsic)) {
     // also apply cpu qos policy for recycle port
     for (const auto& port : *cfg.ports()) {
       if (*port.portType() == cfg::PortType::RECYCLE_PORT ||
@@ -246,6 +246,12 @@ void addVoqEcnProbabilisticMarkingConfig(
     int probability,
     int minThresh,
     int maxThresh) {
+  CHECK(probability > 0 && probability <= 100)
+      << "ECN mark probability must be between 1 and 100, got: " << probability;
+  CHECK_LE(minThresh, maxThresh)
+      << "minThresh (" << minThresh << ") must be <= maxThresh (" << maxThresh
+      << ")";
+
   XLOG(DBG2) << "Configuring VoQ ECN probabilistic marking for queue "
              << queueId << " with minThresh: " << minThresh << " bytes"
              << ", maxThresh: " << maxThresh << " bytes"
@@ -263,7 +269,9 @@ void addVoqEcnProbabilisticMarkingConfig(
     }
     voq.reservedBytes() = 1500; // Set to possible MTU!
 
-    // Configure only the specified VoQ with ECN
+    // Configure only the specified VoQ with ECN.
+    // Note: We have a 1:1 mapping between TC and queue ID,
+    // so passing queueId.
     if (voqId == getTrafficClassToVoqId(asic, queueId)) {
       voq.aqms() = {};
       voq.aqms()->push_back(

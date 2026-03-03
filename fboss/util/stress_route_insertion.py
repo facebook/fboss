@@ -11,7 +11,7 @@ from fboss.cli.utils import utils
 from fboss.py.fboss.thrift_clients import (
     PlainTextFbossAgentClientDontUseInFb as PlainTextFbossAgentClient,
 )
-from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
+from neteng.fboss.ctrl.thrift_types import IpPrefix, UnicastRoute
 
 
 class StressRouteInsertion:

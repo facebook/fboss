@@ -107,3 +107,71 @@ TEST(ExplorationErrorsTest, IsExpectedErrorIdprom) {
   EXPECT_FALSE(isExpectedError(
       montblancConfig, ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[IDPROM]"));
 }
+
+TEST(ExplorationErrorsTest, IsExpectedErrorRtmOutletTsensor) {
+  // Test RTM outlet tsensor on LADAKH800BCLS platform
+  PlatformConfig ladakhConfig;
+  ladakhConfig.platformName() = "LADAKH800BCLS";
+
+  // Test I2C_DEVICE_CREATE error type - should return true
+  EXPECT_TRUE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::I2C_DEVICE_CREATE,
+      "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]"));
+  EXPECT_TRUE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::I2C_DEVICE_CREATE,
+      "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]"));
+
+  // Test I2C_DEVICE_REG_INIT error type - should return true
+  EXPECT_TRUE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::I2C_DEVICE_REG_INIT,
+      "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]"));
+  EXPECT_TRUE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::I2C_DEVICE_REG_INIT,
+      "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]"));
+
+  // Test RUN_DEVMAP_SYMLINK error type - should return true
+  EXPECT_TRUE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+      "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]"));
+  EXPECT_TRUE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+      "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]"));
+
+  // Test on other platforms - should return false
+  PlatformConfig otherConfig;
+  otherConfig.platformName() = "OTHER_PLATFORM";
+  EXPECT_FALSE(isExpectedError(
+      otherConfig,
+      ExplorationErrorType::I2C_DEVICE_CREATE,
+      "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]"));
+  EXPECT_FALSE(isExpectedError(
+      otherConfig,
+      ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+      "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]"));
+
+  // Test with unrelated error type on LADAKH800BCLS - should return false
+  EXPECT_FALSE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::I2C_DEVICE_EXPLORE,
+      "/RTM_L_SLOT@0/[RTM_L_OUTLET_TSENSOR]"));
+  EXPECT_FALSE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::SLOT_PM_UNIT_ABSENCE,
+      "/RTM_R_SLOT@0/[RTM_R_OUTLET_TSENSOR]"));
+
+  // Test with wrong device path on LADAKH800BCLS - should return false
+  EXPECT_FALSE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::I2C_DEVICE_CREATE,
+      "/RTM_L_SLOT@0/[RTM_L_TSENSOR_1]"));
+  EXPECT_FALSE(isExpectedError(
+      ladakhConfig,
+      ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+      "/RTM_R_SLOT@0/[RTM_R_TSENSOR_2]"));
+}

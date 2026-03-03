@@ -108,6 +108,8 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
 }
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+// TODO(nivinl): Retire the extension attribute based support once the
+// standard SAI stats IDs are supported in XGS/DNX.
 uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
   switch (counterId) {
     case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
@@ -125,6 +127,40 @@ uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
     case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
       return 6;
     case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION:
+      return 7;
+    default:
+      break;
+  }
+  throw FbossError("Got unexpected PFC duration counter id: ", counterId);
+}
+#elif defined(CHENAB_SAI_SDK)
+// TODO(nivinl): This is the standard SAI model, retire the extension attribute
+// based support once the standard SAI stats IDs are supported in XGS/DNX.
+uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
+  switch (counterId) {
+    case SAI_PORT_STAT_PFC_0_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_0_TX_PAUSE_DURATION_US:
+      return 0;
+    case SAI_PORT_STAT_PFC_1_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_1_TX_PAUSE_DURATION_US:
+      return 1;
+    case SAI_PORT_STAT_PFC_2_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_2_TX_PAUSE_DURATION_US:
+      return 2;
+    case SAI_PORT_STAT_PFC_3_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_3_TX_PAUSE_DURATION_US:
+      return 3;
+    case SAI_PORT_STAT_PFC_4_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_4_TX_PAUSE_DURATION_US:
+      return 4;
+    case SAI_PORT_STAT_PFC_5_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_5_TX_PAUSE_DURATION_US:
+      return 5;
+    case SAI_PORT_STAT_PFC_6_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_6_TX_PAUSE_DURATION_US:
+      return 6;
+    case SAI_PORT_STAT_PFC_7_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_7_TX_PAUSE_DURATION_US:
       return 7;
     default:
       break;
@@ -387,6 +423,8 @@ void fillHwPortStats(
       case SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION:
       case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
       case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION: {
+        // TODO(nivinl): Retire the extension attribute based support once the
+        // standard SAI stats IDs are supported in XGS/DNX.
         auto priority = getPriorityFromPfcDurationCounterId(counterId);
         // PFC duration counters are clear on read and only one of
         // RX / TX is expected to be enabled per port at a time.
@@ -396,6 +434,31 @@ void fillHwPortStats(
         if (txPfcDurationStatsEnabled) {
           hwPortStats.txPfcDurationUsec_()[priority] += value;
         }
+        break;
+      }
+#elif defined(CHENAB_SAI_SDK)
+      case SAI_PORT_STAT_PFC_0_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_1_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_2_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_3_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_4_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_5_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_6_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_7_RX_PAUSE_DURATION_US: {
+        auto priority = getPriorityFromPfcDurationCounterId(counterId);
+        hwPortStats.rxPfcDurationUsec_()[priority] = value;
+        break;
+      }
+      case SAI_PORT_STAT_PFC_0_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_1_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_2_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_3_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_4_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_5_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_6_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_7_TX_PAUSE_DURATION_US: {
+        auto priority = getPriorityFromPfcDurationCounterId(counterId);
+        hwPortStats.txPfcDurationUsec_()[priority] = value;
         break;
       }
 #endif
@@ -535,6 +598,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_YUBA:
@@ -545,8 +609,10 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_G202X:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
       if (portType == cfg::PortType::FABRIC_PORT) {
         return 110;
       } else {
@@ -1075,6 +1141,20 @@ void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
              << apache::thrift::TEnumTraits<cfg::PortType>::findName(type);
 }
 
+void SaiPortManager::setClm(PortID portId, bool clmEnabled) {
+  port2ClmEnabled_[portId] = clmEnabled;
+  XLOG(DBG2) << " Port : " << portId
+             << " CLM set to : " << (clmEnabled ? "enabled" : "disabled");
+}
+
+bool SaiPortManager::isClmEnabled(PortID portId) const {
+  auto pitr = port2ClmEnabled_.find(portId);
+  if (pitr != port2ClmEnabled_.end()) {
+    return pitr->second;
+  }
+  return false;
+}
+
 std::vector<IngressPriorityGroupSaiId>
 SaiPortManager::getIngressPriorityGroupSaiIds(
     const std::shared_ptr<Port>& swPort) {
@@ -1296,6 +1376,7 @@ void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
+  setClm(swPort->getID(), swPort->getClmEnable().value_or(false));
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portSaiId2PortInfo.emplace(
       portSaiId,
@@ -1333,6 +1414,9 @@ void SaiPortManager::changePort(
     const std::shared_ptr<Port>& newPort) {
   if (oldPort->getPortType() != newPort->getPortType()) {
     setPortType(newPort->getID(), newPort->getPortType());
+  }
+  if (oldPort->getClmEnable() != newPort->getClmEnable()) {
+    setClm(newPort->getID(), newPort->getClmEnable().value_or(false));
   }
   changePortImpl(oldPort, newPort);
 }
@@ -1448,6 +1532,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   portStats_.erase(swId);
   port2SupportedStats_.erase(swId);
   port2PortType_.erase(swId);
+  port2ClmEnabled_.erase(swId);
   auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(swId);
   if (portAsicPrbsStatsItr != portAsicPrbsStats_.end()) {
     portAsicPrbsStats_.erase(swId);
@@ -2213,6 +2298,52 @@ void SaiPortManager::updateFabricMacTransmitQueueStuck(
   }
 }
 
+#if defined(CHENAB_SAI_SDK)
+// TODO(nivinl): This is the standard SAI model, retire the extension attribute
+// based support once the standard SAI stats IDs are supported in XGS/DNX.
+const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
+    const PortID& portId) {
+  SaiPortHandle* portHandle = getPortHandle(portId);
+  CHECK(portHandle) << "Port handle uninitialized for portID " << portId;
+  static const std::vector<sai_stat_id_t> rxStats{
+      SAI_PORT_STAT_PFC_0_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_1_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_2_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_3_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_4_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_5_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_6_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_7_RX_PAUSE_DURATION_US};
+  static const std::vector<sai_stat_id_t> txStats{
+      SAI_PORT_STAT_PFC_0_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_1_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_2_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_3_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_4_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_5_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_6_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_7_TX_PAUSE_DURATION_US};
+  // Precompute combined stats only once
+  static const std::vector<sai_stat_id_t> rxTxStats([] {
+    std::vector<sai_stat_id_t> stats;
+    stats.reserve(rxStats.size() + txStats.size());
+    stats.insert(stats.end(), rxStats.begin(), rxStats.end());
+    stats.insert(stats.end(), txStats.begin(), txStats.end());
+    return stats;
+  }());
+  static const std::vector<sai_stat_id_t> emptyStats;
+  if (portHandle->txPfcDurationStatsEnabled &&
+      portHandle->rxPfcDurationStatsEnabled) {
+    return rxTxStats;
+  } else if (portHandle->txPfcDurationStatsEnabled) {
+    return txStats;
+  } else if (portHandle->rxPfcDurationStatsEnabled) {
+    return rxStats;
+  }
+  return emptyStats;
+}
+#endif
+
 void SaiPortManager::updateStats(
     PortID portId,
     bool updateWatermarks,
@@ -2272,14 +2403,6 @@ void SaiPortManager::updateStats(
 
   auto supportedPfcDurationStats = getSupportedPfcDurationStats(portId);
   if (supportedPfcDurationStats.size()) {
-    // PFC duration counters are clear on read. Also, optimize to
-    // include the stats ID to be read if the PFC duration counter
-    // is enabled for the port.
-    // TODO(nivinl): get_port_stats_ext() is failing for these stats,
-    // however, get_port_stats() works. Given these are COR counters,
-    // expect to use SAI_STATS_MODE_READ_AND_CLEAR and hence need the
-    // support, working with Broadcom in CS00012427949 to figure how
-    // to proceed here. For now, using SAI_STATS_MODE_READ instead.
     handle->port->updateStats(supportedPfcDurationStats, SAI_STATS_MODE_READ);
   }
 
@@ -3387,13 +3510,6 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
-      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
-    // CS00012443184
-    return std::vector<sai_port_lane_latch_status_t>();
-  }
-
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId,
       SaiPortTraits::Attributes::RxSignalDetect{
@@ -3405,13 +3521,6 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
     uint8_t numPmdLanes,
     PortID portID) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
-    return std::vector<sai_port_lane_latch_status_t>();
-  }
-
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
-      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
-    // CS00012443184
     return std::vector<sai_port_lane_latch_status_t>();
   }
 

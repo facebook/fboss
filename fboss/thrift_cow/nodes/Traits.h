@@ -12,7 +12,10 @@
 
 #include <fboss/agent/if/gen-cpp2/common_types.h>
 #include <fboss/thrift_cow/nodes/Types.h>
+#include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/gen/module_types_h.h>
+#include <thrift/lib/cpp2/op/Get.h>
+#include <thrift/lib/cpp2/type/Field.h>
 #include <type_traits>
 
 namespace facebook::fboss::thrift_cow {
@@ -195,70 +198,79 @@ struct ConvertToImmutableNodeTraits {
   using isChild = std::false_type;
 };
 
-template <typename Derived, typename Name>
+template <typename Derived, typename Ident>
 struct ResolveMemberType : std::false_type {};
 
+// Per-field traits computed from modern reflection APIs.
+// Replaces the old StructMemberTraits / UnionMemberTraits.
 template <
-    typename Struct,
+    typename TType,
+    typename Id,
     typename Derived,
-    typename Member,
     bool EnableHybridStorage>
-struct StructMemberTraits {
-  using member = Member;
-  using traits =
-      StructMemberTraits<Struct, Derived, Member, EnableHybridStorage>;
-  using name = typename Member::name;
-  using ttype = typename Member::type;
-  using tc = typename Member::type_class;
+struct CowFieldTraits {
+  using Ident = apache::thrift::op::get_ident<TType, Id>;
+  using TypeTag = apache::thrift::op::get_type_tag<TType, Id>;
+  using NativeType = apache::thrift::op::get_native_type<TType, Id>;
+  using TC = typename TypeTagToTypeClass<TypeTag>::type;
+  static constexpr auto fieldId = apache::thrift::op::get_field_id_v<TType, Id>;
+  static constexpr bool isOptional =
+      apache::thrift::type::is_optional_or_union_field_v<TType, Id>;
 
-  // read member annotations
   static constexpr bool allowSkipThriftCow = EnableHybridStorage &&
       (field_allow_skip_thrift_cow<
-           Struct,
-           apache::thrift::field_id<Member::id::value>> ||
-       type_allow_skip_thrift_cow<ttype>);
+           TType,
+           apache::thrift::field_id<folly::to_underlying(fieldId)>> ||
+       type_allow_skip_thrift_cow<NativeType>);
 
-  // need to resolve here
   using default_type = std::conditional_t<
       allowSkipThriftCow,
-      typename std::shared_ptr<ThriftHybridNode<tc, ttype>>,
-      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::type>;
+      std::shared_ptr<ThriftHybridNode<TC, NativeType>>,
+      typename ConvertToNodeTraits<EnableHybridStorage, TC, NativeType>::type>;
   using isChild = std::conditional_t<
       allowSkipThriftCow,
       std::true_type,
-      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::isChild>;
+      typename ConvertToNodeTraits<EnableHybridStorage, TC, NativeType>::
+          isChild>;
 
   // if the member type is overriden, use the overriden type.
   using type = std::conditional_t<
-      ResolveMemberType<Derived, name>::value,
-      std::shared_ptr<typename ResolveMemberType<Derived, name>::type>,
+      ResolveMemberType<Derived, Ident>::value,
+      std::shared_ptr<typename ResolveMemberType<Derived, Ident>::type>,
       default_type>;
 };
 
-template <typename Struct, typename Derived, bool EnableHybridStorage>
-struct ExtractStructFields {
-  template <typename T>
-  using apply = StructMemberTraits<Struct, Derived, T, EnableHybridStorage>;
+// Build a std::tuple type indexed by ordinal, replacing fatal::tuple_from.
+template <
+    typename TType,
+    typename Derived,
+    bool EnableHybridStorage,
+    typename Indices>
+struct CowStorageImpl;
+
+template <
+    typename TType,
+    typename Derived,
+    bool EnableHybridStorage,
+    size_t... Is>
+struct CowStorageImpl<
+    TType,
+    Derived,
+    EnableHybridStorage,
+    std::index_sequence<Is...>> {
+  using type = std::tuple<typename CowFieldTraits<
+      TType,
+      apache::thrift::type::ordinal<Is + 1>,
+      Derived,
+      EnableHybridStorage>::type...>;
 };
 
-template <typename Member, bool EnableHybridStorage = false>
-struct UnionMemberTraits {
-  using member = Member;
-  using traits = UnionMemberTraits<Member, EnableHybridStorage>;
-  using name = typename Member::metadata::name;
-  using id = typename Member::metadata::id;
-  using ttype = typename Member::type;
-  using tc = typename Member::metadata::type_class;
-  using type =
-      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::type;
-  using isChild =
-      typename ConvertToNodeTraits<EnableHybridStorage, tc, ttype>::isChild;
-};
-
-struct ExtractUnionFields {
-  template <typename T>
-  using apply = UnionMemberTraits<T>;
-};
+template <typename TType, typename Derived, bool EnableHybridStorage>
+using CowStorage = typename CowStorageImpl<
+    TType,
+    Derived,
+    EnableHybridStorage,
+    std::make_index_sequence<apache::thrift::op::num_fields<TType>>>::type;
 
 #if __cplusplus <= 202001L
 template <typename T>

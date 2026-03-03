@@ -40,6 +40,10 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "MERU800BIA";
   }
 
+  if (platformNameUpper == "MINIPACK3BTA") {
+    return "MINIPACK3BA";
+  }
+
   return platformNameUpper;
 }
 

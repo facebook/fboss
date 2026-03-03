@@ -19,8 +19,7 @@ using folly::dynamic;
 using namespace facebook::fboss;
 using namespace facebook::fboss::fsdb;
 using namespace facebook::fboss::thrift_cow;
-using k = facebook::fboss::test_tags::strings;
-using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+namespace k = apache::thrift::ident;
 
 namespace {
 
@@ -78,7 +77,7 @@ TEST(ExtendedPathVisitorTests, AccessFieldSimple) {
   EXPECT_EQ(dyn, 54);
 
   dyn = dynamic::object;
-  path = ext_path_builder::raw(TestStructMembers::inlineInt::id::value).get();
+  path = ext_path_builder::raw(fieldId<TestStruct, k::inlineInt>()).get();
   options.outputIdPaths = true;
   RootExtendedPathVisitor::visit(
       *nodeA,
@@ -88,7 +87,7 @@ TEST(ExtendedPathVisitorTests, AccessFieldSimple) {
       std::move(processPath));
   EXPECT_EQ(dyn, 54);
   std::vector<std::string> expectPath = {
-      folly::to<std::string>(TestStructMembers::inlineInt::id::value)};
+      folly::to<std::string>(fieldId<TestStruct, k::inlineInt>())};
   EXPECT_EQ(recvPath, expectPath);
 }
 

@@ -72,6 +72,10 @@
         7,
         8
     ],
+    "meru800bia_c0": [
+        7,
+        8
+    ],
     "minipack3ba": [
         7,
         8
@@ -205,6 +209,10 @@
         "BMC_LITE"
     ],
     "meru800bia": [
+        "TRANSCEIVER_PRBS",
+        "BMC_LITE"
+    ],
+    "meru800bia_c0": [
         "TRANSCEIVER_PRBS",
         "BMC_LITE"
     ],

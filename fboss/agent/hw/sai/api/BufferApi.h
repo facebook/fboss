@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
 #include <folly/logging/xlog.h>
@@ -46,13 +47,19 @@ struct SaiBufferPoolTraits {
         SAI_BUFFER_POOL_ATTR_XOFF_SIZE,
         sai_uint64_t,
         SaiIntDefault<sai_uint64_t>>;
+    struct AttributeReservedBytes {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using ReservedBytes =
+        SaiExtensionAttribute<sai_uint64_t, AttributeReservedBytes>;
   };
   using AdapterKey = BufferPoolSaiId;
   using CreateAttributes = std::tuple<
       Attributes::Type,
       Attributes::Size,
       Attributes::ThresholdMode,
-      std::optional<Attributes::XoffSize>>;
+      std::optional<Attributes::XoffSize>,
+      std::optional<Attributes::ReservedBytes>>;
   using AdapterHostKey =
       std::tuple<Attributes::Type, Attributes::Size, Attributes::ThresholdMode>;
 
@@ -66,6 +73,7 @@ SAI_ATTRIBUTE_NAME(BufferPool, Type);
 SAI_ATTRIBUTE_NAME(BufferPool, Size);
 SAI_ATTRIBUTE_NAME(BufferPool, ThresholdMode);
 SAI_ATTRIBUTE_NAME(BufferPool, XoffSize);
+SAI_ATTRIBUTE_NAME(BufferPool, ReservedBytes);
 
 template <>
 struct SaiObjectHasStats<SaiBufferPoolTraits> : public std::true_type {};

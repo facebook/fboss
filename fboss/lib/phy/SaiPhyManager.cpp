@@ -58,7 +58,13 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
   }
 }
 
-SaiPhyManager::~SaiPhyManager() {}
+SaiPhyManager::~SaiPhyManager() {
+  for (auto itr = saiPlatforms_.begin(); itr != saiPlatforms_.end(); ++itr) {
+    for (auto itr2 = itr->second.begin(); itr2 != itr->second.end(); ++itr2) {
+      itr2->second->getHwSwitch()->unregisterCallbacks();
+    }
+  }
+}
 
 SaiPhyManager::PlatformInfo::PlatformInfo(std::unique_ptr<SaiPlatform> platform)
     : saiPlatform_(std::move(platform)) {

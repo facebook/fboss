@@ -124,6 +124,20 @@ sai_port_media_type_t getSaiPortMediaType(
   return SAI_PORT_MEDIA_TYPE_UNKNOWN;
 }
 
+sai_port_media_type_t getSaiCablePropagationDelayMediaType(
+    TransmitterTechnology transmitterTech) {
+  switch (transmitterTech) {
+    case TransmitterTechnology::COPPER:
+      return SAI_PORT_MEDIA_TYPE_COPPER;
+    case TransmitterTechnology::OPTICAL:
+    case TransmitterTechnology::BACKPLANE:
+      return SAI_PORT_MEDIA_TYPE_FIBER;
+    default:
+      return SAI_PORT_MEDIA_TYPE_UNKNOWN;
+  }
+  return SAI_PORT_MEDIA_TYPE_UNKNOWN;
+}
+
 sai_port_media_type_t getSaiPortMediaFromInterfaceType(
     phy::InterfaceType interfaceType) {
   switch (interfaceType) {

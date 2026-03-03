@@ -911,7 +911,7 @@ static void populateInterfaceDetail(
       *interfaceDetail.vlanId() = intf->getVlanID();
       auto vlan = state->getVlans()->getNodeIf(intf->getVlanID());
       if (!intf->isVirtual() && vlan != nullptr) {
-        auto members = vlan->getPorts();
+        auto members = vlan->getPortsInfo();
         for (auto member : members) {
           auto port = state->getPorts()->getNode(PortID(member.first));
           interfaceDetail.portNames()->emplace_back(port->getName());

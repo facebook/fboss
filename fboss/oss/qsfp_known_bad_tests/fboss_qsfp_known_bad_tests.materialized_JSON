@@ -402,6 +402,28 @@
           "test_name_regex": "OpticsFwUpgradeTest.*$"
         }
     ],
+    "meru800bia_c0/physdk-credo-0.7.2/credo-0.7.2": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
+    "meru800bia_c0/physdk-credo-0.9.0/credo-0.9.0": [
+        {
+          "test_name_regex": "DummyTest.*$"
+        },
+        {
+          "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
+        },
+        {
+          "test_name_regex": "OpticsFwUpgradeTest.*$"
+        }
+    ],
     "minipack3ba/physdk-credo-0.7.2/credo-0.7.2": [
         {
           "test_name_regex": "DummyTest.*$"

@@ -34,6 +34,7 @@ add_library(sai_tracer
   fboss/agent/hw/sai/tracer/SystemPortApiTracer.cpp
   fboss/agent/hw/sai/tracer/TamApiTracer.cpp
   fboss/agent/hw/sai/tracer/TamEventAgingGroupApiTracer.cpp
+  fboss/agent/hw/sai/tracer/Srv6ApiTracer.cpp
   fboss/agent/hw/sai/tracer/TunnelApiTracer.cpp
   fboss/agent/hw/sai/tracer/UdfApiTracer.cpp
   fboss/agent/hw/sai/tracer/Utils.cpp

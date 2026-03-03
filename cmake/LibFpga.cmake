@@ -18,13 +18,16 @@ target_link_libraries(fpga_device
 
 add_library(fpga_multi_pim_container
   fboss/lib/fpga/MultiPimPlatformPimContainer.cpp
+  fboss/lib/fpga/MultiPimPlatformSystemContainer.cpp
 )
 
 target_link_libraries(fpga_multi_pim_container
+  fb303::fb303
   fboss_error
+  fboss_types
   fpga_device
   pim_state_cpp2
-  qsfp_stats
+  Folly::folly
 )
 
 add_library(facebook_fpga

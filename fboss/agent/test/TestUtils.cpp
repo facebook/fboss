@@ -32,6 +32,7 @@
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_constants.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/Utils.h"
@@ -503,6 +504,8 @@ cfg::DsfNode makeDsfNodeCfg(
     dsfNodeCfg.localSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.globalSystemPortOffset() = *sysPortRange.minimum();
     dsfNodeCfg.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+    dsfNodeCfg.localSystemPortRanges()->systemPortRanges()->push_back(
+        sysPortRange);
     dsfNodeCfg.inbandPortId() = kSingleStageInbandPortId;
   }
   dsfNodeCfg.asicType() = asicType;
@@ -1057,9 +1060,9 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     state->getVlans()->addNode(vlan1, matcher);
     for (int idx = 1; idx <= 10; ++idx) {
       registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
-      vlan1->addPort(PortID(idx), false);
+      vlan1->addPort(PortID(idx), false, false);
       auto port = state->getPorts()->getNodeIf(PortID(idx));
-      port->addVlan(vlan1->getID(), false);
+      port->addVlan(vlan1->getID(), false, false);
       port->setInterfaceIDs({1});
     }
     // Add VLAN 55, and ports 11-20 which belong to it.
@@ -1067,9 +1070,9 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     state->getVlans()->addNode(vlan55, matcher);
     for (int idx = 11; idx <= 20; ++idx) {
       registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
-      vlan55->addPort(PortID(idx), false);
+      vlan55->addPort(PortID(idx), false, false);
       auto port = state->getPorts()->getNodeIf(PortID(idx));
-      port->addVlan(vlan55->getID(), false);
+      port->addVlan(vlan55->getID(), false, false);
       port->setInterfaceIDs({55});
     }
     // Add Interface 1 to VLAN 1
@@ -1323,6 +1326,30 @@ ResolvedNextHop makeResolvedNextHop(
       topologyInfo);
 }
 
+RouteNextHopEntry makeExpectedRouteNextHopEntry(
+    const SwSwitch* sw,
+    RouteNextHopSet nhops,
+    AdminDistance distance) {
+  RouteNextHopEntry entry(std::move(nhops), distance);
+
+  CHECK(sw);
+  CHECK(sw->getRib());
+  auto* idManager = sw->getRib()->getNextHopIDManager();
+  if (idManager) {
+    // Lookup resolvedNextHopSetID for the nhops
+    auto resolvedId = idManager->lookupRouteNextHopSetID(entry.getNextHopSet());
+    CHECK(resolvedId);
+    entry.setResolvedNextHopSetID(resolvedId);
+    // Lookup normalizedResolvedNextHopSetID for the normalized nhops
+    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normalizedResolvedId =
+        idManager->lookupRouteNextHopSetID(normalizedNhops);
+    CHECK(normalizedResolvedId);
+    entry.setNormalizedResolvedNextHopSetID(normalizedResolvedId);
+  }
+  return entry;
+}
+
 std::vector<RouteNextHopSet>
 getUcmpNextHops(int maxWidth, int numGroups, uint32_t seed) {
   // Weight constants for alternating pattern
@@ -1569,6 +1596,8 @@ cfg::SwitchInfo createSwitchInfo(
     systemPortRange.maximum() = *sysPortMax;
     switchInfo.systemPortRanges()->systemPortRanges()->push_back(
         systemPortRange);
+    switchInfo.localSystemPortRanges()->systemPortRanges()->push_back(
+        systemPortRange);
     switchInfo.localSystemPortOffset() = *sysPortMin;
     switchInfo.globalSystemPortOffset() = *sysPortMin;
   }
@@ -1650,12 +1679,13 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
         ON_CALL(*handler, stateChanged(_, _))
             .WillByDefault(
                 [=](const auto& delta, bool) { return delta.newState(); });
-        ON_CALL(*handler, stateChanged(_, _, _, _, _))
+        ON_CALL(*handler, stateChanged(_, _, _, _, _, _))
             .WillByDefault([=](const std::vector<fsdb::OperDelta>&,
                                bool,
                                const std::shared_ptr<SwitchState>&,
                                const std::shared_ptr<SwitchState>&,
-                               const HwWriteBehavior&) {
+                               const HwWriteBehavior&,
+                               const std::optional<StateDeltaApplication>&) {
               return std::make_pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
                   fsdb::OperDelta{},
                   HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED);

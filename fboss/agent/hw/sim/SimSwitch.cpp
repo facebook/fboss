@@ -53,7 +53,9 @@ HwInitResult SimSwitch::initImpl(
 }
 
 std::shared_ptr<SwitchState> SimSwitch::stateChangedImpl(
-    const std::vector<StateDelta>& deltas) {
+    const std::vector<StateDelta>& deltas,
+    const std::optional<
+        StateDeltaApplication>& /* deltaApplicationBehavior */) {
   // TODO
   return deltas.back().newState();
 }

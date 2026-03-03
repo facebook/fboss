@@ -306,6 +306,33 @@ bool ConfigValidator::isValidXcvrCtrlBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidI2cAdaptersFromCpu(
+    const std::vector<std::string>& i2cAdaptersFromCpu) {
+  static const re2::RE2 kCpuBusNameRegex{"CPU_BUS@\\d+"};
+  bool hasVirtual = false;
+  bool hasExact = false;
+  for (const auto& name : i2cAdaptersFromCpu) {
+    if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
+      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+        XLOG(ERR) << fmt::format(
+            "Invalid virtual bus name '{}'. "
+            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            name);
+        return false;
+      }
+      hasVirtual = true;
+    } else {
+      hasExact = true;
+    }
+  }
+  if (hasVirtual && hasExact) {
+    XLOG(ERR)
+        << "i2cAdaptersFromCpu must not mix CPU_BUS@N virtual names with exact adapter names";
+    return false;
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidI2cAdapterBlockConfig(
     const I2cAdapterBlockConfig& i2cAdapterBlockConfig) {
   if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->empty()) {
@@ -540,6 +567,21 @@ bool ConfigValidator::isValidI2cDeviceConfig(
     XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
+  if (*i2cDeviceConfig.isEeprom() &&
+      !i2cDeviceConfig.pmUnitScopedName()->ends_with("_EEPROM")) {
+    XLOGF(
+        ERR,
+        "isEeprom is true but pmUnitScopedName '{}' does not end with '_EEPROM'",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (i2cDeviceConfig.eepromOffset() && !*i2cDeviceConfig.isEeprom()) {
+    XLOGF(
+        ERR,
+        "eepromOffset defined while isEeprom is not true for {}",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
   return true;
 }
 
@@ -664,6 +706,37 @@ bool ConfigValidator::isValidDeviceName(
   return false;
 }
 
+bool ConfigValidator::isValidPlatformWithoutPmOptics(
+    const PlatformConfig& config) {
+  const auto& platforms =
+      platform_manager_validators_constants::PLATFORMS_WITHOUT_PM_OPTICS();
+  if (std::find(platforms.begin(), platforms.end(), *config.platformName()) ==
+      platforms.end()) {
+    return true;
+  }
+  auto fail = [&](std::string_view reason) {
+    XLOGF(ERR, "Platform {}: {}", *config.platformName(), reason);
+    return false;
+  };
+  if (*config.numXcvrs() != 0) {
+    return fail("must not have numXcvrs set");
+  }
+  for (const auto& [_, pmUnitCfg] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitCfg.pciDeviceConfigs()) {
+      if (!pciDev.xcvrCtrlBlockConfigs()->empty() ||
+          !pciDev.ledCtrlBlockConfigs()->empty()) {
+        return fail("must not have xcvr/led block configs");
+      }
+    }
+  }
+  for (const auto& [symlink, _] : *config.symbolicLinkToDevicePath()) {
+    if (symlink.starts_with("/run/devmap/xcvrs/")) {
+      return fail("must not have xcvr symlinks");
+    }
+  }
+  return true;
+}
+
 bool ConfigValidator::isValid(const PlatformConfig& config) {
   XLOG(INFO) << "Validating platform_manager config";
 
@@ -685,6 +758,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  if (!isValidPlatformWithoutPmOptics(config)) {
+    return false;
+  }
+
   if (config.rootSlotType()->empty()) {
     XLOG(ERR) << "Platform rootSlotType cannot be empty";
     return false;
@@ -695,6 +772,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     XLOG(ERR) << fmt::format(
         "Invalid rootSlotType {}. Not found in slotTypeConfigs",
         *config.rootSlotType());
+    return false;
+  }
+
+  // Validate i2cAdaptersFromCpu entries: must all be either CPU_BUS@N
+  // virtual names or exact adapter names, not a mix.
+  if (!isValidI2cAdaptersFromCpu(*config.i2cAdaptersFromCpu())) {
     return false;
   }
 
@@ -742,6 +825,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     }
 
     if (!isValidPmUnitConfig(*config.slotTypeConfigs(), pmUnitConfig)) {
+      return false;
+    }
+
+    if (!isValidLogicalEeprom(config, pmUnitName, pmUnitConfig)) {
       return false;
     }
   }
@@ -1367,6 +1454,120 @@ void ConfigValidator::buildDeviceNameCache(
   }
 
   deviceNamesBySlotType_ = std::move(cache);
+}
+
+bool ConfigValidator::isValidLogicalEeprom(
+    const PlatformConfig& config,
+    const std::string& pmUnitName,
+    const PmUnitConfig& pmUnitConfig) {
+  auto logicalEeproms = getLogicalEeproms(
+      *config.slotTypeConfigs(),
+      *pmUnitConfig.pluggedInSlotType(),
+      pmUnitConfig);
+  if (!logicalEeproms.empty()) {
+    const auto& allowedPlatforms =
+        platform_manager_validators_constants::PLATFORMS_WITH_LOGICAL_EEPROMS();
+    if (std::find(
+            allowedPlatforms.begin(),
+            allowedPlatforms.end(),
+            *config.platformName()) == allowedPlatforms.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform has logical EEPROMs in PmUnit {}.  This is not allowed. ",
+          pmUnitName);
+      return false;
+    }
+  }
+
+  constexpr int16_t kEepromSize = 512;
+
+  for (const auto& [location, eeproms] : logicalEeproms) {
+    const auto& [bus, addr] = location;
+
+    // Validate same kernelDeviceName for all EEPROMs at this location
+    for (size_t i = 1; i < eeproms.size(); ++i) {
+      if (eeproms[i].kernelDeviceName != eeproms[0].kernelDeviceName) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have different "
+            "kernelDeviceNames: {} vs {}",
+            eeproms[0].pmUnitScopedName,
+            eeproms[i].pmUnitScopedName,
+            bus,
+            addr,
+            eeproms[0].kernelDeviceName,
+            eeproms[i].kernelDeviceName);
+        return false;
+      }
+    }
+
+    // Validate no overlapping regions (sort by offset, check adjacent pairs)
+    auto sortedEeproms = eeproms;
+    std::sort(
+        sortedEeproms.begin(),
+        sortedEeproms.end(),
+        [](const auto& a, const auto& b) { return a.offset < b.offset; });
+
+    for (size_t i = 0; i + 1 < sortedEeproms.size(); ++i) {
+      const auto& curr = sortedEeproms[i];
+      const auto& next = sortedEeproms[i + 1];
+      if (curr.offset + kEepromSize > next.offset) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have "
+            "overlapping regions: [{}, {}) and [{}, {})",
+            curr.pmUnitScopedName,
+            next.pmUnitScopedName,
+            bus,
+            addr,
+            curr.offset,
+            curr.offset + kEepromSize,
+            next.offset,
+            next.offset + kEepromSize);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
+ConfigValidator::getLogicalEeproms(
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+    const std::string& slotType,
+    const PmUnitConfig& pmUnitConfig) {
+  using EepromLoc = std::pair<std::string, std::string>;
+  std::map<EepromLoc, std::vector<LogicalEeprom>> eepromsByLocation;
+
+  // Add IDPROM if present
+  if (slotTypeConfigs.contains(slotType)) {
+    const auto& slotTypeConfig = slotTypeConfigs.at(slotType);
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& idprom = *slotTypeConfig.idpromConfig();
+      eepromsByLocation[{*idprom.busName(), *idprom.address()}].push_back(
+          LogicalEeprom{
+              "IDPROM", *idprom.offset(), *idprom.kernelDeviceName()});
+    }
+  }
+
+  // Add I2C EEPROM devices
+  for (const auto& i2cDevice : *pmUnitConfig.i2cDeviceConfigs()) {
+    if (!*i2cDevice.isEeprom()) {
+      continue;
+    }
+    int16_t offset = i2cDevice.eepromOffset() ? *i2cDevice.eepromOffset() : 0;
+    eepromsByLocation[{*i2cDevice.busName(), *i2cDevice.address()}].push_back(
+        LogicalEeprom{
+            *i2cDevice.pmUnitScopedName(),
+            offset,
+            *i2cDevice.kernelDeviceName()});
+  }
+
+  // Return only locations with more than one EEPROM (logical EEPROMs)
+  std::map<EepromLoc, std::vector<LogicalEeprom>> result;
+  for (auto& [location, eeproms] : eepromsByLocation) {
+    if (eeproms.size() > 1) {
+      result[location] = std::move(eeproms);
+    }
+  }
+  return result;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

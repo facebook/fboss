@@ -18,8 +18,7 @@ class FbossEepromInterface {
     FIELD_BE_UINT,
     FIELD_BE_HEX,
     FIELD_STRING,
-    FIELD_MAC,
-    FIELD_DATE
+    FIELD_MAC
   };
 
   struct EepromFieldEntry {

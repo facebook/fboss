@@ -121,7 +121,16 @@ void operator()(
     Fsm& fsm,
     State& currState) const {
   executeResetProgrammingAttributes(fsm, currState);
-  if (!fsm.get_attribute(isTransceiverJustRemediated)) {
+  if (fsm.get_attribute(isTransceiverJustRemediated)) {
+    // During Port Manager mode remediation, don't reset needMarkLastDownTime.
+    // executeResetProgrammingAttributes unconditionally sets it to true, but
+    // in the remediation path (TRANSCEIVER_PROGRAMMED -> DISCOVERED) we must
+    // preserve the false value to match traditional mode behavior where
+    // remediation goes through XPHY_PORTS_PROGRAMMED (which has no entry
+    // action that resets the flag). This prevents lastDownTime from being
+    // re-stamped on each failed remediation cycle.
+    fsm.get_attribute(needMarkLastDownTime) = false;
+  } else {
     // If the transceiver isn't just remediated, we can clear this attribute.
     fsm.get_attribute(transceiverMgrPtr)
         ->markTransceiverReadyForProgramming(

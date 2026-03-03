@@ -40,7 +40,7 @@ class MockSff8472Module : public Sff8472Module {
   }
 
   MOCK_METHOD1(configureModule, void(uint8_t));
-  MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
+  MOCK_METHOD1(customizeTransceiverLocked, void(const TransceiverPortState&));
   MOCK_CONST_METHOD0(numHostLanes, unsigned int());
 
   MOCK_METHOD1(
@@ -95,7 +95,7 @@ class MockCmisModule : public CmisModule {
   }
 
   MOCK_METHOD1(configureModule, void(uint8_t));
-  MOCK_METHOD1(customizeTransceiverLocked, void(TransceiverPortState&));
+  MOCK_METHOD1(customizeTransceiverLocked, void(const TransceiverPortState&));
   MOCK_CONST_METHOD0(numHostLanes, unsigned int());
 
   MOCK_METHOD1(

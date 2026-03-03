@@ -9,36 +9,45 @@ namespace facebook::fboss {
 QsfpUtilTx::QsfpUtilTx(
     DirectI2cInfo i2cInfo,
     const std::vector<std::string>& portNames,
+    const std::map<std::string, std::vector<int32_t>>& portNameToTcvrIds,
     folly::EventBase& evb)
     : bus_(i2cInfo.bus),
-      wedgeManager_(i2cInfo.transceiverManager),
       allPortNames_(portNames),
       evb_(evb),
-      disableTx_(FLAGS_tx_disable ? true : false) {
-  std::string allPortNames;
-  std::map<int32_t, TransceiverManagementInterface> moduleTypes;
-  std::vector<unsigned int> moduleIds;
-  for (auto portName : portNames) {
-    allPortNames += portName;
-    allPortNames += ", ";
-
-    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
-    int oneIndexedModuleId = moduleId + 1;
-    moduleIds.push_back(oneIndexedModuleId);
-  }
-
-  // Find TransceiverManagementInterface for all these port modules
-  moduleTypes = getModuleType(moduleIds);
-
+      disableTx_(FLAGS_tx_disable ? true : false),
+      portNameToModuleMap_(portNameToTcvrIds) {
   XLOG(INFO) << fmt::format(
       "TxDisableTrace: disableTx_ = {:s}, {:s}, FLAGS_tx_disable = {:s}, FLAGS_tx_enable = {:s}",
-      allPortNames,
+      folly::join(",", allPortNames_),
       disableTx_ ? "disabled" : "enabled",
       FLAGS_tx_disable ? "disabled" : "enabled",
       FLAGS_tx_enable ? "enabled" : "disabled");
+}
 
-  for (auto portName : portNames) {
-    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
+int QsfpUtilTx::setTxDisable() {
+  return FLAGS_direct_i2c ? setTxDisableDirect() : setTxDisableViaService();
+}
+
+/*
+ * This function directly disables the optics lane TX which brings down the
+ * module. The TX Disable will cause LOS at the link partner and Remote Fault at
+ * this end.
+ */
+int QsfpUtilTx::setTxDisableDirect() {
+  int retVal = EX_OK;
+
+  std::vector<unsigned int> moduleIds;
+  for (const auto& portName : allPortNames_) {
+    int moduleId = portNameToModuleMap_.at(portName)[0];
+    int oneIndexedModuleId = moduleId + 1;
+    moduleIds.push_back(oneIndexedModuleId);
+  }
+  // Find TransceiverManagementInterface for all these port modules
+  std::map<int32_t, TransceiverManagementInterface> moduleTypes =
+      getModuleType(moduleIds);
+
+  for (auto portName : allPortNames_) {
+    int moduleId = portNameToModuleMap_.at(portName)[0];
     int oneIndexedModuleId = moduleId + 1;
     if (moduleTypes.find(oneIndexedModuleId) == moduleTypes.end()) {
       XLOG(ERR) << fmt::format(
@@ -56,19 +65,7 @@ QsfpUtilTx::QsfpUtilTx(
           "Port {:s} has unknown managament interface type", portName);
     }
   }
-}
 
-int QsfpUtilTx::setTxDisable() {
-  return FLAGS_direct_i2c ? setTxDisableDirect() : setTxDisableViaService();
-}
-
-/*
- * This function directly disables the optics lane TX which brings down the
- * module. The TX Disable will cause LOS at the link partner and Remote Fault at
- * this end.
- */
-int QsfpUtilTx::setTxDisableDirect() {
-  int retVal = EX_OK;
   if (!sffPortNames_.empty()) {
     if (!setSffTxDisableDirect(sffPortNames_)) {
       retVal |= EX_SOFTWARE;
@@ -89,8 +86,8 @@ int QsfpUtilTx::setTxDisableDirect() {
  */
 bool QsfpUtilTx::setSffTxDisableDirect(
     const std::vector<std::string>& sffPortNames) {
-  for (auto portName : sffPortNames) {
-    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
+  for (const auto& portName : sffPortNames) {
+    int moduleId = portNameToModuleMap_.at(portName)[0];
     int oneIndexedModuleId = moduleId + 1;
     XLOG(INFO) << fmt::format(
         "TxDisableTrace: SFF {:d}: directly {:s} TX on {:s} channels",
@@ -132,8 +129,8 @@ bool QsfpUtilTx::setSffTxDisableDirect(
  */
 bool QsfpUtilTx::setCmisTxDisableDirect(
     const std::vector<std::string>& cmisPortNames) {
-  for (auto portName : cmisPortNames) {
-    int moduleId = wedgeManager_->getPortNameToModuleMap().at(portName);
+  for (const auto& portName : cmisPortNames) {
+    int moduleId = portNameToModuleMap_.at(portName)[0];
     int oneIndexedModuleId = moduleId + 1;
     XLOG(INFO) << fmt::format(
         "TxDisableTrace: CMIS {:d}: directly {:s} TX on {:s} channels",

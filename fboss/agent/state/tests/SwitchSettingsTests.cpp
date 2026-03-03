@@ -400,6 +400,8 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   sysPortRange.minimum() = 100;
   sysPortRange.maximum() = 200;
   switchInfo2.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+  switchInfo2.localSystemPortRanges()->systemPortRanges()->push_back(
+      sysPortRange);
   switchInfo2.localSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.globalSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.inbandPortId() = kSingleStageInbandPortId;
@@ -430,6 +432,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(
       switchInfo3.minLinksPerDeviceToJoinVOQDomain(),
       kMinLinksPerDeviceToJoinVOQDomain);
+  EXPECT_EQ(switchInfo3.localSystemPortRanges()->systemPortRanges()->size(), 1);
+  EXPECT_EQ(
+      switchInfo3.localSystemPortRanges()->systemPortRanges()->at(0).minimum(),
+      100);
+  EXPECT_EQ(
+      switchInfo3.localSystemPortRanges()->systemPortRanges()->at(0).maximum(),
+      200);
 
   validateNodeSerialization(*switchSettingsV1);
 }

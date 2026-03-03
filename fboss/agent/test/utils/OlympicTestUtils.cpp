@@ -108,6 +108,33 @@ void addOlympicQueueOptionalEcnWredConfigWithSchedulingHelper(
   *queue7.scheduling() = cfg::QueueScheduling::STRICT_PRIORITY;
   portQueues.push_back(queue7);
 
+  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
+    constexpr auto kEgressTestPoolName = "egress_test_pool";
+    auto numPorts = config->ports()->size();
+    auto perPortReserved = 0;
+    for (const auto& queue : portQueues) {
+      if (auto rb = queue.reservedBytes()) {
+        perPortReserved += *rb;
+      }
+    }
+    // For ASIC G200/G202X, Set pool-level reservedBytes via SAI extension so
+    // SDK uses a constant pool reserve instead of recalculating per queue
+    // attach/detach (O(n^2)).
+    auto totalReservedBytes = numPorts * perPortReserved;
+    auto mmuSize = asic->getMMUSizeBytes();
+    cfg::BufferPoolConfig poolCfg;
+    poolCfg.sharedBytes() = mmuSize - totalReservedBytes;
+    poolCfg.reservedBytes() = totalReservedBytes;
+    std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
+        config->bufferPoolConfigs().ensure();
+    bufferPoolCfgMap[kEgressTestPoolName] = poolCfg;
+    config->bufferPoolConfigs() = std::move(bufferPoolCfgMap);
+    for (auto& queue : portQueues) {
+      queue.bufferPoolName() = kEgressTestPoolName;
+    }
+  }
+
   config->portQueueConfigs()["queue_config"] = portQueues;
   for (auto& port : *config->ports()) {
     if (*port.portType() == cfg::PortType::INTERFACE_PORT) {
@@ -308,6 +335,12 @@ void addQueueEcnProbabilisticMarkingConfig(
     int probability,
     int minThresh,
     int maxThresh) {
+  CHECK(probability > 0 && probability <= 100)
+      << "ECN mark probability must be between 1 and 100, got: " << probability;
+  CHECK_LE(minThresh, maxThresh)
+      << "minThresh (" << minThresh << ") must be <= maxThresh (" << maxThresh
+      << ")";
+
   auto asic = checkSameAndGetAsic(asics);
 
   XLOG(DBG2) << "Configuring ECN probabilistic marking for queue " << queueId
@@ -655,8 +688,8 @@ void addQosMapsHelper(
 
   // configure cpu qos policy
   std::string cpuQosPolicyName = qosPolicyName;
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // create and apply a separate qos policy for Jericho3 cpu port
+  if (needsSeparateCpuQosPolicy(hwAsic)) {
+    // create and apply a separate qos policy for Jericho3/Q4D cpu port
     cpuQosPolicyName = qosPolicyName + "_cpu";
     cfg::QosMap cpuQosMap = qosMap;
     cpuQosMap.trafficClassToQueueId()->clear();
@@ -689,7 +722,7 @@ void addQosMapsHelper(
   cpuConfig.trafficPolicy() = cpuTrafficPolicy;
   cfg.cpuTrafficPolicy() = cpuConfig;
 
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+  if (needsSeparateCpuQosPolicy(hwAsic)) {
     // also apply cpu qos policy for recycle port
     for (const auto& port : *cfg.ports()) {
       if (*port.portType() == cfg::PortType::RECYCLE_PORT ||

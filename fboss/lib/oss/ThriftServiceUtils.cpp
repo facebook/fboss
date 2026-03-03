@@ -11,6 +11,7 @@
 #include "fboss/lib/ThriftServiceUtils.h"
 
 #include <folly/io/async/Epoll.h>
+#include <folly/logging/xlog.h>
 
 #if FOLLY_HAS_EPOLL
 // Conditionally include EpollBackend only if folly has epoll support
@@ -58,12 +59,20 @@ void ThriftServiceUtils::setPreferredEventBaseBackendToEpoll(
       folly::IOThreadPoolExecutor::Options().setEnableThreadIdCollection(
           THRIFT_FLAG(enable_io_queue_lag_detection)));
   server.setIOThreadPool(executor);
+  XLOG(INFO) << "Set preferred event base backend to Epoll";
 #else
   // Epoll should be well-established and widely supported since Linux 2.6
   // Just in case folly doesn't have epoll support, we should throw an error
   // to avoid the user unknowingly using the wrong backend
   throw std::runtime_error("Folly does not have epoll support");
 #endif
+}
+
+folly::Function<void(apache::thrift::ThriftServer&)>
+ThriftServiceUtils::createThriftServerConfig() {
+  return [](apache::thrift::ThriftServer& server) {
+    ThriftServiceUtils::setPreferredEventBaseBackend(server);
+  };
 }
 
 } // namespace facebook::fboss

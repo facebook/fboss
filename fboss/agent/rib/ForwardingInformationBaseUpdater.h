@@ -93,14 +93,8 @@ class ForwardingInformationBaseUpdater {
       std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
           fib);
 
-  // Apply NextHopIDManager deltas to switch state FibInfo maps
-  void applyNextHopAllocationDelta(
-      const NextHopIDManager::NextHopAllocationResult& allocResult,
-      std::shared_ptr<SwitchState>& state,
-      NextHopIDManager* nextHopIDManager);
-  void applyNextHopDeallocationDelta(
-      const NextHopIDManager::NextHopDeallocationResult& deallocResult,
-      std::shared_ptr<SwitchState>& state);
+  bool verifyNextHopIdConsistency(
+      const std::shared_ptr<SwitchState>& state) const;
 
   const SwitchIdScopeResolver* resolver_;
   RouterID vrf_;

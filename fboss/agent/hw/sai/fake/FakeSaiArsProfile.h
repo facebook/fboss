@@ -46,7 +46,8 @@ struct FakeArsProfile {
       sai_uint32_t ars_base_index,
       sai_uint32_t ars_alternate_members_route_meta_data,
       sai_uint32_t ars_route_meta_data_mask,
-      sai_uint32_t ars_primary_members_route_meta_data)
+      sai_uint32_t ars_primary_members_route_meta_data,
+      sai_uint32_t ecmp_member_count)
       : algo(algo),
         sampling_interval(sampling_interval),
         random_seed(random_seed),
@@ -73,7 +74,8 @@ struct FakeArsProfile {
             ars_alternate_members_route_meta_data),
         ars_route_meta_data_mask(ars_route_meta_data_mask),
         ars_primary_members_route_meta_data(
-            ars_primary_members_route_meta_data) {}
+            ars_primary_members_route_meta_data),
+        ecmp_member_count(ecmp_member_count) {}
   sai_ars_profile_algo_t algo;
   sai_uint32_t sampling_interval;
   sai_uint32_t random_seed;
@@ -100,6 +102,7 @@ struct FakeArsProfile {
   sai_uint32_t ars_alternate_members_route_meta_data;
   sai_uint32_t ars_route_meta_data_mask;
   sai_uint32_t ars_primary_members_route_meta_data;
+  sai_uint32_t ecmp_member_count;
   sai_object_id_t id;
 };
 

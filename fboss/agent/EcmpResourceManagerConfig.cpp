@@ -18,8 +18,16 @@ namespace facebook::fboss {
 
 EcmpResourceManagerConfig::EcmpResourceManagerConfig(
     uint32_t maxHwEcmpGroups,
-    std::optional<cfg::SwitchingMode> backupEcmpGroupType)
+    std::optional<cfg::SwitchingMode> backupEcmpGroupType,
+    std::optional<uint32_t> maxVirtualEcmpGroups,
+    std::optional<int32_t> minWidthForVirtualGroup,
+    std::optional<int32_t> maxVirtualGroupWidth,
+    std::optional<int32_t> maxEcmpWidth)
     : maxHwEcmpGroups_(computeMaxHwEcmpGroups(maxHwEcmpGroups)),
+      maxVirtualEcmpGroups_(computeMaxVirtualEcmpGroups(maxVirtualEcmpGroups)),
+      minWidthForVirtualGroup_(minWidthForVirtualGroup),
+      maxVirtualGroupWidth_(maxVirtualGroupWidth),
+      maxEcmpWidth_(maxEcmpWidth),
       backupEcmpGroupType_(backupEcmpGroupType) {}
 
 EcmpResourceManagerConfig::EcmpResourceManagerConfig(
@@ -36,11 +44,21 @@ EcmpResourceManagerConfig::EcmpResourceManagerConfig(
 
 bool EcmpResourceManagerConfig::ecmpLimitReached(
     uint32_t primaryEcmpGroups,
-    uint32_t ecmpGroupMembers) const {
+    uint32_t ecmpGroupMembers,
+    std::optional<uint32_t> virtualEcmpGroups) const {
   DCHECK_LE(primaryEcmpGroups, maxHwEcmpGroups_);
   DCHECK(!maxHwEcmpMembers_ || ecmpGroupMembers <= *maxHwEcmpMembers_);
-  return primaryEcmpGroups >= maxHwEcmpGroups_ ||
-      (maxHwEcmpMembers_.has_value() && ecmpGroupMembers >= *maxHwEcmpMembers_);
+  if (primaryEcmpGroups >= maxHwEcmpGroups_) {
+    return true;
+  }
+  if (virtualEcmpGroups.has_value() && maxVirtualEcmpGroups_.has_value() &&
+      *virtualEcmpGroups >= *maxVirtualEcmpGroups_) {
+    return true;
+  }
+  if (maxHwEcmpMembers_.has_value() && ecmpGroupMembers >= *maxHwEcmpMembers_) {
+    return true;
+  }
+  return false;
 }
 
 uint32_t EcmpResourceManagerConfig::computeMaxHwEcmpGroups(
@@ -63,6 +81,18 @@ std::optional<uint32_t> EcmpResourceManagerConfig::computeMaxHwEcmpMembers(
       FLAGS_ecmp_resource_manager_make_before_break_buffer * *maxEcmpWidth;
   CHECK_GT(maxMembers, 0);
   return maxMembers;
+}
+
+std::optional<uint32_t> EcmpResourceManagerConfig::computeMaxVirtualEcmpGroups(
+    std::optional<uint32_t> maxVirtualEcmpGroups) {
+  if (!maxVirtualEcmpGroups.has_value()) {
+    return std::nullopt;
+  }
+  CHECK_GT(
+      *maxVirtualEcmpGroups,
+      FLAGS_ecmp_resource_manager_make_before_break_buffer);
+  return *maxVirtualEcmpGroups -
+      FLAGS_ecmp_resource_manager_make_before_break_buffer;
 }
 
 void EcmpResourceManagerConfig::validateCfgUpdate(

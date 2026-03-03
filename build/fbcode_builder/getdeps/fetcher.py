@@ -11,6 +11,7 @@ import hashlib
 import os
 import random
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -379,6 +380,31 @@ def copy_if_different(src_name, dest_name) -> bool:
     return True
 
 
+def filter_strip_marker(dest_name, marker) -> None:
+    """Strip lines/blocks tagged with the given marker from a file."""
+    try:
+        with open(dest_name, "r") as f:
+            content = f.read()
+    except (UnicodeDecodeError, PermissionError):
+        return
+
+    if marker not in content:
+        return
+
+    escaped = re.escape(marker)
+    block_re = re.compile(
+        r"[^\n]*" + escaped + r"-start[^\n]*\n.*?[^\n]*" + escaped + r"-end[^\n]*\n?",
+        re.DOTALL,
+    )
+    line_re = re.compile(r".*" + escaped + r".*\n?")
+
+    filtered = block_re.sub("", content)
+    filtered = line_re.sub("", filtered)
+    if filtered != content:
+        with open(dest_name, "w") as f:
+            f.write(filtered)
+
+
 def list_files_under_dir_newer_than_timestamp(dir_to_scan, ts):
     for root, _dirs, files in os.walk(dir_to_scan):
         for src_file in files:
@@ -393,6 +419,7 @@ class ShipitPathMap(object):
         self.roots = []
         self.mapping = []
         self.exclusion = []
+        self.strip_marker = "@fb-only"
 
     def add_mapping(self, fbsource_dir, target_dir) -> None:
         """Add a posix path or pattern.  We cannot normpath the input
@@ -491,6 +518,7 @@ class ShipitPathMap(object):
                     if target_name:
                         full_file_list.add(target_name)
                         if copy_if_different(full_name, target_name):
+                            filter_strip_marker(target_name, self.strip_marker)
                             change_status.record_change(target_name)
                             if update_count < 10:
                                 print("Updated %s -> %s" % (full_name, target_name))
@@ -518,7 +546,7 @@ class ShipitPathMap(object):
                         change_status.record_change(name)
 
         with open(installed_name, "wb") as f:
-            for name in sorted(list(full_file_list)):
+            for name in sorted(full_file_list):
                 f.write(("%s\n" % name).encode("utf-8"))
 
         return change_status
@@ -678,6 +706,8 @@ class SimpleShipitTransformerFetcher(Fetcher):
             )
         for pattern in self.manifest.get_section_as_args("shipit.strip", self.ctx):
             mapping.add_exclusion(pattern)
+
+        mapping.strip_marker = self.manifest.shipit_strip_marker
 
         return mapping.mirror(self.build_options.fbsource_dir, self.repo_dir)
 
@@ -873,20 +903,39 @@ def download_url_to_file_with_progress(url: str, file_name) -> None:
                 c.close()
             headers = None
         else:
-            req_header = {"Accept": "application/*"}
-            res = urlopen(Request(url, None, req_header))
-            chunk_size = 8192  # urlretrieve uses this value
-            headers = res.headers
-            content_length = res.headers.get("Content-Length")
-            total = int(content_length.strip()) if content_length else -1
-            amount = 0
-            with open(file_name, "wb") as f:
-                chunk = res.read(chunk_size)
-                while chunk:
-                    f.write(chunk)
-                    amount += len(chunk)
-                    progress.write_update(total, amount)
+            try:
+                req_header = {"Accept": "application/*"}
+                res = urlopen(Request(url, None, req_header))
+                chunk_size = 8192  # urlretrieve uses this value
+                headers = res.headers
+                content_length = res.headers.get("Content-Length")
+                total = int(content_length.strip()) if content_length else -1
+                amount = 0
+                with open(file_name, "wb") as f:
                     chunk = res.read(chunk_size)
+                    while chunk:
+                        f.write(chunk)
+                        amount += len(chunk)
+                        progress.write_update(total, amount)
+                        chunk = res.read(chunk_size)
+            except (OSError, IOError) as exc:  # noqa: B014
+                # Downloading from within Meta's network needs to use a proxy.
+                if shutil.which("fwdproxy-config") is None:
+                    print(
+                        "Note: Could not find Meta-specific fallback 'fwdproxy-config'. "
+                        "If you are working externally, you can ignore this message."
+                    )
+                    raise
+
+                print("Default download failed, retrying with curl and fwdproxy...")
+                cmd = f"curl -L $(fwdproxy-config curl) -o {shlex.quote(file_name)} {shlex.quote(url)}"
+                print(f"Running command: {cmd}")
+                result = subprocess.run(cmd, shell=True, capture_output=True)
+                if result.returncode != 0:
+                    raise TransientFailure(
+                        f"Failed to download {url} to {file_name}: {exc} (fwdproxy fallback failed: {result.stderr.decode()})"
+                    )
+                headers = None
     except (OSError, IOError) as exc:  # noqa: B014
         raise TransientFailure(
             "Failed to download %s to %s: %s" % (url, file_name, str(exc))

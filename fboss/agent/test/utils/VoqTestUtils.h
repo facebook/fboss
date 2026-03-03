@@ -106,5 +106,21 @@ uint8_t getGlobalRcyDefaultQueue();
 int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
 
 int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
+
+SwitchID getRemoteVoqSwitchId(SwSwitch* sw);
+
+void addRemoteSysPortAndInterface(
+    SwSwitch* sw,
+    const SwitchID& remoteSwitchID,
+    const SystemPortID& remoteSysPortId,
+    const InterfaceID& remoteIntfId,
+    const Interface::Addresses& intfAddrs);
+
+void resolveRouteToRemoteSysPort(
+    const std::shared_ptr<SwitchState>& state,
+    SwSwitch* sw,
+    TestEnsembleIf* ensemble,
+    const SystemPortID& remoteSysPortId,
+    const folly::IPAddressV6& dstIp);
 } // namespace utility
 } // namespace facebook::fboss

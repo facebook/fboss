@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","janga800bic","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","janga800bic","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","janga800bic","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","janga800bic","PASSED"

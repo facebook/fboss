@@ -51,6 +51,8 @@ bool is2QueueWRRQueueId(int queueId);
 
 int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass);
 
+bool needsSeparateCpuQosPolicy(const HwAsic* hwAsic);
+
 int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass);
 
 int getAqmGranularThreshold(const HwAsic* asic, int value);

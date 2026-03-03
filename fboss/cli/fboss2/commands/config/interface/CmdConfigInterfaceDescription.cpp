@@ -34,8 +34,9 @@ CmdConfigInterfaceDescription::queryClient(
     }
   }
 
-  // Save the updated config
-  ConfigSession::getInstance().saveConfig();
+  // Save the updated config - description changes are hitless
+  ConfigSession::getInstance().saveConfig(
+      cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());
   return "Successfully set description for interface(s) " + interfaceList;
