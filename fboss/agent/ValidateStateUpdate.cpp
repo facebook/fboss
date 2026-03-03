@@ -272,10 +272,11 @@ bool StateUpdateValidator::isValidUpdate(
       return isStateUpdateValidCommon(delta, asicTable_) &&
           hwSwitchHandler_->isValidStateUpdate(delta);
     }
-    case cfg::AgentRunMode::MULTI_SWITCH:
+    case cfg::AgentRunMode::MULTI_SWITCH: {
       return isStateUpdateValidCommon(delta, asicTable_) &&
           isStateUpdateValidMultiSwitch(
                  delta, scopeResolver_, asicTable_->getHwAsics());
+    }
   }
   throw FbossError("Invalid run mode: ", runMode_);
 }
