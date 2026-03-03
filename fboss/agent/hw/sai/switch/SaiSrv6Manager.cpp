@@ -29,6 +29,19 @@ std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::addOrReuseSrv6SidList(
   return handle;
 }
 
+std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::insertSrv6SidList(
+    std::shared_ptr<SaiSrv6SidList> sidList) {
+  const auto& adapterHostKey = sidList->adapterHostKey();
+  auto existing = srv6SidLists_.ref(adapterHostKey);
+  if (existing) {
+    throw FbossError("SRv6 SID list already exists for the given key");
+  }
+  auto [handle, emplaced] = srv6SidLists_.refOrEmplace(adapterHostKey);
+  CHECK(emplaced);
+  handle->sidList = std::move(sidList);
+  return handle;
+}
+
 const SaiSrv6SidListHandle* SaiSrv6Manager::getSrv6SidListHandle(
     const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey) const {
   return srv6SidLists_.get(adapterHostKey);

@@ -26,6 +26,12 @@ class Srv6ManagerTest : public ManagerTestBase {
     return SaiSrv6SidListTraits::CreateAttributes{
         type, segmentList, std::nullopt};
   }
+
+  std::shared_ptr<SaiSrv6SidList> createSaiSrv6SidList(
+      const SaiSrv6SidListTraits::CreateAttributes& attrs) {
+    auto& store = saiStore->get<SaiSrv6SidListTraits>();
+    return store.setObject(attrs, attrs);
+  }
 };
 
 TEST_F(Srv6ManagerTest, addSrv6SidList) {
@@ -130,6 +136,25 @@ TEST_F(Srv6ManagerTest, recreateAfterRelease) {
   EXPECT_NE(handle->sidList, nullptr);
   // New SAI object gets a different adapter key
   EXPECT_NE(handle->sidList->adapterKey(), firstAdapterKey);
+}
+
+TEST_F(Srv6ManagerTest, insertSrv6SidList) {
+  auto attrs = makeCreateAttributes();
+  auto sidList = createSaiSrv6SidList(attrs);
+  auto handle = saiManagerTable->srv6Manager().insertSrv6SidList(sidList);
+  EXPECT_NE(handle, nullptr);
+  EXPECT_EQ(handle->sidList, sidList);
+}
+
+TEST_F(Srv6ManagerTest, insertSrv6SidListThrowsOnDuplicate) {
+  auto attrs = makeCreateAttributes();
+  auto sidList1 = createSaiSrv6SidList(attrs);
+  auto handle = saiManagerTable->srv6Manager().insertSrv6SidList(sidList1);
+  EXPECT_NE(handle, nullptr);
+
+  auto sidList2 = createSaiSrv6SidList(attrs);
+  EXPECT_THROW(
+      saiManagerTable->srv6Manager().insertSrv6SidList(sidList2), FbossError);
 }
 
 #endif
