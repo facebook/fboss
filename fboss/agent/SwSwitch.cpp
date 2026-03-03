@@ -1451,8 +1451,7 @@ void SwSwitch::init(
 
   // Notify resource accountant of the initial state.
   for (const auto& delta : deltas) {
-    if (!getResourceAccountant()->isValidUpdate(delta)) {
-      stats()->resourceAccountantRejectedUpdates();
+    if (!isValidStateUpdate(delta, stats())) {
       throw FbossError(
           "Not enough resource to apply initialState. ",
           "This should not happen given the state was previously applied, ",
@@ -1536,8 +1535,7 @@ void SwSwitch::init(const HwWriteBehavior& hwWriteBehavior, SwitchFlags flags) {
   auto deltas = reconstructStateFromErmAndShelManager(emptyState, initialState);
   // Notify resource accountant of the initial state.
   for (const auto& delta : deltas) {
-    if (!getResourceAccountant()->isValidUpdate(delta)) {
-      stats()->resourceAccountantRejectedUpdates();
+    if (!isValidStateUpdate(delta, stats())) {
       throw FbossError(
           "Not enough resource to apply initialState. ",
           "This should not happen given the state was previously applied, ",
@@ -2040,15 +2038,9 @@ SwSwitch::applyUpdate(
 
   bool updateRejected{false};
   for (const auto& delta : deltas) {
-    if (!getResourceAccountant()->isValidUpdate(delta)) {
-      updateRejected = true;
-      stats()->resourceAccountantRejectedUpdates();
-      XLOG(ERR) << "State updated rejected by resource accountant";
-      break;
-    }
     if (!isValidStateUpdate(delta, stats())) {
       updateRejected = true;
-      XLOG(ERR) << "Attempted to apply invalid state update, rejected it";
+      XLOG(ERR) << "State update rejected.";
       break;
     }
   }

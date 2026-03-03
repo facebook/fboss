@@ -7,6 +7,7 @@
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -270,19 +271,29 @@ StateUpdateValidator::StateUpdateValidator(
 
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
-    SwitchStats* /*stats*/) const {
+    SwitchStats* stats) const {
+  bool isValid = resourceAccountant_->isValidUpdate(delta);
+  if (!isValid) {
+    stats->resourceAccountantRejectedUpdates();
+    XLOG(ERR) << "State updated rejected by resource accountant.";
+    return isValid;
+  }
+
   switch (runMode_) {
     case cfg::AgentRunMode::MONO: {
-      return isStateUpdateValidCommon(delta, asicTable_) &&
+      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
           hwSwitchHandler_->isValidStateUpdate(delta);
-    }
+    } break;
     case cfg::AgentRunMode::MULTI_SWITCH: {
-      return isStateUpdateValidCommon(delta, asicTable_) &&
+      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
           isStateUpdateValidMultiSwitch(
-                 delta, scopeResolver_, asicTable_->getHwAsics());
-    }
+                    delta, scopeResolver_, asicTable_->getHwAsics());
+    } break;
   }
-  throw FbossError("Invalid run mode: ", runMode_);
+  if (!isValid) {
+    XLOG(ERR) << "State update is not valid.";
+  }
+  return isValid;
 }
 
 void StateUpdateValidator::resetResourceAccountant(

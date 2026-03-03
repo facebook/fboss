@@ -895,5 +895,6 @@ target_link_libraries(validate_state_update
   hw_switch_handler
   agent_features
   fib_helpers
+  stats
   ${GTEST}
 )

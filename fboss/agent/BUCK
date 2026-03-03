@@ -2162,6 +2162,7 @@ cpp_library(
         ":fib_helpers",
         ":hw_asic_table",
         ":hw_switch_handler",
+        ":stats",
         ":switchid_scope_resolver",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",
