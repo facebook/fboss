@@ -332,3 +332,70 @@ TEST_F(WredStoreTest, ecnProfileWithMarkProbability) {
   auto got = store.get(k);
   EXPECT_EQ(got->adapterKey(), ecnId);
 }
+
+#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
+TEST_F(WredStoreTest, wredAdapterHostKeyToAndFromDynamic) {
+  SaiWredTraits::AdapterHostKey k = createWredProfileAdapterHostKey(
+      true,
+      kGreenMinThreshold(),
+      kGreenMaxThreshold(),
+      kGreenDropProbability(),
+      0,
+      kEcnGreenMinThreshold(),
+      kEcnGreenMaxThreshold());
+  SaiWredTraits::CreateAttributes c{
+      true,
+      kGreenMinThreshold(),
+      kGreenMaxThreshold(),
+      kGreenDropProbability(),
+      0,
+      kEcnGreenMinThreshold(),
+      kEcnGreenMaxThreshold()};
+
+  SaiStore s(0);
+  auto& store = s.get<SaiWredTraits>();
+  auto obj = store.setObject(k, c);
+
+  auto json = obj->adapterHostKeyToFollyDynamic();
+  auto k1 = SaiObject<SaiWredTraits>::follyDynamicToAdapterHostKey(json);
+  EXPECT_EQ(k1, k);
+}
+
+TEST_F(WredStoreTest, ecnAdapterHostKeyToAndFromDynamic) {
+  SaiWredTraits::AdapterHostKey k = createWredProfileAdapterHostKey(
+      false, 0, 0, 0, 1, kEcnGreenMinThreshold(), kEcnGreenMaxThreshold());
+  SaiWredTraits::CreateAttributes c{
+      false, 0, 0, 0, 1, kEcnGreenMinThreshold(), kEcnGreenMaxThreshold()};
+
+  SaiStore s(0);
+  auto& store = s.get<SaiWredTraits>();
+  auto obj = store.setObject(k, c);
+
+  auto json = obj->adapterHostKeyToFollyDynamic();
+  auto k1 = SaiObject<SaiWredTraits>::follyDynamicToAdapterHostKey(json);
+  EXPECT_EQ(k1, k);
+}
+
+TEST_F(WredStoreTest, wredAdapterHostKeyWithOptionalNone) {
+  SaiWredTraits::AdapterHostKey k;
+  std::get<SaiWredTraits::Attributes::GreenEnable>(k) = true;
+  std::get<SaiWredTraits::Attributes::EcnMarkMode>(k) = 0;
+
+  SaiWredTraits::CreateAttributes c{
+      true,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      0,
+      std::nullopt,
+      std::nullopt};
+
+  SaiStore s(0);
+  auto& store = s.get<SaiWredTraits>();
+  auto obj = store.setObject(k, c);
+
+  auto json = obj->adapterHostKeyToFollyDynamic();
+  auto k1 = SaiObject<SaiWredTraits>::follyDynamicToAdapterHostKey(json);
+  EXPECT_EQ(k1, k);
+}
+#endif

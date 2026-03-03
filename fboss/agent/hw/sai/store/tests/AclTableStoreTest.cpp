@@ -580,6 +580,31 @@ TEST_P(AclTableStoreParamTest, toStrAclCounterStore) {
   verifyToStr<SaiAclCounterTraits>();
 }
 
+TEST_F(AclTableStoreTest, aclTableAdapterHostKeyToAndFromDynamic) {
+  std::ignore = createAclTable(SAI_ACL_STAGE_INGRESS);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiAclTableTraits>();
+
+  SaiAclTableTraits::AdapterHostKey k{
+      cfg::switch_config_constants::DEFAULT_INGRESS_ACL_TABLE()};
+  auto got = store.get(k);
+  EXPECT_NE(got, nullptr);
+
+  auto json = got->adapterHostKeyToFollyDynamic();
+  auto k1 = SaiObject<SaiAclTableTraits>::follyDynamicToAdapterHostKey(json);
+  EXPECT_EQ(k1, k);
+
+  auto ak2AhkJson = s.adapterKeys2AdapterHostKeysFollyDynamic();
+  auto& aclAk2AhkJson =
+      ak2AhkJson[saiObjectTypeToString(SAI_OBJECT_TYPE_ACL_TABLE)];
+  EXPECT_TRUE(!aclAk2AhkJson.empty());
+  auto iter = aclAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
+  EXPECT_FALSE(aclAk2AhkJson.items().end() == iter);
+  EXPECT_EQ(iter->second, json);
+}
+
 INSTANTIATE_TEST_CASE_P(
     AclTableStoreParamTestInstantiation,
     AclTableStoreParamTest,
