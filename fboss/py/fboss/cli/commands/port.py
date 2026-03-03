@@ -17,13 +17,12 @@ from math import log10
 
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
-from neteng.fboss.ctrl.ttypes import PortLedExternalState
-from neteng.fboss.phy.ttypes import PortComponent, PortPrbsState
-from neteng.fboss.switch_config.ttypes import QueueCongestionBehavior
-from neteng.fboss.transceiver import ttypes as transceiver_ttypes
-from neteng.fboss.ttypes import FbossBaseError
-from thrift.Thrift import TApplicationException
-from thrift.transport.TTransport import TTransportException
+from neteng.fboss.ctrl.thrift_types import PortLedExternalState
+from neteng.fboss.fboss.thrift_types import FbossBaseError
+from neteng.fboss.phy.phy.thrift_types import PortComponent, PortPrbsState
+from neteng.fboss.switch_config.thrift_types import QueueCongestionBehavior
+from neteng.fboss.transceiver import thrift_types as transceiver_ttypes
+from thrift.python.exceptions import ApplicationError, TransportError
 
 
 class PortDetailsCmd(cmds.FbossCmd):
@@ -216,7 +215,7 @@ class PortFlapCmd(cmds.FbossCmd):
             if all:
                 try:
                     self._qsfp_client = self._create_qsfp_client()
-                except TTransportException:
+                except TransportError:
                     self._qsfp_client = None
                 self.flap_all_ports()
             elif not ports:
@@ -324,9 +323,7 @@ class PortPrbsCmd(cmds.FbossCmd):
         # wedge_agent
         if self.component in [PortComponent.GB_LINE, PortComponent.GB_SYSTEM]:
             with self._create_qsfp_client() as client:
-                state = PortPrbsState()
-                state.enabled = enable
-                state.polynominal = polynominal
+                state = PortPrbsState(enabled=enable, polynominal=polynominal)
                 try:
                     for port in self.ports:
                         print(f"{enable_str} PRBS on port {port}")
@@ -395,8 +392,9 @@ class PortSetLedCmd(cmds.FbossCmd):
     def set_led(self, ports, value):
         with self._create_agent_client() as client:
             for port in ports:
-                values = PortLedExternalState._VALUES_TO_NAMES
-                print(f"Setting port {port} to value: {values.get(value)}")
+                print(
+                    f"Setting port {port} to value: {PortLedExternalState(value).name}"
+                )
                 client.setExternalLedState(port, value)
 
 
@@ -484,7 +482,7 @@ class PortStatusCmd(cmds.FbossCmd):
         with self._create_agent_client() as client:
             try:
                 self._qsfp_client = self._create_qsfp_client()
-            except TTransportException:
+            except TransportError:
                 self._qsfp_client = None
             if detail or verbose:
                 PortStatusDetailCmd(
@@ -672,9 +670,8 @@ class PortStatusDetailCmd:
             if status.transceiverIdx:
                 tid = status.transceiverIdx.transceiverId
                 if tid not in self._info_resp.keys():
-                    info = transceiver_ttypes.TransceiverInfo()
-                    info.tcvrState.port = port
-                    info.tcvrState.present = False
+                    tcvr_state = transceiver_ttypes.TcvrState(port=port, present=False)
+                    info = transceiver_ttypes.TransceiverInfo(tcvrState=tcvr_state)
                     self._info_resp[port] = info
 
     def _print_transceiver_ports(self, ports, info):
@@ -710,40 +707,36 @@ class PortStatusDetailCmd:
 
         print(
             "CDR Tx: {}\tCDR Rx: {}".format(
-                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
-                    info.tcvrState.settings.cdrTx
-                ],
-                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
-                    info.tcvrState.settings.cdrRx
-                ],
+                transceiver_ttypes.FeatureState(info.tcvrState.settings.cdrTx).name,
+                transceiver_ttypes.FeatureState(info.tcvrState.settings.cdrRx).name,
             )
         )
         print(
             "Rate select: {}".format(
-                transceiver_ttypes.RateSelectState._VALUES_TO_NAMES[
+                transceiver_ttypes.RateSelectState(
                     info.tcvrState.settings.rateSelect
-                ]
+                ).name
             )
         )
         print(
             "\tOptimised for: {}".format(
-                transceiver_ttypes.RateSelectSetting._VALUES_TO_NAMES[
+                transceiver_ttypes.RateSelectSetting(
                     info.tcvrState.settings.rateSelectSetting
-                ]
+                ).name
             )
         )
         print(
             "Power measurement: {}".format(
-                transceiver_ttypes.FeatureState._VALUES_TO_NAMES[
+                transceiver_ttypes.FeatureState(
                     info.tcvrState.settings.powerMeasurement
-                ]
+                ).name
             )
         )
         print(
             "Power control: {}".format(
-                transceiver_ttypes.PowerControlState._VALUES_TO_NAMES[
+                transceiver_ttypes.PowerControlState(
                     info.tcvrState.settings.powerControl
-                ]
+                ).name
             )
         )
 
@@ -989,9 +982,9 @@ class PortStatusDetailCmd:
         if info.tcvrState.identifier:
             print(
                 "Optics type: {}".format(
-                    transceiver_ttypes.TransceiverModuleIdentifier._VALUES_TO_NAMES[
+                    transceiver_ttypes.TransceiverModuleIdentifier(
                         info.tcvrState.identifier
-                    ]
+                    ).name
                 )
             )
 
@@ -1099,7 +1092,7 @@ class PortStatusDetailCmd:
                 self._info_resp = self._qsfp_client.getTransceiverInfo(
                     self._transceiver
                 )
-            except TApplicationException:
+            except ApplicationError:
                 return
 
         self._get_dummy_status()

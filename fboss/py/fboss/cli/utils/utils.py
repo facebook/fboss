@@ -20,10 +20,10 @@ from enum import Enum
 from functools import wraps
 from typing import DefaultDict, Dict, List, Tuple
 
-from facebook.network.Address.ttypes import BinaryAddress
+from facebook.network.Address.thrift_types import BinaryAddress
 from libfb.py.decorators import retryable
-from neteng.fboss.common.ttypes import NextHopThrift
-from neteng.fboss.mpls.ttypes import MplsAction, MplsActionCode
+from neteng.fboss.common.thrift_types import NextHopThrift
+from neteng.fboss.mpls.thrift_types import MplsAction, MplsActionCode
 
 
 AGENT_KEYWORD = "agent"
@@ -315,7 +315,7 @@ def get_vlan_aggregate_port_map(client) -> dict[str, str]:
 def label_forwarding_action_to_str(label_forwarding_action: MplsAction) -> str:
     if not label_forwarding_action:
         return ""
-    code = MplsActionCode._VALUES_TO_NAMES[label_forwarding_action.action]
+    code = MplsActionCode(label_forwarding_action.action).name
     labels = ""
     if label_forwarding_action.action == MplsActionCode.SWAP:
         labels = ": " + str(label_forwarding_action.swapLabel)

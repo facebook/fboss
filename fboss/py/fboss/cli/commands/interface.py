@@ -18,7 +18,7 @@ from typing import Any, List, NamedTuple
 import prettytable
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
-from neteng.fboss.ttypes import FbossBaseError
+from neteng.fboss.fboss.thrift_types import FbossBaseError
 
 
 class Interface(NamedTuple):
