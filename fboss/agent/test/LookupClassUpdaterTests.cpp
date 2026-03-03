@@ -1784,7 +1784,7 @@ class LookupClassUpdaterWarmbootRebalanceTest
     auto vlanID = this->kVlan();
     auto vlan = newState->getVlans()->getNodeIf(vlanID);
     auto port = newState->getPorts()->getNodeIf(this->kPortID());
-    port->addVlan(vlanID, false);
+    port->addVlan(vlanID, false, false);
 
     auto macTable = vlan->getMacTable();
     std::shared_ptr<NeighborTableT> neighborTable;

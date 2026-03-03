@@ -7,6 +7,8 @@
 #include <memory>
 #include "fboss/lib/CommonUtils.h"
 
+#include "fboss/lib/ThriftServiceUtils.h"
+
 namespace facebook::fboss::fsdb::test {
 
 // Platform-specific implementation is defined in facebook/FsdbTestServer.cpp or
@@ -19,6 +21,7 @@ std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
     std::shared_ptr<ServiceHandler> handler,
     uint16_t port) {
   auto server = std::make_shared<apache::thrift::ThriftServer>();
+  ThriftServiceUtils::setPreferredEventBaseBackend(*server);
   server->setAllowPlaintextOnLoopback(true);
   server->setPort(port);
   server->setInterface(handler);
@@ -26,11 +29,9 @@ std::shared_ptr<apache::thrift::ThriftServer> FsdbTestServerImpl::createServer(
   return server;
 }
 
-void FsdbTestServerImpl::checkServerStart(
-    std::shared_ptr<apache::thrift::ThriftServer> server,
-    uint16_t& fsdbPort) {
-  checkWithRetry([&server, &fsdbPort]() {
-    fsdbPort = server->getAddress().getPort();
+void FsdbTestServerImpl::checkServerStart(uint16_t& fsdbPort) {
+  checkWithRetry([this, &fsdbPort]() {
+    fsdbPort = server_->getAddress().getPort();
     if (fsdbPort == 0) {
       return false;
     }
@@ -38,6 +39,18 @@ void FsdbTestServerImpl::checkServerStart(
   });
   CHECK_NE(fsdbPort, 0);
   XLOG(INFO) << "Started thrift server on port " << fsdbPort;
+}
+
+std::unique_ptr<apache::thrift::Client<FsdbService>>
+FsdbTestServerImpl::getClient() {
+  // Instead of using apache::thrift::makeTestClient, use exactly the same way
+  // as we do for ThriftServiceClient::createFsdbClient() to create a client
+  auto channel = apache::thrift::RocketClientChannel::newChannel(
+      folly::AsyncSocket::newSocket(
+          folly::EventBaseManager::get()->getEventBase(),
+          server_->getAddress()));
+  return std::make_unique<apache::thrift::Client<FsdbService>>(
+      std::move(channel));
 }
 
 FsdbTestServer::FsdbTestServer(
@@ -84,7 +97,7 @@ FsdbTestServer::~FsdbTestServer() {
 
 std::unique_ptr<apache::thrift::Client<FsdbService>>
 FsdbTestServer::getClient() {
-  return apache::thrift::makeTestClient(handler_);
+  return impl_->getClient();
 }
 
 std::string FsdbTestServer::getPublisherId(int publisherIndex) const {

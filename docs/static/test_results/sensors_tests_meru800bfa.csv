@@ -1,0 +1,7 @@
+"Test Case","Platform","Status"
+"SensorServiceHwTest.SensorFetchODSCheck","meru800bfa","PASSED"
+"SensorServiceHwTest.GetSomeSensorsViaThrift","meru800bfa","PASSED"
+"SensorServiceHwTest.GetSomeSensors","meru800bfa","PASSED"
+"SensorServiceHwTest.GetBogusSensor","meru800bfa","PASSED"
+"SensorServiceHwTest.GetAllSensors","meru800bfa","PASSED"
+"SensorServiceHwTest.CheckAllSensors","meru800bfa","PASSED"

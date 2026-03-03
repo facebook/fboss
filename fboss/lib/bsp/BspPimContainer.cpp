@@ -1,6 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspPimContainer.h"
+
+#include <folly/Format.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/bsp/BspLedContainer.h"
 #include "fboss/lib/bsp/BspPhyContainer.h"
@@ -147,6 +149,26 @@ void BspPimContainer::holdTransceiverReset(int tcvrID) const {
 
 void BspPimContainer::releaseTransceiverReset(int tcvrID) const {
   getTransceiverContainer(tcvrID)->releaseTransceiverReset();
+}
+
+void BspPimContainer::initAllPhyIOControllers() const {
+  XLOG(INFO) << fmt::format(
+      "BspPimContainerTrace: {} initializing all PHY IO controllers for PIM {:d}",
+      __func__,
+      *bspPimMapping_.pimID());
+  for (const auto& [controllerId, phyIO] : phyIOControllers_) {
+    phyIO->init(true);
+  }
+}
+
+void BspPimContainer::initAllPhys() const {
+  XLOG(INFO) << fmt::format(
+      "BspPimContainerTrace: {} initializing all PHYs for PIM {:d}",
+      __func__,
+      *bspPimMapping_.pimID());
+  for (const auto& [phyID, phyContainer] : phyContainers_) {
+    phyContainer->initPhy(true);
+  }
 }
 
 bool BspPimContainer::isTcvrPresent(int tcvrID) const {

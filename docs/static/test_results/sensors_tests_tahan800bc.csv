@@ -1,0 +1,7 @@
+"Test Case","Platform","Status"
+"SensorServiceHwTest.SensorFetchODSCheck","tahan800bc","PASSED"
+"SensorServiceHwTest.GetSomeSensorsViaThrift","tahan800bc","PASSED"
+"SensorServiceHwTest.GetSomeSensors","tahan800bc","PASSED"
+"SensorServiceHwTest.GetBogusSensor","tahan800bc","PASSED"
+"SensorServiceHwTest.GetAllSensors","tahan800bc","PASSED"
+"SensorServiceHwTest.CheckAllSensors","tahan800bc","PASSED"

@@ -58,9 +58,15 @@ int getRdswSysPortBlockSize(
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
   // for single state we allocate a single block of 44
   // For PLATFORM_JANGA800BIC, use Prod range
-  if (platformType.has_value() &&
-      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
-    return 22;
+  if (platformType.has_value()) {
+    switch (platformType.value()) {
+      case PlatformType::PLATFORM_JANGA800BIC:
+        return 22;
+      case PlatformType::PLATFORM_BLACKWOLF800BANW:
+        return 1024;
+      default:
+        break;
+    }
   }
   return isDualStage3Q2QMode() ? 28 : 44;
 }
@@ -87,7 +93,10 @@ int getSysPortIdsAllocated(
     std::optional<PlatformType> platformType = std::nullopt) {
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
-  CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+  CHECK(
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D);
   if (deviceIndex < getMaxRdsw(platformType)) {
     portsConsumed += deviceIndex * getRdswSysPortBlockSize(platformType) - 1;
   } else {
@@ -275,7 +284,8 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
     auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
-    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+    if ((asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+         asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) &&
         FLAGS_dual_stage_rdsw_3q_2q) {
       // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
       // speed to be 400G, since that's what we have in chip config
@@ -482,10 +492,14 @@ cfg::DsfNode dsfNodeConfig(
         return PlatformType::PLATFORM_MERU400BIU;
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return PlatformType::PLATFORM_MERU800BIA;
+      case cfg::AsicType::ASIC_TYPE_JERICHO4:
+        return PlatformType::PLATFORM_J4SIM;
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return PlatformType::PLATFORM_MERU400BFU;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return PlatformType::PLATFORM_MERU800BFA;
+      case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+        return PlatformType::PLATFORM_BLACKWOLF800BANW;
       default:
         break;
     }
@@ -871,7 +885,8 @@ cfg::SwitchConfig genPortVlanCfg(
       connectionHandle = "0c:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_RAMON3 ||
-        asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+        asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) {
       connectionHandle = "15:00";
     } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) {
       connectionHandle = "68:00";
@@ -1104,7 +1119,8 @@ cfg::SwitchInfo generateSwitchInfo(
   switchInfo.asicType() = asicType;
 
   if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) {
     switchInfo.switchMac() = "02:00:00:00:00:01";
   }
   switchInfo.systemPortRanges() = asic->getSystemPortRanges();

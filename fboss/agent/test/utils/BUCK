@@ -810,3 +810,21 @@ cpp_library(
         "//fboss/agent/state:state",
     ],
 )
+
+cpp_library(
+    name = "tunnel_mgr_test_utils",
+    srcs = ["TunnelMgrTestUtils.cpp"],
+    headers = ["TunnelMgrTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state",
+        "//folly:conv",
+        "//folly:network_address",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)

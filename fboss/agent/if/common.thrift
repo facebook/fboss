@@ -63,6 +63,9 @@ struct NextHopThrift {
   // MPLS encapsulation information for IP->MPLS and MPLS routes
   3: optional mpls.MplsAction mplsAction;
   4: optional bool disableTTLDecrement;
+  5: list<Address.BinaryAddress> srv6SegmentList;
+  6: optional TunnelType tunnelType;
+  7: optional string tunnelId;
 
   /**
   * For capturing topology information to assist Agent path pruning decisions
@@ -191,4 +194,23 @@ struct BufferPoolFields {
   2: optional i32 headroomBytes;
   3: i32 sharedBytes;
   4: optional i32 reservedBytes;
+}
+
+enum DeltaApplicationMode {
+  // Apply the full StateDelta vector
+  APPLY_ALL = 0,
+  // Rollback StateDelta vector at the end after application
+  ROLLBACK = 1,
+  // Rollback StateDelta vector at a specific index
+  ROLLBACK_AT_INDEX = 2,
+}
+
+struct StateDeltaApplication {
+  1: DeltaApplicationMode mode = DeltaApplicationMode.APPLY_ALL;
+  2: optional i32 rollbackIndex;
+}
+
+enum TunnelType {
+  IP_IN_IP = 0,
+  SRV6_ENCAP = 1,
 }

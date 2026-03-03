@@ -213,6 +213,12 @@ const TunnelApi& SaiApiTable::tunnelApi() const {
   return getApi<TunnelApi>();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+const Srv6Api& SaiApiTable::srv6Api() const {
+  return getApi<Srv6Api>();
+}
+#endif
+
 const LagApi& SaiApiTable::lagApi() const {
   return getApi<LagApi>();
 }

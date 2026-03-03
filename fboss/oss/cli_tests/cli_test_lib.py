@@ -132,19 +132,26 @@ def run_cmd(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return result
 
 
-def run_cli(args: list[str], check: bool = True) -> dict[str, Any]:
+def run_cli(args: list[str], check: bool = True, quiet: bool = False) -> dict[str, Any]:
     """Run the fboss2-dev CLI with the given arguments.
 
     The --fmt json flag is automatically prepended to all commands.
     Returns the parsed JSON output as a dict.
+
+    Args:
+        args: CLI arguments to pass after 'fboss2-dev --fmt json'
+        check: If True, raise RuntimeError on non-zero return code
+        quiet: If True, suppress logging of command execution
     """
     cli = get_fboss_cli()
     cmd = [cli, "--fmt", "json"] + args
-    print(f"[CLI] Running: {' '.join(args)}")
+    if not quiet:
+        print(f"[CLI] Running: {' '.join(args)}")
     start_time = time.time()
     result = subprocess.run(cmd, capture_output=True, text=True)
     elapsed = time.time() - start_time
-    print(f"[CLI] Completed in {elapsed:.2f}s: {' '.join(args)}")
+    if not quiet:
+        print(f"[CLI] Completed in {elapsed:.2f}s: {' '.join(args)}")
     if check and result.returncode != 0:
         print(f"Command failed with return code {result.returncode}")
         print(f"stdout: {result.stdout}")
@@ -236,6 +243,46 @@ def find_first_eth_interface() -> Interface:
     return matches[0]
 
 
+def wait_for_agent_ready(
+    timeout_seconds: float = 60.0,
+    poll_interval_ms: int = 500,
+) -> None:
+    """
+    Wait for the FBOSS agent to be ready by polling 'config applied-info'.
+
+    Args:
+        timeout_seconds: Maximum time to wait in seconds (default: 60)
+        poll_interval_ms: How often to poll in milliseconds (default: 500)
+
+    Raises:
+        RuntimeError: If the agent is not ready within the timeout
+    """
+    start_time = time.time()
+    poll_interval_s = poll_interval_ms / 1000.0
+
+    while True:
+        elapsed = time.time() - start_time
+        if elapsed >= timeout_seconds:
+            raise RuntimeError(f"Agent not ready after {timeout_seconds}s")
+
+        try:
+            # Try to run 'config applied-info' - a simple command to check agent is ready
+            data = run_cli(["config", "applied-info"], check=False, quiet=True)
+            if data:
+                print(f"[CLI] Agent is ready (waited {elapsed:.1f}s)")
+                # Log the applied-info output for debugging
+                print(f"[CLI] Applied info: {json.dumps(data)}")
+                return
+        except Exception:
+            pass
+
+        # Agent not ready yet, wait and retry
+        time.sleep(poll_interval_s)
+
+
 def commit_config() -> None:
-    """Commit the current configuration session."""
+    """Commit the current configuration session and wait for agent to be ready."""
     run_cli(["config", "session", "commit"])
+    # After commit, the agent may restart (warmboot/coldboot).
+    # Wait for it to be ready before returning.
+    wait_for_agent_ready()

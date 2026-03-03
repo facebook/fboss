@@ -458,3 +458,8 @@ DEFINE_bool(
     qsfp_port_manager_mode,
     false,
     "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
+
+DEFINE_bool(
+    verify_fib_nexthop_id_consistency,
+    false,
+    "Verify FIB route NextHop IDs are consistent with inline nexthops.");

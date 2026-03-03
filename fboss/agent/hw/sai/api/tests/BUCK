@@ -208,6 +208,13 @@ api_unittest(
 )
 
 api_unittest(
+    name = "srv6_api_test",
+    srcs = [
+        "Srv6ApiTest.cpp",
+    ],
+)
+
+api_unittest(
     name = "udf_api_test",
     srcs = [
         "UdfApiTest.cpp",

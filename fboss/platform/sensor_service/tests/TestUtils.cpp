@@ -32,17 +32,31 @@ SensorConfig getMockSensorConfig(const std::string& tmpDir) {
   PmSensor mockFruSensor1, mockFruSensor2, mockFruSensor3;
   mockFruSensor1.name() = "MOCK_FRU_SENSOR1";
   mockFruSensor1.compute() = "@/1000";
-  mockFruSensor1.type() = SensorType::TEMPERTURE;
+  mockFruSensor1.type() = SensorType::TEMPERATURE;
   mockFruSensor1.sysfsPath() = tmpDir + "/mock_fru_sensor_1_path:temp1";
+  Thresholds thresholds1;
+  thresholds1.upperCriticalVal() = 100.0;
+  thresholds1.lowerCriticalVal() = -40.0;
+  thresholds1.maxAlarmVal() = 85.0;
+  thresholds1.minAlarmVal() = -20.0;
+  mockFruSensor1.thresholds() = thresholds1;
 
   mockFruSensor2.name() = "MOCK_FRU_SENSOR2";
   mockFruSensor2.type() = SensorType::FAN;
   mockFruSensor2.sysfsPath() = tmpDir + "/mock_fru_sensor_2_path:fan1";
+  Thresholds thresholds2;
+  thresholds2.upperCriticalVal() = 10000.0;
+  thresholds2.lowerCriticalVal() = 1000.0;
+  mockFruSensor2.thresholds() = thresholds2;
 
   mockFruSensor3.name() = "MOCK_FRU_SENSOR3";
   mockFruSensor3.compute() = "@ + 5";
   mockFruSensor3.type() = SensorType::VOLTAGE;
   mockFruSensor3.sysfsPath() = tmpDir + "/mock_fru_sensor_3_path:vin";
+  Thresholds thresholds3;
+  thresholds3.maxAlarmVal() = 14.0;
+  thresholds3.minAlarmVal() = 10.0;
+  mockFruSensor3.thresholds() = thresholds3;
 
   pmUnitSensors.sensors() = {
       std::move(mockFruSensor1),

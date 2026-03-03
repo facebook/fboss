@@ -252,8 +252,14 @@ void RibRouteUpdater::delRouteImpl(
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
     auto oldNextHopSetID = route->getForwardInfo().getResolvedNextHopSetID();
+    auto oldNormalizedNextHopSetID =
+        route->getForwardInfo().getNormalizedResolvedNextHopSetID();
     if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
       nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+    }
+    if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+          *oldNormalizedNextHopSetID);
     }
     routes->erase(it);
   } else {
@@ -734,6 +740,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto action = bestEntry->getAction();
   const auto counterID = bestEntry->getCounterID();
   const auto classID = bestEntry->getClassID();
+  bool labelPopandLookup = false;
   if (action == RouteForwardAction::DROP) {
     hasDrop = true;
   } else if (action == RouteForwardAction::TO_CPU) {
@@ -742,7 +749,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     auto fwItr = unresolvedToResolvedNhops_.find(bestEntry->getNextHopSet());
     if (fwItr == unresolvedToResolvedNhops_.end()) {
       NextHopForwardInfos nhToFwds;
-      bool labelPopandLookup = false;
       // loop through all nexthops to find out the forward info
       for (const auto& nh : bestEntry->getNextHopSet()) {
         const auto& addr = nh.addr();
@@ -816,41 +822,77 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       fwItr = unresolvedToResolvedNhops_
                   .insert({bestEntry->getNextHopSet(), std::move(nhSet)})
                   .first;
+    } else {
+      // This is done so that we dont miss updating label pop and lookup on
+      // cache hits.
+      const auto& nhSet = bestEntry->getNextHopSet();
+      if (nhSet.size() == 1) {
+        const auto& nh = *nhSet.begin();
+        if (nh.labelForwardingAction().has_value() &&
+            nh.labelForwardingAction().value().type() ==
+                MplsActionCode::POP_AND_LOOKUP) {
+          labelPopandLookup = true;
+        }
+      }
     }
     fwd = &(fwItr->second);
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
-  auto updateRoute = [this, clientId, &updatedRoute, classID, &route](
+  auto updateRoute = [this,
+                      clientId,
+                      &updatedRoute,
+                      classID,
+                      labelPopandLookup](
                          typename NetworkToRouteMap<AddressT>::Iterator ritr,
                          std::optional<RouteNextHopEntry> nhop) {
     updatedRoute = writableRoute<AddressT>(ritr);
     auto oldNextHopSetID =
         value<AddressT>(ritr)->getForwardInfo().getResolvedNextHopSetID();
+    auto oldNormalizedNextHopSetID = value<AddressT>(ritr)
+                                         ->getForwardInfo()
+                                         .getNormalizedResolvedNextHopSetID();
     if (nhop) {
       std::optional<NextHopSetID> newResolvedNextHopSetId;
+      std::optional<NextHopSetID> newNormalizedResolvedNextHopSetId;
       if (nextHopIDManager_) {
-        const auto& newNextHopSet = nhop->getNextHopSet();
-
-        if (!newNextHopSet.empty()) {
-          if (oldNextHopSetID.has_value()) {
-            // Route update from old nhops -> new nhops
-            // Update the nexthop set ID
-            auto updateResult = nextHopIDManager_->updateRouteNextHopSetID(
-                *oldNextHopSetID, newNextHopSet);
-            newResolvedNextHopSetId =
-                updateResult.allocation.nextHopIdSetIter->second.id;
-          } else {
-            // Old route had no ID, allocate new one
-            auto allocResult =
-                nextHopIDManager_->getOrAllocRouteNextHopSetID(newNextHopSet);
-            newResolvedNextHopSetId = allocResult.nextHopIdSetIter->second.id;
+        auto updateNextHopSetIDs =
+            [this](
+                const RouteNextHopSet& newNextHopSet,
+                const std::optional<NextHopSetID>& oldNextHopSetID)
+            -> std::optional<NextHopSetID> {
+          if (!newNextHopSet.empty()) {
+            if (oldNextHopSetID.has_value()) {
+              auto updateResult = nextHopIDManager_->updateRouteNextHopSetID(
+                  *oldNextHopSetID, newNextHopSet);
+              return updateResult.allocation.nextHopIdSetIter->second.id;
+            } else {
+              auto allocResult =
+                  nextHopIDManager_->getOrAllocRouteNextHopSetID(newNextHopSet);
+              return allocResult.nextHopIdSetIter->second.id;
+            }
+          } else if (oldNextHopSetID.has_value()) {
+            nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
           }
-        } else if (oldNextHopSetID) { // empty newNextHopSet
-          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+          return std::nullopt;
+        };
+
+        newResolvedNextHopSetId =
+            updateNextHopSetIDs(nhop->getNextHopSet(), oldNextHopSetID);
+        // For label pop and lookup routes, skip normalized nexthops
+        // allocation but deallocate any existing old ID
+        if (!labelPopandLookup) {
+          newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
+              nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+        } else if (oldNormalizedNextHopSetID.has_value()) {
+          // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+              *oldNormalizedNextHopSetID);
         }
       }
       nhop->setResolvedNextHopSetID(newResolvedNextHopSetId);
+      nhop->setNormalizedResolvedNextHopSetID(
+          newNormalizedResolvedNextHopSetId);
       updatedRoute->setResolved(*nhop);
       if ((clientId == kInterfaceRouteClientId ||
            clientId == kRemoteInterfaceRouteClientId) &&
@@ -860,6 +902,10 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     } else {
       if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
         nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+      }
+      if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+            *oldNormalizedNextHopSetID);
       }
       updatedRoute->setUnresolvable();
     }

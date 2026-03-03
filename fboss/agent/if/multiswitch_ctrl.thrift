@@ -97,6 +97,7 @@ struct StateOperDelta {
   4: bool isFullState;
   5: common.HwWriteBehavior hwWriteBehavior = common.HwWriteBehavior.WRITE;
   6: list<fsdb_oper.OperDelta> operDeltas;
+  7: common.StateDeltaApplication deltaApplicationBehavior;
 }
 
 struct HwSwitchStats {

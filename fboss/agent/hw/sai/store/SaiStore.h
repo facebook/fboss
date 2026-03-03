@@ -586,7 +586,8 @@ class SaiStore {
    */
   void reload(
       const folly::dynamic* adapterKeys = nullptr,
-      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr);
+      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr,
+      const std::vector<sai_object_type_t>& objTypes = {});
 
   /*
    *
@@ -603,6 +604,7 @@ class SaiStore {
   }
 
   std::string storeStr(sai_object_type_t objType) const;
+  std::string storeStr(const std::vector<sai_object_type_t>& objTypes) const;
   folly::dynamic adapterKeysFollyDynamic() const;
 
   void exitForWarmBoot();
@@ -690,6 +692,9 @@ class SaiStore {
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
       SaiObjectStore<SaiTunnelTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6SidListTraits>,
+#endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       SaiObjectStore<SaiVendorSwitchTraits>,
 #endif

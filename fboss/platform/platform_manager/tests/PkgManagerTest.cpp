@@ -79,9 +79,6 @@ class PkgManagerTest : public testing::Test {
 };
 
 TEST_F(PkgManagerTest, EnablePkgMgmnt) {
-  FLAGS_enable_pkg_mgmnt = true;
-  FLAGS_reload_kmods = false;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   // Case 1: When new rpm installed
   {
@@ -93,7 +90,10 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
   // Case 2: When rpm is already installed
   {
     InSequence seq;
@@ -103,13 +103,13 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   }
   EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
-  FLAGS_enable_pkg_mgmnt = true;
-  FLAGS_reload_kmods = true;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   // Case 1: When new rpm installed and expect to reload kmods twice.
   {
@@ -121,9 +121,12 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
   // Case 2: When rpm is already installed and still expect to unload kmods
-  // once because of FLAGS_reload_kmods being true.
+  // once because reloadKmods is true.
   {
     InSequence seq;
     EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
@@ -132,25 +135,25 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, DisablePkgMgmnt) {
-  FLAGS_enable_pkg_mgmnt = false;
-  FLAGS_reload_kmods = false;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_)).Times(0);
   EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
   EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/false, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
-  FLAGS_enable_pkg_mgmnt = false;
-  FLAGS_reload_kmods = true;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_)).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
@@ -159,7 +162,10 @@ TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/false, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, processRpms) {

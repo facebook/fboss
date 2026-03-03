@@ -54,6 +54,10 @@ void SaiPortManager::changePortFlowletConfig(
   }
 }
 
+void SaiPortManager::changeClm(
+    const std::shared_ptr<Port>& /* oldPort */,
+    const std::shared_ptr<Port>& /* newPort */) {}
+
 void SaiPortManager::clearPortFlowletConfig(const PortID& portID) {
   if (!FLAGS_flowletSwitchingEnable) {
     return;

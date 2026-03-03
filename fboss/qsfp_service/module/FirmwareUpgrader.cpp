@@ -110,7 +110,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   // Set the password to let the privileged operation of firmware download
   bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
       msaPassword_.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
@@ -128,7 +131,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
     if (commandBlock->getCdbRlplLength() >= 3) {
       if (commandBlock->getCdbLplFlatMemory()[2] == 0) {
         // This should not happen because before calling this function
-        // we supply the password to module to allow priviledged
+        // we supply the password to module to allow privileged
         // operation. But still download feature is not available here
         // so return false here
         XLOG(INFO) << folly::sformat(
@@ -312,7 +315,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   // Set the password to let the privileged operation of firmware download
   bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
       msaPassword_.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
@@ -349,7 +355,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
 
   // Set the password to let the privileged operation of firmware download
   bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
       msaPassword_.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
@@ -396,7 +405,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
   msaPassword_[2] = 0;
   msaPassword_[3] = 0;
   bus_->writeTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kModulePasswordEntryReg, 4},
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kModulePasswordEntryReg,
+       4,
+       kLowerPage},
       msaPassword_.data(),
       POST_I2C_WRITE_NO_DELAY_US,
       kFwUpgrade);
@@ -412,7 +424,10 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareUpgrade() {
 
   // Find out the current version running on module
   bus_->readTransceiver(
-      {TransceiverAccessParameter::ADDR_QSFP, kfirmwareVersionReg, 2},
+      {TransceiverAccessParameter::ADDR_QSFP,
+       kfirmwareVersionReg,
+       2,
+       kLowerPage},
       versionNumber.data(),
       kFwUpgrade);
   XLOG(INFO) << folly::sformat(

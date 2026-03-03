@@ -105,7 +105,6 @@ class FwUtilImpl {
       const PreFirmwareOperationConfig&,
       const std::string&);
 
-  void storeFlashromConfig(const FlashromConfig&, const std::string&);
   void doJtagOperation(const JtagConfig&, const std::string&);
   void doGpiosetOperation(const GpiosetConfig&, const std::string&);
   void doUpgrade(const std::string&);
@@ -134,9 +133,6 @@ class FwUtilImpl {
       const std::string&);
   void doGpiogetOperation(const GpiogetConfig&, const std::string&);
   void performRead(const ReadFirmwareOperationConfig&, const std::string& fpd);
-  void performReadOperation(
-      const ReadFirmwareOperationConfig&,
-      const std::string&);
   void performFlashromRead(const FlashromConfig&, const std::string&);
   void addFileOption(
       const std::string&,
@@ -145,9 +141,6 @@ class FwUtilImpl {
   void performFlashromVerify(const FlashromConfig&, const std::string&);
   void performVerify(const VerifyFirmwareOperationConfig&, const std::string&);
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
-  // TODO: Remove those prototypes once we move darwin to PM and
-  //  have the latest drivers running
-  void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
 
   FwUtilConfig fwUtilConfig_{};

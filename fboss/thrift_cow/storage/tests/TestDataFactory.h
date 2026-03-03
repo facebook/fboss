@@ -3,11 +3,13 @@
 #pragma once
 
 #include <folly/IPAddress.h>
+#include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace {
 constexpr int kDefaultMapSize = 1 * 1000;
@@ -48,6 +50,9 @@ using facebook::fboss::phy::PmdStats;
 using facebook::fboss::phy::RsFecInfo;
 using facebook::fboss::phy::Side;
 
+// Import BGP types
+using TRibEntry = neteng::fboss::bgp::thrift::TRibEntry;
+
 enum RoleSelector {
   Minimal = 0,
   MaxScale = 1,
@@ -79,6 +84,15 @@ struct AgentStatsScale {
   int hwPortStatsCount;
   int phyStatsCount;
   int sysPortStatsCount;
+};
+
+struct BgpRibMapScale {
+  int ribV4EntryCount;
+  int ribV6EntryCount;
+  int bestPathsPerEntry;
+  int communitiesPerPath;
+  int asPathSegments;
+  int extCommunitiesPerPath;
 };
 
 class IDataGenerator {
@@ -175,6 +189,38 @@ class FsdbStatsDataFactory : public IDataGenerator {
   PmdStats createPmdStats(int portIndex);
   LaneStats createLaneStats(int16_t laneId, int portIndex);
   IOStats createIOStats();
+
+  RoleSelector selector_;
+  OperProtocol protocol_{OperProtocol::COMPACT};
+};
+
+class BgpRibMapDataGenerator : public IDataGenerator {
+ public:
+  using RootT = fsdb::FsdbOperStateRoot;
+
+  explicit BgpRibMapDataGenerator(RoleSelector selector)
+      : selector_(selector) {}
+
+  TaggedOperState getStateUpdate(int version, bool minimal) override;
+
+ protected:
+  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot();
+  fsdb::BgpData buildBgpData();
+  BgpRibMapScale getScale(RoleSelector role);
+
+  // Helper methods to create BGP structures
+  TRibEntry buildTRibEntry(const BgpRibMapScale& scale, int index, bool isV6);
+  facebook::neteng::fboss::bgp_attr::TIpPrefix createPrefix(
+      int index,
+      bool isV6);
+  neteng::fboss::bgp::thrift::TBgpPath createBgpPath(
+      int entryIndex,
+      int pathIndex,
+      int numCommunities,
+      int numAsPathSegments,
+      int numExtCommunities);
+  std::string createPrefixKey(
+      const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix);
 
   RoleSelector selector_;
   OperProtocol protocol_{OperProtocol::COMPACT};

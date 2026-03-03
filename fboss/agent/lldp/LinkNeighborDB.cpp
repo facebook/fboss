@@ -7,7 +7,7 @@ using std::chrono::steady_clock;
 
 namespace facebook::fboss {
 
-using k = lldp::lldp_tags::strings;
+namespace k = apache::thrift::ident;
 
 LinkNeighborDB::LinkNeighborDB() {}
 

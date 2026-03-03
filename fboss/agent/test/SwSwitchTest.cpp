@@ -426,3 +426,15 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
   // 0 neighbor entries expected, i.e. entries must be purged
   verifyReachableCnt(0);
 }
+
+TEST_F(SwSwitchTest, FillFsdbStatsNullShelManager) {
+  // This test exercises fillFsdbStats() on an NPU (non-VOQ) switch
+  // configuration where shelManager_ is null. Without the null check
+  // guard on shelManager_, this would crash with a null pointer
+  // dereference.
+  multiswitch::HwSwitchStats hwStats;
+  sw->updateHwSwitchStats(0, hwStats);
+  // Should not crash - shelManager_ is null on NPU switches
+  // and the code must guard against that.
+  EXPECT_NO_THROW(sw->fillFsdbStats());
+}

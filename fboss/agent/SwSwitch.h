@@ -26,6 +26,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_reachability_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/single/MonolithicHwSwitchHandler.h"
@@ -84,6 +85,7 @@ class RouteUpdateLogger;
 class StateObserver;
 class TunManager;
 class MirrorManager;
+class TamManager;
 class PhySnapshotManager;
 class AclNexthopHandler;
 class LookupClassUpdater;
@@ -112,6 +114,7 @@ class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
 class FabricLinkMonitoringManager;
+class StateUpdateValidator;
 
 inline static const int kHiPriorityBufferSize{1000};
 inline static const int kMidPriorityBufferSize{1000};
@@ -380,7 +383,9 @@ class SwSwitch : public HwSwitchCallback {
    */
   void updateStateWithHwFailureProtection(
       folly::StringPiece name,
-      StateUpdateFn fn);
+      StateUpdateFn fn,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior =
+          std::nullopt);
 
   /**
    * Apply config from the config file (specified in 'config' flag).
@@ -669,7 +674,9 @@ class SwSwitch : public HwSwitchCallback {
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
    */
-  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
+  bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<SwitchID> switchId = std::nullopt) noexcept;
 
   /**
    * Send out L3 packet through HW
@@ -1039,7 +1046,8 @@ class SwSwitch : public HwSwitchCallback {
   void updateStateBlockingImpl(
       folly::StringPiece name,
       StateUpdateFn fn,
-      int stateUpdateBehavior);
+      int stateUpdateBehavior,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior);
 
   /*
    * Applied state corresponds to what was successfully applied
@@ -1085,7 +1093,8 @@ class SwSwitch : public HwSwitchCallback {
   applyUpdate(
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      bool isTransaction);
+      bool isTransaction,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior);
 
   void startThreads();
   void stopThreads();
@@ -1138,11 +1147,15 @@ class SwSwitch : public HwSwitchCallback {
 
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
-      bool transaction) const;
+      bool transaction,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      const;
 
   std::shared_ptr<SwitchState> stateChanged(
       const std::vector<StateDelta>& delta,
-      bool transaction) const;
+      bool transaction,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      const;
 
   template <typename FsdbFunc>
   void runFsdbSyncFunction(FsdbFunc&& fn);
@@ -1346,6 +1359,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<NeighborUpdater> nUpdater_;
   std::unique_ptr<PktCaptureManager> pcapMgr_;
   std::unique_ptr<MirrorManager> mirrorManager_;
+  std::unique_ptr<TamManager> tamManager_;
   std::unique_ptr<MPLSHandler> mplsHandler_;
   std::unique_ptr<PacketLogger> packetLogger_;
   std::unique_ptr<RouteUpdateLogger> routeUpdateLogger_;
@@ -1387,6 +1401,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
+  std::unique_ptr<StateUpdateValidator> stateUpdateValidator_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>

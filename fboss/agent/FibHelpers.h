@@ -18,11 +18,14 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <folly/IPAddress.h>
 
 #include <memory>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -47,6 +50,14 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
 
 std::pair<uint64_t, uint64_t> getRouteCount(
     const std::shared_ptr<SwitchState>& state);
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<FibInfo>& fibInfo,
+    NextHopSetId id);
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    NextHopSetId id);
 
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {

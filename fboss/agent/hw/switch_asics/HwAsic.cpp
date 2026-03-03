@@ -18,7 +18,9 @@
 #include "fboss/agent/hw/switch_asics/G202xAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/MockAsic.h"
+#include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
@@ -26,6 +28,7 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/hw/switch_asics/YubaAsic.h"
 
@@ -102,6 +105,9 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<Tomahawk5Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       return std::make_unique<Tomahawk6Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
+      return std::make_unique<TomahawkUltra1Asic>(
+          switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       return std::make_unique<CredoPhyAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_EBRO:
@@ -116,6 +122,10 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<Jericho2Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       return std::make_unique<Jericho3Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      return std::make_unique<Jericho4Asic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+      return std::make_unique<Qumran4DAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON:
       return std::make_unique<RamonAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_RAMON3:

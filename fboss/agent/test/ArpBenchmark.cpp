@@ -63,7 +63,8 @@ unique_ptr<SwSwitch> setupSwitch() {
     auto vlan1 = make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
     state->getVlans()->addNode(vlan1, matcher);
     for (int idx = 1; idx < 10; ++idx) {
-      vlan1->addPort(PortID(idx), false);
+      vlan1->addPort(
+          PortID(idx), false /* tagged */, false /* priorityTagged */);
     }
     // Add Interface 1 to VLAN 1
     auto intf1 = make_shared<Interface>(

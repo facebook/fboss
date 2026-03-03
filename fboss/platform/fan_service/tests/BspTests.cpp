@@ -35,3 +35,18 @@ TEST_F(BspTest, getSensorMethodUnset) {
   auto bsp = Bsp(makeConfig({}));
   EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
 }
+
+TEST_F(BspTest, emergencyShutdownUndefinedCmdThrows) {
+  auto config = FanServiceConfig{};
+  config.shutdownCmd() = "NOT_DEFINED";
+  auto bsp = Bsp(config);
+  EXPECT_THROW(bsp.emergencyShutdown(true), FbossError);
+}
+
+TEST_F(BspTest, emergencyShutdownIdempotent) {
+  auto config = FanServiceConfig{};
+  config.shutdownCmd() = "NOT_DEFINED";
+  auto bsp = Bsp(config);
+  // First call with enable=false should be a no-op (no throw)
+  EXPECT_NO_THROW(bsp.emergencyShutdown(false));
+}

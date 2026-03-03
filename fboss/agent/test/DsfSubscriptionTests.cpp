@@ -527,7 +527,7 @@ TYPED_TEST(DsfSubscriptionTest, updateFailed) {
   waitForStateUpdates(this->sw_);
 
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(this->sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(this->sw_, stateChangedImpl(_, _))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(this->sw_->getState()));
   auto sysPort2 = makeSysPort(

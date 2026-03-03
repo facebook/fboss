@@ -321,8 +321,9 @@ void HwTransceiverUtils::verifyOpticsSettings(
   EXPECT_GT(relevantMediaLanes.size(), 0);
   EXPECT_GT(relevantHostLanes.size(), 0);
 
-  // Identify tunable optics based on tunableLaserStatus
-  bool isTunableOptics = tcvrState.tunableLaserStatus().has_value();
+  // Identify Tunable Module.
+  bool isTunableOptics =
+      tcvrState.moduleTechnology().value() == ModuleTechnology::TUNABLE;
 
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
@@ -356,15 +357,13 @@ void HwTransceiverUtils::verifyOpticsSettings(
         *settings.powerControl() == PowerControlState::POWER_OVERRIDE ||
         *settings.powerControl() == PowerControlState::HIGH_POWER_OVERRIDE);
 
-    // TODO: T236126124 - Disable checking this in Molex AEC cables
-    // until we get EEPROM fix.
-    auto vendor = apache::thrift::can_throw(*tcvrState.vendor());
-    bool isMolex =
-        (vendor.name() == "Molex" && vendor.partNumber() == "2253611207");
-
+    // No need to Check CDR for AEC cables T234995630
+    bool isAec =
+        (tcvrState.moduleTechnology().value() == ModuleTechnology::AEC);
     // LPO Modules dont have a DSP, so we dont need to check for CDR.
-    bool isLpoModule = tcvrState.lpoModule().value();
-    if (!(isMolex || isLpoModule)) {
+    bool isLpoModule =
+        (tcvrState.moduleTechnology().value() == ModuleTechnology::LPO);
+    if (!(isAec || isLpoModule)) {
       EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
       EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
     }

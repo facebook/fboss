@@ -1,0 +1,4 @@
+"Test Case","Platform","Status"
+"LedServiceTest.checkLedColorChange","wedge400","PASSED"
+"LedServiceTest.checkLedBlinking","wedge400","PASSED"
+"LedServiceTest.checkForceLed","wedge400","PASSED"

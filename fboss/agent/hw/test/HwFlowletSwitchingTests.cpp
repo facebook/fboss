@@ -239,6 +239,11 @@ class HwArsTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  bool supportsFuturePortLoad() const {
+    return getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::ARS_FUTURE_PORT_LOAD);
+  }
+
   cfg::PortFlowletConfig getPortFlowletConfig(
       int scalingFactor,
       int loadWeight,
@@ -246,7 +251,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     cfg::PortFlowletConfig portFlowletConfig;
     portFlowletConfig.scalingFactor() = scalingFactor;
     portFlowletConfig.loadWeight() = loadWeight;
-    portFlowletConfig.queueWeight() = queueWeight;
+    if (supportsFuturePortLoad()) {
+      portFlowletConfig.queueWeight() = queueWeight;
+    }
     return portFlowletConfig;
   }
 
@@ -271,7 +278,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
     flowletCfg.dynamicEgressLoadExponent() = 3;
-    flowletCfg.dynamicQueueExponent() = 3;
+    if (supportsFuturePortLoad()) {
+      flowletCfg.dynamicQueueExponent() = 3;
+    }
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = samplingRate;
@@ -688,24 +697,50 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
     return;
   }
 
+  // Helper to filter out management ports from port list
+  auto filterManagementPorts = [this](const std::vector<PortID>& ports) {
+    std::vector<PortID> filtered;
+    auto state = getProgrammedState();
+    for (auto portId : ports) {
+      auto port = state->getPorts()->getNodeIf(portId);
+      if (port && port->getPortType() != cfg::PortType::MANAGEMENT_PORT) {
+        filtered.push_back(portId);
+      }
+    }
+    return filtered;
+  };
+
   auto setup = [&]() {
     // create 128 different ECMP objects
     for (int i = 1; i <= kNumEcmp(); i++) {
       std::vector<PortID> portIds;
       portIds.push_back(masterLogicalPortIds()[i % 64]);
       portIds.push_back(masterLogicalPortIds()[(i + 1) % 64]);
+      auto filteredPorts = filterManagementPorts(portIds);
+      ASSERT_FALSE(filteredPorts.empty())
+          << "Expected non-management ports for ECMP group creation at iteration "
+          << i;
       resolveNextHopsAddRoute(
-          portIds, folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
+          filteredPorts,
+          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
       std::vector<PortID> portIds2;
       portIds2.push_back(masterLogicalPortIds()[i % 64]);
       portIds2.push_back(masterLogicalPortIds()[(i + 2) % 64]);
+      auto filteredPorts2 = filterManagementPorts(portIds2);
+      ASSERT_FALSE(filteredPorts2.empty())
+          << "Expected non-management ports for second ECMP group at iteration "
+          << i;
       resolveNextHopsAddRoute(
-          portIds2, folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
+          filteredPorts2,
+          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
     }
 
     // create 1 more ECMP object
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]}, kAddr1);
+    auto finalPorts = filterManagementPorts(
+        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]});
+    ASSERT_FALSE(finalPorts.empty())
+        << "Expected non-management ports for final ECMP group";
+    resolveNextHopsAddRoute(finalPorts, kAddr1);
 
     // getAllEcmpDetails not implemented yet in SAI
     if (!getHwSwitchEnsemble()->isSai()) {

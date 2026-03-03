@@ -10,6 +10,7 @@ cpp_unittest(
     deps = [
         "//fboss/agent/thrift_packet_stream:packet_stream_client",
         "//fboss/agent/thrift_packet_stream:packet_stream_server",
+        "//fboss/lib:thrift_service_utils",
         "//folly:memory",
         "//folly:random",
         "//folly/io/async:async_base",
@@ -29,6 +30,7 @@ cpp_unittest(
     deps = [
         "//fboss/agent/thrift_packet_stream:bidirectional_packet_stream",
         "//fboss/lib:common_utils",
+        "//fboss/lib:thrift_service_utils",
         "//folly:memory",
         "//folly/io/async:async_base",
         "//folly/io/async:scoped_event_base_thread",

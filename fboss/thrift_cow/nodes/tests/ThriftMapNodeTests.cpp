@@ -23,8 +23,7 @@
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
 
-using k = test_tags::strings;
-using sk = cfg::switch_config_tags::strings;
+namespace sk = apache::thrift::ident;
 
 namespace {
 

@@ -133,6 +133,18 @@ std::tuple<int, int, int> normalizeSdkVersion(std::string sdkVersion) {
   return std::make_tuple(bcmVer, bcmSaiVer, leabaSaiVer);
 }
 
+bool isSame(
+    const std::shared_ptr<facebook::fboss::SwitchState>& lhs,
+    const std::shared_ptr<facebook::fboss::SwitchState>& rhs) {
+  if (lhs && rhs) {
+    // THRIFT_COPY
+    return (lhs->toThrift() == rhs->toThrift());
+  } else if (lhs || rhs) {
+    return false;
+  }
+  return true;
+}
+
 } // namespace
 namespace facebook::fboss {
 
@@ -269,7 +281,8 @@ void HwSwitch::gracefulExit() {
 
 std::shared_ptr<SwitchState> HwSwitch::stateChangedTransaction(
     const std::vector<StateDelta>& deltas,
-    const HwWriteBehaviorRAII& behavior) {
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& /* deltaApplication */) {
   std::vector<fsdb::OperDelta> operDeltas;
   std::transform(
       deltas.begin(),
@@ -326,7 +339,8 @@ void HwSwitch::setIntermediateState(const std::shared_ptr<SwitchState>& state) {
 
 fsdb::OperDelta HwSwitch::stateChanged(
     const std::vector<fsdb::OperDelta>& deltas,
-    const HwWriteBehaviorRAII& /*behavior*/) {
+    const HwWriteBehaviorRAII& /* behavior */,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<StateDelta> stateDeltas;
   stateDeltas.reserve(deltas.size());
   auto oldState = getProgrammedState();
@@ -334,7 +348,7 @@ fsdb::OperDelta HwSwitch::stateChanged(
     stateDeltas.emplace_back(oldState, delta);
     oldState = stateDeltas.back().newState();
   }
-  auto state = stateChangedImpl(stateDeltas);
+  auto state = stateChangedImpl(stateDeltas, deltaApplicationBehavior);
   setProgrammedState(state);
   CHECK(!stateDeltas.empty());
   if (getProgrammedState() == stateDeltas.back().newState()) {
@@ -350,14 +364,15 @@ fsdb::OperDelta HwSwitch::stateChanged(
 
 fsdb::OperDelta HwSwitch::stateChangedTransaction(
     const std::vector<fsdb::OperDelta>& deltas,
-    const HwWriteBehaviorRAII& /*behavior*/) {
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   if (!transactionsSupported()) {
     throw FbossError("Transactions not supported on this switch");
   }
   auto goodKnownState = getProgrammedState();
   fsdb::OperDelta result{};
   try {
-    result = stateChanged(deltas);
+    result = stateChanged(deltas, behavior, deltaApplicationBehavior);
   } catch (const FbossError& e) {
     XLOG(WARNING) << " Transaction failed with error : " << *e.message()
                   << " attempting rollback";
@@ -394,7 +409,24 @@ fsdb::OperDelta HwSwitch::stateChangedTransaction(
         intermediateState);
     this->rollback(reversedDeltas);
     setProgrammedState(goodKnownState);
-    return deltas.front();
+
+    // Return {oldState, newState} indicating nothing is updated in HW
+    //
+    // The behavior in SwSwitch would be no different if either {oldState,
+    // newState} or {newState, oldState} is returned, since
+    // HwSwitchHandler::stateChangedImpl would convert both to oldState.
+    //
+    // {oldState, newState} is chosen since this matches the original
+    // implementation with single delta which just returned the input value
+    std::vector<StateDelta> stateDeltas;
+    stateDeltas.reserve(deltas.size());
+    auto oldState = getProgrammedState();
+    for (const auto& delta : deltas) {
+      stateDeltas.emplace_back(oldState, delta);
+      oldState = stateDeltas.back().newState();
+    }
+    return StateDelta(getProgrammedState(), stateDeltas.back().newState())
+        .getOperDelta();
   }
   return result;
 }
@@ -597,6 +629,31 @@ HwInitResult HwSwitch::initLightImpl(
     return stateChanged(deltas);
   });
   return ret;
+}
+
+std::shared_ptr<SwitchState> HwSwitch::stateChanged(
+    const std::vector<StateDelta>& deltas,
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
+  // use oper delta to program the state
+  std::vector<fsdb::OperDelta> inDeltas;
+  inDeltas.reserve(deltas.size());
+  std::transform(
+      deltas.begin(),
+      deltas.end(),
+      std::back_inserter(inDeltas),
+      [](const StateDelta& delta) { return delta.getOperDelta(); });
+
+  auto outDelta = stateChanged(inDeltas, behavior, deltaApplicationBehavior);
+  if (outDelta.changes()->empty()) {
+    if (FLAGS_verify_apply_oper_delta &&
+        !isSame(deltas.back().newState(), getProgrammedState())) {
+      XLOG(FATAL) << "oper delta verification failed";
+    }
+    return deltas.back().newState();
+  }
+  // obtain the state that actually got programmed
+  return StateDelta(deltas.back().newState(), outDelta).newState();
 }
 
 } // namespace facebook::fboss

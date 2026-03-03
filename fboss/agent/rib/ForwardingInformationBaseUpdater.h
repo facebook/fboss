@@ -93,6 +93,9 @@ class ForwardingInformationBaseUpdater {
       std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
           fib);
 
+  bool verifyNextHopIdConsistency(
+      const std::shared_ptr<SwitchState>& state) const;
+
   const SwitchIdScopeResolver* resolver_;
   RouterID vrf_;
   const IPv4NetworkToRouteMap& v4NetworkToRoute_;

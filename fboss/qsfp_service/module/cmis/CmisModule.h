@@ -203,6 +203,9 @@ class CmisModule : public QsfpModule {
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
 
+  // Cached firmware build number from CDB Get Firmware Info command
+  std::optional<uint16_t> cachedFwBuildNumber_;
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
@@ -254,7 +257,8 @@ class CmisModule : public QsfpModule {
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  void customizeTransceiverLocked(TransceiverPortState& portState) override;
+  void customizeTransceiverLocked(
+      const TransceiverPortState& portState) override;
 
   /*
    * Returns whether customization is supported at all.
@@ -307,10 +311,7 @@ class CmisModule : public QsfpModule {
    * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
-      const std::string& portName,
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
-      uint8_t numHostLanesForPort,
+      const TransceiverPortState& portState,
       uint8_t newAppSelCode);
 
   /*
@@ -335,10 +336,9 @@ class CmisModule : public QsfpModule {
    * Otherwise, the default setApplicationSelectCode will be used.
    */
   void programApplicationSelectCode(
-      const std::string& portName,
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       std::optional<std::function<void()>> appSelectFunc = std::nullopt);
 
@@ -516,6 +516,12 @@ class CmisModule : public QsfpModule {
   FirmwareStatus getFwStatus();
 
   /*
+   * Fetches the firmware build number from CDB Get Firmware Info command.
+   * Returns the build number if successful, or std::nullopt on failure.
+   */
+  std::optional<uint16_t> fetchFwBuildNumberFromCdb();
+
+  /*
    * Gather host side per lane configuration settings and return false when it
    * fails
    */
@@ -571,9 +577,21 @@ class CmisModule : public QsfpModule {
   void resetDataPath(const std::string& portName) override;
 
   /*
+   * Returns true if the current module is LPO
+   */
+  bool isLpoModule() const override;
+
+  /*
+   * Return if module is AEC cable.
+   */
+  bool isAecModule() const override {
+    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
+  }
+
+  /*
    * returns whether optics frequency is tunable or not
    */
-  bool isTunableOptics() const;
+  bool isTunableOptics() const override;
 
   /*
    * returns the tunable optics laser status and laser frequency
@@ -821,15 +839,20 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
 
+  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+
+  uint8_t setExplicitControl(
+      const TransceiverPortState& state,
+      const uint8_t laneMask);
+
   void setApplicationSelectCode(
       uint8_t apSelCode,
       uint8_t mediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
 
@@ -846,18 +869,6 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
-
-  /*
-   * Returns true if the current module is LPO
-   */
-  bool isLpoModule() const override;
-
-  /*
-   * Return if module is AEC cable.
-   */
-  bool isAecModule() const {
-    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
-  }
 
   std::time_t vdmIntervalStartTime_{0};
 };
