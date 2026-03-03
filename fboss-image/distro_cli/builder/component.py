@@ -34,8 +34,8 @@ def _get_component_directory(component_name: str, script_path: str) -> str:
             script_path="fboss-image/kernel/scripts/build_kernel.sh"
             returns: "fboss-image/kernel" (component_name found in path)
 
-        sai component:
-            component_name="sai"
+        hw_agent_sai component:
+            component_name="hw_agent_sai"
             script_path="broadcom-sai-sdk/build_fboss_sai.sh"
             returns: "broadcom-sai-sdk" (fallback to script's parent)
 
@@ -329,7 +329,6 @@ class ComponentBuilder:
             command=container_cmd,
             volumes=volumes,
             component_name=self.component_name,
-            privileged=False,
             working_dir=working_dir,
             dependency_install_paths=(
                 dependency_install_paths if dependency_install_paths else None
@@ -339,5 +338,5 @@ class ComponentBuilder:
         return find_artifact_in_dir(
             output_dir=dist_dir,
             pattern=artifact_pattern,
-            component_name=self.component_name.capitalize(),
+            component_name=self.component_name,
         )

@@ -23,6 +23,7 @@ TARGET_NAMES = ("agent-benchmarks", "forwarding-stack", "platform-stack")
 FORWARDING_BINARIES = [
     "diag_shell_client",
     "fboss2",
+    "fboss2-dev",
     "fboss_hw_agent-sai_impl",
     "fboss_sw_agent",
     "fsdb",
@@ -39,6 +40,7 @@ FORWARDING_EXTRA = {
     RUN_SCRIPTS_DIR / "setup.py": "bin/setup.py",
     RUN_SCRIPTS_DIR / "setup_fboss_env": "bin/setup_fboss_env",
     RUN_SCRIPTS_DIR / "topology.cdf": "bin/topology.cdf",
+    RUN_CONFIGS_DIR / "default_configs": "share/default_configs",
     RUN_CONFIGS_DIR / "j2cp": "share/j2cp",
     RUN_CONFIGS_DIR / "j3b": "share/j3b",
     RUN_CONFIGS_DIR / "janga800bic": "share/janga800bic",

@@ -1,15 +1,19 @@
 #!/bin/bash
+set -e
 
 INTERFACE=""
 PERSIST_DIR=""
+NODHCPV6=""
+DISTRO_CONTAINER_NAME="fboss-distro-infra" # This should match DISTRO_CONTAINER_NAME in distro_cli/cmds/device.py
 
 help() {
-  echo "Usage: $0 --intf <interface> --persist-dir <persistent dir>"
+  echo "Usage: $0 [--nodhcpv6] --intf <interface> --persist-dir <persistent dir>"
   echo ""
   echo "Options:"
   echo ""
   echo "  -i|--intf <interface>       Network interface to attach to (must have L2 adjacency with FBOSS duts)"
   echo "  -p|--persist-dir <dir>      Directory for persistent storage, primarily of images to load"
+  echo "  -n|--nodhcpv6               Do not provide DHCPv6, rely on external DHCPv6 server"
   echo ""
   echo "  -h|--help                   Print this help message"
   echo ""
@@ -34,6 +38,10 @@ else
       PERSIST_DIR="$2"
       shift 2
       ;;
+    -n | --nodhcpv6)
+      NODHCPV6="--nodhcpv6"
+      shift 1
+      ;;
     -h | --help)
       help
       exit 0
@@ -55,7 +63,11 @@ fi
 
 mkdir -p "${PERSIST_DIR}"
 
+# Write interface name to persistent directory so it can be read by distro_cli
+echo -n "${INTERFACE}" >"${PERSIST_DIR}/interface_name.txt"
+
 # Run the Docker container with the parsed arguments
 docker run --rm -it --network host --cap-add=NET_ADMIN \
   --volume "$(realpath "${PERSIST_DIR}")":/distro_infra/persistent:rw \
-  fboss_distro_infra /distro_infra/run_distro_infra.sh --intf "${INTERFACE}"
+  --name "${DISTRO_CONTAINER_NAME}" \
+  fboss_distro_infra /distro_infra/run_distro_infra.sh "${NODHCPV6}" --intf "${INTERFACE}"
