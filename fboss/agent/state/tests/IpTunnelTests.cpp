@@ -15,11 +15,11 @@ HwSwitchMatcher scope() {
 
 std::shared_ptr<IpTunnel> makeTunnel(const std::string& tunnelId = "tunnel0") {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
   tunnel->setUnderlayIntfId(InterfaceID(42));
-  tunnel->setTTLMode(cfg::IpTunnelMode::PIPE);
-  tunnel->setDscpMode(cfg::IpTunnelMode::PIPE);
-  tunnel->setEcnMode(cfg::IpTunnelMode::PIPE);
+  tunnel->setTTLMode(cfg::TunnelMode::PIPE);
+  tunnel->setDscpMode(cfg::TunnelMode::PIPE);
+  tunnel->setEcnMode(cfg::TunnelMode::PIPE);
   tunnel->setTunnelTermType(cfg::TunnelTerminationType::MP2MP);
   tunnel->setDstIP(folly::IPAddressV6("2401:db00:11c:8202:0:0:0:100"));
   tunnel->setSrcIP(folly::IPAddressV6("::"));

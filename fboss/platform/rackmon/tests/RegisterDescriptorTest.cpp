@@ -1,7 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include "Register.h"
+#include "TestUtils.h"
 
 using namespace std;
 using namespace testing;
@@ -24,6 +23,7 @@ TEST(RegisterDescriptorTest, JSONConversionDefaults) {
   EXPECT_EQ(d.keep, 1);
   EXPECT_EQ(d.storeChangesOnly, false);
   EXPECT_EQ(d.format, RegisterValueType::HEX);
+  EXPECT_EQ(d.unit, std::nullopt);
 }
 
 TEST(RegisterDescriptorTest, JSONConversionEnforceMandatory) {
@@ -173,4 +173,18 @@ TEST(RegisterDescriptorTest, JSONConversionTableMissing) {
   })");
   RegisterDescriptor d;
   EXPECT_THROW(d = desc, nlohmann::json::out_of_range);
+}
+
+TEST(RegisterDescriptorTest, JSONConversionGetUnits) {
+  nlohmann::json desc = nlohmann::json::parse(R"({
+    "begin": 0,
+    "length": 8,
+    "name": "MFG_MODEL",
+    "unit": "Ampere"
+  })");
+  RegisterDescriptor d = desc;
+  EXPECT_EQ(d.begin, 0);
+  EXPECT_EQ(d.length, 8);
+  EXPECT_EQ(d.name, "MFG_MODEL");
+  EXPECT_EQ(d.unit, "Ampere");
 }

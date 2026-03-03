@@ -45,6 +45,7 @@ target_link_libraries(fsdb_server
   fsdb_flags
   restart_time_tracker
   Folly::folly
+  thrift_service_utils
 )
 
 add_executable(fsdb

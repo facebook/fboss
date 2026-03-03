@@ -1,7 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <fstream>
+#include "TestUtils.h"
 #if (defined(__llvm__) && (__clang_major__ < 9)) || \
     (!defined(__llvm__) && (__GNUC__ < 8))
 #include <experimental/filesystem>

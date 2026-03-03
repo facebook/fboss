@@ -1,0 +1,4 @@
+"Test Case","Platform","Status"
+"LedServiceTest.checkLedColorChange","meru800bia","PASSED"
+"LedServiceTest.checkLedBlinking","meru800bia","PASSED"
+"LedServiceTest.checkForceLed","meru800bia","PASSED"

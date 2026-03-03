@@ -152,6 +152,24 @@ std::optional<NextHopID> NextHopIDManager::getNextHopID(
   return std::nullopt;
 }
 
+std::optional<NextHopSetID> NextHopIDManager::lookupRouteNextHopSetID(
+    const RouteNextHopSet& nextHopSet) const {
+  // Build the NextHopIDSet by looking up each NextHop's ID
+  NextHopIDSet nextHopIDSet;
+  for (const auto& nextHop : nextHopSet) {
+    auto nhId = getNextHopID(nextHop);
+    DCHECK(nhId) << "NextHop ID not found in NextHopIDManager";
+    if (!nhId.has_value()) {
+      // NextHop not found, return nullopt
+      return std::nullopt;
+    }
+    nextHopIDSet.insert(*nhId);
+  }
+
+  // Lookup the NextHopSetID
+  return getNextHopSetID(nextHopIDSet);
+}
+
 NextHopIDManager::NextHopAllocationResult
 NextHopIDManager::getOrAllocRouteNextHopSetID(
     const RouteNextHopSet& nextHopSet) {

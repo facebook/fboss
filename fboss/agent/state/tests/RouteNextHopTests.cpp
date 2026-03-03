@@ -18,6 +18,46 @@
 
 using namespace facebook::fboss;
 
+namespace {
+ResolvedNextHop makeResolvedSrv6NextHop(
+    const folly::IPAddress& addr,
+    InterfaceID intfID,
+    NextHopWeight weight,
+    std::vector<folly::IPAddressV6> segList = {},
+    std::optional<TunnelType> tunnelType = std::nullopt,
+    std::optional<std::string> tunnelId = std::nullopt) {
+  return ResolvedNextHop(
+      addr,
+      intfID,
+      weight,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::move(segList),
+      tunnelType,
+      std::move(tunnelId));
+}
+
+UnresolvedNextHop makeSrv6UnresolvedNextHop(
+    const folly::IPAddress& addr,
+    NextHopWeight weight,
+    std::vector<folly::IPAddressV6> segList = {},
+    std::optional<TunnelType> tunnelType = std::nullopt,
+    std::optional<std::string> tunnelId = std::nullopt) {
+  return UnresolvedNextHop(
+      addr,
+      weight,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::move(segList),
+      tunnelType,
+      std::move(tunnelId));
+}
+} // namespace
+
 TEST(RouteNextHopTest, ResolvedNextHopEquality) {
   auto addr1 = folly::IPAddress("2401:db00::1");
   auto addr2 = folly::IPAddress("2401:db00::2");
@@ -95,6 +135,44 @@ TEST(RouteNextHopTest, ResolvedNextHopEqualityWithOptionalFields) {
 
   EXPECT_EQ(nh10, nh11);
   EXPECT_NE(nh10, nh12);
+
+  // Test with srv6SegmentList
+  std::vector<folly::IPAddressV6> segList1{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+  std::vector<folly::IPAddressV6> segList2{
+      folly::IPAddressV6("2001:db8::3"), folly::IPAddressV6("2001:db8::4")};
+
+  auto nh13 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto nh14 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto nh15 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList2, TunnelType::SRV6_ENCAP, "tunnel_1");
+
+  EXPECT_EQ(nh13, nh14);
+  EXPECT_NE(nh13, nh15);
+
+  // Test with tunnelType
+  auto nh16 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::SRV6_ENCAP);
+  auto nh17 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::SRV6_ENCAP);
+  auto nh18 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::IP_IN_IP);
+
+  EXPECT_EQ(nh16, nh17);
+  EXPECT_NE(nh16, nh18);
+
+  // Test with tunnelId
+  auto nh19 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "tunnel_1");
+  auto nh20 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "tunnel_1");
+  auto nh21 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "tunnel_2");
+
+  EXPECT_EQ(nh19, nh20);
+  EXPECT_NE(nh19, nh21);
 }
 
 TEST(RouteNextHopTest, UnresolvedNextHopEquality) {
@@ -164,6 +242,38 @@ TEST(RouteNextHopTest, UnresolvedNextHopEqualityWithOptionalFields) {
 
   EXPECT_EQ(nh10, nh11);
   EXPECT_NE(nh10, nh12);
+
+  // Test with srv6SegmentList
+  std::vector<folly::IPAddressV6> segList1{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+  std::vector<folly::IPAddressV6> segList2{
+      folly::IPAddressV6("2001:db8::3"), folly::IPAddressV6("2001:db8::4")};
+
+  auto nh13 = makeSrv6UnresolvedNextHop(
+      addr, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto nh14 = makeSrv6UnresolvedNextHop(
+      addr, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto nh15 = makeSrv6UnresolvedNextHop(
+      addr, 10, segList2, TunnelType::SRV6_ENCAP, "tunnel_1");
+
+  EXPECT_EQ(nh13, nh14);
+  EXPECT_NE(nh13, nh15);
+
+  // Test with tunnelType
+  auto nh16 = makeSrv6UnresolvedNextHop(addr, 10, {}, TunnelType::SRV6_ENCAP);
+  auto nh17 = makeSrv6UnresolvedNextHop(addr, 10, {}, TunnelType::SRV6_ENCAP);
+  auto nh18 = makeSrv6UnresolvedNextHop(addr, 10, {}, TunnelType::IP_IN_IP);
+
+  EXPECT_EQ(nh16, nh17);
+  EXPECT_NE(nh16, nh18);
+
+  // Test with tunnelId
+  auto nh19 = makeSrv6UnresolvedNextHop(addr, 10, {}, std::nullopt, "tunnel_1");
+  auto nh20 = makeSrv6UnresolvedNextHop(addr, 10, {}, std::nullopt, "tunnel_1");
+  auto nh21 = makeSrv6UnresolvedNextHop(addr, 10, {}, std::nullopt, "tunnel_2");
+
+  EXPECT_EQ(nh19, nh20);
+  EXPECT_NE(nh19, nh21);
 }
 
 TEST(RouteNextHopTest, ResolvedVsUnresolvedInequality) {
@@ -353,6 +463,24 @@ TEST(RouteNextHopTest, NextHopHashWithComplexFields) {
 
   EXPECT_EQ(hasher(nh4), hasher(nh5));
   EXPECT_NE(hasher(nh4), hasher(nh6));
+
+  // Test with SRv6 fields
+  std::vector<folly::IPAddressV6> segList1{folly::IPAddressV6("2001:db8::1")};
+  std::vector<folly::IPAddressV6> segList2{folly::IPAddressV6("2001:db8::2")};
+
+  auto resolved7 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto resolved8 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto resolved9 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList2, TunnelType::SRV6_ENCAP, "tunnel_1");
+
+  NextHop nh7 = resolved7;
+  NextHop nh8 = resolved8;
+  NextHop nh9 = resolved9;
+
+  EXPECT_EQ(hasher(nh7), hasher(nh8));
+  EXPECT_NE(hasher(nh7), hasher(nh9));
 }
 
 TEST(RouteNextHopTest, NextHopHashUnorderedSet) {
@@ -457,6 +585,42 @@ TEST(RouteNextHopTest, ResolvedNextHopHashWithOptionalFields) {
 
   EXPECT_EQ(hasher(nh10), hasher(nh11));
   EXPECT_NE(hasher(nh10), hasher(nh12));
+
+  // Test with srv6SegmentList
+  std::vector<folly::IPAddressV6> segList1{folly::IPAddressV6("2001:db8::1")};
+  std::vector<folly::IPAddressV6> segList2{folly::IPAddressV6("2001:db8::2")};
+
+  auto nh13 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto nh14 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList1, TunnelType::SRV6_ENCAP, "tunnel_1");
+  auto nh15 = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList2, TunnelType::SRV6_ENCAP, "tunnel_1");
+
+  EXPECT_EQ(hasher(nh13), hasher(nh14));
+  EXPECT_NE(hasher(nh13), hasher(nh15));
+
+  // Test with tunnelType
+  auto nh16 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::SRV6_ENCAP);
+  auto nh17 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::SRV6_ENCAP);
+  auto nh18 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::IP_IN_IP);
+
+  EXPECT_EQ(hasher(nh16), hasher(nh17));
+  EXPECT_NE(hasher(nh16), hasher(nh18));
+
+  // Test with tunnelId
+  auto nh19 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "tunnel_1");
+  auto nh20 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "tunnel_1");
+  auto nh21 =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "tunnel_2");
+
+  EXPECT_EQ(hasher(nh19), hasher(nh20));
+  EXPECT_NE(hasher(nh19), hasher(nh21));
 }
 
 TEST(RouteNextHopTest, ResolvedNextHopHashConsistency) {
@@ -543,4 +707,166 @@ TEST(RouteNextHopTest, HashFunctionCompleteness) {
   ResolvedNextHop diffAdjWeight(
       addr1, intfID1, 10, std::nullopt, std::nullopt, std::nullopt, 50);
   EXPECT_NE(hasher(base), hasher(diffAdjWeight));
+
+  // Different srv6SegmentList
+  std::vector<folly::IPAddressV6> segList{folly::IPAddressV6("2001:db8::1")};
+  auto diffSegList = makeResolvedSrv6NextHop(
+      addr1, intfID1, 10, segList, TunnelType::SRV6_ENCAP, "tunnel_1");
+  EXPECT_NE(hasher(base), hasher(diffSegList));
+
+  // Different tunnelType
+  auto diffTunnelType =
+      makeResolvedSrv6NextHop(addr1, intfID1, 10, {}, TunnelType::SRV6_ENCAP);
+  EXPECT_NE(hasher(base), hasher(diffTunnelType));
+
+  // Different tunnelId
+  auto diffTunnelId =
+      makeResolvedSrv6NextHop(addr1, intfID1, 10, {}, std::nullopt, "tunnel_1");
+  EXPECT_NE(hasher(base), hasher(diffTunnelId));
+}
+
+TEST(RouteNextHopTest, Srv6FieldsThriftRoundTrip) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+
+  std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+
+  // ResolvedNextHop round-trip via thrift preserves SRv6 fields
+  auto resolved = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segList, TunnelType::SRV6_ENCAP, "tunnel_42");
+
+  NextHop nh = resolved;
+  auto thrift = nh.toThrift();
+  auto deserialized = util::fromThrift(thrift);
+
+  EXPECT_EQ(deserialized.addr(), addr);
+  EXPECT_EQ(deserialized.weight(), 10);
+  EXPECT_EQ(deserialized.srv6SegmentList(), segList);
+  EXPECT_EQ(deserialized.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(deserialized.tunnelId(), "tunnel_42");
+
+  // UnresolvedNextHop round-trip
+  auto unresolved = makeSrv6UnresolvedNextHop(
+      addr, 10, segList, TunnelType::SRV6_ENCAP, "tunnel_99");
+
+  NextHop unh = unresolved;
+  auto uthrift = unh.toThrift();
+  auto udeserialized = util::fromThrift(uthrift);
+
+  EXPECT_EQ(unh, udeserialized);
+  EXPECT_EQ(udeserialized.srv6SegmentList(), segList);
+  EXPECT_EQ(udeserialized.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(udeserialized.tunnelId(), "tunnel_99");
+}
+
+TEST(RouteNextHopTest, Srv6FieldsDefaultEmpty) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+
+  ResolvedNextHop resolved(addr, intfID, 10);
+  EXPECT_TRUE(resolved.srv6SegmentList().empty());
+  EXPECT_EQ(resolved.tunnelType(), std::nullopt);
+  EXPECT_EQ(resolved.tunnelId(), std::nullopt);
+
+  UnresolvedNextHop unresolved(addr, 10);
+  EXPECT_TRUE(unresolved.srv6SegmentList().empty());
+  EXPECT_EQ(unresolved.tunnelType(), std::nullopt);
+  EXPECT_EQ(unresolved.tunnelId(), std::nullopt);
+}
+
+TEST(RouteNextHopTest, NextHopComparisonWithSrv6Fields) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+
+  std::vector<folly::IPAddressV6> segListA{folly::IPAddressV6("2001:db8::1")};
+  std::vector<folly::IPAddressV6> segListB{folly::IPAddressV6("2001:db8::2")};
+
+  // NextHops differing only by srv6SegmentList
+  NextHop nhA = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segListA, TunnelType::SRV6_ENCAP, "tunnel_1");
+  NextHop nhB = makeResolvedSrv6NextHop(
+      addr, intfID, 10, segListB, TunnelType::SRV6_ENCAP, "tunnel_1");
+
+  EXPECT_NE(nhA, nhB);
+  EXPECT_TRUE(nhA < nhB || nhB < nhA);
+
+  // NextHops differing only by tunnelType
+  NextHop nhC =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::IP_IN_IP);
+  NextHop nhD =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, TunnelType::SRV6_ENCAP);
+
+  EXPECT_NE(nhC, nhD);
+  EXPECT_TRUE(nhC < nhD || nhD < nhC);
+
+  // NextHops differing only by tunnelId
+  NextHop nhE =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "aaa");
+  NextHop nhF =
+      makeResolvedSrv6NextHop(addr, intfID, 10, {}, std::nullopt, "bbb");
+
+  EXPECT_NE(nhE, nhF);
+  EXPECT_TRUE(nhE < nhF || nhF < nhE);
+}
+
+TEST(RouteNextHopTest, Srv6ValidationMissingTunnelType) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+  std::vector<folly::IPAddressV6> segList{folly::IPAddressV6("2001:db8::1")};
+
+  EXPECT_THROW(
+      makeResolvedSrv6NextHop(
+          addr, intfID, 10, segList, std::nullopt, "tunnel_1"),
+      FbossError);
+
+  EXPECT_THROW(
+      makeSrv6UnresolvedNextHop(addr, 10, segList, std::nullopt, "tunnel_1"),
+      FbossError);
+}
+
+TEST(RouteNextHopTest, Srv6ValidationWrongTunnelType) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+  std::vector<folly::IPAddressV6> segList{folly::IPAddressV6("2001:db8::1")};
+
+  EXPECT_THROW(
+      makeResolvedSrv6NextHop(
+          addr, intfID, 10, segList, TunnelType::IP_IN_IP, "tunnel_1"),
+      FbossError);
+
+  EXPECT_THROW(
+      makeSrv6UnresolvedNextHop(
+          addr, 10, segList, TunnelType::IP_IN_IP, "tunnel_1"),
+      FbossError);
+}
+
+TEST(RouteNextHopTest, Srv6ValidationEmptyTunnelId) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+  std::vector<folly::IPAddressV6> segList{folly::IPAddressV6("2001:db8::1")};
+
+  EXPECT_THROW(
+      makeResolvedSrv6NextHop(
+          addr, intfID, 10, segList, TunnelType::SRV6_ENCAP, ""),
+      FbossError);
+
+  EXPECT_THROW(
+      makeSrv6UnresolvedNextHop(addr, 10, segList, TunnelType::SRV6_ENCAP, ""),
+      FbossError);
+}
+
+TEST(RouteNextHopTest, Srv6ValidationMissingTunnelId) {
+  auto addr = folly::IPAddress("2401:db00::1");
+  auto intfID = InterfaceID(1);
+  std::vector<folly::IPAddressV6> segList{folly::IPAddressV6("2001:db8::1")};
+
+  EXPECT_THROW(
+      makeResolvedSrv6NextHop(
+          addr, intfID, 10, segList, TunnelType::SRV6_ENCAP),
+      FbossError);
+
+  EXPECT_THROW(
+      makeSrv6UnresolvedNextHop(addr, 10, segList, TunnelType::SRV6_ENCAP),
+      FbossError);
 }

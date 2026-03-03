@@ -24,6 +24,12 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _ArsMap{
     SAI_ATTR_MAP(Ars, AlternatePathCost),
     SAI_ATTR_MAP(Ars, AlternatePathBias),
 };
+
+void handleExtensionAttributes() {
+#if defined(BRCM_SAI_SDK_GTE_14_0) && defined(BRCM_SAI_SDK_XGS)
+  SAI_EXT_ATTR_MAP(Ars, NextHopGroupType);
+#endif
+}
 #endif
 
 } // namespace
@@ -37,6 +43,7 @@ WRAP_SET_ATTR_FUNC(ars, SAI_OBJECT_TYPE_ARS, ars);
 WRAP_GET_ATTR_FUNC(ars, SAI_OBJECT_TYPE_ARS, ars);
 
 sai_ars_api_t* wrappedArsApi() {
+  handleExtensionAttributes();
   static sai_ars_api_t arsWrappers;
 
   arsWrappers.create_ars = &wrap_create_ars;

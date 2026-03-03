@@ -100,17 +100,26 @@ class AgentMirroringScaleTest : public AgentHwTest {
       throw FbossError("Not enough ports to create mirrors");
     }
     for (int i = 0; i < maxMirrors; i++) {
-      const std::string mirrorName = getMirrorMode() + "-" + std::to_string(i);
-      utility::addMirrorConfig<typename MirrorT::AddrT>(
-          &cfg,
-          ensemble,
-          mirrorName,
-          false /* truncate */,
-          utility::kDscpDefault,
-          maxMirrors + i /* mirrorToPortIndex */);
-      addPortMirrorConfig(&cfg, ensemble, mirrorName, i);
+      addMirrorConfig(&ensemble, &cfg, i);
     }
     return cfg;
+  }
+
+  void addMirrorConfig(
+      const AgentEnsemble* ensemble,
+      cfg::SwitchConfig* cfg,
+      int mirrorIndex) const {
+    const auto maxMirrors = getMaxMirrorsEntries(ensemble->getL3Asics());
+    const std::string mirrorName =
+        getMirrorMode() + "-" + std::to_string(mirrorIndex);
+    utility::addMirrorConfig<typename MirrorT::AddrT>(
+        cfg,
+        *ensemble,
+        mirrorName,
+        false /* truncate */,
+        utility::kDscpDefault,
+        maxMirrors + mirrorIndex /* mirrorToPortIndex */);
+    addPortMirrorConfig(cfg, *ensemble, mirrorName, mirrorIndex);
   }
 
   uint32_t getMaxMirrorsEntries(const std::vector<const HwAsic*>& asics) const {
@@ -189,4 +198,20 @@ TYPED_TEST(AgentMirroringScaleTest, MaxMirroringTest) {
   };
   this->verifyAcrossWarmBoots([] {}, verify);
 }
+
+TYPED_TEST(AgentMirroringScaleTest, ExceedMaxMirroringTest) {
+  auto verify = [=, this]() {
+    auto mirrors = this->getProgrammedState()->getMirrors()->numNodes();
+    CHECK_EQ(
+        mirrors,
+        this->getMaxMirrorsEntries(this->getAgentEnsemble()->getL3Asics()));
+
+    auto cfg = this->getAgentEnsemble()->getSw()->getConfig();
+
+    this->addMirrorConfig(this->getAgentEnsemble(), &cfg, mirrors + 1);
+    ASSERT_THROW(this->applyNewConfig(cfg), FbossError);
+  };
+  verify();
+}
+
 } // namespace facebook::fboss

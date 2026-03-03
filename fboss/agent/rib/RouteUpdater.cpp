@@ -740,6 +740,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto action = bestEntry->getAction();
   const auto counterID = bestEntry->getCounterID();
   const auto classID = bestEntry->getClassID();
+  bool labelPopandLookup = false;
   if (action == RouteForwardAction::DROP) {
     hasDrop = true;
   } else if (action == RouteForwardAction::TO_CPU) {
@@ -748,7 +749,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     auto fwItr = unresolvedToResolvedNhops_.find(bestEntry->getNextHopSet());
     if (fwItr == unresolvedToResolvedNhops_.end()) {
       NextHopForwardInfos nhToFwds;
-      bool labelPopandLookup = false;
       // loop through all nexthops to find out the forward info
       for (const auto& nh : bestEntry->getNextHopSet()) {
         const auto& addr = nh.addr();
@@ -822,12 +822,28 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       fwItr = unresolvedToResolvedNhops_
                   .insert({bestEntry->getNextHopSet(), std::move(nhSet)})
                   .first;
+    } else {
+      // This is done so that we dont miss updating label pop and lookup on
+      // cache hits.
+      const auto& nhSet = bestEntry->getNextHopSet();
+      if (nhSet.size() == 1) {
+        const auto& nh = *nhSet.begin();
+        if (nh.labelForwardingAction().has_value() &&
+            nh.labelForwardingAction().value().type() ==
+                MplsActionCode::POP_AND_LOOKUP) {
+          labelPopandLookup = true;
+        }
+      }
     }
     fwd = &(fwItr->second);
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
-  auto updateRoute = [this, clientId, &updatedRoute, classID, &route](
+  auto updateRoute = [this,
+                      clientId,
+                      &updatedRoute,
+                      classID,
+                      labelPopandLookup](
                          typename NetworkToRouteMap<AddressT>::Iterator ritr,
                          std::optional<RouteNextHopEntry> nhop) {
     updatedRoute = writableRoute<AddressT>(ritr);
@@ -863,8 +879,16 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
 
         newResolvedNextHopSetId =
             updateNextHopSetIDs(nhop->getNextHopSet(), oldNextHopSetID);
-        newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
-            nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+        // For label pop and lookup routes, skip normalized nexthops
+        // allocation but deallocate any existing old ID
+        if (!labelPopandLookup) {
+          newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
+              nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+        } else if (oldNormalizedNextHopSetID.has_value()) {
+          // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+              *oldNormalizedNextHopSetID);
+        }
       }
       nhop->setResolvedNextHopSetID(newResolvedNextHopSetId);
       nhop->setNormalizedResolvedNextHopSetID(

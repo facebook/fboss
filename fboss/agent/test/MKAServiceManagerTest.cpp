@@ -21,6 +21,7 @@
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "gmock/gmock.h"
 
 using ::testing::_;
@@ -116,7 +117,8 @@ class MKAServiceManagerTest : public testing::Test {
         mkaTimerThread_->getEventBase(),
         10);
     mkaServer_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-        mkaServerStream_);
+        mkaServerStream_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
     FLAGS_fboss_mka_port = 0;
     FLAGS_mka_service_port = mkaServer_->getPort();
     FLAGS_mka_reconnect_timer = 10;

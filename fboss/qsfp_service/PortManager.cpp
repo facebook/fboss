@@ -1153,6 +1153,64 @@ void PortManager::setInterfacePrbs(
   }
 }
 
+void PortManager::getSupportedPrbsPolynomials(
+    std::vector<prbs::PrbsPolynomial>& prbsCapabilities,
+    const std::string& portNameStr,
+    phy::PortComponent component) {
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+  phy::Side side = prbsComponentToPhySide(component);
+  if (isTransceiverComponent(component)) {
+    auto tcvrIdOpt = getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      throw FbossError("Can't find transceiver module for port ", portNameStr);
+    }
+    prbsCapabilities =
+        transceiverManager_->getTransceiverPrbsCapabilities(*tcvrIdOpt, side);
+  } else {
+    throw FbossError(
+        "PRBS on ",
+        apache::thrift::util::enumNameSafe(component),
+        " not supported by qsfp_service");
+  }
+}
+
+void PortManager::getInterfacePrbsState(
+    prbs::InterfacePrbsState& prbsState,
+    const std::string& portNameStr,
+    phy::PortComponent component) const {
+  auto portId = getPortIDByPortNameOrThrow(portNameStr);
+  if (isTransceiverComponent(component)) {
+    transceiverManager_->getInterfacePrbsStateTransceiver(
+        prbsState, portId, portNameStr, component);
+  } else {
+    throw FbossError(
+        "getInterfacePrbsState not supported on component ",
+        apache::thrift::util::enumNameSafe(component));
+  }
+}
+
+void PortManager::getAllInterfacePrbsStates(
+    std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
+    phy::PortComponent component) const {
+  const auto& platformPorts = platformMapping_->getPlatformPorts();
+  for (const auto& platformPort : platformPorts) {
+    auto portNameStr = platformPort.second.mapping()->name();
+    try {
+      prbs::InterfacePrbsState prbsState;
+      getInterfacePrbsState(prbsState, *portNameStr, component);
+      prbsStates[*portNameStr] = prbsState;
+    } catch (const std::exception& ex) {
+      // If PRBS is not enabled on this port, return
+      // a default stats / State.
+      auto portIdOpt = getPortIDByPortName(*portNameStr);
+      auto portIdStr = portIdOpt ? folly::to<std::string>(*portIdOpt) : "";
+      SW_PORT_LOG(ERR, prbsLogCategory, *portNameStr, portIdStr)
+          << "Failed to get prbs state with error: " << ex.what();
+      prbsStates[*portNameStr] = prbs::InterfacePrbsState();
+    }
+  }
+}
+
 phy::PrbsStats PortManager::getInterfacePrbsStats(
     const std::string& portNameStr,
     phy::PortComponent component) const {
@@ -1418,6 +1476,11 @@ void PortManager::updateTransceiverPortStatus() noexcept {
     return;
   }
 
+  // Build a snapshot of previous port active states per transceiver
+  // before processing any updates
+  std::map<TransceiverID, bool> previousTcvrHadActivePort =
+      buildTcvrActivePortSnapshot();
+
   int numActiveStatusChanged{0}, numResetToUninitialized{0},
       numSetToInitialized{0};
   BlockingStateUpdateResultList results;
@@ -1494,6 +1557,10 @@ void PortManager::updateTransceiverPortStatus() noexcept {
   // Update transceiver state machines based on portsForReset. We only reset
   // transceivers that have all their enabled ports in this list.
   transceiverManager_->triggerResetEvents(tcvrsForReset);
+
+  // Update lastDownTime tracking in TransceiverManager based on port status
+  // changes
+  updateTcvrLastDownTime(previousTcvrHadActivePort);
 
   for (auto portId : statusChangedPorts) {
     try {
@@ -1789,10 +1856,72 @@ void PortManager::drainAllStateMachineUpdates() {
   } while (!updatesDrained);
 }
 
+std::map<TransceiverID, bool> PortManager::buildTcvrActivePortSnapshot() const {
+  std::map<TransceiverID, bool> tcvrHadActivePort;
+  for (const auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
+    std::set<PortID> initializedPorts = *lockedInitializedPorts->rlock();
+    bool hadActivePort = false;
+    for (const auto& portId : initializedPorts) {
+      auto portState = getPortState(portId);
+      if (portState == PortStateMachineState::PORT_UP) {
+        hadActivePort = true;
+        break;
+      }
+    }
+    tcvrHadActivePort[tcvrId] = hadActivePort;
+  }
+  return tcvrHadActivePort;
+}
+
+void PortManager::updateTcvrLastDownTime(
+    const std::map<TransceiverID, bool>& previousTcvrHadActivePort) {
+  // Build a snapshot of current port active states per transceiver
+  // after processing updates, and determine lastDownTime changes
+  std::map<TransceiverID, bool> tcvrPortStatusChanges;
+  for (const auto& [tcvrId, lockedInitializedPorts] : tcvrToInitializedPorts_) {
+    std::set<PortID> initializedPorts = *lockedInitializedPorts->rlock();
+    if (initializedPorts.empty()) {
+      continue;
+    }
+
+    bool hasActivePort = false;
+    for (const auto& portId : initializedPorts) {
+      if (getPortState(portId) == PortStateMachineState::PORT_UP) {
+        hasActivePort = true;
+        break;
+      }
+    }
+
+    auto it = previousTcvrHadActivePort.find(tcvrId);
+    bool hadActivePort = (it != previousTcvrHadActivePort.end()) && it->second;
+
+    // Condition 1: No ports were active before, at least one became active
+    if (!hadActivePort && hasActivePort) {
+      tcvrPortStatusChanges[tcvrId] = true;
+    }
+    // Condition 2: No active ports now
+    else if (!hasActivePort) {
+      tcvrPortStatusChanges[tcvrId] = false;
+    }
+  }
+
+  // Update lastDownTime tracking in TransceiverManager based on port status
+  // changes
+  if (!tcvrPortStatusChanges.empty()) {
+    transceiverManager_->updateLastDownTimeFromPortStatus(
+        tcvrPortStatusChanges);
+  }
+}
+
 void PortManager::updatePortActiveState(
     const std::map<int32_t, PortStatus>& portStatusMap) noexcept {
   std::map<int32_t, NpuPortStatus> npuPortStatus =
       getNpuPortStatus(portStatusMap);
+
+  // Build a snapshot of previous port active states per transceiver
+  // before processing any updates
+  std::map<TransceiverID, bool> previousTcvrHadActivePort =
+      buildTcvrActivePortSnapshot();
 
   int numPortStatusChanged{0};
   std::unordered_set<PortID> statusChangedPorts;
@@ -1839,6 +1968,11 @@ void PortManager::updatePortActiveState(
   }
 
   waitForAllBlockingStateUpdateDone(results);
+
+  // Update lastDownTime tracking in TransceiverManager based on port status
+  // changes
+  updateTcvrLastDownTime(previousTcvrHadActivePort);
+
   XLOG_IF(DBG2, numPortStatusChanged > 0)
       << "updatePortActiveState has " << numPortStatusChanged
       << " ports need to update port status.";

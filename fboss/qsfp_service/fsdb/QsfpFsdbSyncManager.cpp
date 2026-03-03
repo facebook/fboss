@@ -11,12 +11,12 @@
 #include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 
 #include "fboss/fsdb/common/Flags.h"
-#include "fboss/lib/phy/gen-cpp2/phy_fatal_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/qsfp_state_fatal_types.h"
-#include "fboss/qsfp_service/if/gen-cpp2/qsfp_stats_fatal_types.h"
 
 namespace facebook {
 namespace fboss {
+
+namespace qsfp_state_tags = apache::thrift::ident;
+namespace qsfp_stats_tags = apache::thrift::ident;
 
 QsfpFsdbSyncManager::QsfpFsdbSyncManager() {
   if (FLAGS_publish_state_to_fsdb) {
@@ -62,9 +62,8 @@ void QsfpFsdbSyncManager::updateConfig(cfg::QsfpServiceConfig newConfig) {
 
   stateSyncer_->updateState([newConfig = std::move(newConfig)](const auto& in) {
     auto out = in->clone();
-    out->template modify<state::qsfp_state_tags::strings::config>();
-    out->template ref<state::qsfp_state_tags::strings::config>()->fromThrift(
-        newConfig);
+    out->template modify<qsfp_state_tags::config>();
+    out->template ref<qsfp_state_tags::config>()->fromThrift(newConfig);
     return out;
   });
 }
@@ -76,11 +75,10 @@ void QsfpFsdbSyncManager::updateTcvrStates(std::map<int, TcvrState>&& states) {
 
   stateSyncer_->updateState([states = std::move(states)](const auto& in) {
     auto out = in->clone();
-    out->template modify<state::qsfp_state_tags::strings::state>();
-    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
-    state->template modify<state::qsfp_state_tags::strings::tcvrStates>();
-    auto& tcvrStates =
-        state->template ref<state::qsfp_state_tags::strings::tcvrStates>();
+    out->template modify<qsfp_state_tags::state>();
+    auto& state = out->template ref<qsfp_state_tags::state>();
+    state->template modify<qsfp_state_tags::tcvrStates>();
+    auto& tcvrStates = state->template ref<qsfp_state_tags::tcvrStates>();
 
     // Delta update: update each entry individually
     for (const auto& [tcvrId, tcvrState] : states) {
@@ -99,9 +97,8 @@ void QsfpFsdbSyncManager::updateTcvrStats(std::map<int, TcvrStats>&& stats) {
 
   statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
     auto out = in->clone();
-    out->template modify<stats::qsfp_stats_tags::strings::tcvrStats>();
-    out->template ref<stats::qsfp_stats_tags::strings::tcvrStats>()->fromThrift(
-        stats);
+    out->template modify<qsfp_stats_tags::tcvrStats>();
+    out->template ref<qsfp_stats_tags::tcvrStats>()->fromThrift(stats);
     return out;
   });
 }
@@ -111,18 +108,17 @@ void QsfpFsdbSyncManager::updatePimState(int pimId, PimState&& newState) {
     return;
   }
 
-  stateSyncer_->updateState([pimId,
-                             newState = std::move(newState)](const auto& in) {
-    auto out = in->clone();
-    out->template modify<state::qsfp_state_tags::strings::state>();
-    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
-    state->template modify<state::qsfp_state_tags::strings::pimStates>();
-    auto& PimStates =
-        state->template ref<state::qsfp_state_tags::strings::pimStates>();
-    PimStates->modify(folly::to<std::string>(pimId));
-    PimStates->ref(pimId)->fromThrift(newState);
-    return out;
-  });
+  stateSyncer_->updateState(
+      [pimId, newState = std::move(newState)](const auto& in) {
+        auto out = in->clone();
+        out->template modify<qsfp_state_tags::state>();
+        auto& state = out->template ref<qsfp_state_tags::state>();
+        state->template modify<qsfp_state_tags::pimStates>();
+        auto& PimStates = state->template ref<qsfp_state_tags::pimStates>();
+        PimStates->modify(folly::to<std::string>(pimId));
+        PimStates->ref(pimId)->fromThrift(newState);
+        return out;
+      });
 }
 
 void QsfpFsdbSyncManager::updatePhyState(
@@ -136,11 +132,10 @@ void QsfpFsdbSyncManager::updatePhyState(
                              portName = std::move(portName),
                              newState = std::move(newState)](const auto& in) {
     auto out = in->clone();
-    out->template modify<state::qsfp_state_tags::strings::state>();
-    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
-    state->template modify<state::qsfp_state_tags::strings::phyStates>();
-    auto& phyStates =
-        state->template ref<state::qsfp_state_tags::strings::phyStates>();
+    out->template modify<qsfp_state_tags::state>();
+    auto& state = out->template ref<qsfp_state_tags::state>();
+    state->template modify<qsfp_state_tags::phyStates>();
+    auto& phyStates = state->template ref<qsfp_state_tags::phyStates>();
 
     if (newState.has_value()) {
       phyStates->modify(portName);
@@ -167,9 +162,8 @@ void QsfpFsdbSyncManager::updatePhyStats(PhyStatsMap& stats) {
 
   statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
     auto out = in->clone();
-    out->template modify<stats::qsfp_stats_tags::strings::phyStats>();
-    out->template ref<stats::qsfp_stats_tags::strings::phyStats>()->fromThrift(
-        stats);
+    out->template modify<qsfp_stats_tags::phyStats>();
+    out->template ref<qsfp_stats_tags::phyStats>()->fromThrift(stats);
     return out;
   });
 }
@@ -185,10 +179,8 @@ void QsfpFsdbSyncManager::updatePhyStat(
 
   // If we have stats for all ports with state, publish all accumulated stats.
   const auto& qsfpData = stateSyncer_->getState();
-  const auto& state =
-      qsfpData->template cref<state::qsfp_state_tags::strings::state>();
-  const auto& phyStates =
-      state->template cref<state::qsfp_state_tags::strings::phyStates>();
+  const auto& state = qsfpData->template cref<qsfp_state_tags::state>();
+  const auto& phyStates = state->template cref<qsfp_state_tags::phyStates>();
 
   // No need to check keys if we have less keys. More keys is fine. Maybe some
   // port got deleted.
@@ -216,9 +208,8 @@ void QsfpFsdbSyncManager::updatePortStats(PortStatsMap stats) {
 
   statsSyncer_->updateState([stats = std::move(stats)](const auto& in) {
     auto out = in->clone();
-    out->template modify<stats::qsfp_stats_tags::strings::portStats>();
-    out->template ref<stats::qsfp_stats_tags::strings::portStats>()->fromThrift(
-        stats);
+    out->template modify<qsfp_stats_tags::portStats>();
+    out->template ref<qsfp_stats_tags::portStats>()->fromThrift(stats);
     return out;
   });
 }
@@ -243,11 +234,10 @@ void QsfpFsdbSyncManager::updatePortState(
   stateSyncer_->updateState([portName = std::move(portName),
                              newState = std::move(newState)](const auto& in) {
     auto out = in->clone();
-    out->template modify<state::qsfp_state_tags::strings::state>();
-    auto& state = out->template ref<state::qsfp_state_tags::strings::state>();
-    state->template modify<state::qsfp_state_tags::strings::portStates>();
-    auto& PortStates =
-        state->template ref<state::qsfp_state_tags::strings::portStates>();
+    out->template modify<qsfp_state_tags::state>();
+    auto& state = out->template ref<qsfp_state_tags::state>();
+    state->template modify<qsfp_state_tags::portStates>();
+    auto& PortStates = state->template ref<qsfp_state_tags::portStates>();
     // insert to list of port states in case its not there.
     PortStates->modify(portName);
     // update the value.

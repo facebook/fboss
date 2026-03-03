@@ -25,19 +25,22 @@ struct FakeArs {
       sai_uint32_t max_flows,
       std::optional<sai_uint32_t> primary_path_quality_threshold = std::nullopt,
       std::optional<sai_uint32_t> alternate_path_cost = std::nullopt,
-      std::optional<sai_uint32_t> alternate_path_bias = std::nullopt)
+      std::optional<sai_uint32_t> alternate_path_bias = std::nullopt,
+      std::optional<sai_int32_t> next_hop_group_type = std::nullopt)
       : mode(mode),
         idle_time(idle_time),
         max_flows(max_flows),
         primary_path_quality_threshold(primary_path_quality_threshold),
         alternate_path_cost(alternate_path_cost),
-        alternate_path_bias(alternate_path_bias) {}
+        alternate_path_bias(alternate_path_bias),
+        next_hop_group_type(next_hop_group_type) {}
   sai_ars_mode_t mode;
   sai_uint32_t idle_time;
   sai_uint32_t max_flows;
   std::optional<sai_uint32_t> primary_path_quality_threshold;
   std::optional<sai_uint32_t> alternate_path_cost;
   std::optional<sai_uint32_t> alternate_path_bias;
+  std::optional<sai_int32_t> next_hop_group_type;
   sai_object_id_t id;
 };
 

@@ -5,10 +5,8 @@
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
 
-#include "fboss/agent/state/ArpEntry.h"
+#include "fboss/agent/NextHopResolver.h"
 #include "fboss/agent/state/Mirror.h"
-#include "fboss/agent/state/NdpEntry.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
 
 namespace facebook::fboss {
 
@@ -16,31 +14,25 @@ class Mirror;
 struct MirrorTunnel;
 class SwSwitch;
 
+/**
+ * MirrorManagerImpl handles the resolution of mirror destinations
+ * to next hop ports and MAC addresses.
+ *
+ * This class uses NextHopResolver for common IP resolution logic
+ * and adds mirror-specific functionality like tunnel building
+ * and SFLOW eventor port handling.
+ */
 template <typename AddrT>
 class MirrorManagerImpl {
  public:
-  using NeighborEntryT = std::conditional_t<
-      std::is_same<AddrT, folly::IPAddressV4>::value,
-      ArpEntry,
-      NdpEntry>;
-  using NextHopSet = RouteNextHopEntry::NextHopSet;
+  using NeighborEntryT = typename NextHopResolver<AddrT>::NeighborEntryT;
 
-  explicit MirrorManagerImpl(SwSwitch* sw) : sw_(sw) {}
-  ~MirrorManagerImpl() {}
+  explicit MirrorManagerImpl(SwSwitch* sw);
+  ~MirrorManagerImpl() = default;
 
   std::shared_ptr<Mirror> updateMirror(const std::shared_ptr<Mirror>& mirror);
 
  private:
-  NextHopSet resolveMirrorNextHops(
-      const std::shared_ptr<SwitchState>& state,
-      const AddrT& destinationIp);
-
-  std::shared_ptr<NeighborEntryT> resolveMirrorNextHopNeighbor(
-      const std::shared_ptr<SwitchState>& state,
-      const std::shared_ptr<Mirror>& mirror,
-      const AddrT& destinationIp,
-      const NextHop& nexthop) const;
-
   MirrorTunnel resolveMirrorTunnel(
       const std::shared_ptr<SwitchState>& state,
       const AddrT& destinationIp,
@@ -66,6 +58,7 @@ class MirrorManagerImpl {
   }
 
   SwSwitch* sw_;
+  NextHopResolver<AddrT> destinationAddrResolver_;
 };
 
 using MirrorManagerV4 = MirrorManagerImpl<folly::IPAddressV4>;

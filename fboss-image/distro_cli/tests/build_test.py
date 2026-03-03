@@ -42,9 +42,10 @@ class TestBuildCommand(unittest.TestCase):
 
     def test_build_components(self):
         """Test build command with specific components using stub manifest."""
-        with enter_tempdir(
-            "build_test_artifacts_"
-        ) as temp_artifacts, override_artifact_store_dir(temp_artifacts):
+        with (
+            enter_tempdir("build_test_artifacts_") as temp_artifacts,
+            override_artifact_store_dir(temp_artifacts),
+        ):
             manifest_path = self.test_dir / "test-stub-component.json"
 
             args = argparse.Namespace(

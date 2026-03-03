@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -120,6 +121,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
   FLAGS_update_stats_interval_s = 1;
+  FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_verify_fib_nexthop_id_consistency = true;
 }
 
 void AgentHwTest::TearDown() {
@@ -167,6 +170,18 @@ SwSwitch* AgentHwTest::getSw() const {
 
 SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
   return SwitchID(FLAGS_switch_id_for_testing);
+}
+
+SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
+  return ensemble.getSw()
+      ->getScopeResolver()
+      ->scope(ensemble.masterLogicalPortIds()[0])
+      .switchId();
+}
+
+bool AgentHwTest::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) {
+  return getSw()->sendPacketSwitchedAsync(
+      std::move(pkt), {getSwitchIdUnderTest(*getAgentEnsemble())});
 }
 
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {

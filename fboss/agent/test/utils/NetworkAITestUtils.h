@@ -64,6 +64,17 @@ void addVoqAqmConfig(
     bool addWredConfig,
     bool addEcnConfig);
 
+// Configure a specific VoQ with ECN marking at the specified probability.
+// Used to apply ECN config dynamically after traffic is flowing.
+void addVoqEcnProbabilisticMarkingConfig(
+    cfg::SwitchConfig* config,
+    cfg::StreamType streamType,
+    const HwAsic* asic,
+    int queueId,
+    int probability,
+    int minThresh,
+    int maxThresh);
+
 void addEventorVoqConfig(cfg::SwitchConfig* config, cfg::StreamType streamType);
 
 const std::vector<int> kNetworkAISPQueueIds();

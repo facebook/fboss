@@ -191,6 +191,59 @@ class FlowletSwitchingConfig : public ThriftStructNode<
     return std::nullopt;
   }
 
+  void setMinWidthForArsVirtualGroup(
+      const std::optional<int32_t>& minWidthForArsVirtualGroup) {
+    if (minWidthForArsVirtualGroup) {
+      set<switch_config_tags::minWidthForArsVirtualGroup>(
+          *minWidthForArsVirtualGroup);
+    } else {
+      ref<switch_config_tags::minWidthForArsVirtualGroup>().reset();
+    }
+  }
+
+  std::optional<int32_t> getMinWidthForArsVirtualGroup() const {
+    if (auto minWidthForArsVirtualGroup =
+            get<switch_config_tags::minWidthForArsVirtualGroup>()) {
+      return minWidthForArsVirtualGroup->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setMaxArsVirtualGroupWidth(
+      const std::optional<int32_t>& maxArsVirtualGroupWidth) {
+    if (maxArsVirtualGroupWidth) {
+      set<switch_config_tags::maxArsVirtualGroupWidth>(
+          *maxArsVirtualGroupWidth);
+    } else {
+      ref<switch_config_tags::maxArsVirtualGroupWidth>().reset();
+    }
+  }
+
+  std::optional<int32_t> getMaxArsVirtualGroupWidth() const {
+    if (auto maxArsVirtualGroupWidth =
+            get<switch_config_tags::maxArsVirtualGroupWidth>()) {
+      return maxArsVirtualGroupWidth->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setMaxArsVirtualGroups(
+      const std::optional<int32_t>& maxArsVirtualGroups) {
+    if (maxArsVirtualGroups) {
+      set<switch_config_tags::maxArsVirtualGroups>(*maxArsVirtualGroups);
+    } else {
+      ref<switch_config_tags::maxArsVirtualGroups>().reset();
+    }
+  }
+
+  std::optional<int32_t> getMaxArsVirtualGroups() const {
+    if (auto maxArsVirtualGroups =
+            get<switch_config_tags::maxArsVirtualGroups>()) {
+      return maxArsVirtualGroups->cref();
+    }
+    return std::nullopt;
+  }
+
   FlowletSwitchingConfig* modify(std::shared_ptr<SwitchState>* state);
 
  private:

@@ -1315,8 +1315,17 @@ void TunManager::routeProcessor(struct nl_object* obj, void* data) {
       return;
     }
     if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
-      throw FbossError(
-          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+      struct nl_addr* dst = rtnl_route_get_dst(route);
+      struct nl_addr* src = rtnl_route_get_src(route);
+      char srcText[INET6_ADDRSTRLEN];
+      char dstText[INET6_ADDRSTRLEN];
+      nl_addr2str(dst, dstText, sizeof(dstText));
+      nl_addr2str(src, srcText, sizeof(srcText));
+      XLOG(ERR)
+          << "skip route from route tables reserved for kernel0 253 254 255"
+          << "table id: " << static_cast<int>(tableId) << " src: " << srcText
+          << " dst: " << dstText;
+      return;
     }
   } else {
     if (tableId < 1 || tableId > 253) {
@@ -1412,8 +1421,9 @@ void TunManager::ruleProcessor(struct nl_object* obj, void* data) {
       return;
     }
     if (tableId == 0 || tableId == 253 || tableId == 254 || tableId == 255) {
-      throw FbossError(
-          "Route table ID 0, 253, 254, 255 are reserved in kernel usage");
+      XLOG(DBG2)
+          << "skip rules from table ID 0, 253, 254, 255 are reserved in kernel usage";
+      return;
     }
   } else {
     if (tableId < 1 || tableId > 253) {

@@ -9,12 +9,10 @@
  */
 #pragma once
 
+#include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 
 namespace facebook::fboss {
-
-// TODO: Need to modification to TU1 when the ASIC is ready.
-class Tomahawk5Asic;
 
 class SaiBcmMinipack3BTAPlatform : public SaiBcmPlatform {
  public:
@@ -43,7 +41,7 @@ class SaiBcmMinipack3BTAPlatform : public SaiBcmPlatform {
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
-  std::unique_ptr<Tomahawk5Asic> asic_;
+  std::unique_ptr<TomahawkUltra1Asic> asic_;
 };
 
 } // namespace facebook::fboss

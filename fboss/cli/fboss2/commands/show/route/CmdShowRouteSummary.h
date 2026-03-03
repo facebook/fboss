@@ -11,7 +11,6 @@
 #pragma once
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <cstdint>
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
@@ -30,54 +29,10 @@ struct CmdShowRouteSummaryTraits : public ReadCommandTraits {
 class CmdShowRouteSummary
     : public CmdHandler<CmdShowRouteSummary, CmdShowRouteSummaryTraits> {
  public:
-  RetType queryClient(const HostInfo& hostInfo) {
-    std::vector<facebook::fboss::UnicastRoute> entries;
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-
-    client->sync_getRouteTable(entries);
-    return createModel(entries);
-  }
-
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "Route Table Summary:\n\n";
-    out << fmt::format(
-        "{:-10} v4 routes\n"
-        "{:-10} v6 routes (/64 or smaller)\n"
-        "{:-10} v6 routes (bigger than /64)\n"
-        "{:-10} v6 routes (total)\n"
-        "{:-10} approximate hw entries used\n\n",
-        folly::copy(model.numV4Routes().value()),
-        folly::copy(model.numV6Small().value()),
-        folly::copy(model.numV6Big().value()),
-        folly::copy(model.numV6().value()),
-        folly::copy(model.hwEntriesUsed().value()));
-  }
-
-  RetType createModel(std::vector<facebook::fboss::UnicastRoute> routeEntries) {
-    RetType model;
-    int numV4Routes = 0, numV6Small = 0, numV6Big = 0;
-
-    for (const auto& entry : routeEntries) {
-      auto ip = *entry.dest()->ip()->addr();
-      if (ip.size() == 4) {
-        ++numV4Routes;
-      } else if (ip.size() == 16) {
-        // break ipv6 up into <64 and >64  as it affect ASIC mem usage
-        if (*entry.dest()->prefixLength() <= 64) {
-          ++numV6Small;
-        } else {
-          ++numV6Big;
-        }
-      }
-      model.numV4Routes() = numV4Routes;
-      model.numV6Small() = numV6Small;
-      model.numV6Big() = numV6Big;
-      model.numV6() = numV6Big + numV6Small;
-      model.hwEntriesUsed() = numV4Routes + 2 * numV6Small + 4 * numV6Big;
-    }
-    return model;
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
+  RetType createModel(
+      const std::vector<facebook::fboss::UnicastRoute>& routeEntries);
 };
 
 } // namespace facebook::fboss

@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/api/AclApi.h"
+#include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
@@ -440,6 +441,11 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
 std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
     AttributeLosslessEnable::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiBufferPoolTraits::Attributes::AttributeReservedBytes::operator()() {
+  return SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE;
 }
 
 std::optional<sai_attr_id_t>
@@ -1018,6 +1024,11 @@ SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;
 }
 
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+}
+
 std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
     AttributeArsNextHopGroupMetaData::operator()() {
   return SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA;
@@ -1026,6 +1037,11 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
 }
 #endif
 

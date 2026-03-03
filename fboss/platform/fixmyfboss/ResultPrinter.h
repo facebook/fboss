@@ -42,7 +42,6 @@ class ResultPrinter {
   static constexpr const char* COLOR_RED = "\033[91m";
   static constexpr const char* COLOR_GREEN = "\033[92m";
   static constexpr const char* COLOR_ORANGE = "\033[38;5;208m";
-  static constexpr const char* COLOR_YELLOW = "\033[93m";
   static constexpr const char* COLOR_RESET = "\033[0m";
   static constexpr const char* STYLE_BOLD = "\033[1m";
 
@@ -50,7 +49,6 @@ class ResultPrinter {
   static constexpr const char* BG_RED = "\033[41m";
   static constexpr const char* BG_GREEN = "\033[42m";
   static constexpr const char* BG_ORANGE = "\033[48;5;208m";
-  static constexpr const char* BG_YELLOW = "\033[43m";
 
   std::string
   colorize(const std::string& text, const char* color, bool bold = false);
@@ -59,7 +57,6 @@ class ResultPrinter {
 
   std::string indent(const std::string& text, int level = 1);
 
-  std::string getStatusColor(platform_checks::CheckStatus status);
   std::string getStatusBackgroundColor(platform_checks::CheckStatus status);
   std::string getStatusName(platform_checks::CheckStatus status);
 };

@@ -266,6 +266,10 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
     if (switchInfo.switchType() != cfg::SwitchType::VOQ) {
       continue;
     }
+    // Q4D is a VOQ switch but has no fabric ports, skip fabric overhead calc
+    if (*switchInfo.asicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
+      continue;
+    }
     auto& bwInfo = swIndexToBwInfo[*switchInfo.switchIndex()];
     bwInfo.asicType = *switchInfo.asicType();
     for (const auto& [_, port] : std::as_const(*portMap)) {
