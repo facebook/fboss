@@ -24,7 +24,6 @@ select = [
 
 ignore = [
     "B904",  # Allow raising exceptions without 'from' for cleaner error messages
-    "PLR0913",  # Allow more than 8 arguments to be specified
 ]
 
 [lint.per-file-ignores]
