@@ -322,6 +322,10 @@ service QsfpService extends phy.FbossCommonPhyCtrl {
     transceiver.FirmwareUpgradeData
   > triggerAllOpticsFwUpgrade() throws (1: fboss.FbossBaseError error);
 
+  map<string, transceiver.FirmwareUpgradeData> triggerOpticsFwUpgrade(
+    1: list<string> interfaces,
+  ) throws (1: fboss.FbossBaseError error);
+
   map<string, transceiver.MediaInterfaceCode> getPortMediaInterface() throws (
     1: fboss.FbossBaseError error,
   );

@@ -109,34 +109,118 @@ TEST_F(SensorServiceImplTest, getSomeSensors) {
   EXPECT_GE(*sensorData[0].timeStamp(), now);
 }
 
-TEST_F(SensorServiceImplTest, processTemperatureWithMockSensors) {
-  // Create a temperature configuration using mock sensors
-  using namespace facebook::fboss::platform::sensor_config;
-  TemperatureConfig tempConfig;
-  tempConfig.name() = "MOCK_TEMP";
-  tempConfig.temperatureSensorNames() = {
-      "MOCK_FRU_SENSOR1", "MOCK_FRU_SENSOR2", "MOCK_FRU_SENSOR3"};
+TEST_F(SensorServiceImplTest, publishPerSensorStats) {
+  // Success case
+  impl_->fetchSensorData();
+  auto expectedSensors = getMockSensorData();
+  for (const auto& [sensorName, sensorValue] : expectedSensors) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        static_cast<int64_t>(sensorValue));
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        0);
+  }
 
-  // Add temperature configuration to the config
-  config_.temperatureConfigs() = {tempConfig};
+  // Verify threshold counters are set correctly
+  // MOCK_FRU_SENSOR1: value=0.025, critical=[−40,100], alarm=[−20,85] → no
+  // violation
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kCriticalThresholdViolation,
+              "MOCK_FRU_SENSOR1")),
+      0);
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAlarmThresholdViolation, "MOCK_FRU_SENSOR1")),
+      0);
 
-  // Create a new impl with the updated config
-  impl_ = std::make_shared<SensorServiceImpl>(config_);
+  // MOCK_FRU_SENSOR2: value=11152, critical=[1000,10000] → critical violation
+  // (>10000)
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kCriticalThresholdViolation,
+              "MOCK_FRU_SENSOR2")),
+      1);
 
-  // Fetch sensor data which will trigger processTemperature
+  // MOCK_FRU_SENSOR3: value=16.875, alarm=[10,14] → alarm violation (>14)
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAlarmThresholdViolation, "MOCK_FRU_SENSOR3")),
+      1);
+
+  // Failure case: remove sysfs files and re-fetch
+  for (const auto& pmUnitSensors : *config_.pmUnitSensorsList()) {
+    for (const auto& pmSensors : *pmUnitSensors.sensors()) {
+      std::filesystem::remove(*pmSensors.sysfsPath());
+    }
+  }
+  impl_->fetchSensorData();
+  for (const auto& [sensorName, _] : expectedSensors) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadValue, sensorName)),
+        0);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(SensorServiceImpl::kReadFailure, sensorName)),
+        1);
+  }
+}
+
+TEST_F(SensorServiceImplTest, publishAggStats) {
   impl_->fetchSensorData();
 
-  // Verify that temperature processing worked by checking the derived stats
-  // The maximum temperature should be from MOCK_FRU_SENSOR2 (11152°C)
-  // which gets truncated to 11152 when published as counter
-  auto derivedTempValue = fb303::fbData->getCounter(
-      fmt::format(SensorServiceImpl::kDerivedValue, "MOCK_TEMP_TEMP"));
-  EXPECT_EQ(derivedTempValue, 11152);
+  // Mock sensors:
+  // MOCK_FRU_SENSOR1: TEMPERATURE, value=0.025, critical=[-40,100],
+  // alarm=[-20,85] → no violations
+  // MOCK_FRU_SENSOR2: FAN, value=11152, critical=[1000,10000] → critical
+  // violation
+  // MOCK_FRU_SENSOR3: VOLTAGE, value=16.875, alarm=[10,14] → alarm violation
 
-  // Verify no failures occurred (all sensors should be found and have values)
-  auto derivedTempFailure = fb303::fbData->getCounter(
-      fmt::format(SensorServiceImpl::kDerivedFailure, "MOCK_TEMP_TEMP"));
-  EXPECT_EQ(derivedTempFailure, 0);
+  // TEMPERATURE: no critical, no alarm
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAggHasCriticalThresholdViolation,
+              "temperature")),
+      0);
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAggHasAlarmThresholdViolation,
+              "temperature")),
+      0);
+
+  // FAN: has critical, no alarm
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAggHasCriticalThresholdViolation, "fan")),
+      1);
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAggHasAlarmThresholdViolation, "fan")),
+      0);
+
+  // VOLTAGE: no critical, has alarm
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAggHasCriticalThresholdViolation, "voltage")),
+      0);
+  EXPECT_EQ(
+      fb303::fbData->getCounter(
+          fmt::format(
+              SensorServiceImpl::kAggHasAlarmThresholdViolation, "voltage")),
+      1);
 }
 
 } // namespace facebook::fboss

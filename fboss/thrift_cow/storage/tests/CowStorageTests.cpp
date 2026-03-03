@@ -909,7 +909,7 @@ TYPED_TEST(CowStorageTests, PatchRoot) {
       memberNodeB,
       {folly::to<std::string>(TestStructMembers::member::id::value)});
   storage.patch(std::move(patch));
-  using k = thriftpath_test_tags::strings;
+  namespace k = apache::thrift::ident;
   EXPECT_EQ(
       storage.root()->template ref<k::member>()->toThrift(),
       *testStructB.member());

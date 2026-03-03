@@ -189,6 +189,7 @@ SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
 SUB_CMD_LINK = "link"
 SUB_CMD_SAI_AGENT = "sai_agent"
+SUB_CMD_PLATFORM = "platform"
 SUB_CMD_CLI = "cli"
 SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
 SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
@@ -196,6 +197,15 @@ SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
 SUB_ARG_AGENT_RUN_MODE_LEGACY = "legacy"
 SUB_ARG_NUM_NPUS = "--num-npus"
 SUB_ARG_HW_AGENT_BIN_PATH = "--hw-agent-bin-path"
+SUB_ARG_TEST_TYPE = "--type"
+SUB_ARG_PLATFORM_HW_TEST = "platform_hw_test"
+SUB_ARG_DATA_CORRAL_HW_TEST = "data_corral_service_hw_test"
+SUB_ARG_FAN_HW_TEST = "fan_service_hw_test"
+SUB_ARG_FW_UTIL_HW_TEST = "fw_util_hw_test"
+SUB_ARG_SENSOR_HW_TEST = "sensor_service_hw_test"
+SUB_ARG_WEUTIL_HW_TEST = "weutil_hw_test"
+SUB_ARG_PLATFORM_MANAGER_HW_TEST = "platform_manager_hw_test"
+
 
 SAI_HW_KNOWN_BAD_TESTS = (
     "./share/hw_known_bad_tests/sai_known_bad_tests.materialized_JSON"
@@ -358,8 +368,9 @@ class TestRunner(abc.ABC):
         run_cmd = [
             test_binary_name,
             "--gtest_filter=" + test_to_run,
-            "--fruid_filepath=" + args.fruid_path,
         ]
+        if args.fruid_path is not None:
+            run_cmd.append("--fruid_filepath=" + args.fruid_path)
         run_cmd += self._get_test_run_args(conf_file)
 
         return run_cmd + flags if flags else run_cmd
@@ -1026,12 +1037,26 @@ class LinkTestRunner(TestRunner):
             SUB_ARG_AGENT_RUN_MODE,
             choices=[
                 SUB_ARG_AGENT_RUN_MODE_MONO,
-                # SUB_ARG_AGENT_RUN_MODE_MULTI,
+                SUB_ARG_AGENT_RUN_MODE_MULTI,
                 SUB_ARG_AGENT_RUN_MODE_LEGACY,
             ],
             nargs="?",
             default=SUB_ARG_AGENT_RUN_MODE_LEGACY,
             help="Specify agent run mode. Default is legacy mode.",
+        )
+        sub_parser.add_argument(
+            SUB_ARG_NUM_NPUS,
+            choices=[1, 2],
+            default=1,
+            type=int,
+            help="Specify number of npus to run in multi switch mode. Default is 1.",
+        )
+        sub_parser.add_argument(
+            SUB_ARG_HW_AGENT_BIN_PATH,
+            nargs="?",
+            type=str,
+            help="FBOSS HW Agent binary path(absolute path).",
+            default=None,
         )
 
     def _get_config_path(self):
@@ -1050,8 +1075,8 @@ class LinkTestRunner(TestRunner):
             return args.sai_bin
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MONO:
             return "sai_mono_link_test-sai_impl"
-        # if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
-        # return "sai_multi_link_test-sai_impl"
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            return "sai_multi_link_test-sai_impl"
         # Deprecate legacy mode when we finish testing mono mode on all platforms
         return "sai_link_test-sai_impl"
 
@@ -1064,7 +1089,12 @@ class LinkTestRunner(TestRunner):
         return ["--enable_sai_log", sai_logging]
 
     def _get_warmboot_check_file(self):
-        # TODO(joseph5wu): Need to support multi-switch mode
+        # If it's multi_switch mode, we need to check the warmboot file for SW switch which doesn't
+        # have any switch_index
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            return agent_can_warm_boot_file_path(switch_index=None)
+        # If it's mono mode, we need to check the warmboot file for hw switch which has switch_index
+        # as 0
         return agent_can_warm_boot_file_path(switch_index=0)
 
     def _get_test_run_args(self, conf_file):
@@ -1085,6 +1115,15 @@ class LinkTestRunner(TestRunner):
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
             is_warm_boot=False,
         )
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            setup_and_start_hw_agent_service(
+                switch_indexes=list(range(args.num_npus)),
+                fboss_agent_config_path=args.config,
+                hw_agent_service_bin_path=args.hw_agent_bin_path,
+                platform_mapping_override_path=args.platform_mapping_override_path,
+                sai_replayer_log_path=sai_replayer_log_path,
+                is_warm_boot=False,
+            )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
         setup_and_start_qsfp_service(
@@ -1093,9 +1132,20 @@ class LinkTestRunner(TestRunner):
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
             is_warm_boot=True,
         )
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            setup_and_start_hw_agent_service(
+                switch_indexes=list(range(args.num_npus)),
+                fboss_agent_config_path=args.config,
+                hw_agent_service_bin_path=args.hw_agent_bin_path,
+                platform_mapping_override_path=args.platform_mapping_override_path,
+                sai_replayer_log_path=sai_replayer_log_path,
+                is_warm_boot=True,
+            )
 
     def _end_run(self):
         cleanup_qsfp_service()
+        if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
+            cleanup_hw_agent_service(list(range(args.num_npus)))
 
     def _filter_tests(self, tests: List[str]) -> List[str]:
         return tests
@@ -1289,6 +1339,135 @@ class SaiAgentTestRunner(TestRunner):
                     tests_to_run += (test,)
                     break
         return tests_to_run
+
+
+class PlatformServicesTestRunner(TestRunner):
+    TEST_TYPE_CHOICES = [
+        SUB_ARG_PLATFORM_HW_TEST,
+        SUB_ARG_DATA_CORRAL_HW_TEST,
+        SUB_ARG_FAN_HW_TEST,
+        SUB_ARG_FW_UTIL_HW_TEST,
+        SUB_ARG_SENSOR_HW_TEST,
+        SUB_ARG_WEUTIL_HW_TEST,
+        SUB_ARG_PLATFORM_MANAGER_HW_TEST,
+    ]
+
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        sub_parser.add_argument(
+            SUB_ARG_TEST_TYPE,
+            choices=self.TEST_TYPE_CHOICES,
+            nargs="?",
+            default=None,
+            help="Specify test type for platform services test.",
+        )
+
+    def _get_config_path(self):
+        return ""
+
+    def _get_known_bad_tests_file(self):
+        return ""
+
+    def _get_unsupported_tests_file(self):
+        return ""
+
+    def _get_test_binary_name(self):
+        binary_map = {
+            SUB_ARG_PLATFORM_HW_TEST: "platform_hw_test",
+            SUB_ARG_DATA_CORRAL_HW_TEST: "data_corral_service_hw_test",
+            SUB_ARG_FAN_HW_TEST: "fan_service_hw_test",
+            SUB_ARG_FW_UTIL_HW_TEST: "fw_util_hw_test",
+            SUB_ARG_SENSOR_HW_TEST: "sensor_service_hw_test",
+            SUB_ARG_WEUTIL_HW_TEST: "weutil_hw_test",
+            SUB_ARG_PLATFORM_MANAGER_HW_TEST: "platform_manager_hw_test",
+        }
+
+        return binary_map.get(args.type, "platform_hw_test")
+
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_log_path: Optional[str]
+    ) -> List[str]:
+        return []
+
+    def _get_sai_logging_flags(self, sai_logging):
+        return []
+
+    def _get_warmboot_check_file(self):
+        return ""
+
+    def _get_test_run_args(self, conf_file):
+        return []
+
+    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        return
+
+    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        return
+
+    def _end_run(self):
+        return
+
+    def _filter_tests(self, tests: List[str]) -> List[str]:
+        return tests
+
+    def _run_tests(self, tests_to_run, conf_file, args):
+        test_binary_name = self._get_test_binary_name()
+        test_outputs = []
+        num_tests = len(tests_to_run)
+        for idx, test_to_run in enumerate(tests_to_run):
+            test_prefix = test_binary_name + "."
+            print("########## Running test: " + test_to_run, flush=True)
+            test_output = self._run_test(
+                conf_file,
+                test_prefix,
+                test_to_run,
+                False,  # setup_warmboot
+                args.sai_logging,
+                args.fboss_logging,
+                None,
+                args.test_run_timeout,
+            )
+            output = test_output.decode("utf-8")
+            print(
+                f"test results ({idx + 1}/{num_tests}): {output}",
+                flush=True,
+            )
+            test_outputs.append(test_output)
+
+        self._end_run()
+        return test_outputs
+
+    def run_test(self, args):
+        args.fruid_path = None
+
+        if args.type is not None:
+            super().run_test(args)
+            return
+
+        output = []
+        start_time = datetime.now()
+
+        for test_type in self.TEST_TYPE_CHOICES:
+            args.type = test_type
+            tests_to_run = self._get_tests_to_run()
+            tests_to_run = self._filter_tests(tests_to_run)
+
+            # Check if tests need to be run or only listed
+            if args.list_tests is False:
+                original_conf_file = (
+                    args.config
+                    if (args.config is not None)
+                    else self._get_config_path()
+                )
+                conf_file = self._backup_and_modify_config(original_conf_file)
+                output.extend(self._run_tests(tests_to_run, conf_file, args))
+
+        end_time = datetime.now()
+        delta_time = end_time - start_time
+        print(
+            f"Running all tests took {delta_time} between {start_time} and {end_time}",
+            flush=True,
+        )
+        self._print_output_summary(output)
 
 
 class CliTestRunner:
@@ -1599,6 +1778,14 @@ if __name__ == "__main__":
     sai_agent_test_runner = SaiAgentTestRunner()
     sai_agent_test_parser.set_defaults(func=sai_agent_test_runner.run_test)
     sai_agent_test_runner.add_subcommand_arguments(sai_agent_test_parser)
+
+    # Add subparser for platform tests
+    platform_test_parser = subparsers.add_parser(
+        SUB_CMD_PLATFORM, help="run platform services test"
+    )
+    platform_test_runner = PlatformServicesTestRunner()
+    platform_test_parser.set_defaults(func=platform_test_runner.run_test)
+    platform_test_runner.add_subcommand_arguments(platform_test_parser)
 
     # Add subparser for CLI end-to-end tests
     cli_test_parser = subparsers.add_parser(

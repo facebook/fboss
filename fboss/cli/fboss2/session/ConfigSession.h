@@ -9,15 +9,15 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-
-namespace facebook::fboss::utils {
-class PortMap;
-}
+#include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss {
 
@@ -81,7 +81,7 @@ namespace facebook::fboss {
 class ConfigSession {
  public:
   ConfigSession();
-  ~ConfigSession() = default;
+  virtual ~ConfigSession() = default;
 
   // Get or create the current config session
   // If no session exists, copies /etc/coop/agent.conf to ~/.fboss2/agent.conf
@@ -96,11 +96,20 @@ class ConfigSession {
   // Get the path to the CLI config directory (/etc/coop/cli)
   std::string getCliConfigDir() const;
 
+  // Result of a commit operation
+  struct CommitResult {
+    int revision; // The revision number that was committed
+    // Maps each service to the action level that was applied during commit.
+    // Services not in this map had no action taken.
+    std::map<cli::ServiceType, cli::ConfigActionLevel> actions;
+  };
+
   // Atomically commit the session to /etc/coop/cli/agent-rN.conf,
-  // update the symlink /etc/coop/agent.conf to point to it, and reload config.
-  // Returns the revision number that was committed if the commit was
-  // successful.
-  int commit(const HostInfo& hostInfo);
+  // update the symlink /etc/coop/agent.conf to point to it.
+  // For HITLESS changes, also calls reloadConfig() on the agent.
+  // For AGENT_RESTART changes, does NOT call reloadConfig() - user must restart
+  // agent. Returns CommitResult with revision number and action level.
+  CommitResult commit(const HostInfo& hostInfo);
 
   // Rollback to a specific revision or to the previous revision
   // Returns the revision that was rolled back to
@@ -118,12 +127,35 @@ class ConfigSession {
   utils::PortMap& getPortMap();
   const utils::PortMap& getPortMap() const;
 
-  // Save the configuration back to the session file
-  void saveConfig();
+  // Save the configuration back to the session file.
+  // Also updates the required action level for the specified service
+  // (if the new level is higher than the current one).
+  // This combines saving the config and updating its associated metadata.
+  void saveConfig(cli::ServiceType service, cli::ConfigActionLevel actionLevel);
 
   // Extract revision number from a filename or path like "agent-r42.conf"
   // Returns -1 if the filename doesn't match the expected pattern
   static int extractRevisionNumber(const std::string& filenameOrPath);
+
+  // Update the required action level for the current session.
+  // Tracks the highest action level across all config commands.
+  // Higher action levels take precedence (AGENT_COLDBOOT > AGENT_WARMBOOT >
+  // HITLESS).
+  void updateRequiredAction(
+      cli::ServiceType service,
+      cli::ConfigActionLevel actionLevel);
+
+  // Get the current required action level for the session
+  cli::ConfigActionLevel getRequiredAction(cli::ServiceType service) const;
+
+  // Reset the required action level to HITLESS (called after successful commit)
+  void resetRequiredAction(cli::ServiceType service);
+
+  // Get the systemd service name for a service type
+  static std::string getServiceName(cli::ServiceType service);
+
+  // Get the list of commands executed in this session
+  const std::vector<std::string>& getCommands() const;
 
  protected:
   // Constructor for testing with custom paths
@@ -135,6 +167,13 @@ class ConfigSession {
   // Set the singleton instance (for testing only)
   static void setInstance(std::unique_ptr<ConfigSession> instance);
 
+  // Read the command line for the current process from /proc/self/cmdline.
+  // Returns the command arguments as a space-separated string,
+  // e.g., "config interface eth1/1/1 mtu 9000"
+  // Throws runtime_error if the command line cannot be read.
+  // Virtual to allow tests to override with mock command lines.
+  virtual std::string readCommandLineFromProc() const;
+
  private:
   std::string sessionConfigPath_;
   std::string systemConfigPath_;
@@ -145,6 +184,37 @@ class ConfigSession {
   cfg::AgentConfig agentConfig_;
   std::unique_ptr<utils::PortMap> portMap_;
   bool configLoaded_ = false;
+
+  // Track the highest action level required for pending config changes per
+  // service. Persisted to disk so it survives across CLI invocations within a
+  // session.
+  std::map<cli::ServiceType, cli::ConfigActionLevel> requiredActions_;
+
+  // List of commands executed in this session, persisted to disk
+  std::vector<std::string> commands_;
+
+  // Path to the metadata file (e.g., ~/.fboss2/metadata)
+  std::string getMetadataPath() const;
+
+  // Load/save metadata (action levels and commands) from disk
+  void loadMetadata();
+  void saveMetadata();
+
+  // Restart a service via systemd and wait for it to be active
+  // For AGENT_WARMBOOT, does a simple restart.
+  // For AGENT_COLDBOOT, creates cold_boot_once files before restarting.
+  void restartService(cli::ServiceType service, cli::ConfigActionLevel level);
+
+  // Reload config for a service without restart (for HITLESS changes).
+  // Each service type has its own reload mechanism.
+  void reloadServiceConfig(cli::ServiceType service, const HostInfo& hostInfo);
+
+  // Apply actions (restart or reload) to all services based on their action
+  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
+  // the config.
+  void applyServiceActions(
+      const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
+      const HostInfo& hostInfo);
 
   // Initialize the session (creates session config file if it doesn't exist)
   void initializeSession();

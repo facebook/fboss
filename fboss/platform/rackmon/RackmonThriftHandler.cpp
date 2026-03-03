@@ -66,9 +66,8 @@ ModbusDeviceInfo ThriftHandler::transformModbusDeviceInfo(
   target.mode() = source.mode == rackmon::ModbusDeviceMode::ACTIVE
       ? ModbusDeviceMode::ACTIVE
       : ModbusDeviceMode::DORMANT;
-  // TODO: in the the next rackmon fbcode sync, update this to
-  // include the port number in the upper byte.
-  target.uniqueDevAddress() = source.deviceAddress;
+  target.uniqueDevAddress() =
+      rackmon::DeviceLocationFilter::combine(source.port, source.deviceAddress);
   return target;
 }
 
@@ -274,11 +273,11 @@ void ThriftHandler::transformMonitorDataFilter(
   latestOnly = folly::copy(filter.latestValueOnly().value());
   if (reqDevFilter) {
     if (reqDevFilter->addressFilter().has_value()) {
-      std::set<int16_t> devs = reqDevFilter->get_addressFilter();
-      devFilter.addrFilter.emplace();
-      for (auto& dev : devs) {
-        devFilter.addrFilter->insert(uint8_t(dev));
+      std::set<uint16_t> unsignedDevs;
+      for (const auto& value : reqDevFilter->get_addressFilter()) {
+        unsignedDevs.insert(static_cast<uint16_t>(value));
       }
+      devFilter.locationFilter = rackmon::DeviceLocationFilter(unsignedDevs);
     } else if (reqDevFilter->typeFilter().has_value()) {
       std::set<ModbusDeviceType> types = reqDevFilter->get_typeFilter();
       devFilter.typeFilter.emplace();
@@ -352,13 +351,14 @@ void ThriftHandler::readHoldingRegisters(
   try {
     std::vector<uint16_t> regs(folly::copy(request->numRegisters().value()));
     int32_t* timeout = apache::thrift::get_pointer(request->timeout());
-    uint8_t devAddr = folly::copy(request->devAddress().value());
+    auto [port, devAddr] = rackmon::DeviceLocationFilter::decompose(
+        folly::copy(request->devAddress().value()));
     uint16_t regAddr = folly::copy(request->regAddress().value());
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
-      rackmond_.readHoldingRegisters(devAddr, regAddr, regs, tmo);
+      rackmond_.readHoldingRegisters(devAddr, port, regAddr, regs, tmo);
     } else {
-      rackmond_.readHoldingRegisters(devAddr, regAddr, regs);
+      rackmond_.readHoldingRegisters(devAddr, port, regAddr, regs);
     }
     response.status() = RackmonStatusCode::SUCCESS;
     response.regValues()->resize(regs.size());
@@ -372,14 +372,15 @@ RackmonStatusCode ThriftHandler::writeSingleRegister(
     std::unique_ptr<WriteSingleRegisterRequest> request) {
   try {
     int32_t* timeout = apache::thrift::get_pointer(request->timeout());
-    uint8_t devAddr = folly::copy(request->devAddress().value());
+    auto [port, devAddr] = rackmon::DeviceLocationFilter::decompose(
+        folly::copy(request->devAddress().value()));
     uint16_t regAddr = folly::copy(request->regAddress().value());
     uint16_t regValue = folly::copy(request->regValue().value());
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
-      rackmond_.writeSingleRegister(devAddr, regAddr, regValue, tmo);
+      rackmond_.writeSingleRegister(devAddr, port, regAddr, regValue, tmo);
     } else {
-      rackmond_.writeSingleRegister(devAddr, regAddr, regValue);
+      rackmond_.writeSingleRegister(devAddr, port, regAddr, regValue);
     }
     return RackmonStatusCode::SUCCESS;
   } catch (std::exception& ex) {
@@ -394,7 +395,8 @@ RackmonStatusCode ThriftHandler::presetMultipleRegisters(
   }
   try {
     int32_t* timeout = apache::thrift::get_pointer(request->timeout());
-    uint8_t devAddr = folly::copy(request->devAddress().value());
+    auto [port, devAddr] = rackmon::DeviceLocationFilter::decompose(
+        folly::copy(request->devAddress().value()));
     uint16_t regAddr = folly::copy(request->regAddress().value());
     std::vector<uint16_t> regValues;
     std::copy(
@@ -403,9 +405,9 @@ RackmonStatusCode ThriftHandler::presetMultipleRegisters(
         std::back_inserter(regValues));
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
-      rackmond_.writeMultipleRegisters(devAddr, regAddr, regValues, tmo);
+      rackmond_.writeMultipleRegisters(devAddr, port, regAddr, regValues, tmo);
     } else {
-      rackmond_.writeMultipleRegisters(devAddr, regAddr, regValues);
+      rackmond_.writeMultipleRegisters(devAddr, port, regAddr, regValues);
     }
     return RackmonStatusCode::SUCCESS;
   } catch (std::exception& ex) {
@@ -418,7 +420,8 @@ void ThriftHandler::readFileRecord(
     std::unique_ptr<ReadFileRecordRequest> request) {
   try {
     int32_t* timeout = apache::thrift::get_pointer(request->timeout());
-    uint8_t devAddr = folly::copy(request->devAddress().value());
+    auto [port, devAddr] = rackmon::DeviceLocationFilter::decompose(
+        folly::copy(request->devAddress().value()));
     std::vector<rackmon::FileRecord> records;
     for (const auto& rec : request->records().value()) {
       if (folly::copy(rec.dataSize().value()) > kMaxNumRegisters) {
@@ -431,9 +434,9 @@ void ThriftHandler::readFileRecord(
     }
     if (timeout) {
       rackmon::ModbusTime tmo(*timeout);
-      rackmond_.readFileRecord(devAddr, records, tmo);
+      rackmond_.readFileRecord(devAddr, port, records, tmo);
     } else {
-      rackmond_.readFileRecord(devAddr, records);
+      rackmond_.readFileRecord(devAddr, port, records);
     }
     response.status() = RackmonStatusCode::SUCCESS;
     auto transformFileRecord = [](const auto& rec) {
@@ -514,7 +517,11 @@ void ThriftHandler::sendRawCommand(
     // Execute raw command
     // Note: uniqueDevAddress is currently ignored in this version of rackmond
     // The device address is already embedded in the raw command bytes
-    rackmond_.rawCmd(req, resp, tmo);
+    std::optional<uint16_t> uniqueDevAddr;
+    if (request->uniqueDevAddress().has_value()) {
+      uniqueDevAddr = static_cast<uint16_t>(*request->uniqueDevAddress());
+    }
+    rackmond_.rawCmd(req, uniqueDevAddr, resp, tmo);
 
     // Copy response bytes to Thrift response (excluding CRC which was added
     // back)

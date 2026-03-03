@@ -10,17 +10,13 @@
 
 #pragma once
 
-#include <re2/re2.h>
 #include <string>
-#include <unordered_set>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/if/gen-cpp2/hw_ctrl_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
-#include "folly/String.h"
-#include "folly/container/Access.h"
 
 namespace facebook::fboss {
 
@@ -40,72 +36,15 @@ class CmdShowFabricTopology
  public:
   using RetType = CmdShowFabricTopologyTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    std::map<int64_t, std::map<int64_t, std::vector<RemoteEndpoint>>> entries;
-    if (utils::isMultiSwitchEnabled(hostInfo)) {
-      auto hwAgentQueryFn =
-          [&entries](
-              apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
-            std::map<int64_t, std::map<int64_t, std::vector<RemoteEndpoint>>>
-                hwAgentEntries;
-            client.sync_getVirtualDeviceToConnectionGroups(hwAgentEntries);
-            entries.merge(hwAgentEntries);
-          };
-      utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
-    } else {
-      throw std::runtime_error(
-          "Command only supported for multi switch enabled devices");
-    }
-    return createModel(entries);
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+
   RetType createModel(
       const std::map<int64_t, std::map<int64_t, std::vector<RemoteEndpoint>>>&
-          entries) {
-    RetType model;
-    for (const auto& [vid, connectionGroups] : entries) {
-      bool isSymmetric = connectionGroups.size() <= 1;
-      for (const auto& [numConnections, connectionGroup] : connectionGroups) {
-        for (const auto& remoteEndpoint : connectionGroup) {
-          cli::FabricVirtualDeviceTopology entry;
-          entry.virtualDeviceId() = vid;
-          entry.numConnections() = numConnections;
-          entry.remoteSwitchId() = *remoteEndpoint.switchId();
-          entry.remoteSwitchName() = *remoteEndpoint.switchName();
-          entry.connectingPorts() = *remoteEndpoint.connectingPorts();
-          entry.isSymmetric() = isSymmetric;
-          model.virtualDeviceTopology()->push_back(entry);
-        }
-      }
-    }
-    return model;
-  }
+          entries);
 
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    Table table;
-    table.setHeader({
-        "Virtual device Id",
-        "Num connections",
-        "Remote Switch (Id)",
-        "Remote Switch",
-        "Connecting Ports",
-    });
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 
-    for (auto const& entry : model.virtualDeviceTopology().value()) {
-      auto connectingPortsStr = folly::join(",", *entry.connectingPorts());
-      table.addRow(
-          {folly::to<std::string>(*entry.virtualDeviceId()),
-           folly::to<std::string>(*entry.numConnections()),
-           folly::to<std::string>(*entry.remoteSwitchId()),
-           *entry.remoteSwitchName(),
-           connectingPortsStr},
-          getSymmetryStyle(*entry.isSymmetric()));
-    }
-    out << table << std::endl;
-  }
-
-  Table::Style getSymmetryStyle(bool isSymmetric) const {
-    return isSymmetric ? Table::Style::GOOD : Table::Style::ERROR;
-  }
+  Table::Style getSymmetryStyle(bool isSymmetric) const;
 };
 
 } // namespace facebook::fboss

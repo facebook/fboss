@@ -55,11 +55,17 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
     // convert microsec to nanosec
     samplingInterval = samplingInterval * 1000;
   }
-  std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups> arsMaxGroups =
-      FLAGS_enable_th5_ars_scale_mode
-      ? std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
-            platform_->getAsic()->getMaxArsGroups())
-      : std::nullopt;
+  std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups> arsMaxGroups{
+      std::nullopt};
+
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    arsMaxGroups = std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
+        platform_->getAsic()->getMaxArsGroups());
+  }
+  if (flowletSwitchConfig->getMaxArsVirtualGroups().has_value()) {
+    arsMaxGroups = std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
+        flowletSwitchConfig->getMaxArsVirtualGroups().value());
+  }
 
   std::optional<SaiArsProfileTraits::Attributes::ArsBaseIndex> arsBaseIndex =
       platform_->getAsic()->getArsBaseIndex()
@@ -78,6 +84,14 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
 
   std::optional<SaiArsProfileTraits::Attributes::ArsPrimaryMembersRouteMetaData>
       arsPrimaryMembersRouteMetaData = 0;
+
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>
+      ecmpMemberCount = flowletSwitchConfig->getMaxArsVirtualGroupWidth()
+      ? std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>(
+            flowletSwitchConfig->getMaxArsVirtualGroupWidth().value())
+      : std::nullopt;
+#endif
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec
@@ -109,7 +123,12 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       arsBaseIndex,
       arsAlternateMembersRouteMetaData,
       arsRouteMetaDataMask,
-      arsPrimaryMembersRouteMetaData};
+      arsPrimaryMembersRouteMetaData
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+      ,
+      ecmpMemberCount
+#endif
+  };
 #else
   };
 #endif

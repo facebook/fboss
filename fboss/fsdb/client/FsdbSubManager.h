@@ -65,8 +65,8 @@ class FsdbSubManager : public FsdbSubManagerBase {
 
   explicit FsdbSubManager(
       fsdb::SubscriptionOptions opts,
-      utils::ConnectionOptions serverOptions =
-          utils::ConnectionOptions("::1", FLAGS_fsdbPort),
+      utils::ConnectionOptions serverOptions = utils::ConnectionOptions::
+          defaultOptions<facebook::fboss::fsdb::FsdbService>(),
       folly::EventBase* reconnectEvb = nullptr,
       folly::EventBase* subscriberEvb = nullptr);
 

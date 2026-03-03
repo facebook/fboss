@@ -21,6 +21,7 @@
 #include <boost/functional/hash.hpp>
 #include <fmt/ranges.h>
 
+#include <cstring>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -209,6 +210,7 @@ DEFINE_extract(sai_acl_capability_t, aclcapability);
 DEFINE_extract(sai_acl_resource_list_t, aclresource);
 DEFINE_extract(sai_tlv_list_t, tlvlist);
 DEFINE_extract(sai_segment_list_t, segmentlist);
+DEFINE_extract(std::vector<folly::IPAddressV6>, segmentlist);
 DEFINE_extract(sai_ip_address_list_t, ipaddrlist);
 DEFINE_extract(sai_system_port_config_t, sysportconfig);
 DEFINE_extract(sai_fabric_port_reachability_t, reachability);
@@ -307,6 +309,18 @@ inline void _realloc(
   dst.value.resize(src.json.count);
 }
 #endif
+
+} // namespace
+
+void _fill(std::vector<folly::IPAddressV6>& src, sai_segment_list_t& dst);
+
+void _fill(const sai_segment_list_t& src, std::vector<folly::IPAddressV6>& dst);
+
+void _realloc(
+    const sai_segment_list_t& src,
+    std::vector<folly::IPAddressV6>& dst);
+
+namespace {
 
 inline bool compareQosMap(const sai_qos_map_t& lhs, const sai_qos_map_t& rhs) {
   if (lhs.key.tc != rhs.key.tc) {
@@ -553,7 +567,7 @@ inline void _fill(
       src.parameter.objlist.list + src.parameter.objlist.count,
       std::begin(dstData));
 
-  dst.setData(dstData);
+  dst.setData(std::move(dstData));
 }
 
 inline void _fill(
@@ -575,7 +589,7 @@ inline void _realloc(
     facebook::fboss::AclEntryActionSaiObjectIdList& dst) {
   std::vector<sai_object_id_t> dstData(src.parameter.objlist.count);
   dstData.resize(src.parameter.objlist.count);
-  dst.setData(dstData);
+  dst.setData(std::move(dstData));
 }
 
 inline void _realloc(
@@ -1085,6 +1099,20 @@ struct hash<
   size_t operator()(
       const facebook::fboss::SaiExtensionAttribute<T, SaiExtensionAttributeId>&
           attr) const {
+    size_t seed = 0;
+    boost::hash_combine(seed, attr.value());
+    return seed;
+  }
+};
+
+template <typename T, typename SaiExtensionAttributeId, typename DefaultGetterT>
+struct hash<
+    facebook::fboss::
+        SaiExtensionAttribute<T, SaiExtensionAttributeId, DefaultGetterT>> {
+  size_t operator()(
+      const facebook::fboss::
+          SaiExtensionAttribute<T, SaiExtensionAttributeId, DefaultGetterT>&
+              attr) const {
     size_t seed = 0;
     boost::hash_combine(seed, attr.value());
     return seed;

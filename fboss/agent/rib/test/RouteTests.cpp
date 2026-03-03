@@ -152,4 +152,132 @@ TEST(Route, serializeRouteTable) {
       false);
 }
 
+TEST(Route, addRouteWithSrv6NextHops) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1"), folly::IPAddressV6("2001:db8::2")};
+
+  RouteNextHopSet srv6Nhops;
+  srv6Nhops.emplace(UnresolvedNextHop(
+      IPAddress("1.1.1.10"),
+      ECMP_WEIGHT,
+      std::nullopt, // action
+      std::nullopt, // disableTTLDecrement
+      std::nullopt, // topologyInfo
+      std::nullopt, // adjustedWeight
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1")));
+  srv6Nhops.emplace(UnresolvedNextHop(
+      IPAddress("2.2.2.10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_2")));
+
+  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RouteV6::Prefix r2{IPAddressV6("3001::0"), 48};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &nhopIds);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()}, RouteNextHopEntry(srv6Nhops, kDistance)},
+          {{r2.network(), r2.mask()}, RouteNextHopEntry(srv6Nhops, kDistance)},
+      },
+      {},
+      false);
+
+  // Verify routes were added
+  EXPECT_EQ(v4Routes.size(), 1);
+  EXPECT_EQ(v6Routes.size(), 1);
+
+  // Verify SRv6 fields are preserved in the stored routes
+  auto v4It = v4Routes.exactMatch(r1.network(), r1.mask());
+  ASSERT_NE(v4Routes.end(), v4It);
+  auto v4Route = v4It->value();
+  auto v4Nhops = v4Route->getEntryForClient(kClientA);
+  ASSERT_TRUE(v4Nhops);
+  for (const auto& nh : v4Nhops->getNextHopSet()) {
+    EXPECT_EQ(nh.srv6SegmentList(), segList);
+    EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+    EXPECT_TRUE(nh.tunnelId() == "tunnel_1" || nh.tunnelId() == "tunnel_2");
+  }
+}
+
+TEST(Route, serializeRouteTableWithSrv6) {
+  IPv4NetworkToRouteMap v4Routes;
+  IPv6NetworkToRouteMap v6Routes;
+  LabelToRouteMap mplsRoutes;
+
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("2001:db8::1")};
+
+  RouteNextHopSet srv6Nhops;
+  srv6Nhops.emplace(UnresolvedNextHop(
+      IPAddress("1.1.1.10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("tunnel_1")));
+
+  // Also add a regular (non-SRv6) nexthop
+  RouteNextHopSet regularNhops = makeNextHops({"2.2.2.10"});
+
+  RouteV4::Prefix r1{IPAddressV4("10.1.1.0"), 24};
+  RouteV4::Prefix r2{IPAddressV4("20.1.1.0"), 24};
+
+  NextHopIDManager nhopIds;
+  RibRouteUpdater u(&v4Routes, &v6Routes, &mplsRoutes, &nhopIds);
+  u.update<RibRouteUpdater::RouteEntry, folly::CIDRNetwork>(
+      kClientA,
+      {
+          {{r1.network(), r1.mask()}, RouteNextHopEntry(srv6Nhops, kDistance)},
+          {{r2.network(), r2.mask()},
+           RouteNextHopEntry(regularNhops, kDistance)},
+      },
+      {},
+      false);
+
+  // Verify both routes exist
+  EXPECT_EQ(v4Routes.size(), 2);
+
+  // Verify SRv6 route preserved its fields
+  auto it = v4Routes.exactMatch(r1.network(), r1.mask());
+  ASSERT_NE(v4Routes.end(), it);
+  auto route = it->value();
+  auto entry = route->getEntryForClient(kClientA);
+  ASSERT_TRUE(entry);
+  const auto& nhops = entry->getNextHopSet();
+  ASSERT_EQ(nhops.size(), 1);
+  const auto& nh = *nhops.begin();
+  EXPECT_EQ(nh.srv6SegmentList(), segList);
+  EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(nh.tunnelId(), "tunnel_1");
+
+  // Verify regular route has empty SRv6 fields
+  auto it2 = v4Routes.exactMatch(r2.network(), r2.mask());
+  ASSERT_NE(v4Routes.end(), it2);
+  auto route2 = it2->value();
+  auto entry2 = route2->getEntryForClient(kClientA);
+  ASSERT_TRUE(entry2);
+  const auto& nhops2 = entry2->getNextHopSet();
+  ASSERT_EQ(nhops2.size(), 1);
+  const auto& nh2 = *nhops2.begin();
+  EXPECT_TRUE(nh2.srv6SegmentList().empty());
+  EXPECT_FALSE(nh2.tunnelType().has_value());
+  EXPECT_FALSE(nh2.tunnelId().has_value());
+}
+
 } // namespace facebook::fboss

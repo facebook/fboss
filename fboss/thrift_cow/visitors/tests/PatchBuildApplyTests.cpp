@@ -34,8 +34,8 @@ void testPatchBuildApply(
 
 namespace facebook::fboss::thrift_cow::test {
 
-using k = facebook::fboss::test_tags::strings;
-using config_k = facebook::fboss::cfg::switch_config_tags::strings;
+namespace k = apache::thrift::ident;
+namespace config_k = apache::thrift::ident;
 
 TEST(PatchBuildApplyTests, TestTruncationPrimitives) {
   auto s = createSimpleTestStruct();

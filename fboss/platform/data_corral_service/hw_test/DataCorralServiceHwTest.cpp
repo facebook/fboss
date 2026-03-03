@@ -15,6 +15,7 @@
 #include <folly/FileUtil.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/data_corral_service/DataCorralServiceThriftHandler.h"
 #include "fboss/platform/data_corral_service/FruPresenceExplorer.h"
@@ -71,10 +72,14 @@ class DataCorralServiceHwTest : public ::testing::Test {
 
  protected:
   DataCorralFruidReadResponse getFruid(bool uncached) {
-    auto client = apache::thrift::makeTestClient(thriftHandler_);
-    DataCorralFruidReadResponse resp;
-    client->sync_getFruid(resp, uncached);
-    return resp;
+    apache::thrift::ScopedServerInterfaceThread server(
+        thriftHandler_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
+    auto client =
+        server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
+    DataCorralFruidReadResponse response;
+    client->sync_getFruid(response, uncached);
+    return response;
   }
 
   std::shared_ptr<FruPresenceExplorer> fruPresenceExplorer_;
@@ -133,17 +138,6 @@ TEST_F(DataCorralServiceHwTest, getCachedFruid) {
 
 TEST_F(DataCorralServiceHwTest, getUncachedFruid) {
   EXPECT_GT(getFruid(true).fruidData()->size(), 0);
-}
-
-TEST_F(DataCorralServiceHwTest, testThrift) {
-  apache::thrift::ScopedServerInterfaceThread server(
-      thriftHandler_,
-      facebook::fboss::platform::helpers::createTestThriftServerConfig());
-  auto client =
-      server.newClient<apache::thrift::Client<DataCorralServiceThrift>>();
-  DataCorralFruidReadResponse response;
-  client->sync_getFruid(response, false);
-  EXPECT_GT(response.fruidData()->size(), 0);
 }
 
 int main(int argc, char* argv[]) {

@@ -85,6 +85,7 @@ target_link_libraries(phy_management_base
   io_stats_cpp2
   fb303::fb303
   phy_snapshot_manager
+  fpga_multi_pim_container
 )
 
 add_library(phy_utils

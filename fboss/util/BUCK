@@ -76,6 +76,7 @@ cpp_library(
         "//fboss/agent:enum_utils",
         "//fboss/agent:fboss-types",
         "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/bsp/icecube800banw:icecube800banw_bsp",
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
@@ -85,6 +86,7 @@ cpp_library(
         "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
+        "//fboss/lib/bsp/minipack3bta:minipack3bta_bsp",
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/morgan800cc:morgan800cc_bsp",
@@ -245,7 +247,7 @@ python_binary(
     ],
     main_function = "fboss.util.stress_route_insertion.main",
     deps = [
-        "//fboss/agent/if:ctrl-py-deprecated",
+        "//fboss/agent/if:ctrl-python-types",
         "//fboss/py/fboss:thrift_clients",
         "//fboss/py/fboss/cli:fboss_cli_lib",
     ],
@@ -317,7 +319,7 @@ python_library(
     ],
     deps = [
         ":process_known_bad_test_lib",
-        "//groups/submit_post:PostToInternalGroup-py-deprecated",
+        "//groups/submit_post:PostToInternalGroup-python-types",
         "//libfb/py:employee",
         "//libfb/py/thrift_clients:post_to_internal_group_thrift_client",
     ],

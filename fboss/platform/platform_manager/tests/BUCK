@@ -15,6 +15,24 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "config_utils_test",
+    srcs = [
+        "ConfigUtilsTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:mock_config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_manager:config_utils",
+        "//folly/hash:hash",
+        "//folly/testing:test_util",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
     name = "i2c_explorer_test",
     srcs = [
         "I2cExplorerTest.cpp",

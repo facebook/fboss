@@ -92,6 +92,7 @@ cpp_library(
         "SaiVersion.h",
         "SamplePacketApi.h",
         "SchedulerApi.h",
+        "Srv6Api.h",
         "SwitchApi.h",
         "SwitchPipelineApi.h",
         "SystemPortApi.h",

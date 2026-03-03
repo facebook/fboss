@@ -4,12 +4,14 @@
 #include "fboss/led_service/DarwinLedManager.h"
 #include "fboss/led_service/ElbertLedManager.h"
 #include "fboss/led_service/FujiLedManager.h"
+#include "fboss/led_service/Icecube800banwLedManager.h"
 #include "fboss/led_service/Icecube800bcLedManager.h"
 #include "fboss/led_service/Icetea800bcLedManager.h"
 #include "fboss/led_service/Janga800bicLedManager.h"
 #include "fboss/led_service/Ladakh800bclsLedManager.h"
 #include "fboss/led_service/Meru800bfaLedManager.h"
 #include "fboss/led_service/Meru800biaLedManager.h"
+#include "fboss/led_service/Minipack3BTALedManager.h"
 #include "fboss/led_service/Minipack3NLedManager.h"
 #include "fboss/led_service/MinipackLedManager.h"
 #include "fboss/led_service/MontblancLedManager.h"
@@ -62,12 +64,16 @@ std::unique_ptr<LedManager> createLedManager() {
     return std::make_unique<Meru800biaLedManager>();
   } else if (mode == PlatformType::PLATFORM_MORGAN800CC) {
     return std::make_unique<Morgan800ccLedManager>();
+  } else if (mode == PlatformType::PLATFORM_MINIPACK3BTA) {
+    return std::make_unique<Minipack3BTALedManager>();
   } else if (mode == PlatformType::PLATFORM_MINIPACK3N) {
     return std::make_unique<Minipack3NLedManager>();
   } else if (mode == PlatformType::PLATFORM_JANGA800BIC) {
     return std::make_unique<Janga800bicLedManager>();
   } else if (mode == PlatformType::PLATFORM_TAHAN800BC) {
     return std::make_unique<Tahan800bcLedManager>();
+  } else if (mode == PlatformType::PLATFORM_ICECUBE800BANW) {
+    return std::make_unique<Icecube800banwLedManager>();
   } else if (mode == PlatformType::PLATFORM_ICECUBE800BC) {
     return std::make_unique<Icecube800bcLedManager>();
   } else if (mode == PlatformType::PLATFORM_ICETEA800BC) {

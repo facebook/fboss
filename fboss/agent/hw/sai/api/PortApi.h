@@ -551,6 +551,13 @@ struct SaiPortTraits {
         sai_int32_t,
         AttributePfcMonitorDirection,
         SaiIntDefault<sai_int32_t>>;
+    struct AttributeCablePropagationDelayMediaType {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CablePropagationDelayMediaType = SaiExtensionAttribute<
+        sai_int32_t,
+        AttributeCablePropagationDelayMediaType,
+        SaiIntDefault<sai_int32_t>>;
   };
   using AdapterKey = PortSaiId;
 
@@ -677,7 +684,8 @@ struct SaiPortTraits {
       std::optional<Attributes::QosDot1pToTcMap>,
       std::optional<Attributes::QosTcAndColorToDot1pMap>,
       std::optional<Attributes::QosIngressBufferProfileList>,
-      std::optional<Attributes::QosEgressBufferProfileList>>;
+      std::optional<Attributes::QosEgressBufferProfileList>,
+      std::optional<Attributes::CablePropagationDelayMediaType>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -854,6 +862,7 @@ SAI_ATTRIBUTE_NAME(Port, PgDropStatus)
 SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
 SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
 SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
+SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)

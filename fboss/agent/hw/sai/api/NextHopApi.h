@@ -44,6 +44,13 @@ struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_IP> {
   using LabelStack = void;
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <>
+struct NextHopAttributesTypes<SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
+  using LabelStack = void;
+};
+#endif
+
 template <typename Attributes, sai_next_hop_type_t type>
 struct NextHopTraitsAttributes;
 
@@ -71,6 +78,24 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_IP> {
       typename Attributes::Ip,
       std::optional<typename Attributes::DisableTtlDecrement>>;
 };
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <typename Attributes>
+struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
+  using AdapterHostKey = std::tuple<
+      typename Attributes::RouterInterfaceId,
+      typename Attributes::Ip,
+      typename Attributes::TunnelId,
+      typename Attributes::Srv6SidlistId>;
+  using CreateAttributes = std::tuple<
+      typename Attributes::Type,
+      typename Attributes::RouterInterfaceId,
+      typename Attributes::Ip,
+      typename Attributes::TunnelId,
+      typename Attributes::Srv6SidlistId,
+      std::optional<typename Attributes::DisableTtlDecrement>>;
+};
+#endif
 } // namespace detail
 
 class NextHopApi;
@@ -130,6 +155,12 @@ struct SaiNextHopTraitsT {
         SaiObjectIdT>;
     using LabelStack =
         typename detail::NextHopAttributesTypes<type>::LabelStack;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    using TunnelId =
+        SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TUNNEL_ID, SaiObjectIdT>;
+    using Srv6SidlistId =
+        SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID, SaiObjectIdT>;
+#endif
     using Type = SaiAttribute<EnumType, SAI_NEXT_HOP_ATTR_TYPE, sai_int32_t>;
     using DisableTtlDecrement = SaiAttribute<
         EnumType,
@@ -155,8 +186,21 @@ template <>
 struct SaiObjectHasConditionalAttributes<SaiMplsNextHopTraits>
     : public std::true_type {};
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+using SaiSrv6SidlistNextHopTraits =
+    SaiNextHopTraitsT<SAI_NEXT_HOP_TYPE_SRV6_SIDLIST>;
+template <>
+struct SaiObjectHasConditionalAttributes<SaiSrv6SidlistNextHopTraits>
+    : public std::true_type {};
+
+using SaiNextHopTraits = ConditionObjectTraits<
+    SaiIpNextHopTraits,
+    SaiMplsNextHopTraits,
+    SaiSrv6SidlistNextHopTraits>;
+#else
 using SaiNextHopTraits =
     ConditionObjectTraits<SaiIpNextHopTraits, SaiMplsNextHopTraits>;
+#endif
 using SaiNextHopAdapterHostKey = typename SaiNextHopTraits::AdapterHostKey;
 using SaiNextHopAdaptertKey =
     typename SaiNextHopTraits::AdapterKey<NextHopSaiId>;
@@ -166,6 +210,10 @@ SAI_ATTRIBUTE_NAME(IpNextHop, RouterInterfaceId)
 SAI_ATTRIBUTE_NAME(IpNextHop, Ip)
 SAI_ATTRIBUTE_NAME(MplsNextHop, LabelStack)
 SAI_ATTRIBUTE_NAME(IpNextHop, DisableTtlDecrement);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+SAI_ATTRIBUTE_NAME(Srv6SidlistNextHop, TunnelId)
+SAI_ATTRIBUTE_NAME(Srv6SidlistNextHop, Srv6SidlistId)
+#endif
 
 class NextHopApi : public SaiApi<NextHopApi> {
  public:

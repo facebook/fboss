@@ -26,14 +26,10 @@ class CmdHandlerTestBase : public ::testing::Test {
         "test.host", "test-oob.host", folly::IPAddressV6("::1"));
   }
 
-  // Helper to create server config with short idle timeout to avoid 5-7 second
-  // delays in test responses. Without this, the default idle timeout causes
-  // the server to wait before sending responses back to the client.
+  // Helper to configure server with epoll backend to avoid libevent2
+  // performance issues in OSS builds that cause multi-second RPC latencies.
   static auto createFastMockServerConfig() {
-    return [](apache::thrift::ThriftServer& server) {
-      server.setIdleTimeout(std::chrono::milliseconds(50));
-      ThriftServiceUtils::setPreferredEventBaseBackend(server);
-    };
+    return ThriftServiceUtils::createThriftServerConfig();
   }
 
   void setupMockedAgentServer() {

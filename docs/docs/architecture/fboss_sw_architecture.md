@@ -29,8 +29,12 @@ FBOSS (Facebook Open Switching System) is a software stack that runs on the x86 
 
 ## FBOSS Command Line Interfaces (CLIs)
 
-1. **fboss2**
+1. **fboss2** and **fboss2-dev**
    Provides the ability to inspect and modify the state of the switch through show, set, clear options.
+
+   `fboss2-dev` is the same as `fboss2` but additionally includes `config` subcommands which can be used to manage the switch configuration locally.
+
+   See [FBOSS CLI](/docs/debugging/fboss_cli/) for more details.
 
 2. **wedge_qsfp_util**
    Communicates with qsfp_service over Thrift to inspect and modify the state of transceivers. In the absence of qsfp_service, wedge_qsfp_util can directly communicate with transceivers using the BSP drivers.

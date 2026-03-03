@@ -33,6 +33,7 @@
 #include "fboss/agent/hw/sai/fake/FakeSaiRouterInterface.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiSamplePacket.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiScheduler.h"
+#include "fboss/agent/hw/sai/fake/FakeSaiSrv6.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiSwitch.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiSystemPort.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiTam.h"
@@ -102,6 +103,9 @@ struct FakeSai {
   FakeTamCollectorManager tamCollectorManager;
   FakeTunnelManager tunnelManager;
   FakeTunnelTermManager tunnelTermManager;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  FakeSrv6SidListManager srv6SidListManager;
+#endif
   FakeMacsecManager macsecManager;
   FakeMacsecPortManager macsecPortManager;
   FakeMacsecSAManager macsecSAManager;

@@ -114,6 +114,7 @@ phy::VCOFrequency BcmPlatform::getVCOFrequency(
     case cfg::PortSpeed::GIGE:
       [[fallthrough]];
     case cfg::PortSpeed::EIGHTHUNDREDG:
+    case cfg::PortSpeed::ONEPOINTSIXT:
     case cfg::PortSpeed::THREEPOINTTWOT:
     case cfg::PortSpeed::DEFAULT:
       return phy::VCOFrequency::UNKNOWN;

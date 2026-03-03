@@ -12,7 +12,7 @@
 #include <folly/Traits.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -422,30 +422,32 @@ struct RecurseVisitor<apache::thrift::type_class::variant> {
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using Members = typename Fields::Members;
+    using TType = typename Fields::ThriftType;
 
-    fatal::scalar_search<Members, fatal::get_type::id>(
-        fields.type(), [&](auto indexed) {
-          using descriptor = decltype(fatal::tag_type(indexed));
-          using name = typename descriptor::metadata::name;
-          using tc = typename descriptor::metadata::type_class;
+    apache::thrift::op::for_each_field_id<TType>([&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
+      constexpr auto fid = apache::thrift::op::get_field_id_v<TType, Id>;
 
-          std::string memberName = getMemberName<typename descriptor::metadata>(
-              options.outputIdPaths);
+      if (folly::to_underlying(fid) != folly::to_underlying(fields.type())) {
+        return;
+      }
 
-          traverser.push(std::move(memberName), TCType<tc>);
+      std::string memberName = getMemberName<TType, Id>(options.outputIdPaths);
 
-          if constexpr (std::is_const_v<Fields>) {
-            const auto& ref = fields.template cref<name>();
-            RecurseVisitor<tc>::visit(
-                traverser, ref, options, std::forward<Func>(f));
-          } else {
-            auto& ref = fields.template ref<name>();
-            RecurseVisitor<tc>::visit(
-                traverser, ref, options, std::forward<Func>(f));
-          }
-          traverser.pop(TCType<tc>);
-        });
+      traverser.push(std::move(memberName), TCType<TC_>);
+
+      if constexpr (std::is_const_v<Fields>) {
+        const auto& ref = fields.template cref<Id>();
+        RecurseVisitor<TC_>::visit(
+            traverser, ref, options, std::forward<Func>(f));
+      } else {
+        auto& ref = fields.template ref<Id>();
+        RecurseVisitor<TC_>::visit(
+            traverser, ref, options, std::forward<Func>(f));
+      }
+      traverser.pop(TCType<TC_>);
+    });
   }
 };
 
@@ -500,32 +502,31 @@ struct RecurseVisitor<apache::thrift::type_class::structure> {
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using Members = typename Fields::Members;
+    using TType = typename Fields::ThriftType;
 
-    fatal::foreach<Members>([&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using name = typename member::name;
-      using tc = typename member::type_class;
+    apache::thrift::op::for_each_field_id<TType>([&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
 
       // Look for the expected member name
-      std::string memberName = getMemberName<member>(options.outputIdPaths);
+      std::string memberName = getMemberName<TType, Id>(options.outputIdPaths);
 
-      traverser.push(std::move(memberName), TCType<tc>);
+      traverser.push(std::move(memberName), TCType<TC_>);
 
       if constexpr (std::is_const_v<Fields>) {
-        const auto& ref = fields.template cref<name>();
+        const auto& ref = fields.template cref<Id>();
         if (ref) {
-          RecurseVisitor<tc>::visit(
+          RecurseVisitor<TC_>::visit(
               traverser, ref, options, std::forward<Func>(f));
         }
       } else {
-        auto& ref = fields.template ref<name>();
+        auto& ref = fields.template ref<Id>();
         if (ref) {
-          RecurseVisitor<tc>::visit(
+          RecurseVisitor<TC_>::visit(
               traverser, ref, options, std::forward<Func>(f));
         }
       }
-      traverser.pop(TCType<tc>);
+      traverser.pop(TCType<TC_>);
     });
   }
 };

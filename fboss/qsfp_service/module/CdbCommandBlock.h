@@ -13,6 +13,24 @@ namespace facebook::fboss {
 
 class TransceiverImpl;
 
+// Definitions for CDB Get Firmware Info (CMD 0x0100) reply data
+// FirmwareStatus byte offset and bitmasks
+constexpr int kCdbFwInfoFwStatusOffset = 0;
+constexpr uint8_t kCdbFwInfoBankARunningMask = 0x01;
+constexpr uint8_t kCdbFwInfoBankBRunningMask = 0x10;
+// Image A build number offsets (2 bytes, big-endian)
+constexpr int kCdbFwInfoImageABuildHiOffset = 4;
+constexpr int kCdbFwInfoImageABuildLoOffset = 5;
+// Image B build number offsets (2 bytes, big-endian)
+constexpr int kCdbFwInfoImageBBuildHiOffset = 40;
+constexpr int kCdbFwInfoImageBBuildLoOffset = 41;
+// Minimum reply length needed to read Image B build number
+constexpr int kCdbFwInfoMinRlplLength = 42;
+
+// CMIS page numbers for I2C transaction logging
+constexpr int kCdbPage = 0x9f;
+constexpr int kLowerPage = -1;
+
 /*
  * This class represents the CDB block which is written to the CMIS optics
  * CDB memory to trigger the CDB operation like firmware download.
@@ -59,6 +77,8 @@ class CdbCommandBlock {
   void createCdbCmdModuleQuery();
   // Create firmware feature info query command
   void createCdbCmdGetFwFeatureInfo();
+  // Create firmware info query command (CMD 0x0100)
+  void createCdbCmdGetFirmwareInfo();
   // Create Symbol Error Histogram command
   void createCdbCmdSymbolErrorHistogram(uint8_t datapathId, bool mediaSide);
   // Create Rx Error Histogram command
@@ -140,7 +160,8 @@ class CdbCommandBlock {
       uint8_t i2cAddress,
       int offset,
       int length,
-      const uint8_t* buf);
+      const uint8_t* buf,
+      int page);
 };
 
 } // namespace facebook::fboss

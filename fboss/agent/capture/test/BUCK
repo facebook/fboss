@@ -9,11 +9,9 @@ cpp_library(
         "PcapUtil.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/libpcap/1.10.6:pcap",
         "//fboss/agent:fboss-error",
         "//folly:scope_guard",
-    ],
-    exported_external_deps = [
-        ("libpcap", None, "pcap"),
     ],
 )
 

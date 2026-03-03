@@ -7,6 +7,9 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
+
+using namespace facebook::fboss::platform::helpers;
 
 namespace {
 auto constexpr kProgramLedFail = "led_manager.{}.program_led_fail";
@@ -36,6 +39,11 @@ bool LedManager::programSystemLed(bool presence) const {
   } catch (const std::exception& ex) {
     XLOG(ERR) << fmt::format(
         "Failed to program systed LED with {} due to {}", presence, ex.what());
+    helpers::StructuredLogger logger("data_corral_service");
+    logger.logAlert(
+        "system_led_program_failure",
+        ex.what(),
+        {{"presence", presence ? "true" : "false"}});
     return false;
   }
 }
@@ -61,6 +69,11 @@ bool LedManager::programFruLed(const std::string& fruType, bool presence)
         fruType,
         presence,
         ex.what());
+    helpers::StructuredLogger logger("data_corral_service");
+    logger.logAlert(
+        "fru_led_program_failure",
+        ex.what(),
+        {{"fru_type", fruType}, {"presence", presence ? "true" : "false"}});
     return false;
   }
 }

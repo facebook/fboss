@@ -71,7 +71,7 @@ _sai_agent_multinode_test_prefix = "sai_agent_multinode_test"
             ":agent_multinode_test_src",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
-            "//fboss/agent/test:mono_agent_ensemble",
+            "//fboss/agent/test:multi_switch_agent_ensemble",
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:setup_thrift_test",
             "//fboss/agent/test:agent_hw_test",

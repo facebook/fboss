@@ -76,6 +76,18 @@ struct INextHop {
       return folly::poly_call<6>(*this);
     }
 
+    std::vector<folly::IPAddressV6> srv6SegmentList() const {
+      return folly::poly_call<7>(*this);
+    }
+
+    std::optional<TunnelType> tunnelType() const {
+      return folly::poly_call<8>(*this);
+    }
+
+    std::optional<std::string> tunnelId() const {
+      return folly::poly_call<9>(*this);
+    }
+
     bool isResolved() const {
       return intfID().has_value();
     }
@@ -123,6 +135,20 @@ struct INextHop {
       if (auto value = topologyInfo()) {
         nht.topologyInfo() = value.value();
       }
+      if (auto segList = srv6SegmentList(); !segList.empty()) {
+        std::vector<network::thrift::BinaryAddress> binarySegList;
+        binarySegList.reserve(segList.size());
+        for (const auto& ip : segList) {
+          binarySegList.push_back(network::toBinaryAddress(ip));
+        }
+        *nht.srv6SegmentList() = std::move(binarySegList);
+      }
+      if (auto value = tunnelType()) {
+        nht.tunnelType() = value.value();
+      }
+      if (auto value = tunnelId()) {
+        nht.tunnelId() = value.value();
+      }
       return nht;
     }
 
@@ -146,7 +172,10 @@ struct INextHop {
       &T::labelForwardingAction,
       &T::disableTTLDecrement,
       &T::adjustedWeight,
-      &T::topologyInfo);
+      &T::topologyInfo,
+      &T::srv6SegmentList,
+      &T::tunnelType,
+      &T::tunnelId);
 };
 
 using NextHop = folly::Poly<INextHop>;
@@ -171,14 +200,10 @@ class ResolvedNextHop {
       const std::optional<bool>& disableTTLDecrement = std::nullopt,
       const std::optional<NetworkTopologyInformation>& topologyInfo =
           std::nullopt,
-      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt)
-      : addr_(addr),
-        intfID_(intfID),
-        weight_(weight),
-        labelForwardingAction_(action),
-        disableTTLDecrement_(disableTTLDecrement),
-        topologyInfo_(topologyInfo),
-        adjustedWeight_(adjustedWeight) {}
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt,
+      const std::vector<folly::IPAddressV6>& srv6SegmentList = {},
+      const std::optional<TunnelType>& tunnelType = std::nullopt,
+      const std::optional<std::string>& tunnelId = std::nullopt);
   ResolvedNextHop(
       folly::IPAddress&& addr,
       InterfaceID intfID,
@@ -187,14 +212,10 @@ class ResolvedNextHop {
       std::optional<bool>&& disableTTLDecrement = std::nullopt,
       const std::optional<NetworkTopologyInformation>&& topologyInfo =
           std::nullopt,
-      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt)
-      : addr_(std::move(addr)),
-        intfID_(intfID),
-        weight_(weight),
-        labelForwardingAction_(std::move(action)),
-        disableTTLDecrement_(disableTTLDecrement),
-        topologyInfo_(topologyInfo),
-        adjustedWeight_(adjustedWeight) {}
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt,
+      std::vector<folly::IPAddressV6>&& srv6SegmentList = {},
+      std::optional<TunnelType>&& tunnelType = std::nullopt,
+      std::optional<std::string>&& tunnelId = std::nullopt);
   std::optional<InterfaceID> intfID() const {
     return intfID_;
   }
@@ -231,6 +252,30 @@ class ResolvedNextHop {
     topologyInfo_ = topologyInfo;
   }
 
+  std::vector<folly::IPAddressV6> srv6SegmentList() const {
+    return srv6SegmentList_;
+  }
+
+  void setSrv6SegmentList(std::vector<folly::IPAddressV6> srv6SegmentList) {
+    srv6SegmentList_ = std::move(srv6SegmentList);
+  }
+
+  std::optional<TunnelType> tunnelType() const {
+    return tunnelType_;
+  }
+
+  void setTunnelType(std::optional<TunnelType> tunnelType) {
+    tunnelType_ = tunnelType;
+  }
+
+  std::optional<std::string> tunnelId() const {
+    return tunnelId_;
+  }
+
+  void setTunnelId(std::optional<std::string> tunnelId) {
+    tunnelId_ = tunnelId;
+  }
+
  private:
   folly::IPAddress addr_;
   InterfaceID intfID_;
@@ -239,6 +284,9 @@ class ResolvedNextHop {
   std::optional<bool> disableTTLDecrement_{};
   std::optional<NetworkTopologyInformation> topologyInfo_;
   std::optional<NextHopWeight> adjustedWeight_{};
+  std::vector<folly::IPAddressV6> srv6SegmentList_;
+  std::optional<TunnelType> tunnelType_;
+  std::optional<std::string> tunnelId_;
 };
 
 bool operator==(const ResolvedNextHop& a, const ResolvedNextHop& b);
@@ -252,7 +300,10 @@ class UnresolvedNextHop {
       const std::optional<bool>& disableTTLDecrement = std::nullopt,
       const std::optional<NetworkTopologyInformation>& topologyInfo =
           std::nullopt,
-      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt);
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt,
+      const std::vector<folly::IPAddressV6>& srv6SegmentList = {},
+      const std::optional<TunnelType>& tunnelType = std::nullopt,
+      const std::optional<std::string>& tunnelId = std::nullopt);
   UnresolvedNextHop(
       folly::IPAddress&& addr,
       const NextHopWeight& weight,
@@ -260,7 +311,10 @@ class UnresolvedNextHop {
       std::optional<bool>&& disableTTLDecrement = std::nullopt,
       const std::optional<NetworkTopologyInformation>&& topologyInfo =
           std::nullopt,
-      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt);
+      const std::optional<NextHopWeight>& adjustedWeight = std::nullopt,
+      std::vector<folly::IPAddressV6>&& srv6SegmentList = {},
+      std::optional<TunnelType>&& tunnelType = std::nullopt,
+      std::optional<std::string>&& tunnelId = std::nullopt);
   std::optional<InterfaceID> intfID() const {
     return std::nullopt;
   }
@@ -283,6 +337,18 @@ class UnresolvedNextHop {
     return adjustedWeight_;
   }
 
+  std::vector<folly::IPAddressV6> srv6SegmentList() const {
+    return srv6SegmentList_;
+  }
+
+  std::optional<TunnelType> tunnelType() const {
+    return tunnelType_;
+  }
+
+  std::optional<std::string> tunnelId() const {
+    return tunnelId_;
+  }
+
  private:
   folly::IPAddress addr_;
   NextHopWeight weight_;
@@ -290,6 +356,9 @@ class UnresolvedNextHop {
   std::optional<bool> disableTTLDecrement_{};
   std::optional<NetworkTopologyInformation> topologyInfo_{};
   std::optional<NextHopWeight> adjustedWeight_{};
+  std::vector<folly::IPAddressV6> srv6SegmentList_;
+  std::optional<TunnelType> tunnelType_;
+  std::optional<std::string> tunnelId_;
 };
 
 bool operator==(const UnresolvedNextHop& a, const UnresolvedNextHop& b);
@@ -331,28 +400,40 @@ struct hash<facebook::fboss::NetworkTopologyInformation> {
 template <>
 struct hash<facebook::fboss::NextHop> {
   size_t operator()(const facebook::fboss::NextHop& nexthop) const {
-    return folly::hash::hash_combine(
+    size_t seed = folly::hash::hash_combine(
         nexthop.intfID(),
         nexthop.addr(),
         nexthop.weight(),
         nexthop.labelForwardingAction(),
         nexthop.disableTTLDecrement(),
         nexthop.adjustedWeight(),
-        nexthop.topologyInfo());
+        nexthop.topologyInfo(),
+        nexthop.tunnelType(),
+        nexthop.tunnelId());
+    for (const auto& seg : nexthop.srv6SegmentList()) {
+      seed = folly::hash::hash_combine(seed, seg);
+    }
+    return seed;
   }
 };
 
 template <>
 struct hash<facebook::fboss::ResolvedNextHop> {
   size_t operator()(const facebook::fboss::ResolvedNextHop& nexthop) const {
-    return folly::hash::hash_combine(
+    size_t seed = folly::hash::hash_combine(
         nexthop.intfID(),
         nexthop.addr(),
         nexthop.weight(),
         nexthop.labelForwardingAction(),
         nexthop.disableTTLDecrement(),
         nexthop.adjustedWeight(),
-        nexthop.topologyInfo());
+        nexthop.topologyInfo(),
+        nexthop.tunnelType(),
+        nexthop.tunnelId());
+    for (const auto& seg : nexthop.srv6SegmentList()) {
+      seed = folly::hash::hash_combine(seed, seg);
+    }
+    return seed;
   }
 };
 

@@ -44,13 +44,14 @@ std::pair<PortFields::MKASakKey, mka::MKASak> PortFields::rxSakFromThrift(
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
   *vlanThrift.tagged() = tagged;
+  *vlanThrift.priorityTagged() = priorityTagged;
   return vlanThrift;
 }
 
 // static
 PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
     const state::VlanInfo& vlanThrift) {
-  return VlanInfo(*vlanThrift.tagged());
+  return VlanInfo(*vlanThrift.tagged(), *vlanThrift.priorityTagged());
 }
 
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {

@@ -25,7 +25,11 @@ class WredStoreTest : public SaiStoreTest {
       const uint32_t greenDropProbability,
       const int32_t ecnMarkMode,
       const uint32_t ecnGreenMinThreshold,
-      const uint32_t ecnGreenMaxThreshold) const {
+      const uint32_t ecnGreenMaxThreshold,
+      const std::optional<uint32_t> ecnGreenMarkProbability =
+          std::nullopt) const {
+    // Use the provided value or the SAI default value (100) to ensure we
+    // always program a probability of 100 by default
     return saiApiTable->wredApi().create<SaiWredTraits>(
         {greenEnable,
          greenMinThreshold,
@@ -33,7 +37,8 @@ class WredStoreTest : public SaiStoreTest {
          greenDropProbability,
          ecnMarkMode,
          ecnGreenMinThreshold,
-         ecnGreenMaxThreshold},
+         ecnGreenMaxThreshold,
+         ecnGreenMarkProbability.value_or(100)},
         0);
   }
 
@@ -44,7 +49,9 @@ class WredStoreTest : public SaiStoreTest {
       const uint32_t greenDropProbability,
       const int32_t ecnMarkMode,
       const uint32_t ecnGreenMinThreshold,
-      const uint32_t ecnGreenMaxThreshold) const {
+      const uint32_t ecnGreenMaxThreshold,
+      const std::optional<uint32_t> ecnGreenMarkProbability =
+          std::nullopt) const {
     SaiWredTraits::Attributes::GreenEnable greenEnableAttribute{greenEnable};
     SaiWredTraits::Attributes::GreenMinThreshold greenMinThresholdAttribute{
         greenMinThreshold};
@@ -57,6 +64,13 @@ class WredStoreTest : public SaiStoreTest {
         ecnGreenMinThresholdAttribute{ecnGreenMinThreshold};
     SaiWredTraits::Attributes::EcnGreenMaxThreshold
         ecnGreenMaxThresholdAttribute{ecnGreenMaxThreshold};
+    std::optional<SaiWredTraits::Attributes::EcnGreenMarkProbability>
+        ecnGreenMarkProbabilityAttribute;
+    // Use the provided value or the SAI default value (100) to match what
+    // SaiStore will reconstruct from the SAI object's attributes
+    ecnGreenMarkProbabilityAttribute =
+        SaiWredTraits::Attributes::EcnGreenMarkProbability{
+            ecnGreenMarkProbability.value_or(100)};
     SaiWredTraits::AdapterHostKey k{
         greenEnableAttribute,
         greenMinThresholdAttribute,
@@ -64,7 +78,8 @@ class WredStoreTest : public SaiStoreTest {
         greenDropProbabilityAttribute,
         ecnMarkModeAttribute,
         ecnGreenMinThresholdAttribute,
-        ecnGreenMaxThresholdAttribute};
+        ecnGreenMaxThresholdAttribute,
+        ecnGreenMarkProbabilityAttribute};
     return k;
   }
 
@@ -86,6 +101,10 @@ class WredStoreTest : public SaiStoreTest {
 
   sai_uint32_t kEcnGreenMaxThreshold() const {
     return 400;
+  }
+
+  sai_uint32_t kEcnGreenMarkProbability() const {
+    return 50;
   }
 };
 
@@ -195,7 +214,8 @@ TEST_F(WredStoreTest, wredProfileCreateCtor) {
       kGreenDropProbability(),
       0,
       0,
-      0};
+      0,
+      std::nullopt};
   SaiWredTraits::AdapterHostKey k = createWredProfileAdapterHostKey(
       true,
       kGreenMinThreshold(),
@@ -219,7 +239,14 @@ TEST_F(WredStoreTest, wredProfileCreateCtor) {
 
 TEST_F(WredStoreTest, ecnProfileCreateCtor) {
   SaiWredTraits::CreateAttributes c{
-      false, 0, 0, 0, 1, kEcnGreenMinThreshold(), kEcnGreenMaxThreshold()};
+      false,
+      0,
+      0,
+      0,
+      1,
+      kEcnGreenMinThreshold(),
+      kEcnGreenMaxThreshold(),
+      std::nullopt};
   SaiWredTraits::AdapterHostKey k = createWredProfileAdapterHostKey(
       false, 0, 0, 0, 1, kEcnGreenMinThreshold(), kEcnGreenMaxThreshold());
   auto obj = createObj<SaiWredTraits>(k, c, 0);
@@ -269,4 +296,39 @@ TEST_F(WredStoreTest, toStrEcnProfileStore) {
   std::ignore = createWredProfile(
       false, 0, 0, 0, 1, kEcnGreenMinThreshold(), kEcnGreenMaxThreshold());
   verifyToStr<SaiWredTraits>();
+}
+
+TEST_F(WredStoreTest, ecnProfileWithMarkProbability) {
+  // Test that EcnGreenMarkProbability can be included in CreateAttributes
+  auto ecnId = createWredProfile(
+      false,
+      0,
+      0,
+      0,
+      1,
+      kEcnGreenMinThreshold(),
+      kEcnGreenMaxThreshold(),
+      kEcnGreenMarkProbability());
+
+  EXPECT_EQ(
+      saiApiTable->wredApi().getAttribute(
+          ecnId, SaiWredTraits::Attributes::EcnGreenMarkProbability{}),
+      kEcnGreenMarkProbability());
+
+  // Verify the adapter host key includes the mark probability
+  SaiWredTraits::AdapterHostKey k = createWredProfileAdapterHostKey(
+      false,
+      0,
+      0,
+      0,
+      1,
+      kEcnGreenMinThreshold(),
+      kEcnGreenMaxThreshold(),
+      kEcnGreenMarkProbability());
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiWredTraits>();
+  auto got = store.get(k);
+  EXPECT_EQ(got->adapterKey(), ecnId);
 }

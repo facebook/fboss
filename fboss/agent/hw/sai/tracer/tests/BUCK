@@ -1,0 +1,5 @@
+load("//fboss/agent/hw/sai/tracer/tests:tracer_tests.bzl", "sai_tracer_tests")
+
+oncall("fboss_agent_push")
+
+sai_tracer_tests()
