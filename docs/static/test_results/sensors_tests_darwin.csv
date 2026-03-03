@@ -1,0 +1,7 @@
+"Test Case","Platform","Status"
+"SensorServiceHwTest.SensorFetchODSCheck","darwin","PASSED"
+"SensorServiceHwTest.GetSomeSensorsViaThrift","darwin","PASSED"
+"SensorServiceHwTest.GetSomeSensors","darwin","PASSED"
+"SensorServiceHwTest.GetBogusSensor","darwin","PASSED"
+"SensorServiceHwTest.GetAllSensors","darwin","PASSED"
+"SensorServiceHwTest.CheckAllSensors","darwin","PASSED"

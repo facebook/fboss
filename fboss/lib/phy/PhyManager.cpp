@@ -185,8 +185,10 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
   return phyPortConfig;
 }
 
-phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portID) {
-  return getHwPhyPortConfigLocked(getRLockedCache(portID), portID);
+phy::PhyPortConfig PhyManager::getHwPhyPortConfig(
+    PortID portID,
+    bool readFromHw) {
+  return getHwPhyPortConfigLocked(getRLockedCache(portID), portID, readFromHw);
 }
 
 void PhyManager::programOnePort(

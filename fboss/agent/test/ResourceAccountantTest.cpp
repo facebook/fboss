@@ -845,4 +845,185 @@ TEST_F(ResourceAccountantTest, resolvedAndUnresolvedRoutes) {
       this->resourceAccountant_->ecmpMemberUsage_, ecmpUsageBeforeResolve + 2);
 }
 
+TEST_F(ResourceAccountantTest, virtualArsGroups) {
+  FLAGS_dlbResourceCheckEnable = true;
+  FLAGS_flowletSwitchingEnable = true;
+  this->resourceAccountant_->setMinWidthForArsVirtualGroup(5);
+  this->resourceAccountant_->setMaxArsVirtualGroups(256);
+  this->resourceAccountant_->setMaxArsVirtualGroupWidth(256);
+
+  // Helper to create a nexthop set of given width
+  auto makeNhSet = [](int width, int seed) {
+    RouteNextHopSet nhSet;
+    for (int i = 0; i < width; i++) {
+      nhSet.insert(ResolvedNextHop(
+          folly::IPAddress(
+              folly::to<std::string>(
+                  (seed / 250) + 1, ".", (seed % 250) + 1, ".1.", i + 1)),
+          InterfaceID(i + 1),
+          ecmpWeight));
+    }
+    return nhSet;
+  };
+
+  // Scenario (scaled to fit mock ASIC limits):
+  //   5 routes use 1 shared ARS ECMP group with 4 members (non-virtual)
+  //   8 routes use 1 shared ARS ECMP group with 6 members (virtual)
+  //   2 routes use unique ARS ECMP groups with 3 members each (non-virtual)
+  //   3 routes use unique ARS ECMP groups with 7 members each (virtual)
+
+  // Build shared groups
+  auto sharedNonVirtualNhSet = makeNhSet(4, 0);
+  RouteNextHopEntry sharedNonVirtualEntry(
+      sharedNonVirtualNhSet, AdminDistance::EBGP);
+
+  auto sharedVirtualNhSet = makeNhSet(6, 1);
+  RouteNextHopEntry sharedVirtualEntry(sharedVirtualNhSet, AdminDistance::EBGP);
+
+  // getMemberCountForEcmpGroup: virtual returns 0, non-virtual returns width
+  EXPECT_EQ(
+      4,
+      this->resourceAccountant_->getMemberCountForEcmpGroup(
+          sharedNonVirtualEntry));
+  EXPECT_EQ(
+      0,
+      this->resourceAccountant_->getMemberCountForEcmpGroup(
+          sharedVirtualEntry));
+
+  // Add 5 routes sharing 1 non-virtual group (4 members)
+  for (int i = 0; i < 5; i++) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("1::", i + 1)), 128},
+        sharedNonVirtualEntry);
+    EXPECT_TRUE(
+        this->resourceAccountant_
+            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+  }
+
+  // Add 8 routes sharing 1 virtual group (6 members)
+  for (int i = 0; i < 8; i++) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("2::", i + 1)), 128},
+        sharedVirtualEntry);
+    EXPECT_TRUE(
+        this->resourceAccountant_
+            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+  }
+
+  // Add 2 routes with unique non-virtual groups (3 members each)
+  std::vector<RouteNextHopEntry> uniqueNonVirtualEntries;
+  for (int i = 0; i < 2; i++) {
+    auto nhSet = makeNhSet(3, i + 100);
+    uniqueNonVirtualEntries.emplace_back(nhSet, AdminDistance::EBGP);
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("3::", i + 1)), 128},
+        uniqueNonVirtualEntries.back());
+    EXPECT_TRUE(
+        this->resourceAccountant_
+            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+  }
+
+  // Add 3 routes with unique virtual groups (7 members each)
+  std::vector<RouteNextHopEntry> uniqueVirtualEntries;
+  for (int i = 0; i < 3; i++) {
+    auto nhSet = makeNhSet(7, i + 200);
+    uniqueVirtualEntries.emplace_back(nhSet, AdminDistance::EBGP);
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("4::", i + 1)), 128},
+        uniqueVirtualEntries.back());
+    EXPECT_TRUE(
+        this->resourceAccountant_
+            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+  }
+
+  // ecmpGroupRefMap_: all 7 unique groups (1+1+2+3)
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.size(), 7);
+
+  // arsEcmpGroupRefMap_: only 3 non-virtual groups (1 shared + 2 unique)
+  EXPECT_EQ(this->resourceAccountant_->arsEcmpGroupRefMap_.size(), 3);
+
+  // virtualArsGroupCount_: 4 unique virtual groups (1 shared + 3 unique)
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 4);
+
+  // ecmpMemberUsage_: 4 + 2*3 = 10 (virtual groups contribute 0)
+  EXPECT_EQ(this->resourceAccountant_->ecmpMemberUsage_, 10);
+
+  // Ref counts for shared groups
+  EXPECT_EQ(
+      this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet], 5);
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet], 8);
+  EXPECT_EQ(
+      this->resourceAccountant_->arsEcmpGroupRefMap_[sharedNonVirtualNhSet], 5);
+  EXPECT_EQ(
+      this->resourceAccountant_->arsEcmpGroupRefMap_.count(sharedVirtualNhSet),
+      0);
+
+  // checkArsResource: totalDlbUsage = 3 (non-virtual) + 4 (collective) = 7
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+
+  // checkEcmpResource: totalEcmpGroupUsage = 7,
+  //   totalEcmpMemberUsage = 10 + 256 = 266
+  EXPECT_TRUE(this->resourceAccountant_->checkEcmpResource(
+      true /* intermediateState */));
+
+  // Remove one of 5 routes sharing non-virtual group - ref count decreases
+  auto removeRoute1 =
+      makeV6Route({folly::IPAddressV6("1::1"), 128}, sharedNonVirtualEntry);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          removeRoute1, false));
+  EXPECT_EQ(
+      this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet], 4);
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.size(), 7);
+  EXPECT_EQ(this->resourceAccountant_->arsEcmpGroupRefMap_.size(), 3);
+
+  // Remove one of 8 routes sharing virtual group - ref count decreases
+  auto removeRoute2 =
+      makeV6Route({folly::IPAddressV6("2::1"), 128}, sharedVirtualEntry);
+  EXPECT_TRUE(
+      this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+          removeRoute2, false));
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet], 7);
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 4);
+
+  // Remove all remaining routes sharing virtual group
+  for (int i = 1; i < 8; i++) {
+    auto route = makeV6Route(
+        {folly::IPAddressV6(folly::to<std::string>("2::", i + 1)), 128},
+        sharedVirtualEntry);
+    EXPECT_TRUE(
+        this->resourceAccountant_
+            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, false));
+  }
+  EXPECT_EQ(
+      this->resourceAccountant_->ecmpGroupRefMap_.count(sharedVirtualNhSet), 0);
+  EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.size(), 6);
+  EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 3);
+
+  // Verify virtualArsGroupCount_ > kMaxVirtualArsGroups (256) is rejected
+  this->resourceAccountant_->virtualArsGroupCount_ = 257;
+  EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+
+  // Verify DLB collective overhead: fill arsEcmpGroupRefMap_ to limit - 4,
+  // then virtual overhead should push to exactly at limit
+  this->resourceAccountant_->virtualArsGroupCount_ = 0;
+  this->resourceAccountant_->arsEcmpGroupRefMap_.clear();
+  for (int i = 0; i < static_cast<int>(getMaxArsGroups()) - 4; i++) {
+    auto nhSet = makeNhSet(2, i + 1000);
+    this->resourceAccountant_->arsEcmpGroupRefMap_[nhSet] = 1;
+  }
+  this->resourceAccountant_->virtualArsGroupCount_ = 10;
+  // totalDlbUsage = (maxArsGroups - 4) + 4 = maxArsGroups
+  EXPECT_TRUE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+
+  // One more non-virtual group should exceed limit
+  auto extraNhSet = makeNhSet(2, 999);
+  this->resourceAccountant_->arsEcmpGroupRefMap_[extraNhSet] = 1;
+  EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
+      true /* intermediateState */));
+}
+
 } // namespace facebook::fboss

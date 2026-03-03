@@ -2,6 +2,7 @@
 
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 
+#include <folly/CpuId.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
 #include <folly/logging/xlog.h>
@@ -16,6 +17,7 @@ namespace fs = std::filesystem;
 namespace {
 
 const re2::RE2 kI2cMuxChannelRegex{"channel-\\d+"};
+const re2::RE2 kCpuBusPattern{"CPU_BUS@(\\d+)"};
 constexpr auto kI2cDevCreationWaitSecs = std::chrono::seconds(5);
 constexpr auto kCpuI2cBusNumsWaitSecs = 1;
 
@@ -48,6 +50,21 @@ uint16_t I2cExplorer::extractBusNumFromPath(const fs::path& busPath) {
 
 std::map<std::string, uint16_t> I2cExplorer::getBusNums(
     const std::vector<std::string>& i2cAdaptersFromCpu) {
+  // Dispatch to virtual-name resolver when CPU_BUS@ pattern is detected
+  if (!i2cAdaptersFromCpu.empty() &&
+      re2::RE2::PartialMatch(i2cAdaptersFromCpu[0], kCpuBusPattern)) {
+    folly::CpuId cpuId;
+    if (cpuId.vendor_amd()) {
+      return resolveAmdCpuBusNums(i2cAdaptersFromCpu);
+    }
+    if (cpuId.vendor_intel()) {
+      return resolveIntelCpuBusNums(i2cAdaptersFromCpu);
+    }
+    throw std::runtime_error(
+        "Unsupported CPU vendor detected in CPU_BUS resolution.");
+  }
+
+  // Legacy exact-match path
   std::map<std::string, uint16_t> busNums;
   const auto deviceRoot = fs::path("/sys/bus/i2c/devices");
   const int maxRetries = 10;
@@ -74,6 +91,47 @@ std::map<std::string, uint16_t> I2cExplorer::getBusNums(
   throw std::runtime_error(
       fmt::format(
           "Failed to get all CPU I2C BusNums over {}s",
+          kCpuI2cBusNumsWaitSecs * maxRetries));
+}
+
+std::map<std::string, uint16_t> I2cExplorer::resolveAmdCpuBusNums(
+    const std::vector<std::string>& /* i2cAdaptersFromCpu */) {
+  throw std::runtime_error(
+      "CPU_BUS virtual bus resolution is not yet implemented for AMD CPUs");
+}
+
+std::map<std::string, uint16_t> I2cExplorer::resolveIntelCpuBusNums(
+    const std::vector<std::string>& i2cAdaptersFromCpu) {
+  // One SMBus I801 adapter per unit — only CPU_BUS@0 is valid.
+  CHECK_EQ(i2cAdaptersFromCpu.size(), 1)
+      << "resolveIntelCpuBusNums only supports a single CPU_BUS@0 entry";
+
+  const auto& name = i2cAdaptersFromCpu[0];
+
+  const auto deviceRoot = fs::path("/sys/bus/i2c/devices");
+  constexpr int maxRetries = 10;
+
+  for (int attempt = 1; attempt <= maxRetries; attempt++) {
+    XLOG(INFO) << "Resolving virtual CPU_BUS names -- Attempt #" << attempt;
+    for (const auto& dirEntry : fs::directory_iterator(deviceRoot)) {
+      if (!re2::RE2::FullMatch(
+              dirEntry.path().filename().string(), kI2cBusNameRegex)) {
+        continue;
+      }
+      auto adapterName = getI2cAdapterName(dirEntry.path());
+      if (adapterName.starts_with("SMBus I801 adapter at")) {
+        auto busNum = extractBusNumFromPath(dirEntry.path());
+        XLOG(INFO) << fmt::format(
+            "Resolved {} -> i2c-{} ({})", name, busNum, adapterName);
+        return {{name, busNum}};
+      }
+    }
+    sleep(kCpuI2cBusNumsWaitSecs);
+  }
+  throw std::runtime_error(
+      fmt::format(
+          "Failed to resolve CPU_BUS names over {}s. "
+          "No adapter matching 'SMBus I801 adapter at' found",
           kCpuI2cBusNumsWaitSecs * maxRetries));
 }
 

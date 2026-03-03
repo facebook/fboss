@@ -219,6 +219,10 @@ class QsfpServiceHandler
   void triggerAllOpticsFwUpgrade(
       std::map<std::string, FirmwareUpgradeData>& ports) override;
 
+  void triggerOpticsFwUpgrade(
+      std::map<std::string, FirmwareUpgradeData>& ports,
+      std::unique_ptr<std::vector<std::string>> interfaces) override;
+
   /*
    * Get the list of supported PRBS polynomials for the given port and
    * prbs component

@@ -13,6 +13,7 @@
 #include "fboss/agent/SysError.h"
 
 #include <fcntl.h>
+#include <unistd.h>
 
 namespace facebook::fboss {
 
@@ -128,7 +129,7 @@ void createSymLink(const std::string& link, const std::string& target) {
 
 void touchFile(const std::string& path) {
   if (!checkFileExists(path)) {
-    createFile(path);
+    close(createFile(path));
   }
 }
 

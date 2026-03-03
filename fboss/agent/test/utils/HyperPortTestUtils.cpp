@@ -37,4 +37,20 @@ std::vector<PortID> getHyperPortMembers(
   return memberIds;
 }
 
+std::vector<PortID> getHyperPorts(const std::shared_ptr<SwitchState>& state) {
+  if (!FLAGS_hyper_port) {
+    return {};
+  }
+  std::vector<PortID> hyperPortIds;
+  for (const auto& [_, aggPorts] : std::as_const(*state->getAggregatePorts())) {
+    for (const auto& idAndAggPort : std::as_const(*aggPorts)) {
+      if (idAndAggPort.second->getAggregatePortType() ==
+          cfg::AggregatePortType::HYPER_PORT) {
+        hyperPortIds.push_back(static_cast<PortID>(idAndAggPort.first));
+      }
+    }
+  }
+  return hyperPortIds;
+}
+
 } // namespace facebook::fboss::utility

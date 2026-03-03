@@ -1,0 +1,7 @@
+"Test Case","Platform","Status"
+"SensorServiceHwTest.SensorFetchODSCheck","minipack3ba","PASSED"
+"SensorServiceHwTest.GetSomeSensorsViaThrift","minipack3ba","PASSED"
+"SensorServiceHwTest.GetSomeSensors","minipack3ba","PASSED"
+"SensorServiceHwTest.GetBogusSensor","minipack3ba","PASSED"
+"SensorServiceHwTest.GetAllSensors","minipack3ba","PASSED"
+"SensorServiceHwTest.CheckAllSensors","minipack3ba","PASSED"

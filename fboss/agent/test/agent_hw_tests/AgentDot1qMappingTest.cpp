@@ -9,12 +9,15 @@
  */
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 
 #include <memory>
@@ -49,10 +52,15 @@ class AgentDot1qMappingTest : public AgentHwTest {
         asic->desiredLoopbackModes());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::DISABLED;
 
-    // Enable VLAN tagging (emitTags) for all ports so they send/receive tagged
-    // packets
+    bool usePriorityTagging = isPriorityTaggingMode(asic);
     for (auto& vlanPort : *cfg.vlanPorts()) {
-      vlanPort.emitTags() = true;
+      if (usePriorityTagging) {
+        vlanPort.emitPriorityTags() = true;
+        vlanPort.emitTags() = false;
+      } else {
+        vlanPort.emitTags() = true;
+        vlanPort.emitPriorityTags() = false;
+      }
     }
 
     // Add Olympic QoS maps with PCP to TC and TC to queue mapping
@@ -98,6 +106,24 @@ class AgentDot1qMappingTest : public AgentHwTest {
         {7,
          utility::kOlympicNCQueueId} // PCP 7 -> Queue 7 (NC - highest priority)
     };
+  }
+
+  uint8_t getExpectedEgressPcp(uint8_t ingressPcp) const {
+    auto pcpToQueue = getOlympicPcpToQueue();
+    auto queueToPcp = getOlympicQueueToPcp();
+    int queueId = pcpToQueue.at(ingressPcp);
+    return queueToPcp.at(queueId)[0];
+  }
+
+  // TOMAHAWK5: use regular VLAN tagging
+  // Other ASICs: use priority tagging (VLAN ID 0 with PCP)
+  bool isPriorityTaggingMode(const HwAsic* asic) const {
+    return asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
+  }
+
+  VlanID getTestVlanId() const {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    return VlanID(*cfg.vlanPorts()[0].vlanID());
   }
 
   static MacAddress kSourceMac() {
@@ -164,8 +190,10 @@ class AgentDot1qMappingTest : public AgentHwTest {
   }
 
   void sendPacketWithPcp(uint8_t pcp, PortID ingressPort) {
-    auto vlanId =
-        VlanID(*initialConfig(*getAgentEnsemble()).vlanPorts()[0].vlanID());
+    // For priority-tagged mode, use VLAN ID 0; otherwise use the actual VLAN ID
+    auto ensemble = getAgentEnsemble();
+    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    auto vlanId = isPriorityTaggingMode(asic) ? VlanID(0) : getTestVlanId();
 
     // Send 10 packets with the specified PCP value
     for (int i = 0; i < 10; i++) {
@@ -190,11 +218,11 @@ class AgentDot1qMappingTest : public AgentHwTest {
       // Read and skip TPID (should be 0x8100)
       rwCursor.skip(2);
 
-      // Construct new TCI with desired PCP
+      // Construct TCI with desired PCP and VLAN ID
       uint16_t tci =
           (static_cast<uint16_t>(pcp & 0x7) << 13) | // PCP in top 3 bits
           (0 << 12) | // DEI in bit 12
-          (static_cast<uint16_t>(vlanId) & 0xFFF); // VID in bottom 12 bits
+          (static_cast<uint16_t>(vlanId) & 0xFFF); // VID from vlanId
 
       // Write new TCI value at position 14
       buf->writableData()[14] = (tci >> 8) & 0xFF;
@@ -210,16 +238,77 @@ class AgentDot1qMappingTest : public AgentHwTest {
     }
   }
 
+  void configureTrapAcl(cfg::SwitchConfig* config, const PortID& portId) {
+    auto ensemble = getAgentEnsemble();
+    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    utility::configureTrapAcl(asic, *config, portId);
+  }
+
+  void verifyVlanTagInPacket(
+      const folly::IOBuf* pkt,
+      uint16_t expectedVlanId,
+      uint8_t expectedPcp) {
+    // Parse packet to verify VLAN tag
+    folly::io::Cursor cursor(pkt);
+
+    // Skip destination MAC (6 bytes) and source MAC (6 bytes)
+    cursor.skip(12);
+
+    // Read ethertype/TPID
+    uint16_t ethertype = cursor.readBE<uint16_t>();
+
+    // Check if this is a VLAN-tagged packet (TPID = 0x8100)
+    EXPECT_EQ(ethertype, 0x8100);
+    // Read TCI (Tag Control Information)
+    uint16_t tci = cursor.readBE<uint16_t>();
+
+    // Extract fields from TCI
+    uint8_t pcp = (tci >> 13) & 0x7; // Top 3 bits
+    uint16_t vlanId = tci & 0xFFF; // Bottom 12 bits
+
+    XLOG(DBG2) << "Captured VLAN-tagged packet: TCI=0x" << std::hex << tci
+               << std::dec << " PCP=" << static_cast<int>(pcp)
+               << " VLAN ID=" << vlanId;
+
+    // Verify VLAN ID matches expected value
+    EXPECT_EQ(vlanId, expectedVlanId)
+        << "VLAN ID mismatch. Expected: " << expectedVlanId
+        << " Got: " << vlanId;
+
+    // Verify PCP matches expected value
+    EXPECT_EQ(pcp, expectedPcp)
+        << "PCP mismatch. Expected: " << static_cast<int>(expectedPcp)
+        << " Got: " << static_cast<int>(pcp);
+  }
+
   void verifyPcpQueueMapping(
       uint8_t pcp,
       int expectedQueueId,
       PortID ingressPort,
       PortID egressPort) {
-    // Check queue OUT packets on egress port to see QoS classification
+    utility::SwSwitchPacketSnooper snooper(getSw(), "vlanVerifier");
+    snooper.ignoreUnclaimedRxPkts();
+
     auto beforeQueueOutPkts =
         folly::copy(getLatestPortStats(egressPort).queueOutPackets_().value());
 
+    auto expectedEgressPcp = getExpectedEgressPcp(pcp);
+    auto expectedVlanId = isPriorityTaggingMode(checkSameAndGetAsic(
+                              getAgentEnsemble()->getL3Asics()))
+        ? 0
+        : static_cast<int>(getTestVlanId());
     sendPacketWithPcp(pcp, ingressPort);
+
+    WITH_RETRIES({
+      auto capturedPkt = snooper.waitForPacket(1 /* timeout_s */);
+      EXPECT_EVENTUALLY_TRUE(capturedPkt.has_value());
+      if (capturedPkt.has_value()) {
+        XLOG(DBG2) << "Captured packet for PCP=" << static_cast<int>(pcp)
+                   << ", verifying VLAN tag...";
+        verifyVlanTagInPacket(
+            capturedPkt->get(), expectedVlanId, expectedEgressPcp);
+      }
+    });
 
     WITH_RETRIES({
       auto afterQueueOutPkts = folly::copy(
@@ -264,6 +353,9 @@ TEST_F(AgentDot1qMappingTest, verifyDot1qMapping) {
     // Add static MAC entries to config to enable L2 forwarding between ports
     addStaticMacToConfig(newCfg, kStaticMac1(), vlanId, portId1);
     addStaticMacToConfig(newCfg, kStaticMac2(), vlanId, portId2);
+
+    // Add trap ACL to punt packets to CPU for examination
+    configureTrapAcl(&newCfg, portId2);
 
     applyNewConfig(newCfg);
   };

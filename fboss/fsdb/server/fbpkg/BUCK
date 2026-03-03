@@ -12,6 +12,7 @@ fboss_fbpkg_builder(
         "opt",
         "opt-asan",
     ],
+    parallel_arch_builds = True,
     path_actions = {
         "fsdb": "//fboss/fsdb/server:fsdb",
         "fsdb.service": "//neteng/fboss/fsdb:fsdb.service",

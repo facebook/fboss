@@ -9,15 +9,8 @@
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
 
-using k = facebook::fboss::test_tags::strings;
-
-namespace {
-
-using folly::dynamic;
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
-
-} // namespace
 
 namespace facebook::fboss::thrift_cow {
 
@@ -64,7 +57,7 @@ TEST(PatchApplierTests, ModifyStructMember) {
 
   StructPatch structPatch;
   structPatch.children() = {
-      {TestStructMembers::inlineString::id(), inlineString}};
+      {fieldId<TestStruct, k::inlineString>(), inlineString}};
   PatchNode n;
   n.set_struct_node(std::move(structPatch));
 
@@ -245,7 +238,7 @@ TEST(PatchApplierTests, ModifyVariantValue) {
           fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
-  variantPatch.id() = folly::to_underlying(TestUnionMembers::inlineInt::value);
+  variantPatch.id() = fieldId<TestUnion, k::inlineInt>();
   variantPatch.child() = intPatch;
   PatchNode n;
   n.set_variant_node(variantPatch);
@@ -268,7 +261,7 @@ TEST(PatchApplierTests, ModifyVariantType) {
           fsdb::OperProtocol::COMPACT, 42));
 
   VariantPatch variantPatch;
-  variantPatch.id() = folly::to_underlying(TestUnionMembers::inlineInt::value);
+  variantPatch.id() = fieldId<TestUnion, k::inlineInt>();
   variantPatch.child() = intPatch;
   PatchNode n;
   n.set_variant_node(variantPatch);
@@ -284,10 +277,9 @@ TEST(PatchApplierTests, ModifyVariantType) {
   EXPECT_EQ(*structA.inlineVariant()->inlineInt(), 42);
 
   StructPatch structPatch;
-  structPatch.children() = {{L4PortRangeMembers::min::id(), intPatch}};
+  structPatch.children() = {{fieldId<cfg::L4PortRange, k::min>(), intPatch}};
 
-  variantPatch.id() =
-      folly::to_underlying(TestUnionMembers::inlineStruct::value);
+  variantPatch.id() = fieldId<TestUnion, k::inlineStruct>();
   variantPatch.child()->set_struct_node(structPatch);
   n.set_variant_node(variantPatch);
 
@@ -357,7 +349,7 @@ TEST(PatchApplierTests, FailPatchingSetEntry) {
           fsdb::OperProtocol::COMPACT, 3));
 
   std::vector<std::string> path = {
-      folly::to<std::string>(TestStructMembers::setOfI32::id::value), "1"};
+      folly::to<std::string>(fieldId<TestStruct, k::setOfI32>()), "1"};
   bool visited = false;
   auto process = [&](auto& node, auto /*begin*/, auto /*end*/) {
     EXPECT_FALSE(visited);
@@ -408,11 +400,11 @@ TEST(PatchApplierTests, SetMemberFull) {
       nodeB->ref<k::setOfI32>()->encodeBuf(fsdb::OperProtocol::COMPACT));
   StructPatch structPatch;
   structPatch.children() = {
-      {TestStructMembers::inlineStruct::id(), inlineStruct},
-      {TestStructMembers::inlineVariant::id(), inlineVariant},
-      {TestStructMembers::mapOfI32ToI32::id(), mapOfI32ToI32},
-      {TestStructMembers::listOfPrimitives::id(), listOfPrimitives},
-      {TestStructMembers::setOfI32::id(), setOfI32}};
+      {fieldId<TestStruct, k::inlineStruct>(), inlineStruct},
+      {fieldId<TestStruct, k::inlineVariant>(), inlineVariant},
+      {fieldId<TestStruct, k::mapOfI32ToI32>(), mapOfI32ToI32},
+      {fieldId<TestStruct, k::listOfPrimitives>(), listOfPrimitives},
+      {fieldId<TestStruct, k::setOfI32>(), setOfI32}};
   PatchNode n;
   n.set_struct_node(std::move(structPatch));
 
@@ -460,8 +452,8 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
 
   StructPatch structPatch;
   structPatch.children() = {
-      {TestStructMembers::optionalInt::id(), optionalInt},
-      {TestStructMembers::optionalStruct::id(), optionalStruct}};
+      {fieldId<TestStruct, k::optionalInt>(), optionalInt},
+      {fieldId<TestStruct, k::optionalStruct>(), optionalStruct}};
   PatchNode n;
   n.set_struct_node(structPatch);
 
@@ -479,8 +471,8 @@ TEST(PatchApplierTests, SetUnsetOptionalMember) {
   EXPECT_EQ(*structA.optionalStruct(), *structB.optionalStruct());
 
   // unset optionals
-  structPatch.children()[TestStructMembers::optionalInt::id()].set_del();
-  structPatch.children()[TestStructMembers::optionalStruct::id()].set_del();
+  structPatch.children()[fieldId<TestStruct, k::optionalInt>()].set_del();
+  structPatch.children()[fieldId<TestStruct, k::optionalStruct>()].set_del();
   n = PatchNode();
   n.set_struct_node(std::move(structPatch));
 
@@ -518,7 +510,7 @@ TEST(PatchApplierTests, TestBadPatches) {
   variantPatch.id() = 4321;
   n.set_variant_node(variantPatch);
 
-  structPatch.children() = {{TestStructMembers::inlineVariant::id(), n}};
+  structPatch.children() = {{fieldId<TestStruct, k::inlineVariant>(), n}};
   n.set_struct_node(structPatch);
 
   ret = RootPatchApplier::apply(*nodeA, PatchNode(n));

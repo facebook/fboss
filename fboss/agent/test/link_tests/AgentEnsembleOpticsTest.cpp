@@ -148,7 +148,7 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
 
   auto allTcvrInfos = utility::waitForTransceiverInfo(
       std::vector<int32_t>(allTcvrIds.begin(), allTcvrIds.end()),
-      /*includeLpo*/ false);
+      /*includeLpo*/ true);
 
   // Cache the host and media lanes for each port because once the ports are
   // disabled, transceiver state machine moves to discovered state and we would
@@ -180,8 +180,8 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
           onlyTcvrIds.push_back(int32_t(tcvrId.first));
         }
         WITH_RETRIES_N_TIMED(10, std::chrono::seconds(10), {
-          auto transceiverInfos = utility::waitForTransceiverInfo(
-              onlyTcvrIds, /*includeLpo*/ false);
+          auto transceiverInfos =
+              utility::waitForTransceiverInfo(onlyTcvrIds, /*includeLpo*/ true);
           for (const auto& tcvrId : onlyTcvrIds) {
             auto& portName = transceiverIds[TransceiverID(tcvrId)];
             auto tcvrInfoInfoItr = transceiverInfos.find(tcvrId);
@@ -207,16 +207,22 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
             ASSERT_EVENTUALLY_GT(hostLaneSignals.size(), 0);
             ASSERT_EVENTUALLY_GT(mediaLaneSignals.size(), 0);
 
+            // LPO does not support TxLol
+            bool isLpo = *tcvrState.moduleTechnology() == ModuleTechnology::LPO;
+
             for (const auto& signal : hostLaneSignals) {
               if (std::find(
                       hostLanes.begin(), hostLanes.end(), signal.get_lane()) !=
                   hostLanes.end()) {
-                ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
+                if (!isLpo) {
+                  ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
+                }
                 ASSERT_EVENTUALLY_TRUE(signal.txLos().has_value());
                 // TX_LOL is not reliable right now on certain 100G
                 // CWDM4 optics like AOI and Miniphoton. So skip checking it
                 // on these optics for now
-                if (mediaInterface != MediaInterfaceCode::CWDM4_100G) {
+                if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
+                    isLpo == false) {
                   EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
                       << portName << ", lane: " << signal.get_lane();
                 }
@@ -229,6 +235,11 @@ TEST_F(AgentEnsembleOpticsTest, verifyTxRxLatches) {
                       << portName << ", lane: " << signal.get_lane();
                 }
               }
+            }
+
+            // LPO does not support RxLOL
+            if (isLpo) {
+              continue;
             }
 
             for (const auto& signal : mediaLaneSignals) {

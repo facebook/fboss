@@ -78,6 +78,20 @@ struct formatter<folly::IPAddress> {
   }
 };
 
+// Formatting for folly::IPAddressV6
+template <>
+struct formatter<folly::IPAddressV6> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const folly::IPAddressV6& ip, FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", ip.str());
+  }
+};
+
 // Formatting for AdapterKeys which are SAI entry structs
 template <typename AdapterKeyType>
 struct formatter<

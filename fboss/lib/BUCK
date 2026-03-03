@@ -377,6 +377,7 @@ cpp_library(
         "ThriftServiceUtils.h",
     ],
     exported_deps = [
+        "//folly:function",
         "//thrift/lib/cpp2:server",
     ],
 )
@@ -390,6 +391,7 @@ cpp_library(
         "ThriftServiceUtils.h",
     ],
     exported_deps = [
+        "//folly:function",
         "//folly/executors:io_thread_pool_executor",
         "//folly/io/async:epoll",
         "//folly/io/async:epoll_backend",

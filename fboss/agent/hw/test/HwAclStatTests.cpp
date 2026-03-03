@@ -11,7 +11,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/HwTestAclUtils.h"
-#include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -56,124 +55,6 @@ class HwAclStatTest : public HwTest {
     return utility::addAcl(cfg, acl, cfg::AclStage::INGRESS);
   }
 };
-
-TEST_F(HwAclStatTest, AclStatMultipleActions) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    /* The ACL will have 2 actions: a counter and a queue */
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    cfg::MatchAction matchAction = utility::getToQueueAction(
-        getPlatform()->getAsic(), 0, this->getHwSwitchEnsemble()->isSai());
-    cfg::MatchToAction action = cfg::MatchToAction();
-    *action.matcher() = "acl0";
-    *action.action() = matchAction;
-    newCfg.dataPlaneTrafficPolicy()->matchToAction()->push_back(action);
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /*ACLs*/ 1,
-        /*stats*/ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
-TEST_F(HwAclStatTest, AclStatDelete) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /* ACLs */ 1,
-        /* Stats */ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  auto setupPostWB = [&]() {
-    auto newCfg = this->initialConfig();
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verifyPostWB = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(), /*ACLs*/ 0, /*stats*/ 0, /*counters*/ 0);
-    utility::checkAclStatDeleted(this->getHwSwitch(), "stat0");
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-}
-
-TEST_F(HwAclStatTest, AclStatCreatePostWarmBoot) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=]() {};
-
-  auto setupPostWB = [&]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verifyPostWB = [=, this]() {
-    const auto& aclCounter =
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics());
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /*ACLs*/ 1,
-        /*stats*/ 1,
-        /*counters*/ 1 * aclCounter.size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        aclCounter);
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-}
 
 TEST_F(HwAclStatTest, AclStatDeleteSharedPostWarmBoot) {
   auto setup = [=, this]() {

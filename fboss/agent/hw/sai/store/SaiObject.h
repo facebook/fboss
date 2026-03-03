@@ -169,6 +169,17 @@ typename std::
                   nextHopSaiId, SaiMplsNextHopTraits::AdapterHostKey{}),
               weight));
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    else if (
+        conditionAttributes ==
+        SaiSrv6SidlistNextHopTraits::kConditionAttributes) {
+      ret.nhopMemberSet.insert(
+          std::make_pair(
+              apiTable->nextHopApi().getAttribute(
+                  nextHopSaiId, SaiSrv6SidlistNextHopTraits::AdapterHostKey{}),
+              weight));
+    }
+#endif
   }
   return ret;
 }

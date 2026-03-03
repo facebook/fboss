@@ -16,9 +16,9 @@ using namespace facebook::fboss;
 std::shared_ptr<IpTunnel> makeTunnel(
     const std::string& tunnelId = "tunnel0",
     uint32_t intfID = 0,
-    cfg::IpTunnelMode mode = cfg::IpTunnelMode::PIPE) {
+    cfg::TunnelMode mode = cfg::TunnelMode::PIPE) {
   auto tunnel = std::make_shared<IpTunnel>(tunnelId);
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
   tunnel->setUnderlayIntfId(InterfaceID(intfID));
   tunnel->setTTLMode(mode);
   tunnel->setDscpMode(mode);
@@ -150,7 +150,7 @@ TEST_F(TunnelManagerTest, addDupTunnel) {
 TEST_F(TunnelManagerTest, changeTunnel) {
   std::shared_ptr<IpTunnel> swTunnel = makeTunnel("tunnel0");
   saiManagerTable->tunnelManager().addTunnel(swTunnel);
-  auto swTunnel2 = makeTunnel("tunnel1", intf0.id, cfg::IpTunnelMode::UNIFORM);
+  auto swTunnel2 = makeTunnel("tunnel1", intf0.id, cfg::TunnelMode::UNIFORM);
   swTunnel2->setSrcIP(
       folly::IPAddressV6("2001:db8:3333:4444:5555:6666:7777:8888"));
   saiManagerTable->tunnelManager().changeTunnel(swTunnel, swTunnel2);

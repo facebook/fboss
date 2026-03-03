@@ -34,7 +34,6 @@ jobs:
           --target
           fsdb_all_services
           --no-docker-output
-          --no-system-deps
           --env-var
           GITHUB_ACTIONS_BUILD
           --num-jobs

@@ -18,9 +18,9 @@ cpp_unittest(
         "//fboss/agent/test:hw_test_handle",
         "//fboss/agent/test:utils",
         "//fboss/facebook/bitsflow:bitsflow_helper",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
         "//infrasec/authorization:identity_util",
         "//infrasec/authorization/aclchecker:simple_acl_checker",
-        "//nettools/dcc/platform:base_lib",
     ],
     external_deps = [
         ("boost", None, "boost_filesystem"),

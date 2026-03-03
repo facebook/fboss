@@ -524,7 +524,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     // Tunable optics parameter
     auto tunableLaserstatus = getTunableLaserStatus();
     if (tunableLaserstatus) {
-      QSFP_LOG(INFO, this) << "Tunable laser status is not null";
       tcvrState.tunableLaserStatus() = tunableLaserstatus.value();
     }
 
@@ -595,7 +594,18 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (diagCapability.has_value()) {
       tcvrState.diagCapability() = diagCapability.value();
     }
+    // lpoModule() Deprecated. Use ModuleTechnolgy instead.
     tcvrState.lpoModule() = isLpoModule();
+
+    if (isLpoModule()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::LPO;
+    } else if (isAecModule()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::AEC;
+    } else if (isTunableOptics()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE;
+    } else {
+      tcvrState.moduleTechnology() = ModuleTechnology::GREY;
+    }
   }
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;
@@ -1188,7 +1198,8 @@ void QsfpModule::customizeTransceiver(TransceiverPortState& portState) {
   }
 }
 
-void QsfpModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+void QsfpModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;

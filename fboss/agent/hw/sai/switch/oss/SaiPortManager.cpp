@@ -25,6 +25,10 @@ void SaiPortManager::changePortFlowletConfig(
     const std::shared_ptr<Port>& /* unused */,
     const std::shared_ptr<Port>& /* unused */) {}
 
+void SaiPortManager::changeClm(
+    const std::shared_ptr<Port>& /* oldPort */,
+    const std::shared_ptr<Port>& /* newPort */) {}
+
 void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
 
 void SaiPortManager::programPfcDurationCounterEnable(

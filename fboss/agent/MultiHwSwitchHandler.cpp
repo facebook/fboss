@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/MultiHwSwitchHandler.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -65,16 +66,19 @@ void MultiHwSwitchHandler::stop() {
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const StateDelta& delta,
     bool transaction,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<StateDelta> deltas;
   deltas.emplace_back(delta.oldState(), delta.newState());
-  return stateChanged(deltas, transaction, hwWriteBehavior);
+  return stateChanged(
+      deltas, transaction, hwWriteBehavior, deltaApplicationBehavior);
 }
 
 std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     const std::vector<StateDelta>& deltas,
     bool transaction,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::map<SwitchID, const std::vector<StateDelta>&> deltasMap;
   std::shared_ptr<SwitchState> newState{nullptr};
   bool updateFailed{false};
@@ -85,7 +89,8 @@ std::shared_ptr<SwitchState> MultiHwSwitchHandler::stateChanged(
     auto switchId = entry.first;
     deltasMap.emplace(switchId, deltas);
   }
-  auto results = stateChanged(deltasMap, transaction, hwWriteBehavior);
+  auto results = stateChanged(
+      deltasMap, transaction, hwWriteBehavior, deltaApplicationBehavior);
   for (const auto& result : results) {
     auto status = result.second.second;
     if (status == HwSwitchStateUpdateStatus::HWSWITCH_STATE_UPDATE_SUCCEEDED) {
@@ -156,13 +161,15 @@ std::map<SwitchID, HwSwitchStateUpdateResult>
 MultiHwSwitchHandler::stateChanged(
     const std::map<SwitchID, const std::vector<StateDelta>&>& deltas,
     bool transaction,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   std::vector<SwitchID> switchIds;
   std::vector<folly::Future<HwSwitchStateUpdateResult>> futures;
   for (const auto& entry : deltas) {
     switchIds.push_back(entry.first);
     auto update = HwSwitchStateUpdate(entry.second, transaction);
-    futures.emplace_back(stateChanged(entry.first, update, hwWriteBehavior));
+    futures.emplace_back(stateChanged(
+        entry.first, update, hwWriteBehavior, deltaApplicationBehavior));
   }
   return getStateUpdateResult(switchIds, futures);
 }
@@ -170,12 +177,14 @@ MultiHwSwitchHandler::stateChanged(
 folly::Future<HwSwitchStateUpdateResult> MultiHwSwitchHandler::stateChanged(
     SwitchID switchId,
     const HwSwitchStateUpdate& update,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   auto iter = hwSwitchSyncers_.find(switchId);
   if (iter == hwSwitchSyncers_.end()) {
     throw FbossError("hw switch syncer for switch id ", switchId, " not found");
   }
-  return iter->second->stateChanged(update, hwWriteBehavior);
+  return iter->second->stateChanged(
+      update, hwWriteBehavior, deltaApplicationBehavior);
 }
 
 std::map<SwitchID, HwSwitchStateUpdateResult>
@@ -279,9 +288,25 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<SwitchID> switchId) noexcept {
+  if (hwSwitchSyncers_.size() < 1) {
+    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
+    return false;
+  }
+  if (switchId.has_value()) {
+    auto iter = hwSwitchSyncers_.find(switchId.value());
+    if (iter == hwSwitchSyncers_.end()) {
+      XLOG_EVERY_MS(WARNING, 5000) << "hw switch syncer for switch id "
+                                   << switchId.value() << " not found";
+      return false;
+    }
+    if (!isHwSwitchConnected(switchId.value())) {
+      return false;
+    }
+    return iter->second->sendPacketSwitchedSync(std::move(pkt));
+  }
+  // Fallback: use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
     if (isHwSwitchConnected(hwSwitchHandler.first)) {
       return hwSwitchHandler.second->sendPacketSwitchedSync(std::move(pkt));
@@ -291,9 +316,25 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<SwitchID> switchId) noexcept {
+  if (hwSwitchSyncers_.size() < 1) {
+    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
+    return false;
+  }
+  if (switchId.has_value()) {
+    auto iter = hwSwitchSyncers_.find(switchId.value());
+    if (iter == hwSwitchSyncers_.end()) {
+      XLOG_EVERY_MS(WARNING, 5000) << "hw switch syncer for switch id "
+                                   << switchId.value() << " not found";
+      return false;
+    }
+    if (!isHwSwitchConnected(switchId.value())) {
+      return false;
+    }
+    return iter->second->sendPacketSwitchedAsync(std::move(pkt));
+  }
+  // Fallback: use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
     if (isHwSwitchConnected(hwSwitchHandler.first)) {
       return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
@@ -306,15 +347,18 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
     PacketType packetType) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
-  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
-    if (isHwSwitchConnected(hwSwitchHandler.first)) {
-      return hwSwitchHandler.second->sendPacketOutOfPortSyncForPktType(
-          std::move(pkt), portID, packetType);
-    }
+  auto switchId = sw_->getScopeResolver()->scope(portID).switchId();
+  auto iter = hwSwitchSyncers_.find(switchId);
+  if (iter == hwSwitchSyncers_.end()) {
+    XLOG_EVERY_MS(WARNING, 5000)
+        << "hw switch syncer for switch id " << switchId << " not found";
+    return false;
   }
-  return false;
+  if (!isHwSwitchConnected(switchId)) {
+    return false;
+  }
+  return iter->second->sendPacketOutOfPortSyncForPktType(
+      std::move(pkt), portID, packetType);
 }
 
 std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()

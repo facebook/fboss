@@ -25,6 +25,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _WredMap{
     SAI_ATTR_MAP(Wred, EcnMarkMode),
     SAI_ATTR_MAP(Wred, EcnGreenMinThreshold),
     SAI_ATTR_MAP(Wred, EcnGreenMaxThreshold),
+    SAI_ATTR_MAP(Wred, EcnGreenMarkProbability),
 };
 
 } // namespace

@@ -47,7 +47,7 @@ Vlan::Vlan(const cfg::Vlan* config, MemberPorts ports) {
   if (auto dhcpRelayAddressV6 = config->dhcpRelayAddressV6()) {
     setDhcpV6Relay(folly::IPAddressV6(*dhcpRelayAddressV6));
   }
-  setPorts(std::move(ports));
+  setPortsInfo(std::move(ports));
   DhcpV4OverrideMap map4;
   for (const auto& o : config->dhcpRelayOverridesV4().value_or({})) {
     map4[MacAddress(o.first)] = folly::IPAddressV4(o.second);
@@ -75,8 +75,11 @@ Vlan* Vlan::modify(std::shared_ptr<SwitchState>* state) {
   return ptr;
 }
 
-void Vlan::addPort(PortID id, bool tagged) {
-  ref<switch_state_tags::ports>()->emplace(id, tagged);
+void Vlan::addPort(PortID id, bool tagged, bool priorityTagged) {
+  state::VlanInfo vlanInfo;
+  *vlanInfo.tagged() = tagged;
+  *vlanInfo.priorityTagged() = priorityTagged;
+  ref<switch_state_tags::portsInfo>()->emplace(id, vlanInfo);
 }
 
 template struct ThriftStructNode<Vlan, state::VlanFields>;

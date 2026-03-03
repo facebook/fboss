@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","tahan800bc","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","tahan800bc","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","tahan800bc","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","tahan800bc","PASSED"

@@ -33,6 +33,7 @@ class TestEnsembleIf;
 namespace facebook::fboss::utility {
 
 void verifyArsProfile(
+    const HwSwitch* hw,
     ArsProfileSaiId arsProfileSaiId,
     const cfg::FlowletSwitchingConfig& flowletCfg) {
   ArsProfileSaiId nullArsProfileSaiId{SAI_NULL_OBJECT_ID};
@@ -65,15 +66,19 @@ void verifyArsProfile(
   auto loadPastMaxVal = arsProfileApi.getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::LoadPastMaxVal());
   EXPECT_EQ(*flowletCfg.dynamicEgressMaxThresholdBytes(), loadPastMaxVal);
-  auto portLoadFutureWeight = arsProfileApi.getAttribute(
-      arsProfileSaiId, SaiArsProfileTraits::Attributes::PortLoadFutureWeight());
-  EXPECT_EQ(*flowletCfg.dynamicQueueExponent(), portLoadFutureWeight);
-  auto loadFutureMinVal = arsProfileApi.getAttribute(
-      arsProfileSaiId, SaiArsProfileTraits::Attributes::LoadFutureMinVal());
-  EXPECT_EQ(*flowletCfg.dynamicQueueMinThresholdBytes(), loadFutureMinVal);
-  auto loadFutureMaxVal = arsProfileApi.getAttribute(
-      arsProfileSaiId, SaiArsProfileTraits::Attributes::LoadFutureMaxVal());
-  EXPECT_EQ(*flowletCfg.dynamicQueueMaxThresholdBytes(), loadFutureMaxVal);
+  if (hw->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+    auto portLoadFutureWeight = arsProfileApi.getAttribute(
+        arsProfileSaiId,
+        SaiArsProfileTraits::Attributes::PortLoadFutureWeight());
+    EXPECT_EQ(*flowletCfg.dynamicQueueExponent(), portLoadFutureWeight);
+    auto loadFutureMinVal = arsProfileApi.getAttribute(
+        arsProfileSaiId, SaiArsProfileTraits::Attributes::LoadFutureMinVal());
+    EXPECT_EQ(*flowletCfg.dynamicQueueMinThresholdBytes(), loadFutureMinVal);
+    auto loadFutureMaxVal = arsProfileApi.getAttribute(
+        arsProfileSaiId, SaiArsProfileTraits::Attributes::LoadFutureMaxVal());
+    EXPECT_EQ(*flowletCfg.dynamicQueueMaxThresholdBytes(), loadFutureMaxVal);
+  }
   auto portLoadExponent = arsProfileApi.getAttribute(
       arsProfileSaiId, SaiArsProfileTraits::Attributes::PortLoadExponent());
   EXPECT_EQ(*flowletCfg.dynamicPhysicalQueueExponent(), portLoadExponent);
@@ -134,9 +139,12 @@ void verifyPortArsAttributes(
     auto portLoadPastWeight = portApi.getAttribute(
         portSaiId, SaiPortTraits::Attributes::ArsPortLoadPastWeight());
     EXPECT_EQ(*cfg.loadWeight(), portLoadPastWeight);
-    auto portLoadFutureWeight = portApi.getAttribute(
-        portSaiId, SaiPortTraits::Attributes::ArsPortLoadFutureWeight());
-    EXPECT_EQ(*cfg.queueWeight(), portLoadFutureWeight);
+    if (hw->getPlatform()->getAsic()->isSupported(
+            HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+      auto portLoadFutureWeight = portApi.getAttribute(
+          portSaiId, SaiPortTraits::Attributes::ArsPortLoadFutureWeight());
+      EXPECT_EQ(*cfg.queueWeight(), portLoadFutureWeight);
+    }
   }
 #endif
 }
@@ -151,7 +159,7 @@ bool validateFlowletSwitchingEnabled(
   auto arsProfileId = SaiApiTable::getInstance()->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::ArsProfile());
 
-  verifyArsProfile(static_cast<ArsProfileSaiId>(arsProfileId), flowletCfg);
+  verifyArsProfile(hw, static_cast<ArsProfileSaiId>(arsProfileId), flowletCfg);
 #endif
   return true;
 }

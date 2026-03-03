@@ -1,7 +1,6 @@
 // Copyright 2021-present Facebook. All Rights Reserved.
 #include "PollThread.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "TestUtils.h"
 
 using namespace std::literals;
 using namespace testing;

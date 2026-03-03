@@ -7,13 +7,13 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -67,9 +67,8 @@ class PlatformExplorerWrapper : public PlatformExplorer {
  public:
   explicit PlatformExplorerWrapper(
       const PlatformConfig& config,
-      DataStore& dataStore,
-      ScubaLogger& scubaLogger)
-      : PlatformExplorer(config, dataStore, scubaLogger) {
+      DataStore& dataStore)
+      : PlatformExplorer(config, dataStore) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
   }
@@ -88,7 +87,7 @@ class PlatformManagerHwTest : public ::testing::Test {
         platformExplorer_, ds.value(), platformConfig_);
     server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
         thriftHandler_,
-        facebook::fboss::platform::helpers::createTestThriftServerConfig());
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
     pmClient_ =
         server_->newClient<apache::thrift::Client<PlatformManagerService>>();
   }
@@ -103,17 +102,21 @@ class PlatformManagerHwTest : public ::testing::Test {
   }
   void explorationOk() {
     auto startTime = std::chrono::system_clock::now();
-    pkgManager_.processAll();
+    pkgManager_.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
     platformExplorer_.explore();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now() - startTime);
-    // Skip timing check for MORGAN800CC as it has longer exploration time
-    if (platformConfig_.platformName().value() != "MORGAN800CC") {
-      EXPECT_LE(duration, PlatformExplorer::kMaxSetupTime) << fmt::format(
-          "Exploration time {}s exceeded maximum allowed {}s",
-          duration.count(),
-          PlatformExplorer::kMaxSetupTime.count());
+    auto platformName = platformConfig_.platformName().value();
+    auto maxSetupTime = PlatformExplorer::kMaxSetupTime;
+    if (platformName == "MORGAN800CC") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMorgan800CC;
+    } else if (platformName == "MERU800BFA" || platformName == "MERU800BIA") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMeru800;
     }
+    EXPECT_LE(duration, maxSetupTime) << fmt::format(
+        "Exploration time {}s exceeded maximum allowed {}s",
+        duration.count(),
+        maxSetupTime.count());
     auto pmStatus = getPmStatus();
     EXPECT_TRUE(
         *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
@@ -132,11 +135,7 @@ class PlatformManagerHwTest : public ::testing::Test {
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
   DataStore dataStore_{platformConfig_};
-  ScubaLogger scubaLogger_{*platformConfig_.platformName(), dataStore_};
-  PlatformExplorerWrapper platformExplorer_{
-      platformConfig_,
-      dataStore_,
-      scubaLogger_};
+  PlatformExplorerWrapper platformExplorer_{platformConfig_, dataStore_};
   PkgManager pkgManager_{platformConfig_};
   std::optional<DataStore> ds =
       platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
