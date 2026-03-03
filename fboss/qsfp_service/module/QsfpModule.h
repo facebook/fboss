@@ -504,6 +504,14 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool isAecModule() const {
+    return false;
+  }
+
+  virtual bool isTunableOptics() const {
+    return false;
+  }
+
   double mwToDb(double value);
 
   /*

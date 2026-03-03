@@ -11,9 +11,12 @@
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
+
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -156,7 +159,7 @@ class AgentAclCounterTest : public AgentHwTest {
         return helper_->resolveNextHops(in, 2);
       });
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, kEcmpWidth);
+      helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       for (auto aclType : aclTypes) {
         addAclAndStat(&newCfg, aclType);
@@ -182,7 +185,7 @@ class AgentAclCounterTest : public AgentHwTest {
         return helper_->resolveNextHops(in, 2);
       });
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, kEcmpWidth);
+      helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       for (auto aclType : aclTypes) {
         switch (aclType) {
@@ -255,7 +258,7 @@ class AgentAclCounterTest : public AgentHwTest {
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
-    int l4DstPort = kL4DstPort();
+    int l4DstPort = kTestDstPort;
     if (aclType == AclType::L4_DST_PORT) {
       l4DstPort = kL4DstPort2();
     }
@@ -267,7 +270,7 @@ class AgentAclCounterTest : public AgentHwTest {
                                                        intfMac, // dst mac
                                                        kSrcIP(),
                                                        kDstIP(),
-                                                       kL4SrcPort(),
+                                                       kTestSrcPort,
                                                        l4DstPort,
                                                        0,
                                                        ttl)
@@ -278,7 +281,7 @@ class AgentAclCounterTest : public AgentHwTest {
                                                        intfMac, // dst mac
                                                        kSrcIP(),
                                                        kDstIP(),
-                                                       kL4SrcPort(),
+                                                       kTestSrcPort,
                                                        l4DstPort,
                                                        0,
                                                        ttl);
@@ -288,7 +291,8 @@ class AgentAclCounterTest : public AgentHwTest {
     // Since it is not re-written, it should hit the pipeline as if it
     // ingressed on the port, and be properly queued.
     if (frontPanel) {
-      auto outPort = helper_->ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+      auto outPort =
+          helper_->ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
@@ -303,14 +307,6 @@ class AgentAclCounterTest : public AgentHwTest {
 
   folly::IPAddressV6 kDstIP() {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
-  }
-
-  int kL4SrcPort() const {
-    return 8000;
-  }
-
-  int kL4DstPort() const {
-    return 8001;
   }
 
   int kL4DstPort2() const {
@@ -329,7 +325,7 @@ class AgentAclCounterTest : public AgentHwTest {
         return helper_->resolveNextHops(in, 2);
       });
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, kEcmpWidth);
+      helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       this->aclActionType_ = cfg::AclActionType::PERMIT;
       addAclAndStat(&newCfg, AclType::SRC_PORT);
@@ -358,7 +354,7 @@ class AgentAclCounterTest : public AgentHwTest {
         return helper_->resolveNextHops(in, 2);
       });
       auto wrapper = getSw()->getRouteUpdater();
-      helper_->programRoutes(&wrapper, kEcmpWidth);
+      helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
       auto newCfg{initialConfig(*getAgentEnsemble())};
       // match on SRC_PORT=1 + L4_DST_PORT=8002
       this->aclActionType_ = cfg::AclActionType::PERMIT;
@@ -518,7 +514,6 @@ class AgentAclCounterTest : public AgentHwTest {
     utility::addAclStat(config, aclName, counterName, setCounterTypes);
   }
 
-  static inline constexpr auto kEcmpWidth = 1;
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
@@ -656,7 +651,7 @@ TEST_F(AgentUdfAclCounterTest, VerifyAddRemoveUdfAcls) {
       return helper_->resolveNextHops(in, 2);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, kEcmpWidth);
+    helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
     auto newCfg{initialConfig(*getAgentEnsemble())};
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     applyNewConfig(newCfg);
@@ -710,7 +705,7 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfPlusUdfHash) {
       return helper_->resolveNextHops(in, 2);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, kEcmpWidth);
+    helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
     auto newCfg{initialConfig(*getAgentEnsemble())};
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_ACK);
     addAclAndStat(&newCfg, AclType::UDF_OPCODE_WRITE_IMMEDIATE);
@@ -742,7 +737,7 @@ TEST_F(AgentUdfAclCounterTest, VerifyUdfMinusUdfHash) {
       return helper_->resolveNextHops(in, 2);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    helper_->programRoutes(&wrapper, kEcmpWidth);
+    helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
     auto newCfg{initialConfig(*getAgentEnsemble())};
     auto asicType = checkSameAndGetAsicType(newCfg);
     newCfg.udfConfig() = utility::addUdfHashAclConfig(asicType);

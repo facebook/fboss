@@ -39,11 +39,10 @@ from fboss.cli.utils.utils import (
     KEYWORD_CONFIG_SHOW,
 )
 from fboss.fb_thrift_clients import FbossAgentClient
-from neteng.fboss.ctrl.ttypes import HwObjectType, PortLedExternalState
-from neteng.fboss.phy.ttypes import PortComponent
-from neteng.fboss.ttypes import FbossBaseError
-from thrift.Thrift import TApplicationException
-from thrift.transport.TTransport import TTransportException
+from neteng.fboss.ctrl.thrift_types import HwObjectType, PortLedExternalState
+from neteng.fboss.fboss.thrift_types import FbossBaseError
+from neteng.fboss.phy.phy.thrift_types import PortComponent
+from thrift.python.exceptions import ApplicationError, TransportError
 
 
 # Main Fboss py dir
@@ -770,7 +769,7 @@ class ListHwObjectsCli:
         "--hw-object",
         multiple=True,
         default=None,
-        type=click.Choice(sorted(HwObjectType()._NAMES_TO_VALUES.keys())),
+        type=click.Choice(sorted(e.name for e in HwObjectType)),
     )
     @click.option(
         "-c",
@@ -800,9 +799,7 @@ class ListHwObjectsCli:
     @fboss2_deprecate("show hw-object", DeprecationLevel.WARN)
     def _list(cli_opts, hw_object, cached, phy_only, switch_asic_only):
         """List Hw objects"""
-        hw_obj_types = [
-            HwObjectType()._NAMES_TO_VALUES[_hw_obj_type] for _hw_obj_type in hw_object
-        ]
+        hw_obj_types = [HwObjectType[_hw_obj_type].value for _hw_obj_type in hw_object]
         cli_opts.options["hw_obj_types"] = hw_obj_types
         list_hw_objects.ListHwObjectsCmd(cli_opts).run(
             hw_obj_types, cached, phy_only, switch_asic_only
@@ -857,7 +854,7 @@ if __name__ == "__main__":
         main()
     except FbossBaseError as e:
         raise SystemExit(f"Fboss Error: {e}")
-    except TApplicationException:
+    except ApplicationError:
         raise SystemExit("Command not available on host")
-    except TTransportException:
+    except TransportError:
         raise SystemExit("Failed connecting to host")

@@ -118,13 +118,73 @@ bool is2QueueWRRQueueId(int queueId) {
 }
 
 int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // Jericho3 only has two egress queues for cpu port and recycle port
-    // match default/low/med to queue 0, high to 1
-    return trafficClass == 7 ? 1 : 0;
+  switch (hwAsic->getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+      // Jericho3/Q4D only has two egress queues for cpu port and recycle port
+      // match default/low/med to queue 0, high to 1
+      return trafficClass == 7 ? 1 : 0;
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      // same one-to-one tc to queue mapping for other platforms
+      return trafficClass;
   }
-  // same one-to-one tc to queue mapping for other platforms
+  // should not reach here
   return trafficClass;
+}
+
+bool needsSeparateCpuQosPolicy(const HwAsic* hwAsic) {
+  switch (hwAsic->getAsicType()) {
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+      // Jericho3/Q4D require a separate qos policy for cpu port
+      return true;
+    case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
+    case cfg::AsicType::ASIC_TYPE_MOCK:
+    case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
+    case cfg::AsicType::ASIC_TYPE_EBRO:
+    case cfg::AsicType::ASIC_TYPE_GARONNE:
+    case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
+    case cfg::AsicType::ASIC_TYPE_JERICHO2:
+    case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+    case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+    case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_RAMON:
+    case cfg::AsicType::ASIC_TYPE_RAMON3:
+      return false;
+  }
+  // should not reach here
+  return false;
 }
 
 int getTrafficClassToEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
@@ -148,12 +208,16 @@ int getAqmGranularThreshold(const HwAsic& asic, int value) {
       asic.getThresholdGranularity();
 }
 
-cfg::ActiveQueueManagement
-GetEcnConfig(const HwAsic& asic, int minLength, int maxLength) {
+cfg::ActiveQueueManagement GetEcnConfig(
+    const HwAsic& asic,
+    int minLength,
+    int maxLength,
+    int probability) {
   cfg::ActiveQueueManagement ecnAQM;
   cfg::LinearQueueCongestionDetection ecnLQCD;
   ecnLQCD.minimumLength() = getAqmGranularThreshold(asic, minLength);
   ecnLQCD.maximumLength() = getAqmGranularThreshold(asic, maxLength);
+  ecnLQCD.probability() = probability;
   ecnAQM.detection()->linear() = ecnLQCD;
   ecnAQM.behavior() = cfg::QueueCongestionBehavior::ECN;
   return ecnAQM;

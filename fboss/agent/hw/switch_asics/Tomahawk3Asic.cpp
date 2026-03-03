@@ -163,6 +163,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -228,6 +229,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
       return false;
   }
   return false;
@@ -267,6 +269,10 @@ std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
 
 std::optional<uint32_t> Tomahawk3Asic::getArsBaseIndex() const {
   return getMaxEcmpGroups().value() - 128;
+}
+
+std::optional<uint32_t> Tomahawk3Asic::getMaxArsWidth() const {
+  return 64;
 }
 
 } // namespace facebook::fboss

@@ -76,6 +76,17 @@ int getEepromOffset(
       }
     }
   }
+
+  for (const auto& [__, pmUnitConfig] : *platformConfig.pmUnitConfigs()) {
+    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+      if (*i2cDeviceConfig.pmUnitScopedName() == eepromName + "_EEPROM" &&
+          *i2cDeviceConfig.isEeprom() && i2cDeviceConfig.eepromOffset()) {
+        eepromOffset = *i2cDeviceConfig.eepromOffset();
+        break;
+      }
+    }
+  }
+
   return eepromOffset;
 }
 

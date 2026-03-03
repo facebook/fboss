@@ -92,6 +92,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   }
   EXPECT_NO_THROW(mockPkgManager_.processAll(
       /*enablePkgMgmnt=*/true, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
   // Case 2: When rpm is already installed
   {
     InSequence seq;
@@ -103,6 +105,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
   EXPECT_NO_THROW(mockPkgManager_.processAll(
       /*enablePkgMgmnt=*/true, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
@@ -119,6 +123,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
   }
   EXPECT_NO_THROW(mockPkgManager_.processAll(
       /*enablePkgMgmnt=*/true, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
   // Case 2: When rpm is already installed and still expect to unload kmods
   // once because reloadKmods is true.
   {
@@ -131,6 +137,8 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
   EXPECT_NO_THROW(mockPkgManager_.processAll(
       /*enablePkgMgmnt=*/true, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, DisablePkgMgmnt) {
@@ -141,6 +149,8 @@ TEST_F(PkgManagerTest, DisablePkgMgmnt) {
   EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   EXPECT_NO_THROW(mockPkgManager_.processAll(
       /*enablePkgMgmnt=*/false, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
@@ -154,6 +164,8 @@ TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
   }
   EXPECT_NO_THROW(mockPkgManager_.processAll(
       /*enablePkgMgmnt=*/false, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, processRpms) {

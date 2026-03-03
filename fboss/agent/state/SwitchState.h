@@ -44,6 +44,7 @@
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/agent/state/TeFlowTable.h"
@@ -107,6 +108,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::ipTunnelMaps,
     MultiSwitchIpTunnelMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::srv6TunnelMaps,
+    MultiSwitchSrv6TunnelMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::teFlowTables,
@@ -463,6 +468,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   getFabricLinkMonitoringSystemPorts() const;
   const std::shared_ptr<MultiSwitchIpTunnelMap>& getTunnels() const;
 
+  const std::shared_ptr<MultiSwitchSrv6TunnelMap>& getSrv6Tunnels() const;
+
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
 
   const std::shared_ptr<UdfConfig> getUdfConfig() const {
@@ -540,6 +547,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
+
+  void resetSrv6Tunnels(std::shared_ptr<MultiSwitchSrv6TunnelMap> tunnels);
 
   void resetTeFlowTable(std::shared_ptr<MultiTeFlowTable> teFlowTable);
   void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);

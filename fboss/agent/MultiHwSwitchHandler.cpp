@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/MultiHwSwitchHandler.h"
+#include <folly/logging/xlog.h>
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
@@ -287,9 +288,25 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedSync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<SwitchID> switchId) noexcept {
+  if (hwSwitchSyncers_.size() < 1) {
+    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
+    return false;
+  }
+  if (switchId.has_value()) {
+    auto iter = hwSwitchSyncers_.find(switchId.value());
+    if (iter == hwSwitchSyncers_.end()) {
+      XLOG_EVERY_MS(WARNING, 5000) << "hw switch syncer for switch id "
+                                   << switchId.value() << " not found";
+      return false;
+    }
+    if (!isHwSwitchConnected(switchId.value())) {
+      return false;
+    }
+    return iter->second->sendPacketSwitchedSync(std::move(pkt));
+  }
+  // Fallback: use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
     if (isHwSwitchConnected(hwSwitchHandler.first)) {
       return hwSwitchHandler.second->sendPacketSwitchedSync(std::move(pkt));
@@ -299,9 +316,25 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
 }
 
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
-    std::unique_ptr<TxPacket> pkt) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<SwitchID> switchId) noexcept {
+  if (hwSwitchSyncers_.size() < 1) {
+    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
+    return false;
+  }
+  if (switchId.has_value()) {
+    auto iter = hwSwitchSyncers_.find(switchId.value());
+    if (iter == hwSwitchSyncers_.end()) {
+      XLOG_EVERY_MS(WARNING, 5000) << "hw switch syncer for switch id "
+                                   << switchId.value() << " not found";
+      return false;
+    }
+    if (!isHwSwitchConnected(switchId.value())) {
+      return false;
+    }
+    return iter->second->sendPacketSwitchedAsync(std::move(pkt));
+  }
+  // Fallback: use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
     if (isHwSwitchConnected(hwSwitchHandler.first)) {
       return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
@@ -314,15 +347,18 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
     PacketType packetType) noexcept {
-  CHECK_GE(hwSwitchSyncers_.size(), 1);
-  // use first available connected switch to send pkt
-  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
-    if (isHwSwitchConnected(hwSwitchHandler.first)) {
-      return hwSwitchHandler.second->sendPacketOutOfPortSyncForPktType(
-          std::move(pkt), portID, packetType);
-    }
+  auto switchId = sw_->getScopeResolver()->scope(portID).switchId();
+  auto iter = hwSwitchSyncers_.find(switchId);
+  if (iter == hwSwitchSyncers_.end()) {
+    XLOG_EVERY_MS(WARNING, 5000)
+        << "hw switch syncer for switch id " << switchId << " not found";
+    return false;
   }
-  return false;
+  if (!isHwSwitchConnected(switchId)) {
+    return false;
+  }
+  return iter->second->sendPacketOutOfPortSyncForPktType(
+      std::move(pkt), portID, packetType);
 }
 
 std::map<SwitchID, HwSwitchHandler*> MultiHwSwitchHandler::getHwSwitchHandlers()

@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include <optional>
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
-#include "fboss/lib/i2c/I2cController.h"
 #include "fboss/mdio/BspDeviceMdio.h"
 #include "fboss/mdio/Phy.h"
 
@@ -30,6 +30,9 @@ class BspPhyIO {
     return mdioController_.get();
   }
 
+  void init(bool forceReset = true) const;
+  bool hasResetPath() const;
+
   phy::Cl45Data readRegister(
       phy::PhyAddress phyAddr,
       phy::Cl45DeviceAddress deviceAddr,
@@ -44,7 +47,8 @@ class BspPhyIO {
  private:
   std::unique_ptr<BspDeviceMdioController> mdioController_;
   BspPhyIOControllerInfo controllerInfo_;
-  int phyID_;
+  std::optional<std::string> controllerResetPath_;
+  int controllerId_;
   int pimID_;
 };
 

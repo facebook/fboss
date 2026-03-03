@@ -306,6 +306,33 @@ bool ConfigValidator::isValidXcvrCtrlBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidI2cAdaptersFromCpu(
+    const std::vector<std::string>& i2cAdaptersFromCpu) {
+  static const re2::RE2 kCpuBusNameRegex{"CPU_BUS@\\d+"};
+  bool hasVirtual = false;
+  bool hasExact = false;
+  for (const auto& name : i2cAdaptersFromCpu) {
+    if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
+      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+        XLOG(ERR) << fmt::format(
+            "Invalid virtual bus name '{}'. "
+            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            name);
+        return false;
+      }
+      hasVirtual = true;
+    } else {
+      hasExact = true;
+    }
+  }
+  if (hasVirtual && hasExact) {
+    XLOG(ERR)
+        << "i2cAdaptersFromCpu must not mix CPU_BUS@N virtual names with exact adapter names";
+    return false;
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidI2cAdapterBlockConfig(
     const I2cAdapterBlockConfig& i2cAdapterBlockConfig) {
   if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->empty()) {
@@ -548,6 +575,13 @@ bool ConfigValidator::isValidI2cDeviceConfig(
         *i2cDeviceConfig.pmUnitScopedName());
     return false;
   }
+  if (i2cDeviceConfig.eepromOffset() && !*i2cDeviceConfig.isEeprom()) {
+    XLOGF(
+        ERR,
+        "eepromOffset defined while isEeprom is not true for {}",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
   return true;
 }
 
@@ -672,6 +706,37 @@ bool ConfigValidator::isValidDeviceName(
   return false;
 }
 
+bool ConfigValidator::isValidPlatformWithoutPmOptics(
+    const PlatformConfig& config) {
+  const auto& platforms =
+      platform_manager_validators_constants::PLATFORMS_WITHOUT_PM_OPTICS();
+  if (std::find(platforms.begin(), platforms.end(), *config.platformName()) ==
+      platforms.end()) {
+    return true;
+  }
+  auto fail = [&](std::string_view reason) {
+    XLOGF(ERR, "Platform {}: {}", *config.platformName(), reason);
+    return false;
+  };
+  if (*config.numXcvrs() != 0) {
+    return fail("must not have numXcvrs set");
+  }
+  for (const auto& [_, pmUnitCfg] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitCfg.pciDeviceConfigs()) {
+      if (!pciDev.xcvrCtrlBlockConfigs()->empty() ||
+          !pciDev.ledCtrlBlockConfigs()->empty()) {
+        return fail("must not have xcvr/led block configs");
+      }
+    }
+  }
+  for (const auto& [symlink, _] : *config.symbolicLinkToDevicePath()) {
+    if (symlink.starts_with("/run/devmap/xcvrs/")) {
+      return fail("must not have xcvr symlinks");
+    }
+  }
+  return true;
+}
+
 bool ConfigValidator::isValid(const PlatformConfig& config) {
   XLOG(INFO) << "Validating platform_manager config";
 
@@ -693,6 +758,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  if (!isValidPlatformWithoutPmOptics(config)) {
+    return false;
+  }
+
   if (config.rootSlotType()->empty()) {
     XLOG(ERR) << "Platform rootSlotType cannot be empty";
     return false;
@@ -703,6 +772,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     XLOG(ERR) << fmt::format(
         "Invalid rootSlotType {}. Not found in slotTypeConfigs",
         *config.rootSlotType());
+    return false;
+  }
+
+  // Validate i2cAdaptersFromCpu entries: must all be either CPU_BUS@N
+  // virtual names or exact adapter names, not a mix.
+  if (!isValidI2cAdaptersFromCpu(*config.i2cAdaptersFromCpu())) {
     return false;
   }
 

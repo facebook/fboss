@@ -28,10 +28,10 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-using switch_state_tags = state::switch_state_tags::strings;
-using switch_config_tags = cfg::switch_config_tags::strings;
-using ctrl_if_tags = ctrl_tags::strings;
-using common_if_tags = common_tags::strings;
+namespace switch_state_tags = apache::thrift::ident;
+namespace switch_config_tags = apache::thrift::ident;
+namespace ctrl_if_tags = apache::thrift::ident;
+namespace common_if_tags = apache::thrift::ident;
 
 template <typename NodeT>
 struct IsThriftCowNode {

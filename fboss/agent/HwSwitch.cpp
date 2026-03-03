@@ -133,6 +133,18 @@ std::tuple<int, int, int> normalizeSdkVersion(std::string sdkVersion) {
   return std::make_tuple(bcmVer, bcmSaiVer, leabaSaiVer);
 }
 
+bool isSame(
+    const std::shared_ptr<facebook::fboss::SwitchState>& lhs,
+    const std::shared_ptr<facebook::fboss::SwitchState>& rhs) {
+  if (lhs && rhs) {
+    // THRIFT_COPY
+    return (lhs->toThrift() == rhs->toThrift());
+  } else if (lhs || rhs) {
+    return false;
+  }
+  return true;
+}
+
 } // namespace
 namespace facebook::fboss {
 
@@ -617,6 +629,31 @@ HwInitResult HwSwitch::initLightImpl(
     return stateChanged(deltas);
   });
   return ret;
+}
+
+std::shared_ptr<SwitchState> HwSwitch::stateChanged(
+    const std::vector<StateDelta>& deltas,
+    const HwWriteBehaviorRAII& behavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
+  // use oper delta to program the state
+  std::vector<fsdb::OperDelta> inDeltas;
+  inDeltas.reserve(deltas.size());
+  std::transform(
+      deltas.begin(),
+      deltas.end(),
+      std::back_inserter(inDeltas),
+      [](const StateDelta& delta) { return delta.getOperDelta(); });
+
+  auto outDelta = stateChanged(inDeltas, behavior, deltaApplicationBehavior);
+  if (outDelta.changes()->empty()) {
+    if (FLAGS_verify_apply_oper_delta &&
+        !isSame(deltas.back().newState(), getProgrammedState())) {
+      XLOG(FATAL) << "oper delta verification failed";
+    }
+    return deltas.back().newState();
+  }
+  // obtain the state that actually got programmed
+  return StateDelta(deltas.back().newState(), outDelta).newState();
 }
 
 } // namespace facebook::fboss

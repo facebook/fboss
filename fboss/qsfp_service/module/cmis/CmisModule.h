@@ -203,6 +203,9 @@ class CmisModule : public QsfpModule {
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
 
+  // Cached firmware build number from CDB Get Firmware Info command
+  std::optional<uint16_t> cachedFwBuildNumber_;
+
   /*
    * Structure to hold datapath init/deinit state per port using timers
    * progStartTimer: Time point when datapath programming started.
@@ -513,6 +516,12 @@ class CmisModule : public QsfpModule {
   FirmwareStatus getFwStatus();
 
   /*
+   * Fetches the firmware build number from CDB Get Firmware Info command.
+   * Returns the build number if successful, or std::nullopt on failure.
+   */
+  std::optional<uint16_t> fetchFwBuildNumberFromCdb();
+
+  /*
    * Gather host side per lane configuration settings and return false when it
    * fails
    */
@@ -568,9 +577,21 @@ class CmisModule : public QsfpModule {
   void resetDataPath(const std::string& portName) override;
 
   /*
+   * Returns true if the current module is LPO
+   */
+  bool isLpoModule() const override;
+
+  /*
+   * Return if module is AEC cable.
+   */
+  bool isAecModule() const override {
+    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
+  }
+
+  /*
    * returns whether optics frequency is tunable or not
    */
-  bool isTunableOptics() const;
+  bool isTunableOptics() const override;
 
   /*
    * returns the tunable optics laser status and laser frequency
@@ -848,18 +869,6 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
-
-  /*
-   * Returns true if the current module is LPO
-   */
-  bool isLpoModule() const override;
-
-  /*
-   * Return if module is AEC cable.
-   */
-  bool isAecModule() const {
-    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
-  }
 
   std::time_t vdmIntervalStartTime_{0};
 };

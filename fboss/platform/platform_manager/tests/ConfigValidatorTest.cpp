@@ -107,6 +107,34 @@ TEST(ConfigValidatorTest, InvalidRootSlotType) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
+TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
+  // CPU_BUS@0 — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0"}));
+
+  // CPU_BUS@1 — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@1"}));
+
+  // CPU_BUS@0 + CPU_BUS@1 — valid (two-bus config)
+  EXPECT_TRUE(
+      ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@1"}));
+
+  // Exact names only — valid
+  EXPECT_TRUE(
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"SMBus I801 adapter at 5000"}));
+
+  // CPU_BUS@2 — invalid (only @0 and @1 supported)
+  EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@2"}));
+
+  // Mixed styles — invalid
+  EXPECT_FALSE(
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"CPU_BUS@0", "SMBus I801 adapter at 5000"}));
+
+  // Empty list — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({}));
+}
+
 TEST(ConfigValidatorTest, ValidConfig) {
   auto config = getBasicConfig();
   EXPECT_TRUE(ConfigValidator().isValid(config));
@@ -1586,4 +1614,27 @@ TEST(ConfigValidatorTest, LogicalEeproms) {
       createEepromConfig("CHASSIS_EEPROM", "INCOMING@1", "0x50", "at24", 0)};
   EXPECT_TRUE(
       ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+}
+
+TEST(ConfigValidatorTest, NoOpticsConfigForDarwinPlatforms) {
+  PlatformConfig config;
+  config.platformName() = "DARWIN";
+  EXPECT_TRUE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+
+  config.numXcvrs() = 32;
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+  config.numXcvrs() = 0;
+
+  auto pciDev = getValidPciDeviceConfig();
+  pciDev.xcvrCtrlBlockConfigs() = {XcvrCtrlBlockConfig{}};
+  pciDev.ledCtrlBlockConfigs() = {LedCtrlBlockConfig{}};
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pciDeviceConfigs() = {pciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+
+  config.pmUnitConfigs() = {};
+  config.symbolicLinkToDevicePath() = {
+      {"/run/devmap/xcvrs/xcvr_1", "/[XCVR_1]"}};
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
 }

@@ -69,6 +69,7 @@ SensorServiceImpl::SensorServiceImpl(
     const std::shared_ptr<Utils>& utils,
     const std::shared_ptr<PlatformUtils>& platformUtils)
     : sensorConfig_(sensorConfig),
+      structuredLogger_("sensor_service"),
       utils_(utils),
       platformUtils_(platformUtils) {
   fsdbSyncer_ = std::make_unique<FsdbSyncer>();
@@ -225,6 +226,10 @@ SensorData SensorServiceImpl::fetchSensorDataImpl(
         sensorName,
         sysfsPath,
         sysfsFileExists ? folly::errnoStr(errno) : "File does not exist");
+    structuredLogger_.logAlert(
+        "sensor_sysfs_read_failure",
+        sysfsFileExists ? folly::errnoStr(errno) : "File does not exist",
+        {{"sensor_name", sensorName}, {"sysfs_path", sysfsPath}});
   }
   sensorData.thresholds() = thresholds ? *thresholds : Thresholds();
   sensorData.sensorType() = sensorType;
@@ -322,6 +327,10 @@ SensorData SensorServiceImpl::processAsicCmd(const AsicCommand& asicCommand) {
   if (exitStatus != 0) {
     XLOG(ERR) << fmt::format(
         "Failed to run AsicCommand '{}' with exit status: {}", cmd, exitStatus);
+    structuredLogger_.logAlert(
+        "asic_cmd_failure",
+        fmt::format("Command failed with exit status: {}", exitStatus),
+        {{"command", cmd}, {"exit_status", std::to_string(exitStatus)}});
     return sensorData;
   }
 
@@ -383,6 +392,10 @@ void SensorServiceImpl::processPower(
           "{}: Error reading power (Based on {})",
           *perSlotConfig.name(),
           calcMethod);
+      structuredLogger_.logAlert(
+          "power_read_failure",
+          fmt::format("Error reading power for {}", *perSlotConfig.name()),
+          {{"slot_name", *perSlotConfig.name()}, {"calc_method", calcMethod}});
     }
   }
 
@@ -395,6 +408,10 @@ void SensorServiceImpl::processPower(
       totalPowerVal += *sensorValue;
     } else {
       XLOG(ERR) << fmt::format("{}: Error reading power sensor", sensorName);
+      structuredLogger_.logAlert(
+          "power_read_failure",
+          fmt::format("Error reading power sensor {}", sensorName),
+          {{"sensor_name", sensorName}});
     }
   }
 

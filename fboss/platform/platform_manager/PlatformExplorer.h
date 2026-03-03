@@ -14,7 +14,6 @@
 #include "fboss/platform/platform_manager/I2cExplorer.h"
 #include "fboss/platform/platform_manager/PciExplorer.h"
 #include "fboss/platform/platform_manager/PresenceChecker.h"
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
@@ -37,6 +36,9 @@ class PlatformExplorer {
 
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
+  auto static constexpr kExplorePmUnitTime =
+      "platform_explorer.explore_pm_unit_time.{}";
+
   auto static constexpr kChassisEepromVersion = "chassis_eeprom_version";
   auto static constexpr kChassisEepromVersionODS =
       "platform_explorer.chassis_eeprom_version.{}";
@@ -57,7 +59,6 @@ class PlatformExplorer {
   explicit PlatformExplorer(
       const PlatformConfig& config,
       DataStore& dataStore,
-      ScubaLogger& scubaLogger,
       std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 

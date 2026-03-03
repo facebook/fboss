@@ -373,6 +373,8 @@ void ProdInvariantTest::verifySafeDiagCommands() {
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
@@ -769,8 +771,15 @@ class ProdInvariantStswTest : public ProdInvariantRtswTest {
                                  kEcmpWidth,
                                  is_mmu_lossless_mode())
                                  .second;
+    auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
+    auto asic = checkSameAndGetAsic(hwAsics);
+
     for (auto& downlinkPort : ecmpDownlinkPorts) {
       ecmpPorts_.emplace_back(downlinkPort);
+      if (asic->getMaxArsWidth().has_value() &&
+          ecmpPorts_.size() == asic->getMaxArsWidth().value()) {
+        break;
+      }
     }
     setupAgentTestEcmp(ecmpPorts_);
     XLOG(DBG2) << "ProdInvariantTest setup done";
@@ -787,7 +796,7 @@ TEST_F(ProdInvariantStswTest, verifyInvariants) {
   auto verify = [&]() {
     verifyAcl();
     verifyCopp();
-    verifyLoadBalancing(30000);
+    verifyLoadBalancing(90000);
     verifyDscpToQueueMapping();
     verifySafeDiagCommands();
     verifyThriftHandler();

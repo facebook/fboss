@@ -67,6 +67,7 @@ target_link_libraries(sensor_service_lib
   platform_manager_config_validator
   platform_name_lib
   platform_utils
+  structured_logger
   sensor_service_utils
   sensor_service_cpp2
   sensor_service_stats_cpp2

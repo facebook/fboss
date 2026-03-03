@@ -85,6 +85,7 @@ class AgentArsBase : public AgentHwTest {
       bool addMirror = false) const;
   RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const;
   virtual void generatePrefixes();
+  virtual std::vector<PortID> getTestPorts() const;
   cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) const;
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
@@ -95,7 +96,6 @@ class AgentArsBase : public AgentHwTest {
 
  protected:
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};
-  static inline constexpr auto kEcmpWidth = 4;
   static inline constexpr auto kOutQueue = 6;
   static inline constexpr auto kDscp = 30;
   static inline constexpr auto kSflowMirrorName = "sflow_mirror";

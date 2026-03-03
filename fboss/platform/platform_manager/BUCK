@@ -93,6 +93,7 @@ cpp_library(
         ":utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:cpu_id",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
@@ -190,30 +191,15 @@ cpp_library(
         ":platform_manager_config-cpp2-types",
         ":platform_manager_service-cpp2-types",
         ":presence_checker",
-        ":scuba_logger",
         ":utils",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:structured_logger",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
         "//folly/logging:logging",
-    ],
-)
-
-cpp_library(
-    name = "scuba_logger",
-    srcs = [
-        "ScubaLogger.cpp",
-    ],
-    exported_deps = [
-        ":data_store",
-        ":platform_manager_config-cpp2-types",
-        "//common/network:util",
-        "//folly/json:dynamic",
-        "//folly/logging:logging",
-        "//scribe/client:scribe_client_no_sr",
     ],
 )
 
@@ -307,10 +293,10 @@ cpp_binary(
         ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_handler",
-        ":scuba_logger",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:structured_logger",
     ],
     external_deps = [("systemd", None, "systemd")],
 )

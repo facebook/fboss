@@ -534,15 +534,15 @@ PciExplorer::tryDiscoverSpiDevices(
     }
   }
   if (spiMasterPath.empty()) {
-    XLOG(WARNING) << fmt::format(
+    XLOG_EVERY_MS(WARNING, 1000) << fmt::format(
         "Could not find any directory ending with {} in {}",
         expectedEnding,
         pciDevice.sysfsPath());
     return std::nullopt;
   }
   if (!fs::exists(spiMasterPath)) {
-    XLOG(WARNING) << fmt::format(
-        "SPI Master path not found at: {}", spiMasterPath);
+    XLOG_EVERY_MS(WARNING, 1000)
+        << fmt::format("SPI Master path not found at: {}", spiMasterPath);
     return std::nullopt;
   }
 
@@ -575,37 +575,47 @@ PciExplorer::tryDiscoverSpiDevices(
       const auto& devName = *spiDeviceConfigItr->pmUnitScopedName();
       auto spiCharDevPath = fmt::format("/dev/spidev{}.{}", busNum, chipSelect);
       if (!fs::exists(spiCharDevPath)) {
-        // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
-        auto overrideDriver = platformFsUtils_->writeStringToSysfs(
-            "spidev",
-            fs::path("/sys/bus/spi/devices") / spiDevId / "driver_override");
-        if (!overrideDriver) {
-          throw PciSubDeviceRuntimeError(
-              fmt::format(
-                  "Failed overriding SpiDriver spidev to "
-                  "/sys/bus/spi/devices/{}/driver_override for SpiDevice {}",
-                  spiDevId,
-                  devName),
+        // Only attempt driver binding if no driver is attached yet.
+        // On retries the driver may already be bound while the char
+        // device hasn't appeared; rebinding would fail with EBUSY.
+        auto driverSymlink =
+            fs::path("/sys/bus/spi/devices") / spiDevId / "driver";
+        if (!fs::exists(driverSymlink)) {
+          // https://github.com/torvalds/linux/blob/master/Documentation/spi/spidev.rst#device-creation-driver-binding
+          auto overrideDriver = platformFsUtils_->writeStringToSysfs(
+              "spidev",
+              fs::path("/sys/bus/spi/devices") / spiDevId / "driver_override");
+          if (!overrideDriver) {
+            throw PciSubDeviceRuntimeError(
+                fmt::format(
+                    "Failed overriding SpiDriver spidev to "
+                    "/sys/bus/spi/devices/{}/driver_override for SpiDevice {}",
+                    spiDevId,
+                    devName),
+                devName);
+          }
+          auto bindSpiDev = platformFsUtils_->writeStringToSysfs(
+              spiDevId, "/sys/bus/spi/drivers/spidev/bind");
+          if (!bindSpiDev) {
+            throw PciSubDeviceRuntimeError(
+                fmt::format(
+                    "Failed binding SpiDevice {} to "
+                    "/sys/bus/spi/drivers/spidev/bind for SpiDevice {}",
+                    spiDevId,
+                    devName),
+                devName);
+          }
+          XLOG(INFO) << fmt::format(
+              "Completed initializing SpiDevice {} as {} for SpiDevice {}",
+              spiDevId,
+              spiCharDevPath,
               devName);
         }
-        auto bindSpiDev = platformFsUtils_->writeStringToSysfs(
-            spiDevId, "/sys/bus/spi/drivers/spidev/bind");
-        if (!bindSpiDev) {
-          throw PciSubDeviceRuntimeError(
-              fmt::format(
-                  "Failed binding SpiDevice {} to "
-                  "/sys/bus/spi/drivers/spidev/bind for SpiDevice {}",
-                  spiDevId,
-                  devName),
-              devName);
+        if (!fs::exists(spiCharDevPath)) {
+          return std::nullopt;
         }
-        XLOG(INFO) << fmt::format(
-            "Completed initializing SpiDevice {} as {} for SpiDevice {}",
-            spiDevId,
-            spiCharDevPath,
-            devName);
       } else {
-        XLOG(INFO) << fmt::format(
+        XLOG_EVERY_MS(INFO, 1000) << fmt::format(
             "{} already exists. Skipping binding SpiDevice {} for SpiDevice {}",
             spiCharDevPath,
             spiDevId,
@@ -617,7 +627,7 @@ PciExplorer::tryDiscoverSpiDevices(
 
   auto expectedCount = spiMasterConfig.spiDeviceConfigs()->size();
   if (spiCharDevPaths.size() != expectedCount) {
-    XLOG(WARNING) << fmt::format(
+    XLOG_EVERY_MS(WARNING, 1000) << fmt::format(
         "SPI device count mismatch for SPI master {} at {}. "
         "Expected {} SPI devices but found {}. "
         "Directories matching pattern '{}' may be missing or "
@@ -638,17 +648,32 @@ std::map<std::string, std::string> PciExplorer::getSpiDeviceCharDevPaths(
     uint32_t instanceId) {
   const auto& pmUnitName =
       *spiMasterConfig.fpgaIpBlockConfig()->pmUnitScopedName();
-  auto result = tryDiscoverSpiDevices(pciDevice, spiMasterConfig, instanceId);
-  if (!result.has_value()) {
+
+  std::optional<std::map<std::string, std::string>> result;
+  if (!checkDeviceReadinessWithTimeout(
+          pmUnitName,
+          [&]() -> bool {
+            result =
+                tryDiscoverSpiDevices(pciDevice, spiMasterConfig, instanceId);
+            return result.has_value();
+          },
+          fmt::format(
+              "SPI devices for {} under {} not yet ready. "
+              "Waiting for at most {}s",
+              pmUnitName,
+              pciDevice.sysfsPath(),
+              kPciWaitSecs.count()),
+          kPciWaitSecs)) {
     throw PciSubDeviceRuntimeError(
         fmt::format(
-            "SPI device discovery failed for {} under {}. "
-            "Expected {} SPI devices. Check that the FPGA appears "
-            "as a PCI device (lspci) and that kmods are initializing "
-            "the SPI master and bus nodes.",
+            "SPI device discovery timed out after {}s "
+            "for {} under {}. "
+            "Check that the FPGA appears as a PCI "
+            "device (lspci) and that kmods are "
+            "initializing the SPI master and bus nodes.",
+            kPciWaitSecs.count(),
             pmUnitName,
-            pciDevice.sysfsPath(),
-            spiMasterConfig.spiDeviceConfigs()->size()),
+            pciDevice.sysfsPath()),
         pmUnitName);
   }
   return std::move(*result);

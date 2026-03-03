@@ -47,6 +47,7 @@ target_link_libraries(data_corral_service_lib
   weutil_lib
   platform_utils
   platform_name_lib
+  structured_logger
   data_corral_service_cpp2
   led_manager_config_types_cpp2
   Folly::folly

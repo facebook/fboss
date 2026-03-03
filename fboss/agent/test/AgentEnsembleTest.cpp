@@ -70,10 +70,6 @@ void AgentEnsembleTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
-  if (FLAGS_enable_sdk_dump) {
-    agentEnsemble_->getHwDebugDump();
-  }
-
   if (FLAGS_setup_for_warmboot &&
       isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
     XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";
@@ -86,6 +82,9 @@ void AgentEnsembleTest::TearDown() {
 void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
   if (!agentEnsemble_) {
     return;
+  }
+  if (FLAGS_enable_sdk_dump) {
+    agentEnsemble_->getHwDebugDump();
   }
 
   if (::testing::Test::HasFailure()) {

@@ -286,6 +286,7 @@ cpp_unittest(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:setup_thrift",
             "//fboss/agent/hw/bcm:bcm",
@@ -296,7 +297,6 @@ cpp_unittest(
         ],
         external_deps = [
             "gflags",
-            "glog",
             ("broadcom-xgs-robo", None, "xgs_robo"),
         ],
     )
@@ -403,6 +403,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:setup_thrift",
             "//fboss/agent:switch_config-cpp2-types",
@@ -431,7 +432,6 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         external_deps = [
             "boost",
             "gflags",
-            "glog",
             ("broadcom-xgs-robo", None, "xgs_robo"),
         ],
     )
@@ -448,6 +448,7 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         supports_static_listing = False,
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:gtest_defs",
             "//fboss/agent:handler",
@@ -483,7 +484,6 @@ bcm_test_fake_hw_facebook_test_srcs = bcm_test_all_hw_facebook_srcs + [
         external_deps = [
             "boost",
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS
@@ -495,11 +495,9 @@ cpp_unittest(
         "BcmCosQueueFBConvertorsTests.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm_cosqueue_fb_convertors",
-    ],
-    external_deps = [
-        "glog",
     ],
 )
 
@@ -537,11 +535,11 @@ cpp_unittest(
         "BcmFieldProcessorFBConvertorsTests.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/agent:fboss-error",
         "//fboss/agent/hw/bcm:bcm_fieldprocessor_fb_convertors",
     ],
     external_deps = [
-        "glog",
         ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )
@@ -551,8 +549,10 @@ cpp_unittest(
     srcs = [
         "GPort.cpp",
     ],
+    deps = [
+        "fbsource//third-party/glog:glog",
+    ],
     external_deps = [
-        "glog",
         ("broadcom-xgs-robo", None, "xgs_robo"),
     ],
 )
@@ -565,6 +565,7 @@ cpp_unittest(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent:setup_thrift_prod",
@@ -579,7 +580,6 @@ cpp_unittest(
         external_deps = [
             "boost",
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS
@@ -593,6 +593,7 @@ cpp_unittest(
         ],
         versions = to_versions(sdk),
         deps = [
+            "fbsource//third-party/glog:glog",
             "fbsource//third-party/googletest:gtest",
             "//fboss/agent:main-bcm",
             "//fboss/agent:setup_thrift_prod",
@@ -605,7 +606,6 @@ cpp_unittest(
         external_deps = [
             "boost",
             "gflags",
-            "glog",
         ],
     )
     for sdk in BCM_SDKS

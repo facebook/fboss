@@ -12,7 +12,7 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
+#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
 
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -21,7 +21,7 @@ using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
 using namespace ::testing;
 
-using k = test_tags::strings;
+namespace k = apache::thrift::ident;
 
 template <typename ThriftType, bool EnableHybridStorage>
 struct is_allow_skip_thrift_cow {

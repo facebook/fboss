@@ -7,7 +7,6 @@
 
 #include <CLI/CLI.hpp>
 #include <fmt/core.h>
-#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -85,13 +84,33 @@ const std::vector<std::pair<std::string, FunctionWithDisruptiveFlag>>
 std::set<std::string> getValidDetailNames() {
   std::set<std::string> result{"all"};
   for (const auto& [name, func] : DETAIL_FUNCTIONS) {
-    if (func.second == Disruptiveness::DISRUPTIVE) {
-      result.insert(name + "(disruptive)");
-    } else {
-      result.insert(name);
-    }
+    result.insert(name);
   }
   return result;
+}
+
+std::string getDetailsHelpText() {
+  std::string nonDisruptive, disruptive;
+  for (const auto& [name, func] : DETAIL_FUNCTIONS) {
+    if (func.second == Disruptiveness::DISRUPTIVE) {
+      if (!disruptive.empty()) {
+        disruptive += ", ";
+      }
+      disruptive += name;
+    } else {
+      if (!nonDisruptive.empty()) {
+        nonDisruptive += ", ";
+      }
+      nonDisruptive += name;
+    }
+  }
+  return fmt::format(
+      "Comma-separated list of details to print.\n"
+      "  Safe:       {}\n"
+      "  Disruptive: {} (require --disruptive. System behavior undefined)\n"
+      "  all         Run everything (includes disruptive. System behavior undefined)\n",
+      nonDisruptive,
+      disruptive);
 }
 
 void executeSingleDetail(
@@ -111,7 +130,7 @@ void executeSingleDetail(
         ::toupper);
     std::cout
         << fmt::format(
-               "##### Skipping: {}(Dirsuptive), in non-disruptive mode #####",
+               "##### Skipping: {}(Disruptive), in non-disruptive mode #####",
                upperCaseName)
         << std::endl;
   }
@@ -156,12 +175,7 @@ int main(int argc, char** argv) {
       "--disruptive",
       disruptiveMode,
       "Enable Disruptive Mode to run disruptive functions");
-  app.add_option("--details", detailsArg, folly::stripLeftMargin(R"(
-           Comma-separated list of details to print.
-           Use specific section details to avoid printing too much data.
-           Use 'all' only if necessary. 'all' can take a long time to run.
-           Recommended usage with `all` is to redirect the output to a file.
-         )"))
+  app.add_option("--details", detailsArg, getDetailsHelpText())
       ->delimiter(',')
       ->required()
       ->check(CLI::IsMember(getValidDetailNames()));

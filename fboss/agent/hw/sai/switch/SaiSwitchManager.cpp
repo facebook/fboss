@@ -64,7 +64,8 @@ sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
 
 bool isJerichoAsic(cfg::AsicType asicType) {
   return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO4;
 }
 
 void fillHwSwitchDropStats(
@@ -272,7 +273,8 @@ SaiSwitchManager::SaiSwitchManager(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // TODO (Q4D/J4/R4): Enable switch pipeline stats after SDK support in 15.x
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   // load switch pipeline sai ids
   int numPipelines = SaiApiTable::getInstance()->switchApi().getAttribute(
       switch_->adapterKey(), SaiSwitchTraits::Attributes::NumberOfPipes{});
@@ -870,7 +872,9 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           kJerichoConfigDropStats.end());
     }
     if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+            cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+        platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_JERICHO4) {
       static const std::vector<sai_stat_id_t> kJericho3ConfigDropStats{
           // IN configured drop reasons
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS,
@@ -1153,7 +1157,8 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedPipelineStats()
 const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
     bool updateWatermarks) const {
   HwSwitchPipelineStats switchPipelineStats;
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // TODO (Q4D/J4/R4): Enable switch pipeline stats after SDK support in 15.x
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   auto watermarkStats = supportedPipelineWatermarkStats();
   if (updateWatermarks && watermarkStats.size() > 0) {
     for (const auto& pipeline : switchPipelines_) {
@@ -1419,17 +1424,15 @@ void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
-  auto switchType = platform_->getAsic()->getSwitchType();
-  // Supported only for FABRIC switches!
-  if (switchType == cfg::SwitchType::FABRIC ||
-      switchType == cfg::SwitchType::VOQ) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
     XLOG(DBG2) << " Setting switch state to : "
                << (isolate ? "DRAINED" : "UNDRAINED");
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
   } else {
     XLOG(DBG2) << "Ignoring setSwitchIsolate for switch type "
-               << apache::thrift::util::enumNameSafe(switchType);
+               << apache::thrift::util::enumNameSafe(
+                      platform_->getAsic()->getSwitchType());
   }
 }
 
@@ -1638,8 +1641,10 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
 }
 
 bool SaiSwitchManager::isMeasureCableLengthEnabled() const {
-  return GET_OPT_ATTR(
-      Switch, CablePropagationDelayMeasurement, switch_->attributes());
+  auto& attr = std::get<std::optional<
+      SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>>(
+      switch_->attributes());
+  return attr.has_value() && attr->value();
 }
 
 void SaiSwitchManager::setPfcWatchdogTimerGranularity(

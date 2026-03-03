@@ -3,28 +3,85 @@
 #include "fboss/agent/ValidateStateUpdate.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwAsicTable.h"
+#include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
+
 #include "fboss/agent/state/SwitchState.h"
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
 using std::shared_ptr;
 
 namespace facebook::fboss {
-bool isStateUpdateValidCommon(const StateDelta& delta) {
+
+bool hasValidPortQueues(
+    const shared_ptr<Port>& port,
+    bool isEcnProbabilisticMarkingSupported) {
+  constexpr auto kDefaultProbability = 100;
+  for (const auto& portQueue : *port->getPortQueues()) {
+    const auto& aqms = portQueue->get<ctrl_if_tags::aqms>();
+    if (!aqms) {
+      continue;
+    }
+    for (const auto& entry : std::as_const(*aqms)) {
+      // THRIFT_COPY
+      auto behavior = entry->cref<switch_config_tags::behavior>()->toThrift();
+      auto detection = entry->cref<switch_config_tags::detection>()->toThrift();
+      if (behavior == cfg::QueueCongestionBehavior::ECN) {
+        auto probability = *detection.linear()->probability();
+        if (isEcnProbabilisticMarkingSupported) {
+          // Probability must be >0 and <=100
+          if (probability <= 0 || probability > 100) {
+            XLOG(ERR) << "Port " << port->getID() << " queue "
+                      << portQueue->getID()
+                      << " has invalid ECN probability: " << probability
+                      << " (must be >0 and <=100)";
+            return false;
+          }
+        } else {
+          // Must be exactly 100%
+          if (probability != kDefaultProbability) {
+            XLOG(ERR) << "Port " << port->getID() << " queue "
+                      << portQueue->getID()
+                      << " has invalid ECN probability: " << probability
+                      << " (must be exactly 100% when ECN probabilistic "
+                      << "marking is not supported)";
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+bool isStateUpdateValidCommon(
+    const StateDelta& delta,
+    const HwAsicTable* hwAsicTable) {
   bool isValid = true;
+  bool isEcnProbabilisticMarkingSupported =
+      hwAsicTable->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::ECN_PROBABILISTIC_MARKING);
 
   forEachChanged(
       delta.getAclsDelta(),
       [&](const shared_ptr<AclEntry>& /* oldAcl */,
           const shared_ptr<AclEntry>& newAcl) {
         isValid = isValid && newAcl->hasMatcher();
+        if (!isValid) {
+          XLOG(ERR) << "Changed acl " << newAcl->getID() << " has no matcher";
+        }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& addAcl) {
         isValid = isValid && addAcl->hasMatcher();
+        if (!isValid) {
+          XLOG(ERR) << "Newly added acl " << addAcl->getID()
+                    << " has no matcher";
+        }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<AclEntry>& /* delAcl */) {});
@@ -33,11 +90,22 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const shared_ptr<Port>& /* oldport */,
           const shared_ptr<Port>& newport) {
-        isValid = isValid && newport->hasValidPortQueues();
+        isValid = isValid &&
+            hasValidPortQueues(newport, isEcnProbabilisticMarkingSupported);
+        if (!isValid) {
+          XLOG(ERR) << "Changed port " << newport->getID()
+                    << " has invalid queues";
+        }
+
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& addport) {
-        isValid = isValid && addport->hasValidPortQueues();
+        isValid = isValid &&
+            hasValidPortQueues(addport, isEcnProbabilisticMarkingSupported);
+        if (!isValid) {
+          XLOG(ERR) << "Newly added port " << addport->getID()
+                    << " has invalid queues";
+        }
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& /* delport */) {});
@@ -148,6 +216,33 @@ bool isStateUpdateValidMultiSwitch(
         return LoopAction::CONTINUE;
       });
 
+  std::map<SwitchID, uint32_t> switchId2Mirrors;
+  for (const auto& [matcherStr, mirrors] :
+       std::as_const(*(delta.newState()->getMirrors()))) {
+    if (!isValid) {
+      break;
+    }
+    HwSwitchMatcher matcher(matcherStr);
+    for (const auto& switchId : matcher.switchIds()) {
+      if (switchId2Mirrors.find(switchId) == switchId2Mirrors.end()) {
+        switchId2Mirrors[switchId] = 0;
+      }
+      switchId2Mirrors[switchId] += mirrors->size();
+      auto itr = hwAsics.find(switchId);
+      if (itr == hwAsics.end()) {
+        XLOG(ERR) << "ASIC not found for the switch " << switchId;
+        isValid = false;
+      }
+      if (itr->second->getMaxMirrors() < switchId2Mirrors[switchId]) {
+        XLOG(ERR) << "Number of mirrors configured "
+                  << switchId2Mirrors[switchId]
+                  << " is higher on  platform for switch " << switchId
+                  << " than the max supported " << itr->second->getMaxMirrors();
+        isValid = false;
+      }
+    }
+  }
+
   return isValid;
 }
 
@@ -157,6 +252,32 @@ bool isStateUpdateValidMultiSwitch(
     SwitchID switchID,
     const HwAsic* asic) {
   return isStateUpdateValidMultiSwitch(delta, resolver, {{switchID, asic}});
+}
+
+StateUpdateValidator::StateUpdateValidator(
+    const cfg::AgentRunMode& runMode,
+    const HwSwitchHandler* hwSwitchHandler,
+    const HwAsicTable* asicTable,
+    const SwitchIdScopeResolver* scopeResolver)
+    : runMode_(runMode),
+      hwSwitchHandler_(hwSwitchHandler),
+      asicTable_(asicTable),
+      scopeResolver_(scopeResolver) {}
+
+bool StateUpdateValidator::isValidUpdate(
+    const StateDelta& delta,
+    SwitchStats* /* stats */) const {
+  switch (runMode_) {
+    case cfg::AgentRunMode::MONO: {
+      return isStateUpdateValidCommon(delta, asicTable_) &&
+          hwSwitchHandler_->isValidStateUpdate(delta);
+    }
+    case cfg::AgentRunMode::MULTI_SWITCH:
+      return isStateUpdateValidCommon(delta, asicTable_) &&
+          isStateUpdateValidMultiSwitch(
+                 delta, scopeResolver_, asicTable_->getHwAsics());
+  }
+  throw FbossError("Invalid run mode: ", runMode_);
 }
 
 } // namespace facebook::fboss

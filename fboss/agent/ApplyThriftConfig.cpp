@@ -75,6 +75,8 @@
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/Srv6Tunnel.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
@@ -624,6 +626,11 @@ class ThriftConfigApplier {
       const std::shared_ptr<IpTunnel>& orig,
       const cfg::IpInIpTunnel* config);
   std::shared_ptr<IpTunnelMap> updateIpInIpTunnels();
+  shared_ptr<Srv6Tunnel> createSrv6Tunnel(const cfg::Srv6Tunnel& config);
+  shared_ptr<Srv6Tunnel> updateSrv6Tunnel(
+      const std::shared_ptr<Srv6Tunnel>& orig,
+      const cfg::Srv6Tunnel* config);
+  std::shared_ptr<Srv6TunnelMap> updateSrv6Tunnels();
   std::shared_ptr<DsfNodeMap> updateDsfNodes();
   void processUpdatedDsfNodes();
   void processReachabilityGroup(
@@ -980,6 +987,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
+    auto newSrv6Tunnels = updateSrv6Tunnels();
+    if (newSrv6Tunnels) {
+      new_->resetSrv6Tunnels(
+          toMultiSwitchMap<MultiSwitchSrv6TunnelMap>(
+              newSrv6Tunnels, *cfg_, scopeResolver_));
+      changed = true;
+    }
+  }
+
+  {
     auto voqSwitchId = getAnyVoqSwitchId();
     std::shared_ptr<SwitchSettings> origSwitchSettings{};
     if (voqSwitchId.has_value()) {
@@ -1175,6 +1192,8 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             asicCore = 1;
             break;
           case cfg::AsicType::ASIC_TYPE_JERICHO3:
+          case cfg::AsicType::ASIC_TYPE_JERICHO4:
+          case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
             if (isDualStage3Q2QMode()) {
               asicCore = 447;
             } else {
@@ -1666,14 +1685,20 @@ void ThriftConfigApplier::processVlanPorts() {
   for (const auto& vp : *cfg_->vlanPorts()) {
     PortID portID(*vp.logicalPort());
     VlanID vlanID(*vp.vlanID());
+    bool emitTags = *vp.emitTags();
+    bool emitPriorityTags = *vp.emitPriorityTags();
+
     auto ret1 = portVlans_[portID].insert(
-        std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags())));
+        std::make_pair(vlanID, Port::VlanInfo(emitTags, emitPriorityTags)));
     if (!ret1.second) {
       throw FbossError(
           "duplicate VlanPort for port ", portID, ", vlan ", vlanID);
     }
-    auto ret2 =
-        vlanPorts_[vlanID].insert(std::make_pair(portID, *vp.emitTags()));
+
+    state::VlanInfo vlanInfo;
+    *vlanInfo.tagged() = emitTags;
+    *vlanInfo.priorityTagged() = emitPriorityTags;
+    auto ret2 = vlanPorts_[vlanID].insert(std::make_pair(portID, vlanInfo));
     if (!ret2.second) {
       // This should never fail if the first insert succeeded above.
       throw FbossError(
@@ -3364,8 +3389,8 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 }
 
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
-  const auto& ports = vlanPorts_[VlanID(*config->id())];
-  auto vlan = make_shared<Vlan>(config, ports);
+  const auto& portsInfo = vlanPorts_[VlanID(*config->id())];
+  auto vlan = make_shared<Vlan>(config, portsInfo);
   updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
 
@@ -3416,7 +3441,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
     const cfg::Vlan* config,
     const std::set<PortDescriptor>& portSet) {
   CHECK_EQ(orig->getID(), VlanID(*config->id()));
-  const auto& ports = vlanPorts_[orig->getID()];
+  const auto& portsInfo = vlanPorts_[orig->getID()];
 
   auto newVlan = orig->clone();
   bool changed_neighbor_table =
@@ -3446,7 +3471,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 
   bool macChanged = updateMacTable(newVlan, portSet);
   if (orig->getName() == *config->name() && oldIntfID == newIntfID &&
-      orig->getPorts() == ports && oldDhcpV4Relay == newDhcpV4Relay &&
+      orig->getPortsInfo() == portsInfo && oldDhcpV4Relay == newDhcpV4Relay &&
       oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
       !changed_dhcp_overrides && !macChanged) {
     return nullptr;
@@ -3454,7 +3479,7 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
 
   newVlan->setName(*config->name());
   newVlan->setInterfaceID(newIntfID);
-  newVlan->setPorts(ports);
+  newVlan->setPortsInfo(portsInfo);
   newVlan->setDhcpV4Relay(newDhcpV4Relay);
   newVlan->setDhcpV6Relay(newDhcpV6Relay);
 
@@ -4795,6 +4820,18 @@ ThriftConfigApplier::createFlowletSwitchingConfig(
     newFlowletSwitchingConfig->setAlternatePathBias(
         *config.alternatePathBias());
   }
+  if (config.minWidthForArsVirtualGroup()) {
+    newFlowletSwitchingConfig->setMinWidthForArsVirtualGroup(
+        *config.minWidthForArsVirtualGroup());
+  }
+  if (config.maxArsVirtualGroupWidth()) {
+    newFlowletSwitchingConfig->setMaxArsVirtualGroupWidth(
+        *config.maxArsVirtualGroupWidth());
+  }
+  if (config.maxArsVirtualGroups()) {
+    newFlowletSwitchingConfig->setMaxArsVirtualGroups(
+        *config.maxArsVirtualGroups());
+  }
   return newFlowletSwitchingConfig;
 }
 
@@ -6069,83 +6106,105 @@ ThriftConfigApplier::updateMirrorOnDropReports() {
 std::shared_ptr<MirrorOnDropReport>
 ThriftConfigApplier::createMirrorOnDropReport(
     const cfg::MirrorOnDropReport* config) {
-  auto asicType =
-      checkSameAndGetAsic(hwAsicTable_->getL3Asics())->getAsicType();
+  const HwAsic* asic = checkSameAndGetAsic(hwAsicTable_->getL3Asics());
+  cfg::AsicType asicType = asic->getAsicType();
 
-  auto switchId = getAnyVoqSwitchId();
-  if (!switchId.has_value()) {
-    throw FbossError("No VOQ switchId found");
-  }
-  auto systemPortId = getInbandSystemPortID(new_, *switchId);
-
-  // Find an IP address of the switch.
+  folly::IPAddress localSrcIp;
   auto collectorIp = folly::IPAddress(*config->collectorIp());
-  auto localSrcIp = collectorIp.isV4()
-      ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
-      : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
+  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+    auto switchId = getAnyVoqSwitchId();
+    if (!switchId.has_value()) {
+      throw FbossError("No VOQ switchId found");
+    }
+    auto systemPortId = getInbandSystemPortID(new_, *switchId);
+
+    // Find an IP address of the switch.
+    localSrcIp = collectorIp.isV4()
+        ? folly::IPAddress(getSwitchIntfIP(new_, InterfaceID(systemPortId)))
+        : folly::IPAddress(getSwitchIntfIPv6(new_, InterfaceID(systemPortId)));
+  } else {
+    // Use an optional from the MirrorDestination mirrorPort
+    // -> MirrorTunnel tunnel -> string srcIp
+    if (!config->mirrorPort().has_value() ||
+        !config->mirrorPort()->tunnel().has_value() ||
+        !config->mirrorPort()->tunnel()->srcIp().has_value()) {
+      throw FbossError(
+          "mirrorOnDropReports requires a mirrorPort with a tunnel that also "
+          "specifies a srcIp");
+    }
+    localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
+  }
 
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
-  if (config->mirrorPort().has_value()) {
-    auto egressPort = config->mirrorPort()->egressPort();
-    if (!egressPort.has_value()) {
-      throw FbossError(
-          "Only egressPort can be used as a Mirror-on-Drop destination");
-    }
-    switch (egressPort->getType()) {
-      case cfg::MirrorEgressPort::Type::name:
-        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
-          for (auto& [portId, port] : std::as_const(*portMap.second)) {
-            if (port->getName() == egressPort->get_name()) {
-              mirrorPortId = portId;
-              break;
+  if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
+    if (config->mirrorPort().has_value()) {
+      auto egressPort = config->mirrorPort()->egressPort();
+      if (!egressPort.has_value()) {
+        throw FbossError(
+            "Only egressPort can be used as a Mirror-on-Drop destination");
+      }
+      switch (egressPort->getType()) {
+        case cfg::MirrorEgressPort::Type::name:
+          for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+            for (auto& [portId, port] : std::as_const(*portMap.second)) {
+              if (port->getName() == egressPort->get_name()) {
+                mirrorPortId = portId;
+                break;
+              }
             }
           }
-        }
-        break;
-      case cfg::MirrorEgressPort::Type::logicalID:
-        mirrorPortId = egressPort->get_logicalID();
-        break;
-      case cfg::MirrorEgressPort::Type::__EMPTY__:
-        throw FbossError(
-            "Must set either name or logicalID for MirrorEgressPort");
-    }
-  } else if (config->mirrorPortId().has_value()) {
-    mirrorPortId = PortID(*config->mirrorPortId());
-  } else {
-    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      // Find the lowest numbered local-scope recycle port.
-      for (auto& portMap : std::as_const(*(new_->getPorts()))) {
-        for (auto& [portId, port] : std::as_const(*portMap.second)) {
-          if (port->getPortType() == cfg::PortType::RECYCLE_PORT &&
-              port->getScope() == cfg::Scope::LOCAL) {
-            if (!mirrorPortId.has_value() ||
-                portId < static_cast<int>(mirrorPortId.value())) {
-              mirrorPortId = portId;
+          break;
+        case cfg::MirrorEgressPort::Type::logicalID:
+          mirrorPortId = egressPort->get_logicalID();
+          break;
+        case cfg::MirrorEgressPort::Type::__EMPTY__:
+        default:
+          throw FbossError(
+              "Must set either name or logicalID for MirrorEgressPort");
+      }
+    } else if (config->mirrorPortId().has_value()) {
+      mirrorPortId = PortID(*config->mirrorPortId());
+    } else {
+      if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        // Find the lowest numbered local-scope recycle port.
+        for (auto& portMap : std::as_const(*(new_->getPorts()))) {
+          for (auto& [portId, port] : std::as_const(*portMap.second)) {
+            if (port->getPortType() == cfg::PortType::RECYCLE_PORT &&
+                port->getScope() == cfg::Scope::LOCAL) {
+              if (!mirrorPortId.has_value() ||
+                  portId < static_cast<int>(mirrorPortId.value())) {
+                mirrorPortId = portId;
+              }
             }
           }
         }
       }
     }
-  }
-  if (!mirrorPortId.has_value()) {
-    throw FbossError(
-        "Mirror-on-Drop destination is not specified, "
-        "and auto-detection is not supported on this ASIC");
-  }
-  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
-      !FLAGS_allow_nif_port_for_mod) {
-    auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
-    if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
-        mirrorPortType != cfg::PortType::EVENTOR_PORT) {
+    if (!mirrorPortId.has_value()) {
       throw FbossError(
-          "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
-          apache::thrift::util::enumNameSafe(mirrorPortType));
+          "Mirror-on-Drop destination is not specified, "
+          "and auto-detection is not supported on this ASIC");
     }
-    if (new_->getPort(*mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
-      throw FbossError(
-          "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
+    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+        !FLAGS_allow_nif_port_for_mod) {
+      auto mirrorPortType = new_->getPort(*mirrorPortId)->getPortType();
+      if (mirrorPortType != cfg::PortType::RECYCLE_PORT &&
+          mirrorPortType != cfg::PortType::EVENTOR_PORT) {
+        throw FbossError(
+            "Only RECYCLE_PORT or EVENTOR_PORT can be used for Mirror-on-Drop on Jericho3, got ",
+            apache::thrift::util::enumNameSafe(mirrorPortType));
+      }
+      if (new_->getPort(*mirrorPortId)->getScope() != cfg::Scope::LOCAL) {
+        throw FbossError(
+            "Mirror-on-Drop must use LOCAL scoped recycle/eventor ports");
+      }
     }
+  } else {
+    // Explicitly set the mirror port ID to 0 for non-VOQ switches. The only
+    // other platform that currently supports Mirror-on-Drop is XGS (e.g. TH5).
+    // The mirror port will be resolved based on the destination IP address.
+    mirrorPortId = PortID(0);
   }
 
   return std::make_shared<MirrorOnDropReport>(
@@ -6308,7 +6367,7 @@ shared_ptr<IpTunnel> ThriftConfigApplier::updateIpInIpTunnel(
 shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     const cfg::IpInIpTunnel& config) {
   auto tunnel = make_shared<IpTunnel>(*config.ipInIpTunnelId());
-  tunnel->setType(cfg::TunnelType::IP_IN_IP);
+  tunnel->setType(TunnelType::IP_IN_IP);
   if (config.tunnelType().has_value()) {
     tunnel->setType(*config.tunnelType());
   }
@@ -6318,19 +6377,19 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
   }
   tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
   if (auto ttl = config.ttlMode()) {
-    tunnel->setTTLMode(static_cast<cfg::IpTunnelMode>(*ttl));
+    tunnel->setTTLMode(static_cast<cfg::TunnelMode>(*ttl));
   } else {
-    tunnel->setTTLMode(cfg::IpTunnelMode::UNIFORM);
+    tunnel->setTTLMode(cfg::TunnelMode::UNIFORM);
   }
   if (auto dscp = config.dscpMode()) {
-    tunnel->setDscpMode(static_cast<cfg::IpTunnelMode>(*dscp));
+    tunnel->setDscpMode(static_cast<cfg::TunnelMode>(*dscp));
   } else {
-    tunnel->setDscpMode(cfg::IpTunnelMode::UNIFORM);
+    tunnel->setDscpMode(cfg::TunnelMode::UNIFORM);
   }
   if (auto ecn = config.ecnMode()) {
-    tunnel->setEcnMode(static_cast<cfg::IpTunnelMode>(*ecn));
+    tunnel->setEcnMode(static_cast<cfg::TunnelMode>(*ecn));
   } else {
-    tunnel->setEcnMode(cfg::IpTunnelMode::UNIFORM);
+    tunnel->setEcnMode(cfg::TunnelMode::UNIFORM);
   }
   // IP in IP tunnel decap: dst ip is the src of Tunnel state
   // (state default: encap)
@@ -6345,6 +6404,91 @@ shared_ptr<IpTunnel> ThriftConfigApplier::createIpInIpTunnel(
     tunnel->setDstIPMask(folly::IPAddressV6(*config.srcIpMask()));
   }
 
+  return tunnel;
+}
+
+std::shared_ptr<Srv6TunnelMap> ThriftConfigApplier::updateSrv6Tunnels() {
+  const auto& origTunnels = orig_->getSrv6Tunnels();
+  auto newTunnels = std::make_shared<Srv6TunnelMap>();
+
+  bool changed = false;
+  size_t numExistingProcessed = 0;
+  if (!cfg_->srv6Tunnels().has_value()) {
+    return nullptr;
+  }
+  for (const auto& tunnelCfg : cfg_->srv6Tunnels().value()) {
+    auto origTunnel = origTunnels->getNodeIf(*tunnelCfg.srv6TunnelId());
+    std::shared_ptr<Srv6Tunnel> newTunnel;
+    if (origTunnel) {
+      newTunnel = updateSrv6Tunnel(origTunnel, &tunnelCfg);
+      ++numExistingProcessed;
+    } else {
+      newTunnel = createSrv6Tunnel(tunnelCfg);
+    }
+
+    changed |= updateThriftMapNode(newTunnels.get(), origTunnel, newTunnel);
+  }
+
+  if (numExistingProcessed != origTunnels->numNodes()) {
+    CHECK_LT(numExistingProcessed, origTunnels->numNodes());
+    changed = true;
+  }
+
+  if (!changed) {
+    return nullptr;
+  }
+  return newTunnels;
+}
+
+shared_ptr<Srv6Tunnel> ThriftConfigApplier::updateSrv6Tunnel(
+    const std::shared_ptr<Srv6Tunnel>& orig,
+    const cfg::Srv6Tunnel* config) {
+  auto newTunnel = createSrv6Tunnel(*config);
+  if (*newTunnel == *orig) {
+    return nullptr;
+  }
+  return newTunnel;
+}
+
+shared_ptr<Srv6Tunnel> ThriftConfigApplier::createSrv6Tunnel(
+    const cfg::Srv6Tunnel& config) {
+  auto tunnel = make_shared<Srv6Tunnel>(*config.srv6TunnelId());
+  tunnel->setUnderlayIntfId(InterfaceID(*config.underlayIntfID()));
+  tunnel->setType(*config.tunnelType());
+  if (config.tunnelTermType().has_value()) {
+    tunnel->setTunnelTermType(*config.tunnelTermType());
+  }
+  if (config.ttlMode().has_value()) {
+    tunnel->setTTLMode(static_cast<cfg::TunnelMode>(*config.ttlMode()));
+  }
+  if (config.dscpMode().has_value()) {
+    tunnel->setDscpMode(static_cast<cfg::TunnelMode>(*config.dscpMode()));
+  }
+  if (config.ecnMode().has_value()) {
+    tunnel->setEcnMode(static_cast<cfg::TunnelMode>(*config.ecnMode()));
+  }
+  if (config.srcIp().has_value()) {
+    tunnel->setSrcIP(folly::IPAddress(*config.srcIp()));
+  }
+  if (config.dstIp().has_value()) {
+    tunnel->setDstIP(folly::IPAddress(*config.dstIp()));
+  }
+  if (tunnel->getType() != TunnelType::SRV6_ENCAP) {
+    throw FbossError(
+        "Unsupported tunnel type for: ",
+        tunnel->getID(),
+        ", only SRV6_ENCAP is supported");
+  }
+  if (!tunnel->getSrcIP()) {
+    throw FbossError(
+        "Src IP not set for: ", tunnel->getID(), ", SRv6 encap tunnel");
+  }
+  if (tunnel->getDstIP()) {
+    throw FbossError(
+        "DST IP set for: ",
+        tunnel->getID(),
+        ", must not be set for tunnels of type SRv6 encap tunnel");
+  }
   return tunnel;
 }
 

@@ -107,3 +107,18 @@ cpp_library(
         ":platform_fs_utils",
     ],
 )
+
+cpp_library(
+    name = "structured_logger",
+    srcs = [
+        "StructuredLogger.cpp",
+    ],
+    headers = [
+        "StructuredLogger.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":platform_name_lib",
+        "//folly/logging:logging",
+    ],
+)

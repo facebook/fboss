@@ -72,6 +72,8 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
 
   state::SwitchState reconstructSwitchState() override;
 
+  bool isValidStateUpdate(const StateDelta& delta) const override;
+
  private:
   bool checkOperSyncStateLocked(
       HwSwitchOperDeltaSyncState state,

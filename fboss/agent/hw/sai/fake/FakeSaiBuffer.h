@@ -25,16 +25,19 @@ class FakeBufferPool {
       sai_buffer_pool_type_t poolType,
       sai_uint64_t size,
       sai_buffer_pool_threshold_mode_t threshMode,
-      std::optional<sai_uint64_t> xoffSize)
+      std::optional<sai_uint64_t> xoffSize,
+      std::optional<sai_uint64_t> reservedBytes)
       : poolType(poolType),
         size(size),
         threshMode(threshMode),
-        xoffSize(xoffSize) {}
+        xoffSize(xoffSize),
+        reservedBytes(reservedBytes) {}
   sai_object_id_t id;
   sai_buffer_pool_type_t poolType;
   sai_uint64_t size;
   sai_buffer_pool_threshold_mode_t threshMode;
   std::optional<sai_uint64_t> xoffSize;
+  std::optional<sai_uint64_t> reservedBytes;
 };
 
 using FakeBufferPoolManager = FakeManager<sai_object_id_t, FakeBufferPool>;

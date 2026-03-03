@@ -57,7 +57,7 @@ class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
  public:
   using Base = ThriftStructNode<Vlan, state::VlanFields>;
   using Base::modify;
-  using MemberPorts = std::map<int16_t, bool>;
+  using MemberPorts = std::map<int16_t, state::VlanInfo>;
 
   Vlan(VlanID id, std::string name);
   Vlan(const cfg::Vlan* config, MemberPorts ports);
@@ -82,18 +82,17 @@ class Vlan : public ThriftStructNode<Vlan, state::VlanFields> {
     set<switch_state_tags::vlanName>(name);
   }
 
-  // THRIFT_COPY: evaluate if this function can be changed..
-  MemberPorts getPorts() const {
-    return get<switch_state_tags::ports>()->toThrift();
+  MemberPorts getPortsInfo() const {
+    return cref<switch_state_tags::portsInfo>()->toThrift();
   }
-  // THRIFT_COPY: evaluate if this function can be changed..
-  void setPorts(MemberPorts ports) {
-    set<switch_state_tags::ports>(std::move(ports));
+
+  void setPortsInfo(MemberPorts ports) {
+    set<switch_state_tags::portsInfo>(ports);
   }
 
   Vlan* modify(std::shared_ptr<SwitchState>* state);
 
-  void addPort(PortID id, bool tagged);
+  void addPort(PortID id, bool tagged, bool priorityTagged);
 
   template <typename NTable>
   const std::shared_ptr<NTable> getNeighborTable() const;

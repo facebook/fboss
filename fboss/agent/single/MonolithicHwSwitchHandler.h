@@ -40,7 +40,7 @@ class MonolithicHwSwitchHandler : public HwSwitchHandler {
       const PortID& portID,
       PacketType packetType) noexcept override;
 
-  bool isValidStateUpdate(const StateDelta& delta) const;
+  bool isValidStateUpdate(const StateDelta& delta) const override;
 
   void unregisterCallbacks();
 

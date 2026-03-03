@@ -47,6 +47,15 @@ class UsageError(Exception):
     pass
 
 
+# Shared argument definition for --build-type used by multiple commands
+BUILD_TYPE_ARG = {
+    "help": "Set the build type explicitly: Debug (unoptimized, debug symbols), RelWithDebInfo (optimized with debug symbols, default), MinSizeRel (size-optimized, no debug), or Release (optimized, no debug).",
+    "choices": ["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
+    "action": "store",
+    "default": "RelWithDebInfo",
+}
+
+
 @cmd("validate-manifest", "parse a manifest and validate that it is correct")
 class ValidateManifest(SubCmd):
     def run(self, args):
@@ -728,6 +737,7 @@ class BuildCmd(ProjectCmdBase):
                     # cmake
                     has_built_marker = False
                     if not (m == manifest and "install" not in cmake_targets):
+                        os.makedirs(os.path.dirname(built_marker), exist_ok=True)
                         with open(built_marker, "w") as f:
                             f.write(project_hash)
                             has_built_marker = True
@@ -880,13 +890,7 @@ class BuildCmd(ProjectCmdBase):
             action="store_true",
             default=False,
         )
-        parser.add_argument(
-            "--build-type",
-            help="Set the build type explicitly.  Cmake and cargo builders act on them. Only Debug and RelWithDebInfo widely supported.",
-            choices=["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
-            action="store",
-            default=None,
-        )
+        parser.add_argument("--build-type", **BUILD_TYPE_ARG)
 
 
 @cmd("fixup-dyn-deps", "Adjusts dynamic dependencies for packaging purposes")
@@ -968,13 +972,7 @@ class TestCmd(ProjectCmdBase):
             default=None,
             help="Timeout in seconds for each individual test",
         )
-        parser.add_argument(
-            "--build-type",
-            help="Set the build type explicitly.  Cmake and cargo builders act on them. Only Debug and RelWithDebInfo widely supported.",
-            choices=["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
-            action="store",
-            default=None,
-        )
+        parser.add_argument("--build-type", **BUILD_TYPE_ARG)
 
 
 @cmd(
@@ -1449,13 +1447,7 @@ jobs:
             action="store_true",
             default=False,
         )
-        parser.add_argument(
-            "--build-type",
-            help="Set the build type explicitly.  Cmake and cargo builders act on them. Only Debug and RelWithDebInfo widely supported.",
-            choices=["Debug", "Release", "RelWithDebInfo", "MinSizeRel"],
-            action="store",
-            default=None,
-        )
+        parser.add_argument("--build-type", **BUILD_TYPE_ARG)
         parser.add_argument(
             "--no-build-cache",
             action="store_false",

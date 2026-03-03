@@ -72,6 +72,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/SwitchStatsObserver.h"
+#include "fboss/agent/TamManager.h"
 #include "fboss/agent/TeFlowNexthopHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/TxPacket.h"
@@ -337,7 +338,7 @@ void accumulateGlobalCpuStats(
   for (const auto& [queue, value] : toAdd.queueInPackets_().value()) {
     (*accumulated.queueInPackets_())[queue] += value;
   }
-  for (const auto& [queue, value] : toAdd.queueInPackets_().value()) {
+  for (const auto& [queue, value] : toAdd.queueDiscardPackets_().value()) {
     (*accumulated.queueDiscardPackets_())[queue] += value;
   }
   for (const auto& [queue, name] : toAdd.queueToName_().value()) {
@@ -402,6 +403,17 @@ std::string getVirtualDeviceIdToEligibleNumActivePortsStr(
   return folly::to<std::string>("{", folly::join(", ", stringPairs), "}");
 }
 
+MonolithicHwSwitchHandler* FOLLY_NULLABLE getMonolithicHwSwitchHandlerIf(
+    cfg::AgentRunMode runMode,
+    const MultiHwSwitchHandler* handler) {
+  if (runMode != cfg::AgentRunMode::MONO) {
+    return nullptr;
+  }
+  auto hwSwitchHandlers = handler->getHwSwitchHandlers();
+  return static_cast<MonolithicHwSwitchHandler*>(
+      hwSwitchHandlers.begin()->second);
+}
+
 } // anonymous namespace
 
 namespace std {
@@ -448,6 +460,7 @@ SwSwitch::SwSwitch(
           agentDirUtil_->getPersistentStateDir(),
           pktObservers_.get())),
       mirrorManager_(new MirrorManager(this)),
+      tamManager_(new TamManager(this)),
       mplsHandler_(new MPLSHandler(this)),
       packetLogger_(new PacketLogger(this)),
       routeUpdateLogger_(new RouteUpdateLogger(this)),
@@ -475,6 +488,13 @@ SwSwitch::SwSwitch(
       switchStatsObserver_(new SwitchStatsObserver(this)),
       resourceAccountant_(
           new ResourceAccountant(hwAsicTable_.get(), scopeResolver_.get())),
+      stateUpdateValidator_(new StateUpdateValidator(
+          config->getRunMode(),
+          getMonolithicHwSwitchHandlerIf(
+              config->getRunMode(),
+              multiHwSwitchHandler_.get()),
+          hwAsicTable_.get(),
+          scopeResolver_.get())),
       packetStreamMap_(new MultiSwitchPacketStreamMap()),
       swSwitchWarmbootHelper_(
           new SwSwitchWarmBootHelper(agentDirUtil_, hwAsicTable_.get())),
@@ -527,7 +547,6 @@ SwSwitch::~SwSwitch() {
     // If we didn't already stop (say via gracefulExit call), begin
     // exit
     stop(false /* gracefulStop */);
-    restart_time::stop();
   }
 }
 
@@ -678,6 +697,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
 
   if (stateDeltaLogger_ && FLAGS_enable_state_delta_logging) {
     stateDeltaLogger_.reset();
+  }
+
+  if (isGracefulStop == false) {
+    restart_time::stop();
   }
 }
 
@@ -897,7 +920,7 @@ void SwSwitch::updateLldpStats() {
 
 HwBufferPoolStats SwSwitch::getBufferPoolStatsFromSwitchWatermarkStats() {
   uint64_t deviceWatermarkBytes{0};
-  auto lockedStats = hwSwitchStats_.wlock();
+  auto lockedStats = hwSwitchStats_.rlock();
   for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
     deviceWatermarkBytes = std::max<uint64_t>(
         deviceWatermarkBytes,
@@ -911,7 +934,7 @@ HwBufferPoolStats SwSwitch::getBufferPoolStatsFromSwitchWatermarkStats() {
 AgentStats SwSwitch::fillFsdbStats() {
   AgentStats agentStats;
   {
-    auto lockedStats = hwSwitchStats_.wlock();
+    auto lockedStats = hwSwitchStats_.rlock();
     // fill stats using hwswitch exported data if available
     for (auto& [switchIdx, hwSwitchStats] : *lockedStats) {
       // accumulate error stats from all switches in global values
@@ -950,9 +973,11 @@ AgentStats SwSwitch::fillFsdbStats() {
           {switchIdx, *hwSwitchStats.fabricReachabilityStats()});
       agentStats.sysPortShelStateMap()->insert(
           {switchIdx, *hwSwitchStats.sysPortShelState()});
-      *agentStats.ecmpOverShelDisabledPort() |=
-          shelManager_->ecmpOverShelDisabledPort(
-              *hwSwitchStats.sysPortShelState());
+      if (shelManager_) {
+        *agentStats.ecmpOverShelDisabledPort() |=
+            shelManager_->ecmpOverShelDisabledPort(
+                *hwSwitchStats.sysPortShelState());
+      }
       for (auto&& statEntry :
            *hwSwitchStats.switchTemperatureStats()->value()) {
         auto temp = *hwSwitchStats.switchTemperatureStats()->timeStamp();
@@ -976,11 +1001,19 @@ AgentStats SwSwitch::fillFsdbStats() {
   stats()->fillAgentStats(agentStats);
   getHwSwitchHandler()->fillHwAgentConnectionStatus(agentStats);
   // fill old fields using first switch values for backward compatibility
-  agentStats.hwResourceStats() =
-      agentStats.hwResourceStatsMap()->begin()->second;
-  agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
-  agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
-  agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
+  if (!agentStats.hwResourceStatsMap()->empty()) {
+    agentStats.hwResourceStats() =
+        agentStats.hwResourceStatsMap()->begin()->second;
+  }
+  if (!agentStats.teFlowStatsMap()->empty()) {
+    agentStats.teFlowStats() = agentStats.teFlowStatsMap()->begin()->second;
+  }
+  if (!agentStats.sysPortStatsMap()->empty()) {
+    agentStats.sysPortStats() = agentStats.sysPortStatsMap()->begin()->second;
+  }
+  if (!agentStats.flowletStatsMap()->empty()) {
+    agentStats.flowletStats() = agentStats.flowletStatsMap()->begin()->second;
+  }
   // TODO: Remove this once switchWatermarkStats is rolled out to fleet!
   agentStats.bufferPoolStats() = getBufferPoolStatsFromSwitchWatermarkStats();
   return agentStats;
@@ -996,9 +1029,8 @@ void SwSwitch::publishStatsToFsdb() {
 MonolithicHwSwitchHandler* SwSwitch::getMonolithicHwSwitchHandler() const {
   CHECK(!isRunModeMultiSwitch())
       << "Monolithic switch handler access should not be attempted in multi switch mode!";
-  auto hwSwitchHandlers = getHwSwitchHandler()->getHwSwitchHandlers();
-  return static_cast<MonolithicHwSwitchHandler*>(
-      hwSwitchHandlers.begin()->second);
+  return getMonolithicHwSwitchHandlerIf(
+      cfg::AgentRunMode::MONO, getHwSwitchHandler());
 }
 
 int16_t SwSwitch::getSwitchIndexForInterface(
@@ -1657,7 +1689,7 @@ void SwSwitch::notifyStateObservers(const StateDelta& delta) {
   // lookup in rx path.
   updateAddrToLocalIntf(delta);
 
-  for (auto observerName : stateObservers_) {
+  for (const auto& observerName : stateObservers_) {
     try {
       auto observer = observerName.first;
       observer->stateUpdated(delta);
@@ -2012,11 +2044,19 @@ SwSwitch::applyUpdate(
   for (const auto& delta : deltas) {
     if (!resourceAccountant_->isValidUpdate(delta)) {
       updateRejected = true;
+      stats()->resourceAccountantRejectedUpdates();
+      XLOG(ERR) << "State updated rejected by resource accountant";
+      break;
+    }
+    if (!isValidStateUpdate(delta)) {
+      updateRejected = true;
+      XLOG(ERR) << "Attempted to apply invalid state update, rejected it";
       break;
     }
   }
   if (updateRejected) {
-    stats()->resourceAccountantRejectedUpdates();
+    /* reconstruct the resource account to reset resources accounted in earlier
+     * deltas */
     resourceAccountant_ = std::make_unique<ResourceAccountant>(
         getHwAsicTable(), getScopeResolver());
     resourceAccountant_->stateChanged(
@@ -2200,8 +2240,9 @@ void SwSwitch::packetReceived(std::unique_ptr<RxPacket> pkt) noexcept {
     handlePacket(std::move(pkt));
   } catch (const std::exception& ex) {
     portStats(port)->pktError();
-    XLOG(ERR) << "error processing trapped packet: " << folly::exceptionStr(ex)
-              << " from port: " << port;
+    XLOG_EVERY_N(ERR, 10000)
+        << "error processing trapped packet: " << folly::exceptionStr(ex)
+        << " from port: " << port;
     // Return normally, without letting the exception propagate to our caller.
     return;
   }
@@ -2221,6 +2262,7 @@ PortDescriptor SwSwitch::getPortFromPkt(const RxPacket* pkt) const {
 }
 
 void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  auto state = getState();
   if (getFabricLinkMonitoringManager()) {
     // This flow will be hit only for a subset of VoQ and Fabric switches
     // where fabric link monitoring manager is running.
@@ -2229,8 +2271,7 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     // for Fabric devices, hence staying with port check for now. Will
     // migrate to checking the packetType as below soon:
     // pkt->packetType().value() == PacketType::FABRIC_LINK_MONITORING
-    auto* port =
-        getState()->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
+    auto* port = state->getPorts()->getNodeIf(PortID(pkt->getSrcPort())).get();
     if (port && (port->getPortType() == cfg::PortType::FABRIC_PORT)) {
       Cursor c(pkt->buf());
       getFabricLinkMonitoringManager()->handlePacket(std::move(pkt), c);
@@ -2239,14 +2280,14 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
   }
 
   if (FLAGS_intf_nbr_tables) {
-    auto intf = getState()->getInterfaces()->getNodeIf(
-        getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
+    auto intf = state->getInterfaces()->getNodeIf(
+        state->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
     handlePacketImpl(std::move(pkt), intf);
   } else {
     // TODO: get rid of getVlanIDHelper, packet must have a valid vlan here if
     // vlans are maintained
     auto vlan =
-        getState()->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
+        state->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
     handlePacketImpl(std::move(pkt), vlan);
   }
 }
@@ -2662,6 +2703,11 @@ void SwSwitch::linkAdminStateChangedByFw(
           // the problem persists.
           XLOG(DBG2) << "Admin Disable link disabled by Firmware: " << portId;
           auto* port = newState->getPorts()->getNodeIf(portId).get();
+          if (!port) {
+            XLOG(ERR) << "Port not found for firmware disabled portId: "
+                      << portId;
+            continue;
+          }
           auto newPort = port->modify(&newState);
           newPort->setAdminState(cfg::PortState::DISABLED);
           newPort->addError(PortError::LINK_DISABLED_BY_FIRMWARE);
@@ -3344,9 +3390,12 @@ bool SwSwitch::sendPacketOutViaThriftStream(
   return true;
 }
 
-bool SwSwitch::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept {
+bool SwSwitch::sendPacketSwitchedAsync(
+    std::unique_ptr<TxPacket> pkt,
+    std::optional<SwitchID> switchId) noexcept {
   pcapMgr_->packetSent(pkt.get());
-  if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(std::move(pkt))) {
+  if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(
+          std::move(pkt), switchId)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the
@@ -3681,18 +3730,7 @@ void SwSwitch::updateConfigAppliedInfo() {
 }
 
 bool SwSwitch::isValidStateUpdate(const StateDelta& delta) const {
-  auto isValid = isStateUpdateValidCommon(delta);
-  if (isValid) {
-    if (isRunModeMonolithic()) {
-      isValid = getMonolithicHwSwitchHandler()->isValidStateUpdate(delta);
-    } else {
-      // TODO - implement state update validation for multiswitch
-      isValid = isStateUpdateValidMultiSwitch(
-          delta, getScopeResolver(), getHwAsicTable()->getHwAsics());
-    }
-  }
-
-  return isValid;
+  return stateUpdateValidator_->isValidUpdate(delta);
 }
 
 AdminDistance SwSwitch::clientIdToAdminDistance(int clientId) const {
@@ -4316,7 +4354,7 @@ void SwSwitch::sendNeighborSolicitationForConfiguredInterfaces(
               if (vlanMap) {
                 auto vlan = vlanMap->getNodeIf(vlanID);
                 if (vlan) {
-                  for (auto memberPort : vlan->getPorts()) {
+                  for (auto memberPort : vlan->getPortsInfo()) {
                     auto port =
                         currentState->getPorts()->getNodeIf(memberPort.first);
                     if (port && port->isPortUp()) {

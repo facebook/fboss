@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","morgan800cc","PASSED"
+"FwUtilHwTest.listFirmwareNames","morgan800cc","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","morgan800cc","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","morgan800cc","PASSED"

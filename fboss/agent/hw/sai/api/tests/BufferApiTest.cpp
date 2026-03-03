@@ -25,12 +25,19 @@ class BufferApiTest : public ::testing::Test {
   BufferPoolSaiId createBufferPool(
       sai_buffer_pool_type_t _type,
       sai_uint64_t _size,
-      sai_buffer_pool_threshold_mode_t _mode) {
+      sai_buffer_pool_threshold_mode_t _mode,
+      std::optional<sai_uint64_t> _reservedBytes = std::nullopt) {
     SaiBufferPoolTraits::Attributes::Type type{_type};
     SaiBufferPoolTraits::Attributes::Size size{_size};
     SaiBufferPoolTraits::Attributes::ThresholdMode mode{_mode};
     std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
-    SaiBufferPoolTraits::CreateAttributes c{type, size, mode, xoffSize};
+    std::optional<SaiBufferPoolTraits::Attributes::ReservedBytes> reservedBytes;
+    if (_reservedBytes.has_value()) {
+      reservedBytes = SaiBufferPoolTraits::Attributes::ReservedBytes{
+          _reservedBytes.value()};
+    }
+    SaiBufferPoolTraits::CreateAttributes c{
+        type, size, mode, xoffSize, reservedBytes};
     return bufferApi->create<SaiBufferPoolTraits>(c, 0);
   }
   void checkBufferPool(BufferPoolSaiId id) const {
@@ -195,7 +202,10 @@ TEST_F(BufferApiTest, createBufferPool) {
 
 TEST_F(BufferApiTest, getBufferPoolAttributes) {
   auto id = createBufferPool(
-      SAI_BUFFER_POOL_TYPE_INGRESS, 42, SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC);
+      SAI_BUFFER_POOL_TYPE_INGRESS,
+      42,
+      SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
+      10);
   EXPECT_EQ(
       bufferApi->getAttribute(id, SaiBufferPoolTraits::Attributes::Type{}),
       SAI_BUFFER_POOL_TYPE_INGRESS);
@@ -205,6 +215,10 @@ TEST_F(BufferApiTest, getBufferPoolAttributes) {
       bufferApi->getAttribute(
           id, SaiBufferPoolTraits::Attributes::ThresholdMode{}),
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC);
+  EXPECT_EQ(
+      bufferApi->getAttribute(
+          id, SaiBufferPoolTraits::Attributes::ReservedBytes{}),
+      10);
 }
 
 TEST_F(BufferApiTest, createBufferProfileDynamic) {

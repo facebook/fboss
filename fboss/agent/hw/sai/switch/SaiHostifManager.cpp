@@ -101,7 +101,9 @@ SaiHostifManager::packetReasonToHostifTrap(
   if ((platform->getAsic()->getAsicType() ==
        cfg::AsicType::ASIC_TYPE_JERICHO2) ||
       (platform->getAsic()->getAsicType() ==
-       cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+       cfg::AsicType::ASIC_TYPE_JERICHO3) ||
+      (platform->getAsic()->getAsicType() ==
+       cfg::AsicType::ASIC_TYPE_JERICHO4)) {
     ndpAction = SAI_PACKET_ACTION_TRAP;
   } else {
     ndpAction = SAI_PACKET_ACTION_COPY;

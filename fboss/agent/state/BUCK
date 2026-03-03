@@ -94,6 +94,8 @@ cpp_library(
         "RouteTypes.cpp",
         "SflowCollector.cpp",
         "SflowCollectorMap.cpp",
+        "Srv6Tunnel.cpp",
+        "Srv6TunnelMap.cpp",
         "StateDelta.cpp",
         "StateDelta-computeOperDelta.cpp",
         "StateUtils.cpp",

@@ -2804,6 +2804,44 @@ void TransceiverManager::markLastDownTime(TransceiverID id) noexcept {
   tcvrIt->second->markLastDownTime();
 }
 
+void TransceiverManager::updateLastDownTimeFromPortStatus(
+    const std::map<TransceiverID, bool>& tcvrPortStatusChanges) noexcept {
+  for (const auto& [tcvrId, portsNowActive] : tcvrPortStatusChanges) {
+    auto stateMachineItr = stateMachineControllers_.find(tcvrId);
+    if (stateMachineItr == stateMachineControllers_.end()) {
+      XLOG(DBG2) << "[Transceiver:" << tcvrId
+                 << "] Skip updateLastDownTimeFromPortStatus, "
+                 << "state machine not found";
+      continue;
+    }
+
+    auto lockedStateMachine =
+        stateMachineItr->second->getStateMachine().wlock();
+
+    if (portsNowActive) {
+      // Equivalent to activeStateEntry: enable marking for next DOWN transition
+      lockedStateMachine->get_attribute(needMarkLastDownTime) = true;
+      XLOG(DBG2) << "[Transceiver:" << tcvrId
+                 << "] Port Manager mode: Port(s) now active, "
+                 << "set needMarkLastDownTime=true";
+    } else {
+      // Equivalent to markLastDownTime (INACTIVE state entry):
+      // Only mark if needMarkLastDownTime is true, then clear it
+      if (lockedStateMachine->get_attribute(needMarkLastDownTime)) {
+        markLastDownTime(tcvrId);
+        lockedStateMachine->get_attribute(needMarkLastDownTime) = false;
+        XLOG(DBG2)
+            << "[Transceiver:" << tcvrId
+            << "] Port Manager mode: All ports down, marked lastDownTime";
+      } else {
+        XLOG(DBG3) << "[Transceiver:" << tcvrId
+                   << "] Port Manager mode: All ports down, "
+                   << "but needMarkLastDownTime=false, skipping";
+      }
+    }
+  }
+}
+
 time_t TransceiverManager::getLastDownTime(TransceiverID id) const {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);

@@ -287,6 +287,7 @@ cpp_library(
         "//common/services/cpp:thrift_acl_checker_module_config",
         "//common/services/cpp:thrift_aclchecker_handler_factory",
         "//common/services/cpp:tls",
+        "//common/thrift/cpp/server:profiling_connection_handler",
         "//fb303:export_type",
         "//fb303:service_data",
         "//fboss/lib:thrift_method_rate_limit",
@@ -568,6 +569,7 @@ cpp_library(
         "AsicUtils.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
@@ -900,12 +902,12 @@ cpp_library(
         "NeighborUpdater.cpp",
         "NeighborUpdaterImpl.cpp",
         "NeighborUpdaterNoopImpl.cpp",
+        "NextHopResolver.cpp",
         "PortUpdateHandler.cpp",
         "RemoteNeighborUpdater.cpp",
         "ResolvedNexthopMonitor.cpp",
         "ResolvedNexthopProbe.cpp",
         "ResolvedNexthopProbeScheduler.cpp",
-        "ResourceAccountant.cpp",
         "RouteUpdateLogger.cpp",
         "RouteUpdateLoggingPrefixTracker.cpp",
         "StaticL2ForNeighborObserver.cpp",
@@ -916,6 +918,7 @@ cpp_library(
         "SwitchInfoTable.cpp",
         "SwitchStats.cpp",
         "SwitchStatsObserver.cpp",
+        "TamManager.cpp",
         "TeFlowNexthopHandler.cpp",
         "TunIntf.cpp",
         "TunManager.cpp",
@@ -1300,7 +1303,6 @@ cpp_library(
     srcs = [
         "HwSwitch.cpp",
         "HwSwitchRouteUpdateWrapper.cpp",
-        "facebook/HwSwitch.cpp",
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
@@ -1460,6 +1462,8 @@ cpp_library(
         ":hwswitch_matcher",
         ":switchinfo_utils",
         "//fboss/agent/state:state",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -2093,7 +2097,6 @@ cpp_unittest(
         ":ipc_health_monitor",
         "//fb303:service_data",
         "//folly/io/async:async_base",
-        "//folly/io/async/test:event_base_test_lib",
         "//folly/logging:logging",
     ],
 )
@@ -2147,11 +2150,18 @@ cpp_library(
 cpp_library(
     name = "validate_state_update",
     srcs = [
+        "ResourceAccountant.cpp",
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        ":agent_config-cpp2-types",
+        ":agent_features",
         ":fboss-error",
         ":fboss-types",
+        ":fib_helpers",
+        ":hw_asic_table",
+        ":hw_switch_handler",
         ":switchid_scope_resolver",
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",

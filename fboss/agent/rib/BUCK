@@ -139,10 +139,13 @@ cpp_library(
         ":network_to_route_map",
         ":nexthop_id_manager",
         ":standalone_rib",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//folly/logging:logging",
     ],
 )
 

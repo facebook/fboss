@@ -16,6 +16,7 @@
 #include <folly/Synchronized.h>
 
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/sensor_service/FsdbSyncer.h"
 #include "fboss/platform/sensor_service/PmUnitInfoFetcher.h"
 #include "fboss/platform/sensor_service/Utils.h"
@@ -42,7 +43,6 @@ class SensorServiceImpl {
       "sensor_read.agg.{}.has.critical_threshold_violation";
   auto static constexpr kAggHasAlarmThresholdViolation =
       "sensor_read.agg.{}.has.alarm_threshold_violation";
-  auto static constexpr kAsicTemp = "asic_temp";
   auto static constexpr kTotalPower = "TOTAL_POWER";
   auto static constexpr kMaxInputVoltage = "MAX_INPUT_VOLTAGE";
   auto static constexpr kInputPowerType = "INPUT_POWER_TYPE";
@@ -113,6 +113,7 @@ class SensorServiceImpl {
   std::optional<std::chrono::time_point<std::chrono::steady_clock>>
       publishedStatsToFsdbAt_;
   SensorConfig sensorConfig_{};
+  helpers::StructuredLogger structuredLogger_;
   std::shared_ptr<Utils> utils_{};
   std::shared_ptr<PlatformUtils> platformUtils_{};
   PmUnitInfoFetcher pmUnitInfoFetcher_{};

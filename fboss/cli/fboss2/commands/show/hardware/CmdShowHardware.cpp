@@ -21,6 +21,31 @@
 
 namespace facebook::fboss {
 
+namespace {
+
+// Helper to safely extract a string from folly::dynamic with a fallback value.
+// Returns fallback if the key doesn't exist, value is null, or value is not a
+// string. This helps identify which fields are missing in BMC responses.
+std::string dynamicToStringOr(
+    const folly::dynamic& obj,
+    const std::string& key,
+    const std::string& fallback = "<missing>") {
+  auto it = obj.find(key);
+  if (it == obj.items().end()) {
+    return fallback;
+  }
+  const auto& val = it->second;
+  if (val.isNull()) {
+    return fallback;
+  }
+  if (!val.isString()) {
+    return fallback;
+  }
+  return val.asString();
+}
+
+} // namespace
+
 CmdShowHardware::RetType CmdShowHardware::queryClient(
     const HostInfo& hostInfo) {
   folly::dynamic entries = folly::dynamic::object;
@@ -113,7 +138,12 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
         }
       }
       hwmod.moduleType() = "PIM";
-      hwmod.serialNumber() = data["PIMSERIAL"][pim].asString();
+      if (data.find("PIMSERIAL") != data.items().end()) {
+        hwmod.serialNumber() =
+            dynamicToStringOr(data["PIMSERIAL"], pim.asString());
+      } else {
+        hwmod.serialNumber() = "<missing>";
+      }
       std::string lower_pim =
           boost::algorithm::to_lower_copy(hwmod.moduleName().value());
       std::string pim_status;
@@ -122,7 +152,7 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
       // that if a chassis has PIMs it will have some indication of if they
       // are present Have to look for both endpoints to determine presence.
       if (data.find("PIMPRESENT") != data.items().end()) {
-        pim_status = data["PIMPRESENT"][lower_pim].asString();
+        pim_status = dynamicToStringOr(data["PIMPRESENT"], lower_pim);
       } else if (data.find("PRESENCE") != data.items().end()) {
         // Minipack2 does not use 'PIMPRESENT' Endpoint.  Instead it uses a
         // binary value in 'PRESENCE' endpoint which is a list of JSON objects
@@ -136,7 +166,7 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
         }
       }
       hwmod.modStatus() = pim_status == "Present" ? "OK" : "Fail";
-      hwmod.fpgaVersion() = pimdata["fpga_ver"].asString();
+      hwmod.fpgaVersion() = dynamicToStringOr(pimdata, "fpga_ver");
       ret.modules()->push_back(hwmod);
     }
   }
@@ -145,10 +175,10 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
     if (data.find("FRUID") != data.items().end()) {
       cli::HWModule chassis;
       chassis.moduleName() = "CHASSIS";
-      chassis.moduleType() = data["FRUID"]["Product Name"].asString();
+      chassis.moduleType() = dynamicToStringOr(data["FRUID"], "Product Name");
       chassis.serialNumber() =
-          data["FRUID"]["Product Serial Number"].asString();
-      chassis.macAddress() = data["FRUID"]["Local MAC"].asString();
+          dynamicToStringOr(data["FRUID"], "Product Serial Number");
+      chassis.macAddress() = dynamicToStringOr(data["FRUID"], "Local MAC");
       chassis.modStatus() = "OK";
       ret.modules()->push_back(chassis);
     }
@@ -160,8 +190,9 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
       chassis.moduleName() = "CHASSIS";
       chassis.moduleType() = "CHASSIS";
       chassis.serialNumber() =
-          data["FRUID"]["Product Serial Number"].asString();
-      chassis.macAddress() = data["FRUID"]["Extended MAC Base"].asString();
+          dynamicToStringOr(data["FRUID"], "Product Serial Number");
+      chassis.macAddress() =
+          dynamicToStringOr(data["FRUID"], "Extended MAC Base");
       chassis.modStatus() = "OK";
       ret.modules()->push_back(chassis);
     }
@@ -178,13 +209,13 @@ CmdShowHardware::RetType CmdShowHardware::createModel(
       fab.moduleName() = "SCM";
       fab.moduleType() = "SCM";
       fab.serialNumber() =
-          data[fab_endpoint]["Product Serial Number"].asString();
-      fab.macAddress() = data[fab_endpoint]["Local MAC"].asString();
+          dynamicToStringOr(data[fab_endpoint], "Product Serial Number");
+      fab.macAddress() = dynamicToStringOr(data[fab_endpoint], "Local MAC");
       fab.modStatus() = "OK";
       ret.modules()->push_back(fab);
     }
   }
-  // Sort our list of modules before outputing to table
+  // Sort our list of modules before outputting to table
   std::sort(
       ret.modules()->begin(),
       ret.modules()->end(),

@@ -61,6 +61,7 @@ cpp_unittest(
         "SwitchIdScopeResolverTests.cpp",
         "SwitchInfoTableTests.cpp",
         "SwitchStatsObserverTests.cpp",
+        "TamManagerTest.cpp",
         "TestPacketFactory.cpp",
         "ThriftBasedWarmbootUtilsTest.cpp",
         "ThriftServerTest.cpp",
@@ -117,6 +118,7 @@ cpp_unittest(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:thrift_based_warmboot_utils",
         "//fboss/agent:utils",
+        "//fboss/agent:validate_state_update",
         "//fboss/agent:voq_utils",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/hw/mock:pkt",
@@ -139,9 +141,11 @@ cpp_unittest(
         "//fboss/lib:thrift_service_utils",
         "//folly:dynamic",
         "//folly:file_util",
+        "//folly:function",
         "//folly:memory",
         "//folly:move_wrapper",
         "//folly:network_address",
+        "//folly:range",
         "//folly:string",
         "//folly/coro:gtest_helpers",
         "//folly/coro:timeout",
@@ -160,6 +164,18 @@ cpp_unittest(
     external_deps = [
         "gflags",
         ("boost", None, "boost_range"),
+    ],
+)
+
+cpp_unittest(
+    name = "srv6_tunnel_config_test",
+    srcs = [
+        "Srv6TunnelConfigTests.cpp",
+    ],
+    deps = [
+        ":utils",
+        "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/state:state",
     ],
 )
 
@@ -230,6 +246,7 @@ cpp_library(
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/hw/mock:mock",
+        "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
         "//folly:function",
@@ -746,6 +763,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":agent_ensemble",
+        "//fboss/agent:core",
         "//fboss/agent:split_agent_initializer",
         "//fboss/agent:stats",
     ],
