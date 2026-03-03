@@ -116,19 +116,17 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     auto expectDrainState = expectDrained
         ? cfg::SwitchDrainState::DRAINED_DUE_TO_ASIC_ERROR
         : cfg::SwitchDrainState::UNDRAINED;
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      // reachability should always be there regardless of drain state
-      utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
-      HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
-      WITH_RETRIES({
-        const auto& switchSettings =
-            getProgrammedState()->getSwitchSettings()->getSwitchSettings(
-                matcher);
-        EXPECT_EVENTUALLY_EQ(switchSettings->isSwitchDrained(), expectDrained);
-        EXPECT_EVENTUALLY_EQ(
-            switchSettings->getActualSwitchDrainState(), expectDrainState);
-      });
-    }
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    // reachability should always be there regardless of drain state
+    utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
+    HwSwitchMatcher matcher(std::unordered_set<SwitchID>({switchId}));
+    WITH_RETRIES({
+      const auto& switchSettings =
+          getProgrammedState()->getSwitchSettings()->getSwitchSettings(matcher);
+      EXPECT_EVENTUALLY_EQ(switchSettings->isSwitchDrained(), expectDrained);
+      EXPECT_EVENTUALLY_EQ(
+          switchSettings->getActualSwitchDrainState(), expectDrainState);
+    });
   }
   void assertPortAndDrainState(bool expectDrained) const {
     assertSwitchDrainState(expectDrained);
@@ -141,29 +139,26 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
     std::stringstream ss;
     ss << "edk -c fi force_isolate 0 5 1 " << delay << std::endl;
     XLOG(INFO) << "Running force_isolate command: ";
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      std::string out;
-      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
-      XLOG(INFO) << "force_isolate output: " << out;
-    }
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    std::string out;
+    getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+    XLOG(INFO) << "force_isolate output: " << out;
   }
   void getIsolate() {
     std::stringstream ss;
     ss << "edk -c fi dump 0 5" << std::endl;
     XLOG(INFO) << "Running get_isolate command: ";
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      std::string out;
-      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
-      XLOG(INFO) << "get_isolate output: " << out;
-    }
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    std::string out;
+    getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+    XLOG(INFO) << "get_isolate output: " << out;
   }
   void forceCrash(int delay = 1) {
     std::stringstream ss;
     ss << "edk -c fi crash 0 5 " << delay << std::endl;
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      std::string out;
-      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
-    }
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    std::string out;
+    getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
   }
   void forceLinkAdminDisable(int portId) {
     // SAI Implementation for diag shell requires offset of 1024
@@ -175,11 +170,10 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
        << std::endl;
     XLOG(INFO) << "Running force link Admin Disable command to disable port: "
                << portId;
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      std::string out;
-      getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
-      XLOG(INFO) << "force link admin disable output: " << out;
-    }
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    std::string out;
+    getAgentEnsemble()->runDiagCommand(ss.str(), out, switchId);
+    XLOG(INFO) << "force link admin disable output: " << out;
   }
   /*
    * Invoked post FW crash to
@@ -216,16 +210,15 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   }
 
   bool expectFabricPortsActivePostIsolate() {
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      auto sdkMajorVersionStr = getSdkMajorVersion(switchId);
-      auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
-      XLOG(DBG2) << "SDK major version number is " << sdkMajorVersionNum
-                 << " for switch ID " << switchId;
-      if (sdkMajorVersionNum >= 14) {
-        // For SDKs starting from 14.x, fabric ports would be in INACTIVE
-        // state after isolation (this is the correct behavior)
-        return false;
-      }
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto sdkMajorVersionStr = getSdkMajorVersion(switchId);
+    auto sdkMajorVersionNum = std::stoi(sdkMajorVersionStr);
+    XLOG(DBG2) << "SDK major version number is " << sdkMajorVersionNum
+               << " for switch ID " << switchId;
+    if (sdkMajorVersionNum >= 14) {
+      // For SDKs starting from 14.x, fabric ports would be in INACTIVE
+      // state after isolation (this is the correct behavior)
+      return false;
     }
     return true;
   }
@@ -233,32 +226,31 @@ class AgentVoqSwitchIsolationFirmwareTest : public AgentVoqSwitchTest {
   void assertFirmwareInfo(
       const FirmwareOpStatus& expectedOpStatus,
       const FirmwareFuncStatus& expectedFuncStatus) {
-    for (const auto& switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
-      auto firmwareInfoList = getAgentEnsemble()->getAllFirmwareInfo(switchId);
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto firmwareInfoList = getAgentEnsemble()->getAllFirmwareInfo(switchId);
 
-      if (firmwareInfoList.empty()) {
-        // 11.7 Does not support querying firmwareInfo yet.
-        // After that support is added, remove this if check.
-        // This is better than marking this test known bad for 11.7 as we want
-        // to continue to validate forceIsolate which is supported on 11.7
-        return;
-      }
-
-      CHECK_EQ(firmwareInfoList.size(), 1);
-      auto firmwareInfo = firmwareInfoList[0];
-
-      XLOG(DBG2) << "FirmwareInfo:: version: " << *firmwareInfo.version()
-                 << " opStatus: "
-                 << apache::thrift::util::enumNameSafe(
-                        firmwareInfo.opStatus().value())
-                 << " funcStatus: "
-                 << apache::thrift::util::enumNameSafe(
-                        firmwareInfo.funcStatus().value());
-
-      EXPECT_FALSE(firmwareInfo.version()->empty());
-      EXPECT_TRUE(firmwareInfo.opStatus().value() == expectedOpStatus);
-      EXPECT_TRUE(firmwareInfo.funcStatus().value() == expectedFuncStatus);
+    if (firmwareInfoList.empty()) {
+      // 11.7 Does not support querying firmwareInfo yet.
+      // After that support is added, remove this if check.
+      // This is better than marking this test known bad for 11.7 as we want
+      // to continue to validate forceIsolate which is supported on 11.7
+      return;
     }
+
+    CHECK_EQ(firmwareInfoList.size(), 1);
+    auto firmwareInfo = firmwareInfoList[0];
+
+    XLOG(DBG2) << "FirmwareInfo:: version: " << *firmwareInfo.version()
+               << " opStatus: "
+               << apache::thrift::util::enumNameSafe(
+                      firmwareInfo.opStatus().value())
+               << " funcStatus: "
+               << apache::thrift::util::enumNameSafe(
+                      firmwareInfo.funcStatus().value());
+
+    EXPECT_FALSE(firmwareInfo.version()->empty());
+    EXPECT_TRUE(firmwareInfo.opStatus().value() == expectedOpStatus);
+    EXPECT_TRUE(firmwareInfo.funcStatus().value() == expectedFuncStatus);
   }
 
  protected:
@@ -414,13 +406,16 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceCrash) {
 
   auto verify = [this]() {
     this->forceCrash();
+    auto switchId = this->getCurrentSwitchIdForTesting();
+    auto config = this->getSw()->getConfig();
+    auto& switchIdToSwitchInfo =
+        *config.switchSettings()->switchIdToSwitchInfo();
+    auto switchIdx =
+        *switchIdToSwitchInfo.at(static_cast<int64_t>(switchId)).switchIndex();
     WITH_RETRIES({
-      for (auto switchIdx :
-           this->getFWCapableSwitchIndices(this->getSw()->getConfig())) {
-        auto switchStats = this->getHwSwitchStats(switchIdx);
-        auto asicErrors = switchStats.hwAsicErrors();
-        EXPECT_EVENTUALLY_GT(asicErrors->isolationFirmwareCrashes(), 0);
-      }
+      auto switchStats = this->getHwSwitchStats(switchIdx);
+      auto asicErrors = switchStats.hwAsicErrors();
+      EXPECT_EVENTUALLY_GT(asicErrors->isolationFirmwareCrashes(), 0);
     });
     this->forceIsolatePostCrashAndVerify();
   };

@@ -24,6 +24,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/TunnelMgrTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -938,19 +939,19 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4Entries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+        utility::checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -996,19 +997,20 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1371,7 +1373,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv4), true, true);
       }
 
       // change ipv4 address of the interface
@@ -1392,19 +1395,20 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
       if (status) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv4), true, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1453,7 +1457,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // rule entries are not created if the interface is not up. So,
       // checking for the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false);
       }
 
       // change ipv6 address of the interface
@@ -1474,19 +1479,20 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
       if (status) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1537,7 +1543,8 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false);
       }
 
       // Applying the same config again
@@ -1581,26 +1588,26 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       if (status) {
         // If source route rule is added again for the same IP address, it
         // would create duplicate entries.
-        checkKernelEntriesRemoved(
+        utility::checkKernelEntriesRemoved(
             folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
-        checkKernelEntriesExist(
+        utility::checkKernelEntriesExist(
             folly::to<std::string>(intfIPv4New), true, false);
-        checkKernelEntriesExist(
+        utility::checkKernelEntriesExist(
             folly::to<std::string>(intfIPv6New), false, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);

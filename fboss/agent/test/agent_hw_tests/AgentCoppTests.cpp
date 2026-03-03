@@ -21,6 +21,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -59,7 +60,7 @@ const auto kDhcpV6AllRoutersIp = folly::IPAddressV6("ff02::1:2");
 const auto kDhcpV6McastMacAddress = folly::MacAddress("33:33:00:01:00:02");
 const auto kDhcpV6ServerGlobalUnicastAddress =
     folly::IPAddressV6("2401:db00:eef0:a67::1");
-const auto kRandomIP = folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
+const auto kRandomIP = folly::IPAddressV6(facebook::fboss::kTestDstIpV6);
 const auto kGlobalRateLimit = 1.5 * 1024 * 1024;
 
 using TestTypes =
@@ -505,8 +506,8 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort,
       bool selfSolicit,
       bool expectRxPacket = true) {
-    InterfaceID intfId =
-        utility::firstInterfaceIDWithPorts(getProgrammedState());
+    InterfaceID intfId = utility::firstInterfaceIDWithPorts(
+        getProgrammedState(), getSwitchIdUnderTest(*getAgentEnsemble()));
     auto intf = getProgrammedState()->getInterfaces()->getNode(intfId);
     std::optional<VlanID> vlanId{};
     if (intf->getType() == cfg::InterfaceType::VLAN) {
@@ -622,7 +623,8 @@ class AgentCoppTest : public AgentHwTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
+    auto intfId = utility::firstInterfaceIDWithPorts(
+        getProgrammedState(), getSwitchIdUnderTest(*getAgentEnsemble()));
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = getVlanIDForTx();
     auto intfMac =
@@ -937,8 +939,8 @@ TYPED_TEST(AgentCoppTest, Ipv6LinkLocalUcastIpNetworkControlDscpToHighPriQ) {
 /*
  * Testcase to test that link local ucast packets from cpu port does not get
  * copied back to cpu. The test does the following
- * 1. copp acl to match link local ucast address and cpu srcPort is created as a
- * part of setup
+ * 1. copp acl to match link local ucast address and cpu srcPort is created as
+ * a part of setup
  * 2. Sends a link local unicast packet through CPU PIPELINE_LOOKUP.
  * 3. Packet hits the newly created acl(and so does not get forwarded to cpu).
  * It goes out through the front port and loops back in.
@@ -1062,8 +1064,8 @@ TYPED_TEST(AgentCoppPortMtuTest, PortMTUErrorToLowPriQ) {
     // Make sure all packets packet with large payload (> MTU)
     // are sent to cpu low priority queue.
     // Port Max Frame size is set to 9412
-    // Ethernet header size is 14 bytes Ipv6 header size is 40, TCP header size
-    // is 20. Thus paload 9412 - 20 - 40 - 14 = 9338
+    // Ethernet header size is 14 bytes Ipv6 header size is 40, TCP header
+    // size is 20. Thus paload 9412 - 20 - 40 - 14 = 9338
 
     // send packet with payload 9338, should not be trapped
     this->sendTcpPktAndVerifyCpuQueue(
@@ -1126,10 +1128,10 @@ TYPED_TEST(AgentCoppTest, NdpSolicitNeighbor) {
   // ACL entry to trap NDP solicit to high priority queue.
   // If both ACL entries are present in the ACL table and at the right order
   // we would recive 1 packet to CPU.
-  // Reason: NS packet enters ASIC via CPU port, hits addNoActionAclForNw() ACL
-  // because, prefix macthes ff02::/16 and source port is set to CPU port. Hence
-  // it will be forwarded. Since it's a multicast packet, it will be sent out of
-  // port 1, and the packet loops back into ASIC via port 1.
+  // Reason: NS packet enters ASIC via CPU port, hits addNoActionAclForNw()
+  // ACL because, prefix macthes ff02::/16 and source port is set to CPU port.
+  // Hence it will be forwarded. Since it's a multicast packet, it will be
+  // sent out of port 1, and the packet loops back into ASIC via port 1.
   //  Now, it hits the NDP solicit ACL entry and copied to CPU.
   // Note that it did NOT hit addNoActionAclForNw() because source port is set
   // to 1 after looping back.
@@ -1317,8 +1319,9 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto intfID =
-        utility::firstInterfaceIDWithPorts(this->getProgrammedState());
+    auto intfID = utility::firstInterfaceIDWithPorts(
+        this->getProgrammedState(),
+        this->getSwitchIdUnderTest(*this->getAgentEnsemble()));
     auto v4IntfAddr =
         utility::getIntfAddrsV4(this->getProgrammedState(), intfID)[0];
     auto v6IntfAddr =
@@ -1974,7 +1977,8 @@ TEST_F(AgentCoppQosTest, HighVsLowerPriorityCpuQueueTrafficPrioritization) {
         midPriorityCoppQueueStatsAfter - midPriorityCoppQueueStatsBefore);
 
     if (asic->isSupported(HwAsic::Feature::VOQ)) {
-      // check watermark of low priority voq should reach max shared buffer size
+      // check watermark of low priority voq should reach max shared buffer
+      // size
       const double kVariance = 0.01;
       auto watermarkBytesLow = utility::getDnxCoppMaxDynamicSharedBytes(
                                    utility::kCoppLowPriQueueId) *

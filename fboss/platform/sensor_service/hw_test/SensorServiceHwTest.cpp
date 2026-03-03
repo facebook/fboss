@@ -13,6 +13,7 @@
 #include <folly/init/Init.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/sensor_service/Utils.h"
 
@@ -144,7 +145,7 @@ TEST_F(SensorServiceHwTest, GetSomeSensorsViaThrift) {
   sensorServiceImpl_->fetchSensorData();
   apache::thrift::ScopedServerInterfaceThread server(
       sensorServiceHandler_,
-      facebook::fboss::platform::helpers::createTestThriftServerConfig());
+      facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
   auto client = server.newClient<apache::thrift::Client<SensorServiceThrift>>();
   SensorReadResponse response;
   client->sync_getSensorValuesByNames(response, someSensorNames);

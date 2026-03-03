@@ -46,6 +46,13 @@ development.
 
   - fw_util_hw_test
 
+#### Other Tests
+
+- These tests need to run on actual HW, but due to their nature are not part of any hw_test.
+
+  - Run `i2cdetect` against every I2C bus visible to userspace and verify that no adverse effects occur. Ensure that all FBOSS
+    services are able to run properly after this operation.
+
 ---
 
 ## BMC {#bmc}

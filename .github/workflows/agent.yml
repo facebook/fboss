@@ -29,7 +29,6 @@ jobs:
           --target
           fboss_fake_agent_targets
           --no-docker-output
-          --no-system-deps
           --local
           --env-var
           BUILD_SAI_FAKE

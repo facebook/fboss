@@ -1,0 +1,6 @@
+"Test Case","Platform","Status"
+"FanServiceHwTest.TransitionalPWM","meru800bia","PASSED"
+"FanServiceHwTest.ODSCounters","meru800bia","PASSED"
+"FanServiceHwTest.LedWriteDidNotFail","meru800bia","PASSED"
+"FanServiceHwTest.FanStatusesThrift","meru800bia","PASSED"
+"FanServiceHwTest.FanControl","meru800bia","PASSED"

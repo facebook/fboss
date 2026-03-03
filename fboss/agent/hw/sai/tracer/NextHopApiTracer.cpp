@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
 
 using folly::to;
@@ -24,6 +25,10 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _NextHopMap{
     SAI_ATTR_MAP(IpNextHop, Ip),
     SAI_ATTR_MAP(MplsNextHop, LabelStack),
     SAI_ATTR_MAP(IpNextHop, DisableTtlDecrement),
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    SAI_ATTR_MAP(Srv6SidlistNextHop, TunnelId),
+    SAI_ATTR_MAP(Srv6SidlistNextHop, Srv6SidlistId),
+#endif
 };
 } // namespace
 

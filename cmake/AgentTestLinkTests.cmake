@@ -80,6 +80,7 @@ target_link_libraries(agent_ensemble_link_tests
   packet
   packet_snooper
   trunk_utils
+  hyper_port_test_utils
   link_test_production_features_cpp2
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

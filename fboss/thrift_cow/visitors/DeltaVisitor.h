@@ -11,7 +11,7 @@
 
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <fboss/thrift_cow/visitors/TraverseHelper.h>
@@ -703,7 +703,7 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using Members = typename Fields::Members;
+    using TType = typename Fields::ThriftType;
 
     bool hasDifferences{false};
 
@@ -713,77 +713,86 @@ struct DeltaVisitor<apache::thrift::type_class::variant> {
     if (oldFields.type() != newFields.type()) {
       hasDifferences = true;
       if (wasSet) {
-        fatal::scalar_search<Members, fatal::get_type::id>(
-            oldFields.type(), [&](auto indexed) {
-              using descriptor = decltype(fatal::tag_type(indexed));
-              using name = typename descriptor::metadata::name;
-              using tc = typename descriptor::metadata::type_class;
+        apache::thrift::op::for_each_field_id<TType>([&]<class Id>(Id) {
+          using Traits = typename Fields::template FieldTraits<Id>;
+          using TC_ = typename Traits::TC;
+          constexpr auto fid = apache::thrift::op::get_field_id_v<TType, Id>;
 
-              std::string memberName =
-                  getMemberName<typename descriptor::metadata>(
-                      options.outputIdPaths);
+          if (folly::to_underlying(fid) !=
+              folly::to_underlying(oldFields.type())) {
+            return;
+          }
 
-              traverser.push(std::move(memberName), TCType<tc>);
+          std::string memberName =
+              getMemberName<TType, Id>(options.outputIdPaths);
 
-              const auto& oldRef = oldFields.template cref<name>();
+          traverser.push(std::move(memberName), TCType<TC_>);
 
-              dv_detail::visitAddedOrRemovedNode<tc>(
-                  traverser,
-                  oldRef,
-                  // default constructed member type
-                  decltype(oldRef){},
-                  options,
-                  std::forward<Func>(f));
+          const auto& oldRef = oldFields.template cref<Id>();
 
-              traverser.pop(TCType<tc>);
-            });
+          dv_detail::visitAddedOrRemovedNode<TC_>(
+              traverser,
+              oldRef,
+              // default constructed member type
+              decltype(oldRef){},
+              options,
+              std::forward<Func>(f));
+
+          traverser.pop(TCType<TC_>);
+        });
       }
       if (isSet) {
-        fatal::scalar_search<Members, fatal::get_type::id>(
-            newFields.type(), [&](auto indexed) {
-              using descriptor = decltype(fatal::tag_type(indexed));
-              using name = typename descriptor::metadata::name;
-              using tc = typename descriptor::metadata::type_class;
+        apache::thrift::op::for_each_field_id<TType>([&]<class Id>(Id) {
+          using Traits = typename Fields::template FieldTraits<Id>;
+          using TC_ = typename Traits::TC;
+          constexpr auto fid = apache::thrift::op::get_field_id_v<TType, Id>;
 
-              std::string memberName =
-                  getMemberName<typename descriptor::metadata>(
-                      options.outputIdPaths);
+          if (folly::to_underlying(fid) !=
+              folly::to_underlying(newFields.type())) {
+            return;
+          }
 
-              traverser.push(std::move(memberName), TCType<tc>);
+          std::string memberName =
+              getMemberName<TType, Id>(options.outputIdPaths);
 
-              const auto& newRef = newFields.template cref<name>();
+          traverser.push(std::move(memberName), TCType<TC_>);
 
-              dv_detail::visitAddedOrRemovedNode<tc>(
-                  traverser,
-                  // default constructed member type
-                  decltype(newRef){},
-                  newRef,
-                  options,
-                  std::forward<Func>(f));
+          const auto& newRef = newFields.template cref<Id>();
 
-              traverser.pop(TCType<tc>);
-            });
+          dv_detail::visitAddedOrRemovedNode<TC_>(
+              traverser,
+              // default constructed member type
+              decltype(newRef){},
+              newRef,
+              options,
+              std::forward<Func>(f));
+
+          traverser.pop(TCType<TC_>);
+        });
       }
     } else {
-      fatal::scalar_search<Members, fatal::get_type::id>(
-          oldFields.type(), [&](auto indexed) {
-            using descriptor = decltype(fatal::tag_type(indexed));
-            using name = typename descriptor::metadata::name;
-            using tc = typename descriptor::metadata::type_class;
+      apache::thrift::op::for_each_field_id<TType>([&]<class Id>(Id) {
+        using Traits = typename Fields::template FieldTraits<Id>;
+        using TC_ = typename Traits::TC;
+        constexpr auto fid = apache::thrift::op::get_field_id_v<TType, Id>;
 
-            std::string memberName =
-                getMemberName<typename descriptor::metadata>(
-                    options.outputIdPaths);
+        if (folly::to_underlying(fid) !=
+            folly::to_underlying(oldFields.type())) {
+          return;
+        }
 
-            traverser.push(std::move(memberName), TCType<tc>);
-            hasDifferences = DeltaVisitor<tc>::visit(
-                traverser,
-                oldFields.template cref<name>(),
-                newFields.template cref<name>(),
-                options,
-                std::forward<Func>(f));
-            traverser.pop(TCType<tc>);
-          });
+        std::string memberName =
+            getMemberName<TType, Id>(options.outputIdPaths);
+
+        traverser.push(std::move(memberName), TCType<TC_>);
+        hasDifferences = DeltaVisitor<TC_>::visit(
+            traverser,
+            oldFields.template cref<Id>(),
+            newFields.template cref<Id>(),
+            options,
+            std::forward<Func>(f));
+        traverser.pop(TCType<TC_>);
+      });
     }
 
     return hasDifferences;
@@ -861,40 +870,39 @@ struct DeltaVisitor<apache::thrift::type_class::structure> {
       // only enable for Fields types
     requires(std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using Members = typename Fields::Members;
+    using TType = typename Fields::ThriftType;
 
     bool hasDifferences{false};
 
-    fatal::foreach<Members>([&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using name = typename member::name;
-      using tc = typename member::type_class;
+    apache::thrift::op::for_each_field_id<TType>([&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
 
       // Look for the expected member name
-      std::string memberName = getMemberName<member>(options.outputIdPaths);
+      std::string memberName = getMemberName<TType, Id>(options.outputIdPaths);
 
-      traverser.push(std::move(memberName), TCType<tc>);
+      traverser.push(std::move(memberName), TCType<TC_>);
       SCOPE_EXIT {
-        traverser.pop(TCType<tc>);
+        traverser.pop(TCType<TC_>);
       };
 
-      const auto& oldRef = oldFields.template cref<name>();
-      const auto& newRef = newFields.template cref<name>();
+      const auto& oldRef = oldFields.template cref<Id>();
+      const auto& newRef = newFields.template cref<Id>();
 
       // Check for optionality
-      if (member::optional::value == apache::thrift::optionality::optional) {
+      if constexpr (Traits::isOptional) {
         if (!oldRef && !newRef) {
           return;
         } else if (!oldRef || !newRef) {
           hasDifferences = true;
-          dv_detail::visitAddedOrRemovedNode<tc>(
+          dv_detail::visitAddedOrRemovedNode<TC_>(
               traverser, oldRef, newRef, options, std::forward<Func>(f));
           return;
         }
       }
 
       // Recurse further if pointer has changed
-      if (DeltaVisitor<tc>::visit(
+      if (DeltaVisitor<TC_>::visit(
               traverser, oldRef, newRef, options, std::forward<Func>(f))) {
         hasDifferences = true;
       }

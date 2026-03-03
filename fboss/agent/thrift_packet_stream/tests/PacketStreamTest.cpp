@@ -10,6 +10,7 @@
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include "fboss/agent/thrift_packet_stream/PacketStreamClient.h"
 #include "fboss/agent/thrift_packet_stream/PacketStreamService.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 using namespace testing;
 using namespace facebook::fboss;
@@ -120,8 +121,9 @@ class PacketStreamTest : public Test {
     baton_ = std::make_shared<folly::Baton<>>();
     handler_ = std::make_shared<DerivedPacketStreamService>(
         "PacketStreamServiceTest", baton_);
-    server_ =
-        std::make_unique<apache::thrift::ScopedServerInterfaceThread>(handler_);
+    server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+        handler_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
   }
 
   void TearDown() override {

@@ -15,9 +15,4 @@ DEFINE_uint32(
     5,
     "The interval between each sensor data fetch");
 
-DEFINE_int32(
-    stats_publish_interval,
-    60,
-    "Interval (in seconds) for publishing stats");
-
 DEFINE_int32(thrift_port, 5970, "Port for the thrift service");

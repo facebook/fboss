@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","darwin","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","darwin","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","darwin","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","darwin","PASSED"

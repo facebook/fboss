@@ -15,7 +15,6 @@ class PlatformNameLib {
   auto static constexpr dmidecodeCommand = "dmidecode -s system-product-name";
   auto static constexpr kPlatformNameBiosReadFailures =
       "platform_name_bios_read_failures";
-  auto static constexpr kCacheDir = "/var/facebook/fboss/";
   // TODO: If extending beyond platform name, write out in JSON format instead.
   auto static constexpr kCachePath = "/var/facebook/fboss/platform_name";
 

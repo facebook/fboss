@@ -393,6 +393,16 @@ const std::shared_ptr<MultiSwitchIpTunnelMap>& SwitchState::getTunnels() const {
   return safe_cref<switch_state_tags::ipTunnelMaps>();
 }
 
+void SwitchState::resetSrv6Tunnels(
+    std::shared_ptr<MultiSwitchSrv6TunnelMap> tunnels) {
+  ref<switch_state_tags::srv6TunnelMaps>() = tunnels;
+}
+
+const std::shared_ptr<MultiSwitchSrv6TunnelMap>& SwitchState::getSrv6Tunnels()
+    const {
+  return safe_cref<switch_state_tags::srv6TunnelMaps>();
+}
+
 void SwitchState::resetTeFlowTable(
     std::shared_ptr<MultiTeFlowTable> flowTable) {
   ref<switch_state_tags::teFlowTables>() = flowTable;
@@ -628,6 +638,29 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     // Clear the old fibsMap
     state->resetForwardingInformationBases(
         std::make_shared<MultiSwitchForwardingInformationBaseMap>());
+  }
+
+  // Migrate old ports field to new portsInfo field for warmboot compatibility
+  for (auto& vlanMapEntry : *state->ref<switch_state_tags::vlanMaps>()) {
+    for (auto& [vlanId, vlan] : *vlanMapEntry.second) {
+      // If new portsInfo field is empty but old ports field has data, migrate
+      // it
+      if (vlan->getPortsInfo().empty()) {
+        auto oldPorts = vlan->get<switch_state_tags::ports_DEPRECATED>();
+        if (oldPorts && !oldPorts->empty()) {
+          std::map<int16_t, state::VlanInfo> portsInfo;
+          for (const auto& [portId, taggedOpt] : *oldPorts) {
+            if (taggedOpt) {
+              state::VlanInfo vlanInfo;
+              *vlanInfo.tagged() = taggedOpt->cref();
+              *vlanInfo.priorityTagged() = false;
+              portsInfo.emplace(portId, vlanInfo);
+            }
+          }
+          vlan->set<switch_state_tags::portsInfo>(portsInfo);
+        }
+      }
+    }
   }
 
   return state;
@@ -868,6 +901,20 @@ state::SwitchState SwitchState::toThrift() const {
     data.fibsMap() = fibsMap;
   }
 
+  // Migrate new portsInfo field to old ports field for warmboot compatibility
+  for (auto& [matcherKey, vlanMapThrift] : *data.vlanMaps()) {
+    for (auto& [vlanId, vlanThrift] : vlanMapThrift) {
+      // If new portsInfo field has data, populate old ports field
+      if (!vlanThrift.portsInfo()->empty()) {
+        std::map<int16_t, bool> ports;
+        for (const auto& [portId, vlanInfo] : *vlanThrift.portsInfo()) {
+          ports.emplace(portId, *vlanInfo.tagged());
+        }
+        vlanThrift.ports_DEPRECATED() = ports;
+      }
+    }
+  }
+
   return data;
 }
 
@@ -918,6 +965,8 @@ template MultiSwitchMirrorOnDropReportMap* SwitchState::modify<
     switch_state_tags::mirrorOnDropReportMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchIpTunnelMap* SwitchState::modify<
     switch_state_tags::ipTunnelMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchSrv6TunnelMap* SwitchState::modify<
+    switch_state_tags::srv6TunnelMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::systemPortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<

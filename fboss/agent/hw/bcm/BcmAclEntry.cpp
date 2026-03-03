@@ -36,7 +36,7 @@ using folly::MacAddress;
 namespace {
 
 using facebook::fboss::bcmCheckError;
-using facebook::fboss::switch_state_tags;
+namespace switch_state_tags = facebook::fboss::switch_state_tags;
 using folly::IPAddressV4;
 using folly::IPAddressV6;
 

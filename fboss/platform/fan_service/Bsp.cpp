@@ -3,7 +3,6 @@
 #include "fboss/platform/fan_service/Bsp.h"
 
 #include <ctime>
-#include <fstream>
 #include <string>
 
 #include <fmt/chrono.h>
@@ -101,7 +100,7 @@ int Bsp::emergencyShutdown(bool enable) {
   bool currentState = getEmergencyState();
   if (enable && !currentState) {
     if (*config_.shutdownCmd() == "NOT_DEFINED") {
-      facebook::fboss::FbossError(
+      throw facebook::fboss::FbossError(
           "Emergency Shutdown Was Called But Not Defined!");
     } else {
       auto [exitStatus, standardOut] =
@@ -436,7 +435,6 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
 
 float Bsp::readSysfs(const std::string& path) const {
   float retVal;
-  std::ifstream juicejuice(path);
   std::string buf = facebook::fboss::readSysfs(path);
   try {
     retVal = std::stof(buf);

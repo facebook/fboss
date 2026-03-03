@@ -133,6 +133,11 @@ class NextHopIDManager {
   NextHopDeallocationResult decrOrDeallocRouteNextHopSetID(
       NextHopSetID nextHopSetID);
 
+  // Lookup the NextHopSetID for a given RouteNextHopSet
+  // Returns std::nullopt if the set doesn't exist
+  std::optional<NextHopSetID> lookupRouteNextHopSetID(
+      const RouteNextHopSet& nextHopSet) const;
+
   // Update from old RouteNextHopSet to new RouteNextHopSet
   // Decrements old, allocates/increments new
   // Returns NextHopUpdateResult containing both allocation and deallocation

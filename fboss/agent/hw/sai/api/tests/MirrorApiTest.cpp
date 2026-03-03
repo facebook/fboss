@@ -46,10 +46,10 @@ class MirrorApiTest : public ::testing::Test {
       uint8_t tos,
       uint16_t truncateSize,
       uint8_t ttl,
-      folly::IPAddress& srcIp,
-      folly::IPAddress& dstIp,
-      folly::MacAddress& srcMac,
-      folly::MacAddress& dstMac,
+      folly::IPAddress& srcIpAddr,
+      folly::IPAddress& dstIpAddr,
+      folly::MacAddress& srcMacAddr,
+      folly::MacAddress& dstMacAddr,
       uint8_t ipHeaderVersion,
       uint16_t greProtocol,
       uint32_t samplingRate) {
@@ -58,10 +58,10 @@ class MirrorApiTest : public ::testing::Test {
          portId,
          SAI_ERSPAN_ENCAPSULATION_TYPE_MIRROR_L3_GRE_TUNNEL,
          tos,
-         srcIp,
-         dstIp,
-         srcMac,
-         dstMac,
+         srcIpAddr,
+         dstIpAddr,
+         srcMacAddr,
+         dstMacAddr,
          greProtocol,
          ipHeaderVersion,
          ttl,
@@ -86,20 +86,20 @@ class MirrorApiTest : public ::testing::Test {
     SaiEnhancedRemoteMirrorTraits::Attributes::Tos tos;
     SaiEnhancedRemoteMirrorTraits::Attributes::Ttl ttl;
     SaiEnhancedRemoteMirrorTraits::Attributes::TruncateSize truncateSize;
-    SaiEnhancedRemoteMirrorTraits::Attributes::SrcIpAddress srcIp;
-    SaiEnhancedRemoteMirrorTraits::Attributes::DstIpAddress dstIp;
-    SaiEnhancedRemoteMirrorTraits::Attributes::SrcMacAddress srcMac;
-    SaiEnhancedRemoteMirrorTraits::Attributes::DstMacAddress dstMac;
+    SaiEnhancedRemoteMirrorTraits::Attributes::SrcIpAddress srcIpAttr;
+    SaiEnhancedRemoteMirrorTraits::Attributes::DstIpAddress dstIpAttr;
+    SaiEnhancedRemoteMirrorTraits::Attributes::SrcMacAddress srcMacAttr;
+    SaiEnhancedRemoteMirrorTraits::Attributes::DstMacAddress dstMacAttr;
     SaiEnhancedRemoteMirrorTraits::Attributes::GreProtocolType greProtocolType;
     SaiEnhancedRemoteMirrorTraits::Attributes::IpHeaderVersion ipHeaderVersion;
     auto gotMonitorPort = mirrorApi->getAttribute(mirrorSaiId, monitorPort);
     auto gotTos = mirrorApi->getAttribute(mirrorSaiId, tos);
     auto gotTtl = mirrorApi->getAttribute(mirrorSaiId, ttl);
     auto gotTruncateSize = mirrorApi->getAttribute(mirrorSaiId, truncateSize);
-    auto gotSrcIp = mirrorApi->getAttribute(mirrorSaiId, srcIp);
-    auto gotDstIp = mirrorApi->getAttribute(mirrorSaiId, dstIp);
-    auto gotSrcMac = mirrorApi->getAttribute(mirrorSaiId, srcMac);
-    auto gotDstMac = mirrorApi->getAttribute(mirrorSaiId, dstMac);
+    auto gotSrcIp = mirrorApi->getAttribute(mirrorSaiId, srcIpAttr);
+    auto gotDstIp = mirrorApi->getAttribute(mirrorSaiId, dstIpAttr);
+    auto gotSrcMac = mirrorApi->getAttribute(mirrorSaiId, srcMacAttr);
+    auto gotDstMac = mirrorApi->getAttribute(mirrorSaiId, dstMacAttr);
     auto gotGreProtocolType =
         mirrorApi->getAttribute(mirrorSaiId, greProtocolType);
     auto gotIpHeaderVersion =

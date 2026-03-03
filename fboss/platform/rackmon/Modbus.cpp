@@ -103,6 +103,9 @@ void Modbus::initialize(const json& j) {
   minDelay_ = ModbusTime(j.value("min_delay", 0));
   ignoredAddrs_ = j.value("ignored_addrs", std::set<uint8_t>{});
   device_ = makeDevice(deviceType, devicePath_, defaultBaudrate_);
+  if (j.contains("port")) {
+    port_ = j["port"].get<uint8_t>();
+  }
   if (!openDevice()) {
     logError << devicePath_ << " open failed. starting recovery" << std::endl;
   }

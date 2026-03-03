@@ -424,7 +424,6 @@
     "/run/devmap/eeproms/PEM_EEPROM": "/PEM_SLOT@0/[IDPROM]",
     "/run/devmap/sensors/FS_FAN_SLG4F4527": "/RACKMON_SLOT@0/[FS_FAN_SLG4F4527]",
     "/run/devmap/gpiochips/RACKMON_PLS": "/RACKMON_SLOT@0/[RACKMON_PLS]",
-    "/run/devmap/eeproms/FANSPINNER_EEPROM": "/RACKMON_SLOT@0/[FANSPINNER_EEPROM]",
     "/run/devmap/sensors/PEM_ECB_MAX5970": "/PEM_SLOT@0/[PEM_ECB_MAX5970]",
     "/run/devmap/sensors/PEM_ADC_MAX11645": "/PEM_SLOT@0/[PEM_ADC_MAX11645]",
     "/run/devmap/sensors/PEM_TEMP_MAX6658": "/PEM_SLOT@0/[PEM_TEMP_MAX6658]"

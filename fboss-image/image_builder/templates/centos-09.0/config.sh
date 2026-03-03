@@ -169,7 +169,17 @@ mkdir -p /boot/grub2/x86_64-efi
 cp -r /usr/lib/grub/x86_64-efi/* /boot/grub2/x86_64-efi/
 echo "Copied all GRUB modules to /boot/grub2/x86_64-efi/ (root partition)"
 
-# 7. Done! Cleanup, remember that we are chrooted on the rootfs
+# 7. Enable systemd services
+echo "Enabling FBOSS systemd services..."
+systemctl enable platform_manager.service
+systemctl enable data_corral_service.service
+systemctl enable fan_service.service
+systemctl enable sensor_service.service
+systemctl enable fsdb.service
+systemctl enable qsfp_service.service
+systemctl enable wedge_agent.service
+
+# 8. Done! Cleanup, remember that we are chrooted on the rootfs
 echo "Removing kernel rpms from rootfs..."
 rm -f /repos/*.rpm
 rmdir /repos

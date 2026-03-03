@@ -10,13 +10,12 @@
 
 #pragma once
 
-#include <fatal/container/tuple.h>
 #include <folly/Conv.h>
 #include <folly/FBString.h>
 #include <folly/json/dynamic.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
@@ -25,134 +24,7 @@
 
 namespace facebook::fboss::thrift_cow {
 
-namespace struct_helpers {
-
-// helper to create a type compatible w/ fatal::transform that can
-// extract the 'ttype' member type variable of another type
-FATAL_GET_MEMBER_TYPE(ttype);
-
-template <typename Member>
-constexpr bool isOptional() {
-  return Member::optional::value == apache::thrift::optionality::optional;
-}
-
-struct HasSkipThriftCow {
-  template <typename Traits>
-  using apply = typename std::conditional<
-      Traits::allowSkipThriftCow,
-      std::true_type,
-      std::false_type>::type;
-};
-
-struct IsChildNode {
-  template <typename Traits>
-  using apply = typename Traits::isChild;
-};
-
-// This is templated on the ThriftStructFields type and is used in
-// fatal::foreach to copy from a thrift struct to our underlying
-// storage type (NamedMemberTypes)
-template <typename FieldsT>
-struct CopyFromMember {
-  using NamedMemberTypes = typename FieldsT::NamedMemberTypes;
-  using TType = typename FieldsT::ThriftType;
-
-  template <typename T>
-  void
-  operator()(fatal::tag<T>, TType& thrift, const NamedMemberTypes& storage) {
-    using name = typename T::name;
-    using member = typename T::member;
-
-    auto& stored = storage.template get<name>();
-    if (stored) {
-      typename member::field_ref_getter{}(thrift) = stored->toThrift();
-    }
-  }
-};
-
-// This is templated on the ThriftStructFields type and is used in
-// fatal::foreach to copy from our underlying storage type
-// (NamedMemberTypes) to a raw thrift struct
-template <typename FieldsT>
-struct MemberConstruct {
-  using NamedMemberTypes = typename FieldsT::NamedMemberTypes;
-
-  template <typename T>
-  void operator()(fatal::tag<T>, NamedMemberTypes& storage) {
-    using name = typename T::name;
-    if constexpr (!isOptional<typename T::member>()) {
-      if constexpr (FieldsT::template HasSkipThriftCow<name>::value) {
-        using UnderlyingType =
-            typename FieldsT::template TypeFor<name>::element_type;
-        storage.template get<name>() = std::make_shared<UnderlyingType>();
-      } else if constexpr (FieldsT::template IsChildNode<name>::value) {
-        using ChildType =
-            typename FieldsT::template TypeFor<name>::element_type;
-        storage.template get<name>() = std::make_shared<ChildType>();
-      } else {
-        using FieldType = typename FieldsT::template TypeFor<name>::value_type;
-        storage.template get<name>() = FieldType{};
-      }
-    }
-  }
-};
-
-// Copy thrift data to a member. If a child, we will create a fully
-// new child node and replace the existing one (if present).
-template <typename FieldsT>
-struct CopyToMember {
-  using NamedMemberTypes = typename FieldsT::NamedMemberTypes;
-  using TType = typename FieldsT::ThriftType;
-
-  template <typename T>
-  void
-  operator()(fatal::tag<T>, NamedMemberTypes& storage, const TType& thrift) {
-    using name = typename T::name;
-    using member = typename T::member;
-
-    if (!member::is_set(thrift) && isOptional<member>()) {
-      storage.template get<name>().reset();
-      return;
-    }
-
-    if constexpr (FieldsT::template HasSkipThriftCow<name>::value) {
-      using UnderlyingType =
-          typename FieldsT::template TypeFor<name>::element_type;
-      storage.template get<name>() =
-          std::make_shared<UnderlyingType>(typename member::getter{}(thrift));
-    } else if constexpr (FieldsT::template IsChildNode<name>::value) {
-      using ChildType = typename FieldsT::template TypeFor<name>::element_type;
-      storage.template get<name>() =
-          std::make_shared<ChildType>(typename member::getter{}(thrift));
-    } else {
-      storage.template get<name>() =
-          typename member::field_ref_getter{}(thrift).value();
-    }
-  }
-};
-
-// Invoke a function on each child. Expects functions that take a raw
-// pointer to a node.
-template <typename FieldsT, bool withName = false>
-struct ChildInvoke {
-  using NamedMemberTypes = typename FieldsT::NamedMemberTypes;
-
-  template <typename T, typename Fn>
-  void operator()(fatal::tag<T>, NamedMemberTypes& storage, Fn fn) {
-    using ChildType =
-        typename NamedMemberTypes::template type_of<typename T::name>;
-    ChildType value = storage.template get<typename T::name>();
-    if (value) {
-      if constexpr (!withName) {
-        fn(value.get());
-      } else {
-        fn(value.get(), typename T::name());
-      }
-    }
-  }
-};
-
-} // namespace struct_helpers
+namespace op = apache::thrift::op;
 
 template <
     typename TType,
@@ -160,72 +32,58 @@ template <
     bool EnableHybridStorage = false>
 struct ThriftStructFields : public FieldBaseType {
   using Self = ThriftStructFields<TType, Derived, EnableHybridStorage>;
-  using Info = apache::thrift::reflect_struct<TType>;
   using CowType = FieldsType;
   using ThriftType = TType;
   using TC = apache::thrift::type_class::structure;
 
-  // type list of reflected_struct_member
-  using Members = typename Info::members;
+  // Storage is a std::tuple indexed by ordinal
+  using Storage = CowStorage<TType, Derived, EnableHybridStorage>;
 
-  // Extracting useful common types out of each member via Traits.h
-  using MemberTypes = fatal::transform<
-      Members,
-      ExtractStructFields<TType, Derived, EnableHybridStorage>>;
+  template <typename Id>
+  using FieldTraits = CowFieldTraits<TType, Id, Derived, EnableHybridStorage>;
 
-  // type list of members with SkipThriftCow enabled
-  using MemberTypesWithSkipThriftCow =
-      fatal::filter<MemberTypes, struct_helpers::HasSkipThriftCow>;
+  template <typename Id>
+  using TypeFor = typename FieldTraits<Id>::type;
 
-  template <typename Name>
-  using HasSkipThriftCow = typename fatal::
-      contains<MemberTypesWithSkipThriftCow, Name, fatal::get_type::name>;
+  template <typename Id>
+  using ThriftTypeFor = op::get_native_type<TType, Id>;
 
-  template <typename Name>
+  template <typename Id>
+  static constexpr bool IsChildNode = FieldTraits<Id>::isChild::value;
+
+  template <typename Id>
+  static constexpr bool HasSkipThriftCow = FieldTraits<Id>::allowSkipThriftCow;
+
+  template <typename Id>
   constexpr bool isSkipThriftCowEnabled() const {
-    if constexpr (EnableHybridStorage && HasSkipThriftCow<Name>::value) {
+    if constexpr (EnableHybridStorage && HasSkipThriftCow<Id>) {
       return true;
     }
-
     return false;
   }
-
-  // This is our ultimate storage type, which is effectively a
-  // std::tuple with syntactic sugar for accessing based on
-  // these constexpr strings.
-  using NamedMemberTypes = typename fatal::tuple_from<MemberTypes>::
-      template list<fatal::get_member_type::type, fatal::get_member_type::name>;
-  using ChildrenTypes = fatal::filter<MemberTypes, struct_helpers::IsChildNode>;
-
-  template <typename Name>
-  using TypeFor = typename fatal::find<
-      MemberTypes,
-      Name,
-      std::false_type,
-      fatal::get_type::name,
-      fatal::get_type::type>;
-
-  template <typename Name>
-  using MemberFor = typename fatal::find<
-      Members,
-      Name,
-      std::false_type,
-      fatal::get_type::name,
-      fatal::get_identity>;
-
-  template <typename Name>
-  using ThriftTypeFor = typename MemberFor<Name>::type;
-
-  template <typename Name>
-  using IsChildNode =
-      typename fatal::contains<ChildrenTypes, Name, fatal::get_type::name>;
 
   // constructors:
   // One takes a thrift type directly, one default constructs everything
 
   ThriftStructFields() {
-    fatal::foreach<MemberTypes>(
-        struct_helpers::MemberConstruct<Self>(), storage_);
+    op::for_each_field_id<TType>([&]<class Id>(Id) {
+      using Traits = FieldTraits<Id>;
+      if constexpr (!Traits::isOptional) {
+        constexpr size_t pos =
+            static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+        auto& slot = std::get<pos>(storage_);
+        if constexpr (Traits::allowSkipThriftCow) {
+          using UnderlyingType = typename Traits::type::element_type;
+          slot = std::make_shared<UnderlyingType>();
+        } else if constexpr (Traits::isChild::value) {
+          using ChildType = typename Traits::type::element_type;
+          slot = std::make_shared<ChildType>();
+        } else {
+          using FieldType = typename Traits::type::value_type;
+          slot = FieldType{};
+        }
+      }
+    });
   }
 
   template <typename T>
@@ -237,8 +95,20 @@ struct ThriftStructFields : public FieldBaseType {
 
   TType toThrift() const {
     TType thrift;
-    fatal::foreach<MemberTypes>(
-        struct_helpers::CopyFromMember<Self>(), thrift, storage_);
+    op::for_each_field_id<TType>([&]<class Id>(Id) {
+      constexpr size_t pos =
+          static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+      auto& stored = std::get<pos>(storage_);
+      if (stored) {
+        if constexpr (
+            FieldTraits<Id>::isChild::value ||
+            FieldTraits<Id>::allowSkipThriftCow) {
+          op::get<Id>(thrift) = stored->toThrift();
+        } else {
+          op::get<Id>(thrift) = stored->cref();
+        }
+      }
+    });
     return thrift;
   }
 
@@ -246,10 +116,29 @@ struct ThriftStructFields : public FieldBaseType {
   void fromThrift(T&& thrift)
     requires(std::is_same_v<std::decay_t<T>, TType>)
   {
-    fatal::foreach<MemberTypes>(
-        struct_helpers::CopyToMember<Self>(),
-        storage_,
-        std::forward<T>(thrift));
+    op::for_each_field_id<TType>([&]<class Id>(Id) {
+      using Traits = FieldTraits<Id>;
+      constexpr size_t pos =
+          static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+
+      if constexpr (Traits::isOptional) {
+        if (op::get_value_or_null(op::get<Id>(thrift)) == nullptr) {
+          std::get<pos>(storage_).reset();
+          return;
+        }
+      }
+
+      auto& val = *op::get<Id>(thrift);
+      if constexpr (Traits::allowSkipThriftCow) {
+        using UnderlyingType = typename Traits::type::element_type;
+        std::get<pos>(storage_) = std::make_shared<UnderlyingType>(val);
+      } else if constexpr (Traits::isChild::value) {
+        using ChildType = typename Traits::type::element_type;
+        std::get<pos>(storage_) = std::make_shared<ChildType>(val);
+      } else {
+        std::get<pos>(storage_) = val;
+      }
+    });
   }
 
 #ifdef ENABLE_DYNAMIC_APIS
@@ -270,9 +159,11 @@ struct ThriftStructFields : public FieldBaseType {
 
 #endif
 
-  template <typename Name>
-  TypeFor<Name> get() const {
-    return storage_.template get<Name>();
+  template <typename Id>
+  TypeFor<Id> get() const {
+    constexpr size_t pos =
+        static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+    return std::get<pos>(storage_);
   }
 
   /*
@@ -281,70 +172,74 @@ struct ThriftStructFields : public FieldBaseType {
    * TODO: create ref() wrapper class that respects if the node is
    * published.
    */
-  template <typename Name>
-  TypeFor<Name>& ref() {
-    return storage_.template get<Name>();
+  template <typename Id>
+  TypeFor<Id>& ref() {
+    constexpr size_t pos =
+        static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+    return std::get<pos>(storage_);
   }
 
-  template <typename Name>
-  const TypeFor<Name>& ref() const {
-    return storage_.template get<Name>();
+  template <typename Id>
+  const TypeFor<Id>& ref() const {
+    constexpr size_t pos =
+        static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+    return std::get<pos>(storage_);
   }
 
-  template <typename Name>
-  const TypeFor<Name>& cref() const {
-    return storage_.template get<Name>();
+  template <typename Id>
+  const TypeFor<Id>& cref() const {
+    constexpr size_t pos =
+        static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+    return std::get<pos>(storage_);
   }
 
-  template <typename Name>
+  template <typename Id>
   bool isSet() const {
     // could probably also look at optionality, but this should work.
-    return bool(cref<Name>());
+    return bool(cref<Id>());
   }
 
   /*
    * Setters. If you call set on a child node, a new child will be
    * created and we replace the old one wholesale.
    */
-  template <typename Name, typename TTypeFor>
+  template <typename Id, typename TTypeFor>
   void set(TTypeFor&& value) {
     static_assert(
-        std::is_convertible_v<std::decay_t<TTypeFor>, ThriftTypeFor<Name>>,
+        std::is_convertible_v<std::decay_t<TTypeFor>, ThriftTypeFor<Id>>,
         "Unexpected thrift type for set()");
 
-    if constexpr (HasSkipThriftCow<Name>::value) {
-      using MemberType = typename TypeFor<Name>::element_type;
-      ref<Name>() = std::make_shared<MemberType>(std::forward<TTypeFor>(value));
-    } else if constexpr (IsChildNode<Name>::value) {
-      using MemberType = typename TypeFor<Name>::element_type;
-      ref<Name>() = std::make_shared<MemberType>(std::forward<TTypeFor>(value));
+    if constexpr (HasSkipThriftCow<Id>) {
+      using MemberType = typename TypeFor<Id>::element_type;
+      ref<Id>() = std::make_shared<MemberType>(std::forward<TTypeFor>(value));
+    } else if constexpr (IsChildNode<Id>) {
+      using MemberType = typename TypeFor<Id>::element_type;
+      ref<Id>() = std::make_shared<MemberType>(std::forward<TTypeFor>(value));
     } else {
-      ref<Name>() = std::forward<TTypeFor>(value);
+      ref<Id>() = std::forward<TTypeFor>(value);
     }
   }
 
-  template <typename Name>
+  template <typename Id>
   bool remove() {
-    // TODO: use SFINAE to disallow non-children names
-
-    bool ret{false};
-
-    fatal::foreach<Members>([&](auto tag) {
-      using member = decltype(fatal::tag_type(tag));
-      if constexpr (std::is_same_v<typename member::name, Name>) {
-        ret = this->remove_impl<member>();
+    if constexpr (CowFieldTraits<TType, Id, Derived, EnableHybridStorage>::
+                      isOptional) {
+      auto& field = ref<Id>();
+      if (field) {
+        field.reset();
+        return true;
       }
-    });
-
-    return ret;
+    } else {
+      throw std::runtime_error("Cannot remove non-optional member");
+    }
+    return false;
   }
 
   bool remove(const std::string& token) {
     bool ret{false}, found{false};
-    visitMember<Members>(token, [&](auto tag) {
-      using member = decltype(fatal::tag_type(tag));
+    visitMember<TType>(token, [&]<class Id>(Id) {
       found = true;
-      ret = this->remove_impl<member>();
+      ret = this->template remove<Id>();
     });
 
     if (!found) {
@@ -356,35 +251,53 @@ struct ThriftStructFields : public FieldBaseType {
     return ret;
   }
 
-  template <typename Name, typename... Args>
-  TypeFor<Name>& constructMember(Args&&... args) {
-    if constexpr (HasSkipThriftCow<Name>::value) {
-      using UnderlyingType = typename TypeFor<Name>::element_type;
-      return ref<Name>() =
+  template <typename Id, typename... Args>
+  TypeFor<Id>& constructMember(Args&&... args) {
+    if constexpr (HasSkipThriftCow<Id>) {
+      using UnderlyingType = typename TypeFor<Id>::element_type;
+      return ref<Id>() =
                  std::make_shared<UnderlyingType>(std::forward<Args>(args)...);
-    } else if constexpr (IsChildNode<Name>::value) {
-      using ChildType = typename TypeFor<Name>::element_type;
-      return ref<Name>() =
+    } else if constexpr (IsChildNode<Id>) {
+      using ChildType = typename TypeFor<Id>::element_type;
+      return ref<Id>() =
                  std::make_shared<ChildType>(std::forward<Args>(args)...);
     } else {
-      using ChildType = typename TypeFor<Name>::value_type;
-      return ref<Name>() =
+      using ChildType = typename TypeFor<Id>::value_type;
+      return ref<Id>() =
                  std::make_optional<ChildType>(std::forward<Args>(args)...);
     }
   }
 
   template <typename Fn>
   void forEachChild(Fn fn) {
-    fatal::foreach<ChildrenTypes>(
-        struct_helpers::ChildInvoke<Self>(), storage_, std::forward<Fn>(fn));
+    op::for_each_field_id<TType>([&]<class Id>(Id) {
+      if constexpr (
+          FieldTraits<Id>::isChild::value ||
+          FieldTraits<Id>::allowSkipThriftCow) {
+        constexpr size_t pos =
+            static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+        auto& child = std::get<pos>(storage_);
+        if (child) {
+          fn(child.get());
+        }
+      }
+    });
   }
 
   template <typename Fn>
   void forEachChildName(Fn fn) {
-    fatal::foreach<ChildrenTypes>(
-        struct_helpers::ChildInvoke<Self, true>(),
-        storage_,
-        std::forward<Fn>(fn));
+    op::for_each_field_id<TType>([&]<class Id>(Id) {
+      if constexpr (
+          FieldTraits<Id>::isChild::value ||
+          FieldTraits<Id>::allowSkipThriftCow) {
+        constexpr size_t pos =
+            static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+        auto& child = std::get<pos>(storage_);
+        if (child) {
+          fn(child.get(), Id{});
+        }
+      }
+    });
   }
 
   folly::fbstring encode(fsdb::OperProtocol proto) const {
@@ -404,21 +317,7 @@ struct ThriftStructFields : public FieldBaseType {
   }
 
  private:
-  template <typename Member>
-  bool remove_impl() {
-    if constexpr (struct_helpers::isOptional<Member>()) {
-      auto& field = ref<typename Member::name>();
-      if (field) {
-        field.reset();
-        return true;
-      }
-    } else {
-      throw std::runtime_error("Cannot remove non-optional member");
-    }
-    return false;
-  }
-
-  NamedMemberTypes storage_;
+  Storage storage_;
 };
 
 template <
@@ -446,9 +345,9 @@ class ThriftStructNode : public NodeBaseT<
 
   ThriftStructNode() : BaseT(ThriftType{}) {}
 
-  template <typename Name>
+  template <typename Id>
   constexpr bool isSkipThriftCowEnabled() const {
-    return this->getFields()->template isSkipThriftCowEnabled<Name>();
+    return this->getFields()->template isSkipThriftCowEnabled<Id>();
   }
 
   TType toThrift() const {
@@ -482,56 +381,56 @@ class ThriftStructNode : public NodeBaseT<
     return this->writableFields()->fromEncodedBuf(proto, std::move(encoded));
   }
 
-  template <typename Name>
+  template <typename Id>
   auto get() const {
-    return this->getFields()->template get<Name>();
+    return this->getFields()->template get<Id>();
   }
 
-  template <typename Name, typename Arg>
+  template <typename Id, typename Arg>
   void set(Arg&& value) {
-    this->writableFields()->template set<Name>(std::forward<Arg>(value));
+    this->writableFields()->template set<Id>(std::forward<Arg>(value));
   }
 
-  template <typename Name>
+  template <typename Id>
   bool isSet() const {
-    return this->getFields()->template isSet<Name>();
+    return this->getFields()->template isSet<Id>();
   }
 
-  template <typename Name>
-  typename Fields::template TypeFor<Name>& ref() {
-    return this->writableFields()->template ref<Name>();
+  template <typename Id>
+  typename Fields::template TypeFor<Id>& ref() {
+    return this->writableFields()->template ref<Id>();
   }
 
-  template <typename Name>
-  const typename Fields::template TypeFor<Name>& ref() const {
-    return this->writableFields()->template ref<Name>();
+  template <typename Id>
+  const typename Fields::template TypeFor<Id>& ref() const {
+    return this->writableFields()->template ref<Id>();
   }
 
-  template <typename Name>
-  const typename Fields::template TypeFor<Name>& cref() const {
-    return this->getFields()->template cref<Name>();
+  template <typename Id>
+  const typename Fields::template TypeFor<Id>& cref() const {
+    return this->getFields()->template cref<Id>();
   }
 
   // prefer safe_ref/safe_cref for safe access
-  template <typename Name>
+  template <typename Id>
   auto safe_ref() {
-    return detail::ref(this->writableFields()->template ref<Name>());
+    return detail::ref(this->writableFields()->template ref<Id>());
   }
 
-  template <typename Name>
+  template <typename Id>
   auto safe_cref() const {
-    return detail::cref(this->getFields()->template cref<Name>());
+    return detail::cref(this->getFields()->template cref<Id>());
   }
 
-  template <typename Name, typename... Args>
+  template <typename Id, typename... Args>
   auto& constructMember(Args&&... args) {
-    return this->writableFields()->template constructMember<Name>(
+    return this->writableFields()->template constructMember<Id>(
         std::forward<Args>(args)...);
   }
 
-  template <typename Name>
+  template <typename Id>
   bool remove() {
-    return this->writableFields()->template remove<Name>();
+    return this->writableFields()->template remove<Id>();
     // TODO: use SFINAE to disallow non-children names (other apis too)
   }
 
@@ -539,38 +438,36 @@ class ThriftStructNode : public NodeBaseT<
     return this->writableFields()->remove(token);
   }
 
-  template <typename Name>
+  template <typename Id>
   auto& modify(bool construct = true) {
     DCHECK(!this->isPublished());
 
-    auto& child = this->template ref<Name>();
+    auto& child = this->template ref<Id>();
     if (child) {
-      if constexpr (Fields::template IsChildNode<Name>::value) {
+      if constexpr (Fields::template IsChildNode<Id>) {
         if (child->isPublished()) {
           auto clonedChild = child->clone();
           child.swap(clonedChild);
         }
       }
     } else if (construct) {
-      this->template constructMember<Name>();
+      this->template constructMember<Id>();
     }
-    return this->template ref<Name>();
+    return this->template ref<Id>();
   }
 
-  template <typename Name>
+  template <typename Id>
   static auto& modify(std::shared_ptr<Derived>* node) {
     auto newNode = ((*node)->isPublished()) ? (*node)->clone() : *node;
-    auto& child = newNode->template modify<Name>();
+    auto& child = newNode->template modify<Id>();
     node->swap(newNode);
     return child;
   }
 
   virtual void modify(const std::string& token, bool construct = true)
       override {
-    visitMember<typename Fields::Members>(token, [&](auto tag) {
-      using name = typename decltype(fatal::tag_type(tag))::name;
-      this->modify<name>(construct);
-    });
+    visitMember<typename Fields::ThriftType>(
+        token, [&]<class Id>(Id) { this->template modify<Id>(construct); });
   }
 
   static void modify(std::shared_ptr<Derived>* node, std::string token) {

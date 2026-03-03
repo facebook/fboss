@@ -5,8 +5,7 @@
 #include <folly/Format.h>
 #include <folly/Range.h>
 #include <folly/logging/xlog.h>
-#include <stdint.h>
-#include "fboss/lib/CommonFileUtils.h"
+#include "fboss/lib/bsp/BspResetUtils.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/mdio/BspDeviceMdio.h"
 
@@ -15,18 +14,50 @@ namespace facebook::fboss {
 BspPhyIO::BspPhyIO(int pimID, BspPhyIOControllerInfo& controllerInfo)
     : pimID_(pimID) {
   auto mdioDevName = *controllerInfo.devicePath();
-  auto controllerId = *controllerInfo.controllerId();
+  controllerId_ = *controllerInfo.controllerId();
   XLOG(DBG5) << __func__ << ": mdioDevName=" << mdioDevName
-             << " controllerId=" << controllerId;
+             << " controllerId=" << controllerId_;
+
+  if (controllerInfo.resetPath().has_value()) {
+    controllerResetPath_ = *controllerInfo.resetPath();
+    XLOG(DBG5) << __func__ << ": controllerResetPath=" << *controllerResetPath_;
+  }
+
   mdioController_ = std::make_unique<BspDeviceMdioController>(
-      controllerId, pimID, controllerId, mdioDevName);
-  mdioController_->init();
+      controllerId_, pimID, controllerId_, mdioDevName);
   controllerInfo_ = controllerInfo;
   XLOG(DBG5) << fmt::format(
-      "BspPhyIOTrace: {} successfully opened mdio {:d}, {}",
+      "BspPhyIOTrace: {} successfully created mdio controller {:d}, {}",
       __func__,
-      controllerId,
+      controllerId_,
       mdioDevName);
+}
+
+void BspPhyIO::init(bool forceReset) const {
+  XLOG(INFO) << fmt::format(
+      "BspPhyIOTrace: {} initializing MDIO controller {:d}, forceReset={}",
+      __func__,
+      controllerId_,
+      forceReset);
+
+  auto componentName = fmt::format("MDIO controller {:d}", controllerId_);
+
+  if (forceReset && hasResetPath()) {
+    holdResetViaSysfs(controllerResetPath_, componentName);
+  }
+  if (hasResetPath()) {
+    releaseResetViaSysfs(controllerResetPath_, componentName);
+  }
+
+  mdioController_->init();
+  XLOG(INFO) << fmt::format(
+      "BspPhyIOTrace: {} MDIO controller {:d} initialized",
+      __func__,
+      controllerId_);
+}
+
+bool BspPhyIO::hasResetPath() const {
+  return controllerResetPath_.has_value();
 }
 
 phy::Cl45Data BspPhyIO::readRegister(

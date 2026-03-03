@@ -292,7 +292,7 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
 
       if (nexthop->safe_cref<common_if_tags::mplsAction>() &&
           *(nexthop->safe_cref<common_if_tags::mplsAction>()
-                ->safe_cref<mpls_tags::strings::action>()) !=
+                ->safe_cref<switch_state_tags::action>()) !=
               LabelForwardingAction::LabelForwardingType::PUSH) {
         return !valid;
       }

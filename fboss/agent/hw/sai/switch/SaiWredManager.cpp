@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiWredManager.h"
 
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -50,6 +51,12 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
       std::get<std::optional<Attributes::EcnGreenMinThreshold>>(attrs);
   auto& ecnGreenMax =
       std::get<std::optional<Attributes::EcnGreenMaxThreshold>>(attrs);
+#if !defined(CHENAB_SAI_SDK)
+  // TODO(nivinl): ECN mark probability setting is currently unsupported
+  // in Chenab, to be addressed in 01084075.
+  auto& ecnGreenMarkProbability =
+      std::get<std::optional<Attributes::EcnGreenMarkProbability>>(attrs);
+#endif
 #if defined(TAJO_SDK) || defined(CHENAB_SAI_SDK)
   // TAJO SDK populates greenMin/Max value to ecnGreenMin/Max if nullptr, so use
   // 0 here to avoid that
@@ -60,6 +67,10 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
   // as per SAI spec, ecn green min/max must have ecn mark mode set, and these
   // values are set to 0 even for wred, so set the mode to green here
   std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
+#else
+  // ECN mark probability initialized unconditionally for TAJO
+  constexpr auto kDefaultMarkProbability = 100;
+  ecnGreenMarkProbability = kDefaultMarkProbability;
 #endif
 #elif !defined(BRCM_SAI_SDK_XGS_AND_DNX)
   std::tie(greenMin, greenMax, greenDropProbability, ecnGreenMin, ecnGreenMax) =
@@ -85,6 +96,11 @@ SaiWredTraits::CreateAttributes SaiWredManager::profileCreateAttrs(
         std::get<Attributes::EcnMarkMode>(attrs) = SAI_ECN_MARK_MODE_GREEN;
         ecnGreenMin = minLen;
         ecnGreenMax = maxLen;
+#if !defined(CHENAB_SAI_SDK)
+        // TODO(nivinl): ECN mark probability setting is currently unsupported
+        // in Chenab, to be addressed in 01084075.
+        ecnGreenMarkProbability = probability;
+#endif
         break;
     }
   }

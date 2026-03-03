@@ -116,7 +116,8 @@ void OperDeltaSyncer::operSyncLoop() {
         lastUpdateResult = stateOperDelta.transaction().value()
             ? hw_->stateChangedTransaction(
                   *stateOperDelta.operDeltas(),
-                  HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()))
+                  HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()),
+                  *stateOperDelta.deltaApplicationBehavior())
             : hw_->stateChanged(
                   *stateOperDelta.operDeltas(),
                   HwWriteBehaviorRAII(*stateOperDelta.hwWriteBehavior()));
