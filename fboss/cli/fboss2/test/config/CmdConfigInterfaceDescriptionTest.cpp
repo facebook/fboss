@@ -42,7 +42,6 @@ class CmdConfigInterfaceDescriptionTestFixture : public CmdConfigTestBase {
 
   void SetUp() override {
     CmdConfigTestBase::SetUp();
-
     setupTestableConfigSession("config interface eth1/1/1 description", "test");
   }
 };
