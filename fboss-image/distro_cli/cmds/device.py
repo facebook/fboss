@@ -10,11 +10,13 @@
 import json
 import logging
 import os
+import sys
 
 from distro_cli.lib.cli import validate_path
 from distro_cli.lib.distro_infra import (
     DISTRO_INFRA_CONTAINER,
     GETIP_SCRIPT_CONTAINER_PATH,
+    deploy_image_to_device,
     get_interface_name,
 )
 from distro_cli.lib.docker import container
@@ -35,9 +37,22 @@ def image_upstream_command(args):
 
 
 def image_command(args):
-    """Set device image from file"""
+    """Set device image from file and configure PXE boot"""
     logger.info(f"Setting image for device {args.mac}: {args.image_path}")
-    logger.info("Device image command (stub)")
+
+    try:
+        deploy_image_to_device(args.mac, args.image_path)
+        logger.info(
+            f"Successfully configured device {args.mac} with image {args.image_path}"
+        )
+        logger.info("Device is ready for PXE boot")
+
+    except DistroInfraError as e:
+        logger.error(f"Failed to configure device: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 
 def reprovision_command(args):
