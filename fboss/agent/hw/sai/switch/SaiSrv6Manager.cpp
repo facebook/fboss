@@ -2,11 +2,9 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#endif
 
 namespace facebook::fboss {
 
