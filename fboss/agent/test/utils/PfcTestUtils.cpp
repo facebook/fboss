@@ -150,6 +150,14 @@ void setupBufferPoolConfig(
     };
     poolConfig.sharedBytes() = roundUp(globalSharedBytes);
     poolConfig.headroomBytes() = roundUp(globalHeadroomBytes);
+  } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+    // TH6 XGS SDK subtracts an internal reserved size (~5.99MB) from the pool
+    // when computing the shared limit. Add reservedBytes to compensate, so the
+    // HW shared limit equals our intended sharedBytes. Using a larger reserved
+    // value to leave room for PG min limit allocation.
+    poolConfig.sharedBytes() = globalSharedBytes;
+    poolConfig.headroomBytes() = globalHeadroomBytes;
+    poolConfig.reservedBytes() = 4600000;
   } else {
     poolConfig.sharedBytes() = globalSharedBytes;
     poolConfig.headroomBytes() = globalHeadroomBytes;
@@ -252,6 +260,13 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
       buffer.pgHeadroom = 8000;
       buffer.minLimit = *buffer.resumeThreshold + buffer.pgHeadroom;
     }
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+    // TH6 has 420-byte cells and limited shared space after SDK reserves
+    // ~5.99MB. Use small cell-aligned values that fit within available shared
+    // buffer.
+    buffer.minLimit = 4200; // 10 cells * 420 bytes
+    buffer.pgHeadroom = 4200;
+    buffer.resumeOffset = 2100; // 5 cells * 420 bytes
   } else {
     buffer.minLimit = 2200;
     buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
