@@ -42,8 +42,37 @@ def image_command(args):
 
 def reprovision_command(args):
     """Reprovision device"""
-    logger.info(f"Reprovisioning device {args.mac}")
-    logger.info("Device reprovision command (stub)")
+    ip_address = get_device_ip(args.mac)
+
+    if not ip_address:
+        logger.error("No IP address found for device")
+        return
+
+    # devpart -> /dev/nvme0n1p3
+    # dev     -> /dev/nvme0n3
+    # part    -> 3
+    cmd = r"""
+    if [ ! -d /opt/fboss ]; then echo "Not an FBOSS device. Aborting"; exit 1; fi; \
+    rm -rf /boot/efi/EFI/*;
+    root_devpart=$(mount | awk '/\/ type/ { print $1 }');
+    root_dev=$(mount | awk -F 'p' '/\/ type/ { print $1 }');
+    root_part=$(mount | awk -F '[[:space:]p]' '/\/ type/ { print $2 }');
+    dd if=/dev/zero of=${root_devpart} bs=1M count=50;
+    (sleep 1; echo yes; sleep 1; echo ignore) | parted ---pretend-input-tty ${root_dev} rm ${root_part};
+    reboot --force
+    """
+    os.execvp(
+        "ssh",
+        [
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            f"root@{ip_address}",
+            cmd,
+        ],
+    )
 
 
 def update_command(args):
