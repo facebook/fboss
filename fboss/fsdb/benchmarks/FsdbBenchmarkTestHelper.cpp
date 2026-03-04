@@ -2,6 +2,8 @@
 
 #include "fboss/fsdb/benchmarks/FsdbBenchmarkTestHelper.h"
 #include <folly/Subprocess.h>
+#include <folly/Utility.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/thrift_cow/nodes/Types.h"
 
 namespace {
@@ -17,8 +19,6 @@ const uint32_t kStatsServeIntervalMs = 50;
 } // anonymous namespace
 
 namespace facebook::fboss::fsdb::test {
-using FsdbOperStateRootMembers =
-    apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
 
 void FsdbBenchmarkTestHelper::setup(
     int32_t numSubscriptions,
@@ -71,8 +71,9 @@ void FsdbBenchmarkTestHelper::publishStatePatch(
   auto prevState = std::make_shared<thrift_cow::ThriftStructNode<AgentData>>();
   auto switchState =
       std::make_shared<thrift_cow::ThriftStructNode<AgentData>>(agentData);
-  auto basePath = {
-      folly::to<std::string>(FsdbOperStateRootMembers::agent::id::value)};
+  auto basePath = {folly::to<std::string>(folly::to_underlying(
+      apache::thrift::op::
+          get_field_id_v<FsdbOperStateRoot, apache::thrift::ident::agent>))};
 
   auto patch =
       thrift_cow::PatchBuilder::build(prevState, switchState, basePath);

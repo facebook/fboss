@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 // @lint-ignore CLANGTIDY
 #include "fboss/agent/gen-cpp2-thriftpath/agent_config.h" // @manual=//fboss/agent:agent_config-cpp2-thriftpath
@@ -41,15 +42,18 @@ TEST(PathTests, toStrAgentConfig) {
 TEST(PathTests, IntegralGetOperator) {
   using namespace facebook::fboss::fsdb;
   using k = facebook::fboss::cfg::agent_config_tags::strings;
-  using AgentConfigMembers =
-      apache::thrift::reflect_struct<facebook::fboss::cfg::AgentConfig>::member;
+  using AgentConfig = facebook::fboss::cfg::AgentConfig;
 
-  using RootPath =
-      thriftpath::RootThriftPath<facebook::fboss::cfg::AgentConfig>;
+  using RootPath = thriftpath::RootThriftPath<AgentConfig>;
   RootPath root;
 
+  constexpr auto kFieldId = static_cast<apache::thrift::field_id_t>(
+      apache::thrift::op::get_field_id_v<
+          AgentConfig,
+          apache::thrift::ident::defaultCommandLineArgs>);
   EXPECT_EQ(
-      root(AgentConfigMembers::defaultCommandLineArgs::id()).str(),
+      root(std::integral_constant<apache::thrift::field_id_t, kFieldId>{})
+          .str(),
       "/defaultCommandLineArgs");
   EXPECT_EQ(root(k::defaultCommandLineArgs()).str(), "/defaultCommandLineArgs");
 }

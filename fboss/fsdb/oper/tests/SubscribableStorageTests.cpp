@@ -10,12 +10,14 @@
 #include <fboss/lib/CommonUtils.h>
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <folly/Random.h>
+#include <folly/Utility.h>
 #include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Collect.h>
 #include <folly/coro/GtestHelpers.h>
 #include <folly/coro/Task.h>
 #include <folly/coro/Timeout.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/oper/tests/TestHelpers.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
@@ -29,7 +31,9 @@ namespace {
 using namespace facebook::fboss::fsdb;
 
 // TODO: templatize test cases
-using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
+constexpr auto kTestStructMapOfStringToI32FieldId = folly::to_underlying(
+    apache::thrift::op::
+        get_field_id_v<TestStruct, apache::thrift::ident::mapOfStringToI32>);
 
 constexpr auto kSubscriber = "testSubscriber";
 
@@ -331,13 +335,15 @@ TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   patches = patchGroups.begin()->second;
   EXPECT_EQ(patches.size(), 1);
   patch = patches.front();
-  using LocalTestStructMembers =
-      apache::thrift::reflect_struct<TestStruct>::member;
-  auto newVal = patch.patch()
-                    ->struct_node_ref()
-                    ->children()
-                    ->at(LocalTestStructMembers::tx::id::value)
-                    .val_ref();
+  auto newVal =
+      patch.patch()
+          ->struct_node_ref()
+          ->children()
+          ->at(
+              folly::to_underlying(
+                  apache::thrift::op::
+                      get_field_id_v<TestStruct, apache::thrift::ident::tx>))
+          .val_ref();
   auto deserializedVal = facebook::fboss::thrift_cow::
       deserializeBuf<apache::thrift::type_class::integral, bool>(
           OperProtocol::COMPACT, std::move(*newVal));
@@ -697,10 +703,12 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
   auto storage = this->initStorage(this->testStruct);
   storage.setConvertToIDPaths(true);
 
-  auto path =
-      ext_path_builder::raw(TestStructMembers::mapOfStringToI32::id::value)
-          .regex("test1.*")
-          .get();
+  auto path = ext_path_builder::raw(
+                  apache::thrift::op::get_field_id_v<
+                      TestStruct,
+                      apache::thrift::ident::mapOfStringToI32>)
+                  .regex("test1.*")
+                  .get();
   auto generator = storage.subscribe_encoded_extended(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       {path},
@@ -730,9 +738,7 @@ TYPED_TEST(SubscribableStorageTests, SubscribeExtendedPathSimple) {
   EXPECT_THAT(
       *newVal->path()->path(),
       ::testing::ElementsAre(
-          folly::to<std::string>(
-              TestStructMembers::mapOfStringToI32::id::value),
-          "test1"));
+          folly::to<std::string>(kTestStructMapOfStringToI32FieldId), "test1"));
 
   auto deserialized = facebook::fboss::thrift_cow::
       deserialize<apache::thrift::type_class::integral, int>(
@@ -1165,10 +1171,9 @@ TYPED_TEST(SubscribableStorageTests, ApplyPatch) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStructSimple>>(
       std::move(newStruct));
 
-  using LocalTestStructMembers =
-      apache::thrift::reflect_struct<TestStruct>::member;
-  std::vector<std::string> path = {
-      folly::to<std::string>(LocalTestStructMembers::member::id::value)};
+  std::vector<std::string> path = {folly::to<std::string>(folly::to_underlying(
+      apache::thrift::op::
+          get_field_id_v<TestStruct, apache::thrift::ident::member>))};
   auto patch = PatchBuilder::build(nodeA, nodeB, std::move(path));
 
   auto memberStruct = storage.get(this->root.member());
