@@ -267,7 +267,7 @@ const std::map<cfg::PortType, cfg::PortLoopbackMode>&
 Tomahawk6Asic::desiredLoopbackModes() const {
   static const std::map<cfg::PortType, cfg::PortLoopbackMode> kLoopbackMode = {
       {cfg::PortType::INTERFACE_PORT, cfg::PortLoopbackMode::MAC},
-      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::NONE}};
+      {cfg::PortType::MANAGEMENT_PORT, cfg::PortLoopbackMode::MAC}};
   return kLoopbackMode;
 }
 
