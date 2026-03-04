@@ -11,6 +11,7 @@ import json
 import logging
 import re
 import subprocess
+import tarfile
 from pathlib import Path
 
 from distro_cli.lib.docker import container
@@ -126,3 +127,75 @@ def find_persistent_dir() -> Path:
         ) from e
     except (json.JSONDecodeError, KeyError, IndexError) as e:
         raise DistroInfraError(f"Failed to parse container inspect data: {e}") from e
+
+
+def enable_pxe_boot(mac: str) -> None:
+    """Enable PXE boot for a device MAC address.
+
+    This creates the necessary directory structure and configuration files
+    to enable PXE boot for the specified MAC address by calling the
+    enable_pxeboot.sh script inside the container.
+
+    Args:
+        mac: MAC address of the device
+
+    Raises:
+        DistroInfraError: If operation fails
+    """
+    dash_mac, _ = normalize_mac_address(mac)
+    logger.info(f"Enabling PXE boot for MAC address: {dash_mac}")
+
+    # Call the enable_pxeboot.sh script inside the container
+    exit_code, stdout, stderr = container.exec_in_container(
+        DISTRO_INFRA_CONTAINER,
+        ["/distro_infra/enable_pxeboot.sh", dash_mac],
+    )
+
+    if exit_code != 0:
+        raise DistroInfraError(f"Failed to enable PXE boot for {dash_mac}: {stderr}")
+
+    # Log the output from the script
+    if stdout:
+        for line in stdout.strip().split("\n"):
+            logger.debug(f"enable_pxeboot.sh: {line}")
+
+
+def deploy_image_to_device(mac: str, image_path: str) -> None:
+    """Deploy an image to a device for PXE boot.
+
+    This function only supports tarball images (.tar, .tar.gz, .tar.zst, etc.)
+    as produced by the image builder.
+
+    Args:
+        mac: MAC address of the device
+        image_path: Path to the image tarball
+
+    Raises:
+        DistroInfraError: If operation fails or image format is unsupported
+    """
+    image_path_obj = Path(image_path)
+
+    if not image_path_obj.exists():
+        raise DistroInfraError(f"Image path not found: {image_path}")
+
+    if not tarfile.is_tarfile(image_path_obj):
+        raise DistroInfraError(
+            f"Unsupported image format: {image_path}. "
+            "Only tarball images (.tar, .tar.gz, .tar.zst) are supported."
+        )
+
+    persistent_dir = find_persistent_dir()
+    logger.info(f"Using persistent directory: {persistent_dir}")
+
+    dash_mac, _ = normalize_mac_address(mac)
+    mac_dir = persistent_dir / dash_mac
+
+    logger.info(f"Extracting image tarball to {mac_dir}...")
+    try:
+        with tarfile.open(image_path_obj, "r") as tar:
+            tar.extractall(path=mac_dir, filter="data")
+        logger.info(f"Image extracted successfully to {mac_dir}")
+    except tarfile.TarError as e:
+        raise DistroInfraError(f"Failed to extract tarball: {e}") from e
+
+    enable_pxe_boot(mac)
