@@ -37,7 +37,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_PROGRAMMING:
     case HwAsic::Feature::FABRIC_PORTS:
     case HwAsic::Feature::LINK_TRAINING:
-    case HwAsic::Feature::FEC:
     case HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE:
     case HwAsic::Feature::PMD_RX_LOCK_STATUS:
     case HwAsic::Feature::PMD_RX_SIGNAL_DETECT:
@@ -49,8 +48,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_CONFIGURE_SIX_TAP:
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
-    case HwAsic::Feature::SAI_FEC_COUNTERS:
-    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::ECN:
     case HwAsic::Feature::SAI_ECN_WRED:
@@ -77,7 +74,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SFLOWv6:
     case HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
-    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
     case HwAsic::Feature::ACL_ENTRY_ETHER_TYPE:
@@ -98,9 +94,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::SAMPLE_RATE_CONFIG_PER_MIRROR:
     case HwAsic::Feature::SFLOW_SAMPLES_PACKING:
-    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
     case HwAsic::Feature::SDK_REGISTER_DUMP:
-    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK:
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::DRAM_DATAPATH_PACKET_ERROR_STATS:
@@ -243,8 +237,15 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     // This will result in an early return in
     // SaiDebugCounterManager::setupTrapDropCounter(), which is currently
     // failing with SAI 14.x
+    // TODO (Q4D/J4/R4): re-enable these features on J4 after SDK supports them
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::SAI_FEC_COUNTERS:
+    case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
+    case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
+    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
+    case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
       return false;
   }
   return false;

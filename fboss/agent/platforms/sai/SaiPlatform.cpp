@@ -903,9 +903,9 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
   }
   // J4 SIM configuraion
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
-    maxSystemPorts = 1024;
-    maxVoqs = 8 * 1024;
-    maxSystemPortId = 1024 - 1;
+    maxSystemPorts = 8192;
+    maxVoqs = 8192 * 8;
+    maxSystemPortId = 8192 - 1;
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
   }
 #endif
