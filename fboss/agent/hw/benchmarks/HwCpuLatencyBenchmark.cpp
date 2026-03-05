@@ -31,6 +31,8 @@ const folly::IPAddressV6 kDstIp{"2620:0:1cfe:face:b00c::4"};
 [[maybe_unused]] constexpr std::chrono::seconds kPacketTimeout{60};
 [[maybe_unused]] constexpr uint8_t kNetworkControlDscp = 48;
 constexpr size_t kPayloadSize = 12;
+const folly::MacAddress kSrcMac{"fa:ce:b0:00:00:0c"};
+const folly::IPAddressV6 kSrcIp{"2620:0:1cfe:face:b00c::3"};
 
 // Types
 struct DecodedPayload {
@@ -89,5 +91,29 @@ struct LatencyResult {
 }
 
 // Packet creation
+[[maybe_unused]] std::unique_ptr<TxPacket> createLatencyTestPacket(
+    AgentEnsemble* ensemble,
+    uint32_t sequenceNumber) {
+  auto vlanId = ensemble->getVlanIDForTx();
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+
+  auto payload = encodePayload(sequenceNumber);
+  uint8_t trafficClass = kNetworkControlDscp << 2;
+
+  return utility::makeUDPTxPacket(
+      ensemble->getSw(),
+      vlanId,
+      kSrcMac,
+      intfMac,
+      kSrcIp,
+      kDstIp,
+      8000,
+      8001,
+      trafficClass,
+      255,
+      payload);
+}
+
 } // namespace
 } // namespace facebook::fboss
