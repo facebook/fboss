@@ -1235,6 +1235,11 @@
             "profileID": 47,
             "hasTransceiver": true
         },
+        "eth1/65/1": {
+            "neighbor": "eth1/65/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
         "eth1/7/1": {
             "neighbor": "eth1/7/5",
             "profileID": 53,
