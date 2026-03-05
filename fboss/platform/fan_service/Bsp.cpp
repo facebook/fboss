@@ -100,7 +100,7 @@ int Bsp::emergencyShutdown(bool enable) {
   bool currentState = getEmergencyState();
   if (enable && !currentState) {
     if (*config_.shutdownCmd() == "NOT_DEFINED") {
-      facebook::fboss::FbossError(
+      throw facebook::fboss::FbossError(
           "Emergency Shutdown Was Called But Not Defined!");
     } else {
       auto [exitStatus, standardOut] =

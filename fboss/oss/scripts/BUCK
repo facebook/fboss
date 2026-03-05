@@ -1,6 +1,5 @@
 # @lint-ignore FBCODETARGETSFILES Please migrate this to a BUCK file!
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
-load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
 
 oncall("fboss_distro")
 
@@ -9,21 +8,4 @@ python_binary(
     srcs = ["package.py"],
     labels = ["autodeps2_generated"],
     main_module = "fboss.oss.scripts.package",
-)
-
-python_library(
-    name = "oss_test_results_lib",
-    srcs = ["oss_test_results.py"],
-    deps = [
-        "fbsource//third-party/pypi/pandas:pandas",
-        "//analytics/bamboo:lite",
-    ],
-)
-
-python_binary(
-    name = "oss_test_results",
-    main_function = "fboss.oss.scripts.oss_test_results.main",
-    deps = [
-        ":oss_test_results_lib",
-    ],
 )

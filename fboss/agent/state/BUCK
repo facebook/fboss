@@ -94,6 +94,8 @@ cpp_library(
         "RouteTypes.cpp",
         "SflowCollector.cpp",
         "SflowCollectorMap.cpp",
+        "Srv6Tunnel.cpp",
+        "Srv6TunnelMap.cpp",
         "StateDelta.cpp",
         "StateDelta-computeOperDelta.cpp",
         "StateUtils.cpp",
@@ -186,7 +188,6 @@ cpp_library(
     ],
     exported_deps = [
         ":state",
-        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hwswitch_matcher",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",

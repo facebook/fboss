@@ -17,12 +17,15 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
 #include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
+#include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcecube800PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
@@ -420,8 +423,13 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmWedge800BACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
       saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_J4SIM) {
+      saiPort = std::make_unique<SaiBcmJ4SimPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
       saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
+      saiPort =
+          std::make_unique<SaiBcmBlackwolf800banwPlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -556,6 +564,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchMac() = localMac.toString();
       const Jericho3Asic j3(0, swInfo);
       const Qumran4DAsic qumran4d(0, swInfo);
+      const Jericho4Asic j4(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
@@ -572,6 +581,11 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             maxCoreCount = std::max(qumran4d.getNumCores(), maxCoreCount);
             maxSystemCoreCount = std::max(
                 maxSystemCoreCount, uint32_t(id + qumran4d.getNumCores()));
+            break;
+          case cfg::AsicType::ASIC_TYPE_JERICHO4:
+            maxCoreCount = std::max(j4.getNumCores(), maxCoreCount);
+            maxSystemCoreCount =
+                std::max(maxSystemCoreCount, uint32_t(id + j4.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
@@ -886,6 +900,13 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     maxVoqs = 8 * 1024;
     maxSystemPortId = 1024 - 1;
     localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+  }
+  // J4 SIM configuraion
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    maxSystemPorts = 8192;
+    maxVoqs = 8192 * 8;
+    maxSystemPortId = 8192 - 1;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
   }
 #endif
 

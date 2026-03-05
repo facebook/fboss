@@ -123,6 +123,8 @@ class HwSwitchHandler {
 
   virtual state::SwitchState reconstructSwitchState() = 0;
 
+  virtual bool isValidStateUpdate(const StateDelta& delta) const = 0;
+
   const cfg::SwitchInfo& getSwitchInfo() const {
     return info_;
   }

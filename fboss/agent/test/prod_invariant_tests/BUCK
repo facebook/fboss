@@ -49,9 +49,7 @@ _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ] if sai_impl.name == "leaba" or "14.0_ea_odp" in sai_impl.version else [],
-        versions = {
-            sai_impl.sdk_name: sai_impl.version,
-        },
+        versions = to_versions(sai_impl),
         deps = [
             "//fboss/agent/test:mono_agent_ensemble",
             "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",
@@ -83,9 +81,7 @@ _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
             "--unresolved-symbols=ignore-all",
             "--rpath='$ORIGIN'",
         ] if sai_impl.name == "leaba" or "14.0_ea_odp" in sai_impl.version else [],
-        versions = {
-            sai_impl.sdk_name: sai_impl.version,
-        },
+        versions = to_versions(sai_impl),
         deps = [
             "//fboss/agent/test:multi_switch_agent_ensemble",
             "//fboss/agent/test/prod_agent_tests:invariant_agent_tests",

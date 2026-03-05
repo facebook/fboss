@@ -162,6 +162,7 @@ target_link_libraries(utils
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
+  j4sim_platform_mapping
   blackwolf800banw_platform_mapping
   icecube800banw_platform_mapping
   icecube800bc_platform_mapping
@@ -317,12 +318,12 @@ add_library(core
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
   fboss/agent/NeighborUpdaterNoopImpl.cpp
+  fboss/agent/NextHopResolver.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/RemoteNeighborUpdater.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
-  fboss/agent/ResourceAccountant.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
@@ -332,6 +333,7 @@ add_library(core
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
+  fboss/agent/TamManager.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
@@ -882,10 +884,17 @@ target_link_libraries(test_utils
 
 add_library(validate_state_update
   fboss/agent/ValidateStateUpdate.cpp
+  fboss/agent/ResourceAccountant.cpp
 )
 
 target_link_libraries(validate_state_update
   state
   fboss_error
   switchid_scope_resolver
+  hw_asic_table
+  hw_switch_handler
+  agent_features
+  fib_helpers
+  stats
+  ${GTEST}
 )

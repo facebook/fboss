@@ -15,7 +15,5 @@ cpp_library(
     headers = [
         "util.h",
     ],
-    exported_external_deps = [
-        "glog",
-    ],
+    exported_deps = ["fbsource//third-party/glog:glog"],
 )

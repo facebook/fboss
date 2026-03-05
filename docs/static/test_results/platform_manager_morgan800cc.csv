@@ -6,4 +6,4 @@
 "PlatformManagerHwTest.PmExplorationStatusTransitions","morgan800cc","PASSED"
 "PlatformManagerHwTest.ExploreAsDeployed","morgan800cc","PASSED"
 "PlatformManagerHwTest.ExploreAfterUnloadingKmods","morgan800cc","PASSED"
-"PlatformManagerHwTest.ExploreAfterUninstallingKmods","morgan800cc","FAILED"
+"PlatformManagerHwTest.ExploreAfterUninstallingKmods","morgan800cc","PASSED"

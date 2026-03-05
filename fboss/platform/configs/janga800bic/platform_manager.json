@@ -1187,7 +1187,7 @@
   "chassisEepromDevicePath": "/SMB_FRU_SLOT@0/[IDPROM]",
   "numXcvrs": 46,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.0.0-1",
+  "bspKmodsRpmVersion": "4.1.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

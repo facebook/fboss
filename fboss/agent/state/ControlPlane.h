@@ -37,8 +37,8 @@ class ControlPlane
   using BaseT = ThriftStructNode<ControlPlane, state::ControlPlaneFields>;
   using BaseT::modify;
   using PortQueues =
-      BaseT::Fields::NamedMemberTypes::type_of<switch_state_tags::queues>;
-  using PacketRxReasonToQueue = BaseT::Fields::NamedMemberTypes::type_of<
+      typename BaseT::Fields::template TypeFor<switch_state_tags::queues>;
+  using PacketRxReasonToQueue = typename BaseT::Fields::template TypeFor<
       switch_state_tags::rxReasonToQueue>;
 
   using RxReasonToQueue = std::vector<cfg::PacketRxReasonToQueue>;

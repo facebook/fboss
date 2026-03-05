@@ -27,6 +27,10 @@ constexpr int kCdbFwInfoImageBBuildLoOffset = 41;
 // Minimum reply length needed to read Image B build number
 constexpr int kCdbFwInfoMinRlplLength = 42;
 
+// CMIS page numbers for I2C transaction logging
+constexpr int kCdbPage = 0x9f;
+constexpr int kLowerPage = -1;
+
 /*
  * This class represents the CDB block which is written to the CMIS optics
  * CDB memory to trigger the CDB operation like firmware download.
@@ -156,7 +160,8 @@ class CdbCommandBlock {
       uint8_t i2cAddress,
       int offset,
       int length,
-      const uint8_t* buf);
+      const uint8_t* buf,
+      int page);
 };
 
 } // namespace facebook::fboss

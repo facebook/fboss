@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -176,6 +177,11 @@ SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
       ->getScopeResolver()
       ->scope(ensemble.masterLogicalPortIds()[0])
       .switchId();
+}
+
+bool AgentHwTest::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) {
+  return getSw()->sendPacketSwitchedAsync(
+      std::move(pkt), {getSwitchIdUnderTest(*getAgentEnsemble())});
 }
 
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {

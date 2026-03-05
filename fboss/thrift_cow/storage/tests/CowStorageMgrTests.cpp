@@ -8,7 +8,6 @@
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_fatal_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types_custom_protocol.h"
 #include "fboss/thrift_cow/storage/CowStateUpdate.h"
@@ -17,7 +16,7 @@
 
 using folly::dynamic;
 using namespace facebook::fboss::fsdb;
-using k = thriftpath_test_tags::strings;
+namespace k = apache::thrift::ident;
 
 namespace {
 

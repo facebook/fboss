@@ -463,6 +463,7 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
+  changeClm(oldPort, newPort);
 }
 
 void SaiPortManager::attributesFromSaiStore(
@@ -666,7 +667,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<sai_port_media_type_t> propagationDelayMediaType;
 #if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
-  if (managerTable_->switchManager().isMeasureCableLengthEnabled()) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
+      managerTable_->switchManager().isMeasureCableLengthEnabled()) {
     if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
         swPort->getPortType() == cfg::PortType::INTERFACE_PORT) {
       propagationDelayMediaType =

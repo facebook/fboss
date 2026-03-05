@@ -257,29 +257,75 @@ std::vector<StateDelta> EcmpResourceManager::modifyState(
   return consolidate(*deltas.begin());
 }
 
-std::pair<uint32_t, uint32_t>
+std::tuple<uint32_t, uint32_t, uint32_t>
 EcmpResourceManager::getPrimaryEcmpAndMemberCounts() const {
-  uint32_t unmergedGroups{0}, ecmpMemberCnt{0};
+  uint32_t unmergedGroups{0}, virtualGroups{0}, ecmpMemberCnt{0};
   std::set<const ConsolidationInfo*> mergedGroups;
   std::for_each(
       nextHopGroupIdToInfo_.cbegin(),
       nextHopGroupIdToInfo_.cend(),
-      [&unmergedGroups, &mergedGroups, &ecmpMemberCnt](const auto& idAndInfo) {
+      [this, &unmergedGroups, &virtualGroups, &mergedGroups, &ecmpMemberCnt](
+          const auto& idAndInfo) {
         auto groupInfo = idAndInfo.second.lock();
-        unmergedGroups += groupInfo->hasOverrides() ? 0 : 1;
+        const auto& nhops = groupInfo->getNhops();
+        bool isVirtual = isVirtualArsGroup(nhops);
+
+        // Count primary ECMP groups (non-backup, non-override-nhops)
+        if (!groupInfo->hasOverrides()) {
+          if (isVirtual) {
+            virtualGroups++;
+          } else {
+            unmergedGroups++;
+          }
+        }
+
+        // Count ECMP members:
+        // - Virtual groups: Do NOT count individual members (they collectively
+        //   use minWidthForVirtualGroup ECMP members, added after the loop)
+        // - Non-virtual groups: Count individual members
+        // - Merged groups' nhops only count once towards ecmp members
         if (auto gitr = groupInfo->getMergedGroupInfoItr()) {
           auto [_, inserted] = mergedGroups.insert(&(*gitr)->second);
           // Merged groups nhops only count once towards ecmp members
           ecmpMemberCnt += inserted ? (*gitr)->second.mergedNhops.size() : 0;
-        } else {
-          ecmpMemberCnt += groupInfo->getNhops().size();
+        } else if (!isVirtual) {
+          // Only count members for non-virtual, non-merged groups
+          ecmpMemberCnt += nhops.size();
         }
       });
+  // Merged groups count as non-virtual (primary) groups
   uint32_t primaryEcmpGroupsCnt = unmergedGroups + mergedGroups.size();
+
+  // Virtual groups collectively use resources (shared across all virtual
+  // groups):
+  // 1. minWidthForVirtualGroup ECMP members
+  // 2. maxVirtualGroupWidth / maxEcmpWidth DLB entries (ECMP groups)
+  if (virtualGroups > 0) {
+    if (config_.getMinWidthForVirtualGroup().has_value()) {
+      ecmpMemberCnt +=
+          static_cast<uint32_t>(config_.getMinWidthForVirtualGroup().value());
+    }
+    if (config_.getMaxVirtualGroupWidth().has_value() &&
+        config_.getMaxEcmpWidth().has_value() &&
+        config_.getMaxEcmpWidth().value() > 0) {
+      primaryEcmpGroupsCnt += static_cast<uint32_t>(
+          config_.getMaxVirtualGroupWidth().value() /
+          config_.getMaxEcmpWidth().value());
+    }
+  }
+
   XLOG(DBG2) << " Got primary group count: " << primaryEcmpGroupsCnt << " with "
              << unmergedGroups << " unmerged groups and " << mergedGroups.size()
-             << " merged groups. Ecmp member count is: " << ecmpMemberCnt;
-  return std::make_pair(primaryEcmpGroupsCnt, ecmpMemberCnt);
+             << " merged groups. Virtual group count: " << virtualGroups
+             << ", ecmp member count: " << ecmpMemberCnt;
+  return std::make_tuple(primaryEcmpGroupsCnt, virtualGroups, ecmpMemberCnt);
+}
+
+bool EcmpResourceManager::isVirtualArsGroup(
+    const RouteNextHopSet& nhops) const {
+  auto minWidth = config_.getMinWidthForVirtualGroup();
+  return minWidth.has_value() &&
+      nhops.size() >= static_cast<size_t>(minWidth.value());
 }
 
 std::vector<StateDelta> EcmpResourceManager::consolidate(
@@ -321,12 +367,18 @@ std::vector<StateDelta> EcmpResourceManager::consolidate(
     return makeRet(delta);
   }
 
-  auto [primaryEcmpGroupsCnt, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
+  auto [primaryEcmpGroupsCnt, virtualEcmpGroupsCnt, ecmpMemberCnt] =
+      getPrimaryEcmpAndMemberCounts();
   if (!inOutState.has_value()) {
     inOutState = InputOutputState(
-        primaryEcmpGroupsCnt, ecmpMemberCnt, delta, rollingBack);
+        primaryEcmpGroupsCnt,
+        virtualEcmpGroupsCnt,
+        ecmpMemberCnt,
+        delta,
+        rollingBack);
   } else {
     inOutState->primaryEcmpGroupsCnt = primaryEcmpGroupsCnt;
+    inOutState->virtualEcmpGroupsCnt = virtualEcmpGroupsCnt;
     inOutState->ecmpMemberCnt = ecmpMemberCnt;
   }
   XLOG(DBG2) << " Start delta processing, primary group count: "
@@ -380,12 +432,16 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
 
 bool EcmpResourceManager::checkPrimaryGroupAndMemberCounts(
     const EcmpResourceManager::InputOutputState& inOutState) const {
-  auto [primaryEcmpGroups, ecmpMemberCnt] = getPrimaryEcmpAndMemberCounts();
+  auto [primaryEcmpGroups, virtualEcmpGroups, ecmpMemberCnt] =
+      getPrimaryEcmpAndMemberCounts();
   XLOG(DBG2) << " Primary ecmp groups, expected: " << primaryEcmpGroups
              << " computed:  " << inOutState.primaryEcmpGroupsCnt
+             << " Virtual ecmp groups, expected: " << virtualEcmpGroups
+             << " computed: " << inOutState.virtualEcmpGroupsCnt
              << " Ecmp member count, expected: " << ecmpMemberCnt
              << " computed: " << inOutState.ecmpMemberCnt;
-  return primaryEcmpGroups == inOutState.primaryEcmpGroupsCnt;
+  return primaryEcmpGroups == inOutState.primaryEcmpGroupsCnt &&
+      virtualEcmpGroups == inOutState.virtualEcmpGroupsCnt;
 }
 
 bool EcmpResourceManager::checkNoUnitializedGroups() const {
@@ -893,10 +949,12 @@ EcmpResourceManager::NextHopGroupIds EcmpResourceManager::getUnMergedGids()
 
 EcmpResourceManager::InputOutputState::InputOutputState(
     uint32_t _primaryEcmpGroupsCnt,
+    uint32_t _virtualEcmpGroupsCnt,
     uint32_t _ecmpMemberCnt,
     const StateDelta& _in,
     bool rollingBack)
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
+      virtualEcmpGroupsCnt(_virtualEcmpGroupsCnt),
       ecmpMemberCnt(_ecmpMemberCnt),
       rollingBack_(rollingBack) {
   /*
@@ -1332,7 +1390,11 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
    * except that we will now be able to reclaim some of the backup nhop groups.
    * */
   StateDelta delta(std::make_shared<SwitchState>(), curState);
-  InputOutputState inOutState(0, 0, delta);
+  InputOutputState inOutState(
+      0 /*primaryEcmpGroupsCnt*/,
+      0 /*virtualEcmpGroupsCnt*/,
+      0 /*ecmpMemberCnt*/,
+      delta);
   auto deltas = consolidateImpl(delta, &inOutState);
   if (!getEcmpCompressionThresholdPct()) {
     // For getBackupEcmpSwitchingMode() reclaim is completed on
@@ -1598,7 +1660,9 @@ void EcmpResourceManager::routeAddedOrUpdated(
   DCHECK_LE(
       inOutState->primaryEcmpGroupsCnt, config_.getMaxPrimaryEcmpGroups());
   bool ecmpLimitReached = config_.ecmpLimitReached(
-      inOutState->primaryEcmpGroupsCnt, inOutState->ecmpMemberCnt);
+      inOutState->primaryEcmpGroupsCnt,
+      inOutState->ecmpMemberCnt,
+      inOutState->virtualEcmpGroupsCnt);
   if (oldRoute) {
     DCHECK(!routeFwdEqual(oldRoute, newRoute));
     /*
@@ -2133,7 +2197,11 @@ EcmpResourceManager::handleFlowletSwitchConfigDelta(
     return std::nullopt;
   }
   InputOutputState inOutState(
-      0 /*primaryEcmpGroupsCnt*/, 0 /*ecmpMemberCnt*/, delta, rollingBack);
+      0 /*primaryEcmpGroupsCnt*/,
+      0 /*virtualEcmpGroupsCnt*/,
+      0 /*ecmpMemberCnt*/,
+      delta,
+      rollingBack);
   CHECK_EQ(inOutState.numDeltas(), 1);
   // Make changes on to current new state (which is essentially,
   // newState with old state's fibs). The first delta we will queue
@@ -2447,8 +2515,34 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
     const HwAsic* asic,
     const EcmpResourceManager::SwitchStatsGetter& switchStatsGetter) {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager = nullptr;
-  auto maxEcmpGroups = FLAGS_flowletSwitchingEnable ? asic->getMaxArsGroups()
-                                                    : asic->getMaxEcmpGroups();
+  std::optional<uint32_t> maxNonVirtualEcmpGroups;
+  std::optional<uint32_t> maxVirtualEcmpGroups;
+  std::optional<int32_t> minWidthForVirtualGroup;
+  std::optional<int32_t> maxVirtualGroupWidth;
+  std::optional<int32_t> maxEcmpWidth;
+
+  if (FLAGS_flowletSwitchingEnable) {
+    // Non-virtual limit from ASIC
+    maxNonVirtualEcmpGroups = asic->getMaxArsGroups();
+    maxEcmpWidth = asic->getMaxArsWidth();
+
+    if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
+      // Virtual group config from FlowletSwitchingConfig
+      auto configVirtualGroups =
+          flowletSwitchingConfig->getMaxArsVirtualGroups();
+      if (configVirtualGroups.has_value() && configVirtualGroups.value() > 0) {
+        maxVirtualEcmpGroups =
+            static_cast<uint32_t>(configVirtualGroups.value());
+      }
+      minWidthForVirtualGroup =
+          flowletSwitchingConfig->getMinWidthForArsVirtualGroup();
+      maxVirtualGroupWidth =
+          flowletSwitchingConfig->getMaxArsVirtualGroupWidth();
+    }
+  } else {
+    maxNonVirtualEcmpGroups = asic->getMaxEcmpGroups();
+  }
+
   std::optional<cfg::SwitchingMode> switchingMode;
   std::optional<int32_t> ecmpCompressionPenaltyThresholPct;
   if (auto flowletSwitchingConfig = state->getFlowletSwitchingConfig()) {
@@ -2465,21 +2559,47 @@ std::unique_ptr<EcmpResourceManager> makeEcmpResourceManager(
   CHECK(
       !(switchingMode.has_value() &&
         ecmpCompressionPenaltyThresholPct.value_or(0)));
-  if (maxEcmpGroups.has_value()) {
+
+  if (maxNonVirtualEcmpGroups.has_value()) {
     auto percentage = FLAGS_flowletSwitchingEnable
         ? FLAGS_ars_resource_percentage
         : FLAGS_ecmp_resource_percentage;
-    auto maxEcmps =
-        std::floor(*maxEcmpGroups * static_cast<double>(percentage) / 100.0);
-    XLOG(DBG2) << " Creating ecmp resource manager with max ECMP groups: "
-               << maxEcmps << " and backup group type: " << switchingMode;
 
-    ecmpResourceManager = switchingMode
+    auto applyPercentage =
+        [percentage](std::optional<uint32_t> max) -> std::optional<uint32_t> {
+      if (!max.has_value()) {
+        return std::nullopt;
+      }
+      return static_cast<uint32_t>(
+          std::floor(*max * static_cast<double>(percentage) / 100.0));
+    };
+
+    auto maxNonVirtual = applyPercentage(maxNonVirtualEcmpGroups);
+    auto maxVirtual = applyPercentage(maxVirtualEcmpGroups);
+
+    XLOG(DBG2)
+        << " Creating ecmp resource manager with max non-virtual groups: "
+        << (maxNonVirtual ? *maxNonVirtual : 0)
+        << ", max virtual groups: " << (maxVirtual ? *maxVirtual : 0)
+        << ", min width for virtual: "
+        << (minWidthForVirtualGroup ? *minWidthForVirtualGroup : 0)
+        << ", max virtual group width: "
+        << (maxVirtualGroupWidth ? *maxVirtualGroupWidth : 0)
+        << ", max ecmp width: " << (maxEcmpWidth ? *maxEcmpWidth : 0)
+        << ", backup group type: " << switchingMode;
+
+    ecmpResourceManager = ecmpCompressionPenaltyThresholPct.value_or(0) > 0
         ? std::make_unique<EcmpResourceManager>(
-              maxEcmps, switchingMode, switchStatsGetter)
+              *maxNonVirtual,
+              ecmpCompressionPenaltyThresholPct.value(),
+              switchStatsGetter)
         : std::make_unique<EcmpResourceManager>(
-              maxEcmps,
-              ecmpCompressionPenaltyThresholPct.value_or(0),
+              *maxNonVirtual,
+              switchingMode,
+              maxVirtual,
+              minWidthForVirtualGroup,
+              maxVirtualGroupWidth,
+              maxEcmpWidth,
               switchStatsGetter);
   }
   return ecmpResourceManager;

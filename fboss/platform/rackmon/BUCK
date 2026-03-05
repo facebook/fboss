@@ -94,9 +94,9 @@ cpp_library(
         "Register.h",
         "UARTDevice.h",
     ],
+    deps = ["fbsource//third-party/glog:glog"],
     external_deps = [
         "nlohmann_json",
-        "glog",
     ],
 )
 

@@ -11,7 +11,7 @@ const thriftpath::RootThriftPath<facebook::fboss::fsdb::FsdbOperStateRoot>
     fsdbStateRootPath;
 const auto bgpPath = fsdbStateRootPath.bgp();
 
-using k_fsdb_model = facebook::fboss::fsdb::fsdb_model_tags::strings;
+namespace k_fsdb_model = apache::thrift::ident;
 
 using TBgpAfi = facebook::neteng::fboss::bgp_attr::TBgpAfi;
 

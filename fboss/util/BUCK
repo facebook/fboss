@@ -247,7 +247,7 @@ python_binary(
     ],
     main_function = "fboss.util.stress_route_insertion.main",
     deps = [
-        "//fboss/agent/if:ctrl-py-deprecated",
+        "//fboss/agent/if:ctrl-python-types",
         "//fboss/py/fboss:thrift_clients",
         "//fboss/py/fboss/cli:fboss_cli_lib",
     ],
@@ -319,7 +319,7 @@ python_library(
     ],
     deps = [
         ":process_known_bad_test_lib",
-        "//groups/submit_post:PostToInternalGroup-py-deprecated",
+        "//groups/submit_post:PostToInternalGroup-python-types",
         "//libfb/py:employee",
         "//libfb/py/thrift_clients:post_to_internal_group_thrift_client",
     ],

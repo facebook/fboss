@@ -407,7 +407,6 @@ cpp_library(
         "//fb303:service_data",
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
-        "//fboss/agent:asic_utils",
         "//fboss/agent:constants",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -444,7 +443,6 @@ cpp_library(
         "//fboss/agent/test/utils:port_stats_test_utils",
         "//fboss/agent/test/utils:queue_per_host_test_utils",
         "//fboss/agent/test/utils:stats_test_utils",
-        "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/phy:phy_utils",
@@ -470,7 +468,6 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":config_factory",
-        ":hw_copp_utils",
         ":hw_packet_utils",
         ":hw_switch_ensemble_factory",
         ":hw_test_acl_utils",

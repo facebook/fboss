@@ -170,7 +170,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU800BIAB;
     } else if (
         modelName.find("Meru800biac") == 0 ||
-        modelName.find("MERU800BIAC") == 0) {
+        modelName.find("MERU800BIAC") == 0 ||
+        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIAC;
     } else if (
         modelName.find("Meru800bfa") == 0 ||
@@ -210,6 +211,8 @@ void PlatformProductInfo::initMode() {
         modelName.find("Icecube800banw") == 0 ||
         modelName.find("ICECUBE800BANW") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
+    } else if (modelName.find("J4Sim") == 0 || modelName.find("J4SIM") == 0) {
+      type_ = PlatformType::PLATFORM_J4SIM;
     } else if (
         modelName.find("Blackwolf800banw") == 0 ||
         modelName.find("BLACKWOLF800BANW") == 0) {
@@ -290,6 +293,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_TAHANSB800BC;
     } else if (FLAGS_mode == "wedge800cact") {
       type_ = PlatformType::PLATFORM_WEDGE800CACT;
+    } else if (FLAGS_mode == "j4sim") {
+      type_ = PlatformType::PLATFORM_J4SIM;
     } else if (FLAGS_mode == "ladakh800bcls") {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else if (FLAGS_mode == "icecube800banw") {

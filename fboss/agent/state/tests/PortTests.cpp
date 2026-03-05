@@ -142,8 +142,8 @@ TEST(Port, applyConfig) {
       portV1->getProfileID());
   EXPECT_FALSE(portV1->isPublished());
   Port::VlanMembership expectedVlans;
-  expectedVlans.insert(make_pair(VlanID(2), Port::VlanInfo(false)));
-  expectedVlans.insert(make_pair(VlanID(5), Port::VlanInfo(true)));
+  expectedVlans.insert(make_pair(VlanID(2), Port::VlanInfo(false, false)));
+  expectedVlans.insert(make_pair(VlanID(5), Port::VlanInfo(true, false)));
   EXPECT_EQ(expectedVlans, portV1->getVlans());
   EXPECT_TRUE(portV1->getSampleDestination().has_value());
   EXPECT_EQ(
@@ -165,7 +165,7 @@ TEST(Port, applyConfig) {
   config.interfaces()[2].mac() = "00:00:00:00:00:21";
 
   Port::VlanMembership expectedVlansV2;
-  expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false)));
+  expectedVlansV2.insert(make_pair(VlanID(2021), Port::VlanInfo(false, false)));
   auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
   auto portV2 = stateV2->getPorts()->getNodeIf(PortID(1));
   ASSERT_NE(nullptr, portV2);
@@ -925,7 +925,7 @@ TEST(Port, verifyInterfaceIDsForNonVoqSwitches) {
       VlanID vlanID(*vp.vlanID());
 
       port2Vlans[portID].insert(
-          std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags())));
+          std::make_pair(vlanID, Port::VlanInfo(*vp.emitTags(), false)));
     }
 
     flat_map<PortID, int32_t> port2Interface;

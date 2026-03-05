@@ -16,7 +16,7 @@
 // Forward declarations and definitions
 namespace facebook::fboss {
 
-using k_fsdb_model = fsdb::fsdb_model_tags::strings;
+namespace k_fsdb_model = apache::thrift::ident;
 
 class AgentData;
 RESOLVE_STRUCT_MEMBER(AgentData, k_fsdb_model::switchState, SwitchState);

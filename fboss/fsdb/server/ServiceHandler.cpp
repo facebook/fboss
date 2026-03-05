@@ -725,6 +725,7 @@ OperSubscriberInfo makeSubscriberInfo(
     info.extendedPaths() = extPaths;
   }
   info.isStats() = isStats;
+  info.subscribedSince() = static_cast<int64_t>(std::time(nullptr));
   info.subscriptionUid() = uid;
   return info;
 }

@@ -6193,6 +6193,12 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.VerifyQueuePerHostAclTableAndTtlAclTable$"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.VerifyDscpMarkingAndTtlAclTable$"
         }
     ],
     "leaba/1.42.8/1.42.8/simulator": [

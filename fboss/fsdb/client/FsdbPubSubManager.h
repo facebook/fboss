@@ -174,11 +174,6 @@ class FsdbPubSubManager {
       SubscriptionStateChangeCb stateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       utils::ConnectionOptions&& connectionOptions);
-  std::string addStatExtDeltaSubscription(
-      const std::vector<ExtendedOperPath>& subscribePaths,
-      SubscriptionStateChangeCb stateChangeCb,
-      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-      utils::ConnectionOptions&& connectionOptions);
 
   /* Subscriber remove APIs */
   void removeStateDeltaSubscription(

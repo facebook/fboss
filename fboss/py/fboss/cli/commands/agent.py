@@ -16,8 +16,8 @@ from configerator.utils import config_contents_to_thrift
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils.utils import KEYWORD_CONFIG_RELOAD, KEYWORD_CONFIG_SHOW
 from libfb.py.asyncio.thrift_utils import thrift_dumps
-from neteng.fboss.switch_config.types import SwitchConfig
-from neteng.fboss.ttypes import FbossBaseError
+from neteng.fboss.fboss.thrift_types import FbossBaseError
+from neteng.fboss.switch_config.thrift_types import SwitchConfig
 
 
 class AgentConfigCmd(cmds.FbossCmd):

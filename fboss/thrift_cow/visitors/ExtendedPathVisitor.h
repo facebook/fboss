@@ -13,7 +13,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::thrift_cow {
@@ -533,32 +533,32 @@ struct ExtendedPathVisitor<apache::thrift::type_class::variant> {
     }
 
     // TODO: A lot of shared logic with PathVisitor. Could we share code?
-    using MemberTypes = typename Fields::MemberTypes;
-    visitMember<MemberTypes>(*raw, [&](auto tag) {
-      using descriptor = typename decltype(fatal::tag_type(tag))::member;
-      using name = typename descriptor::metadata::name;
-      using tc = typename descriptor::metadata::type_class;
+    using TType = typename Fields::ThriftType;
+    visitMember<TType>(*raw, [&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
 
       if (folly::to_underlying(fields.type()) !=
-          descriptor::metadata::id::value) {
+          folly::to_underlying(apache::thrift::op::get_field_id_v<TType, Id>)) {
         // TODO: error handling
         return;
       }
 
       std::string memberName = params.options.outputIdPaths
-          ? folly::to<std::string>(descriptor::metadata::id::value)
-          : std::string(fatal::z_data<name>());
+          ? folly::to<std::string>(folly::to_underlying(
+                apache::thrift::op::get_field_id_v<TType, Id>))
+          : std::string(apache::thrift::op::get_name_v<TType, Id>);
 
       params.path.push_back(std::move(memberName));
 
       // ensure we propagate constness, since children will have type
       // const shared_ptr<T>, not shared_ptr<const T>.
-      auto& child = fields.template ref<name>();
+      auto& child = fields.template ref<Id>();
       if constexpr (std::is_const_v<Fields>) {
         const auto& next = *child;
-        ExtendedPathVisitor<tc>::visit(next, params, cursor);
+        ExtendedPathVisitor<TC_>::visit(next, params, cursor);
       } else {
-        ExtendedPathVisitor<tc>::visit(*child, params, cursor);
+        ExtendedPathVisitor<TC_>::visit(*child, params, cursor);
       }
 
       params.path.pop_back();
@@ -620,8 +620,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       return;
     }
 
-    using Members = typename apache::thrift::reflect_struct<
-        std::remove_cv_t<Node>>::members;
+    using T = std::remove_cv_t<Node>;
 
     const auto& elem = *cursor++;
     auto raw = elem.raw();
@@ -631,22 +630,21 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
     }
 
     // Perform trie search over all members for key
-    visitMember<Members>(*raw, [&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using name = typename member::name;
-      using tc = typename member::type_class;
-      typename member::getter getter;
+    visitMember<T>(*raw, [&]<class Id>(Id) {
+      using TC_ = typename TypeTagToTypeClass<
+          apache::thrift::op::get_type_tag<T, Id>>::type;
 
       // Recurse further
-      auto& child = getter(node);
+      auto& child = *apache::thrift::op::get<Id>(node);
 
       std::string memberName = params.options.outputIdPaths
-          ? folly::to<std::string>(member::id::value)
-          : std::string(fatal::z_data<name>());
+          ? folly::to<std::string>(
+                folly::to_underlying(apache::thrift::op::get_field_id_v<T, Id>))
+          : std::string(apache::thrift::op::get_name_v<T, Id>);
 
       params.path.push_back(std::move(memberName));
 
-      ExtendedPathVisitor<tc>::visit(child, params, cursor);
+      ExtendedPathVisitor<TC_>::visit(child, params, cursor);
 
       params.path.pop_back();
     });
@@ -666,7 +664,6 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
 
     auto& tObj = node.ref();
     using T = typename Node::ThriftType;
-    using Members = typename apache::thrift::reflect_struct<T>::members;
 
     const auto& elem = *cursor++;
     auto raw = elem.raw();
@@ -676,22 +673,21 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
     }
 
     // Perform trie search over all members for key
-    visitMember<Members>(*raw, [&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using name = typename member::name;
-      using tc = typename member::type_class;
-      typename member::getter getter;
+    visitMember<T>(*raw, [&]<class Id>(Id) {
+      using TC_ = typename TypeTagToTypeClass<
+          apache::thrift::op::get_type_tag<T, Id>>::type;
 
       // Recurse further
-      auto& child = getter(tObj);
+      auto& child = *apache::thrift::op::get<Id>(tObj);
 
       std::string memberName = params.options.outputIdPaths
-          ? folly::to<std::string>(member::id::value)
-          : std::string(fatal::z_data<name>());
+          ? folly::to<std::string>(
+                folly::to_underlying(apache::thrift::op::get_field_id_v<T, Id>))
+          : std::string(apache::thrift::op::get_name_v<T, Id>);
 
       params.path.push_back(std::move(memberName));
 
-      ExtendedPathVisitor<tc>::visit(child, params, cursor);
+      ExtendedPathVisitor<TC_>::visit(child, params, cursor);
 
       params.path.pop_back();
     });
@@ -706,7 +702,7 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using Members = typename Fields::Members;
+    using TType = typename Fields::ThriftType;
 
     const auto& elem = *cursor++;
     auto raw = elem.raw();
@@ -716,21 +712,21 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
     }
 
     // Perform trie search over all members for key
-    visitMember<Members>(*raw, [&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using name = typename member::name;
-      using tc = typename member::type_class;
+    visitMember<TType>(*raw, [&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
 
       // Recurse further
-      auto& child = fields.template ref<name>();
+      auto& child = fields.template ref<Id>();
 
       if (!child) {
         // child is unset, cannot traverse through missing optional child
         return;
       }
       std::string memberName = params.options.outputIdPaths
-          ? folly::to<std::string>(member::id::value)
-          : std::string(fatal::z_data<name>());
+          ? folly::to<std::string>(folly::to_underlying(
+                apache::thrift::op::get_field_id_v<TType, Id>))
+          : std::string(apache::thrift::op::get_name_v<TType, Id>);
 
       params.path.push_back(std::move(memberName));
 
@@ -738,9 +734,9 @@ struct ExtendedPathVisitor<apache::thrift::type_class::structure> {
       // const shared_ptr<T>, not shared_ptr<const T>.
       if constexpr (std::is_const_v<Fields>) {
         const auto& next = *child;
-        ExtendedPathVisitor<tc>::visit(next, params, cursor);
+        ExtendedPathVisitor<TC_>::visit(next, params, cursor);
       } else {
-        ExtendedPathVisitor<tc>::visit(*child, params, cursor);
+        ExtendedPathVisitor<TC_>::visit(*child, params, cursor);
       }
 
       params.path.pop_back();

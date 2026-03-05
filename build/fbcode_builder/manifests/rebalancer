@@ -1,6 +1,9 @@
 [manifest]
 name = rebalancer
 fbsource_path = fbcode/algopt/rebalancer/
+shipit_project = rebalancer
+shipit_fbcode_builder = true
+use_shipit = false
 
 [git]
 # To git clone on devserver, setup fwdproxy:
@@ -25,6 +28,9 @@ xxhash
 
 [cmake.defines.os=darwin]
 REBALANCER_USE_SCIP=0
+
+[shipit.strip]
+^.*/fb/.*$
 
 [shipit.pathmap]
 fbcode/algopt/rebalancer/oss_root = .

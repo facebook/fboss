@@ -304,7 +304,7 @@ void assertResourceMgrCorrectness(
   };
   auto ecmpMembers = countEcmpMembers(primaryEcmpTypeGroups2RefCnt) +
       countEcmpMembers(backupEcmpTypeGroups2RefCnt);
-  auto [mgrPrimaryEcmpGroups, mgrEcmpMembers] =
+  auto [mgrPrimaryEcmpGroups, mgrVirtualEcmpGroups, mgrEcmpMembers] =
       resourceMgr.getPrimaryEcmpAndMemberCounts();
   EXPECT_EQ(mgrPrimaryEcmpGroups, primaryEcmpTypeGroups2RefCnt.size());
   EXPECT_EQ(mgrEcmpMembers, ecmpMembers);

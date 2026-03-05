@@ -18,6 +18,7 @@ package;
 //  For Temperature, should be celsius (C)
 //  For Fan, should be RPM
 //  For PWM, should be Percent(%)
+//  For Status, should be Boolean
 @hack.Attributes{
   attributes = [
     "Oncalls('fboss_platform')",
@@ -34,6 +35,7 @@ enum SensorType {
   TEMPERATURE = 3,
   FAN = 4,
   PWM = 5,
+  STATUS = 6,
 }
 
 // `Threshold`: defined the various threshold below for various sensors

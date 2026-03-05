@@ -56,14 +56,24 @@ int main(int argc, char** argv) {
 
   std::optional<DataStore> dataStore;
   try {
-    PlatformConfig config = ConfigUtils().getConfig();
+    ConfigUtils configUtils;
+    bool configChanged = configUtils.hasConfigChanged();
+    PlatformConfig config = configUtils.getConfig();
 
     dataStore.emplace(config);
 
+    if (configChanged) {
+      XLOG(INFO) << "Config changed since last run, reloading kmods";
+    }
+    bool reloadKmods = FLAGS_reload_kmods || configChanged;
     PkgManager pkgManager(config);
-    pkgManager.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
+    pkgManager.processAll(FLAGS_enable_pkg_mgmnt, reloadKmods);
     PlatformExplorer platformExplorer(config, dataStore.value());
     platformExplorer.explore();
+
+    // Store config hash after successful exploration
+    configUtils.storeConfigHash();
+
     auto duration = std::chrono::steady_clock::now() - startTime;
     auto elapsedSeconds = duration_cast<std::chrono::seconds>(duration).count();
 

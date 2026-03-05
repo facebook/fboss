@@ -3,6 +3,7 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include <fboss/fsdb/client/FsdbStreamClient.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
@@ -270,15 +271,17 @@ class FsdbPubSubManagerTest : public ::testing::Test {
 #else
     // Internal: Use field IDs since serveIdPathSubs = true in internal test
     // server
-    using StateRootMembers =
-        apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
-    using AgentRootMembers = apache::thrift::reflect_struct<AgentData>::member;
-    using AgentConfigRootMembers =
-        apache::thrift::reflect_struct<cfg::AgentConfig>::member;
     ExtendedOperPath path =
-        ext_path_builder::raw(StateRootMembers::agent::id::value)
-            .raw(AgentRootMembers::config::id::value)
-            .raw(AgentConfigRootMembers::defaultCommandLineArgs::id::value)
+        ext_path_builder::raw(
+            apache::thrift::op::
+                get_field_id_v<FsdbOperStateRoot, apache::thrift::ident::agent>)
+            .raw(
+                apache::thrift::op::
+                    get_field_id_v<AgentData, apache::thrift::ident::config>)
+            .raw(
+                apache::thrift::op::get_field_id_v<
+                    cfg::AgentConfig,
+                    apache::thrift::ident::defaultCommandLineArgs>)
             .any()
             .get();
 #endif

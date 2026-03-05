@@ -528,19 +528,6 @@ std::string FsdbPubSubManager::addStateExtDeltaSubscription(
       std::move(connectionOptions));
 }
 
-std::string FsdbPubSubManager::addStatExtDeltaSubscription(
-    const std::vector<ExtendedOperPath>& subscribePaths,
-    SubscriptionStateChangeCb stateChangeCb,
-    FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    utils::ConnectionOptions&& connectionOptions) {
-  return addSubscriptionImpl<FsdbExtDeltaSubscriber>(
-      subscribePaths,
-      stateChangeCb,
-      operDeltaCb,
-      true /*subscribeStat*/,
-      std::move(connectionOptions));
-}
-
 template <typename SubscriberT, typename PathElement>
 std::string FsdbPubSubManager::addSubscriptionImpl(
     const std::map<SubscriptionKey, PathElement>& subscribePath,

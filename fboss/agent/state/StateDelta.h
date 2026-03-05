@@ -35,6 +35,7 @@
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/UdfGroupMap.h"
 #include "fboss/agent/state/UdfPacketMatcherMap.h"
 
@@ -110,6 +111,7 @@ class StateDelta {
   DeltaValue<FlowletSwitchingConfig> getFlowletSwitchingConfigDelta() const;
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getSystemPortsDelta() const;
   ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
+  ThriftMapDelta<Srv6TunnelMap> getSrv6TunnelsDelta() const;
   MultiSwitchMapDelta<MultiTeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()
@@ -120,6 +122,10 @@ class StateDelta {
   MultiSwitchMapDelta<MultiSwitchDsfNodeMap> getDsfNodesDelta() const;
 
   const fsdb::OperDelta& getOperDelta() const;
+
+  // Check if routes or neighbors (ARP/NDP) changed.
+  // Shared by MirrorManager and TamManager for next-hop resolution.
+  bool hasRouteOrNeighborChanges() const;
 
  private:
   // Forbidden copy constructor and assignment operator

@@ -58,22 +58,27 @@ VlanSaiId SaiVlanManager::addVlan(const std::shared_ptr<Vlan>& swVlan) {
   auto saiVlan = vlanStore.setObject(adapterHostKey, attributes);
   auto vlanHandle = std::make_unique<SaiVlanHandle>();
   vlanHandle->vlan = saiVlan;
-  vlanHandle->vlanMembers.reserve(swVlan->getPorts().size());
+  vlanHandle->vlanMembers.reserve(swVlan->getPortsInfo().size());
   // createVlanMember relies on the handle being in handles_,
   // so we must do this before we create the members
   handles_.emplace(swVlanId, std::move(vlanHandle));
 
   // Create VLAN members
-  for (auto [swPortId, emitTags] : swVlan->getPorts()) {
-    createVlanMember(swVlanId, SaiPortDescriptor(PortID(swPortId)), emitTags);
+  for (auto [swPortId, vlanInfo] : swVlan->getPortsInfo()) {
+    createVlanMember(
+        swVlanId,
+        SaiPortDescriptor(PortID(swPortId)),
+        *vlanInfo.tagged(),
+        *vlanInfo.priorityTagged());
   }
   return saiVlan->adapterKey();
 }
 
 void SaiVlanManager::createVlanMember(
-    VlanID swVlanId,
+    const VlanID& swVlanId,
     SaiPortDescriptor portDesc,
-    bool tagged) {
+    bool tagged,
+    bool priorityTagged) {
   auto vlanHandle = getVlanHandle(swVlanId);
   if (!vlanHandle) {
     throw FbossError(
@@ -83,7 +88,7 @@ void SaiVlanManager::createVlanMember(
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{
       vlanHandle->vlan->adapterKey()};
   auto vlanMember = std::make_shared<ManagedVlanMember>(
-      this, portDesc, swVlanId, vlanIdAttribute, tagged);
+      this, portDesc, swVlanId, vlanIdAttribute, tagged, priorityTagged);
   SaiObjectEventPublisher::getInstance()->get<SaiBridgePortTraits>().subscribe(
       vlanMember);
   vlanHandle->vlanMembers.emplace(portDesc, std::move(vlanMember));
@@ -128,12 +133,12 @@ void SaiVlanManager::changeVlan(
     throw FbossError(
         "attempted to change a vlan which does not exist: ", swVlanId);
   }
-  auto oldPorts = swVlanOld->getPorts();
-  auto compareIds = [](const std::pair<int16_t, bool>& p1,
-                       const std::pair<int16_t, bool>& p2) {
+  auto oldPorts = swVlanOld->getPortsInfo();
+  auto compareIds = [](const std::pair<int16_t, state::VlanInfo>& p1,
+                       const std::pair<int16_t, state::VlanInfo>& p2) {
     return p1.first < p2.first;
   };
-  auto newPorts = swVlanNew->getPorts();
+  auto newPorts = swVlanNew->getPortsInfo();
   Vlan::MemberPorts removed;
   std::set_difference(
       oldPorts.begin(),
@@ -154,8 +159,12 @@ void SaiVlanManager::changeVlan(
       std::inserter(added, added.begin()),
       compareIds);
   for (const auto& swPortId : added) {
+    auto portId = PortID(swPortId.first);
     createVlanMember(
-        swVlanId, SaiPortDescriptor(PortID(swPortId.first)), swPortId.second);
+        swVlanId,
+        SaiPortDescriptor(portId),
+        *swPortId.second.tagged(),
+        *swPortId.second.priorityTagged());
   }
 }
 
@@ -193,8 +202,24 @@ void ManagedVlanMember::createObject(PublisherObjects objects) {
   SaiVlanMemberTraits::Attributes::VlanId vlanIdAttribute{saiVlanId_};
   SaiVlanMemberTraits::Attributes::BridgePortId bridgePortIdAttribute{
       bridgePortSaiId};
-  auto taggingMode =
-      tagged_ ? SAI_VLAN_TAGGING_MODE_TAGGED : SAI_VLAN_TAGGING_MODE_UNTAGGED;
+
+  // Determine tagging mode based on priorityTagged and tagged flags:
+  // - priorityTagged=true: PRIORITY_TAGGED (802.1Q header with PCP only)
+  // - tagged=true: TAGGED (normal VLAN tagging)
+  // - tagged=false: UNTAGGED (no VLAN tag)
+  sai_vlan_tagging_mode_t taggingMode;
+  if (priorityTagged_) {
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+    taggingMode = SAI_VLAN_TAGGING_MODE_PRIORITY_TAGGED;
+#else
+    throw FbossError("Priority tagging not supported on this platform");
+#endif
+  } else if (tagged_) {
+    taggingMode = SAI_VLAN_TAGGING_MODE_TAGGED;
+  } else {
+    taggingMode = SAI_VLAN_TAGGING_MODE_UNTAGGED;
+  }
+
   SaiVlanMemberTraits::Attributes::VlanTaggingMode taggingModeAttribute{
       taggingMode};
   SaiVlanMemberTraits::CreateAttributes memberAttributes{

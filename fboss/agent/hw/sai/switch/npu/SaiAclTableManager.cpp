@@ -98,6 +98,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         cfg::AsicType::ASIC_TYPE_JERICHO2;
     bool isJericho3 = platform_->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO3;
+    bool isJericho4 = platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO4;
     bool isChenab =
         platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
 
@@ -108,7 +110,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         SAI_ACL_ACTION_TYPE_SET_DSCP,
         SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
 
-    if (!(isTajo || isJericho2 || isJericho3 || isChenab)) {
+    if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab)) {
       // Chenab supports egress mirror action in egress table
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
     }

@@ -1,2 +1,2 @@
 "Test Case","Hardware","Vendor","SDK Version","ASIC","Switch Mode","Role","Status"
-"cold_boot.AgentEmptyTest.CheckInit","morgan800cc","Leaba","24.8.3001","graphene200","multi switch","","PASSED"
+"cold_boot.AgentEmptyTest.CheckInit","morgan800cc","Cisco","24.8.3001","graphene200","multi switch","","PASSED"

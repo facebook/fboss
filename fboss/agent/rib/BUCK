@@ -145,6 +145,7 @@ cpp_library(
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//folly/logging:logging",
     ],
 )
 

@@ -194,6 +194,13 @@ store_unittest(
 )
 
 store_unittest(
+    name = "srv6_store_test",
+    srcs = [
+        "Srv6StoreTest.cpp",
+    ],
+)
+
+store_unittest(
     name = "vlan_store_test",
     srcs = [
         "VlanStoreTest.cpp",

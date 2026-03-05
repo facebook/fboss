@@ -942,7 +942,9 @@ void SaiSwitch::switchEventCallback(
         getSwitchStats()->switchReachabilityChangeCount();
       }
       if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_JERICHO3) {
+              cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_JERICHO4) {
         // Increment J3 specific error/warning asic counters
         incrementJ3InterruptCounter(getSwitchStats(), eventInfo->error_type);
       }

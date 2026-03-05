@@ -1687,6 +1687,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
   bool isJericho3 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
+  bool isJericho4 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
   bool isQumran4d =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D;
   bool isTomahawk5 =
@@ -1741,7 +1743,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::TTL,
     };
     return jericho2Qualifiers;
-  } else if (isJericho3 || isQumran4d) {
+  } else if (isJericho3 || isJericho4 || isQumran4d) {
     std::set<cfg::AclTableQualifier> jericho3Qualifiers = {
         cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::SRC_IPV6,

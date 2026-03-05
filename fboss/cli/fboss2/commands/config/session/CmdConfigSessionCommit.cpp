@@ -48,23 +48,24 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
 
   // Build message based on what actions were taken
   std::string message;
+  std::string shortSha = result.commitSha.substr(0, 7);
   if (restartedServices.empty() && reloadedServices.empty()) {
-    message = fmt::format(
-        "Config session committed successfully as r{}.", result.revision);
+    message =
+        fmt::format("Config session committed successfully as {}.", shortSha);
   } else if (restartedServices.empty()) {
     message = fmt::format(
-        "Config session committed successfully as r{} and config reloaded for {}.",
-        result.revision,
+        "Config session committed successfully as {} and config reloaded for {}.",
+        shortSha,
         folly::join(", ", reloadedServices));
   } else if (reloadedServices.empty()) {
     message = fmt::format(
-        "Config session committed successfully as r{} and {} restarted.",
-        result.revision,
+        "Config session committed successfully as {} and {} restarted.",
+        shortSha,
         folly::join(", ", restartedServices));
   } else {
     message = fmt::format(
-        "Config session committed successfully as r{}, {} restarted, and config reloaded for {}.",
-        result.revision,
+        "Config session committed successfully as {}, {} restarted, and config reloaded for {}.",
+        shortSha,
         folly::join(", ", restartedServices),
         folly::join(", ", reloadedServices));
   }

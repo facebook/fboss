@@ -612,6 +612,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
       if (portType == cfg::PortType::FABRIC_PORT) {
         return 110;
       } else {
@@ -1140,6 +1141,20 @@ void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
              << apache::thrift::TEnumTraits<cfg::PortType>::findName(type);
 }
 
+void SaiPortManager::setClm(PortID portId, bool clmEnabled) {
+  port2ClmEnabled_[portId] = clmEnabled;
+  XLOG(DBG2) << " Port : " << portId
+             << " CLM set to : " << (clmEnabled ? "enabled" : "disabled");
+}
+
+bool SaiPortManager::isClmEnabled(PortID portId) const {
+  auto pitr = port2ClmEnabled_.find(portId);
+  if (pitr != port2ClmEnabled_.end()) {
+    return pitr->second;
+  }
+  return false;
+}
+
 std::vector<IngressPriorityGroupSaiId>
 SaiPortManager::getIngressPriorityGroupSaiIds(
     const std::shared_ptr<Port>& swPort) {
@@ -1361,6 +1376,7 @@ void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
+  setClm(swPort->getID(), swPort->getClmEnable().value_or(false));
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portSaiId2PortInfo.emplace(
       portSaiId,
@@ -1398,6 +1414,9 @@ void SaiPortManager::changePort(
     const std::shared_ptr<Port>& newPort) {
   if (oldPort->getPortType() != newPort->getPortType()) {
     setPortType(newPort->getID(), newPort->getPortType());
+  }
+  if (oldPort->getClmEnable() != newPort->getClmEnable()) {
+    setClm(newPort->getID(), newPort->getClmEnable().value_or(false));
   }
   changePortImpl(oldPort, newPort);
 }
@@ -1513,6 +1532,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   portStats_.erase(swId);
   port2SupportedStats_.erase(swId);
   port2PortType_.erase(swId);
+  port2ClmEnabled_.erase(swId);
   auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(swId);
   if (portAsicPrbsStatsItr != portAsicPrbsStats_.end()) {
     portAsicPrbsStats_.erase(swId);
@@ -3490,13 +3510,6 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
     return std::vector<sai_port_lane_latch_status_t>();
   }
 
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
-      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
-    // CS00012443184
-    return std::vector<sai_port_lane_latch_status_t>();
-  }
-
   return SaiApiTable::getInstance()->portApi().getAttribute(
       saiPortId,
       SaiPortTraits::Attributes::RxSignalDetect{
@@ -3508,13 +3521,6 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
     uint8_t numPmdLanes,
     PortID portID) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
-    return std::vector<sai_port_lane_latch_status_t>();
-  }
-
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK6 &&
-      getPortType(portID) == cfg::PortType::MANAGEMENT_PORT) {
-    // CS00012443184
     return std::vector<sai_port_lane_latch_status_t>();
   }
 

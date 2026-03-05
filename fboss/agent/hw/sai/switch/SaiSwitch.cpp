@@ -50,6 +50,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
@@ -1589,6 +1590,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiTunnelManager::addTunnel,
       &SaiTunnelManager::removeTunnel);
 
+  processDelta(
+      delta.getSrv6TunnelsDelta(),
+      managerTable_->srv6TunnelManager(),
+      lockPolicy,
+      &SaiSrv6TunnelManager::changeSrv6Tunnel,
+      &SaiSrv6TunnelManager::addSrv6Tunnel,
+      &SaiSrv6TunnelManager::removeSrv6Tunnel);
+
 #if defined(TAJO_SDK_VERSION_1_42_8)
   FLAGS_enable_acl_table_group = false;
 #endif
@@ -2414,7 +2423,7 @@ void SaiSwitch::updatePmdInfo(
     eyeInfos[eyeStatus[i].lane].push_back(oneLaneEyeInfo);
   }
 
-  for (auto eyeInfo : eyeInfos) {
+  for (const auto& eyeInfo : eyeInfos) {
     auto laneId = eyeInfo.first;
     phy::LaneStats laneStat;
     if (laneStats.find(laneId) != laneStats.end()) {
@@ -2429,7 +2438,7 @@ void SaiSwitch::updatePmdInfo(
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   auto pmdSignalDetect = managerTable_->portManager().getRxSignalDetect(
       port->adapterKey(), numPmdLanes, portID);
-  for (auto pmd : pmdSignalDetect) {
+  for (const auto& pmd : pmdSignalDetect) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;
     phy::LaneState laneState;
@@ -2451,7 +2460,7 @@ void SaiSwitch::updatePmdInfo(
 
   auto pmdLockStatus = managerTable_->portManager().getRxLockStatus(
       port->adapterKey(), numPmdLanes, portID);
-  for (auto pmd : pmdLockStatus) {
+  for (const auto& pmd : pmdLockStatus) {
     auto laneId = pmd.lane;
     phy::LaneStats laneStat;
     phy::LaneState laneState;
@@ -2522,10 +2531,10 @@ void SaiSwitch::updatePmdInfo(
     laneState.serdesParameters() = serdesParams;
     laneStates[laneId] = laneState;
   }
-  for (auto laneStat : laneStats) {
+  for (const auto& laneStat : laneStats) {
     sideStats.pmd()->lanes()[laneStat.first] = laneStat.second;
   }
-  for (auto laneState : laneStates) {
+  for (const auto& laneState : laneStates) {
     sideState.pmd()->lanes()[laneState.first] = laneState.second;
   }
 }
@@ -2559,7 +2568,7 @@ void SaiSwitch::updatePcsInfo(
     auto fecAmLock = managerTable_->portManager().getFecAlignmentLockStatus(
         port->adapterKey(), fecLanes);
     phy::RsFecState fecState;
-    for (auto fecAm : fecAmLock) {
+    for (const auto& fecAm : fecAmLock) {
       // SDKs sometimes return data for more FEC lanes than the FEC block on
       // the port actually uses
       if (fecAm.lane < fecLanes) {
@@ -5143,10 +5152,11 @@ void SaiSwitch::processAclTableGroupDelta(
 void SaiSwitch::initialStateApplied() {
   managerTable_->fdbManager().removeUnclaimedDynanicEntries();
   managerTable_->hashManager().removeUnclaimedDefaultHash();
-#if defined(BRCM_SAI_SDK_XGS_AND_DNX)
-  // TODO(zecheng): Remove after devices warmbooted to 8.2.
+  // TODO(nivinl): Remove unclaimed WRED profiles to handle warm
+  // boot transitions with the introduction of ECN probability
+  // attribute. Remove this once binary with ECN probabilistic
+  // marking is rolled out to prod.
   managerTable_->wredManager().removeUnclaimedWredProfile();
-#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
   // Sai spec 1.10.2 introduces the new attribute of Label for Acl counter.
   // Therefore, counters created before sai spec 1.10.2 will be treated as
@@ -5506,8 +5516,10 @@ void SaiSwitch::reportAsymmetricTopology() const {
 void SaiSwitch::reportInterPortGroupCableSkew() const {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   if (getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_JERICHO3) {
-    // Port group skew relevant only for J3
+          cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+      getPlatform()->getAsic()->getAsicType() !=
+          cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    // Port group skew relevant only for J3/J4
     return;
   }
   std::map<PortID, uint32_t> portId2CableLen;

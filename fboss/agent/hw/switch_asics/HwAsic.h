@@ -261,14 +261,77 @@ class HwAsic {
     SET_NEXT_HOP_GROUP_HASH_ALGORITHM,
     ECMP_DLB_OFFSET,
 
+    // MPLS Features::
+    // ================
+    //
+    // MPLS (Multi-Protocol Label Switching):
+    //  - Layer 2.5 forwarding technique using short fixed-length labels
+    //    instead of long network addresses to make forwarding decisions.
+    //
+    // Label:
+    //  - 20-bit identifier in the MPLS shim header, along with 3-bit EXP
+    //    (QoS), 1-bit bottom-of-stack, and 8-bit TTL fields.
+    //
+    // In-Segment (InSeg) Entry:
+    //  - An entry in the Label Forwarding Information Base (LFIB) that maps
+    //    an incoming label to a forwarding action (swap, push, or pop).
+    //
+    // EXP (Experimental) bits:
+    //  - 3-bit field in the MPLS header used for QoS classification.
+    //  - Can be mapped to/from internal Traffic Class (TC) and packet color.
+    //
+    // Two SDK paradigms:
+    //  - Legacy BCM SDK: MPLS programmed via BCM API (Feature::MPLS).
+    //  - SAI: MPLS programmed via SAI InSeg entries
+    //  (Feature::SAI_MPLS_INSEGMENT).
+    //
+
+    // Set to true if the ASIC supports base MPLS label switching via the
+    // legacy BCM SDK path. Gates CoPP MPLS no-match ACL rules, BCM label
+    // switch action programming, and MPLS load balancing tests.
+    // On SAI platforms, MPLS forwarding uses SAI_MPLS_INSEGMENT instead.
+    // TODO(pshaikh):
+    //  - Candidate for removal: YES, once all platforms migrate to SAI.
+    //    The BCM SDK MPLS path will no longer be needed.
+    MPLS,
+
+    // Set to true if the SAI implementation supports MPLS EXP-to-TC QoS
+    // mapping. When enabled, creates bidirectional mappings between the
+    // 3-bit MPLS EXP field and internal Traffic Class (TC) / packet color.
+    // For SAI, this maps to SAI_QOS_MAP_TYPE_MPLS_EXP_TO_TC (ingress) and
+    // SAI_QOS_MAP_TYPE_TC_AND_COLOR_TO_MPLS_EXP (egress marking).
+    SAI_MPLS_QOS,
+
+    // Set to true if the SAI implementation supports trapping MPLS packets
+    // with TTL=1 to the CPU. When enabled, CoPP maps PacketRxReason::MPLS_TTL_1
+    // to a low-priority CPU queue for TTL-expired MPLS packet handling.
+    // For SAI, this maps to SAI_HOSTIF_TRAP_TYPE_MPLS_TTL_ERROR with
+    // SAI_PACKET_ACTION_TRAP.
+    SAI_MPLS_TTL_1_TRAP,
+
+    // Set to true if the SAI implementation supports counting packets dropped
+    // due to MPLS label lookup failure. Creates a SAI debug counter with drop
+    // reason SAI_IN_DROP_REASON_MPLS_MISS, exposed as a per-port stat via
+    // hwPortStats.inLabelMissDiscards.
+    // Requires SAI API version >= 1.9.0.
+    // TODO(pshaikh):
+    //  - Support in FakeAsic for testing.
+    SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
+
+    // Set to true if the SAI implementation supports programming MPLS
+    // in-segment (InSeg) entries in the Label FIB. This is the SAI-native
+    // replacement for the legacy BCM Feature::MPLS path. Gates LFIB delta
+    // processing in SaiSwitch::stateChanged() via SaiInSegEntryManager,
+    // which creates SAI InSeg entries with SAI_PACKET_ACTION_FORWARD
+    // and pop count of 1 for swap, push, and POP_AND_LOOKUP operations.
+    SAI_MPLS_INSEGMENT,
+
     // Other features
     SPAN,
     ERSPANv4,
     ERSPANv6,
     SFLOWv4,
     SFLOWv6,
-    MPLS,
-    SAI_MPLS_QOS,
     ECN,
     L3_QOS,
     QOS_MAP_GLOBAL,
@@ -322,8 +385,6 @@ class HwAsic {
     BRIDGE_PORT_8021Q,
     FEC_DIAG_COUNTERS,
     PORT_EYE_VALUES,
-    SAI_MPLS_TTL_1_TRAP,
-    SAI_MPLS_LABEL_LOOKUP_FAIL_COUNTER,
     PMD_RX_LOCK_STATUS,
     PMD_RX_SIGNAL_DETECT,
     SAI_FEC_COUNTERS,
@@ -340,7 +401,6 @@ class HwAsic {
     EXTENDED_FEC,
     LINK_TRAINING,
     SAI_RX_REASON_COUNTER,
-    SAI_MPLS_INSEGMENT,
     RESERVED_ENCAP_INDEX_RANGE,
     VOQ,
     XPHY_PORT_STATE_TOGGLE,
@@ -741,8 +801,8 @@ class HwAsic {
   }
 
   // Applicable only when IP_IN_IP_DECAP feature is enabled.
-  virtual cfg::IpTunnelMode getTunnelDscpMode() const {
-    return cfg::IpTunnelMode::PIPE;
+  virtual cfg::TunnelMode getTunnelDscpMode() const {
+    return cfg::TunnelMode::PIPE;
   }
 
   virtual uint64_t getCpuPortEgressPoolSize() const;

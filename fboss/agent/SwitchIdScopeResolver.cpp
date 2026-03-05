@@ -15,6 +15,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/SystemPort.h"
 #include "fboss/agent/state/Vlan.h"
@@ -209,7 +210,7 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<Vlan>& vlan) const {
   // TODO - restrict vlan scope to L3 switches
   // Currently we create psuedo vlans on fabric switches
-  if (vlan->getPorts().empty()) {
+  if (vlan->getPortsInfo().empty()) {
     // VLANs corresponding to loopback intfs have no ports
     // associated with them. Also Psuedo vlans created
     // on fabric switches don't have ports associated with them.
@@ -222,7 +223,7 @@ const HwSwitchMatcher SwitchIdScopeResolver::scope(
             {*allSwitchMatcher().switchIds().begin()}));
   }
   std::unordered_set<SwitchID> switchIds;
-  for (const auto& port : vlan->getPorts()) {
+  for (const auto& port : vlan->getPortsInfo()) {
     auto portSwitchIds = scope(PortID(port.first)).switchIds();
     switchIds.insert(portSwitchIds.begin(), portSwitchIds.end());
   }
@@ -291,7 +292,10 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
       Vlan::MemberPorts vlanMembers;
       for (const auto& vlanPort : *cfg.vlanPorts()) {
         if (vlanPort.vlanID() == *vlanId) {
-          vlanMembers.emplace(std::make_pair(*vlanPort.logicalPort(), true));
+          state::VlanInfo vlanInfo;
+          *vlanInfo.tagged() = *vlanPort.emitTags();
+          *vlanInfo.priorityTagged() = *vlanPort.emitPriorityTags();
+          vlanMembers.emplace(*vlanPort.logicalPort(), vlanInfo);
         }
       }
       return scope(std::make_shared<Vlan>(&*vitr, vlanMembers));
@@ -424,6 +428,40 @@ HwSwitchMatcher SwitchIdScopeResolver::scope(
 HwSwitchMatcher SwitchIdScopeResolver::scope(
     const std::shared_ptr<MirrorOnDropReport>& report) const {
   return scope(PortID(report->getMirrorPortId()));
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const cfg::Srv6Tunnel& tunnel,
+    const cfg::SwitchConfig& cfg) const {
+  auto intfId = InterfaceID(*tunnel.underlayIntfID());
+  for (const auto& intf : *cfg.interfaces()) {
+    if (InterfaceID(*intf.intfID()) == intfId) {
+      return scope(*intf.type(), intfId, cfg);
+    }
+  }
+  throw FbossError(
+      "No interface found for Srv6Tunnel underlay interface: ", intfId);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Srv6Tunnel>& tunnel,
+    const std::shared_ptr<SwitchState>& state) const {
+  auto intfId = tunnel->getUnderlayIntfId();
+  auto intf = state->getInterfaces()->getNode(intfId);
+  return scope(intf, state);
+}
+
+HwSwitchMatcher SwitchIdScopeResolver::scope(
+    const std::shared_ptr<Srv6Tunnel>& tunnel,
+    const cfg::SwitchConfig& cfg) const {
+  auto intfId = tunnel->getUnderlayIntfId();
+  for (const auto& intf : *cfg.interfaces()) {
+    if (InterfaceID(*intf.intfID()) == intfId) {
+      return scope(*intf.type(), intfId, cfg);
+    }
+  }
+  throw FbossError(
+      "No interface found for Srv6Tunnel underlay interface: ", intfId);
 }
 
 } // namespace facebook::fboss

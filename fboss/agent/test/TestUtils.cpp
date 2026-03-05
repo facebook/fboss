@@ -1060,9 +1060,9 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     state->getVlans()->addNode(vlan1, matcher);
     for (int idx = 1; idx <= 10; ++idx) {
       registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
-      vlan1->addPort(PortID(idx), false);
+      vlan1->addPort(PortID(idx), false, false);
       auto port = state->getPorts()->getNodeIf(PortID(idx));
-      port->addVlan(vlan1->getID(), false);
+      port->addVlan(vlan1->getID(), false, false);
       port->setInterfaceIDs({1});
     }
     // Add VLAN 55, and ports 11-20 which belong to it.
@@ -1070,9 +1070,9 @@ shared_ptr<SwitchState> testStateA(cfg::SwitchType switchType) {
     state->getVlans()->addNode(vlan55, matcher);
     for (int idx = 11; idx <= 20; ++idx) {
       registerPort(state, PortID(idx), folly::to<string>("port", idx), matcher);
-      vlan55->addPort(PortID(idx), false);
+      vlan55->addPort(PortID(idx), false, false);
       auto port = state->getPorts()->getNodeIf(PortID(idx));
-      port->addVlan(vlan55->getID(), false);
+      port->addVlan(vlan55->getID(), false, false);
       port->setInterfaceIDs({55});
     }
     // Add Interface 1 to VLAN 1

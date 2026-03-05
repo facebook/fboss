@@ -250,7 +250,7 @@ TEST_F(AgentEcmpSpilloverTest, VerifyEcmpSpilloverForcedRollback) {
           std::vector<RoutePrefixV6> delPrefixes = {
               dynamicPrefixes.begin(),
               dynamicPrefixes.begin() +
-                  (kMaxSpilloverCount * kPrefixesPerNhopSet)};
+                  (getMaxSpilloverCount() * kPrefixesPerNhopSet)};
           auto wrapper = std::make_unique<SwSwitchRouteUpdateWrapper>(
               getSw(), getSw()->getRib(), deltaApplication);
           helper_->unprogramRoutes(wrapper.get(), delPrefixes);
@@ -285,7 +285,7 @@ TEST_F(AgentEcmpSpilloverTest, VerifyEcmpSpilloverForcedRollbackPartial) {
           std::vector<RoutePrefixV6> delPrefixes = {
               dynamicPrefixes.begin(),
               dynamicPrefixes.begin() +
-                  (kMaxSpilloverCount * kPrefixesPerNhopSet)};
+                  (getMaxSpilloverCount() * kPrefixesPerNhopSet)};
           auto wrapper = std::make_unique<SwSwitchRouteUpdateWrapper>(
               getSw(), getSw()->getRib(), deltaApplication);
           helper_->unprogramRoutes(wrapper.get(), delPrefixes);

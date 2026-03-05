@@ -1,0 +1,53 @@
+# Ruff configuration for all Python code in fboss/
+# This configuration aligns with Meta's internal Python standards
+
+line-length = 88  # Black's default line length
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort - import sorting
+    "N",   # pep8-naming conventions
+    "UP",  # pyupgrade - modern Python idioms
+    "B",   # flake8-bugbear - likely bugs
+    "A",   # flake8-builtins - shadowing built-ins
+    "C4",  # flake8-comprehensions
+    "T10", # flake8-debugger - no debugger statements
+    "RET", # flake8-return - return statement issues
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PL",  # pylint
+    "RUF", # ruff-specific rules
+]
+
+ignore = [
+    "E501",    # Line too long - handled by formatter
+    "B904",    # Allow raising exceptions without 'from' for cleaner error messages
+    "PLR2004", # Allow magic values in comparisons
+    "PLW0603", # Allow global statement usage
+]
+
+[lint.per-file-ignores]
+# Tests may have unused mock arguments and use assert statements
+"**/tests/*.py" = ["ARG002", "S101"]
+"**/test_*.py" = ["ARG002", "S101"]
+"**/*_test.py" = ["ARG002", "S101"]
+# Scripts may use print statements
+"**/scripts/*.py" = ["T201"]
+"**/oss/scripts/**/*.py" = ["T201"]
+
+[lint.isort]
+known-first-party = ["fboss"]
+force-single-line = false
+combine-as-imports = true
+
+[lint.pylint]
+max-args = 8
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

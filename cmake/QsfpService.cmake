@@ -251,6 +251,7 @@ add_library(qsfp_bsp_core
   fboss/lib/bsp/BspSystemContainer.cpp
   fboss/lib/bsp/BspPhyContainer.cpp
   fboss/lib/bsp/BspPhyIO.cpp
+  fboss/lib/bsp/BspResetUtils.cpp
   fboss/lib/bsp/BspTransceiverAccess.cpp
   fboss/lib/bsp/BspTransceiverAccessImpl.cpp
   fboss/lib/bsp/BspTransceiverCpldAccess.cpp
