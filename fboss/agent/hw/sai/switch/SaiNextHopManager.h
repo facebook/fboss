@@ -69,10 +69,12 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   void removeObject(size_t index, PublishedObjects removed) {
     XLOG(DBG2) << "ManagedNeighbor::removeObject: " << toString();
     /* when neighbor is removed remove next hop */
+    clearSrv6SidListNextHopId();
     this->resetObject();
   }
 
   void handleLinkDown() {
+    clearSrv6SidListNextHopId();
     this->resetObject();
   }
 
@@ -96,6 +98,8 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
 #endif
 
  private:
+  void clearSrv6SidListNextHopId();
+
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
   std::optional<bool> disableTTLDecrement_{};

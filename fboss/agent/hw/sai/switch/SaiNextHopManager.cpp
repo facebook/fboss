@@ -301,6 +301,22 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
 }
 
 template <typename NextHopTraits>
+void ManagedNextHop<NextHopTraits>::clearSrv6SidListNextHopId() {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if constexpr (std::is_same_v<NextHopTraits, SaiSrv6SidlistNextHopTraits>) {
+    if (srv6SidListHandle_) {
+      CHECK(srv6SidListHandle_->sidList)
+          << "SRv6 SID list handle must have a SID list";
+      SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+          SAI_NULL_OBJECT_ID};
+      SaiApiTable::getInstance()->srv6Api().setAttribute(
+          srv6SidListHandle_->sidList->adapterKey(), nextHopIdAttr);
+    }
+  }
+#endif
+}
+
+template <typename NextHopTraits>
 std::string ManagedNextHop<NextHopTraits>::toString() const {
   if constexpr (std::is_same_v<NextHopTraits, SaiIpNextHopTraits>) {
     return folly::to<std::string>(

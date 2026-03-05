@@ -272,6 +272,11 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
   // SAI next hop object should be reset
   EXPECT_EQ((*srv6NextHop)->getSaiObject(), nullptr);
 
+  // NextHopId on the SID list should be cleared to SAI_NULL_OBJECT_ID
+  auto clearedNextHopId = saiApiTable->srv6Api().getAttribute(
+      sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
+  EXPECT_EQ(clearedNextHopId, SAI_NULL_OBJECT_ID);
+
   // Remove the neighbor and FDB entry
   auto arpEntry = makeArpEntry(intf0.id, remoteHost);
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
