@@ -282,6 +282,7 @@ class FsdbPubSubManagerTest : public ::testing::Test {
                 apache::thrift::op::get_field_id_v<
                     cfg::AgentConfig,
                     apache::thrift::ident::defaultCommandLineArgs>)
+
             .any()
             .get();
 #endif
