@@ -2823,3 +2823,92 @@ TEST_F(RouteTest, addRouteWithMultipleSrv6NextHops) {
     }
   }
 }
+
+TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
+  auto rid = RouterID(0);
+  const std::vector<folly::IPAddressV6> sidList1{
+      folly::IPAddressV6("3001:db8:1::"), folly::IPAddressV6("3001:db8:2::")};
+  const std::vector<folly::IPAddressV6> sidList2{
+      folly::IPAddressV6("3001:db8:3::"), folly::IPAddressV6("3001:db8:4::")};
+
+  RouteNextHopSet nhops;
+  // 2 SRv6 next hops
+  nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("1::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList1,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("2::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList2,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
+  // 2 plain (non-SRv6) next hops
+  nhops.emplace(UnresolvedNextHop(folly::IPAddress("3::10"), ECMP_WEIGHT));
+  nhops.emplace(UnresolvedNextHop(folly::IPAddress("4::10"), ECMP_WEIGHT));
+
+  // Verify input next hops before programming
+  ASSERT_EQ(nhops.size(), 4);
+  for (const auto& nh : nhops) {
+    if (nh.addr() == folly::IPAddress("1::10")) {
+      EXPECT_EQ(nh.srv6SegmentList(), sidList1);
+      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+    } else if (nh.addr() == folly::IPAddress("2::10")) {
+      EXPECT_EQ(nh.srv6SegmentList(), sidList2);
+      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+    } else {
+      EXPECT_TRUE(nh.srv6SegmentList().empty());
+      EXPECT_EQ(nh.tunnelType(), std::nullopt);
+      EXPECT_EQ(nh.tunnelId(), std::nullopt);
+    }
+  }
+
+  auto updater = this->sw_->getRouteUpdater();
+  updater.addRoute(
+      rid,
+      IPAddress("2800:3::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(nhops, EBGP_DISTANCE));
+  updater.program();
+
+  auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:3::/64");
+  ASSERT_NE(nullptr, rt);
+
+  const auto& fwdNhops = rt->getBestEntry().second->getNextHopSet();
+  ASSERT_EQ(fwdNhops.size(), 4);
+
+  for (const auto& nh : fwdNhops) {
+    if (nh.addr() == folly::IPAddress("1::10")) {
+      // SRv6 next hop 1: fields must match input
+      EXPECT_EQ(nh.srv6SegmentList(), sidList1);
+      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel0");
+    } else if (nh.addr() == folly::IPAddress("2::10")) {
+      // SRv6 next hop 2: fields must match input
+      EXPECT_EQ(nh.srv6SegmentList(), sidList2);
+      EXPECT_EQ(nh.tunnelType(), TunnelType::SRV6_ENCAP);
+      EXPECT_EQ(nh.tunnelId(), "srv6Tunnel1");
+    } else {
+      // Plain next hops (3::10 or 4::10): no SRv6 fields
+      EXPECT_TRUE(
+          nh.addr() == folly::IPAddress("3::10") ||
+          nh.addr() == folly::IPAddress("4::10"));
+      EXPECT_TRUE(nh.srv6SegmentList().empty());
+      EXPECT_EQ(nh.tunnelType(), std::nullopt);
+      EXPECT_EQ(nh.tunnelId(), std::nullopt);
+    }
+  }
+}
