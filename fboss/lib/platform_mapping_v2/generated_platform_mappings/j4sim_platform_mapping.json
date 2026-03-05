@@ -104,6 +104,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 1,
           "scope": 0
         },
         "supportedProfiles": {
@@ -375,6 +377,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 2,
           "scope": 0
         },
         "supportedProfiles": {
@@ -420,6 +424,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 3,
           "scope": 0
         },
         "supportedProfiles": {
@@ -465,6 +471,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -510,6 +518,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 5,
           "scope": 0
         },
         "supportedProfiles": {
@@ -555,6 +565,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 6,
           "scope": 0
         },
         "supportedProfiles": {
@@ -600,6 +612,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 7,
           "scope": 0
         },
         "supportedProfiles": {
@@ -645,6 +659,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 8,
           "scope": 0
         },
         "supportedProfiles": {
@@ -774,6 +790,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 9,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1045,6 +1063,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 10,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1090,6 +1110,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 11,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1135,6 +1157,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 12,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1180,6 +1204,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 13,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1225,6 +1251,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 14,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1270,6 +1298,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 15,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1315,6 +1345,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 16,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1444,6 +1476,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 17,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1715,6 +1749,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 18,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1760,6 +1796,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 19,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1805,6 +1843,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 20,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1850,6 +1890,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 21,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1895,6 +1937,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 22,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1940,6 +1984,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 23,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1985,6 +2031,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 24,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2114,6 +2162,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 25,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2385,6 +2435,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 26,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2430,6 +2482,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 27,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2475,6 +2529,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 28,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2520,6 +2576,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 29,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2565,6 +2623,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 30,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2610,6 +2670,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 31,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2655,6 +2717,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 32,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2784,6 +2848,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 33,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3055,6 +3121,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 34,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3100,6 +3168,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 35,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3145,6 +3215,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 36,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3190,6 +3262,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 37,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3235,6 +3309,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 38,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3280,6 +3356,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 39,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3325,6 +3403,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 40,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3454,6 +3534,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 41,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3725,6 +3807,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 42,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3770,6 +3854,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 43,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3815,6 +3901,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 44,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3860,6 +3948,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 45,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3905,6 +3995,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 46,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3950,6 +4042,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 47,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3995,6 +4089,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 48,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4124,6 +4220,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 49,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4395,6 +4493,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 50,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4440,6 +4540,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 51,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4485,6 +4587,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 52,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4530,6 +4634,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 53,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4575,6 +4681,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 54,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4620,6 +4728,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 55,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4665,6 +4775,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 56,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4794,6 +4906,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 57,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5065,6 +5179,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 58,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5110,6 +5226,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 59,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5155,6 +5273,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 60,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5200,6 +5320,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 61,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5245,6 +5367,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 62,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5290,6 +5414,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 63,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5335,6 +5461,8 @@
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 64,
           "scope": 0
         },
         "supportedProfiles": {
