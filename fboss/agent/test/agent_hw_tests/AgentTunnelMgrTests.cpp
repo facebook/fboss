@@ -1884,7 +1884,7 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
 
-    intfOldIPv6s = getInterfaceIpAddress(config, false);
+    intfOldIPv6s = utility::getInterfaceIpAddress(config, false);
     checkKernelIpEntriesExist(intfID, intfOldIPv6s[0], false);
 
     for (int i = 0; i < config.ports()->size(); i++) {
@@ -1921,9 +1921,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
     std::vector<std::string> intfIPv6s;
-    intfIPv6s = getInterfaceIpAddress(config, false);
+    intfIPv6s = utility::getInterfaceIpAddress(config, false);
     checkKernelIpEntriesExist(intfID, intfIPv6s[0], false);
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
 
     checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], false);
   };
