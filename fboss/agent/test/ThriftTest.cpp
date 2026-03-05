@@ -1881,6 +1881,31 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
   return nr;
 }
 
+TEST_F(ThriftTest, addMplsRoutesRejectsSrv6SegmentList) {
+  ThriftHandler handler(sw_);
+
+  auto mplsRoute = makeMplsRoute(101, "10.0.0.2");
+  // Add a srv6SegmentList to the next hop — should be rejected
+  mplsRoute->nextHops()[0].srv6SegmentList() = {
+      toBinaryAddress(IPAddress("2001:db8::1"))};
+  mplsRoute->nextHops()[0].tunnelType() = TunnelType::SRV6_ENCAP;
+  mplsRoute->nextHops()[0].tunnelId() = "tunnel1";
+
+  auto routes = std::make_unique<std::vector<MplsRoute>>();
+  routes->emplace_back(*mplsRoute);
+  EXPECT_THROW(
+      handler.addMplsRoutes(
+          static_cast<int16_t>(ClientID::BGPD), std::move(routes)),
+      FbossError);
+
+  // Route without srv6SegmentList should be accepted
+  auto validRoute = makeMplsRoute(102, "10.0.0.3");
+  auto validRoutes = std::make_unique<std::vector<MplsRoute>>();
+  validRoutes->emplace_back(*validRoute);
+  EXPECT_NO_THROW(handler.addMplsRoutes(
+      static_cast<int16_t>(ClientID::BGPD), std::move(validRoutes)));
+}
+
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);

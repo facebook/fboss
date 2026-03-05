@@ -2592,6 +2592,11 @@ void ThriftHandler::addMplsRoutesImpl(
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
     }
+    for (const auto& nhop : *mplsRoute.nextHops()) {
+      if (!nhop.srv6SegmentList()->empty()) {
+        throw FbossError("MPLS route next hop cannot have srv6SegmentList");
+      }
+    }
     auto adminDistance = mplsRoute.adminDistance().has_value()
         ? mplsRoute.adminDistance().value()
         : sw_->clientIdToAdminDistance(static_cast<int>(clientId));
@@ -2677,6 +2682,11 @@ void ThriftHandler::addMplsRibRoutes(
     int topLabel = *route.topLabel();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
+    }
+    for (const auto& nhop : *route.nextHops()) {
+      if (!nhop.srv6SegmentList()->empty()) {
+        throw FbossError("MPLS route next hop cannot have srv6SegmentList");
+      }
     }
     updater.addRoute(clientID, route);
   }
