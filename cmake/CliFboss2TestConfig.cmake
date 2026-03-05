@@ -2,8 +2,8 @@
 # Corresponds to BUCK target: fboss/cli/fboss2/test/config:cmd_config_test
 
 add_executable(fboss2_cmd_config_test
+  fboss/util/oss/TestMain.cpp
   fboss/cli/fboss2/oss/CmdListConfig.cpp
-  fboss/cli/fboss2/test/TestMain.cpp
   fboss/cli/fboss2/test/config/CmdConfigAppliedInfoTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigHistoryTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigInterfaceDescriptionTest.cpp
