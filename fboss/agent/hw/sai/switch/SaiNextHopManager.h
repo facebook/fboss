@@ -34,6 +34,9 @@ class SaiStore;
 
 using SaiIpNextHop = SaiObject<SaiIpNextHopTraits>;
 using SaiMplsNextHop = SaiObject<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+using SaiSrv6SidlistNextHop = SaiObject<SaiSrv6SidlistNextHopTraits>;
+#endif
 using SaiNextHop = typename ConditionSaiObjectType<SaiNextHopTraits>::type;
 
 template <typename NextHopTraits>
@@ -88,10 +91,18 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
 
 using ManagedIpNextHop = ManagedNextHop<SaiIpNextHopTraits>;
 using ManagedMplsNextHop = ManagedNextHop<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+using ManagedSrv6NextHop = ManagedNextHop<SaiSrv6SidlistNextHopTraits>;
+#endif
 
 using ManagedSaiNextHop = std::variant<
     std::shared_ptr<ManagedIpNextHop>,
-    std::shared_ptr<ManagedMplsNextHop>>;
+    std::shared_ptr<ManagedMplsNextHop>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    ,
+    std::shared_ptr<ManagedSrv6NextHop>
+#endif
+    >;
 
 class SaiNextHopManager {
  public:
@@ -115,6 +126,12 @@ class SaiNextHopManager {
       const ManagedMplsNextHop::AdapterHostKey& key) const {
     return managedMplsNextHops_.get(key);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  const ManagedSrv6NextHop* getManagedNextHop(
+      const ManagedSrv6NextHop::AdapterHostKey& key) const {
+    return managedSrv6NextHops_.get(key);
+  }
+#endif
 
   template <typename NextHopTraits>
   std::shared_ptr<SaiObject<NextHopTraits>> createSaiObject(
@@ -138,6 +155,12 @@ class SaiNextHopManager {
       typename ManagedMplsNextHop::AdapterHostKey,
       ManagedMplsNextHop>
       managedMplsNextHops_;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  UnorderedRefMap<
+      typename ManagedSrv6NextHop::AdapterHostKey,
+      ManagedSrv6NextHop>
+      managedSrv6NextHops_;
+#endif
 };
 
 } // namespace facebook::fboss
