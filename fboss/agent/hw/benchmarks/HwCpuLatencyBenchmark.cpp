@@ -28,8 +28,8 @@ namespace {
 
 // Constants
 const folly::IPAddressV6 kDstIp{"2620:0:1cfe:face:b00c::4"};
-constexpr std::chrono::seconds kPacketTimeout{60};
-constexpr uint8_t kNetworkControlDscp = 48;
+[[maybe_unused]] constexpr std::chrono::seconds kPacketTimeout{60};
+[[maybe_unused]] constexpr uint8_t kNetworkControlDscp = 48;
 constexpr size_t kPayloadSize = 12;
 
 // Types
@@ -48,5 +48,46 @@ struct LatencyResult {
 };
 
 // Payload encoding/decoding
+[[maybe_unused]] std::vector<uint8_t> encodePayload(uint32_t sequenceNumber) {
+  folly::IOBuf buf(folly::IOBuf::CREATE, kPayloadSize);
+  buf.append(kPayloadSize);
+
+  folly::io::RWPrivateCursor cursor(&buf);
+  uint64_t timestampNs =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+          std::chrono::steady_clock::now().time_since_epoch())
+          .count();
+
+  cursor.writeBE(timestampNs);
+  cursor.writeBE(sequenceNumber);
+
+  return std::vector(buf.data(), buf.data() + buf.length());
+}
+
+[[maybe_unused]] DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
+  DecodedPayload result;
+
+  size_t kMinUdpPacketSize = EthHdr::UNTAGGED_PKT_SIZE + IPv6Hdr::SIZE +
+      UDPHeader::size() + kPayloadSize;
+  size_t totalLength = rxBuf.computeChainDataLength();
+
+  if (totalLength < kMinUdpPacketSize) {
+    XLOG(DBG4) << "Packet too small: " << totalLength
+               << " bytes, minimum required: " << kMinUdpPacketSize;
+    return result;
+  }
+
+  folly::io::Cursor cursor(&rxBuf);
+
+  size_t payloadOffset = totalLength - kPayloadSize;
+  cursor.skip(payloadOffset);
+  result.timestampNs = cursor.readBE<uint64_t>();
+  result.sequenceNumber = cursor.readBE<uint32_t>();
+  result.valid = true;
+
+  return result;
+}
+
+// Packet creation
 } // namespace
 } // namespace facebook::fboss
