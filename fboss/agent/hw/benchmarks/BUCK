@@ -28,6 +28,22 @@ agent_benchmark_lib(
     ],
 )
 
+agent_benchmark_lib(
+    name = "hw_cpu_latency_benchmark",
+    srcs = ["HwCpuLatencyBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent:packet",
+        "//fboss/agent/packet:packet_factory",
+        "//fboss/agent/test/utils:copp_test_utils",
+        "//fboss/agent/test/utils:olympic_qos_utils",
+        "//fboss/agent/test/utils:packet_snooper",
+        "//fboss/agent/test/utils:qos_test_utils",
+        "//fboss/agent/test/utils:trap_packet_utils",
+        "//folly:network_address",
+        "//folly/init:init",
+    ],
+)
+
 cpp_library(
     name = "hw_bgp_rx_slow_benchmark_helpers",
     headers = [
