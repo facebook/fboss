@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
@@ -83,10 +84,24 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
 
   void setDisableTTLDecrement(std::optional<bool> disableTTLDecrement);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  void setSrv6SidListHandle(
+      std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle) {
+    srv6SidListHandle_ = std::move(srv6SidListHandle);
+  }
+
+  const std::shared_ptr<SaiSrv6SidListHandle>& getSrv6SidListHandle() const {
+    return srv6SidListHandle_;
+  }
+#endif
+
  private:
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
   std::optional<bool> disableTTLDecrement_{};
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle_;
+#endif
 };
 
 using ManagedIpNextHop = ManagedNextHop<SaiIpNextHopTraits>;
