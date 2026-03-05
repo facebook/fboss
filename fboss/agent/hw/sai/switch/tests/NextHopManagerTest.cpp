@@ -7,6 +7,8 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
@@ -235,5 +237,61 @@ TEST_F(Srv6NextHopManagerTest, listManagedSrv6NextHops) {
   auto output = saiManagerTable->nextHopManager().listManagedObjects();
   EXPECT_FALSE(output.empty());
   EXPECT_NE(output.find("srv6"), std::string::npos);
+}
+TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
+  auto swTunnel = makeSrv6Tunnel("srv6tunnel0", intf0.id);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
+
+  auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
+  auto managedNextHop =
+      saiManagerTable->nextHopManager().addManagedSaiNextHop(swNextHop);
+
+  auto* srv6NextHop =
+      std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);
+  ASSERT_NE(srv6NextHop, nullptr);
+  ASSERT_NE(*srv6NextHop, nullptr);
+
+  // Record initial SAI object and SID list info
+  ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
+  auto initialNextHopId = (*srv6NextHop)->getSaiObject()->adapterKey();
+  auto& sidListHandle = (*srv6NextHop)->getSrv6SidListHandle();
+  ASSERT_NE(sidListHandle, nullptr);
+  ASSERT_NE(sidListHandle->sidList, nullptr);
+  auto sidListId = sidListHandle->sidList->adapterKey();
+
+  // Verify NextHopId was set on the SID list initially
+  auto gotNextHopId = saiApiTable->srv6Api().getAttribute(
+      sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
+  EXPECT_EQ(gotNextHopId, initialNextHopId);
+
+  // Simulate link down — cascades through FDB → neighbor → managed next hop
+  const auto& remoteHost = intf0.remoteHosts[0];
+  saiManagerTable->fdbManager().handleLinkDown(
+      SaiPortDescriptor(PortID(remoteHost.port.id)));
+
+  // SAI next hop object should be reset
+  EXPECT_EQ((*srv6NextHop)->getSaiObject(), nullptr);
+
+  // Remove the neighbor and FDB entry
+  auto arpEntry = makeArpEntry(intf0.id, remoteHost);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry);
+
+  // Re-resolve the neighbor — triggers createObject on the managed next hop
+  resolveArp(intf0.id, remoteHost);
+
+  // SAI next hop object should be recreated
+  ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
+  auto newNextHopId = (*srv6NextHop)->getSaiObject()->adapterKey();
+
+  // The cached sidListHandle should still be valid with same sidList object
+  auto& cachedHandle = (*srv6NextHop)->getSrv6SidListHandle();
+  ASSERT_NE(cachedHandle, nullptr);
+  ASSERT_NE(cachedHandle->sidList, nullptr);
+  EXPECT_EQ(cachedHandle->sidList->adapterKey(), sidListId);
+
+  // NextHopId on the SID list should be updated to the new next hop
+  auto updatedNextHopId = saiApiTable->srv6Api().getAttribute(
+      sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
+  EXPECT_EQ(updatedNextHopId, newNextHopId);
 }
 #endif
