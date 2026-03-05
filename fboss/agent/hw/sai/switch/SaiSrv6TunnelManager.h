@@ -46,9 +46,6 @@ class SaiSrv6TunnelManager {
       const std::string& swId) const {
     return getSrv6TunnelHandleImpl(swId);
   }
-  SaiSrv6TunnelHandle* getSrv6TunnelHandle(const std::string& swId) {
-    return getSrv6TunnelHandleImpl(swId);
-  }
 
  private:
   SaiSrv6TunnelHandle* getSrv6TunnelHandleImpl(const std::string& swId) const;
