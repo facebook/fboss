@@ -7,7 +7,6 @@ import os
 import pathlib
 import sys
 import tarfile
-from typing import Dict, List
 
 SRC_DIR = pathlib.Path("/var/FBOSS/fboss")
 OSS_DIR = SRC_DIR / "fboss/oss"
@@ -161,7 +160,7 @@ PLATFORM_TEST_EXTRA = {
 }
 
 
-def write_tar(filename: str, contents: Dict[str, str]) -> None:
+def write_tar(filename: str, contents: dict[str, str]) -> None:
     if not contents:
         return
 
@@ -215,7 +214,7 @@ def _build_target(target: str, build_dir: pathlib.Path):
     return (prod_files, test_files)
 
 
-def package_fboss(target_name: str, target: List) -> None:
+def package_fboss(target_name: str, target: list) -> None:
     with concurrent.futures.ProcessPoolExecutor() as executor:
         executor.submit(write_tar, f"{target_name}.tar", target[0])
         if len(target) == 2:
