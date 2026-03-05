@@ -1604,6 +1604,62 @@ TEST_F(ThriftTest, addUnicastRoutesWithOverrides) {
       FbossError);
 }
 
+TEST_F(ThriftTest, addUnicastRoutesRejectsMplsAndSrv6) {
+  ThriftHandler handler(sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto prefix = "7.1.0.0/16";
+  auto nhopAddr = "10.0.0.11";
+
+  // Helper: create a route with a NextHopThrift that has both mplsAction and
+  // srv6SegmentList set
+  auto makeBothRoute = [&]() {
+    auto route = makeEcmpUnicastRoute(prefix, {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    MplsAction mplsAction;
+    mplsAction.action() = MplsActionCode::PUSH;
+    mplsAction.pushLabels() = {101};
+    nh.mplsAction() = mplsAction;
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelType() = TunnelType::SRV6_ENCAP;
+    nh.tunnelId() = "tunnel1";
+    route->nextHops() = {nh};
+    return route;
+  };
+
+  // Single route with both should be rejected
+  EXPECT_THROW(handler.addUnicastRoute(bgpClient, makeBothRoute()), FbossError);
+
+  // Batch route with both should be rejected
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  routes->emplace_back(*makeBothRoute());
+  EXPECT_THROW(
+      handler.addUnicastRoutes(bgpClient, std::move(routes)), FbossError);
+
+  // Route with only mplsAction should be accepted
+  auto mplsOnlyRoute = makeEcmpUnicastRoute(prefix, {nhopAddr}, bgpAdmin);
+  NextHopThrift mplsNh;
+  mplsNh.address() = toBinaryAddress(IPAddress(nhopAddr));
+  MplsAction mplsAction;
+  mplsAction.action() = MplsActionCode::PUSH;
+  mplsAction.pushLabels() = {101};
+  mplsNh.mplsAction() = mplsAction;
+  mplsOnlyRoute->nextHops() = {mplsNh};
+  EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(mplsOnlyRoute)));
+
+  // Route with only srv6SegmentList should be accepted
+  auto srv6OnlyRoute = makeEcmpUnicastRoute("8.1.0.0/16", {nhopAddr}, bgpAdmin);
+  NextHopThrift srv6Nh;
+  srv6Nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+  srv6Nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+  srv6Nh.tunnelType() = TunnelType::SRV6_ENCAP;
+  srv6Nh.tunnelId() = "tunnel1";
+  srv6OnlyRoute->nextHops() = {srv6Nh};
+  EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(srv6OnlyRoute)));
+}
+
 TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 

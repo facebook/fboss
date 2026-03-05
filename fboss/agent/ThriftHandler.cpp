@@ -877,6 +877,12 @@ void ThriftHandler::updateUnicastRoutesImpl(
       throw FbossError(
           "Override nhops or switching mode cannot be set by clients");
     }
+    for (const auto& nhop : *route.nextHops()) {
+      if (nhop.mplsAction().has_value() && !nhop.srv6SegmentList()->empty()) {
+        throw FbossError(
+            "Next hop cannot have both mplsAction (label stack) and srv6SegmentList");
+      }
+    }
     updater.addRoute(routerID, clientID, route);
   }
   RouteUpdateWrapper::SyncFibFor syncFibs;
