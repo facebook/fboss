@@ -9,10 +9,15 @@
 using namespace facebook::fboss;
 
 std::shared_ptr<Srv6Tunnel> makeSrv6Tunnel(
-    const std::string& tunnelId = "srv6tunnel0") {
+    const std::string& tunnelId = "srv6tunnel0",
+    uint32_t intfID = 0) {
   auto tunnel = std::make_shared<Srv6Tunnel>(tunnelId);
   tunnel->setType(TunnelType::SRV6_ENCAP);
-  tunnel->setUnderlayIntfId(InterfaceID(0));
+  tunnel->setUnderlayIntfId(InterfaceID(intfID));
+  tunnel->setSrcIP(folly::IPAddressV6("2001:db8::1"));
+  tunnel->setTTLMode(cfg::TunnelMode::PIPE);
+  tunnel->setDscpMode(cfg::TunnelMode::UNIFORM);
+  tunnel->setEcnMode(cfg::TunnelMode::UNIFORM);
   return tunnel;
 }
 

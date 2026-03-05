@@ -21,21 +21,21 @@ static constexpr folly::StringPiece dip = "42.42.12.34";
 
 class TunnelStoreTest : public SaiStoreTest {
  public:
-  SaiTunnelTraits::CreateAttributes createTunnelAttrs() const {
-    SaiTunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_IPINIP};
-    SaiTunnelTraits::Attributes::UnderlayInterface underlay{42};
-    SaiTunnelTraits::Attributes::OverlayInterface overlay{42};
-    SaiTunnelTraits::Attributes::DecapTtlMode ttlMode{
+  SaiIpInIpTunnelTraits::CreateAttributes createTunnelAttrs() const {
+    SaiIpInIpTunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_IPINIP};
+    SaiIpInIpTunnelTraits::Attributes::UnderlayInterface underlay{42};
+    SaiIpInIpTunnelTraits::Attributes::OverlayInterface overlay{42};
+    SaiIpInIpTunnelTraits::Attributes::DecapTtlMode ttlMode{
         SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL};
-    SaiTunnelTraits::Attributes::DecapDscpMode dscpMode{
+    SaiIpInIpTunnelTraits::Attributes::DecapDscpMode dscpMode{
         SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
-    SaiTunnelTraits::Attributes::DecapEcnMode ecnMode{
+    SaiIpInIpTunnelTraits::Attributes::DecapEcnMode ecnMode{
         SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
     return {type, underlay, overlay, ttlMode, dscpMode, ecnMode};
   }
   TunnelSaiId createTunnel() const {
     auto& tunnelApi = saiApiTable->tunnelApi();
-    return tunnelApi.create<SaiTunnelTraits>(createTunnelAttrs(), 0);
+    return tunnelApi.create<SaiIpInIpTunnelTraits>(createTunnelAttrs(), 0);
   }
 
   SaiP2MPTunnelTermTraits::CreateAttributes createTunnelTermAttrs(
@@ -60,8 +60,8 @@ TEST_F(TunnelStoreTest, loadTunnel) {
   auto tunnelId = createTunnel();
   SaiStore s(0);
   s.reload();
-  auto& store = s.get<SaiTunnelTraits>();
-  SaiTunnelTraits::AdapterHostKey k{
+  auto& store = s.get<SaiIpInIpTunnelTraits>();
+  SaiIpInIpTunnelTraits::AdapterHostKey k{
       SAI_TUNNEL_TYPE_IPINIP,
       42,
       42,
@@ -71,7 +71,7 @@ TEST_F(TunnelStoreTest, loadTunnel) {
   auto got = store.get(k);
   EXPECT_EQ(got->adapterKey(), tunnelId);
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, got->attributes()),
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, got->attributes()),
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
 }
 
@@ -93,11 +93,12 @@ TEST_F(TunnelStoreTest, loadTunnelTerm) {
 
 TEST_F(TunnelStoreTest, tunnelLoadCtor) {
   auto tunnelId = createTunnel();
-  SaiObject<SaiTunnelTraits> obj = createObj<SaiTunnelTraits>(tunnelId);
+  SaiObject<SaiIpInIpTunnelTraits> obj =
+      createObj<SaiIpInIpTunnelTraits>(tunnelId);
   EXPECT_EQ(obj.adapterKey(), tunnelId);
-  EXPECT_EQ(GET_ATTR(Tunnel, OverlayInterface, obj.attributes()), 42);
+  EXPECT_EQ(GET_ATTR(IpInIpTunnel, OverlayInterface, obj.attributes()), 42);
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, obj.attributes()),
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, obj.attributes()),
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
 }
 
@@ -111,13 +112,14 @@ TEST_F(TunnelStoreTest, tunnelTermLoadCtor) {
 }
 
 TEST_F(TunnelStoreTest, tunnelCreateCtor) {
-  SaiTunnelTraits::AdapterHostKey k{
+  SaiIpInIpTunnelTraits::AdapterHostKey k{
       SAI_TUNNEL_TYPE_IPINIP, 42, 42, std::nullopt, std::nullopt, std::nullopt};
-  SaiObject<SaiTunnelTraits> obj = createObj<SaiTunnelTraits>(k, k, 0);
-  EXPECT_EQ(GET_ATTR(Tunnel, OverlayInterface, obj.attributes()), 42);
+  SaiObject<SaiIpInIpTunnelTraits> obj =
+      createObj<SaiIpInIpTunnelTraits>(k, k, 0);
+  EXPECT_EQ(GET_ATTR(IpInIpTunnel, OverlayInterface, obj.attributes()), 42);
   EXPECT_EQ(
       saiApiTable->tunnelApi().getAttribute(
-          obj.adapterKey(), SaiTunnelTraits::Attributes::DecapTtlMode{}),
+          obj.adapterKey(), SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{}),
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
 }
 
@@ -138,7 +140,7 @@ TEST_F(TunnelStoreTest, tunnelTermCreateCtor) {
 
 TEST_F(TunnelStoreTest, serDeserTunnel) {
   auto tunnelId = createTunnel();
-  verifyAdapterKeySerDeser<SaiTunnelTraits>({tunnelId});
+  verifyAdapterKeySerDeser<SaiIpInIpTunnelTraits>({tunnelId});
 }
 
 TEST_F(TunnelStoreTest, serDeserTunnelTerm) {
@@ -149,7 +151,7 @@ TEST_F(TunnelStoreTest, serDeserTunnelTerm) {
 
 TEST_F(TunnelStoreTest, toStrTunnel) {
   std::ignore = createTunnel();
-  verifyToStr<SaiTunnelTraits>();
+  verifyToStr<SaiIpInIpTunnelTraits>();
 }
 
 TEST_F(TunnelStoreTest, toStrTunnelTerm) {
@@ -160,31 +162,33 @@ TEST_F(TunnelStoreTest, toStrTunnelTerm) {
 
 TEST_F(TunnelStoreTest, tunnelSetOnlyTtl) {
   auto tunnelId = createTunnel();
-  SaiObject<SaiTunnelTraits> obj = createObj<SaiTunnelTraits>(tunnelId);
+  SaiObject<SaiIpInIpTunnelTraits> obj =
+      createObj<SaiIpInIpTunnelTraits>(tunnelId);
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, obj.attributes()),
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, obj.attributes()),
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
   auto ttl = saiApiTable->tunnelApi().getAttribute(
-      tunnelId, SaiTunnelTraits::Attributes::DecapTtlMode{});
+      tunnelId, SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{});
   EXPECT_EQ(ttl, SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
   obj.setOptionalAttribute(
-      SaiTunnelTraits::Attributes::DecapTtlMode{
+      SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{
           SAI_TUNNEL_TTL_MODE_PIPE_MODEL});
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, obj.attributes()),
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, obj.attributes()),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
   ttl = saiApiTable->tunnelApi().getAttribute(
-      tunnelId, SaiTunnelTraits::Attributes::DecapTtlMode{});
+      tunnelId, SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{});
   EXPECT_EQ(ttl, SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
 }
 
 TEST_F(TunnelStoreTest, tunnelSetTtl) {
   auto tunnelId = createTunnel();
-  SaiObject<SaiTunnelTraits> obj = createObj<SaiTunnelTraits>(tunnelId);
+  SaiObject<SaiIpInIpTunnelTraits> obj =
+      createObj<SaiIpInIpTunnelTraits>(tunnelId);
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, obj.attributes()),
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, obj.attributes()),
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
-  auto newAttrs = SaiTunnelTraits::CreateAttributes{
+  auto newAttrs = SaiIpInIpTunnelTraits::CreateAttributes{
       SAI_TUNNEL_TYPE_IPINIP,
       42,
       42,
@@ -193,9 +197,9 @@ TEST_F(TunnelStoreTest, tunnelSetTtl) {
       SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
   obj.setAttributes(newAttrs);
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, obj.attributes()),
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, obj.attributes()),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
   auto apiSpeed = saiApiTable->tunnelApi().getAttribute(
-      tunnelId, SaiTunnelTraits::Attributes::DecapTtlMode{});
+      tunnelId, SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{});
   EXPECT_EQ(apiSpeed, SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
 }

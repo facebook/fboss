@@ -3,7 +3,9 @@
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
 
 namespace facebook::fboss {
@@ -18,14 +20,48 @@ SaiSrv6TunnelManager::~SaiSrv6TunnelManager() {}
 
 void SaiSrv6TunnelManager::addSrv6Tunnel(
     const std::shared_ptr<Srv6Tunnel>& srv6Tunnel) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   auto existTunnel = getSrv6TunnelHandle(srv6Tunnel->getID());
   if (existTunnel) {
     throw FbossError(
         "Attempted to add srv6 tunnel which already exists: ",
         srv6Tunnel->getID());
   }
+  SaiRouterInterfaceHandle* intfHandle =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+          srv6Tunnel->getUnderlayIntfId());
+  if (!intfHandle) {
+    throw FbossError(
+        "Failed to create SRv6 tunnel. "
+        "No SaiRouterInterface for InterfaceID: ",
+        srv6Tunnel->getUnderlayIntfId());
+  }
+  RouterInterfaceSaiId saiIntfId{intfHandle->adapterKey()};
+  auto srcIp = srv6Tunnel->getSrcIP();
+  if (!srcIp) {
+    throw FbossError(
+        "Failed to create SRv6 tunnel. "
+        "No source IP for tunnel: ",
+        srv6Tunnel->getID());
+  }
+  auto& tunnelStore = saiStore_->get<SaiSrv6TunnelTraits>();
+  SaiSrv6TunnelTraits::CreateAttributes attrs{
+      srcIp.value(),
+      SAI_TUNNEL_TYPE_SRV6,
+      saiIntfId,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt};
+  auto tunnelObj = tunnelStore.setObject(attrs, attrs);
   auto handle = std::make_unique<SaiSrv6TunnelHandle>();
+  handle->tunnel = tunnelObj;
   handles_[srv6Tunnel->getID()] = std::move(handle);
+#else
+  throw FbossError(
+      "SRv6 tunnels require SAI API version >= 1.12.0, "
+      "tunnel: ",
+      srv6Tunnel->getID());
+#endif
 }
 
 void SaiSrv6TunnelManager::removeSrv6Tunnel(

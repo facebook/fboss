@@ -26,38 +26,38 @@ class TunnelApiTest : public ::testing::Test {
       sai_tunnel_type_t _type,
       sai_object_id_t _underlay,
       sai_object_id_t _overlay) {
-    SaiTunnelTraits::Attributes::Type type{_type};
-    SaiTunnelTraits::Attributes::UnderlayInterface underlay{_underlay};
-    SaiTunnelTraits::Attributes::OverlayInterface overlay{_overlay};
-    SaiTunnelTraits::Attributes::DecapTtlMode ttlMode{
+    SaiIpInIpTunnelTraits::Attributes::Type type{_type};
+    SaiIpInIpTunnelTraits::Attributes::UnderlayInterface underlay{_underlay};
+    SaiIpInIpTunnelTraits::Attributes::OverlayInterface overlay{_overlay};
+    SaiIpInIpTunnelTraits::Attributes::DecapTtlMode ttlMode{
         SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL};
-    SaiTunnelTraits::Attributes::DecapDscpMode dscpMode{
+    SaiIpInIpTunnelTraits::Attributes::DecapDscpMode dscpMode{
         SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
-    SaiTunnelTraits::Attributes::DecapEcnMode ecnMode{
+    SaiIpInIpTunnelTraits::Attributes::DecapEcnMode ecnMode{
         SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
 
-    SaiTunnelTraits::CreateAttributes a{
+    SaiIpInIpTunnelTraits::CreateAttributes a{
         type, underlay, overlay, ttlMode, dscpMode, ecnMode};
-    return tunnelApi->create<SaiTunnelTraits>(a, 0);
+    return tunnelApi->create<SaiIpInIpTunnelTraits>(a, 0);
   }
 
   void checkTunnel(TunnelSaiId id) const {
-    SaiTunnelTraits::Attributes::Type type;
+    SaiIpInIpTunnelTraits::Attributes::Type type;
     auto gotType = tunnelApi->getAttribute(id, type);
     EXPECT_EQ(fs->tunnelManager.get(id).type, gotType);
-    SaiTunnelTraits::Attributes::UnderlayInterface underlay;
+    SaiIpInIpTunnelTraits::Attributes::UnderlayInterface underlay;
     auto gotUnderlay = tunnelApi->getAttribute(id, underlay);
     EXPECT_EQ(fs->tunnelManager.get(id).underlay, gotUnderlay);
-    SaiTunnelTraits::Attributes::OverlayInterface overlay;
+    SaiIpInIpTunnelTraits::Attributes::OverlayInterface overlay;
     auto gotOverlay = tunnelApi->getAttribute(id, overlay);
     EXPECT_EQ(fs->tunnelManager.get(id).overlay, gotOverlay);
-    SaiTunnelTraits::Attributes::DecapTtlMode ttl;
+    SaiIpInIpTunnelTraits::Attributes::DecapTtlMode ttl;
     auto gotTtl = tunnelApi->getAttribute(id, ttl);
     EXPECT_EQ(fs->tunnelManager.get(id).ttlMode, gotTtl);
-    SaiTunnelTraits::Attributes::DecapDscpMode dscp;
+    SaiIpInIpTunnelTraits::Attributes::DecapDscpMode dscp;
     auto gotDscp = tunnelApi->getAttribute(id, dscp);
     EXPECT_EQ(fs->tunnelManager.get(id).dscpMode, gotDscp);
-    SaiTunnelTraits::Attributes::DecapEcnMode ecn;
+    SaiIpInIpTunnelTraits::Attributes::DecapEcnMode ecn;
     auto gotEcn = tunnelApi->getAttribute(id, ecn);
     EXPECT_EQ(fs->tunnelManager.get(id).ecnMode, gotEcn);
   }
@@ -110,31 +110,35 @@ TEST_F(TunnelApiTest, removeTunnel) {
   auto saiTunnelId = createTunnel(SAI_TUNNEL_TYPE_IPINIP, 42, 42);
   tunnelApi->remove(saiTunnelId);
   EXPECT_THROW(
-      tunnelApi->getAttribute(saiTunnelId, SaiTunnelTraits::CreateAttributes{}),
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiIpInIpTunnelTraits::CreateAttributes{}),
       std::exception);
 }
 
 TEST_F(TunnelApiTest, getTunnelAttributes) {
   auto id = createTunnel(SAI_TUNNEL_TYPE_IPINIP, 42, 42);
   EXPECT_EQ(
-      tunnelApi->getAttribute(id, SaiTunnelTraits::Attributes::Type{}),
+      tunnelApi->getAttribute(id, SaiIpInIpTunnelTraits::Attributes::Type{}),
       SAI_TUNNEL_TYPE_IPINIP);
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          id, SaiTunnelTraits::Attributes::UnderlayInterface{}),
+          id, SaiIpInIpTunnelTraits::Attributes::UnderlayInterface{}),
       42);
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          id, SaiTunnelTraits::Attributes::OverlayInterface{}),
+          id, SaiIpInIpTunnelTraits::Attributes::OverlayInterface{}),
       42);
   EXPECT_EQ(
-      tunnelApi->getAttribute(id, SaiTunnelTraits::Attributes::DecapTtlMode{}),
+      tunnelApi->getAttribute(
+          id, SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{}),
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL);
   EXPECT_EQ(
-      tunnelApi->getAttribute(id, SaiTunnelTraits::Attributes::DecapDscpMode{}),
+      tunnelApi->getAttribute(
+          id, SaiIpInIpTunnelTraits::Attributes::DecapDscpMode{}),
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL);
   EXPECT_EQ(
-      tunnelApi->getAttribute(id, SaiTunnelTraits::Attributes::DecapEcnMode{}),
+      tunnelApi->getAttribute(
+          id, SaiIpInIpTunnelTraits::Attributes::DecapEcnMode{}),
       SAI_TUNNEL_DECAP_ECN_MODE_STANDARD);
 }
 
@@ -201,28 +205,28 @@ TEST_F(TunnelApiTest, setTunnelAttributes) {
   auto saiTunnelId = createTunnel(SAI_TUNNEL_TYPE_IPINIP, 42, 42);
   tunnelApi->setAttribute(
       saiTunnelId,
-      SaiTunnelTraits::Attributes::DecapTtlMode{
+      SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{
           SAI_TUNNEL_TTL_MODE_PIPE_MODEL});
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          saiTunnelId, SaiTunnelTraits::Attributes::DecapTtlMode{}),
+          saiTunnelId, SaiIpInIpTunnelTraits::Attributes::DecapTtlMode{}),
       SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
 
   tunnelApi->setAttribute(
       saiTunnelId,
-      SaiTunnelTraits::Attributes::DecapDscpMode{
+      SaiIpInIpTunnelTraits::Attributes::DecapDscpMode{
           SAI_TUNNEL_DSCP_MODE_PIPE_MODEL});
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          saiTunnelId, SaiTunnelTraits::Attributes::DecapDscpMode{}),
+          saiTunnelId, SaiIpInIpTunnelTraits::Attributes::DecapDscpMode{}),
       SAI_TUNNEL_DSCP_MODE_PIPE_MODEL);
 
   tunnelApi->setAttribute(
       saiTunnelId,
-      SaiTunnelTraits::Attributes::DecapEcnMode{
+      SaiIpInIpTunnelTraits::Attributes::DecapEcnMode{
           SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER});
   EXPECT_EQ(
       tunnelApi->getAttribute(
-          saiTunnelId, SaiTunnelTraits::Attributes::DecapEcnMode{}),
+          saiTunnelId, SaiIpInIpTunnelTraits::Attributes::DecapEcnMode{}),
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER);
 }

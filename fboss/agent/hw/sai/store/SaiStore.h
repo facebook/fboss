@@ -694,7 +694,10 @@ class SaiStore {
       SaiObjectStore<SaiTamEventTraits>,
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
-      SaiObjectStore<SaiTunnelTraits>,
+      SaiObjectStore<SaiIpInIpTunnelTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6TunnelTraits>,
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiSrv6SidListTraits>,
 #endif

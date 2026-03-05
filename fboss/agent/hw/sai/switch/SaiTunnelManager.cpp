@@ -136,14 +136,14 @@ TunnelSaiId SaiTunnelManager::addTunnel(
         swTunnel->getUnderlayIntfId());
   }
   RouterInterfaceSaiId saiIntfId{intfHandle->adapterKey()};
-  auto& tunnelStore = saiStore_->get<SaiTunnelTraits>();
+  auto& tunnelStore = saiStore_->get<SaiIpInIpTunnelTraits>();
   // TTL and DSCP mode options: UNIFORM and PIPE
   // ECN has three modes instead of 2, with a customized one
   // The three values of TTL, DSCP and decap ECN will be the same value so
   // the three getters return same variable
   // For overlay interface id, we use the same value as underlay for IpinIP
   // tunnel usecase
-  SaiTunnelTraits::CreateAttributes k1{
+  SaiIpInIpTunnelTraits::CreateAttributes k1{
       getSaiTunnelType(swTunnel->getType()),
       saiIntfId,
       saiIntfId,
