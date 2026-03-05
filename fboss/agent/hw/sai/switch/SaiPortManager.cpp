@@ -2612,6 +2612,18 @@ void SaiPortManager::clearStats(PortID port) {
       statsToClear.end());
   portHandle->port->clearStats(statsToClear);
   managerTable_->queueManager().clearStats(portHandle->configuredQueues);
+
+  // Reset accumulated inDiscards counter in portStats_.
+  // inDiscards_ is a software-accumulated counter (+=) that is not
+  // automatically cleared when the HW counters are reset above.
+  auto portStatItr = portStats_.find(port);
+  if (portStatItr != portStats_.end()) {
+    auto curPortStats = portStatItr->second->portStats();
+    curPortStats.inDiscards_() = 0;
+    portStatItr->second->clearStat(kInDiscards());
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    portStatItr->second->updateStats(curPortStats, now);
+  }
 }
 
 void SaiPortManager::clearInterfacePhyCounters(const PortID& portId) {
