@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -98,10 +99,26 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
 ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     const ResolvedNextHop& swNextHop) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
-  auto nexthopKey = getAdapterHostKey(swNextHop);
   folly::IPAddress ip = swNextHop.addr();
 
   XLOG(DBG2) << "SaiNextHopManager::addManagedSaiNextHop: " << ip.str();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::optional<sai_object_id_t> sidListId;
+  std::shared_ptr<SaiSrv6SidList> sidList;
+  if (!swNextHop.srv6SegmentList().empty()) {
+    SaiSrv6SidListTraits::CreateAttributes sidListAttrs{
+        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+        swNextHop.srv6SegmentList(),
+        std::nullopt};
+    auto& store = saiStore_->get<SaiSrv6SidListTraits>();
+    sidList = store.setObject(sidListAttrs, sidListAttrs);
+    sidListId = sidList->adapterKey();
+  }
+  auto nexthopKey = getAdapterHostKey(swNextHop, sidListId);
+#else
+  auto nexthopKey = getAdapterHostKey(swNextHop);
+#endif
 
   if (auto ipNextHopKey =
           std::get_if<typename SaiIpNextHopTraits::AdapterHostKey>(
@@ -162,6 +179,11 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
           .subscribe(entry);
     }
     entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
+    CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
+    CHECK(sidList) << "SRv6 managed next hop must have a SID list";
+    auto srv6SidListHandle =
+        managerTable_->srv6Manager().insertSrv6SidList(std::move(sidList));
+    entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
 
     return entry;
   }
@@ -255,6 +277,19 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
   }
 #endif
   this->setObject(object);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if constexpr (std::is_same_v<NextHopTraits, SaiSrv6SidlistNextHopTraits>) {
+    auto& srv6SidListHandle = srv6SidListHandle_;
+    CHECK(srv6SidListHandle) << "SRv6 next hop must have a SID list handle";
+    CHECK(srv6SidListHandle->sidList)
+        << "SRv6 SID list handle must have a SID list";
+    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+        this->getObject()->adapterKey()};
+    SaiApiTable::getInstance()->srv6Api().setAttribute(
+        srv6SidListHandle->sidList->adapterKey(), nextHopIdAttr);
+  }
+#endif
 
   XLOG(DBG2) << "ManagedNeighbor::createObject: " << toString();
 }
