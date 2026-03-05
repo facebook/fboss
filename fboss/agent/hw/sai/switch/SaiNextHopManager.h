@@ -130,7 +130,8 @@ class SaiNextHopManager {
       const folly::IPAddress& ip);
 
   SaiNextHopTraits::AdapterHostKey getAdapterHostKey(
-      const ResolvedNextHop& swNextHop);
+      const ResolvedNextHop& swNextHop,
+      std::optional<sai_object_id_t> sidListId = std::nullopt);
 
   ManagedSaiNextHop addManagedSaiNextHop(const ResolvedNextHop& swNextHop);
   const ManagedIpNextHop* getManagedNextHop(

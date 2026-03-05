@@ -42,7 +42,8 @@ SaiNextHopManager::SaiNextHopManager(
     : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
 SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
-    const ResolvedNextHop& swNextHop) {
+    const ResolvedNextHop& swNextHop,
+    std::optional<sai_object_id_t> sidListId) {
   auto interfaceId = swNextHop.intfID().value();
   auto routerInterfaceHandle =
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
@@ -63,8 +64,7 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
           "Missing SRv6 tunnel for tunnel ID: ", swNextHop.tunnelId().value());
     }
     auto tunnelSaiId = tunnelHandle->tunnel->adapterKey();
-    // TODO - FIXME create a sidList inline and make srv6 nhop own it
-    auto sidListSaiId = SAI_NULL_OBJECT_ID;
+    auto sidListSaiId = sidListId.value_or(SAI_NULL_OBJECT_ID);
     return SaiSrv6SidlistNextHopTraits::AdapterHostKey{
         rifId, ip, tunnelSaiId, sidListSaiId};
   }
