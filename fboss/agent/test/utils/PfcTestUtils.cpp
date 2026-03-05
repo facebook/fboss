@@ -142,7 +142,7 @@ void setupBufferPoolConfig(
   cfg::BufferPoolConfig poolConfig;
   // provide small shared buffer size
   // idea is to hit the limit and trigger XOFF (PFC)
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     // Round up the configured buffer size to the nearest multiple of unit size
     auto unit = asic->getPacketBufferUnitSize();
     auto roundUp = [unit](int size) {
@@ -240,7 +240,8 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
   buffer.globalShared = globalShared;
   buffer.globalHeadroom = globalHeadroom;
 
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     // For CHENAB:
     // - XON represents the "min guarantee", must be at least 2xMTU (20480).
     // - RESERVED represents the total amount of buffer exclusively reserved

@@ -57,7 +57,8 @@ BENCHMARK(RxSlowPathArpBenchmark) {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
     auto asic = checkSameAndGetAsic(l3Asics);
 
-    auto config = (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB)
+    auto config =
+        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
         ? utility::oneL3IntfNPortConfig(
               ensemble.getSw()->getPlatformMapping(),
               asic,

@@ -369,7 +369,8 @@ const std::vector<int> kNetworkAIWRRAndNCQueueIds() {
 void applyBackendAsicConfig(
     const cfg::SwitchConfig& sw,
     cfg::PlatformConfig& config) {
-  if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     return;
   }
   modifyPlatformConfig(

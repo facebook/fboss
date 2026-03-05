@@ -57,7 +57,9 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
       tcpPortsForSai_[2] = {10002, 10014};
       tcpPortsForSai_[3] = {10002, 10002};
       udpPortsForSai_ = tcpPortsForSai_;
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    } else if (
+        asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       tcpPortsForSai_[0] = {10000, 10000};
       tcpPortsForSai_[1] = {10002, 10002};
       tcpPortsForSai_[2] = {10003, 10003};
@@ -260,9 +262,9 @@ TEST_F(HwHashConsistencyTest, TcpEgressLinksOnEcmpExpand) {
     resolveNhop(1 /* nhop1 */, true /* resolve */);
   };
   auto verify = [this]() {
-    auto asicType = getPlatform()->getAsic()->getAsicType();
+    auto asicVendor = getPlatform()->getAsic()->getAsicVendor();
     std::vector<int> flows_to_verify;
-    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Choose two flows that are split to different next hops.
       flows_to_verify = {0, 2};
     } else {
@@ -316,9 +318,9 @@ TEST_F(HwHashConsistencyTest, UdpEgressLinksOnEcmpExpand) {
     resolveNhop(1 /* nhop0 */, true /* resolve */);
   };
   auto verify = [this]() {
-    auto asicType = getPlatform()->getAsic()->getAsicType();
+    auto asicVendor = getPlatform()->getAsic()->getAsicVendor();
     std::vector<int> flows_to_verify;
-    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Choose two flows that are split to different next hops.
       flows_to_verify = {0, 2};
     } else {
@@ -376,8 +378,8 @@ TEST_F(HwHashConsistencyTest, VerifyMemberOrderEffect) {
     sendFlow(0 /* flow 0 */, FlowType::TCP);
     sendFlow(0 /* flow 0 */, FlowType::UDP);
 
-    auto asicType = getPlatform()->getAsic()->getAsicType();
-    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    auto asicVendor = getPlatform()->getAsic()->getAsicVendor();
+    if (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       /* On Chenab when next hops are programmed using
       SAI_NEXT_HOP_GROUP_TYPE_DYNAMIC_UNORDERED_ECMP the order of next hops in
       the group is the order in which they are programmed and so the flow moves

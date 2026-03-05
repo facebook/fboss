@@ -118,6 +118,8 @@ inline std::string toString(PlatformType mode) {
       return "J4SIM";
     case PlatformType::PLATFORM_BLACKWOLF800BANW:
       return "BLACKWOLF800BANW";
+    case PlatformType::PLATFORM_YANGRA2:
+      return "YANGRA2";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

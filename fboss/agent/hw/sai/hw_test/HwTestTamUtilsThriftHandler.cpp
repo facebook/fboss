@@ -241,6 +241,7 @@ void HwTestThriftHandler::triggerParityError() {
       triggerBcmJericho3ParityError(hwSwitch_);
       break;
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       triggerChenabParityError(hwSwitch_);
       break;
   }

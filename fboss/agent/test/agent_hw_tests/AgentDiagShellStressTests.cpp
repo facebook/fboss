@@ -30,6 +30,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_RAMON3:
         case cfg::AsicType::ASIC_TYPE_CHENAB:
         case cfg::AsicType::ASIC_TYPE_AGERA3:
+        case cfg::AsicType::ASIC_TYPE_CHENAB2:
           // No diag shell to test for these ASICs
           break;
         case cfg::AsicType::ASIC_TYPE_JERICHO3:

@@ -11,6 +11,7 @@
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/switch_asics/Agera3PhyAsic.h"
+#include "fboss/agent/hw/switch_asics/Chenab2Asic.h"
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
@@ -118,6 +119,8 @@ std::unique_ptr<HwAsic> HwAsic::makeAsic(
       return std::make_unique<G202xAsic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_CHENAB:
       return std::make_unique<ChenabAsic>(switchId, switchInfo, sdkVersion);
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
+      return std::make_unique<Chenab2Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       return std::make_unique<Jericho2Asic>(switchId, switchInfo, sdkVersion);
     case cfg::AsicType::ASIC_TYPE_JERICHO3:

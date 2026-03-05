@@ -53,7 +53,7 @@ cfg::SwitchConfig AgentArsBase::initialConfig(
 
 bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
   auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
-  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB);
+  return (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
 }
 
 bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
@@ -197,7 +197,7 @@ void AgentArsBase::generateApplyConfig(AclType aclType) {
   utility::addNetworkAIQueueConfig(
       &newCfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
   utility::addNetworkAIQosMaps(newCfg, ensemble.getL3Asics());
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     utility::addCpuQueueConfig(newCfg, ensemble.getL3Asics(), ensemble.isSai());
   }
 
@@ -753,7 +753,7 @@ void AgentArsBase::generatePrefixes() {
 
   std::vector<std::vector<PortDescriptor>> allCombinations =
       utility::generateEcmpGroupScale(
-          portDescriptorIds, 512, portDescriptorIds.size());
+          portDescriptorIds, 1024, portDescriptorIds.size());
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
   }

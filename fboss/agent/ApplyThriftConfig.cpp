@@ -1201,6 +1201,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             }
             break;
           case cfg::AsicType::ASIC_TYPE_CHENAB:
+          case cfg::AsicType::ASIC_TYPE_CHENAB2:
           case cfg::AsicType::ASIC_TYPE_TRIDENT2:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:

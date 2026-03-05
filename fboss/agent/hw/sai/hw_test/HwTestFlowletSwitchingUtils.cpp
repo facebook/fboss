@@ -109,8 +109,8 @@ void verifyArs(
       saiSwitch->managerTable()->arsManager().cfgSwitchingModeToSai(
           *cfg.switchingMode());
   EXPECT_EQ(switchingMode, mode);
-  if (hw->getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hw->getPlatform()->getAsic()->getAsicVendor() !=
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     auto idleTime =
         arsApi.getAttribute(arsSaiId, SaiArsTraits::Attributes::IdleTime());
     EXPECT_EQ(*cfg.inactivityIntervalUsecs(), idleTime);
@@ -131,8 +131,8 @@ void verifyPortArsAttributes(
   auto arsEnable =
       portApi.getAttribute(portSaiId, SaiPortTraits::Attributes::ArsEnable());
   EXPECT_EQ(enable, arsEnable);
-  if (hw->getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hw->getPlatform()->getAsic()->getAsicVendor() !=
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     auto portLoadScalingFactor = portApi.getAttribute(
         portSaiId, SaiPortTraits::Attributes::ArsPortLoadScalingFactor());
     EXPECT_EQ(*cfg.scalingFactor(), portLoadScalingFactor);
