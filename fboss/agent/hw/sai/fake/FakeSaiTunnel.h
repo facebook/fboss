@@ -9,6 +9,8 @@ extern "C" {
 #include <sai.h>
 }
 
+#include <folly/IPAddress.h>
+
 namespace facebook::fboss {
 
 class FakeSaiTunnel {

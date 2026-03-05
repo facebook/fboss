@@ -230,3 +230,116 @@ TEST_F(TunnelApiTest, setTunnelAttributes) {
           saiTunnelId, SaiIpInIpTunnelTraits::Attributes::DecapEcnMode{}),
       SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER);
 }
+
+// SRv6 Tunnel Tests
+
+TEST_F(TunnelApiTest, createSrv6Tunnel) {
+  SaiSrv6TunnelTraits::Attributes::EncapSrcIp encapSrcIp{folly::IPAddress(sip)};
+  SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+  SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
+  SaiSrv6TunnelTraits::CreateAttributes a{
+      encapSrcIp, type, underlay, std::nullopt, std::nullopt, std::nullopt};
+  auto saiTunnelId = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
+
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::Attributes::Type{}),
+      SAI_TUNNEL_TYPE_SRV6);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::Attributes::UnderlayInterface{}),
+      42);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::Attributes::EncapSrcIp{}),
+      folly::IPAddress(sip));
+}
+
+TEST_F(TunnelApiTest, removeSrv6Tunnel) {
+  SaiSrv6TunnelTraits::Attributes::EncapSrcIp encapSrcIp{folly::IPAddress(sip)};
+  SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+  SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
+  SaiSrv6TunnelTraits::CreateAttributes a{
+      encapSrcIp, type, underlay, std::nullopt, std::nullopt, std::nullopt};
+  auto saiTunnelId = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
+  tunnelApi->remove(saiTunnelId);
+  EXPECT_THROW(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::CreateAttributes{}),
+      std::exception);
+}
+
+TEST_F(TunnelApiTest, getSrv6TunnelAttributes) {
+  SaiSrv6TunnelTraits::Attributes::EncapSrcIp encapSrcIp{folly::IPAddress(sip)};
+  SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+  SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
+  SaiSrv6TunnelTraits::Attributes::EncapTtlMode encapTtlMode{
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL};
+  SaiSrv6TunnelTraits::Attributes::EncapDscpMode encapDscpMode{
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL};
+  SaiSrv6TunnelTraits::Attributes::EncapEcnMode encapEcnMode{
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
+  SaiSrv6TunnelTraits::CreateAttributes a{
+      encapSrcIp, type, underlay, encapTtlMode, encapEcnMode, encapDscpMode};
+  auto id = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
+
+  EXPECT_EQ(
+      tunnelApi->getAttribute(id, SaiSrv6TunnelTraits::Attributes::Type{}),
+      SAI_TUNNEL_TYPE_SRV6);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiSrv6TunnelTraits::Attributes::UnderlayInterface{}),
+      42);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiSrv6TunnelTraits::Attributes::EncapSrcIp{}),
+      folly::IPAddress(sip));
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiSrv6TunnelTraits::Attributes::EncapTtlMode{}),
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiSrv6TunnelTraits::Attributes::EncapDscpMode{}),
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL);
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          id, SaiSrv6TunnelTraits::Attributes::EncapEcnMode{}),
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD);
+}
+
+TEST_F(TunnelApiTest, setSrv6TunnelAttributes) {
+  SaiSrv6TunnelTraits::Attributes::EncapSrcIp encapSrcIp{folly::IPAddress(sip)};
+  SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+  SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
+  SaiSrv6TunnelTraits::CreateAttributes a{
+      encapSrcIp, type, underlay, std::nullopt, std::nullopt, std::nullopt};
+  auto saiTunnelId = tunnelApi->create<SaiSrv6TunnelTraits>(a, 0);
+
+  tunnelApi->setAttribute(
+      saiTunnelId,
+      SaiSrv6TunnelTraits::Attributes::EncapTtlMode{
+          SAI_TUNNEL_TTL_MODE_PIPE_MODEL});
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::Attributes::EncapTtlMode{}),
+      SAI_TUNNEL_TTL_MODE_PIPE_MODEL);
+
+  tunnelApi->setAttribute(
+      saiTunnelId,
+      SaiSrv6TunnelTraits::Attributes::EncapDscpMode{
+          SAI_TUNNEL_DSCP_MODE_PIPE_MODEL});
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::Attributes::EncapDscpMode{}),
+      SAI_TUNNEL_DSCP_MODE_PIPE_MODEL);
+
+  tunnelApi->setAttribute(
+      saiTunnelId,
+      SaiSrv6TunnelTraits::Attributes::EncapEcnMode{
+          SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER});
+  EXPECT_EQ(
+      tunnelApi->getAttribute(
+          saiTunnelId, SaiSrv6TunnelTraits::Attributes::EncapEcnMode{}),
+      SAI_TUNNEL_DECAP_ECN_MODE_COPY_FROM_OUTER);
+}

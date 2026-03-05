@@ -18,6 +18,7 @@
 using namespace facebook::fboss;
 
 static constexpr folly::StringPiece dip = "42.42.12.34";
+static constexpr folly::StringPiece srv6SrcIp = "2001:db8::1";
 
 class TunnelStoreTest : public SaiStoreTest {
  public:
@@ -53,6 +54,25 @@ class TunnelStoreTest : public SaiStoreTest {
     auto& tunnelApi = saiApiTable->tunnelApi();
     return tunnelApi.create<SaiP2MPTunnelTermTraits>(
         createTunnelTermAttrs(_id), 0);
+  }
+
+  SaiSrv6TunnelTraits::CreateAttributes createSrv6TunnelAttrs() const {
+    SaiSrv6TunnelTraits::Attributes::EncapSrcIp encapSrcIp{
+        folly::IPAddress(srv6SrcIp)};
+    SaiSrv6TunnelTraits::Attributes::Type type{SAI_TUNNEL_TYPE_SRV6};
+    SaiSrv6TunnelTraits::Attributes::UnderlayInterface underlay{42};
+    SaiSrv6TunnelTraits::Attributes::EncapTtlMode encapTtlMode{
+        SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL};
+    SaiSrv6TunnelTraits::Attributes::EncapEcnMode encapEcnMode{
+        SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
+    SaiSrv6TunnelTraits::Attributes::EncapDscpMode encapDscpMode{
+        SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+    return {
+        encapSrcIp, type, underlay, encapTtlMode, encapEcnMode, encapDscpMode};
+  }
+  TunnelSaiId createSrv6Tunnel() const {
+    auto& tunnelApi = saiApiTable->tunnelApi();
+    return tunnelApi.create<SaiSrv6TunnelTraits>(createSrv6TunnelAttrs(), 0);
   }
 };
 
@@ -158,6 +178,60 @@ TEST_F(TunnelStoreTest, toStrTunnelTerm) {
   auto _id = createTunnel();
   std::ignore = createTunnelTerm(_id);
   verifyToStr<SaiP2MPTunnelTermTraits>();
+}
+
+// SRv6 Tunnel Store Tests
+
+TEST_F(TunnelStoreTest, loadSrv6Tunnel) {
+  auto tunnelId = createSrv6Tunnel();
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiSrv6TunnelTraits>();
+  SaiSrv6TunnelTraits::AdapterHostKey k{
+      folly::IPAddress(srv6SrcIp),
+      SAI_TUNNEL_TYPE_SRV6,
+      42,
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+  auto got = store.get(k);
+  EXPECT_EQ(got->adapterKey(), tunnelId);
+  EXPECT_EQ(
+      GET_ATTR(Srv6Tunnel, EncapSrcIp, got->attributes()),
+      folly::IPAddress(srv6SrcIp));
+}
+
+TEST_F(TunnelStoreTest, srv6TunnelLoadCtor) {
+  auto tunnelId = createSrv6Tunnel();
+  SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(tunnelId);
+  EXPECT_EQ(obj.adapterKey(), tunnelId);
+  EXPECT_EQ(
+      GET_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
+      folly::IPAddress(srv6SrcIp));
+}
+
+TEST_F(TunnelStoreTest, srv6TunnelCreateCtor) {
+  SaiSrv6TunnelTraits::AdapterHostKey k{
+      folly::IPAddress(srv6SrcIp),
+      SAI_TUNNEL_TYPE_SRV6,
+      42,
+      SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL,
+      SAI_TUNNEL_DECAP_ECN_MODE_STANDARD,
+      SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
+  SaiObject<SaiSrv6TunnelTraits> obj = createObj<SaiSrv6TunnelTraits>(k, k, 0);
+  EXPECT_EQ(
+      GET_ATTR(Srv6Tunnel, EncapSrcIp, obj.attributes()),
+      folly::IPAddress(srv6SrcIp));
+}
+
+TEST_F(TunnelStoreTest, serDeserSrv6Tunnel) {
+  auto tunnelId = createSrv6Tunnel();
+  verifyAdapterKeySerDeser<SaiSrv6TunnelTraits>({tunnelId});
+}
+
+TEST_F(TunnelStoreTest, toStrSrv6Tunnel) {
+  std::ignore = createSrv6Tunnel();
+  verifyToStr<SaiSrv6TunnelTraits>();
 }
 
 TEST_F(TunnelStoreTest, tunnelSetOnlyTtl) {
