@@ -49,6 +49,7 @@ class Srv6NextHopManagerTest : public ManagerTestBase {
     setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
     ManagerTestBase::SetUp();
     intf0 = testInterfaces[0];
+    resolveArp(intf0.id, intf0.remoteHosts[0]);
   }
 
   std::shared_ptr<Srv6Tunnel> makeSrv6Tunnel(
@@ -149,6 +150,12 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
   EXPECT_EQ(gotSegments.size(), 2);
   EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
   EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+
+  // Verify NextHopId was set on the SID list
+  ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
+  auto gotNextHopId = saiApiTable->srv6Api().getAttribute(
+      sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
+  EXPECT_EQ(gotNextHopId, (*srv6NextHop)->getSaiObject()->adapterKey());
 }
 
 TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {

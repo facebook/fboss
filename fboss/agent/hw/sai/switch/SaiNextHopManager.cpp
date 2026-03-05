@@ -173,14 +173,22 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
         *srv6NextHopKey,
         swNextHop.disableTTLDecrement());
 
-    if (emplaced) {
-      SaiObjectEventPublisher::getInstance()
-          ->get<SaiNeighborTraits>()
-          .subscribe(entry);
-    }
     entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
     CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
     CHECK(sidList) << "SRv6 managed next hop must have a SID list";
+
+    SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
+        entry);
+
+    // After subscribe, the SAI next hop should be created
+    CHECK(entry->getSaiObject())
+        << "SRv6 managed next hop must have underlying SAI object";
+
+    // Set NextHopId in sidList before inserting into srv6Manager
+    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+        entry->getSaiObject()->adapterKey()};
+    sidList->setOptionalAttribute(std::move(nextHopIdAttr));
+
     auto srv6SidListHandle =
         managerTable_->srv6Manager().insertSrv6SidList(std::move(sidList));
     entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
@@ -280,14 +288,12 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   if constexpr (std::is_same_v<NextHopTraits, SaiSrv6SidlistNextHopTraits>) {
-    auto& srv6SidListHandle = srv6SidListHandle_;
-    CHECK(srv6SidListHandle) << "SRv6 next hop must have a SID list handle";
-    CHECK(srv6SidListHandle->sidList)
-        << "SRv6 SID list handle must have a SID list";
-    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
-        this->getObject()->adapterKey()};
-    SaiApiTable::getInstance()->srv6Api().setAttribute(
-        srv6SidListHandle->sidList->adapterKey(), nextHopIdAttr);
+    if (srv6SidListHandle_ && srv6SidListHandle_->sidList) {
+      SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+          this->getObject()->adapterKey()};
+      SaiApiTable::getInstance()->srv6Api().setAttribute(
+          srv6SidListHandle_->sidList->adapterKey(), nextHopIdAttr);
+    }
   }
 #endif
 
