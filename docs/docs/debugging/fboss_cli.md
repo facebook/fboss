@@ -903,3 +903,387 @@ Build Details:
 ```
 
 </div>
+
+---
+
+
+## clear
+
+Reset counters, clear tables, and remove temporary state.
+
+**Usage:**
+```bash
+fboss2 clear <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `arp` | Clear ARP information |
+| `interface` | Clear Interface Information |
+| `ndp` | Clear NDP information |
+| `mirror` | Clear mirror |
+
+### clear arp
+
+Clear ARP table entries.
+
+```bash
+fboss2 clear arp
+```
+
+### clear interface
+
+Clear Interface information (e.g., counters).
+
+```bash
+fboss2 clear interface counters
+```
+
+### clear ndp
+
+Clear NDP table entries.
+
+```bash
+fboss2 clear ndp
+```
+
+### clear mirror
+
+Clear mirror session.
+
+```bash
+fboss2 clear mirror
+```
+
+---
+
+## set
+
+Modify object properties and settings.
+
+**Usage:**
+```bash
+fboss2 set <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `interface` | Set Interface information |
+| `port` | Set Port information |
+| `debug` | Set debug level |
+| `fanhold` | Set fan hold PWM |
+
+### set interface
+
+Set Interface information.
+
+```bash
+fboss2 set interface <interface_name> [options]
+```
+
+### set port
+
+Set Port information.
+
+```bash
+fboss2 set port <port_name> [options]
+```
+
+### set debug
+
+Set debug level for logging.
+
+```bash
+fboss2 set debug [options]
+```
+
+### set fanhold
+
+Set fan hold PWM value.
+
+```bash
+fboss2 set fanhold <value>
+```
+
+---
+
+## get
+
+Retrieve specific object information.
+
+**Usage:**
+```bash
+fboss2 get <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `pcap` | Get Packet Capture |
+
+### get pcap
+
+Get packet capture data.
+
+```bash
+fboss2 get pcap [options]
+```
+
+---
+
+## config
+
+Configuration management commands for viewing and modifying switch configuration.
+
+**Usage:**
+```bash
+fboss2 config <subcommand> [options]
+```
+
+*Note: Use `fboss2 show config` for viewing configuration information.*
+
+---
+
+## create
+
+Create new objects on the switch.
+
+**Usage:**
+```bash
+fboss2 create <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `config` | Create wedge_agent, bgp, openr configs |
+| `mirror` | Create mirror |
+
+### create config
+
+Create configuration for various binaries.
+
+```bash
+fboss2 create config [options]
+```
+
+### create mirror
+
+Create a mirror session.
+
+```bash
+fboss2 create mirror [options]
+```
+
+---
+
+## delete
+
+Remove objects from the switch.
+
+**Usage:**
+```bash
+fboss2 delete <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `config` | Delete config objects |
+
+### delete config
+
+Delete configuration objects.
+
+```bash
+fboss2 delete config [options]
+```
+
+---
+
+## bounce
+
+Disable and re-enable objects. Useful for resetting ports or interfaces without manual disable/enable steps.
+
+**Usage:**
+```bash
+fboss2 bounce <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `interface` | Shut/No-Shut Interface |
+
+### bounce interface
+
+Bounce (shut/no-shut) an interface.
+
+```bash
+fboss2 bounce interface <interface_name>
+```
+
+**Example:**
+```bash
+fboss2 bounce interface eth1/1/1    # Bounce a specific interface
+```
+
+---
+
+## reload
+
+Reload configuration or state for objects.
+
+**Usage:**
+```bash
+fboss2 reload <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `config` | Reload binary configuration file |
+
+### reload config
+
+Reload binary configuration file.
+
+```bash
+fboss2 reload config [options]
+```
+
+---
+
+## debug
+
+Access debugging and diagnostic functions for advanced troubleshooting.
+
+**Usage:**
+```bash
+fboss2 debug <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `bgp` | Debug BGP Configuration |
+
+### debug bgp
+
+Debug BGP configuration.
+
+```bash
+fboss2 debug bgp [options]
+```
+
+---
+
+## start
+
+Start events or processes.
+
+**Usage:**
+```bash
+fboss2 start <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `pcap` | Start Packet Capture |
+
+### start pcap
+
+Start packet capture.
+
+```bash
+fboss2 start pcap [options]
+```
+
+---
+
+## stop
+
+Stop events or processes.
+
+**Usage:**
+```bash
+fboss2 stop <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `pcap` | Stop Packet Capture |
+
+### stop pcap
+
+Stop packet capture.
+
+```bash
+fboss2 stop pcap [options]
+```
+
+---
+
+## stream
+
+Continuously stream real-time data from the switch. Useful for monitoring events as they occur.
+
+**Usage:**
+```bash
+fboss2 stream <subcommand> [options]
+```
+
+### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `bgp` | Continuously stream BGP session information |
+| `fsdb` | Stream fsdb operational information |
+
+### stream bgp
+
+Continuously stream BGP session information.
+
+```bash
+fboss2 stream bgp [options]
+```
+
+### stream fsdb
+
+Stream fsdb operational information.
+
+```bash
+fboss2 stream fsdb [options]
+```
+
+---
+
+## help
+
+Display help information for commands and objects.
+
+**Usage:**
+```bash
+fboss2 help
+fboss2 help <command>
+fboss2 <command> --help
+```
+---
+
+## See Also
+
+- [CLIs for L1 Debugging](/docs/debugging/clis_for_l1_debugging.md)
