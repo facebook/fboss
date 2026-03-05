@@ -89,6 +89,16 @@ fboss2 show <object> --fmt json
 | `hw-object` | Show HW Objects |
 | `interface` | Show Interface information |
 | `lldp` | Show LLDP information |
+| `mac` | Show MAC information |
+| `mirror` | Show mirror |
+| `ndp` | Show NDP information |
+| `port` | Show Port information |
+| `rif` | Show RIF information |
+| `route` | Show Route information |
+| `transceiver` | Show Transceiver information |
+| `config` | Show config info for various binaries |
+| `fsdb` | Show operational information from fsdb |
+| `version` | Show versions info for various binaries |
 
 ---
 
@@ -466,6 +476,430 @@ b6:db:91:95:fd:f6       eth1/34/5          4004          Validated          -
 b6:db:91:95:fd:f6       eth1/34/1          4003          Validated          -
 b6:db:91:95:fd:f6       eth1/33/5          4002          Validated          -
 b6:db:91:95:fd:f6       eth1/33/1          4001          Validated          -
+```
+
+</div>
+
+---
+
+### lldp
+
+Show LLDP (Link Layer Discovery Protocol) neighbor information.
+
+**Usage:**
+```bash
+fboss2 show lldp
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ Local Int  Status  Expected-Peer           LLDP-Peer               Peer-Int   Platform         Peer Description
+-----------------------------------------------------------------------------------------------------------------------------------------
+ eth1/1/1   up      EMPTY                   ixia08.netcastle.ash6   1/13       KEYSIGHT Device
+ eth1/1/5   up      EMPTY                   ixia08.netcastle.ash6   1/14       KEYSIGHT Device
+ eth1/2/1   up      EMPTY                   ixia08.netcastle.ash6   1/15       KEYSIGHT Device
+ eth1/2/5   up      EMPTY                   ixia08.netcastle.ash6   1/16       KEYSIGHT Device
+ eth1/3/1   up      EMPTY                   ixia08.netcastle.ash6   1/17       KEYSIGHT Device
+ eth1/3/5   up      EMPTY                   ixia08.netcastle.ash6   1/18       KEYSIGHT Device
+ eth1/17/1  up      EMPTY                   ixia08.netcastle.ash6   1/19       KEYSIGHT Device
+ eth1/17/5  up      EMPTY                   ixia08.netcastle.ash6   1/20       KEYSIGHT Device
+ eth1/18/1  up      EMPTY                   ixia08.netcastle.ash6   1/21       KEYSIGHT Device
+ eth1/18/5  up      EMPTY                   ixia08.netcastle.ash6   1/22       KEYSIGHT Device
+ eth1/33/1  up      ftsw001.l102.c083.ash6  ftsw001.l102.c083.ash6  eth1/3/1   FBOSS            ftsw001.l102.c083.ash6:eth1/3/1
+ eth1/33/5  up      ftsw001.l102.c083.ash6  ftsw001.l102.c083.ash6  eth1/3/5   FBOSS            ftsw001.l102.c083.ash6:eth1/3/5
+ eth1/34/1  up      ftsw001.l102.c083.ash6  ftsw001.l102.c083.ash6  eth1/7/1   FBOSS            ftsw001.l102.c083.ash6:eth1/7/1
+ eth1/34/5  up      ftsw001.l102.c083.ash6  ftsw001.l102.c083.ash6  eth1/7/5   FBOSS            ftsw001.l102.c083.ash6:eth1/7/5
+ eth1/35/1  up      ftsw001.l102.c083.ash6  ftsw001.l102.c083.ash6  eth1/11/1  FBOSS            ftsw001.l102.c083.ash6:eth1/11/1
+ eth1/35/5  up      ftsw001.l102.c083.ash6  ftsw001.l102.c083.ash6  eth1/11/5  FBOSS            ftsw001.l102.c083.ash6:eth1/11/5
+ eth1/49/1  up      ftsw002.l102.c083.ash6  ftsw002.l102.c083.ash6  eth1/3/1   FBOSS            ftsw002.l102.c083.ash6:eth1/3/1
+ eth1/49/5  up      ftsw002.l102.c083.ash6  ftsw002.l102.c083.ash6  eth1/3/5   FBOSS            ftsw002.l102.c083.ash6:eth1/3/5
+```
+
+</div>
+
+---
+
+### mirror
+
+Show mirror session configurations for traffic mirroring/SPAN.
+
+**Usage:**
+```bash
+fboss2 show mirror
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ Mirror                       Status      Egress Port  Egress Port Name  Tunnel Type  Src MAC  Src IP                    Src UDP Port  Dst MAC  Dst IP                 Dst UDP Port  DSCP  TTL
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ fboss_backend_traffic_sflow  Configured  -            -                 -            -        2401:db00:e206:b20::1d:0  12345         -        2401:db00:20ff:f001::  6346          42    -
+```
+
+</div>
+
+---
+
+### ndp
+
+Show NDP (Neighbor Discovery Protocol) entries for IPv6.
+
+**Usage:**
+```bash
+fboss2 show ndp
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ IP Address                  MAC Address        Interface  VLAN/InterfaceID  State      TTL    CLASSID  Voq Switch  Resolved Since
+---------------------------------------------------------------------------------------------------------------------------------------------
+ fe80::b4db:91ff:fe95:fdf6   b6:db:91:95:fd:f6  eth1/33/1  vlan4001 (4001)   REACHABLE  34745  0        --          --
+ 2401:db00:e206:b20::        b6:db:91:95:fd:f6  eth1/33/1  vlan4001 (4001)   REACHABLE  50237  0        --          --
+ fe80::b4db:91ff:fe95:fdf6   b6:db:91:95:fd:f6  eth1/33/5  vlan4002 (4002)   REACHABLE  830    0        --          --
+ 2401:db00:e206:b20::2       b6:db:91:95:fd:f6  eth1/33/5  vlan4002 (4002)   REACHABLE  29717  0        --          --
+ fe80::b4db:91ff:fe95:fdf6   b6:db:91:95:fd:f6  eth1/34/1  vlan4003 (4003)   REACHABLE  9460   0        --          --
+ 2401:db00:e206:b20::4       b6:db:91:95:fd:f6  eth1/34/1  vlan4003 (4003)   REACHABLE  38330  0        --          --
+ fe80::b4db:91ff:fe95:fdf6   b6:db:91:95:fd:f6  eth1/34/5  vlan4004 (4004)   REACHABLE  24326  0        --          --
+ 2401:db00:e206:b20::6       b6:db:91:95:fd:f6  eth1/34/5  vlan4004 (4004)   REACHABLE  12632  0        --          --
+ fe80::b4db:91ff:fe95:fdf6   b6:db:91:95:fd:f6  eth1/35/1  vlan4005 (4005)   REACHABLE  17635  0        --          --
+ 2401:db00:e206:b20::8       b6:db:91:95:fd:f6  eth1/35/1  vlan4005 (4005)   REACHABLE  10193  0        --          --
+ fe80::b4db:91ff:fe95:fdf6   b6:db:91:95:fd:f6  eth1/35/5  vlan4006 (4006)   REACHABLE  57798  0        --          --
+ 2401:db00:e206:b20::a       b6:db:91:95:fd:f6  eth1/35/5  vlan4006 (4006)   REACHABLE  54736  0        --          --
+ fe80::ac81:b5ff:fe03:4160   ae:81:b5:03:41:60  eth1/49/1  vlan4007 (4007)   REACHABLE  33396  0        --          --
+ 2401:db00:e206:b20:0:1::    ae:81:b5:03:41:60  eth1/49/1  vlan4007 (4007)   REACHABLE  55632  0        --          --
+ fe80::ac81:b5ff:fe03:4160   ae:81:b5:03:41:60  eth1/49/5  vlan4008 (4008)   REACHABLE  35555  0        --          --
+ 2401:db00:e206:b20:0:1:0:2  ae:81:b5:03:41:60  eth1/49/5  vlan4008 (4008)   REACHABLE  58222  0        --          --
+ fe80::ac81:b5ff:fe03:4160   ae:81:b5:03:41:60  eth1/50/1  vlan4009 (4009)   REACHABLE  47999  0        --          --
+ 2401:db00:e206:b20:0:1:0:4  ae:81:b5:03:41:60  eth1/50/1  vlan4009 (4009)   REACHABLE  51421  0        --          --
+ fe80::ac81:b5ff:fe03:4160   ae:81:b5:03:41:60  eth1/50/5  vlan4010 (4010)   REACHABLE  23619  0        --          --
+ 2401:db00:e206:b20:0:1:0:6  ae:81:b5:03:41:60  eth1/50/5  vlan4010 (4010)   REACHABLE  33850  0        --          --
+ fe80::ac81:b5ff:fe03:4160   ae:81:b5:03:41:60  eth1/51/1  vlan4011 (4011)   REACHABLE  70289  0        --          --
+ 2401:db00:e206:b20:0:1:0:8  ae:81:b5:03:41:60  eth1/51/1  vlan4011 (4011)   REACHABLE  40438  0        --          --
+ fe80::ac81:b5ff:fe03:4160   ae:81:b5:03:41:60  eth1/51/5  vlan4012 (4012)   REACHABLE  45742  0        --          --
+ 2401:db00:e206:b20:0:1:0:a  ae:81:b5:03:41:60  eth1/51/5  vlan4012 (4012)   REACHABLE  16518  0        --          --
+```
+
+</div>
+
+---
+
+### port
+
+Show Port information including admin/link state, speed, and profiles.
+
+**Usage:**
+```bash
+fboss2 show port
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ ID   Name       AdminState  LinkState  ActiveState  Transceiver  TcvrID  Speed  ProfileID                             HwLogicalPortId  Drained  PeerSwitchDrained  PeerPortDrainedOrDown  Errors  Core Id  Virtual device Id  Cable Len meters
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 9    eth1/1/1   Enabled     Up         --           Present      0       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  9                No       --                 --                     --      --       --                 --
+ 10   eth1/1/5   Enabled     Up         --           Present      0       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  10               No       --                 --                     --      --       --                 --
+ 1    eth1/2/1   Enabled     Up         --           Present      1       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  1                No       --                 --                     --      --       --                 --
+ 5    eth1/2/5   Enabled     Up         --           Present      1       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  5                No       --                 --                     --      --       --                 --
+ 11   eth1/3/1   Enabled     Up         --           Present      2       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  11               No       --                 --                     --      --       --                 --
+ 15   eth1/3/5   Enabled     Up         --           Present      2       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  15               No       --                 --                     --      --       --                 --
+ 19   eth1/4/1   Enabled     Down       --           Absent       3       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  19               No       --                 --                     --      --       --                 --
+ 20   eth1/4/5   Enabled     Down       --           Absent       3       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  20               No       --                 --                     --      --       --                 --
+ 30   eth1/5/1   Enabled     Down       --           Absent       4       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  30               No       --                 --                     --      --       --                 --
+ 31   eth1/5/5   Enabled     Down       --           Absent       4       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  31               No       --                 --                     --      --       --                 --
+ 22   eth1/6/1   Enabled     Down       --           Absent       5       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  22               No       --                 --                     --      --       --                 --
+ 26   eth1/6/5   Enabled     Down       --           Absent       5       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  26               No       --                 --                     --      --       --                 --
+ 33   eth1/7/1   Enabled     Down       --           Absent       6       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  33               No       --                 --                     --      --       --                 --
+ 37   eth1/7/5   Enabled     Down       --           Absent       6       400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  37               No       --                 --                     --      --       --                 --
+ 96   eth1/17/1  Enabled     Up         --           Present      16      400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  96               No       --                 --                     --      --       --                 --
+ 97   eth1/17/5  Enabled     Up         --           Present      16      400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  97               No       --                 --                     --      --       --                 --
+ 88   eth1/18/1  Enabled     Up         --           Present      17      400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  88               No       --                 --                     --      --       --                 --
+ 92   eth1/18/5  Enabled     Up         --           Present      17      400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  92               No       --                 --                     --      --       --                 --
+ 99   eth1/19/1  Enabled     Down       --           Present      18      400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  99               No       --                 --                     --      --       --                 --
+ 103  eth1/19/5  Enabled     Down       --           Present      18      400G   PROFILE_400G_4_PAM4_RS544X2N_OPTICAL  103              No       --                 --                     --      --       --                 --
+```
+
+</div>
+
+---
+
+
+### rif
+
+Show RIF (Router Interface) information.
+
+**Usage:**
+```bash
+fboss2 show rif
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ RIF             RIFID  VlanID  RouterID  MAC                MTU   TYPE  Liveness  Scope  Ports
+---------------------------------------------------------------------------------------------------------------
+ Interface 10    10     10      0         b6:db:91:95:fd:da  9000  --    --        LOCAL
+ Interface 2001  2001   2001    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/1/1
+ Interface 2002  2002   2002    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/1/5
+ Interface 2003  2003   2003    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/2/1
+ Interface 2004  2004   2004    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/2/5
+ Interface 2005  2005   2005    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/3/1
+ Interface 2006  2006   2006    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/3/5
+ Interface 2007  2007   2007    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/4/1
+ Interface 2008  2008   2008    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/4/5
+ Interface 2009  2009   2009    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/5/1
+ Interface 2010  2010   2010    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/5/5
+ Interface 2011  2011   2011    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/6/1
+ Interface 2012  2012   2012    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/6/5
+ Interface 2013  2013   2013    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/7/1
+ Interface 2014  2014   2014    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/7/5
+ Interface 2015  2015   2015    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/8/1
+ Interface 2016  2016   2016    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/8/5
+ Interface 2017  2017   2017    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/9/1
+ Interface 2018  2018   2018    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/9/5
+ Interface 2019  2019   2019    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/10/1
+ Interface 2020  2020   2020    0         b6:db:91:95:fd:da  9000  --    --        LOCAL  eth1/10/5
+```
+
+</div>
+
+---
+
+### route
+
+Show Route information from the routing table.
+
+**Usage:**
+```bash
+fboss2 show route
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+Network Address: 2401:db00:209b:10::/64
+    via 2401:db00:209b:10::a dev fboss2017 weight 1
+Network Address: 2401:db00:209b:11::/64
+    via 2401:db00:209b:11::a dev fboss2018 weight 1
+Network Address: 2401:db00:209b:12::/64
+    via 2401:db00:209b:12::a dev fboss2019 weight 1
+Network Address: 2401:db00:209b:13::/64
+    via 2401:db00:209b:13::a dev fboss2020 weight 1
+Network Address: 2401:db00:209b:14::/64
+    via 2401:db00:209b:14::a dev fboss2021 weight 1
+Network Address: 2401:db00:209b:15::/64
+    via 2401:db00:209b:15::a dev fboss2022 weight 1
+Network Address: 2401:db00:209b:16::/64
+    via 2401:db00:209b:16::a dev fboss2023 weight 1
+Network Address: 2401:db00:209b:17::/64
+    via 2401:db00:209b:17::a dev fboss2024 weight 1
+Network Address: 2401:db00:209b:18::/64
+    via 2401:db00:209b:18::a dev fboss2025 weight 1
+Network Address: 2401:db00:209b:19::/64
+    via 2401:db00:209b:19::a dev fboss2026 weight 1
+Network Address: 2401:db00:209b:1::/64
+    via 2401:db00:209b:1::a dev fboss2002 weight 1
+Network Address: 2401:db00:209b:1a::/64
+    via 2401:db00:209b:1a::a dev fboss2027 weight 1
+Network Address: 2401:db00:209b:1b::/64
+    via 2401:db00:209b:1b::a dev fboss2028 weight 1
+Network Address: 2401:db00:209b:1c::/64
+    via 2401:db00:209b:1c::a dev fboss2029 weight 1
+Network Address: 2401:db00:209b:1d::/64
+    via 2401:db00:209b:1d::a dev fboss2030 weight 1
+Network Address: 2401:db00:209b:1e::/64
+    via 2401:db00:209b:1e::a dev fboss2031 weight 1
+Network Address: 2401:db00:209b:1f::/64
+    via 2401:db00:209b:1f::a dev fboss2032 weight 1
+Network Address: 2401:db00:209b:20::/64
+    via 2401:db00:209b:20::a dev fboss2033 weight 1
+Network Address: 2401:db00:209b:21::/64
+    via 2401:db00:209b:21::a dev fboss2034 weight 1
+Network Address: 2401:db00:209b:22::/64
+    via 2401:db00:209b:22::a dev fboss2035 weight 1
+Network Address: 2401:db00:209b:23::/64
+    via 2401:db00:209b:23::a dev fboss2036 weight 1
+Network Address: 2401:db00:209b:24::/64
+    via 2401:db00:209b:24::a dev fboss2037 weight 1
+Network Address: 2401:db00:209b:25::/64
+    via 2401:db00:209b:25::a dev fboss2038 weight 1
+Network Address: 2401:db00:209b:26::/64
+    via 2401:db00:209b:26::a dev fboss2039 weight 1
+Network Address: 2401:db00:209b:27::/64
+    via 2401:db00:209b:27::a dev fboss2040 weight 1
+```
+
+</div>
+
+---
+
+
+
+### transceiver
+
+Show Transceiver information including optics details, power levels, and diagnostics.
+
+**Usage:**
+```bash
+fboss2 show transceiver
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ Interface  Status  Transceiver  CfgValidated  Reason  Vendor         Serial        Part Number       FW App Version  FW DSP Version  Temperature (C)  Voltage (V)  Current (mA)                Tx Power (dBm)        Rx Power (dBm)               Rx SNR
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ eth1/1/1   Up      FR4_2x400G   --            --      Eoptolink      UQAB040183    EOLO-168HG-02-1B  3.12            209.28          60.61            3.27         105.23,92.23,109.13,109.06  1.06,1.10,0.89,1.16   -0.92,-1.09,-1.21,-1.21      22.72,22.69,22.66,22.21
+ eth1/1/5   Up      FR4_2x400G   --            --      Eoptolink      UQAB040183    EOLO-168HG-02-1B  3.12            209.28          60.61            3.27         108.08,93.00,98.12,110.40   1.06,1.32,1.22,0.52   -1.11,-1.28,-0.97,-1.24      22.64,22.43,23.05,22.67
+ eth1/10/1  Down    Absent       --            --                                                                                     0.00             0.00
+ eth1/10/5  Down    Absent       --            --                                                                                     0.00             0.00
+ eth1/17/1  Up      FR4_2x400G   --            --      INNOLIGHT      INOAFC301840  T-OL8CNT-NF2      103.137         1.6             62.86            3.30         67.50,67.50,67.50,67.50     1.46,0.88,0.49,0.71   -1.87,-2.04,-1.73,-1.63      22.47,22.05,22.18,21.66
+ eth1/17/5  Up      FR4_2x400G   --            --      INNOLIGHT      INOAFC301840  T-OL8CNT-NF2      103.137         1.6             62.86            3.30         67.50,67.50,67.50,67.50     0.98,1.08,1.13,1.09   -1.39,-1.48,-1.49,-1.00      22.47,22.32,22.32,22.62
+ eth1/18/1  Up      FR4_2x400G   --            --      INNOLIGHT      INOAFC300620  T-OL8CNT-NF2      103.137         1.6             64.79            3.32         67.50,67.50,67.50,67.50     1.36,1.17,1.36,0.77   -1.89,-2.09,-1.75,-1.87      22.32,21.91,22.47,20.97
+ eth1/18/5  Up      FR4_2x400G   --            --      INNOLIGHT      INOAFC300620  T-OL8CNT-NF2      103.137         1.6             64.79            3.32         67.50,67.50,67.50,67.50     1.58,1.24,1.85,1.49   -2.87,-2.48,-2.16,-2.23      21.91,22.18,22.32,21.41
+ eth1/19/1  Down    FR4_2x400G   --            --      INNOLIGHT      INOAFC230286  T-OL8CNT-NF2      103.137         1.6             58.93            3.32         67.50,67.50,67.50,67.50     0.66,0.66,0.64,0.84   -40.00,-40.00,-40.00,-40.00  0.00,0.00,0.00,0.00
+ eth1/19/5  Down    FR4_2x400G   --            --      INNOLIGHT      INOAFC230286  T-OL8CNT-NF2      103.137         1.6             58.93            3.32         67.00,67.50,67.50,67.50     -0.39,0.15,0.95,0.64  -40.00,-40.00,-40.00,-40.00  0.00,0.00,0.00,0.00
+ eth1/2/1   Up      FR4_2x400G   --            --      Eoptolink      UQAB040181    EOLO-168HG-02-1B  3.12            209.28          60.63            3.28         98.34,85.30,94.01,93.01     1.27,1.27,1.28,1.25   -2.19,-2.38,-2.74,-2.79      23.16,23.48,22.63,21.96
+ eth1/2/5   Up      FR4_2x400G   --            --      Eoptolink      UQAB040181    EOLO-168HG-02-1B  3.12            209.28          60.63            3.28         75.10,82.00,105.80,110.20   1.05,0.90,1.13,0.74   -0.80,-1.28,-0.69,-1.14      23.61,22.85,23.65,22.66
+```
+
+</div>
+
+---
+
+
+
+
+### config
+
+Show config information for various binaries.
+
+**Usage:**
+```bash
+fboss2 show config <subcommand>
+```
+
+#### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `running` | Show running config for various binaries |
+
+---
+
+
+
+### fsdb
+
+Show operational information from FSDB (FBOSS State Database).
+
+**Usage:**
+```bash
+fboss2 show fsdb <subcommand>
+```
+
+#### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `publishers` | Show fsdb publishers |
+| `state` | Show fsdb operational state |
+| `stats` | Show fsdb operational stats |
+| `subscribers` | Show fsdb subscribers |
+
+#### fsdb publishers
+
+Show fsdb publishers.
+
+**Usage:**
+```bash
+fboss2 show fsdb publishers
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+ Publishers Id   Type   Raw Path        isStats
+-----------------------------------------------------
+ agent           PATH   agent           1
+ agent           PATCH  agent           0
+ bgpd            PATCH  bgp             0
+ qsfp_service    PATH   qsfp_service    1
+ qsfp_service    PATCH  qsfp_service    0
+ sensor_service  PATH   sensor_service  1
+```
+
+</div>
+
+---
+
+### version
+
+Show versions information for various binaries.
+
+**Usage:**
+```bash
+fboss2 show version <subcommand>
+```
+
+#### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `agent` | Show agent information |
+| `bgp` | Show bgp information |
+| `coop` | Show coop information |
+| `data_corral` | Show data corral service information |
+| `fsdb` | Show fsdb information |
+| `led` | Show led information |
+| `mka` | Show mka information |
+| `qsfp` | Show qsfp information |
+| `rackmon` | Show rackmon information |
+| `sdk` | Show sdk information |
+| `sensors` | Show sensor information |
+
+#### version agent
+
+Show agent version information.
+
+**Usage:**
+```bash
+fboss2 show version agent
+```
+
+**Sample Output:**
+
+<div style={{maxHeight: '200px', overflowY: 'auto', fontFamily: 'Courier New, monospace'}}>
+
+```text
+Package Name: neteng.fboss.wedge_agent
+Package Info: neteng.fboss.wedge_agent:ea4de14482501f000e9c338e0dcf65b5
+Package Version: neteng.fboss.wedge_agent:799
+Build Details:
+     Host: 7071-88e2-0004-0000.twshared71028.02.ncg3.tw.fbinfra.net
+     Time: Sun Feb  8 18:33:06 2026
+     User: root
+     Path: /data/sandcastle/boxes/trunk-hg-fbcode-fbsource
+     Platform: platform010
+     Revision: 1243ac8e7d8b3536736c3649f1a889bac2c4ed22
 ```
 
 </div>
