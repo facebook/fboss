@@ -719,6 +719,12 @@ enum ModuleTechnology {
   UNKNOWN = -1,
 }
 
+enum PagingSupport {
+  UNKNOWN = 0,
+  FLAT_MEM = 1,
+  PAGED = 2,
+}
+
 struct TcvrState {
   1: bool present;
   2: TransceiverType transceiver;
@@ -752,6 +758,7 @@ struct TcvrState {
   // All the error states that require transceiver remediation from self healing
   31: set<TransceiverErrorState> errorStates;
   32: ModuleTechnology moduleTechnology = GREY;
+  33: PagingSupport pagingSupport = PagingSupport.UNKNOWN;
 }
 
 struct TcvrStats {
