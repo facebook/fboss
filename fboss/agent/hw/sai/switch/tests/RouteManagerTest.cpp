@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
@@ -499,7 +500,11 @@ class Srv6RouteTest : public ManagerTestBase {
     setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE;
     ManagerTestBase::SetUp();
     intf0 = testInterfaces[0];
+    intf1 = testInterfaces[1];
+    intf2 = testInterfaces[2];
     resolveArp(intf0.id, intf0.remoteHosts[0]);
+    resolveArp(intf1.id, intf1.remoteHosts[0]);
+    resolveArp(intf2.id, intf2.remoteHosts[0]);
   }
 
   std::shared_ptr<Srv6Tunnel> makeSrv6Tunnel(
@@ -550,7 +555,28 @@ class Srv6RouteTest : public ManagerTestBase {
     return r;
   }
 
+  std::shared_ptr<Route<folly::IPAddressV4>> makeSrv6EcmpRoute(
+      const folly::CIDRNetwork& destination,
+      const std::vector<
+          std::pair<std::reference_wrapper<const TestInterface>, std::string>>&
+          nextHops) const {
+    RouteNextHopEntry::NextHopSet swNextHops;
+    for (const auto& [intfRef, tunnelId] : nextHops) {
+      swNextHops.insert(makeSrv6NextHop(intfRef.get(), tunnelId));
+    }
+    RouteNextHopEntry entry(swNextHops, AdminDistance::STATIC_ROUTE);
+    RouteFields<folly::IPAddressV4>::Prefix prefix(
+        destination.first.asV4(), destination.second);
+    auto r = std::make_shared<Route<folly::IPAddressV4>>(
+        Route<folly::IPAddressV4>::makeThrift(prefix));
+    r->update(ClientID{42}, entry);
+    r->setResolved(entry);
+    return r;
+  }
+
   TestInterface intf0;
+  TestInterface intf1;
+  TestInterface intf2;
 };
 
 TEST_F(Srv6RouteTest, addRouteWithSrv6NextHop) {
@@ -644,6 +670,116 @@ TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHop) {
 
   folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
   auto route = makeSrv6Route(destination, intf0, "srv6tunnel0");
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      route, RouterID(0));
+
+  auto saiEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), route);
+  ASSERT_NE(saiManagerTable->routeManager().getRouteHandle(saiEntry), nullptr);
+
+  saiManagerTable->routeManager().removeRoute(route, RouterID(0));
+  EXPECT_EQ(saiManagerTable->routeManager().getRouteHandle(saiEntry), nullptr);
+}
+
+TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroup) {
+  // Create tunnels for each interface
+  auto swTunnel0 = makeSrv6Tunnel("srv6tunnel0", intf0.id);
+  auto swTunnel1 = makeSrv6Tunnel("srv6tunnel1", intf1.id);
+  auto swTunnel2 = makeSrv6Tunnel("srv6tunnel2", intf2.id);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel0);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel1);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel2);
+
+  folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
+  auto route = makeSrv6EcmpRoute(
+      destination,
+      {{std::cref(intf0), "srv6tunnel0"},
+       {std::cref(intf1), "srv6tunnel1"},
+       {std::cref(intf2), "srv6tunnel2"}});
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      route, RouterID(0));
+
+  // Verify route handle exists
+  auto saiEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), route);
+  auto* handle = saiManagerTable->routeManager().getRouteHandle(saiEntry);
+  ASSERT_NE(handle, nullptr);
+
+  // Verify the route uses a next hop group (not single next hop)
+  auto nhgHandle = handle->nextHopGroupHandle();
+  ASSERT_NE(nhgHandle, nullptr);
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 3);
+
+  // Verify the route SAI object has FORWARD action
+  auto saiRoute = handle->route;
+  EXPECT_EQ(
+      GET_ATTR(Route, PacketAction, saiRoute->attributes()),
+      SAI_PACKET_ACTION_FORWARD);
+}
+
+TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
+  auto swTunnel0 = makeSrv6Tunnel("srv6tunnel0", intf0.id);
+  auto swTunnel1 = makeSrv6Tunnel("srv6tunnel1", intf1.id);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel0);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel1);
+
+  folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
+  auto route = makeSrv6EcmpRoute(
+      destination,
+      {{std::cref(intf0), "srv6tunnel0"}, {std::cref(intf1), "srv6tunnel1"}});
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      route, RouterID(0));
+
+  // Verify next hop group exists with 2 members
+  auto saiEntry =
+      saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), route);
+  auto* handle = saiManagerTable->routeManager().getRouteHandle(saiEntry);
+  ASSERT_NE(handle, nullptr);
+  auto nhgHandle = handle->nextHopGroupHandle();
+  ASSERT_NE(nhgHandle, nullptr);
+  EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
+
+  // Verify SID list for each next hop via SaiSrv6Manager
+  std::vector<folly::IPAddressV6> segmentList{
+      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  for (const auto& intf : {std::cref(intf0), std::cref(intf1)}) {
+    auto rifHandle =
+        saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+            InterfaceID(intf.get().id));
+    ASSERT_NE(rifHandle, nullptr);
+    auto rifId = rifHandle->adapterKey();
+    folly::IPAddress ip = intf.get().remoteHosts.at(0).ip;
+
+    SaiSrv6SidListTraits::AdapterHostKey sidListKey{
+        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segmentList, rifId, ip};
+    auto* sidListHandle =
+        saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+    ASSERT_NE(sidListHandle, nullptr);
+    ASSERT_NE(sidListHandle->sidList, nullptr);
+
+    auto sidListId = sidListHandle->sidList->adapterKey();
+    auto gotSegments = saiApiTable->srv6Api().getAttribute(
+        sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
+    EXPECT_EQ(gotSegments.size(), 2);
+    EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
+    EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+
+    auto gotType = saiApiTable->srv6Api().getAttribute(
+        sidListId, SaiSrv6SidListTraits::Attributes::Type{});
+    EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
+  }
+}
+
+TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHopGroup) {
+  auto swTunnel0 = makeSrv6Tunnel("srv6tunnel0", intf0.id);
+  auto swTunnel1 = makeSrv6Tunnel("srv6tunnel1", intf1.id);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel0);
+  saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel1);
+
+  folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
+  auto route = makeSrv6EcmpRoute(
+      destination,
+      {{std::cref(intf0), "srv6tunnel0"}, {std::cref(intf1), "srv6tunnel1"}});
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
       route, RouterID(0));
 
