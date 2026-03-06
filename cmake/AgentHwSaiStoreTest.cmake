@@ -5,7 +5,7 @@
 
 if(BUILD_SAI_FAKE)
 add_executable(store_test
-    fboss/agent/test/oss/Main.cpp
+    fboss/util/oss/TestMain.cpp
     fboss/agent/hw/sai/store/tests/AclTableGroupStoreTest.cpp
     fboss/agent/hw/sai/store/tests/AclTableStoreTest.cpp
     fboss/agent/hw/sai/store/tests/BridgeStoreTest.cpp

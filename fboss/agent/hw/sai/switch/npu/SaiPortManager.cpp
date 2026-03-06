@@ -769,8 +769,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      if (platform_->getAsic()->getAsicType() !=
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (platform_->getAsic()->getAsicVendor() !=
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
         if (platform_->getAsic()->isSupported(

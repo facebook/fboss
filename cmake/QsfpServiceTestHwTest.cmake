@@ -48,7 +48,7 @@ set(QSFP_HW_TEST_SRCS
   fboss/qsfp_service/test/hw_test/HwStateMachineTest.cpp
   fboss/qsfp_service/test/hw_test/HwTransceiverTest.cpp
   fboss/qsfp_service/test/hw_test/OpticsFwUpgradeTest.cpp
-  fboss/agent/test/oss/Main.cpp
+  fboss/util/oss/TestMain.cpp
 )
 
 set(QSFP_HW_TEST_DEPS

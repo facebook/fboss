@@ -603,6 +603,7 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
@@ -2612,6 +2613,18 @@ void SaiPortManager::clearStats(PortID port) {
       statsToClear.end());
   portHandle->port->clearStats(statsToClear);
   managerTable_->queueManager().clearStats(portHandle->configuredQueues);
+
+  // Reset accumulated inDiscards counter in portStats_.
+  // inDiscards_ is a software-accumulated counter (+=) that is not
+  // automatically cleared when the HW counters are reset above.
+  auto portStatItr = portStats_.find(port);
+  if (portStatItr != portStats_.end()) {
+    auto curPortStats = portStatItr->second->portStats();
+    curPortStats.inDiscards_() = 0;
+    portStatItr->second->clearStat(kInDiscards());
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    portStatItr->second->updateStats(curPortStats, now);
+  }
 }
 
 void SaiPortManager::clearInterfacePhyCounters(const PortID& portId) {
@@ -3425,6 +3438,20 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
       SaiPortSerdesTraits::Attributes::RxPf{
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.rxPf() = val; });
+
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  getSerdesParam(
+      "RxPfLfq",
+      SaiPortSerdesTraits::Attributes::RxPfLfq{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPfLfq() = val; });
+
+  getSerdesParam(
+      "RxPfHfq",
+      SaiPortSerdesTraits::Attributes::RxPfHfq{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPfHfq() = val; });
+#endif
 
   getSerdesParam(
       "RxTap2",

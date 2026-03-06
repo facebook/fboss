@@ -204,20 +204,12 @@ typename SaiNextHopGroupTraits::AdapterHostKey
 SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
     const folly::dynamic& json) {
   SaiNextHopGroupTraits::AdapterHostKey key;
-  // Pre D75845886 used an array as adapterHostKey value
-  if (json.isObject()) {
-    const auto& memberJson = json[AttributeName<
-        SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-    follyDynamicToNhopSet(memberJson, key);
+  const auto& memberJson = json[AttributeName<
+      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
+  follyDynamicToNhopSet(memberJson, key);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-    key.mode =
-        json[AttributeName<SaiArsTraits::Attributes::Mode>::value].asInt();
+  key.mode = json[AttributeName<SaiArsTraits::Attributes::Mode>::value].asInt();
 #endif
-  } else if (json.isArray()) {
-    follyDynamicToNhopSet(json, key);
-  } else {
-    throw FbossError("Unsupported value type for nhop-group AdapterHostKey");
-  }
   return key;
 }
 

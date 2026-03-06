@@ -43,6 +43,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
     tunnel.underlayIntfID() = interfaceId;
     tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
     tunnel.srcIp() = "2001:db8::1";
+    tunnel.ttlMode() = cfg::TunnelMode::PIPE;
+    tunnel.dscpMode() = cfg::TunnelMode::UNIFORM;
+    tunnel.ecnMode() = cfg::TunnelMode::UNIFORM;
     return tunnel;
   }
 

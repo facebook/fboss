@@ -223,7 +223,8 @@ SaiHostifManager::ensureHostifUserDefinedTrap(uint32_t queueId) {
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
   auto priority =
       SaiHostifUserDefinedTrapTraits::Attributes::TrapPriority::defaultValue();
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     // Chenab has following hardware limitations -
     //  - CPU queues in Chenab are 0...3.
     //  - trap priorities are in range of 0...3.
@@ -391,8 +392,8 @@ void SaiHostifManager::processRxReasonToQueueDelta(
      */
     auto priority = newRxReasonToQueue->size() - index;
     CHECK_GT(priority, 0);
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Chenab has following hardware limitations -
       //  - CPU queues in Chenab are 0...3.
       //  - trap priorities are in range of 0...3.

@@ -72,7 +72,7 @@ target_link_libraries(fsdb_test_clients
 
 add_executable(fsdb_pub_sub_tests
   fboss/fsdb/tests/client/FsdbPubSubManagerTest.cpp
-  fboss/agent/test/oss/Main.cpp
+  fboss/util/oss/TestMain.cpp
 )
 
 target_link_libraries(fsdb_pub_sub_tests

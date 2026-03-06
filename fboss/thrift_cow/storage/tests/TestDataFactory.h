@@ -9,6 +9,7 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace {
@@ -53,6 +54,9 @@ using facebook::fboss::phy::Side;
 // Import BGP types
 using TRibEntry = neteng::fboss::bgp::thrift::TRibEntry;
 
+// Import SwitchStateScale from SwitchStateBuilders
+using facebook::fboss::fsdb::test::SwitchStateScale;
+
 enum RoleSelector {
   Minimal = 0,
   MaxScale = 1,
@@ -69,21 +73,28 @@ enum RoleSelector {
   FDSW = 12,
   SDSW = 13,
   EDSW = 14,
-};
-
-struct SwitchStateScale {
-  int fibV4Size;
-  int fibV6Size;
-  int v4Nexthops;
-  int v6Nexthops;
-  int remoteSystemPortMapSize;
-  int remoteInterfaceMapSize;
+  RUSW = 15,
+  RGSW = 16,
 };
 
 struct AgentStatsScale {
-  int hwPortStatsCount;
-  int phyStatsCount;
-  int sysPortStatsCount;
+  int hwPortStatsCount{0};
+  int phyStatsCount{0};
+  int sysPortStatsCount{0};
+
+  // NEW fields
+  int asicCount{1};
+  int sysPortShelStateCount{0};
+  int asicTempCount{0};
+  bool hasHwResourceStats{true};
+  bool hasHwAsicErrors{true};
+  bool hasCpuPortStats{true};
+  bool hasSwitchDropStats{true};
+  bool hasSwitchWatermarkStats{true};
+  bool hasFabricReachabilityStats{true};
+  bool hasSwitchPipelineStats{true};
+  bool hasFabricOverdrainPct{false};
+  bool hasFlowletStats{false};
 };
 
 struct BgpRibMapScale {

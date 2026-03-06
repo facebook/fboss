@@ -48,6 +48,7 @@
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiYangra2PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -430,6 +431,8 @@ void SaiPlatform::initPorts() {
     } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
       saiPort =
           std::make_unique<SaiBcmBlackwolf800banwPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_YANGRA2) {
+      saiPort = std::make_unique<SaiYangra2PlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }

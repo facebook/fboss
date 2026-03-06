@@ -41,21 +41,15 @@ TEST(PathTests, toStrAgentConfig) {
 
 TEST(PathTests, IntegralGetOperator) {
   using namespace facebook::fboss::fsdb;
-  using k = facebook::fboss::cfg::agent_config_tags::strings;
   using AgentConfig = facebook::fboss::cfg::AgentConfig;
 
   using RootPath = thriftpath::RootThriftPath<AgentConfig>;
   RootPath root;
 
-  constexpr auto kFieldId = static_cast<apache::thrift::field_id_t>(
-      apache::thrift::op::get_field_id_v<
-          AgentConfig,
-          apache::thrift::ident::defaultCommandLineArgs>);
-  EXPECT_EQ(
-      root(std::integral_constant<apache::thrift::field_id_t, kFieldId>{})
-          .str(),
-      "/defaultCommandLineArgs");
-  EXPECT_EQ(root(k::defaultCommandLineArgs()).str(), "/defaultCommandLineArgs");
+  // Test field-id-based operator using modern thrift APIs
+  using FieldId = apache::thrift::op::
+      get_field_id<AgentConfig, apache::thrift::ident::defaultCommandLineArgs>;
+  EXPECT_EQ(root(FieldId()).str(), "/defaultCommandLineArgs");
 }
 
 TEST(PathTests, AgentConfigTokens) {

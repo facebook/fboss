@@ -658,6 +658,47 @@ TEST(RouteNextHopEntry, Srv6NextHopsThriftRoundTrip) {
   }
 }
 
+TEST(RouteNextHopEntry, FromRouteNextHopSetWithSrv6Fields) {
+  const std::vector<folly::IPAddressV6> segList{
+      folly::IPAddressV6("3001:db8:1::"),
+      folly::IPAddressV6("3001:db8:2::"),
+      folly::IPAddressV6("3001:db8:3::")};
+
+  RouteNextHopSet nhops;
+  nhops.emplace(ResolvedNextHop(
+      nextHopAddr1,
+      InterfaceID(1),
+      10,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      segList,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+
+  auto thriftNhops = util::fromRouteNextHopSet(nhops);
+  ASSERT_EQ(thriftNhops.size(), 1);
+
+  const auto& thriftNh = thriftNhops.at(0);
+
+  // Verify SRv6 segment list
+  ASSERT_EQ(thriftNh.srv6SegmentList()->size(), segList.size());
+  for (size_t i = 0; i < segList.size(); ++i) {
+    EXPECT_EQ(
+        facebook::network::toIPAddress(thriftNh.srv6SegmentList()->at(i)),
+        segList.at(i));
+  }
+
+  // Verify tunnel type and tunnel id
+  EXPECT_EQ(thriftNh.tunnelType(), TunnelType::SRV6_ENCAP);
+  EXPECT_EQ(thriftNh.tunnelId(), "srv6Tunnel0");
+
+  // Verify standard fields are preserved
+  EXPECT_EQ(facebook::network::toIPAddress(*thriftNh.address()), nextHopAddr1);
+  EXPECT_EQ(*thriftNh.weight(), 10);
+}
+
 TEST(RouteNextHopEntry, Srv6NextHopEntryThriftSerialization) {
   const std::vector<folly::IPAddressV6> segList{
       folly::IPAddressV6("2001:db8::1")};

@@ -188,7 +188,8 @@ void addFlowletAcl(
   acl.proto() = 17;
   acl.l4DstPort() = 4791;
   acl.dstIp() = "2001::/16";
-  if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     acl.etherType() = cfg::EtherType::IPv6;
   }
   if (FLAGS_enable_th5_ars_scale_mode) {

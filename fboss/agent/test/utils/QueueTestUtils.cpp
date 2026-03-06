@@ -146,6 +146,7 @@ int getTrafficClassToCpuEgressQueueId(const HwAsic* hwAsic, int trafficClass) {
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       // same one-to-one tc to queue mapping for other platforms
       return trafficClass;
   }
@@ -181,6 +182,7 @@ bool needsSeparateCpuQosPolicy(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       return false;
   }
   // should not reach here

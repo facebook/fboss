@@ -75,7 +75,7 @@ target_link_libraries(trunk_utils
 )
 
 add_executable(async_logger_test
-  fboss/agent/test/oss/Main.cpp
+  fboss/util/oss/TestMain.cpp
   fboss/agent/test/AsyncLoggerTest.cpp
 )
 

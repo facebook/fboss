@@ -1654,19 +1654,20 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDown) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv4), true, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1724,19 +1725,19 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDownUp) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+        utility::checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1794,19 +1795,20 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6EntriesPortsDownUp) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1824,7 +1826,7 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
 
-    intfOldIPv4s = getInterfaceIpAddress(config, true);
+    intfOldIPv4s = utility::getInterfaceIpAddress(config, true);
     checkKernelIpEntriesExist(intfID, intfOldIPv4s[0], true);
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::DISABLED;
@@ -1860,9 +1862,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
     std::vector<std::string> intfIPv6s;
-    intfIPv6s = getInterfaceIpAddress(config, true);
+    intfIPv6s = utility::getInterfaceIpAddress(config, true);
     checkKernelIpEntriesExist(intfID, intfIPv6s[0], true);
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
 
     checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], true);
   };
@@ -1882,7 +1884,7 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
 
-    intfOldIPv6s = getInterfaceIpAddress(config, false);
+    intfOldIPv6s = utility::getInterfaceIpAddress(config, false);
     checkKernelIpEntriesExist(intfID, intfOldIPv6s[0], false);
 
     for (int i = 0; i < config.ports()->size(); i++) {
@@ -1919,9 +1921,9 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
     std::vector<std::string> intfIPv6s;
-    intfIPv6s = getInterfaceIpAddress(config, false);
+    intfIPv6s = utility::getInterfaceIpAddress(config, false);
     checkKernelIpEntriesExist(intfID, intfIPv6s[0], false);
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
 
     checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], false);
   };

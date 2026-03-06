@@ -52,26 +52,26 @@ class TunnelManagerTest : public ManagerTestBase {
       const folly::IPAddress& expDstIp,
       const folly::IPAddress& expSrcIp) {
     auto type = saiApiTable->tunnelApi().getAttribute(
-        saiId, SaiTunnelTraits::Attributes::Type());
+        saiId, SaiIpInIpTunnelTraits::Attributes::Type());
     EXPECT_EQ(type, expType);
     SaiRouterInterfaceHandle* intfHandle =
         saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
             InterfaceID(intf0.id));
     RouterInterfaceSaiId saiIntfId{intfHandle->adapterKey()};
     auto underlay = saiApiTable->tunnelApi().getAttribute(
-        saiId, SaiTunnelTraits::Attributes::UnderlayInterface());
+        saiId, SaiIpInIpTunnelTraits::Attributes::UnderlayInterface());
     EXPECT_EQ(underlay, saiIntfId);
     auto overlay = saiApiTable->tunnelApi().getAttribute(
-        saiId, SaiTunnelTraits::Attributes::UnderlayInterface());
+        saiId, SaiIpInIpTunnelTraits::Attributes::UnderlayInterface());
     EXPECT_EQ(overlay, saiIntfId);
     auto ttl = saiApiTable->tunnelApi().getAttribute(
-        saiId, SaiTunnelTraits::Attributes::DecapTtlMode());
+        saiId, SaiIpInIpTunnelTraits::Attributes::DecapTtlMode());
     EXPECT_EQ(ttl, expTtl);
     auto dscp = saiApiTable->tunnelApi().getAttribute(
-        saiId, SaiTunnelTraits::Attributes::DecapDscpMode());
+        saiId, SaiIpInIpTunnelTraits::Attributes::DecapDscpMode());
     EXPECT_EQ(dscp, expDscp);
     auto ecn = saiApiTable->tunnelApi().getAttribute(
-        saiId, SaiTunnelTraits::Attributes::DecapEcnMode());
+        saiId, SaiIpInIpTunnelTraits::Attributes::DecapEcnMode());
     EXPECT_EQ(ecn, expEcn);
     auto handle = saiManagerTable->tunnelManager().getTunnelHandle(id);
     SaiVirtualRouterHandle* virtualRouterHandle =
@@ -157,7 +157,8 @@ TEST_F(TunnelManagerTest, changeTunnel) {
   auto handle = saiManagerTable->tunnelManager().getTunnelHandle("tunnel1");
   EXPECT_NE(handle, nullptr);
   EXPECT_EQ(
-      GET_OPT_ATTR(Tunnel, DecapTtlMode, handle->tunnel->attributes()), 0);
+      GET_OPT_ATTR(IpInIpTunnel, DecapTtlMode, handle->tunnel->attributes()),
+      0);
   // Term obj has reversed semantics of src and dst
   auto tunnelTerm = handle->getP2MPTunnelTermHandle();
   EXPECT_EQ(

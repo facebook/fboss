@@ -338,15 +338,11 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
 
   auto iter = nhgAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
   EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter);
-  auto memberList = json[AttributeName<
-      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-  EXPECT_EQ(iter->second, memberList);
+  EXPECT_EQ(iter->second, json);
 
   auto iter0 = nhgAk2AhkJson.find(folly::to<std::string>(got0->adapterKey()));
   EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter0);
-  auto memberList0 = json0[AttributeName<
-      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-  EXPECT_EQ(iter0->second, memberList0);
+  EXPECT_EQ(iter0->second, json0);
 }
 
 TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
