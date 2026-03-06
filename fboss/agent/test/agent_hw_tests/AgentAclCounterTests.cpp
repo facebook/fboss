@@ -463,7 +463,7 @@ class AgentAclCounterTest : public AgentHwTest {
       case AclType::SRC_PORT:
       case AclType::SRC_PORT_DENY:
         acl->srcPort() = helper_->ecmpPortDescriptorAt(0).phyPortID();
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
           // Set the IP type to NON_IP to match all ingress packets in ASIC SRC
           // port
           acl->ipType() = cfg::IpType::NON_IP;
