@@ -74,7 +74,7 @@ BidirectionalPacketStream::BidirectionalPacketStream(
     folly::EventBase* timerEventBase,
     double timeout,
     BidirectionalPacketAcceptor* acceptor)
-    : PacketStreamService(serviceName),
+    : PacketStreamService(serviceName, true),
       PacketStreamClient(serviceName, ioEventBase),
       folly::AsyncTimeout(timerEventBase),
       evb_(timerEventBase),

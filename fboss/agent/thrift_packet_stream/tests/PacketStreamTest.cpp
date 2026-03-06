@@ -23,7 +23,7 @@ class DerivedPacketStreamService : public PacketStreamService {
   DerivedPacketStreamService(
       const std::string& serviceName,
       std::shared_ptr<folly::Baton<>> baton)
-      : PacketStreamService(serviceName), baton_(baton) {}
+      : PacketStreamService(serviceName, true), baton_(baton) {}
 
   void clientConnected(const std::string& clientId) override {
     EXPECT_EQ(clientId, g_client);
