@@ -82,13 +82,6 @@ class FsdbPubSubManager {
   void publishStat(Patch&& pubUnit);
 
   /* Subscriber add APIs */
-  std::string addStatDeltaSubscription(
-      const Path& subscribePath,
-      SubscriptionStateChangeCb subscriptionStateChangeCb,
-      FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-      utils::ConnectionOptions&& connectionOptions =
-          kDefaultConnectionOptions(),
-      std::optional<FsdbStreamHeartbeatCb> heartbeatCb = std::nullopt);
   std::string addStatPathSubscription(
       const Path& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
@@ -99,12 +92,6 @@ class FsdbPubSubManager {
   /* multi path subscription */
   std::string addStateDeltaSubscription(
       const MultiPath& subscribePaths,
-      SubscriptionStateChangeCb subscriptionStateChangeCb,
-      FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-      utils::ConnectionOptions&& connectionOptions =
-          kDefaultConnectionOptions());
-  std::string addStatDeltaSubscription(
-      const MultiPath& subscribePath,
       SubscriptionStateChangeCb subscriptionStateChangeCb,
       FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
       utils::ConnectionOptions&& connectionOptions =
@@ -185,9 +172,6 @@ class FsdbPubSubManager {
   void removeStatePathSubscription(
       const Path& subscribePath,
       const std::string& fsdbHost = "::1");
-  void removeStatDeltaSubscription(
-      const Path& subscribePath,
-      const std::string& fsdbHost = "::1");
   void removeStatPathSubscription(
       const Path& subscribePath,
       const std::string& fsdbHost = "::1");
@@ -199,9 +183,6 @@ class FsdbPubSubManager {
       const MultiPath& subscribePath,
       const std::string& fsdbHost = "::1");
   void removeStatePathSubscription(
-      const MultiPath& subscribePath,
-      const std::string& fsdbHost = "::1");
-  void removeStatDeltaSubscription(
       const MultiPath& subscribePath,
       const std::string& fsdbHost = "::1");
   void removeStatPathSubscription(
