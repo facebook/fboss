@@ -263,16 +263,6 @@ class TestDeviceCommands(unittest.TestCase):
         # Call command - just verify it doesn't crash
         reprovision_command(args)
 
-    def test_update_stub(self):
-        """Test update command (stub)"""
-        args = argparse.Namespace(
-            mac=self.test_mac,
-            manifest=str(self.manifest_path),
-            components=["kernel", "hw_agent_sai"],
-        )
-        # Call command - just verify it doesn't crash
-        update_command(args)
-
     @patch("distro_cli.cmds.device.container.exec_in_container")
     @patch("distro_cli.cmds.device.container.container_is_running")
     def test_get_device_ip_ipv4(self, mock_is_running, mock_exec):
@@ -441,25 +431,27 @@ class TestDeviceUpdater(unittest.TestCase):
             updater.validate()
         self.assertIn("neither 'download' nor 'execute'", str(ctx.exception))
 
-    def test_validate_success(self):
-        """Test successful validation for valid components"""
+    def test_validate_success_forwarding_stack(self):
+        """Test successful validation for fboss-forwarding-stack"""
         manifest = ImageManifest(self.update_manifest_path)
-
-        # Test forwarding-stack
-        updater1 = DeviceUpdater(
+        updater = DeviceUpdater(
             mac="aa:bb:cc:dd:ee:ff",
             manifest=manifest,
             component="fboss-forwarding-stack",
         )
-        updater1.validate()  # Should not raise
+        # Should not raise
+        updater.validate()
 
-        # Test platform-stack
-        updater2 = DeviceUpdater(
+    def test_validate_success_platform_stack(self):
+        """Test successful validation for fboss-platform-stack"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
             mac="aa:bb:cc:dd:ee:ff",
             manifest=manifest,
             component="fboss-platform-stack",
         )
-        updater2.validate()  # Should not raise
+        # Should not raise
+        updater.validate()
 
     def test_get_services_from_component_services(self):
         """Test that services are correctly read from COMPONENT_SERVICES dict"""
@@ -488,6 +480,62 @@ class TestDeviceUpdater(unittest.TestCase):
                 "fan_service",
                 "data_corral_service",
             ],
+        )
+
+    def test_update_requires_device_ip(self):
+        """Test that update() raises DeviceUpdateError when device_ip is not set"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+            device_ip=None,
+        )
+        with self.assertRaises(DeviceUpdateError) as ctx:
+            updater.update()
+        self.assertIn("Device IP not set", str(ctx.exception))
+
+    def test_acquire_artifacts_and_services(self):
+        """Test services are available for platform-stack component"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-platform-stack",
+        )
+
+        # Validate first
+        updater.validate()
+
+        # Verify services come from COMPONENT_SERVICES dict
+        services = updater._get_services()
+        self.assertEqual(
+            services,
+            [
+                "platform_manager",
+                "sensor_service",
+                "fan_service",
+                "data_corral_service",
+            ],
+        )
+
+    def test_acquire_artifacts_forwarding_stack(self):
+        """Test services are available for forwarding-stack component"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+        )
+
+        # Validate first
+        updater.validate()
+
+        # Verify services come from COMPONENT_SERVICES dict
+        services = updater._get_services()
+        self.assertEqual(
+            services,
+            ["wedge_agent", "fsdb", "qsfp_service"],
         )
 
 

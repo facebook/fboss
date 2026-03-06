@@ -17,7 +17,6 @@ find_package(Python3 3.10 COMPONENTS Interpreter REQUIRED)
 message(STATUS "Using Python ${Python3_VERSION} (${Python3_EXECUTABLE}) for distro_cli tests")
 
 include(FBPythonBinary)
-
 file(GLOB DISTRO_CLI_TEST_SOURCES
   "fboss-image/distro_cli/tests/*_test.py"
 )
@@ -84,6 +83,19 @@ add_custom_command(
           "${DATA_SOURCE_DIR}"
           "${DATA_DEST_DIR}/data"
   COMMENT "Copying test data files for distro_cli_tests"
+)
+
+# Copy scripts directory used in unit tests
+set(SCRIPTS_DEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/distro_cli_tests/distro_cli/scripts")
+set(SCRIPTS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fboss-image/distro_cli/scripts")
+
+add_custom_command(
+  TARGET distro_cli_tests.GEN_PY_EXE
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          "${SCRIPTS_SOURCE_DIR}"
+          "${SCRIPTS_DEST_DIR}"
+  COMMENT "Copying scripts for distro_cli_tests"
 )
 
 install_fb_python_executable(distro_cli_tests)
