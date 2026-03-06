@@ -3439,6 +3439,20 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.rxPf() = val; });
 
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  getSerdesParam(
+      "RxPfLfq",
+      SaiPortSerdesTraits::Attributes::RxPfLfq{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPfLfq() = val; });
+
+  getSerdesParam(
+      "RxPfHfq",
+      SaiPortSerdesTraits::Attributes::RxPfHfq{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPfHfq() = val; });
+#endif
+
   getSerdesParam(
       "RxTap2",
       SaiPortSerdesTraits::Attributes::RxTap2{
