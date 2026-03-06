@@ -18,6 +18,7 @@ DECLARE_bool(enable_lacp);
 DECLARE_bool(enable_lldp);
 DECLARE_bool(publish_boot_type);
 DECLARE_bool(enable_macsec);
+DECLARE_bool(enable_aifm_ctrl_handler);
 DECLARE_bool(enable_stats_update_thread);
 
 namespace facebook::fboss {
@@ -95,6 +96,7 @@ class SwAgentInitializer : public AgentInitializer {
 
   std::unique_ptr<SwSwitch> sw_;
   std::unique_ptr<SwSwitchInitializer> initializer_;
+  std::shared_ptr<PacketStreamHandler> packetStreamHandler_;
   virtual void handleExitSignal(bool gracefulExit) = 0;
 
   void stopServer();
