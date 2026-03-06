@@ -13,6 +13,7 @@ add_executable(fboss2_cmd_config_test
   fboss/cli/fboss2/test/config/CmdConfigReloadTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigSessionDiffTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigSessionTest.cpp
+  fboss/cli/fboss2/test/config/CmdConfigVlanStaticMacTest.cpp
   fboss/cli/fboss2/test/config/CmdConfigTestBase.cpp
 )
 
