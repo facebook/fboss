@@ -1,11 +1,15 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
@@ -73,6 +77,73 @@ TEST_F(AgentSrv6EncapTest, CreateSrv6Tunnel) {
                         .value()));
     EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddress("2001:db8::1"));
     EXPECT_EQ(tunnel->getDstIP(), std::nullopt);
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentSrv6EncapTest, sendPacketToEncapRoute) {
+  auto setup = [this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        getLocalMacAddress());
+    resolveNeighborAndProgramRoutes(
+        ecmpHelper, ecmpHelper.getNextHops().size());
+
+    auto nhop = ecmpHelper.nhop(0);
+    std::vector<folly::IPAddressV6> sidList{
+        folly::IPAddressV6("3001:db8:1::"),
+        folly::IPAddressV6("3001:db8:2::"),
+        folly::IPAddressV6("3001:db8:3::")};
+    RouteNextHopSet nhops{ResolvedNextHop(
+        nhop.ip,
+        nhop.intf,
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        sidList,
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"))};
+    auto routeUpdater = getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2800:2::"),
+        64,
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    routeUpdater.program();
+  };
+
+  auto verify = [this]() {
+    utility::EcmpSetupAnyNPorts6 ecmpHelper(
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        getLocalMacAddress());
+    auto egressPort = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+
+    auto portStatsBefore = getLatestPortStats(egressPort);
+    auto bytesBefore = *portStatsBefore.outBytes_();
+
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto txPacket = utility::makeUDPTxPacket(
+        getSw(),
+        getVlanIDForTx(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("1::10"),
+        folly::IPAddressV6("2800:2::1"),
+        8000,
+        8001);
+    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+
+    WITH_RETRIES({
+      auto portStatsAfter = getLatestPortStats(egressPort);
+      auto bytesAfter = *portStatsAfter.outBytes_();
+      EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+    });
   };
   verifyAcrossWarmBoots(setup, verify);
 }
