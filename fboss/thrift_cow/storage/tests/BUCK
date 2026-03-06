@@ -69,9 +69,6 @@ cpp_library(
         "//folly/init:init",
         "//folly/json:dynamic",
     ],
-    exported_external_deps = [
-        "gflags",
-    ],
 )
 
 cpp_benchmark(
