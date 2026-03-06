@@ -24,6 +24,7 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
@@ -195,7 +196,7 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
-          static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
+          static_cast<const Tomahawk6Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
