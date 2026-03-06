@@ -22,8 +22,9 @@ SERVICES="$*"
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 TIMESTAMP=$(date +%s)
-BASE_SNAPSHOT="/distro-base"
-UPDATES_DIR="/updates"
+# Resolve symlinks to real paths (needed for systemd RootDirectory which doesn't follow symlinks)
+BASE_SNAPSHOT="$(readlink -f /distro-base)"
+UPDATES_DIR="$(readlink -f /updates)"
 
 echo "Updating component: ${COMPONENT}"
 echo "Services to restart: ${SERVICES}"
@@ -34,11 +35,13 @@ STAGING_DIR=$(mktemp -d -p "${UPDATES_DIR}")
 trap 'rm -rf "${STAGING_DIR}"' EXIT
 
 FOUND_ARTIFACT=false
+shopt -s nullglob
 for f in "${SCRIPT_DIR}"/*.tar.zst "${SCRIPT_DIR}"/*.tar; do
   FOUND_ARTIFACT=true
   echo "Extracting ${f}..."
   tar -xf "$f" -C "${STAGING_DIR}"
 done
+shopt -u nullglob
 
 if [ "${FOUND_ARTIFACT}" = false ]; then
   echo "Error: No artifact found in ${SCRIPT_DIR}" >&2

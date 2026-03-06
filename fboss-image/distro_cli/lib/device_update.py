@@ -173,13 +173,18 @@ class DeviceUpdater:
                     f"Failed to create remote directory: {result.stderr.decode()}"
                 )
 
-            # SCP artifact and update script to device
+            # SCP artifact(s) and update script to device
+            # Handle both single artifact (Path) and multiple artifacts (list of Paths)
+            artifacts = (
+                artifact_path if isinstance(artifact_path, list) else [artifact_path]
+            )
+            scp_files = [str(a) for a in artifacts] + [str(UPDATE_SCRIPT_PATH)]
+
             result = subprocess.run(
                 [
                     "scp",
                     *ssh_opts,
-                    str(artifact_path),
-                    str(UPDATE_SCRIPT_PATH),
+                    *scp_files,
                     f"{device_user}@{self.device_ip}:{remote_dir}/",
                 ],
                 capture_output=True,
@@ -194,7 +199,7 @@ class DeviceUpdater:
             remote_cmd = (
                 f"cd {remote_dir} && "
                 f"chmod +x update_service.sh && "
-                f"sudo ./update_service.sh {self.component} {services_arg}"
+                f"./update_service.sh {self.component} {services_arg}"
             )
 
             logger.info("Executing update on device...")
