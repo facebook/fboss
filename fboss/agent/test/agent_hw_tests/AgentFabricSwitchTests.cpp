@@ -148,7 +148,7 @@ TEST_F(AgentFabricSwitchTest, collectStats) {
       }
     });
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
@@ -157,7 +157,7 @@ TEST_F(AgentFabricSwitchTest, checkFabricConnectivity) {
     auto switchId = getCurrentSwitchIdForTesting();
     utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentFabricSwitchTest, fabricPortIsolate) {
