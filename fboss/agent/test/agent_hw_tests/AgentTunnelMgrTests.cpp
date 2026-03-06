@@ -1221,7 +1221,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
     }
 
