@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 INTERFACE=""
 PERSIST_DIR=""
@@ -69,4 +70,4 @@ echo -n "${INTERFACE}" >"${PERSIST_DIR}/interface_name.txt"
 docker run --rm -it --network host --cap-add=NET_ADMIN \
   --volume "$(realpath "${PERSIST_DIR}")":/distro_infra/persistent:rw \
   --name "${DISTRO_CONTAINER_NAME}" \
-  fboss_distro_infra /distro_infra/run_distro_infra.sh --intf "${INTERFACE}"
+  fboss_distro_infra /distro_infra/run_distro_infra.sh "${NODHCPV6}" --intf "${INTERFACE}"
