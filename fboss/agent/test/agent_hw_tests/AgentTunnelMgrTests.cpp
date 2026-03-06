@@ -53,7 +53,7 @@ class AgentTunnelMgrTest : public AgentHwTest {
     if (isWarmbootSetup) {
       XLOG(INFO)
           << "Coldboot detected: clearing all kernel entries before agent initialization";
-      clearAllKernelEntries();
+      utility::clearAllKernelEntries();
     } else {
       XLOG(INFO) << "Warmboot detected: skipping kernel entries cleanup";
     }
