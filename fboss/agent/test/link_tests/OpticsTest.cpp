@@ -212,8 +212,9 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
 
             for (const auto& signal : hostLaneSignals) {
               if (std::find(
-                      hostLanes.begin(), hostLanes.end(), signal.get_lane()) !=
-                  hostLanes.end()) {
+                      hostLanes.begin(),
+                      hostLanes.end(),
+                      signal.lane().value()) != hostLanes.end()) {
                 if (!isLpo) {
                   ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
                 }
@@ -224,15 +225,15 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
                 if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
                     isLpo == false) {
                   EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
-                      << portName << ", lane: " << signal.get_lane();
+                      << portName << ", lane: " << signal.lane().value();
                 }
                 // We see TX_LOS set only on the first lane of FR1_100G. This is
                 // a bug but we can't get the vendor to fix it now. Therefore,
                 // handle it separately in the test
                 if (mediaInterface != MediaInterfaceCode::FR1_100G ||
-                    signal.get_lane() == 0) {
+                    signal.lane().value() == 0) {
                   EXPECT_EVENTUALLY_EQ(signal.txLos().value(), txLatch)
-                      << portName << ", lane: " << signal.get_lane();
+                      << portName << ", lane: " << signal.lane().value();
                 }
               }
             }
@@ -246,7 +247,7 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
               if (std::find(
                       mediaLanes.begin(),
                       mediaLanes.end(),
-                      signal.get_lane()) != mediaLanes.end()) {
+                      signal.lane().value()) != mediaLanes.end()) {
                 // Unfortunately, can't rely on rxLos as it doesn't always get
                 // set. Some optics don't squelch their line side when the
                 // system side is down.
@@ -260,7 +261,7 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
                 if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
                     mediaInterface != MediaInterfaceCode::ZR_800G) {
                   EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
-                      << portName << ", lane: " << signal.get_lane();
+                      << portName << ", lane: " << signal.lane().value();
                 }
               }
             }
