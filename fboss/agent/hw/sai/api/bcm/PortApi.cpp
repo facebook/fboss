@@ -108,6 +108,24 @@ SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfLfqWrapper::operator()() {
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_LFQ_PF;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfHfqWrapper::operator()() {
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_HFQ_PF;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxEqP2Wrapper::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_EQ_P2;
