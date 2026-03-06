@@ -37,15 +37,6 @@ class PubSubManagerTest : public ::testing::Test {
         operDeltaCb,
         utils::ConnectionOptions(host, FLAGS_fsdbPort));
   }
-  void addStatDeltaSubscription(
-      const std::vector<std::string>& path,
-      const std::string& host = "::1") {
-    pubSubManager_.addStatDeltaSubscription(
-        path,
-        subscriptionStateChangeCb,
-        operDeltaCb,
-        utils::ConnectionOptions(host, FLAGS_fsdbPort));
-  }
   void addStatePathSubscription(
       const std::vector<std::string>& path,
       const std::string& host = "::1") {
@@ -138,36 +129,32 @@ TEST_F(PubSubManagerTest, addRemoveSubscriptions) {
   addStateDeltaSubscription({"foo"});
   // multiple delta subscriptions to same host, path
   EXPECT_THROW(addStateDeltaSubscription({}), std::runtime_error);
-  // Stat delta subscriptions to same path as state delta ok
-  addStatDeltaSubscription({"foo"});
-  // Dup stat delta subscription should throw
-  EXPECT_THROW(addStatDeltaSubscription({"foo"}), std::runtime_error);
-  EXPECT_EQ(pubSubManager_.numSubscriptions(), 3);
-  pubSubManager_.removeStateDeltaSubscription(std::vector<std::string>{});
   EXPECT_EQ(pubSubManager_.numSubscriptions(), 2);
+  pubSubManager_.removeStateDeltaSubscription(std::vector<std::string>{});
+  EXPECT_EQ(pubSubManager_.numSubscriptions(), 1);
   addStateDeltaSubscription({});
   // Same subscripton path, different host
   addStateDeltaSubscription({"foo"}, "::2");
-  EXPECT_EQ(pubSubManager_.numSubscriptions(), 4);
+  EXPECT_EQ(pubSubManager_.numSubscriptions(), 3);
   // remove non existent state subscription. No effect
   pubSubManager_.removeStatePathSubscription(std::vector<std::string>{});
-  EXPECT_EQ(pubSubManager_.numSubscriptions(), 4);
+  EXPECT_EQ(pubSubManager_.numSubscriptions(), 3);
 
   // Add state, stat subscription for same path, host as delta
   addStatePathSubscription({});
   addStatPathSubscription({});
-  EXPECT_EQ(pubSubManager_.numSubscriptions(), 6);
+  EXPECT_EQ(pubSubManager_.numSubscriptions(), 5);
   // multiple state, stat subscriptions to same host, path
   EXPECT_THROW(addStatePathSubscription({}), std::runtime_error);
   EXPECT_THROW(addStatPathSubscription({}), std::runtime_error);
   // Same subscription path, different host
   addStatePathSubscription({}, "::2");
   addStatPathSubscription({}, "::2");
-  EXPECT_EQ(pubSubManager_.numSubscriptions(), 8);
+  EXPECT_EQ(pubSubManager_.numSubscriptions(), 7);
 
   // Verify getSubscriptionInfo
   const auto subscriptionInfoList = pubSubManager_.getSubscriptionInfo();
-  EXPECT_EQ(subscriptionInfoList.size(), 8);
+  EXPECT_EQ(subscriptionInfoList.size(), 7);
   for (const auto& subscriptionInfo : subscriptionInfoList) {
     EXPECT_TRUE(
         subscriptionInfo.server == "::1" || subscriptionInfo.server == "::2");
@@ -207,18 +194,18 @@ TEST_F(PubSubManagerTest, passEvbOrNot) {
 
 TEST_F(PubSubManagerTest, removeAllSubscriptions) {
   addStateDeltaSubscription({"foo"});
-  addStatDeltaSubscription({"foo"});
+  addStatPathSubscription({"foo"});
   EXPECT_THROW(addStateDeltaSubscription({"foo"}), std::runtime_error);
-  EXPECT_THROW(addStatDeltaSubscription({"foo"}), std::runtime_error);
+  EXPECT_THROW(addStatPathSubscription({"foo"}), std::runtime_error);
 
   pubSubManager_.clearStateSubscriptions();
   // resub should succeed
   addStateDeltaSubscription({"foo"});
   // still have stat sub registered
-  EXPECT_THROW(addStatDeltaSubscription({"foo"}), std::runtime_error);
+  EXPECT_THROW(addStatPathSubscription({"foo"}), std::runtime_error);
 
   pubSubManager_.clearStatSubscriptions();
-  addStatDeltaSubscription({"foo"});
+  addStatPathSubscription({"foo"});
 }
 
 TEST_F(PubSubManagerTest, TestSubscriptionInfo) {
