@@ -587,15 +587,15 @@ class AgentTunnelMgrTest : public AgentHwTest {
   void clearKernelEntries(
       const std::string& intfIPv4,
       const std::string& intfIPv6) {
-    clearKernelEntries(intfIPv4, true);
-    clearKernelEntries(intfIPv6, false);
+    utility::clearKernelEntries(intfIPv4, true);
+    utility::clearKernelEntries(intfIPv6, false);
   }
 
   void checkKernelEntriesRemoved(
       const std::string& intfIPv4,
       const std::string& intfIPv6) {
-    checkIpKernelEntriesRemoved(intfIPv4, true);
-    checkIpKernelEntriesRemoved(intfIPv6, false);
+    utility::checkIpKernelEntriesRemoved(intfIPv4, true);
+    utility::checkIpKernelEntriesRemoved(intfIPv6, false);
   }
 
   cfg::SwitchConfig initialConfig(
@@ -654,9 +654,11 @@ class AgentTunnelMgrTest : public AgentHwTest {
     // the kernel entries if the interface is  up
     if (status) {
       if (isIPv4) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIP), true, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIP), true, false);
       } else {
-        checkKernelEntriesExist(folly::to<std::string>(intfIP), false, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIP), false, false);
       }
     }
   }
@@ -872,9 +874,11 @@ class AgentTunnelMgrTest : public AgentHwTest {
     // the kernel entries if the interface is  up
     if (status) {
       if (isIPv4) {
-        checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
+        utility::checkKernelEntriesNotExist(
+            folly::to<std::string>(intfIP), true, true);
       } else {
-        checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
+        utility::checkKernelEntriesNotExist(
+            folly::to<std::string>(intfIP), false, true);
       }
     }
   }
@@ -892,9 +896,11 @@ class AgentTunnelMgrTest : public AgentHwTest {
       bool isIPv4) {
     // Check kernel entries regardless of interface status
     if (isIPv4) {
-      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
+      utility::checkKernelEntriesNotExist(
+          folly::to<std::string>(intfIP), true, true);
     } else {
-      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
+      utility::checkKernelEntriesNotExist(
+          folly::to<std::string>(intfIP), false, true);
     }
   }
 };
@@ -1132,11 +1138,13 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
 
         // Get IPv4 address for this interface
         auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemoved(intfID, ipv4Addr.str(), true);
+        utility::checkKernelIpEntriesRemoved(
+            tunMgr_, getProgrammedState(), intfID, ipv4Addr.str(), true);
 
         // Get IPv6 address for this interface
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemoved(intfID, ipv6Addr.str(), false);
+        utility::checkKernelIpEntriesRemoved(
+            tunMgr_, getProgrammedState(), intfID, ipv6Addr.str(), false);
       }
 
       // Re-register TunManager for state observation after test verification
@@ -1295,11 +1303,13 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
 
         // Get IPv4 address for this interface
         auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemovedStrict(intfID, ipv4Addr.str(), true);
+        utility::checkKernelIpEntriesRemovedStrict(
+            intfID, ipv4Addr.str(), true);
 
         // Get IPv6 address for this interface
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemovedStrict(intfID, ipv6Addr.str(), false);
+        utility::checkKernelIpEntriesRemovedStrict(
+            intfID, ipv6Addr.str(), false);
       }
 
       // Re-register TunManager for cleanup
@@ -1827,9 +1837,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     InterfaceID intfID = getInterfaceIDForPort(
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
 
     intfOldIPv4s = utility::getInterfaceIpAddress(config, true);
-    checkKernelIpEntriesExist(intfID, intfOldIPv4s[0], true);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv4s[0], true);
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::DISABLED;
     }
@@ -1844,9 +1856,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     // Bring up one port
     bringUpPort(getAgentEnsemble()->masterLogicalPortIds()[0]);
 
-    checkKernelIpEntriesExist(intfID, intfNewIPv4s[0], true);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfNewIPv4s[0], true);
 
-    checkKernelIpEntriesRemoved(intfID, intfOldIPv4s[0], true);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv4s[0], true);
 
     config.ports()[0].state() = cfg::PortState::ENABLED;
     auto portType = config.ports()[0].portType().value();
@@ -1863,12 +1877,15 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
   auto verifyPostWarmboot = [=, this]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     std::vector<std::string> intfIPv6s;
     intfIPv6s = utility::getInterfaceIpAddress(config, true);
-    checkKernelIpEntriesExist(intfID, intfIPv6s[0], true);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], true);
     utility::clearAllKernelEntries();
 
-    checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], true);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], true);
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -1885,9 +1902,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     InterfaceID intfID = getInterfaceIDForPort(
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
 
     intfOldIPv6s = utility::getInterfaceIpAddress(config, false);
-    checkKernelIpEntriesExist(intfID, intfOldIPv6s[0], false);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv6s[0], false);
 
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::DISABLED;
@@ -1903,9 +1922,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     // Bring up one port
     bringUpPort(getAgentEnsemble()->masterLogicalPortIds()[0]);
 
-    checkKernelIpEntriesExist(intfID, intfNewIPv6s[0], false);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfNewIPv6s[0], false);
 
-    checkKernelIpEntriesRemoved(intfID, intfOldIPv6s[0], false);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv6s[0], false);
 
     config.ports()[0].state() = cfg::PortState::ENABLED;
     auto portType = config.ports()[0].portType().value();
@@ -1922,12 +1943,15 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
   auto verifyPostWarmboot = [=, this]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     std::vector<std::string> intfIPv6s;
     intfIPv6s = utility::getInterfaceIpAddress(config, false);
-    checkKernelIpEntriesExist(intfID, intfIPv6s[0], false);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], false);
     utility::clearAllKernelEntries();
 
-    checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], false);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], false);
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
