@@ -669,6 +669,27 @@ cpp_library(
 )
 
 cpp_library(
+    name = "packet_stream_handler",
+    srcs = [
+        "PacketStreamHandler.cpp",
+    ],
+    headers = [
+        "PacketStreamHandler.h",
+    ],
+    exported_deps = [
+        ":core",
+        ":fboss-types",
+        ":packet",
+        "//fb303:thread_cached_service_data",
+        "//fboss/agent/state:state",
+        "//fboss/agent/thrift_packet_stream:packet_stream_server",
+        "//folly:synchronized",
+        "//folly/io:iobuf",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "stats",
     srcs = [
         "AggregatePortStats.cpp",
