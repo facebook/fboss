@@ -67124,7 +67124,8 @@
             "counter": "ttld-interconnect"
           }
         }
-      ]
+      ],
+      "defaultQosPolicy": "ai-queue-policy-v2"
     },
     "mirrors": [
       
@@ -67167,10 +67168,234 @@
       }
     ],
     "qosPolicies": [
-      
+      {
+        "name": "ai-queue-policy-v2",
+        "rules": [
+          
+        ],
+        "qosMap": {
+          "dscpMaps": [
+            {
+              "internalTrafficClass": 0,
+              "fromDscpToTrafficClass": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                31,
+                33,
+                34,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                49,
+                60,
+                61,
+                62,
+                63
+              ]
+            },
+            {
+              "internalTrafficClass": 2,
+              "fromDscpToTrafficClass": [
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59
+              ]
+            },
+            {
+              "internalTrafficClass": 6,
+              "fromDscpToTrafficClass": [
+                32,
+                35,
+                26,
+                27,
+                28,
+                29,
+                30
+              ]
+            },
+            {
+              "internalTrafficClass": 7,
+              "fromDscpToTrafficClass": [
+                48
+              ]
+            }
+          ],
+          "expMaps": [
+            {
+              "internalTrafficClass": 0,
+              "fromExpToTrafficClass": [
+                0
+              ],
+              "fromTrafficClassToExp": 0
+            },
+            {
+              "internalTrafficClass": 1,
+              "fromExpToTrafficClass": [
+                1
+              ],
+              "fromTrafficClassToExp": 1
+            },
+            {
+              "internalTrafficClass": 2,
+              "fromExpToTrafficClass": [
+                2
+              ],
+              "fromTrafficClassToExp": 2
+            },
+            {
+              "internalTrafficClass": 3,
+              "fromExpToTrafficClass": [
+                3
+              ],
+              "fromTrafficClassToExp": 3
+            },
+            {
+              "internalTrafficClass": 4,
+              "fromExpToTrafficClass": [
+                4
+              ],
+              "fromTrafficClassToExp": 4
+            },
+            {
+              "internalTrafficClass": 5,
+              "fromExpToTrafficClass": [
+                5
+              ],
+              "fromTrafficClassToExp": 5
+            },
+            {
+              "internalTrafficClass": 6,
+              "fromExpToTrafficClass": [
+                6
+              ],
+              "fromTrafficClassToExp": 6
+            },
+            {
+              "internalTrafficClass": 7,
+              "fromExpToTrafficClass": [
+                7
+              ],
+              "fromTrafficClassToExp": 7
+            }
+          ],
+          "trafficClassToQueueId": {
+            "0": 0,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+            "5": 5,
+            "6": 6,
+            "7": 7
+          },
+          "pfcPriorityToQueueId": {
+            "0": 0,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+            "5": 5,
+            "6": 6,
+            "7": 7
+          },
+          "trafficClassToPgId": {
+            "0": 0,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+            "5": 5,
+            "6": 6,
+            "7": 7
+          },
+          "pfcPriorityToPgId": {
+            "0": 0,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4,
+            "5": 5,
+            "6": 6,
+            "7": 7
+          },
+          "pcpMaps": [
+            {
+              "internalTrafficClass": 3,
+              "fromPcpToTrafficClass": [
+                0
+              ],
+              "fromTrafficClassToPcp": 0
+            },
+            {
+              "internalTrafficClass": 0,
+              "fromPcpToTrafficClass": [
+                1
+              ],
+              "fromTrafficClassToPcp": 1
+            }
+          ]
+        }
+      }
     ],
     "defaultPortQueues": [
-      
+      {
+        "id": 2,
+        "streamType": 0,
+        "scheduling": 0,
+        "name": "rdma"
+      },
+      {
+        "id": 6,
+        "streamType": 0,
+        "scheduling": 0,
+        "name": "monitoring"
+      },
+      {
+        "id": 7,
+        "streamType": 0,
+        "scheduling": 0,
+        "name": "nc"
+      }
     ],
     "staticMplsRoutesWithNhops": [
       
@@ -67185,7 +67410,26 @@
       
     ],
     "portQueueConfigs": {
-      
+      "downlink_queue_config": [
+          {
+            "id": 2,
+            "streamType": 0,
+            "scheduling": 0,
+            "name": "rdma"
+          },
+          {
+            "id": 6,
+            "streamType": 0,
+            "scheduling": 0,
+            "name": "monitoring"
+          },
+          {
+            "id": 7,
+            "streamType": 0,
+            "scheduling": 0,
+            "name": "nc"
+          }
+      ]
     },
     "switchSettings": {
       "l2LearningMode": 0,
