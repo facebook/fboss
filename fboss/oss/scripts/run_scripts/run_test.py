@@ -178,6 +178,7 @@ OPT_ARG_SAI_LOGGING = "--sai_logging"
 OPT_ARG_FBOSS_LOGGING = "--fboss_logging"
 OPT_ARG_PRODUCTION_FEATURES = "--production-features"
 OPT_ARG_ENABLE_PRODUCTION_FEATURES = "--enable-production-features"
+OPT_ARG_LIST_TESTS_FOR_FEATURE = "--list-tests-for-features"
 OPT_ARG_ASIC = "--asic"
 OPT_KNOWN_BAD_TESTS_FILE = "--known-bad-tests-file"
 OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
@@ -531,7 +532,8 @@ class TestRunner(abc.ABC):
             filter += f"{test_name}:"
         if not filter:
             return []
-        return self._list_tests_to_run(filter)
+        should_print = not getattr(args, "list_tests_for_features", None)
+        return self._list_tests_to_run(filter, should_print)
 
     def _restart_bcmsim(self, asic):
         try:
@@ -800,6 +802,11 @@ class TestRunner(abc.ABC):
     def run_test(self, args):
         tests_to_run = self._get_tests_to_run()
         tests_to_run = self._filter_tests(tests_to_run)
+
+        if getattr(args, "list_tests_for_features", None):
+            for test in tests_to_run:
+                print(test)
+            return
 
         # Check if tests need to be run or only listed
         if args.list_tests is False:
@@ -1172,6 +1179,13 @@ class SaiAgentTestRunner(TestRunner):
             default=None,
         )
         sub_parser.add_argument(
+            OPT_ARG_LIST_TESTS_FOR_FEATURE,
+            type=str,
+            help="Return tests whose production feature tags are all contained "
+            "in the supplied comma-separated list e.g. DLB,ACL_COUNTER,SINGLE_ACL_TABLE",
+            default=None,
+        )
+        sub_parser.add_argument(
             OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH,
             nargs="?",
             type=str,
@@ -1305,6 +1319,33 @@ class SaiAgentTestRunner(TestRunner):
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
     def _filter_tests(self, tests: List[str]) -> List[str]:
+        if args.list_tests_for_features:
+            target_features = set(args.list_tests_for_features.split(","))
+            matching_tests = []
+            for test in tests:
+                cmd = [
+                    self._get_test_binary_name(),
+                    f"--gtest_filter={test}",
+                    "--list_production_feature",
+                ]
+                ret = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    universal_newlines=True,
+                )
+                for line in ret.stdout.split("\n"):
+                    if not line.startswith(FEATURE_LIST_PREFIX):
+                        continue
+                    test_feature_str = line[len(FEATURE_LIST_PREFIX) :]
+                    test_features = (
+                        set(test_feature_str.split(",")) if test_feature_str else set()
+                    )
+                    if test_features and test_features.issubset(target_features):
+                        matching_tests.append(test)
+                        break
+            return matching_tests
+
         if not args.enable_production_features:
             return tests
         asic = str(args.asic)
