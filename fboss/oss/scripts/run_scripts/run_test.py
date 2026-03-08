@@ -524,9 +524,11 @@ class TestRunner(abc.ABC):
         else:
             test_names = self._list_tests_to_run("*", False)
         filter = ""
+        known_bad_test_regexes = self._get_known_bad_test_regexes()
+        unsupported_test_regexes = self._get_unsupported_test_regexes()
         for test_name in test_names:
-            if self._is_known_bad_test(test_name) or self._is_unsupported_test(
-                test_name
+            if any(re.match(r, test_name) for r in known_bad_test_regexes) or any(
+                re.match(r, test_name) for r in unsupported_test_regexes
             ):
                 continue
             filter += f"{test_name}:"
