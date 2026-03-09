@@ -598,7 +598,15 @@ bool isValidVdmConfigType(int vdmConf) {
       vdmConf == static_cast<int>(FEC_TAIL_MEDIA_IN_MAX) ||
       vdmConf == static_cast<int>(FEC_TAIL_MEDIA_IN_CURR) ||
       vdmConf == static_cast<int>(FEC_TAIL_HOST_IN_MAX) ||
-      vdmConf == static_cast<int>(FEC_TAIL_HOST_IN_CURR)) {
+      vdmConf == static_cast<int>(FEC_TAIL_HOST_IN_CURR) ||
+      vdmConf == static_cast<int>(MODULATOR_BIAS_XI) ||
+      vdmConf == static_cast<int>(MODULATOR_BIAS_XQ) ||
+      vdmConf == static_cast<int>(MODULATOR_BIAS_YI) ||
+      vdmConf == static_cast<int>(MODULATOR_BIAS_YQ) ||
+      vdmConf == static_cast<int>(MODULATOR_BIAS_X_PHASE) ||
+      vdmConf == static_cast<int>(MODULATOR_BIAS_Y_PHASE) ||
+      vdmConf == static_cast<int>(CD_LOW_GRANULARITY) ||
+      vdmConf == static_cast<int>(SOPMD_LOW_GRANULARITY)) {
     return true;
   }
   return false;
@@ -2007,6 +2015,9 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   }
   if (!fillVdmPerfMonitorPam4AlarmData(vdmStats)) {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 alarm data";
+  }
+  if (!fillVdmPerfMonitorCoherentVdm(vdmStats)) {
+    QSFP_LOG(DBG2, this) << "Coherent VDM stats not available";
   }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
@@ -5554,6 +5565,110 @@ bool CmisModule::fillVdmPerfMonitorPam4AlarmData(
     }
   }
   return true;
+}
+
+/*
+ * fillVdmPerfMonitorCoherentVdm
+ *
+ * Private function to fill in VDM performance monitor stats for coherent
+ * 800G ZR modules. These are VDM-unique parameters from pages 20h-23h
+ * per OIF C-CMIS-01.3, Section 7.3.1, Table 8:
+ *   - Modulator Bias XI/XQ/YI/YQ/XPhase/YPhase (identifiers 128-133)
+ *   - CD low granularity (identifier 135)
+ *   - SOPMD low granularity (identifier 149)
+ *
+ * These parameters are only available on coherent (DCO) modules.
+ * The function returns false if no coherent VDM parameters are found,
+ * which is expected for non-coherent modules.
+ */
+bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
+  if (!isVdmSupported() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Modulator bias parameters use U16 format with LSB = 100/65535
+  constexpr double kModulatorBiasLsb = 100.0 / 65535.0;
+  // CD low granularity uses S16 format with LSB = 20 (can be negative)
+  constexpr double kCdLowGranLsb = 20.0;
+  // SOPMD low granularity uses U16 format with LSB = 1
+  constexpr double kSopmdLowGranLsb = 1.0;
+
+  // Lambda to read a single U16 VDM value and convert to double
+  auto readU16VdmValue = [&](VdmConfigType vdmConf,
+                             double lsb) -> std::optional<double> {
+    auto [data, length] = getVdmDataValPtr(vdmConf);
+    if (data && length >= 2) {
+      uint16_t rawVal =
+          (static_cast<uint16_t>(data.value()[0]) << 8) | data.value()[1];
+      return rawVal * lsb;
+    }
+    return std::nullopt;
+  };
+
+  // Lambda to read a single S16 VDM value (signed) and convert to double
+  auto readS16VdmValue = [&](VdmConfigType vdmConf,
+                             double lsb) -> std::optional<double> {
+    auto [data, length] = getVdmDataValPtr(vdmConf);
+    if (data && length >= 2) {
+      int16_t rawVal = static_cast<int16_t>(
+          (static_cast<uint16_t>(data.value()[0]) << 8) | data.value()[1]);
+      return rawVal * lsb;
+    }
+    return std::nullopt;
+  };
+
+  bool foundAny = false;
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  // Read modulator bias parameters (module-level, not per-lane)
+  auto biasXI = readU16VdmValue(MODULATOR_BIAS_XI, kModulatorBiasLsb);
+  auto biasXQ = readU16VdmValue(MODULATOR_BIAS_XQ, kModulatorBiasLsb);
+  auto biasYI = readU16VdmValue(MODULATOR_BIAS_YI, kModulatorBiasLsb);
+  auto biasYQ = readU16VdmValue(MODULATOR_BIAS_YQ, kModulatorBiasLsb);
+  auto biasXPhase = readU16VdmValue(MODULATOR_BIAS_X_PHASE, kModulatorBiasLsb);
+  auto biasYPhase = readU16VdmValue(MODULATOR_BIAS_Y_PHASE, kModulatorBiasLsb);
+  auto cdLowGran = readS16VdmValue(CD_LOW_GRANULARITY, kCdLowGranLsb);
+  auto sopmdLowGran = readU16VdmValue(SOPMD_LOW_GRANULARITY, kSopmdLowGranLsb);
+
+  // Populate stats for each media port
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    auto& coherentVdm =
+        vdmStats.mediaPortVdmStats()[portName].coherentVdmStats().ensure();
+    if (biasXI.has_value()) {
+      coherentVdm.modulatorBiasXI() = biasXI.value();
+      foundAny = true;
+    }
+    if (biasXQ.has_value()) {
+      coherentVdm.modulatorBiasXQ() = biasXQ.value();
+      foundAny = true;
+    }
+    if (biasYI.has_value()) {
+      coherentVdm.modulatorBiasYI() = biasYI.value();
+      foundAny = true;
+    }
+    if (biasYQ.has_value()) {
+      coherentVdm.modulatorBiasYQ() = biasYQ.value();
+      foundAny = true;
+    }
+    if (biasXPhase.has_value()) {
+      coherentVdm.modulatorBiasXPhase() = biasXPhase.value();
+      foundAny = true;
+    }
+    if (biasYPhase.has_value()) {
+      coherentVdm.modulatorBiasYPhase() = biasYPhase.value();
+      foundAny = true;
+    }
+    if (cdLowGran.has_value()) {
+      coherentVdm.cdLowGranularity() = cdLowGran.value();
+      foundAny = true;
+    }
+    if (sopmdLowGran.has_value()) {
+      coherentVdm.sopmdLowGranularity() = sopmdLowGran.value();
+      foundAny = true;
+    }
+  }
+
+  return foundAny;
 }
 
 } // namespace fboss

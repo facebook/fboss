@@ -71,6 +71,15 @@ enum VdmConfigType {
   FEC_TAIL_MEDIA_IN_CURR = 107,
   FEC_TAIL_HOST_IN_MAX = 108,
   FEC_TAIL_HOST_IN_CURR = 109,
+  // Coherent 800G ZR VDM parameters (C-CMIS-01.3, Table 8)
+  MODULATOR_BIAS_XI = 128,
+  MODULATOR_BIAS_XQ = 129,
+  MODULATOR_BIAS_YI = 130,
+  MODULATOR_BIAS_YQ = 131,
+  MODULATOR_BIAS_X_PHASE = 132,
+  MODULATOR_BIAS_Y_PHASE = 133,
+  CD_LOW_GRANULARITY = 135,
+  SOPMD_LOW_GRANULARITY = 149,
 };
 
 class CmisModule : public QsfpModule {
@@ -842,6 +851,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats);
 
   void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
 
