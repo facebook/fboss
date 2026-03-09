@@ -406,6 +406,13 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.cpp
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigTraits.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.cpp
