@@ -237,8 +237,8 @@ void HwTest::waitTillCabledTcvrProgrammed(int numRetries, bool portUp) {
         }
 
         if (!notProgrammedTcvrs.empty()) {
-          XLOG(ERR) << "Transceivers that should be programmed but are not: "
-                    << folly::join(",", notProgrammedTcvrs);
+          XLOG(WARN) << "Transceivers that should be programmed but are not: "
+                     << folly::join(",", notProgrammedTcvrs);
         }
 
         if (FLAGS_port_manager_mode) {

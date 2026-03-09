@@ -232,8 +232,18 @@ class SaiObject {
     // XXX TODO: side-effect mode does NOT work with optionals
     attributes_ = api.getAttribute(adapterKey_, attributes_);
     live_ = true;
-    adapterHostKey_ =
-        detail::adapterHostKey<SaiObjectTraits>(adapterKey_, attributes_);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    if constexpr (std::is_same_v<SaiObjectTraits, SaiSrv6SidListTraits>) {
+      CHECK(false)
+          << "SaiSrv6SidListTraits cannot derive AdapterHostKey from "
+          << "AdapterKey alone; use (AdapterKey, AdapterHostKey) constructor";
+    } else {
+#endif
+      adapterHostKey_ =
+          detail::adapterHostKey<SaiObjectTraits>(adapterKey_, attributes_);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    }
+#endif
   }
 
   // load with adapter key and adapter host key

@@ -45,7 +45,7 @@ namespace facebook::fboss {
 namespace {
 const std::string kReportName = "mod_report";
 constexpr AdminDistance kDistance = AdminDistance::STATIC_ROUTE;
-const PortID kMirrorPortId{5};
+const PortID kMirrorPortId{0};
 
 template <typename AddrT>
 struct TamManagerTestParams {
@@ -181,13 +181,14 @@ class TamManagerTest : public ::testing::Test {
       const std::shared_ptr<SwitchState>& state,
       const std::string& name,
       const folly::IPAddress& localSrcIp,
-      const AddrT& collectorIp) {
+      const AddrT& collectorIp,
+      PortID mirrorPortId = PortID(0)) {
     std::shared_ptr<SwitchState> newState = state->clone();
 
     std::shared_ptr<MirrorOnDropReport> report = std::make_shared<
         MirrorOnDropReport>(
         name,
-        kMirrorPortId,
+        mirrorPortId,
         localSrcIp,
         static_cast<int16_t>(12345), // localSrcPort
         folly::IPAddress(collectorIp), // collectorIp
@@ -533,6 +534,37 @@ TYPED_TEST(TamManagerTest, ResolveReportOnAdd) {
         report->getResolvedEgressPort();
     EXPECT_TRUE(resolvedPort.has_value());
     EXPECT_EQ(PortID(*resolvedPort->portId()), params.neighborPorts[0]);
+  });
+}
+
+TYPED_TEST(TamManagerTest, SkipResolutionWithStaticMirrorPort) {
+  TamManagerTestParams<typename TestFixture::AddrT> params =
+      this->getParamsHelper();
+
+  this->updateState(
+      "SkipResolutionWithStaticMirrorPort: addReport",
+      [=, this](const std::shared_ptr<SwitchState>& state) {
+        return this->addMirrorOnDropReport(
+            state,
+            kReportName,
+            params.localSrcIp,
+            params.collectorIp,
+            PortID(5));
+      });
+
+  this->addRoute(params.longerPrefix, {params.nextHop(0)});
+
+  this->resolveNeighbor(
+      folly::IPAddress(params.neighborIPs[0]),
+      params.neighborMACs[0],
+      params.interfaces[0],
+      params.neighborPorts[0]);
+
+  this->verifyStateUpdate([=, this]() {
+    std::shared_ptr<MirrorOnDropReport> report =
+        this->sw_->getState()->getMirrorOnDropReports()->getNodeIf(kReportName);
+    EXPECT_NE(report, nullptr);
+    EXPECT_FALSE(report->isResolved());
   });
 }
 

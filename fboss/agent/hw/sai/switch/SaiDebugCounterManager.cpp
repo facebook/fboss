@@ -183,7 +183,18 @@ void SaiDebugCounterManager::setupL3SwitchDropCounter() {
    * Generic L3 drop reasons not counted per-port.
    */
   std::vector<int32_t> l3DropReasons = {
+#if !defined(CHENAB_SAI_SDK)
+      // for 2505.34: port debug counters for blackholed route and switch debug
+      // counter for l3 any drop, have different trap group but same trap id.
+      // when same trap id is used for both, the last registered trap group will
+      // override the previous one.  as a result, blackholed route drop counter
+      // will not be able to count blackholed route drops
+      // for newer versions:
+      // l3 any drop switch debug counter does not give any more info than the
+      // existing port + switch debug counters, so removing it
+
       SAI_IN_DROP_REASON_L3_ANY,
+#endif
       SAI_IN_DROP_REASON_EXCEEDS_L3_MTU,
       SAI_IN_DROP_REASON_TTL,
       SAI_IN_DROP_REASON_L3_LOOPBACK_FILTER,

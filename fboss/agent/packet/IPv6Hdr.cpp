@@ -49,10 +49,11 @@ IPv6Hdr::IPv6Hdr(Cursor& cursor) {
 }
 
 void IPv6Hdr::serialize(folly::io::RWPrivateCursor* cursor) const {
-  cursor->write<uint8_t>((version << 4) | (trafficClass >> 4));
   cursor->write<uint8_t>(
-      ((trafficClass & 0xf) << 4) | ((flowLabel >> 16) & 0xf));
-  cursor->writeBE<uint16_t>(flowLabel & 0xffff);
+      static_cast<uint8_t>((version << 4) | (trafficClass >> 4)));
+  cursor->write<uint8_t>(static_cast<uint8_t>(
+      ((trafficClass & 0xf) << 4) | ((flowLabel >> 16) & 0xf)));
+  cursor->writeBE<uint16_t>(static_cast<uint16_t>(flowLabel & 0xffff));
   cursor->writeBE<uint16_t>(payloadLength);
   cursor->write<uint8_t>(nextHeader);
   cursor->write<uint8_t>(hopLimit);

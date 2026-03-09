@@ -462,7 +462,7 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
       port->getIngressVlan(),
       LACPDU::EtherType::SLOW_PROTOCOLS);
 
-  writer.writeBE<uint8_t>(LACPDU::EtherSubtype::LACP);
+  writer.writeBE<uint8_t>(static_cast<uint8_t>(LACPDU::EtherSubtype::LACP));
 
   lacpdu.to(&writer);
 
