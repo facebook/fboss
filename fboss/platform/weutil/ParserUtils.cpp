@@ -18,9 +18,6 @@ constexpr int kEepromTypeLengthSize = 2;
 // CRC size (16 bits)
 constexpr int kCrcSize = 2;
 
-// Maximum size of the EEPROM data region to read.
-constexpr long kMaxEepromDataRegionSize = 512;
-
 std::string parseMacHelper(int len, unsigned char* ptr, bool useBigEndian) {
   std::string retVal;
   int juice = 0;
