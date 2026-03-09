@@ -96,6 +96,8 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
           "PFC_WD_FORWARD_ACTION_IMMEDIATE_RECOVERY"));
 #if !defined(CHENAB_SAI_SDK_VERSION_2505_34_0_1)
   kv_map.insert(std::make_pair("SAI_WITHOUT_SX_NETDEV", "1"));
+  // enable PTP based cable length estimation
+  kv_map.insert(std::make_pair("SAI_KEY_PTP_CABLE_MEASUREMENT_ENABLE", "1"));
 #endif
 
   return kv_map;
