@@ -142,6 +142,11 @@ class SaiNextHopManager {
       std::optional<sai_object_id_t> sidListId = std::nullopt);
 
   ManagedSaiNextHop addManagedSaiNextHop(const ResolvedNextHop& swNextHop);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::shared_ptr<SaiSrv6SidList> createSrv6SidList(
+      const ResolvedNextHop& swNextHop);
+#endif
   const ManagedIpNextHop* getManagedNextHop(
       const ManagedIpNextHop::AdapterHostKey& key) const {
     return managedIpNextHops_.get(key);
