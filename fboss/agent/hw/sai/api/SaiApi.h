@@ -204,9 +204,14 @@ class SaiApi {
      * memory for the data coming from SAI, the Adapter will return
      * SAI_STATUS_BUFFER_OVERFLOW and fill in `count` in the list object.
      * We can take advantage of that to allocate a proper buffer and
-     * try the get again.
+     * try the get again. Retry in a loop because dynamic list attributes
+     * (e.g. port error status) can change size between calls (TOCTOU),
+     * causing repeated BUFFER_OVERFLOW until the allocation matches.
      */
-    if (status == SAI_STATUS_BUFFER_OVERFLOW) {
+    constexpr int kMaxListGetRetries = 5;
+    for (int i = 0;
+         status == SAI_STATUS_BUFFER_OVERFLOW && i < kMaxListGetRetries;
+         ++i) {
       attr.realloc();
       {
         TIME_CALL;

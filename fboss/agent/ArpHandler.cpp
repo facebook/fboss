@@ -227,11 +227,11 @@ static void sendArp(
 
   pkt->writeEthHeader(
       &cursor, targetMac, senderMac, vlan, ArpHandler::ETHERTYPE_ARP);
-  cursor.writeBE<uint16_t>(ARP_HTYPE_ETHERNET);
-  cursor.writeBE<uint16_t>(ARP_PTYPE_IPV4);
-  cursor.writeBE<uint8_t>(ARP_HLEN_ETHERNET);
-  cursor.writeBE<uint8_t>(ARP_PLEN_IPV4);
-  cursor.writeBE<uint16_t>(op);
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(ARP_HTYPE_ETHERNET));
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(ARP_PTYPE_IPV4));
+  cursor.writeBE<uint8_t>(static_cast<uint8_t>(ARP_HLEN_ETHERNET));
+  cursor.writeBE<uint8_t>(static_cast<uint8_t>(ARP_PLEN_IPV4));
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(op));
   cursor.push(senderMac.bytes(), MacAddress::SIZE);
   cursor.write<uint32_t>(senderIP.toLong());
   cursor.push(

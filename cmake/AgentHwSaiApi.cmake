@@ -134,7 +134,7 @@ elseif (CHENAB_SAI_SDK)
   list(APPEND SAI_API_SRC
     fboss/agent/hw/sai/api/oss/ArsApi.cpp
     fboss/agent/hw/sai/api/oss/ArsProfileApi.cpp
-    fboss/agent/hw/sai/api/oss/PortApi.cpp
+    fboss/agent/hw/sai/api/chenab/PortApi.cpp
     fboss/agent/hw/sai/api/oss/TamApi.cpp
     fboss/agent/hw/sai/api/chenab/SwitchApi.cpp
     fboss/agent/hw/sai/api/oss/DebugCounterApi.cpp

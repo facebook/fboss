@@ -950,6 +950,8 @@ struct CmisData {
   16: optional IOBuf page26;
   17: optional IOBuf page04;
   18: optional IOBuf page12;
+  19: optional IOBuf page23;
+  20: optional IOBuf page27;
 }
 
 struct TransceiverIOParameters {

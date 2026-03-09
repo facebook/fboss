@@ -253,8 +253,8 @@ inline bool operator!=(const IPv4Hdr& lhs, const IPv4Hdr& rhs) {
 
 template <typename CursorType>
 void IPv4Hdr::write(CursorType* cursor) const {
-  cursor->template write<uint8_t>(version << 4 | ihl);
-  cursor->template write<uint8_t>(dscp << 2 | ecn);
+  cursor->template write<uint8_t>(static_cast<uint8_t>(version << 4 | ihl));
+  cursor->template write<uint8_t>(static_cast<uint8_t>(dscp << 2 | ecn));
   cursor->template writeBE<uint16_t>(length);
   cursor->template writeBE<uint16_t>(id);
   uint16_t flagsAndOffset = fragmentOffset;

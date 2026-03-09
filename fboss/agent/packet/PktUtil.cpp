@@ -196,7 +196,7 @@ void PktUtil::appendHexData(StringPiece hex, Appender* appender) {
       prev = value;
     } else {
       uint8_t byte = (prev << 4) | value;
-      appender->write(byte);
+      appender->write<uint8_t>(byte);
       prev = -1;
     }
   }

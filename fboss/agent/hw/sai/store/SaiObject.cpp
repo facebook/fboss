@@ -334,5 +334,55 @@ SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(
   return json.asString();
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <>
+folly::dynamic SaiObject<SaiSrv6SidListTraits>::adapterHostKeyToFollyDynamic() {
+  // Assert that NextHopId is set on the SID list
+  auto nextHopIdOpt =
+      std::get<std::optional<SaiSrv6SidListTraits::Attributes::NextHopId>>(
+          attributes_);
+  CHECK(nextHopIdOpt.has_value())
+      << "SRv6 SID list must have NextHopId set for adapterHostKeyToFollyDynamic";
+
+  folly::dynamic json = folly::dynamic::object;
+  json["type"] =
+      std::get<SaiSrv6SidListTraits::Attributes::Type>(adapterHostKey_).value();
+  auto segmentListOpt =
+      std::get<std::optional<SaiSrv6SidListTraits::Attributes::SegmentList>>(
+          adapterHostKey_);
+  if (segmentListOpt.has_value()) {
+    folly::dynamic segments = folly::dynamic::array;
+    for (const auto& ip : segmentListOpt.value().value()) {
+      segments.push_back(ip.str());
+    }
+    json["segmentList"] = segments;
+  }
+  json["routerInterfaceId"] =
+      folly::to<std::string>(std::get<RouterInterfaceSaiId>(adapterHostKey_));
+  json["ip"] = std::get<folly::IPAddress>(adapterHostKey_).str();
+  return json;
+}
+
+template <>
+typename SaiSrv6SidListTraits::AdapterHostKey
+SaiObject<SaiSrv6SidListTraits>::follyDynamicToAdapterHostKey(
+    const folly::dynamic& json) {
+  SaiSrv6SidListTraits::Attributes::Type type{
+      static_cast<sai_int32_t>(json["type"].asInt())};
+  std::optional<SaiSrv6SidListTraits::Attributes::SegmentList> segmentList;
+  if (json.find("segmentList") != json.items().end()) {
+    std::vector<folly::IPAddressV6> segments;
+    for (const auto& seg : json["segmentList"]) {
+      segments.push_back(folly::IPAddressV6(seg.asString()));
+    }
+    segmentList = segments;
+  }
+  auto rifId = RouterInterfaceSaiId(
+      folly::to<sai_object_id_t>(json["routerInterfaceId"].asString()));
+  auto ip = folly::IPAddress(json["ip"].asString());
+  return SaiSrv6SidListTraits::AdapterHostKey{type, segmentList, rifId, ip};
+}
+#endif
+
 } // namespace fboss
 } // namespace facebook

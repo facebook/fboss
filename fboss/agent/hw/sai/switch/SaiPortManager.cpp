@@ -585,7 +585,7 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
  * we will report shorter cable lens. But short of getting
  * real-time optics delay, this is the best agent can do.
  */
-int getWorstCaseAssumedOpticsDelayNS(
+[[maybe_unused]] int getWorstCaseAssumedOpticsDelayNS(
     const HwAsic& asic,
     const cfg::PortType& portType) {
   switch (asic.getAsicType()) {
@@ -596,8 +596,6 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_EBRO:
@@ -610,10 +608,17 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_G202X:
-    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       break;
-    case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      return 0;
+    // The below value of 110 was from FR4 optics and assumed to be used
+    // everywhere. This assumption does not hold anymore.
+    // TODO: get optics type info from qsfp svc and export a
+    // accurate number for optics delay based on type
+    case cfg::AsicType::ASIC_TYPE_JERICHO3:
       if (portType == cfg::PortType::FABRIC_PORT) {
         return 110;
       } else {
@@ -624,8 +629,6 @@ int getWorstCaseAssumedOpticsDelayNS(
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       // For J3-R3, we measured max optics delay to
       // be 110ns.
-      // TODO: get optics type info from qsfp svc and export a
-      // accurate number for optics delay based on type
       return 110;
   }
   throw FbossError(
@@ -2492,7 +2495,7 @@ void SaiPortManager::updateStats(
   if (updateCableLengths && isPortUp(portId) &&
       (portType == cfg::PortType::FABRIC_PORT ||
        portType == cfg::PortType::HYPER_PORT_MEMBER
-#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_GTE_13_0)
        || portType == cfg::PortType::INTERFACE_PORT
 #endif
        ) &&
@@ -2502,6 +2505,9 @@ void SaiPortManager::updateStats(
         asic->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
       cableLenAvailableOnPort =
           asic->getL1FabricPortsToConnectToL2().contains(portId);
+    }
+    if (asic->getSwitchType() == cfg::SwitchType::NPU) {
+      cableLenAvailableOnPort = isClmEnabled(portId);
     }
 
     /*
@@ -2524,6 +2530,8 @@ void SaiPortManager::updateStats(
     if (cableLenAvailableOnPort &&
         !curPortStats.cableLengthMeters().has_value()) {
       try {
+#if (defined(BRCM_SAI_SDK_DNX_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)) || \
+    (defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS))
         int32_t cablePropogationDelayNS =
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
@@ -2536,6 +2544,9 @@ void SaiPortManager::updateStats(
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
+        XLOG(DBG2) << "Cable propogation delay in ns for port " << portId
+                   << ": " << cablePropogationDelayNS;
+#endif
       } catch (const SaiApiError& e) {
         XLOG_EVERY_MS(ERR, 10000)
             << "Failed to get cable propogation delay for port " << portId
