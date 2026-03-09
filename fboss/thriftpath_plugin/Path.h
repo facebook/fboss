@@ -9,29 +9,49 @@
 #include <folly/String.h>
 #include <folly/Unit.h>
 #include <re2/re2.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include <string>
 
 namespace thriftpath {
 
+namespace detail {
+template <typename Key, typename... Rest>
+struct type_map_find;
+
+template <typename Key, typename V, typename... Rest>
+struct type_map_find<Key, std::pair<Key, V>, Rest...> {
+  using type = V;
+};
+
+template <typename Key, typename P, typename... Rest>
+struct type_map_find<Key, P, Rest...> : type_map_find<Key, Rest...> {};
+} // namespace detail
+
+template <typename... Pairs>
+struct TypeMap {
+  template <typename Key>
+  using type_of = typename detail::type_map_find<Key, Pairs...>::type;
+};
+
 #define STRUCT_CHILD_GETTERS(child, childId)                        \
-  TypeFor<strings::child> child() const& {                          \
+  TypeFor<apache::thrift::ident::child> child() const& {            \
     const std::string childIdStr = folly::to<std::string>(childId); \
     facebook::fboss::fsdb::OperPathElem elem;                       \
     elem.set_raw(childIdStr);                                       \
-    return TypeFor<strings::child>(                                 \
+    return TypeFor<apache::thrift::ident::child>(                   \
         copyAndExtendVec(this->tokens_, #child),                    \
         copyAndExtendVec(this->idTokens_, childIdStr),              \
         copyAndExtendVec(this->extendedTokens_, std::move(elem)),   \
         this->hasWildcards_);                                       \
   }                                                                 \
-  TypeFor<strings::child> child() && {                              \
+  TypeFor<apache::thrift::ident::child> child() && {                \
     this->tokens_.push_back(#child);                                \
     const std::string childIdStr = folly::to<std::string>(childId); \
     this->idTokens_.push_back(childIdStr);                          \
     facebook::fboss::fsdb::OperPathElem elem;                       \
     elem.set_raw(childIdStr);                                       \
     this->extendedTokens_.push_back(std::move(elem));               \
-    return TypeFor<strings::child>(                                 \
+    return TypeFor<apache::thrift::ident::child>(                   \
         std::move(this->tokens_),                                   \
         std::move(this->idTokens_),                                 \
         std::move(this->extendedTokens_),                           \

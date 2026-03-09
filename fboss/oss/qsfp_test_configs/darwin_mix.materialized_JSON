@@ -309,7 +309,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "0.b"
+              "version": "0.11"
             }
           ]
       },
@@ -326,30 +326,6 @@
             {
               "fwType": 1,
               "version": "2.6"
-            }
-          ]
-      },
-      "T-DQ4CNT-NF2": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
-            }
-          ]
-      },
-      "T-DQ4CNT-NFB": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
-            }
-          ]
-      },
-      "T-DQ4CNT-NFM": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
             }
           ]
       },
@@ -924,10 +900,7 @@
         "T-DQ4CNT-NF2": {
             "mediaInterfaceCode": 5,
             "supportedFirmwareVersions": [
-              {
-                "applicationFirmwareVersion": "234.147",
-                "dspFirmwareVersion": ""
-              }
+              
             ],
             "supportedPortProfiles": [
               25,

@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
@@ -651,4 +652,42 @@ TEST_F(PortApiTest, setQosIngressBufferProfileList) {
   // Verify it's empty
   auto gotEmptyProfiles = portApi->getAttribute(portId, getProfileListAttr);
   EXPECT_EQ(gotEmptyProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getPortErrStatusToctouRetrySucceeds) {
+  auto portId = createPort(100000, {0, 1}, true);
+  auto& port = fs->portManager.get(portId);
+  port.portErrStatusList = {SAI_PORT_ERR_STATUS_DATA_UNIT_CRC_ERROR};
+
+  // Simulate TOCTOU: grow error list on the first 2 getAttribute calls,
+  // then stop growing so the retry eventually succeeds.
+  int callCount = 0;
+  port.onGetAttribute = [&]() {
+    if (callCount < 2) {
+      port.portErrStatusList.push_back(SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR);
+    }
+    ++callCount;
+  };
+
+  SaiPortTraits::Attributes::PortErrStatus errStatusAttr;
+  auto gotStatus = portApi->getAttribute(portId, errStatusAttr);
+  EXPECT_EQ(gotStatus, port.portErrStatusList);
+}
+
+TEST_F(PortApiTest, getPortErrStatusToctouExhaustsRetries) {
+  auto portId = createPort(100000, {0, 1}, true);
+  auto& port = fs->portManager.get(portId);
+  port.portErrStatusList = {SAI_PORT_ERR_STATUS_DATA_UNIT_CRC_ERROR};
+
+  // Simulate TOCTOU: grow error list on every getAttribute call so
+  // the buffer never catches up and retries are exhausted.
+  port.onGetAttribute = [&]() {
+    port.portErrStatusList.push_back(SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR);
+  };
+
+  // EXPECT_DEATH handles both UBSan-enabled builds (abort on invalid
+  // enum from reading past the buffer) and non-UBSan builds (uncaught
+  // SaiApiError → std::terminate).
+  SaiPortTraits::Attributes::PortErrStatus errStatusAttr;
+  EXPECT_DEATH(portApi->getAttribute(portId, errStatusAttr), ".*");
 }

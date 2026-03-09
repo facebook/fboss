@@ -21,7 +21,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 
-using SaiTunnel = SaiObject<SaiTunnelTraits>;
+using SaiTunnel = SaiObject<SaiIpInIpTunnelTraits>;
 using SaiP2MPTunnelTerm = SaiObject<SaiP2MPTunnelTermTraits>;
 using SaiP2PTunnelTerm = SaiObject<SaiP2PTunnelTermTraits>;
 

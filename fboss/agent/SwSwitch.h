@@ -95,6 +95,7 @@ class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
 class StaticL2ForNeighborObserver;
 class MKAServiceManager;
+class PacketStreamHandler;
 template <typename AddressT>
 class Route;
 class Interface;
@@ -767,7 +768,12 @@ class SwSwitch : public HwSwitchCallback {
   MKAServiceManager* getMKAServiceMgr() {
     return mkaServiceManager_.get();
   }
+
+  PacketStreamHandler* getPacketStreamHandler() const {
+    return packetStreamHandler_;
+  }
 #endif
+  void setPacketStreamHandler(PacketStreamHandler* handler);
   /*
    * Get the PacketLogger object
    */
@@ -1382,6 +1388,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<MacTableManager> macTableManager_;
 #if FOLLY_HAS_COROUTINES
   std::unique_ptr<MKAServiceManager> mkaServiceManager_;
+  PacketStreamHandler* packetStreamHandler_{nullptr};
 #endif
 
   static constexpr auto kIphySnapshotIntervalSeconds = 1;

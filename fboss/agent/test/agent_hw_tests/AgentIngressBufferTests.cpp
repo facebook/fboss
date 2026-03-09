@@ -58,7 +58,7 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
     }
     pgConfig.minLimitBytes() =
         (kPgMinLimitCells + queueId + deltaValue) * mmuCellBytes;
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       pgConfig.resumeBytes() =
           (kPgResumeCells + queueId + deltaValue) * mmuCellBytes;
     } else {

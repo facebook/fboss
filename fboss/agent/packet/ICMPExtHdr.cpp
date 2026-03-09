@@ -53,10 +53,10 @@ void ICMPExtHdr::serialize(folly::io::RWPrivateCursor* cursor) {
   cursor->template write<uint8_t>(version);
 
   // Skip the reserved 12 bits (4 bits were borrowed from the version)
-  cursor->template write<uint8_t>(0);
+  cursor->template write<uint8_t>(static_cast<uint8_t>(0));
 
   // Write a placeholder for the checksum
-  cursor->write<uint16_t>(0);
+  cursor->write<uint16_t>(static_cast<uint16_t>(0));
 
   for (auto obj : objects) {
     obj->serialize(cursor);
@@ -87,7 +87,7 @@ void ICMPExtIpSubObjectV4::serialize(folly::io::RWPrivateCursor* cursor) {
   cursor->template writeBE<uint16_t>(
       static_cast<uint16_t>(ICMPExtInterfaceIPSubObjectAFI::
                                 ICMP_EXT_INTERFACE_IP_SUB_OBJECT_AFI_IPV4));
-  cursor->template writeBE<uint16_t>(0); // Reserved
+  cursor->template writeBE<uint16_t>(static_cast<uint16_t>(0)); // Reserved
   cursor->template write<uint32_t>(this->ipAddress_.toLong());
 }
 
@@ -95,7 +95,7 @@ void ICMPExtIpSubObjectV6::serialize(folly::io::RWPrivateCursor* cursor) {
   cursor->template writeBE<uint16_t>(
       static_cast<uint16_t>(ICMPExtInterfaceIPSubObjectAFI::
                                 ICMP_EXT_INTERFACE_IP_SUB_OBJECT_AFI_IPV6));
-  cursor->template writeBE<uint16_t>(0); // Reserved
+  cursor->template writeBE<uint16_t>(static_cast<uint16_t>(0)); // Reserved
   // IPv6 address
   cursor->push(this->ipAddress_.bytes(), 16);
 }
@@ -115,7 +115,7 @@ void ICMPExtIfaceNameSubObject::serialize(
     folly::io::RWPrivateCursor* cursor) const {
   // Work out the size to write, ensure that we're padded to a 4-byte boundry.
   // (including length octet).
-  cursor->template write<uint8_t>(length());
+  cursor->template write<uint8_t>(static_cast<uint8_t>(length()));
   cursor->push(
       (const uint8_t*)this->ifaceName_, length() - 1); // -1 to exclude length
 }

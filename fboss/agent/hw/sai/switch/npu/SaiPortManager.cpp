@@ -667,7 +667,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   std::optional<sai_port_media_type_t> propagationDelayMediaType;
 #if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
-  if (managerTable_->switchManager().isMeasureCableLengthEnabled()) {
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
+      managerTable_->switchManager().isMeasureCableLengthEnabled()) {
     if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
         swPort->getPortType() == cfg::PortType::INTERFACE_PORT) {
       propagationDelayMediaType =
@@ -767,8 +769,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      if (platform_->getAsic()->getAsicType() !=
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (platform_->getAsic()->getAsicVendor() !=
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
         if (platform_->getAsic()->isSupported(

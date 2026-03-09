@@ -322,22 +322,6 @@ void FsdbPubSubManager::publishStat(Patch&& pubUnit) {
   publishImpl(statPatchPublisher_.get(), std::move(pubUnit));
 }
 
-std::string FsdbPubSubManager::addStatDeltaSubscription(
-    const Path& subscribePath,
-    SubscriptionStateChangeCb stateChangeCb,
-    FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    utils::ConnectionOptions&& connectionOptions,
-    std::optional<FsdbStreamHeartbeatCb> hearbeatCb) {
-  return addSubscriptionImpl<FsdbDeltaSubscriber>(
-      subscribePath,
-      stateChangeCb,
-      operDeltaCb,
-      true /*subscribeStat*/,
-      std::move(connectionOptions),
-      std::nullopt,
-      hearbeatCb);
-}
-
 std::string FsdbPubSubManager::addStatPathSubscription(
     const Path& subscribePath,
     SubscriptionStateChangeCb stateChangeCb,
@@ -364,19 +348,6 @@ std::string FsdbPubSubManager::addStateDeltaSubscription(
       stateChangeCb,
       operDeltaCb,
       false /*subscribeStat*/,
-      std::move(connectionOptions));
-}
-
-std::string FsdbPubSubManager::addStatDeltaSubscription(
-    const MultiPath& subscribePaths,
-    SubscriptionStateChangeCb stateChangeCb,
-    FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    utils::ConnectionOptions&& connectionOptions) {
-  return addSubscriptionImpl<FsdbExtDeltaSubscriber>(
-      PathHelpers::toExtendedOperPath(subscribePaths),
-      std::move(stateChangeCb),
-      std::move(operDeltaCb),
-      true /*subscribeStat*/,
       std::move(connectionOptions));
 }
 
@@ -525,19 +496,6 @@ std::string FsdbPubSubManager::addStateExtDeltaSubscription(
       stateChangeCb,
       operDeltaCb,
       false /*subscribeStat*/,
-      std::move(connectionOptions));
-}
-
-std::string FsdbPubSubManager::addStatExtDeltaSubscription(
-    const std::vector<ExtendedOperPath>& subscribePaths,
-    SubscriptionStateChangeCb stateChangeCb,
-    FsdbExtDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaCb,
-    utils::ConnectionOptions&& connectionOptions) {
-  return addSubscriptionImpl<FsdbExtDeltaSubscriber>(
-      subscribePaths,
-      stateChangeCb,
-      operDeltaCb,
-      true /*subscribeStat*/,
       std::move(connectionOptions));
 }
 
@@ -725,15 +683,6 @@ void FsdbPubSubManager::removeStatePathSubscription(
       SubscriptionType::PATH,
       false /*subscribeStats*/);
 }
-void FsdbPubSubManager::removeStatDeltaSubscription(
-    const Path& subscribePath,
-    const std::string& fsdbHost) {
-  removeSubscriptionImpl(
-      subscribePath,
-      fsdbHost,
-      SubscriptionType::DELTA,
-      true /*subscribeStats*/);
-}
 void FsdbPubSubManager::removeStatPathSubscription(
     const Path& subscribePath,
     const std::string& fsdbHost) {
@@ -758,15 +707,6 @@ void FsdbPubSubManager::removeStatePathSubscription(
       fsdbHost,
       SubscriptionType::PATH,
       false /*subscribeStats*/);
-}
-void FsdbPubSubManager::removeStatDeltaSubscription(
-    const MultiPath& subscribePath,
-    const std::string& fsdbHost) {
-  removeSubscriptionImpl(
-      PathHelpers::toExtendedOperPath(subscribePath),
-      fsdbHost,
-      SubscriptionType::DELTA,
-      true /*subscribeStats*/);
 }
 void FsdbPubSubManager::removeStatPathSubscription(
     const MultiPath& subscribePath,

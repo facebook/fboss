@@ -68,7 +68,7 @@ class PrbsStatsEntry {
     if (duration.count() == 0) {
       return;
     }
-    double ber = (num_errors * 1000) / (rate_ * duration.count());
+    double ber = (num_errors * 1000.0) / (rate_ * duration.count());
     if (ber > maxBer_) {
       maxBer_ = ber;
     }

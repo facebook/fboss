@@ -119,122 +119,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 1,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 2,
@@ -367,6 +256,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core0",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -390,6 +392,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 2,
           "scope": 0
         },
         "supportedProfiles": {
@@ -435,6 +439,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 3,
           "scope": 0
         },
         "supportedProfiles": {
@@ -480,6 +486,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -525,6 +533,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 5,
           "scope": 0
         },
         "supportedProfiles": {
@@ -570,6 +580,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 6,
           "scope": 0
         },
         "supportedProfiles": {
@@ -615,6 +627,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 7,
           "scope": 0
         },
         "supportedProfiles": {
@@ -660,6 +674,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 0,
+          "attachedCorePortIndex": 8,
           "scope": 0
         },
         "supportedProfiles": {
@@ -789,122 +805,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 9,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 10,
@@ -1037,6 +942,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core1",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1060,6 +1078,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 10,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1105,6 +1125,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 11,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1150,6 +1172,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 12,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1195,6 +1219,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 13,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1240,6 +1266,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 14,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1285,6 +1313,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 15,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1330,6 +1360,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 1,
+          "attachedCorePortIndex": 16,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1459,122 +1491,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 17,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 18,
@@ -1707,6 +1628,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core2",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -1730,6 +1764,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 18,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1775,6 +1811,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 19,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1820,6 +1858,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 20,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1865,6 +1905,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 21,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1910,6 +1952,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 22,
           "scope": 0
         },
         "supportedProfiles": {
@@ -1955,6 +1999,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 23,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2000,6 +2046,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 2,
+          "attachedCorePortIndex": 24,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2129,122 +2177,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 25,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 26,
@@ -2377,6 +2314,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -2400,6 +2450,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 26,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2445,6 +2497,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 27,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2490,6 +2544,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 28,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2535,6 +2591,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 29,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2580,6 +2638,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 30,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2625,6 +2685,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 31,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2670,6 +2732,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 3,
+          "attachedCorePortIndex": 32,
           "scope": 0
         },
         "supportedProfiles": {
@@ -2799,122 +2863,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 33,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 34,
@@ -3047,6 +3000,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3070,6 +3136,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 34,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3115,6 +3183,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 35,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3160,6 +3230,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 36,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3205,6 +3277,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 37,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3250,6 +3324,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 38,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3295,6 +3371,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 39,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3340,6 +3418,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 4,
+          "attachedCorePortIndex": 40,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3469,122 +3549,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 41,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                42,
-                43,
-                44,
-                45,
-                46,
-                47,
-                48
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 42,
@@ -3717,6 +3686,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core5",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -3740,6 +3822,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 42,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3785,6 +3869,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 43,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3830,6 +3916,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 44,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3875,6 +3963,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 45,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3920,6 +4010,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 46,
           "scope": 0
         },
         "supportedProfiles": {
@@ -3965,6 +4057,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 47,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4010,6 +4104,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 5,
+          "attachedCorePortIndex": 48,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4139,122 +4235,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 49,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                50,
-                51,
-                52,
-                53,
-                54,
-                55,
-                56
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 50,
@@ -4387,6 +4372,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core6",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -4410,6 +4508,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 50,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4455,6 +4555,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 51,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4500,6 +4602,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 52,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4545,6 +4649,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 53,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4590,6 +4696,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 54,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4635,6 +4743,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 55,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4680,6 +4790,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 6,
+          "attachedCorePortIndex": 56,
           "scope": 0
         },
         "supportedProfiles": {
@@ -4809,122 +4921,11 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 57,
           "scope": 0
         },
         "supportedProfiles": {
-          "50": {
-              "subsumedPorts": [
-                58,
-                59,
-                60,
-                61,
-                62,
-                63,
-                64
-              ],
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
-                      "lane": 7
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 0
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 1
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 2
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 3
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 4
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 5
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 6
-                    }
-                  },
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 7
-                    }
-                  }
-                ]
-              }
-          },
           "39": {
               "subsumedPorts": [
                 58,
@@ -5057,6 +5058,119 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ]
               }
+          },
+          "50": {
+              "subsumedPorts": [
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-J4SIM_NIF-slot1/chip1/core7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 1
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 3
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 5
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 7
+                    }
+                  }
+                ]
+              }
           }
         }
     },
@@ -5080,6 +5194,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 58,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5125,6 +5241,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 59,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5170,6 +5288,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 60,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5215,6 +5335,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 61,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5260,6 +5382,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 62,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5305,6 +5429,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 63,
           "scope": 0
         },
         "supportedProfiles": {
@@ -5350,6 +5476,8 @@ constexpr auto kJsonPlatformMappingStr = R"(
             }
           ],
           "portType": 0,
+          "attachedCoreId": 7,
+          "attachedCorePortIndex": 64,
           "scope": 0
         },
         "supportedProfiles": {

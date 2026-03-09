@@ -366,6 +366,7 @@
         90,
         94,
         93,
+        49,
         96,
         97
     ],
@@ -842,6 +843,7 @@
         "ALTERNATE_ARS_MEMBERS",
         "L2_QOS",
         "PFC_TX_DURATION",
+        "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
         "ECN_PROBABILISTIC_MARKING"
     ],

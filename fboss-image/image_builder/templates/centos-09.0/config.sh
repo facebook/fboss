@@ -6,6 +6,10 @@ echo "--- Executing $0 ---"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# All dnf invocations with an invalid RPM repo configured will fail. Create the
+# metadata for the local_rpm_repo now to prevent that.
+createrepo /usr/local/share/local_rpm_repo
+
 # 1. Install our custom kernel RPMs
 #
 # On purpose we don't install any kernel rpms as part of

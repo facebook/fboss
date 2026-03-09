@@ -6,7 +6,7 @@ include_directories(
 )
 
 add_executable(fsdb_cgo_wrapper_test
-  fboss/agent/test/oss/Main.cpp
+  fboss/util/oss/TestMain.cpp
   fboss/fsdb/client/cgo/test/FsdbCgoWrapperTest.cpp
 )
 

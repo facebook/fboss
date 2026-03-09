@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/single/MonolithicAgentInitializer.h"
+#include "fboss/agent/PacketStreamHandler.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -179,6 +180,15 @@ MonolithicAgentInitializer::getThrifthandlers() {
   if (hwHandler) {
     handlers.push_back(hwHandler);
   }
+
+  if (FLAGS_enable_aifm_ctrl_handler) {
+    packetStreamHandler_ = std::make_shared<PacketStreamHandler>(
+        sw_.get(), "aifm_ctrl_packet_stream", "AifmCtrlAgent");
+    handlers.push_back(packetStreamHandler_);
+    sw_->setPacketStreamHandler(packetStreamHandler_.get());
+    XLOG(INFO) << "PacketStreamHandler enabled";
+  }
+
   return handlers;
 }
 

@@ -622,6 +622,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
                    INGRESS_PACKET_PROCESSING_DISCARDS})}});
     applyNewConfig(config);
     setupEcmpTraffic(egressPortId, kDestIp, kNeighborMac);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -708,6 +709,7 @@ TEST_F(AgentMirrorOnDropDestMacTest, ModOnInterfacePortCleanup) {
   utility::addTrapPacketAcl(asic, &config, mirrorPortId);
   applyNewConfig(config);
   setupEcmpTraffic(mirrorPortId, kDestIp, kNeighborMac);
+  waitForStateUpdates(getSw());
 
   // Send packet towards neighbor IP from the pipeline.
   utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
@@ -769,6 +771,7 @@ TEST_P(AgentMirrorOnDropDnxTest, NoInfiniteLoopRecirculated) {
               {cfg::MirrorOnDropReasonAggregation::
                    INGRESS_PACKET_PROCESSING_DISCARDS})}});
     applyNewConfig(config);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -829,6 +832,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ConfigChangePostWarmboot) {
               {cfg::MirrorOnDropReasonAggregation::
                    INGRESS_PACKET_PROCESSING_DISCARDS})}});
     applyNewConfig(config);
+    waitForStateUpdates(getSw());
   };
 
   auto setupWb = [&]() {
@@ -879,6 +883,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithSflowMirrorPresent) {
 
     config.mirrorOnDropReports()->clear();
     applyNewConfig(config);
+    waitForStateUpdates(getSw());
   };
 
   verifyAcrossWarmBoots(setup, []() {});
@@ -953,6 +958,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithMultipleMirrors) {
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
           true);
     }
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1038,6 +1044,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PacketProcessingDefaultRouteDrop) {
     applyNewConfig(config);
 
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1100,6 +1107,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PacketProcessingNullRouteDrop) {
     applyNewConfig(config);
 
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1172,6 +1180,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PacketProcessingAclDrop) {
     applyNewConfig(config);
 
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1238,6 +1247,7 @@ TEST_P(AgentMirrorOnDropDnxTest, MultipleEventIDs) {
     applyNewConfig(config);
 
     setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1319,6 +1329,7 @@ TEST_P(AgentMirrorOnDropDnxTest, VoqReject) {
 
     // Disable credit watchdog so that packets in VOQ don't expire.
     utility::enableCreditWatchdog(getAgentEnsemble(), false);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1407,6 +1418,7 @@ TEST_P(AgentMirrorOnDropDnxTest, VsqReject) {
         txOffPortId,
         kDropDestIp,
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1465,6 +1477,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PrecedenceDrop) {
         kDropDestIp,
         utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
         true /* disableTtlDecrement */);
+    waitForStateUpdates(getSw());
   };
 
   auto verify = [&]() {
@@ -1624,6 +1637,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     }
 
     applyNewConfig(config);
+    waitForStateUpdates(getSw());
 
     // Pump traffic into all traffic loops and verify that they are working.
     for (int i : injectionPortIndices) {
@@ -1657,6 +1671,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     config.mirrorOnDropReports()->clear();
     setupMirrorOnDrop(&config, modFromPort, kCollectorIp_, prodModConfig());
     applyNewConfig(config);
+    waitForStateUpdates(getSw());
 
     WITH_RETRIES_N(10, {
       uint64_t rate = getCurrentRate(collectorPortId);
@@ -1668,6 +1683,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
     config.mirrorOnDropReports()->clear();
     setupMirrorOnDrop(&config, modToPort, kCollectorIp_, prodModConfig());
     applyNewConfig(config);
+    waitForStateUpdates(getSw());
 
     WITH_RETRIES_N(10, {
       uint64_t rate = getCurrentRate(collectorPortId);

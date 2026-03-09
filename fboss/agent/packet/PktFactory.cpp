@@ -301,7 +301,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
       ipv6,
       bodyLength,
       [neighborIp, ndpOptions](folly::io::RWPrivateCursor* cursor) {
-        cursor->writeBE<uint32_t>(0); // reserved
+        cursor->writeBE<uint32_t>(static_cast<uint32_t>(0)); // reserved
         cursor->push(neighborIp.bytes(), folly::IPAddressV6::byteCount());
         ndpOptions.serialize(cursor);
       });
@@ -503,7 +503,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
 
   rwCursor.writeBE<uint16_t>(srcPort);
   rwCursor.writeBE<uint16_t>(dstPort);
-  rwCursor.writeBE<uint16_t>(UDPHeader::size() + payloadBytes.size());
+  rwCursor.writeBE<uint16_t>(
+      static_cast<uint16_t>(UDPHeader::size() + payloadBytes.size()));
   folly::io::RWPrivateCursor csumCursor(rwCursor);
   rwCursor.skip(2);
   folly::io::Cursor payloadStart(rwCursor);

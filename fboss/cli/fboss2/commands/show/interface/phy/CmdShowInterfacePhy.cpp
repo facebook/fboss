@@ -329,6 +329,8 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
        "TpChn1",
        "TpChn2",
        "RxPf",
+       "RxPfLfq",
+       "RxPfHfq",
        "RxFltM",
        "RxFltS",
        "RxTap1",
@@ -349,6 +351,8 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
     std::string tpChn1 = "N/A";
     std::string tpChn2 = "N/A";
     std::string rxPf = "N/A";
+    std::string rxPfLfq = "N/A";
+    std::string rxPfHfq = "N/A";
     std::string rxFltM = "N/A";
     std::string rxFltS = "N/A";
     std::string rxTap1 = "N/A";
@@ -377,6 +381,12 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
     }
     if (auto rxPfVal = serdesParams->rxPf()) {
       rxPf = std::to_string(*rxPfVal);
+    }
+    if (auto rxPfLfqVal = serdesParams->rxPfLfq()) {
+      rxPfLfq = std::to_string(*rxPfLfqVal);
+    }
+    if (auto rxPfHfqVal = serdesParams->rxPfHfq()) {
+      rxPfHfq = std::to_string(*rxPfHfqVal);
     }
     if (auto rxFltMVal = serdesParams->rxFltM()) {
       rxFltM = std::to_string(*rxFltMVal);
@@ -409,25 +419,16 @@ void CmdShowInterfacePhy::printSerdesParametersInfo(
       rxEqP2 = std::to_string(*rxEqP2Val);
     }
 
-    serdesTable.addRow(
-        {"",
-         std::to_string(laneId),
-         rvga,
-         dco,
-         tpChn0,
-         tpChn1,
-         tpChn2,
-         rxPf,
-         rxFltM,
-         rxFltS,
-         rxTap1,
-         rxTap2,
-         rxEq3,
-         rxEq2,
-         rxEq1,
-         rxEqM,
-         rxEqP1,
-         rxEqP2});
+    serdesTable.addRow({"",      std::to_string(laneId),
+                        rvga,    dco,
+                        tpChn0,  tpChn1,
+                        tpChn2,  rxPf,
+                        rxPfLfq, rxPfHfq,
+                        rxFltM,  rxFltS,
+                        rxTap1,  rxTap2,
+                        rxEq3,   rxEq2,
+                        rxEq1,   rxEqM,
+                        rxEqP1,  rxEqP2});
   }
 
   out << serdesTable;

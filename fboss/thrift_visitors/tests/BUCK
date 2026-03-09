@@ -8,6 +8,7 @@ cpp_unittest(
     deps = [
         "//fboss/agent:agent_config-cpp2-thriftpath",
         "//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath",  # @manual
+        "//thrift/lib/cpp2/op:get",
     ],
 )
 
