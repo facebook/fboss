@@ -743,19 +743,19 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrName));
         retVal.emplace_back(idx);
       } else {
-        XLOG(ERR) << "Unknown Transceiver interface: "
-                  << static_cast<int>(futInterfaces[idx].value())
-                  << " for TransceiverID=" << idx;
-
         try {
           if (!qsfpImpls_[idx]->detectTransceiver()) {
-            XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
+            XLOG(INFO) << "Transceiver is not present. TransceiverID=" << idx;
             continue;
           } else {
             // If we fail to read the management interface, but the module is
             // detected, mark it as errored
             auto erroredTransceivers = erroredTransceivers_.wlock();
             erroredTransceivers->insert(TransceiverID(idx));
+            XLOG(ERR)
+                << "Transceiver " << idx
+                << " is detected but has an unknown Transceiver interface: "
+                << static_cast<int>(futInterfaces[idx].value());
           }
         } catch (const std::exception& ex) {
           XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
