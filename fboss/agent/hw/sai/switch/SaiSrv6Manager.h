@@ -4,11 +4,8 @@
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
-#endif
-
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {

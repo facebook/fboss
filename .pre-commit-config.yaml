@@ -7,12 +7,6 @@ repos:
       - id: clang-format
         types_or: [c++, c]
         args: [--style=file, --verbose]
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.10.0
-    hooks:
-      - id: black
-        language_version: python3
-        types: [python]
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:
@@ -34,6 +28,10 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.0
     hooks:
+      # Ruff linter for all Python files in fboss/
       - id: ruff-check
-        files: ^fboss-image/distro_cli/
-        args: [--config=fboss-image/distro_cli/ruff.toml]
+        files: ^fboss/
+        args: [--fix]
+      # Ruff formatter for all Python files in fboss/
+      - id: ruff-format
+        files: ^fboss/

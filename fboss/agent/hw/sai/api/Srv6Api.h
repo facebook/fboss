@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/sai/api/SaiDefaultAttributeValues.h"
 #include "fboss/agent/hw/sai/api/Types.h"
 
+#include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
 
 extern "C" {
@@ -38,7 +39,11 @@ struct SaiSrv6SidListTraits {
       Attributes::Type,
       std::optional<Attributes::SegmentList>,
       std::optional<Attributes::NextHopId>>;
-  using AdapterHostKey = CreateAttributes;
+  using AdapterHostKey = std::tuple<
+      Attributes::Type,
+      std::optional<Attributes::SegmentList>,
+      RouterInterfaceSaiId,
+      folly::IPAddress>;
 };
 
 SAI_ATTRIBUTE_NAME(Srv6SidList, Type);

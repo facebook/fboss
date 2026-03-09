@@ -15,24 +15,26 @@ sai_status_t create_tunnel_fn(
     uint32_t attr_count,
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
-  sai_tunnel_type_t type;
-  sai_object_id_t underlay;
-  sai_object_id_t overlay;
+  sai_tunnel_type_t type{};
+  sai_object_id_t underlay{};
+  sai_object_id_t overlay{};
   std::optional<sai_tunnel_ttl_mode_t> ttlMode{
       SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL};
   std::optional<sai_tunnel_dscp_mode_t> dscpMode{
       SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL};
   std::optional<sai_tunnel_decap_ecn_mode_t> ecnMode{
       SAI_TUNNEL_DECAP_ECN_MODE_STANDARD};
+  std::optional<sai_ip_address_t> encapSrcIp;
+  std::optional<sai_int32_t> encapTtlMode;
+  std::optional<sai_int32_t> encapDscpMode;
+  std::optional<sai_int32_t> encapEcnMode;
   for (int i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
       case SAI_TUNNEL_ATTR_TYPE:
         type = static_cast<sai_tunnel_type_t>(attr_list[i].value.s32);
         break;
       case SAI_TUNNEL_ATTR_UNDERLAY_INTERFACE:
-        if (type == SAI_TUNNEL_TYPE_IPINIP) {
-          // There are a few conditions that can work with this attr
-          // We only support IPinIP for now
+        if (type == SAI_TUNNEL_TYPE_IPINIP || type == SAI_TUNNEL_TYPE_SRV6) {
           underlay = attr_list[i].value.oid;
         } else {
           return SAI_STATUS_INVALID_PARAMETER;
@@ -40,7 +42,6 @@ sai_status_t create_tunnel_fn(
         break;
       case SAI_TUNNEL_ATTR_OVERLAY_INTERFACE:
         if (type == SAI_TUNNEL_TYPE_IPINIP) {
-          // only support IPinIP for now
           overlay = attr_list[i].value.oid;
         } else {
           return SAI_STATUS_INVALID_PARAMETER;
@@ -55,6 +56,18 @@ sai_status_t create_tunnel_fn(
       case SAI_TUNNEL_ATTR_DECAP_ECN_MODE:
         ecnMode =
             static_cast<sai_tunnel_decap_ecn_mode_t>(attr_list[i].value.s32);
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_SRC_IP:
+        encapSrcIp = attr_list[i].value.ipaddr;
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_TTL_MODE:
+        encapTtlMode = attr_list[i].value.s32;
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_DSCP_MODE:
+        encapDscpMode = attr_list[i].value.s32;
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_ECN_MODE:
+        encapEcnMode = attr_list[i].value.s32;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -72,6 +85,10 @@ sai_status_t create_tunnel_fn(
   if (ecnMode.has_value()) {
     tunnel.ecnMode = ecnMode.value();
   }
+  tunnel.encapSrcIp = encapSrcIp;
+  tunnel.encapTtlMode = encapTtlMode;
+  tunnel.encapDscpMode = encapDscpMode;
+  tunnel.encapEcnMode = encapEcnMode;
   return SAI_STATUS_SUCCESS;
 }
 
@@ -110,6 +127,23 @@ sai_status_t get_tunnel_attribute_fn(
         attr[i].value.s32 =
             tunnel.ecnMode.has_value() ? tunnel.ecnMode.value() : 0;
         break;
+      case SAI_TUNNEL_ATTR_ENCAP_SRC_IP:
+        if (tunnel.encapSrcIp.has_value()) {
+          attr[i].value.ipaddr = tunnel.encapSrcIp.value();
+        }
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_TTL_MODE:
+        attr[i].value.s32 =
+            tunnel.encapTtlMode.has_value() ? tunnel.encapTtlMode.value() : 0;
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_DSCP_MODE:
+        attr[i].value.s32 =
+            tunnel.encapDscpMode.has_value() ? tunnel.encapDscpMode.value() : 0;
+        break;
+      case SAI_TUNNEL_ATTR_ENCAP_ECN_MODE:
+        attr[i].value.s32 =
+            tunnel.encapEcnMode.has_value() ? tunnel.encapEcnMode.value() : 0;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -141,6 +175,18 @@ sai_status_t set_tunnel_attribute_fn(
     case SAI_TUNNEL_ATTR_DECAP_ECN_MODE:
       tunnel.ecnMode =
           static_cast<sai_tunnel_decap_ecn_mode_t>(attr->value.s32);
+      break;
+    case SAI_TUNNEL_ATTR_ENCAP_SRC_IP:
+      tunnel.encapSrcIp = attr->value.ipaddr;
+      break;
+    case SAI_TUNNEL_ATTR_ENCAP_TTL_MODE:
+      tunnel.encapTtlMode = attr->value.s32;
+      break;
+    case SAI_TUNNEL_ATTR_ENCAP_DSCP_MODE:
+      tunnel.encapDscpMode = attr->value.s32;
+      break;
+    case SAI_TUNNEL_ATTR_ENCAP_ECN_MODE:
+      tunnel.encapEcnMode = attr->value.s32;
       break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;

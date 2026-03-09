@@ -118,7 +118,8 @@ class AgentPortBandwidthTest : public AgentHwTest {
         payload);
 
     std::optional<PortDescriptor> port{};
-    if (getHwAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (getHwAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       port = PortDescriptor(getPort0());
     }
     getAgentEnsemble()->sendPacketAsync(
@@ -423,7 +424,8 @@ void AgentPortBandwidthTest::verifyPortRateTraffic(cfg::PortSpeed portSpeed) {
   auto setup = [&]() {
     auto port = getProgrammedState()->getPorts()->getNodeIf(getPort0());
     if (port->getSpeed() != portSpeed ||
-        getHwAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+        getHwAsic()->getAsicVendor() !=
+            HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
       utility::configurePortGroup(
           getAgentEnsemble()->getPlatformMapping(),

@@ -20,50 +20,65 @@ class Srv6StoreTest : public SaiStoreTest {
     return {type, std::nullopt, std::nullopt};
   }
 
-  Srv6SidListSaiId createSrv6SidList() const {
-    auto& srv6Api = saiApiTable->srv6Api();
-    return srv6Api.create<SaiSrv6SidListTraits>(createSrv6SidListAttrs(), 0);
+  SaiSrv6SidListTraits::AdapterHostKey makeAdapterHostKey() const {
+    return SaiSrv6SidListTraits::AdapterHostKey{
+        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+        std::nullopt,
+        RouterInterfaceSaiId{kRifId},
+        kNextHopIp};
   }
+
+  static constexpr sai_object_id_t kRifId{42};
+  static inline const folly::IPAddress kNextHopIp{"10.0.0.1"};
 };
 
-TEST_F(Srv6StoreTest, loadSrv6SidList) {
-  auto sidListId = createSrv6SidList();
-  SaiStore s(0);
-  s.reload();
-  auto& store = s.get<SaiSrv6SidListTraits>();
-  auto obj = createObj<SaiSrv6SidListTraits>(sidListId);
-  auto k = obj.adapterHostKey();
-  auto got = store.get(k);
-  EXPECT_NE(got, nullptr);
-  EXPECT_EQ(got->adapterKey(), sidListId);
+TEST_F(Srv6StoreTest, setObjectPreservesAdapterHostKey) {
+  auto key = makeAdapterHostKey();
+  auto attrs = createSrv6SidListAttrs();
+  auto& store = saiStore->get<SaiSrv6SidListTraits>();
+  auto obj = store.setObject(key, attrs);
+  EXPECT_EQ(obj->adapterHostKey(), key);
 }
 
-TEST_F(Srv6StoreTest, srv6SidListLoadCtor) {
-  auto sidListId = createSrv6SidList();
-  SaiObject<SaiSrv6SidListTraits> obj =
-      createObj<SaiSrv6SidListTraits>(sidListId);
-  EXPECT_EQ(obj.adapterKey(), sidListId);
-  EXPECT_EQ(
-      GET_ATTR(Srv6SidList, Type, obj.attributes()),
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
+TEST_F(Srv6StoreTest, setObjectTwiceReturnsSameObject) {
+  auto key = makeAdapterHostKey();
+  auto attrs = createSrv6SidListAttrs();
+  auto& store = saiStore->get<SaiSrv6SidListTraits>();
+  auto obj1 = store.setObject(key, attrs);
+  auto obj2 = store.setObject(key, attrs);
+  EXPECT_EQ(obj1->adapterKey(), obj2->adapterKey());
+  EXPECT_EQ(obj1->adapterHostKey(), obj2->adapterHostKey());
 }
 
 TEST_F(Srv6StoreTest, srv6SidListCreateCtor) {
-  SaiSrv6SidListTraits::AdapterHostKey k{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, std::nullopt, std::nullopt};
+  auto key = makeAdapterHostKey();
+  auto attrs = createSrv6SidListAttrs();
   SaiObject<SaiSrv6SidListTraits> obj =
-      createObj<SaiSrv6SidListTraits>(k, k, 0);
+      createObj<SaiSrv6SidListTraits>(key, attrs, 0);
+  EXPECT_EQ(obj.adapterHostKey(), key);
   EXPECT_EQ(
       GET_ATTR(Srv6SidList, Type, obj.attributes()),
       SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
 }
 
 TEST_F(Srv6StoreTest, serDeserSrv6SidList) {
-  auto sidListId = createSrv6SidList();
-  verifyAdapterKeySerDeser<SaiSrv6SidListTraits>({sidListId});
+  auto key = makeAdapterHostKey();
+  auto attrs = createSrv6SidListAttrs();
+  auto& store = saiStore->get<SaiSrv6SidListTraits>();
+  auto obj = store.setObject(key, attrs);
+  auto sidListId = obj->adapterKey();
+  // Verify adapter key appears in the serialized JSON
+  auto json = saiStore->adapterKeysFollyDynamic();
+  auto gotKeys = keysForSaiObjStoreFromStoreJson<SaiSrv6SidListTraits>(json);
+  EXPECT_EQ(gotKeys.size(), 1);
+  EXPECT_EQ(gotKeys[0], sidListId);
 }
 
 TEST_F(Srv6StoreTest, toStrSrv6SidList) {
-  std::ignore = createSrv6SidList();
-  verifyToStr<SaiSrv6SidListTraits>();
+  auto key = makeAdapterHostKey();
+  auto attrs = createSrv6SidListAttrs();
+  auto& store = saiStore->get<SaiSrv6SidListTraits>();
+  store.setObject(key, attrs);
+  auto str = fmt::format("{}", store);
+  EXPECT_EQ(std::count(str.begin(), str.end(), '\n'), store.size() + 1);
 }

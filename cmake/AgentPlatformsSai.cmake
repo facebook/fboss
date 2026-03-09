@@ -58,6 +58,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiMinipack3NPlatform.cpp
   fboss/agent/platforms/sai/SaiYangraPlatformPort.cpp
   fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiYangra2Platform.cpp
 # platform oss srcs (== fake_srcs)
   fboss/agent/platforms/sai/SaiBcmJ4SimPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.cpp
@@ -83,6 +84,7 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
+  fboss/agent/platforms/sai/SaiYangra2PlatformPort.cpp
 )
 
 if (SAI_BRCM_PAI_IMPL)
@@ -140,6 +142,7 @@ target_link_libraries(sai_platform
   led_mapping_cpp2
   wedge800bact_platform_mapping
   wedge800cact_platform_mapping
+  yangra2_platform_mapping
 )
 
 set_target_properties(sai_platform PROPERTIES COMPILE_FLAGS

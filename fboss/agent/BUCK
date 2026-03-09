@@ -669,6 +669,27 @@ cpp_library(
 )
 
 cpp_library(
+    name = "packet_stream_handler",
+    srcs = [
+        "PacketStreamHandler.cpp",
+    ],
+    headers = [
+        "PacketStreamHandler.h",
+    ],
+    exported_deps = [
+        ":core",
+        ":fboss-types",
+        ":packet",
+        "//fb303:thread_cached_service_data",
+        "//fboss/agent/state:state",
+        "//fboss/agent/thrift_packet_stream:packet_stream_server",
+        "//folly:synchronized",
+        "//folly/io:iobuf",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "stats",
     srcs = [
         "AggregatePortStats.cpp",
@@ -903,6 +924,7 @@ cpp_library(
         "NeighborUpdaterImpl.cpp",
         "NeighborUpdaterNoopImpl.cpp",
         "NextHopResolver.cpp",
+        "PacketStreamHandler.cpp",
         "PortUpdateHandler.cpp",
         "RemoteNeighborUpdater.cpp",
         "ResolvedNexthopMonitor.cpp",
@@ -1034,6 +1056,7 @@ cpp_library(
         "//fboss/agent/state:state_update",
         "//fboss/agent/state:state_utils",
         "//fboss/agent/thrift_packet_stream:bidirectional_packet_stream",
+        "//fboss/agent/thrift_packet_stream:packet_stream_server",
         "//fboss/facebook/bitsflow:bitsflow_helper",
         "//fboss/fsdb/client:fsdb_pub_sub",
         "//fboss/fsdb/client:fsdb_stream_client",

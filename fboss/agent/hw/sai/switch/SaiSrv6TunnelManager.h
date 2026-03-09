@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+#include "fboss/agent/hw/sai/api/TunnelApi.h"
+#include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
 
 #include "folly/container/F14Map.h"
@@ -12,7 +15,15 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 
-struct SaiSrv6TunnelHandle {};
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+using SaiSrv6Tunnel = SaiObject<SaiSrv6TunnelTraits>;
+#endif
+
+struct SaiSrv6TunnelHandle {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::shared_ptr<SaiSrv6Tunnel> tunnel;
+#endif
+};
 
 class SaiSrv6TunnelManager {
   using Handles =
@@ -33,9 +44,6 @@ class SaiSrv6TunnelManager {
 
   const SaiSrv6TunnelHandle* getSrv6TunnelHandle(
       const std::string& swId) const {
-    return getSrv6TunnelHandleImpl(swId);
-  }
-  SaiSrv6TunnelHandle* getSrv6TunnelHandle(const std::string& swId) {
     return getSrv6TunnelHandleImpl(swId);
   }
 

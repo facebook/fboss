@@ -29,17 +29,15 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // This base class should be the preferred way to use visitors. Operations
 // should subclass this and override the virtual methods but pass a pointer
 // to the base class to avoid extra unique instantiations
-typedef std::function<void(
+using SerializableVisitorFunc = std::function<void(
     Serializable& node,
     pv_detail::PathIter begin,
-    pv_detail::PathIter end)>
-    SerializableVisitorFunc;
+    pv_detail::PathIter end)>;
 
-typedef std::function<void(
+using ConstSerializableVisitorFunc = std::function<void(
     const Serializable& node,
     pv_detail::PathIter begin,
-    pv_detail::PathIter end)>
-    ConstSerializableVisitorFunc;
+    pv_detail::PathIter end)>;
 
 struct BasePathVisitorOperator {
   explicit BasePathVisitorOperator(SerializableVisitorFunc&& f)

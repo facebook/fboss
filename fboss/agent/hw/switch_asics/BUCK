@@ -7,6 +7,7 @@ cpp_library(
     srcs = [
         "Agera3PhyAsic.cpp",
         "BroadcomXgsAsic.cpp",
+        "Chenab2Asic.cpp",
         "ChenabAsic.cpp",
         "CredoPhyAsic.cpp",
         "EbroAsic.cpp",
@@ -30,6 +31,7 @@ cpp_library(
     headers = [
         "Agera3PhyAsic.h",
         "BroadcomAsic.h",
+        "Chenab2Asic.h",
         "ChenabAsic.h",
         "FakeAsic.h",
         "Jericho4Asic.h",

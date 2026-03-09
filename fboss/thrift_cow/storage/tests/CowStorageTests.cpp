@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <folly/String.h>
+#include <folly/Utility.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
 
@@ -9,6 +10,7 @@
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
 #include "fboss/fsdb/tests/gen-cpp2/thriftpath_test_types.h"
@@ -903,11 +905,12 @@ TYPED_TEST(CowStorageTests, PatchRoot) {
   auto memberNodeB = std::make_shared<ThriftStructNode<TestStructSimple>>(
       *testStructB.member());
 
-  using TestStructMembers = apache::thrift::reflect_struct<TestStruct>::member;
   patch = PatchBuilder::build(
       memberNodeA,
       memberNodeB,
-      {folly::to<std::string>(TestStructMembers::member::id::value)});
+      {folly::to<std::string>(folly::to_underlying(
+          apache::thrift::op::
+              get_field_id_v<TestStruct, apache::thrift::ident::member>))});
   storage.patch(std::move(patch));
   namespace k = apache::thrift::ident;
   EXPECT_EQ(

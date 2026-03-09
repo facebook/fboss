@@ -5,7 +5,7 @@
 
 if(BUILD_SAI_FAKE)
 add_executable(switch_test
-    fboss/agent/test/oss/Main.cpp
+    fboss/util/oss/TestMain.cpp
     fboss/agent/hw/sai/switch/tests/AclTableGroupManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/AclTableManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/ArsManagerTest.cpp

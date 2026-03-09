@@ -217,6 +217,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(PortSerdes, RxEqP1)
   SAI_EXT_ATTR_MAP(PortSerdes, RxEqP2)
   SAI_EXT_ATTR_MAP(PortSerdes, RxPf)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxPfLfq)
+  SAI_EXT_ATTR_MAP(PortSerdes, RxPfHfq)
   SAI_EXT_ATTR_MAP(PortSerdes, RxTap1)
   SAI_EXT_ATTR_MAP(PortSerdes, RxTap2)
   SAI_EXT_ATTR_MAP(PortSerdes, TpChn0)

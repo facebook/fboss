@@ -3,7 +3,9 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include <gtest/gtest.h>
 
+#include <folly/Utility.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook::fboss::fsdb::test {
@@ -148,35 +150,40 @@ folly::F14FastMap<std::string, HwPortStats> makeLargePortStats(
 }
 
 Patch makePatch(const cfg::AgentConfig& config) {
-  using AgentDataMembers = apache::thrift::reflect_struct<AgentData>::member;
-  using FsdbOperStateRootMembers =
-      apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
   folly::IOBufQueue queue;
   apache::thrift::CompactSerializer::serialize(config, &queue);
   thrift_cow::PatchNode val;
   val.set_val(queue.moveAsValue());
 
   thrift_cow::StructPatch s;
-  s.children() = {{AgentDataMembers::config::id::value, std::move(val)}};
+  s.children() = {
+      {folly::to_underlying(
+           apache::thrift::op::
+               get_field_id_v<AgentData, apache::thrift::ident::config>),
+       std::move(val)}};
 
   thrift_cow::PatchNode root;
   root.set_struct_node(std::move(s));
   Patch p;
   p.patch() = std::move(root);
-  p.basePath() = {
-      folly::to<std::string>(FsdbOperStateRootMembers::agent::id::value)};
+  p.basePath() = {folly::to<std::string>(folly::to_underlying(
+      apache::thrift::op::
+          get_field_id_v<FsdbOperStateRoot, apache::thrift::ident::agent>))};
   return p;
 }
 
 Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats) {
-  using AgentStatsMembers = apache::thrift::reflect_struct<AgentStats>::member;
   folly::IOBufQueue queue;
   apache::thrift::CompactSerializer::serialize(portStats, &queue);
   thrift_cow::PatchNode val;
   val.set_val(queue.moveAsValue());
 
   thrift_cow::StructPatch s;
-  s.children() = {{AgentStatsMembers::hwPortStats::id::value, std::move(val)}};
+  s.children() = {
+      {folly::to_underlying(
+           apache::thrift::op::
+               get_field_id_v<AgentStats, apache::thrift::ident::hwPortStats>),
+       std::move(val)}};
 
   thrift_cow::PatchNode root;
   root.set_struct_node(std::move(s));

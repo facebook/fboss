@@ -36,8 +36,8 @@ bool verifyArs(
               << switchingMode << ", actual: " << mode;
     return false;
   }
-  if (hw->getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hw->getPlatform()->getAsic()->getAsicVendor() !=
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     auto idleTime =
         arsApi.getAttribute(arsSaiId, SaiArsTraits::Attributes::IdleTime());
     if (*cfg.inactivityIntervalUsecs() != idleTime) {

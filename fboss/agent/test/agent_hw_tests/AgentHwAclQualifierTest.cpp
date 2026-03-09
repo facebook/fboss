@@ -35,13 +35,18 @@ void configureAllIpQualifiers(
     cfg::AsicType asicType) {
   cfg::Ttl ttl;
   std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
-  bool enableSrcIpQualifier =
-      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
-  bool enableIpFragQualifier =
-      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
-  bool enableLookupClass =
-      (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
-  bool enableEtherTpe = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) && enable;
+  bool enableSrcIpQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+                               asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
+      enable;
+  bool enableIpFragQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+                                asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
+      enable;
+  bool enableLookupClass = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+                            asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) &&
+      enable;
+  bool enableEtherTpe = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+                         asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) &&
+      enable;
 
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     // TODO(daiweix): remove after J3 ACL supports IP_TYPE
@@ -82,7 +87,9 @@ void configureAllTcpQualifiers(
   configureQualifier(acl->l4DstPort(), enable, 20);
   configureQualifier(acl->proto(), enable, 6);
   bool enableTcpFlags =
-      (enable && (asicType != cfg::AsicType::ASIC_TYPE_CHENAB));
+      (enable &&
+       (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2));
   configureQualifier(acl->tcpFlagsBitMap(), enableTcpFlags, 16);
 }
 
@@ -91,7 +98,9 @@ void configureAllIcmpQualifiers(
     bool enable,
     cfg::IpType ipType,
     cfg::AsicType asicType) {
-  bool enableEtherTypeQualifier = (asicType == cfg::AsicType::ASIC_TYPE_CHENAB);
+  bool enableEtherTypeQualifier =
+      (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+       asicType == cfg::AsicType::ASIC_TYPE_CHENAB2);
 
   if (ipType == cfg::IpType::IP6) {
     configureQualifier(acl->proto(), enable, 58); // Icmp v6
@@ -131,7 +140,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto newCfg = AgentHwTest::initialConfig(ensemble);
-    if (checkSameAndGetAsicType(newCfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(newCfg) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        checkSameAndGetAsicType(newCfg) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       utility::addAclTable(
           &newCfg,
           "icmp_acl_table",
@@ -164,8 +174,8 @@ class AgentHwAclQualifierTest : public AgentHwTest {
     configureQualifier(acl->srcPort(), enable, masterLogicalPorts[0]);
     if ((hwAsicForSwitch(switchID)->getAsicType() !=
          cfg::AsicType::ASIC_TYPE_JERICHO2) &&
-        (hwAsicForSwitch(switchID)->getAsicType() !=
-         cfg::AsicType::ASIC_TYPE_CHENAB) &&
+        (hwAsicForSwitch(switchID)->getAsicVendor() !=
+         HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) &&
         (hwAsicForSwitch(switchID)->getAsicType() !=
          cfg::AsicType::ASIC_TYPE_JERICHO3)) {
       // No out port support on J2. Out port not used in prod
@@ -179,7 +189,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       SwitchID switchID = SwitchID(0)) {
     auto asic = hwAsicForSwitch(switchID);
     bool dstMacEnabled =
-        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB);
+        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     configureQualifier(acl->dstMac(), dstMacEnabled, "00:11:22:33:44:55");
     /*
      * lookupClassL2 is not configured for Trident2 or else we run out of
@@ -196,10 +206,11 @@ class AgentHwAclQualifierTest : public AgentHwTest {
                           .switchType()
                           .value();
     if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TRIDENT2 &&
-        asic->getAsicType() !=
-            cfg::AsicType::ASIC_TYPE_CHENAB && // no l2 lookup class in chenab
-                                               // in ingress stage L2 switching
-                                               // only on NPU type switch
+        asic->getAsicVendor() !=
+            HwAsic::AsicVendor::ASIC_VENDOR_CHENAB && // no l2 lookup class in
+                                                      // chenab in ingress stage
+                                                      // L2 switching only on
+                                                      // NPU type switch
         switchType == cfg::SwitchType::NPU) {
       configureQualifier(
           acl->lookupClassL2(),
@@ -212,9 +223,11 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       cfg::AclEntry* acl,
       SwitchID switchID = SwitchID(0)) {
     auto asicType = getAsicType(switchID);
-    bool enableSrcIpQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB);
+    auto asicVendor = getAsicVendor(switchID);
+    bool enableSrcIpQualifier =
+        (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     bool enableEtherTypeQualifier =
-        (asicType == cfg::AsicType::ASIC_TYPE_CHENAB);
+        (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     cfg::Ttl ttl;
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
@@ -235,9 +248,11 @@ class AgentHwAclQualifierTest : public AgentHwTest {
       cfg::AclEntry* acl,
       SwitchID switchID = SwitchID(0)) {
     auto asicType = getAsicType(switchID);
-    auto enableSrcIpQualifier = (asicType != cfg::AsicType::ASIC_TYPE_CHENAB);
+    auto asicVendor = getAsicVendor(switchID);
+    auto enableSrcIpQualifier =
+        (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     bool enableEtherTypeQualifier =
-        (asicType == cfg::AsicType::ASIC_TYPE_CHENAB);
+        (asicVendor == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     cfg::Ttl ttl;
     std::tie(*ttl.value(), *ttl.mask()) = std::make_tuple(0x80, 0x80);
 
@@ -288,7 +303,7 @@ class AgentHwAclQualifierTest : public AgentHwTest {
           cfg::AclTableQualifier::OUTER_VLAN,
       };
 
-      if (getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         defaultQualifiers.clear();
       }
       std::vector<cfg::AclTableActionType> actions = {};
@@ -359,6 +374,10 @@ class AgentHwAclQualifierTest : public AgentHwTest {
 
   cfg::AsicType getAsicType(SwitchID switchID = SwitchID(0)) {
     return hwAsicForSwitch(switchID)->getAsicType();
+  }
+
+  HwAsic::AsicVendor getAsicVendor(SwitchID switchID = SwitchID(0)) {
+    return hwAsicForSwitch(switchID)->getAsicVendor();
   }
 };
 
@@ -453,7 +472,7 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp4Qualifiers) {
         utility::getAclEntry(state, "icmp4", FLAGS_enable_acl_table_group)
             ->toThrift();
 
-    if (getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       EXPECT_EQ(client->sync_getAclTableNumAclEntries("icmp_acl_table"), 1);
       EXPECT_TRUE(client->sync_isAclEntrySame(acl, "icmp_acl_table"));
     } else {
@@ -491,7 +510,7 @@ TEST_F(AgentHwAclQualifierTest, AclIcmp6Qualifiers) {
     auto acl =
         utility::getAclEntry(state, "icmp6", FLAGS_enable_acl_table_group)
             ->toThrift();
-    if (getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       EXPECT_EQ(client->sync_getAclTableNumAclEntries("icmp_acl_table"), 1);
       EXPECT_TRUE(client->sync_isAclEntrySame(acl, "icmp_acl_table"));
 
@@ -586,7 +605,7 @@ TEST_F(AgentHwAclQualifierTest, AclModifyQualifier) {
     auto state = getAgentEnsemble()->getProgrammedState();
     auto acl = utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group)
                    ->toThrift();
-    if (getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       EXPECT_EQ(client->sync_getAclTableNumAclEntries("icmp_acl_table"), 1);
       EXPECT_TRUE(client->sync_isAclEntrySame(acl, "icmp_acl_table"));
     } else {
@@ -638,7 +657,7 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
         utility::getAclEntry(state, "acl0", FLAGS_enable_acl_table_group);
     ASSERT_NE(acl, nullptr);
     auto aclThrift = acl->toThrift();
-    if (this->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (this->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       EXPECT_TRUE(client->sync_isAclEntrySame(aclThrift, "icmp_acl_table"));
     } else {
       EXPECT_TRUE(
