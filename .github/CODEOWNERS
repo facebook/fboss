@@ -58,7 +58,7 @@
 /fboss/cli/                             @facebook/fboss-cli
 
 # ──────────────────────────────────────────────────────────────────────
-# FSDB — Fast Switch Database for configuration and state storage.
+# FSDB — FBOSS State Database for configuration and state storage.
 # Provides a pub-sub interface for structured switch state data.
 # Path: fboss/fsdb/
 # ──────────────────────────────────────────────────────────────────────

@@ -140,7 +140,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, collectStats) {
       }
     });
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricConnectivity) {
@@ -149,7 +149,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, checkFabricConnectivity) {
       utility::checkFabricConnectivity(getAgentEnsemble(), switchId);
     }
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
@@ -207,7 +207,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
     switchReachableOverPort(
         true /*reachable*/, fabricPortId, masterLogicalFabricPortIds().size());
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
@@ -247,7 +247,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricIsolate) {
     drainPort(true);
     drainPort(false);
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentVoqSwitchWithFabricPortsTest, fabricConnectivityMismatch) {

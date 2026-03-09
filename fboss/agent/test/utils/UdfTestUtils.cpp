@@ -74,7 +74,8 @@ cfg::UdfConfig addUdfAclConfig(int udfType) {
 
 cfg::UdfConfig addUdfHashConfig(cfg::AsicType asicType) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     return addUdfConfig(
         udfMap,
         kUdfHashDstQueuePairGroupName,
@@ -92,7 +93,8 @@ cfg::UdfConfig addUdfHashConfig(cfg::AsicType asicType) {
 
 cfg::UdfConfig addUdfHashAclConfig(cfg::AsicType asicType) {
   std::map<std::string, cfg::UdfGroup> udfMap;
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     addUdfConfig(
         udfMap,
         kUdfHashDstQueuePairGroupName,

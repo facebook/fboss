@@ -1,0 +1,19 @@
+# /usr/lib/systemd/system/fboss_init.service
+[Unit]
+Description=FBOSS Initialization
+DefaultDependencies=no
+Before=platform_manager.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/fboss_init.sh
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fboss_init
+
+[Install]
+WantedBy=multi-user.target

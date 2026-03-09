@@ -130,7 +130,7 @@ void AgentOlympicQosSchedulerTest::verifySP(bool frontPanelTraffic) {
     bringUpPort(outPort());
   };
 
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 void AgentOlympicQosSchedulerTest::verifyWRRAndSP(

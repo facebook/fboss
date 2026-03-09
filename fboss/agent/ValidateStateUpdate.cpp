@@ -5,7 +5,9 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitchHandler.h"
+#include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -16,8 +18,55 @@ using facebook::fboss::DeltaFunctions::forEachChanged;
 using std::shared_ptr;
 
 namespace facebook::fboss {
-bool isStateUpdateValidCommon(const StateDelta& delta) {
+
+bool hasValidPortQueues(
+    const shared_ptr<Port>& port,
+    bool isEcnProbabilisticMarkingSupported) {
+  constexpr auto kDefaultProbability = 100;
+  for (const auto& portQueue : *port->getPortQueues()) {
+    const auto& aqms = portQueue->get<ctrl_if_tags::aqms>();
+    if (!aqms) {
+      continue;
+    }
+    for (const auto& entry : std::as_const(*aqms)) {
+      // THRIFT_COPY
+      auto behavior = entry->cref<switch_config_tags::behavior>()->toThrift();
+      auto detection = entry->cref<switch_config_tags::detection>()->toThrift();
+      if (behavior == cfg::QueueCongestionBehavior::ECN) {
+        auto probability = *detection.linear()->probability();
+        if (isEcnProbabilisticMarkingSupported) {
+          // Probability must be >0 and <=100
+          if (probability <= 0 || probability > 100) {
+            XLOG(ERR) << "Port " << port->getID() << " queue "
+                      << portQueue->getID()
+                      << " has invalid ECN probability: " << probability
+                      << " (must be >0 and <=100)";
+            return false;
+          }
+        } else {
+          // Must be exactly 100%
+          if (probability != kDefaultProbability) {
+            XLOG(ERR) << "Port " << port->getID() << " queue "
+                      << portQueue->getID()
+                      << " has invalid ECN probability: " << probability
+                      << " (must be exactly 100% when ECN probabilistic "
+                      << "marking is not supported)";
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+bool isStateUpdateValidCommon(
+    const StateDelta& delta,
+    const HwAsicTable* hwAsicTable) {
   bool isValid = true;
+  bool isEcnProbabilisticMarkingSupported =
+      hwAsicTable->isFeatureSupportedOnAllAsic(
+          HwAsic::Feature::ECN_PROBABILISTIC_MARKING);
 
   forEachChanged(
       delta.getAclsDelta(),
@@ -43,7 +92,8 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
       delta.getPortsDelta(),
       [&](const shared_ptr<Port>& /* oldport */,
           const shared_ptr<Port>& newport) {
-        isValid = isValid && newport->hasValidPortQueues();
+        isValid = isValid &&
+            hasValidPortQueues(newport, isEcnProbabilisticMarkingSupported);
         if (!isValid) {
           XLOG(ERR) << "Changed port " << newport->getID()
                     << " has invalid queues";
@@ -52,7 +102,8 @@ bool isStateUpdateValidCommon(const StateDelta& delta) {
         return isValid ? LoopAction::CONTINUE : LoopAction::BREAK;
       },
       [&](const shared_ptr<Port>& addport) {
-        isValid = isValid && addport->hasValidPortQueues();
+        isValid = isValid &&
+            hasValidPortQueues(addport, isEcnProbabilisticMarkingSupported);
         if (!isValid) {
           XLOG(ERR) << "Newly added port " << addport->getID()
                     << " has invalid queues";
@@ -213,21 +264,49 @@ StateUpdateValidator::StateUpdateValidator(
     : runMode_(runMode),
       hwSwitchHandler_(hwSwitchHandler),
       asicTable_(asicTable),
-      scopeResolver_(scopeResolver) {}
+      scopeResolver_(scopeResolver) {
+  resourceAccountant_ =
+      std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
+}
 
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
-    SwitchStats* /* stats */) const {
+    SwitchStats* stats) const {
+  bool isValid = resourceAccountant_->isValidUpdate(delta);
+  if (!isValid) {
+    stats->resourceAccountantRejectedUpdates();
+    XLOG(ERR) << "State updated rejected by resource accountant.";
+    return isValid;
+  }
+
   switch (runMode_) {
     case cfg::AgentRunMode::MONO: {
-      return isStateUpdateValidCommon(delta) &&
+      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
           hwSwitchHandler_->isValidStateUpdate(delta);
-    }
-    case cfg::AgentRunMode::MULTI_SWITCH:
-      return isStateUpdateValidMultiSwitch(
-          delta, scopeResolver_, asicTable_->getHwAsics());
+    } break;
+    case cfg::AgentRunMode::MULTI_SWITCH: {
+      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
+          isStateUpdateValidMultiSwitch(
+                    delta, scopeResolver_, asicTable_->getHwAsics());
+    } break;
   }
-  throw FbossError("Invalid run mode: ", runMode_);
+  if (!isValid) {
+    XLOG(ERR) << "State update is not valid.";
+  }
+  return isValid;
+}
+
+void StateUpdateValidator::stateChanged(const StateDelta& delta) {
+  resourceAccountant_->stateChanged(delta);
+}
+
+void StateUpdateValidator::updateRejected(const StateDelta& delta) {
+  /* reconstruct the resource account to reset resources accounted in earlier
+   * deltas */
+  resourceAccountant_ =
+      std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
+  resourceAccountant_->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
 }
 
 } // namespace facebook::fboss

@@ -132,7 +132,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 
       auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
       if (hopLimit == kStartTtl) {
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+        if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
           // On chenab, the first packet is also timestamped,
           // CPU tx pipeline (with pipeline bypass) has correction field update
           EXPECT_GT(correctionField, 0);

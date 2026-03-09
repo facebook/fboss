@@ -61,7 +61,7 @@ class AgentPrbsTest : public AgentHwTest {
     if (getAgentEnsemble()->getNumL3Asics() >= 1) {
       auto l3Asics = getAgentEnsemble()->getL3Asics();
       auto asic = checkSameAndGetAsic(l3Asics);
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         return kPrbsPolynomial13;
       }
     }

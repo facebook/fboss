@@ -95,6 +95,7 @@ class ResolvedNexthopMonitor;
 class ResolvedNexthopProbeScheduler;
 class StaticL2ForNeighborObserver;
 class MKAServiceManager;
+class PacketStreamHandler;
 template <typename AddressT>
 class Route;
 class Interface;
@@ -226,9 +227,6 @@ class SwSwitch : public HwSwitchCallback {
     return hwSwitchThriftClientTable_.get();
   }
 
-  const ResourceAccountant* getResourceAccountant() const {
-    return resourceAccountant_.get();
-  }
   /*
    * Initialize the switch.
    *
@@ -478,7 +476,8 @@ class SwSwitch : public HwSwitchCallback {
    * For now we just check for the new port speeds being valid.
    * This could be extended as needed
    */
-  bool isValidStateUpdate(const StateDelta& delta) const;
+  bool isValidStateUpdate(const StateDelta& delta, SwitchStats* stats = nullptr)
+      const;
 
   /*
    * Get the PortStats for the specified port.
@@ -766,7 +765,12 @@ class SwSwitch : public HwSwitchCallback {
   MKAServiceManager* getMKAServiceMgr() {
     return mkaServiceManager_.get();
   }
+
+  PacketStreamHandler* getPacketStreamHandler() const {
+    return packetStreamHandler_;
+  }
 #endif
+  void setPacketStreamHandler(PacketStreamHandler* handler);
   /*
    * Get the PacketLogger object
    */
@@ -1035,6 +1039,7 @@ class SwSwitch : public HwSwitchCallback {
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
   bool hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId);
+  const ResourceAccountant* getResourceAccountant() const;
 
  private:
   void initAgentInfo();
@@ -1381,6 +1386,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<MacTableManager> macTableManager_;
 #if FOLLY_HAS_COROUTINES
   std::unique_ptr<MKAServiceManager> mkaServiceManager_;
+  PacketStreamHandler* packetStreamHandler_{nullptr};
 #endif
 
   static constexpr auto kIphySnapshotIntervalSeconds = 1;
@@ -1397,7 +1403,6 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<HwAsicTable> hwAsicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
   std::unique_ptr<SwitchStatsObserver> switchStatsObserver_;
-  std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;

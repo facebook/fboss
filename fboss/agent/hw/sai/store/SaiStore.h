@@ -53,6 +53,12 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiSrv6SidListTraits>
+    : std::false_type {};
+#endif
+
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
@@ -669,6 +675,9 @@ class SaiStore {
       SaiObjectStore<SaiEnhancedRemoteMirrorTraits>,
       SaiObjectStore<SaiSflowMirrorTraits>,
       SaiObjectStore<SaiMplsNextHopTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6SidlistNextHopTraits>,
+#endif
       SaiObjectStore<SaiNeighborTraits>,
       SaiObjectStore<SaiHostifTrapGroupTraits>,
       SaiObjectStore<SaiHostifTrapTraits>,
@@ -691,7 +700,10 @@ class SaiStore {
       SaiObjectStore<SaiTamEventTraits>,
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
-      SaiObjectStore<SaiTunnelTraits>,
+      SaiObjectStore<SaiIpInIpTunnelTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6TunnelTraits>,
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       SaiObjectStore<SaiSrv6SidListTraits>,
 #endif

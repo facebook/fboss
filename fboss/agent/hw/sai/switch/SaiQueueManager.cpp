@@ -259,8 +259,8 @@ void SaiQueueManager::changeQueueScheduler(
     queueHandle->queue->setOptionalAttribute(
         SaiQueueTraits::Attributes::SchedulerProfileId(
             newScheduler ? newScheduler->adapterKey() : SAI_NULL_OBJECT_ID));
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Signal to SAI to use non-hierarchial QoS by setting the parent
       // scheduler node to the port.
       std::optional<PortSaiId> portSaiId{};

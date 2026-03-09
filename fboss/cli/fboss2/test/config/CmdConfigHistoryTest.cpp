@@ -34,57 +34,72 @@ class CmdConfigHistoryTestFixture : public CmdConfigTestBase {
 };
 
 TEST_F(CmdConfigHistoryTestFixture, historyListsRevisions) {
-  // Create revision files with valid config content
-  createTestConfig(getCliConfigDir() / "agent-r1.conf", initialConfigContents);
-  createTestConfig(getCliConfigDir() / "agent-r2.conf", initialConfigContents);
-  createTestConfig(getCliConfigDir() / "agent-r3.conf", initialConfigContents);
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
 
-  // Initialize ConfigSession singleton with test paths
+  // Second commit
+  createTestConfig(
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 200000}]}})");
+  git().commit({"cli/agent.conf"}, "Second commit");
+
+  // Third commit
+  createTestConfig(
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 300000}]}})");
+  git().commit({"cli/agent.conf"}, "Third commit");
+
   setupTestableConfigSession();
 
-  // Create and execute the command
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify the output contains all three revisions
-  EXPECT_NE(result.find("r1"), std::string::npos);
-  EXPECT_NE(result.find("r2"), std::string::npos);
-  EXPECT_NE(result.find("r3"), std::string::npos);
-
-  // Verify table headers are present
-  EXPECT_NE(result.find("Revision"), std::string::npos);
-  EXPECT_NE(result.find("Owner"), std::string::npos);
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+  EXPECT_NE(result.find("Second commit"), std::string::npos);
+  EXPECT_NE(result.find("Third commit"), std::string::npos);
+  EXPECT_NE(result.find("Commit"), std::string::npos);
+  EXPECT_NE(result.find("Author"), std::string::npos);
   EXPECT_NE(result.find("Commit Time"), std::string::npos);
+  EXPECT_NE(result.find("Message"), std::string::npos);
+
+  // Verify the timestamp is formatted correctly (not epoch).
+  // Git returns Unix timestamps in seconds, so if the code incorrectly
+  // treats them as nanoseconds, we'd see dates near the Unix epoch.
+  // Depending on timezone, epoch could show as 1970-01-01 or 1969-12-31.
+  EXPECT_EQ(result.find("1970-"), std::string::npos)
+      << "Timestamp appears to be incorrectly parsed (showing 1970 epoch)";
+  EXPECT_EQ(result.find("1969-"), std::string::npos)
+      << "Timestamp appears to be incorrectly parsed (showing 1969 epoch)";
+  // Check that the current year appears in the output
+  std::time_t now = std::time(nullptr);
+  std::tm tm{};
+  localtime_r(&now, &tm);
+  std::string currentYear = std::to_string(1900 + tm.tm_year);
+  EXPECT_NE(result.find(currentYear + "-"), std::string::npos)
+      << "Expected timestamp with year " << currentYear << ", got: " << result;
 }
 
 TEST_F(CmdConfigHistoryTestFixture, historyIgnoresNonMatchingFiles) {
-  // Create valid revision files
-  createTestConfig(getCliConfigDir() / "agent-r1.conf", initialConfigContents);
-  createTestConfig(getCliConfigDir() / "agent-r2.conf", initialConfigContents);
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
 
-  // Create files that should be ignored
-  createTestConfig(getCliConfigDir() / "agent.conf.bak", R"({"backup": true})");
-  createTestConfig(getCliConfigDir() / "other-r1.conf", R"({"other": true})");
+  // Second commit for cli/agent.conf
   createTestConfig(
-      getCliConfigDir() / "agent-r1.txt", R"({"wrong_ext": true})");
-  createTestConfig(getCliConfigDir() / "agent-rX.conf", R"({"invalid": true})");
+      cliConfigPath,
+      R"({"sw": {"ports": [{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": 200000}]}})");
+  git().commit({"cli/agent.conf"}, "Config update");
 
-  // Initialize ConfigSession singleton with test paths
+  // Create and commit a different file (should not appear in history)
+  createTestConfig(getTestEtcDir() / "coop" / "other.txt", "other content");
+  git().commit({"other.txt"}, "Other file commit");
+
   setupTestableConfigSession();
 
-  // Create and execute the command
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify only valid revisions are listed
-  EXPECT_NE(result.find("r1"), std::string::npos);
-  EXPECT_NE(result.find("r2"), std::string::npos);
-
-  // Verify invalid files are not listed
-  EXPECT_EQ(result.find("agent.conf.bak"), std::string::npos);
-  EXPECT_EQ(result.find("other-r1.conf"), std::string::npos);
-  EXPECT_EQ(result.find("agent-r1.txt"), std::string::npos);
-  EXPECT_EQ(result.find("rX"), std::string::npos);
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+  EXPECT_NE(result.find("Config update"), std::string::npos);
+  // The "Other file commit" should not appear since it doesn't touch agent.conf
+  EXPECT_EQ(result.find("Other file commit"), std::string::npos);
 }
 
 TEST_F(CmdConfigHistoryTestFixture, historyEmptyDirectory) {
@@ -101,17 +116,11 @@ TEST_F(CmdConfigHistoryTestFixture, historyEmptyDirectory) {
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify the output indicates no revisions found
-  EXPECT_NE(result.find("No config revisions found"), std::string::npos);
-  EXPECT_NE(result.find(getCliConfigDir().string()), std::string::npos);
+  // Verify the output indicates only an initial commit
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
 }
 
-TEST_F(CmdConfigHistoryTestFixture, historyNonSequentialRevisions) {
-  // Create non-sequential revision files (e.g., after deletions)
-  createTestConfig(getCliConfigDir() / "agent-r1.conf", initialConfigContents);
-  createTestConfig(getCliConfigDir() / "agent-r5.conf", initialConfigContents);
-  createTestConfig(getCliConfigDir() / "agent-r10.conf", initialConfigContents);
-
+TEST_F(CmdConfigHistoryTestFixture, historyShowsCommitShas) {
   // Initialize ConfigSession singleton with test paths
   setupTestableConfigSession();
 
@@ -119,23 +128,62 @@ TEST_F(CmdConfigHistoryTestFixture, historyNonSequentialRevisions) {
   auto cmd = CmdConfigHistory();
   auto result = cmd.queryClient(localhost());
 
-  // Verify all revisions are listed in order
-  EXPECT_NE(result.find("r1"), std::string::npos);
-  EXPECT_NE(result.find("r5"), std::string::npos);
-  EXPECT_NE(result.find("r10"), std::string::npos);
+  // Verify the output contains a commit SHA (8 hex characters)
+  // The SHA should be in the first column
+  bool foundSha = false;
+  for (size_t i = 0; i + 7 < result.size(); ++i) {
+    bool isHex = true;
+    for (size_t j = 0; j < 8 && isHex; ++j) {
+      char c = result[i + j];
+      if (!std::isxdigit(c)) {
+        isHex = false;
+      }
+    }
+    if (isHex) {
+      foundSha = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(foundSha) << "Expected to find a commit SHA in the output";
+}
 
-  // Verify they appear in ascending order (r1 before r5 before r10)
-  auto pos_r1 = result.find("r1");
-  auto pos_r5 = result.find("r5");
-  auto pos_r10 = result.find("r10");
-  EXPECT_LT(pos_r1, pos_r5);
-  EXPECT_LT(pos_r5, pos_r10);
+TEST_F(CmdConfigHistoryTestFixture, historyMultipleCommits) {
+  std::filesystem::path cliConfigPath = getCliConfigDir() / "agent.conf";
+
+  // Create 5 more commits
+  for (int i = 2; i <= 6; ++i) {
+    createTestConfig(
+        cliConfigPath,
+        fmt::format(
+            R"({{"sw": {{"ports": [{{"logicalID": 1, "name": "eth1/1/1", "state": 2, "speed": {}}}]}}}})",
+            i * 100000));
+    git().commit({"cli/agent.conf"}, fmt::format("Commit {}", i));
+  }
+
+  setupTestableConfigSession();
+
+  auto cmd = CmdConfigHistory();
+  auto result = cmd.queryClient(localhost());
+
+  EXPECT_NE(result.find("Commit 6"), std::string::npos);
+  EXPECT_NE(result.find("Commit 5"), std::string::npos);
+  EXPECT_NE(result.find("Commit 4"), std::string::npos);
+  EXPECT_NE(result.find("Commit 3"), std::string::npos);
+  EXPECT_NE(result.find("Commit 2"), std::string::npos);
+  EXPECT_NE(result.find("Initial commit"), std::string::npos);
+
+  // Verify they appear in reverse chronological order (most recent first)
+  auto pos_6 = result.find("Commit 6");
+  auto pos_5 = result.find("Commit 5");
+  auto pos_initial = result.find("Initial commit");
+  EXPECT_LT(pos_6, pos_5);
+  EXPECT_LT(pos_5, pos_initial);
 }
 
 TEST_F(CmdConfigHistoryTestFixture, printOutput) {
   auto cmd = CmdConfigHistory();
   std::string tableOutput =
-      "Revision  Owner  Commit Time\nr1        user1  2024-01-01 12:00:00.000";
+      "Commit    Author  Commit Time          Message\nabcd1234  user1   2024-01-01 12:00:00  Initial commit";
 
   // Redirect cout to capture output
   std::stringstream buffer;
@@ -148,8 +196,8 @@ TEST_F(CmdConfigHistoryTestFixture, printOutput) {
 
   std::string output = buffer.str();
 
-  EXPECT_NE(output.find("Revision"), std::string::npos);
-  EXPECT_NE(output.find("r1"), std::string::npos);
+  EXPECT_NE(output.find("Commit"), std::string::npos);
+  EXPECT_NE(output.find("abcd1234"), std::string::npos);
   EXPECT_NE(output.find("user1"), std::string::npos);
 }
 

@@ -50,16 +50,27 @@ cpp_library(
     ],
 )
 
-_sai_agent_multinode_test_prefix = "sai_agent_multinode_test"
+# (prefix, agent_ensemble) pairs for multinode test binaries
+# - sai_agent_multinode_test: multi-switch mode (uses multi_switch_agent_ensemble)
+# - sai_agent_multinode_test_mono: mono mode (uses mono_agent_ensemble) for topologies like DSF_HYPER_PORT
+#
+# NOTE: Multi-node tests are designed to run in multi-switch mode. The mono variant
+# (sai_agent_multinode_test_mono) is a TEMPORARY workaround for topologies that are
+# still being stabilized in mono mode (e.g., DSF_HYPER_PORT).
+# TODO: Remove the mono variant once all topologies are stable in multi-switch mode.
+_sai_agent_multinode_test_configs = [
+    ("sai_agent_multinode_test", "multi_switch_agent_ensemble"),
+    ("sai_agent_multinode_test_mono", "mono_agent_ensemble"),
+]
 
 [
     cpp_binary(
-        name = to_impl_bin_name(sai_impl, _sai_agent_multinode_test_prefix),
+        name = to_impl_bin_name(sai_impl, prefix),
         srcs = [
             "SaiAgentMultiNodeMain.cpp",
         ],
         link_group_map = get_link_group_map(
-            to_impl_bin_name(sai_impl, _sai_agent_multinode_test_prefix),
+            to_impl_bin_name(sai_impl, prefix),
             sai_impl,
         ),
         linker_flags = [],
@@ -71,11 +82,12 @@ _sai_agent_multinode_test_prefix = "sai_agent_multinode_test"
             ":agent_multinode_test_src",
             "//fboss/agent:main-sai-{}".format(to_impl_lib_name(sai_impl)),
             "//fboss/agent/platforms/sai:{}".format(sai_switch_dependent_name("sai_platform", sai_impl, True)),
-            "//fboss/agent/test:multi_switch_agent_ensemble",
+            "//fboss/agent/test:{}".format(agent_ensemble),
             "//fboss/agent/hw/sai/hw_test:{}".format(sai_switch_dependent_name("agent_hw_test_thrift_handler", sai_impl, True)),
             "//fboss/agent:setup_thrift_test",
             "//fboss/agent/test:agent_hw_test",
         ],
     )
+    for (prefix, agent_ensemble) in _sai_agent_multinode_test_configs
     for sai_impl in SAI_BRCM_DNX_IMPLS
 ]

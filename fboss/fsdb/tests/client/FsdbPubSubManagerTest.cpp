@@ -3,6 +3,7 @@
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include <fboss/fsdb/client/FsdbStreamClient.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
@@ -270,30 +271,24 @@ class FsdbPubSubManagerTest : public ::testing::Test {
 #else
     // Internal: Use field IDs since serveIdPathSubs = true in internal test
     // server
-    using StateRootMembers =
-        apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
-    using AgentRootMembers = apache::thrift::reflect_struct<AgentData>::member;
-    using AgentConfigRootMembers =
-        apache::thrift::reflect_struct<cfg::AgentConfig>::member;
     ExtendedOperPath path =
-        ext_path_builder::raw(StateRootMembers::agent::id::value)
-            .raw(AgentRootMembers::config::id::value)
-            .raw(AgentConfigRootMembers::defaultCommandLineArgs::id::value)
+        ext_path_builder::raw(
+            apache::thrift::op::
+                get_field_id_v<FsdbOperStateRoot, apache::thrift::ident::agent>)
+            .raw(
+                apache::thrift::op::
+                    get_field_id_v<AgentData, apache::thrift::ident::config>)
+            .raw(
+                apache::thrift::op::get_field_id_v<
+                    cfg::AgentConfig,
+                    apache::thrift::ident::defaultCommandLineArgs>)
+
             .any()
             .get();
 #endif
     return {std::move(path)};
   }
 
-  std::string addStatDeltaSubscription(
-      FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
-      SubscriptionStateChangeCb stChangeCb) {
-    return pubSubManager_->addStatDeltaSubscription(
-        subscriptionPath(),
-        stChangeCb,
-        operDeltaUpdate,
-        utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()));
-  }
   std::string addStateDeltaSubscription(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate,
       SubscriptionStateChangeCb stChangeCb) {
@@ -305,8 +300,8 @@ class FsdbPubSubManagerTest : public ::testing::Test {
   }
   void addSubscriptions(
       FsdbDeltaSubscriber::FsdbOperDeltaUpdateCb operDeltaUpdate) {
-    addStatDeltaSubscription(operDeltaUpdate, subscrStateChangeCb());
-    addStateDeltaSubscription(operDeltaUpdate, subscrStateChangeCb());
+    addStateDeltaSubscription(
+        std::move(operDeltaUpdate), subscrStateChangeCb());
   }
   std::string addStatPathSubscription(
       FsdbStateSubscriber::FsdbOperStateUpdateCb operPathUpdate,
@@ -467,7 +462,9 @@ TYPED_TEST(FsdbPubSubManagerTest, pubSub) {
   // Initial sync only after first publish
   this->publishAndVerifyStats(1);
   this->publishAndVerifyConfig({{"foo", "bar"}});
-  this->assertQueue(deltas, 2);
+  // Only state delta subscription is added, so only config publishes are
+  // received
+  this->assertQueue(deltas, 1);
 }
 
 TYPED_TEST(FsdbPubSubManagerTest, publishMultipleSubscribers) {
@@ -480,16 +477,16 @@ TYPED_TEST(FsdbPubSubManagerTest, publishMultipleSubscribers) {
   this->publish(makePortStats(1));
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   // Initial sync only after first publish
-  this->assertQueue(deltas, 2);
+  // Delta subscription only receives state publishes (config), not stat
+  // publishes
+  this->assertQueue(deltas, 1);
   this->assertQueue(states, 2);
 }
 
 TYPED_TEST(FsdbPubSubManagerTest, publisherDropCausesSubscriberReset) {
   this->createPublishers();
-  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperDelta>> stateDeltas;
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
-  this->addStatDeltaSubscription(
-      this->makeOperDeltaCb(statDeltas), this->subscrStateChangeCb(statDeltas));
   this->addStateDeltaSubscription(
       this->makeOperDeltaCb(stateDeltas),
       this->subscrStateChangeCb(stateDeltas));
@@ -499,7 +496,6 @@ TYPED_TEST(FsdbPubSubManagerTest, publisherDropCausesSubscriberReset) {
       this->makeOperStateCb(statePaths), this->subscrStateChangeCb(statePaths));
   // Publish
   this->publish(makePortStats(1));
-  this->assertQueue(statDeltas, 1);
   this->assertQueue(statPaths, 1);
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   this->assertQueue(stateDeltas, 1);
@@ -507,7 +503,6 @@ TYPED_TEST(FsdbPubSubManagerTest, publisherDropCausesSubscriberReset) {
   // Publisher resets should be noticed by subscribers
   this->pubSubManager_->removeStatDeltaPublisher();
   this->pubSubManager_->removeStatPathPublisher();
-  this->assertQueue(statDeltas, 0);
   this->assertQueue(statPaths, 0);
   // State subscriptions remain as is
   this->assertQueue(stateDeltas, 1);
@@ -531,34 +526,30 @@ TYPED_TEST(FsdbPubSubManagerTest, publishMultipleSubscribersPruneSome) {
   this->publish(makePortStats(1));
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   // Initial sync only after first publish
-  this->assertQueue(deltas, 2);
+  // Delta subscription only receives state publishes (config), not stat
+  // publishes
+  this->assertQueue(deltas, 1);
   this->assertQueue(states, 2);
-  this->pubSubManager_->removeStatDeltaSubscription(
+  this->pubSubManager_->removeStatPathSubscription(
       this->subscriptionPath(), "::1");
   this->pubSubManager_->removeStateDeltaSubscription(
       this->subscriptionPath(), "::1");
   this->publish(makePortStats(2));
   this->publish(makeAgentConfig({{"bar", "baz"}}));
-  this->assertQueue(deltas, 2);
-  this->assertQueue(states, 4);
+  // After removing state delta subscription, no more deltas are received.
+  // After removing stat path subscription, stat publishes no longer reach
+  // states, only state path subscription (config publish) increments states.
+  this->assertQueue(deltas, 1);
+  this->assertQueue(states, 3);
 }
 
 TYPED_TEST(FsdbPubSubManagerTest, subscriberAppError) {
   this->createPublishers();
-  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperDelta>> stateDeltas;
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
   std::map<std::tuple<bool, std::string>, std::string> subKeys;
   std::map<std::string, bool> exceptionThrown;
 
-  exceptionThrown["StatDelta"] = false;
-  subKeys[std::make_tuple(true, "StatDelta")] = this->addStatDeltaSubscription(
-      [&exceptionThrown](OperDelta&&) {
-        if (!exceptionThrown["StatDelta"]) {
-          exceptionThrown["StatDelta"] = true;
-          throw std::runtime_error("test app exception");
-        }
-      },
-      this->subscrStateChangeCb(statDeltas));
   exceptionThrown["StateDelta"] = false;
   subKeys[std::make_tuple(false, "StateDelta")] =
       this->addStateDeltaSubscription(
@@ -653,15 +644,10 @@ TYPED_TEST(
     publisherDropDoesntResetSubscriber) {
   this->createPublishers();
 
-  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperDelta>> stateDeltas;
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
   bool statPath_disconnected{false}, statePath_disconnected{false};
-  bool statDelta_disconnected{false}, stateDelta_disconnected{false};
-  this->addStatDeltaSubscription(
-      this->makeOperDeltaCb(statDeltas),
-      this->subscrStateChangeCb(statDeltas, [&statDelta_disconnected]() {
-        statDelta_disconnected = true;
-      }));
+  bool stateDelta_disconnected{false};
   this->addStateDeltaSubscription(
       this->makeOperDeltaCb(stateDeltas),
       this->subscrStateChangeCb(stateDeltas, [&stateDelta_disconnected]() {
@@ -680,7 +666,6 @@ TYPED_TEST(
 
   // Publish
   this->publish(makePortStats(1));
-  this->assertQueue(statDeltas, 1);
   this->assertQueue(statPaths, 1);
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   this->assertQueue(stateDeltas, 1);
@@ -689,7 +674,6 @@ TYPED_TEST(
   // Publisher resets should be not cause subscriber reset
   this->pubSubManager_->removeStatDeltaPublisher();
   this->pubSubManager_->removeStatPathPublisher();
-  this->assertQueue(statDeltas, 1);
   this->assertQueue(statPaths, 1);
   this->pubSubManager_->removeStateDeltaPublisher();
   this->pubSubManager_->removeStatePathPublisher();
@@ -697,7 +681,6 @@ TYPED_TEST(
   this->assertQueue(statePaths, 1);
   EXPECT_FALSE(statPath_disconnected);
   EXPECT_FALSE(statePath_disconnected);
-  EXPECT_FALSE(statDelta_disconnected);
   EXPECT_FALSE(stateDelta_disconnected);
 
   // Reset pubsub manager while local vector objects are in scope, since
@@ -722,10 +705,8 @@ TYPED_TEST(
   this->checkPublishing(true /*isStats*/, 0);
 
   // add new subscriptions
-  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperDelta>> stateDeltas;
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
-  this->addStatDeltaSubscription(
-      this->makeOperDeltaCb(statDeltas), this->subscrStateChangeCb(statDeltas));
   this->addStateDeltaSubscription(
       this->makeOperDeltaCb(stateDeltas),
       this->subscrStateChangeCb(stateDeltas));
@@ -735,7 +716,6 @@ TYPED_TEST(
       this->makeOperStateCb(statePaths), this->subscrStateChangeCb(statePaths));
 
   // check that subscriptions are served
-  this->assertQueue(statDeltas, 1);
   this->assertQueue(statPaths, 1);
   this->assertQueue(stateDeltas, 1);
   this->assertQueue(statePaths, 1);
@@ -758,17 +738,11 @@ TYPED_TEST_SUITE(FsdbPubSubManagerGRTest, GRTestTypes);
 
 TYPED_TEST(FsdbPubSubManagerGRTest, verifySubscriptionDisconnectOnPublisherGR) {
   this->createPublishers();
-  folly::Synchronized<std::vector<OperDelta>> statDeltas, stateDeltas;
+  folly::Synchronized<std::vector<OperDelta>> stateDeltas;
   folly::Synchronized<std::vector<OperState>> statPaths, statePaths;
-  this->addStatDeltaSubscription(
-      this->makeOperDeltaCb(statDeltas),
-      this->subscrStateChangeCb(stateDeltas, [this]() {
-        this->updateSubscriptionLastDisconnectReason(
-            SubscriptionType::DELTA, true);
-      }));
   this->addStatPathSubscription(
       this->makeOperStateCb(statPaths),
-      this->subscrStateChangeCb(stateDeltas, [this]() {
+      this->subscrStateChangeCb(statPaths, [this]() {
         this->updateSubscriptionLastDisconnectReason(
             SubscriptionType::PATH, true);
       }));
@@ -786,7 +760,6 @@ TYPED_TEST(FsdbPubSubManagerGRTest, verifySubscriptionDisconnectOnPublisherGR) {
   this->addStatePathSubscription(this->makeOperStateCb(statePaths), stChangeCb);
   // Publish
   this->publish(makePortStats(1));
-  this->assertQueue(statDeltas, 1);
   this->assertQueue(statPaths, 1);
   this->publish(makeAgentConfig({{"foo", "bar"}}));
   this->assertQueue(stateDeltas, 1);

@@ -67,6 +67,7 @@ cpp_library(
         "//fboss/agent/platforms/common/wedge800cact:wedge800cact_platform_mapping",
         "//fboss/agent/platforms/common/yamp:yamp_platform_mapping",
         "//fboss/agent/platforms/common/yangra:yangra_platform_mapping",
+        "//fboss/agent/platforms/common/yangra2:yangra2_platform_mapping",
         "//fboss/lib/platforms:platform_mode",
         "//folly:file_util",
         "//folly/logging:logging",

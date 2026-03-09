@@ -129,7 +129,7 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
     iterations = 100;
   } else if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches()) {
     if (checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
-            ->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+            ->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // TODO(Chenab): 10'000 iterations take 30 minutes on Chenab. Debug this
       // slowness
       iterations = 1000;

@@ -6,16 +6,15 @@
 
 #include <filesystem>
 
+#include "fboss/cli/fboss2/session/Git.h"
+
 namespace facebook::fboss {
 
 class CmdConfigTestBase : public CmdHandlerTestBase {
  public:
-  static const std::string initialAgentCliConfigFile;
-
   CmdConfigTestBase(
       const std::string& uniquePath,
-      const std::string& initialConfigContent)
-      : uniquePath_(uniquePath), initialConfigContent_(initialConfigContent) {}
+      const std::string& initialConfigContent);
 
   void SetUp() override;
   void TearDown() override;
@@ -43,6 +42,10 @@ class CmdConfigTestBase : public CmdHandlerTestBase {
     return std::filesystem::exists(cliConfigDir_);
   }
 
+  Git& git() {
+    return git_;
+  }
+
   void createTestConfig(
       const std::filesystem::path& path,
       const std::string& content);
@@ -62,7 +65,7 @@ class CmdConfigTestBase : public CmdHandlerTestBase {
   void removeInitialRevisionFile();
 
  private:
-  CmdConfigTestBase() = default;
+  CmdConfigTestBase() = delete;
 
   // All Config Tests should set these values in their constructors
   std::string uniquePath_{""};
@@ -78,5 +81,6 @@ class CmdConfigTestBase : public CmdHandlerTestBase {
   std::string cmdPrefix_;
   std::string cmdArgs_;
   std::vector<std::string> cmdArgsList_;
+  Git git_;
 };
 } // namespace facebook::fboss

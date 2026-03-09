@@ -124,6 +124,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_G202X:
       return 7;
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       return 3;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -159,6 +160,7 @@ uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
     case cfg::AsicType::ASIC_TYPE_G202X:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       return kCoppMidPriQueueId;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -198,6 +200,7 @@ cfg::ToCpuAction getCpuActionType(const HwAsic* hwAsic) {
     case cfg::AsicType::ASIC_TYPE_JERICHO4:
     case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       return cfg::ToCpuAction::TRAP;
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
@@ -220,7 +223,7 @@ cfg::StreamType getCpuDefaultStreamType(const HwAsic* hwAsic) {
 }
 
 cfg::QueueScheduling getCpuDefaultQueueScheduling(const HwAsic* hwAsic) {
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     // TODO(Chenab): use strict priority scheduling when available
     return cfg::QueueScheduling::STRICT_PRIORITY;
   }
@@ -984,7 +987,7 @@ defaultPostIngressCpuAclsForSai(
     const HwAsic* hwAsic,
     cfg::SwitchConfig& /* unused */) {
   std::vector<std::pair<cfg::AclEntry, cfg::MatchAction>> acls;
-  if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hwAsic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     return acls;
   }
   // packets addressed to rif address with network control go to high-pri
@@ -1233,7 +1236,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
   auto coppMidPriQueueId = utility::getCoppMidPriQueueId({hwAsic});
 
   auto ip2MeTrapQueueId = coppMidPriQueueId;
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     // for chenab, by default IP2ME trap queue is low pri queue but packets
     // destined to my_ip are set to mid pri by acl  and packets with network
     // control dscp destined to my_ip are set to high pri by acl

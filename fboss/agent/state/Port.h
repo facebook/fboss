@@ -342,27 +342,6 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::queues>(std::move(queuesThrift));
   }
 
-  bool hasValidPortQueues() const {
-    constexpr auto kDefaultProbability = 100;
-    for (const auto& portQueue : *getPortQueues()) {
-      const auto& aqms = portQueue->get<ctrl_if_tags::aqms>();
-      if (!aqms) {
-        continue;
-      }
-      for (const auto& entry : std::as_const(*aqms)) {
-        // THRIFT_COPY
-        auto behavior = entry->cref<switch_config_tags::behavior>()->toThrift();
-        auto detection =
-            entry->cref<switch_config_tags::detection>()->toThrift();
-        if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
-            detection.linear()->probability() != kDefaultProbability) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   auto getPortPgConfigs() const {
     return safe_cref<switch_state_tags::pgConfigs>();
   }

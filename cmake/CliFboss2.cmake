@@ -406,6 +406,13 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.cpp
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.h
   fboss/cli/fboss2/commands/show/arp/CmdShowArp.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.cpp
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigTraits.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.h
+  fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.cpp
   fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h
   fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.cpp
@@ -766,8 +773,18 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
+  fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
+  fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
+  fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h
+  fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp
   fboss/cli/fboss2/session/ConfigSession.h
   fboss/cli/fboss2/session/ConfigSession.cpp
+  fboss/cli/fboss2/session/Git.h
+  fboss/cli/fboss2/session/Git.cpp
   fboss/cli/fboss2/utils/InterfaceList.h
   fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/CmdListConfig.cpp

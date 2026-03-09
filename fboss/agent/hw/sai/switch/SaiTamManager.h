@@ -72,15 +72,14 @@ class SaiTamManager {
  private:
   std::string getDestMacWithOverride(const std::string& defaultMac) const;
 
-  std::shared_ptr<SaiTamReport> createTamReport(
-      sai_tam_report_type_t reportType);
+  std::shared_ptr<SaiTamReport> createTamReport(sai_int32_t reportType);
 
   std::shared_ptr<SaiTamEventAction> createTamAction(sai_object_id_t reportId);
 
   std::shared_ptr<SaiTamTransport> createTamTransport(
       const std::shared_ptr<MirrorOnDropReport>& report,
       const std::string& destMac,
-      sai_tam_transport_type_t transportType);
+      sai_int32_t transportType);
 
   std::shared_ptr<SaiTamCollector> createTamCollector(
       const std::shared_ptr<MirrorOnDropReport>& report,

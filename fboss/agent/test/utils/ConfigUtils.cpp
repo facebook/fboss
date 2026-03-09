@@ -109,7 +109,7 @@ int getSysPortIdsAllocated(
 }
 
 cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
@@ -1028,7 +1028,7 @@ cfg::SwitchConfig genPortVlanCfg(
     }
 
     auto defaultVlanId =
-        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB)
+        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
     cfg::Vlan defaultVlan;
@@ -1048,7 +1048,7 @@ cfg::SwitchConfig genPortVlanCfg(
       vlanPort.emitTags() = false;
       config.vlanPorts()->push_back(vlanPort);
     }
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       /*
        * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
        * requires vlan rif in default vlan.

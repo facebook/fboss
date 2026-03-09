@@ -101,7 +101,7 @@
             "switchIdToSwitchInfo": {
                 "0": {
                     "switchType": 2,
-                    "asicType": 23,
+                    "asicType": 24,
                     "switchIndex": 0,
                     "portIdRange": {
                         "minimum": 0,
@@ -113,7 +113,7 @@
                         "systemPortRanges": [
                             {
                                 "minimum": 10,
-                                "maximum": 53
+                                "maximum": 250
                             }
                         ]
                     },
@@ -151,7 +151,7 @@
                 "type": 2,
                 "loopbackIps": [],
                 "nodeMac": "02:00:00:00:0F:0B",
-                "asicType": 23,
+                "asicType": 24,
                 "platformType": 51,
                 "localSystemPortOffset": 10,
                 "globalSystemPortOffset": 10,
@@ -159,7 +159,7 @@
                     "systemPortRanges": [
                         {
                             "minimum": 10,
-                            "maximum": 53
+                            "maximum": 250
                         }
                     ]
                 },

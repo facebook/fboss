@@ -56,6 +56,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   // already existing, so we cannot create them inline in the loop (since
   // creating the next hop group requires going through all the next hops
   // to figure out the AdapterHostKey)
+  std::vector<ResolvedNextHop> resolvedNextHops;
+  resolvedNextHops.reserve(swNextHops.size());
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::unordered_map<const ResolvedNextHop*, std::shared_ptr<SaiSrv6SidList>>
+      srv6SidListMap;
+#endif
   for (const auto& swNextHop : swNextHops) {
     // Compute the sai id of the next hop's router interface
     InterfaceID interfaceId = swNextHop.intf();
@@ -65,8 +71,22 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     if (!routerInterfaceHandle) {
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
+    resolvedNextHops.emplace_back(folly::poly_cast<ResolvedNextHop>(swNextHop));
+    auto& resolvedNextHop = resolvedNextHops.back();
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    std::optional<sai_object_id_t> sidListId;
+    if (!resolvedNextHop.srv6SegmentList().empty()) {
+      auto sidList =
+          managerTable_->nextHopManager().createSrv6SidList(resolvedNextHop);
+      sidListId = sidList->adapterKey();
+      srv6SidListMap.emplace(&resolvedNextHop, std::move(sidList));
+    }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
-        folly::poly_cast<ResolvedNextHop>(swNextHop));
+        resolvedNextHop, sidListId);
+#else
+    auto nhk =
+        managerTable_->nextHopManager().getAdapterHostKey(resolvedNextHop);
+#endif
     nextHopGroupAdapterHostKey.nhopMemberSet.insert(
         std::make_pair(nhk, swNextHop.weight()));
   }
@@ -167,10 +187,19 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
 #endif
 
-  for (const auto& swNextHop : swNextHops) {
-    auto resolvedNextHop = folly::poly_cast<ResolvedNextHop>(swNextHop);
+  for (auto& resolvedNextHop : resolvedNextHops) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    std::shared_ptr<SaiSrv6SidList> sidList;
+    auto it = srv6SidListMap.find(&resolvedNextHop);
+    if (it != srv6SidListMap.end()) {
+      sidList = std::move(it->second);
+    }
+    auto managedNextHop = managerTable_->nextHopManager().addManagedSaiNextHop(
+        resolvedNextHop, std::move(sidList));
+#else
     auto managedNextHop =
         managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNextHop);
+#endif
     auto memberKey = std::make_pair(nextHopGroupId, resolvedNextHop);
     auto weight = (resolvedNextHop.weight() == ECMP_WEIGHT)
         ? 1

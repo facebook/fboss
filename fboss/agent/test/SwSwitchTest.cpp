@@ -16,6 +16,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/ValidateStateUpdate.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
@@ -146,7 +147,9 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV3)));
 
-  // PortQueue with invalid ECN probability
+  // PortQueue with valid ECN probability (50%) - valid when
+  // ECN_PROBABILISTIC_MARKING supported MockAsic returns true for
+  // ECN_PROBABILISTIC_MARKING by default
   auto stateV4 = stateV0->clone();
   auto portMap1 = stateV4->getPorts()->modify(&stateV4);
   state::PortFields portFields1;
@@ -168,7 +171,131 @@ TEST_F(SwSwitchTest, VerifyIsValidStateUpdate) {
 
   stateV4->publish();
 
-  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV4)));
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV4)));
+
+  // PortQueue with ECN probability 100% - always valid regardless of feature
+  // support
+  auto stateV5 = stateV0->clone();
+  auto portMap2 = stateV5->getPorts()->modify(&stateV5);
+  state::PortFields portFields2;
+  portFields2.portId() = PortID(2);
+  portFields2.portName() = "port2";
+  auto port2 = std::make_shared<Port>(std::move(portFields2));
+  auto portQueue2 = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
+  cfg::ActiveQueueManagement aqm2;
+  cfg::LinearQueueCongestionDetection lqcd2;
+  lqcd2.minimumLength() = 0;
+  lqcd2.maximumLength() = 0;
+  lqcd2.probability() = 100;
+  aqm2.detection()->linear() = lqcd2;
+  aqm2.behavior() = cfg::QueueCongestionBehavior::ECN;
+  portQueue2->resetAqms({aqm2});
+  std::vector<std::shared_ptr<PortQueue>> portQueues2 = {portQueue2};
+  port2->resetPortQueues(portQueues2);
+  portMap2->addNode(port2, scope());
+
+  stateV5->publish();
+
+  EXPECT_TRUE(sw->isValidStateUpdate(StateDelta(stateV0, stateV5)));
+
+  // PortQueue with ECN probability 0% - invalid (must be >0)
+  auto stateV6 = stateV0->clone();
+  auto portMap3 = stateV6->getPorts()->modify(&stateV6);
+  state::PortFields portFields3;
+  portFields3.portId() = PortID(3);
+  portFields3.portName() = "port3";
+  auto port3 = std::make_shared<Port>(std::move(portFields3));
+  auto portQueue3 = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
+  cfg::ActiveQueueManagement aqm3;
+  cfg::LinearQueueCongestionDetection lqcd3;
+  lqcd3.minimumLength() = 0;
+  lqcd3.maximumLength() = 0;
+  lqcd3.probability() = 0;
+  aqm3.detection()->linear() = lqcd3;
+  aqm3.behavior() = cfg::QueueCongestionBehavior::ECN;
+  portQueue3->resetAqms({aqm3});
+  std::vector<std::shared_ptr<PortQueue>> portQueues3 = {portQueue3};
+  port3->resetPortQueues(portQueues3);
+  portMap3->addNode(port3, scope());
+
+  stateV6->publish();
+
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV6)));
+
+  // PortQueue with ECN probability 101% - invalid (must be <=100)
+  auto stateV7 = stateV0->clone();
+  auto portMap4 = stateV7->getPorts()->modify(&stateV7);
+  state::PortFields portFields4;
+  portFields4.portId() = PortID(4);
+  portFields4.portName() = "port4";
+  auto port4 = std::make_shared<Port>(std::move(portFields4));
+  auto portQueue4 = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
+  cfg::ActiveQueueManagement aqm4;
+  cfg::LinearQueueCongestionDetection lqcd4;
+  lqcd4.minimumLength() = 0;
+  lqcd4.maximumLength() = 0;
+  lqcd4.probability() = 101;
+  aqm4.detection()->linear() = lqcd4;
+  aqm4.behavior() = cfg::QueueCongestionBehavior::ECN;
+  portQueue4->resetAqms({aqm4});
+  std::vector<std::shared_ptr<PortQueue>> portQueues4 = {portQueue4};
+  port4->resetPortQueues(portQueues4);
+  portMap4->addNode(port4, scope());
+
+  stateV7->publish();
+
+  EXPECT_FALSE(sw->isValidStateUpdate(StateDelta(stateV0, stateV7)));
+}
+
+TEST_F(SwSwitchTest, VerifyEcnValidationWhenFeatureNotSupported) {
+  // This test verifies ECN validation when ECN_PROBABILISTIC_MARKING is NOT
+  // supported. In this case, only 100% probability is allowed.
+  ON_CALL(*getMockHw(sw), isValidStateUpdate(_))
+      .WillByDefault(testing::Return(true));
+
+  auto stateV0 = std::make_shared<SwitchState>();
+  stateV0->publish();
+
+  // Helper to create a port with ECN configuration
+  auto createPortWithEcnProbability =
+      [&](PortID portId, const std::string& portName, int probability) {
+        state::PortFields portFields;
+        portFields.portId() = portId;
+        portFields.portName() = portName;
+        auto port = std::make_shared<Port>(std::move(portFields));
+        auto portQueue = std::make_shared<PortQueue>(static_cast<uint8_t>(0));
+        cfg::ActiveQueueManagement aqm;
+        cfg::LinearQueueCongestionDetection lqcd;
+        lqcd.minimumLength() = 0;
+        lqcd.maximumLength() = 0;
+        lqcd.probability() = probability;
+        aqm.detection()->linear() = lqcd;
+        aqm.behavior() = cfg::QueueCongestionBehavior::ECN;
+        portQueue->resetAqms({aqm});
+        std::vector<std::shared_ptr<PortQueue>> portQueues = {portQueue};
+        port->resetPortQueues(portQueues);
+        return port;
+      };
+
+  // Test 1: ECN probability 50% should be INVALID when feature not supported
+  auto port50 = createPortWithEcnProbability(PortID(10), "port10", 50);
+  EXPECT_FALSE(hasValidPortQueues(
+      port50, false /* isEcnProbabilisticMarkingSupported */));
+
+  // Test 2: ECN probability 100% should be VALID when feature not supported
+  auto port100 = createPortWithEcnProbability(PortID(11), "port11", 100);
+  EXPECT_TRUE(hasValidPortQueues(
+      port100, false /* isEcnProbabilisticMarkingSupported */));
+
+  // Test 3: ECN probability 0% should be INVALID when feature not supported
+  auto port0 = createPortWithEcnProbability(PortID(12), "port12", 0);
+  EXPECT_FALSE(hasValidPortQueues(
+      port0, false /* isEcnProbabilisticMarkingSupported */));
+
+  // Test 4: ECN probability 99% should be INVALID when feature not supported
+  auto port99 = createPortWithEcnProbability(PortID(13), "port13", 99);
+  EXPECT_FALSE(hasValidPortQueues(
+      port99, false /* isEcnProbabilisticMarkingSupported */));
 }
 
 TEST_F(SwSwitchTest, gracefulExit) {

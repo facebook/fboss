@@ -6,7 +6,6 @@ namespace py neteng.fboss.switch_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
-namespace go neteng.fboss.switch_config
 namespace php fboss_switch_config
 
 include "fboss/agent/if/common.thrift"
@@ -1548,6 +1547,7 @@ enum AsicType {
   ASIC_TYPE_TOMAHAWKULTRA1 = 22,
   ASIC_TYPE_QUMRAN4D = 23,
   ASIC_TYPE_JERICHO4 = 24,
+  ASIC_TYPE_CHENAB2 = 25,
 }
 /**
  * The configuration for an interface

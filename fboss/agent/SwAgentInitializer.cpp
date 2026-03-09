@@ -23,6 +23,10 @@ DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
 DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
+DEFINE_bool(
+    enable_aifm_ctrl_handler,
+    false,
+    "Enable Aifm control packet handler");
 DEFINE_bool(enable_stats_update_thread, true, "Run stats update thread");
 
 DEFINE_int32(port, 5909, "The thrift server port");

@@ -606,6 +606,9 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     } else {
       tcvrState.moduleTechnology() = ModuleTechnology::GREY;
     }
+
+    tcvrState.pagingSupport() =
+        flatMem_ ? PagingSupport::FLAT_MEM : PagingSupport::PAGED;
   }
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;

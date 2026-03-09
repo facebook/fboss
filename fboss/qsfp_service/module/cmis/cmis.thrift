@@ -234,6 +234,11 @@ enum CmisField {
   // Datapath Init / Deinit max time
   MAX_DPINIT_TIME = 193,
 
+  // Page 23h (VDM Group 4 Config)
+  PAGE_UPPER23H = 194,
+  // Page 27h (VDM Group 4 Data)
+  PAGE_UPPER27H = 195,
+
   // Custom Fields
   // These are fields that are custom to specific transceivers
   //

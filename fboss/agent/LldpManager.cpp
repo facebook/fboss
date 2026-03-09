@@ -383,14 +383,18 @@ void LldpManager::fillLldpTlv(
   if (portDrainState.has_value()) {
     writeTl(LldpTlvType::ORG_SPECIFIC, PORT_DRAIN_STATE_TLV_LENGTH, &cursor);
     // Write Facebook OUI (3 bytes)
-    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE1());
-    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE2());
-    cursor.writeBE<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE3());
+    cursor.writeBE<uint8_t>(
+        static_cast<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE1()));
+    cursor.writeBE<uint8_t>(
+        static_cast<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE2()));
+    cursor.writeBE<uint8_t>(
+        static_cast<uint8_t>(lldp::lldp_constants::FACEBOOK_OUI_BYTE3()));
     // Write subtype (1 byte)
     cursor.writeBE<uint8_t>(
         static_cast<uint8_t>(FacebookLldpSubtype::PORT_DRAIN_STATE));
     // Write value (1 byte)
-    cursor.writeBE<uint8_t>(portDrainState.value() ? 1 : 0);
+    cursor.writeBE<uint8_t>(
+        static_cast<uint8_t>(portDrainState.value() ? 1 : 0));
   }
 
   // PDU End TLV must be the last TLV in the packet

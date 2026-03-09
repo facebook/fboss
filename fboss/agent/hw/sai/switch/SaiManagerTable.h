@@ -53,6 +53,7 @@ class SaiSystemPortManager;
 class SaiSchedulerManager;
 class SaiTamManager;
 class SaiTunnelManager;
+class SaiSrv6Manager;
 class SaiSrv6TunnelManager;
 class SaiUdfManager;
 class SaiVirtualRouterManager;
@@ -175,6 +176,9 @@ class SaiManagerTable {
   SaiTunnelManager& tunnelManager();
   const SaiTunnelManager& tunnelManager() const;
 
+  SaiSrv6Manager& srv6Manager();
+  const SaiSrv6Manager& srv6Manager() const;
+
   SaiSrv6TunnelManager& srv6TunnelManager();
   const SaiSrv6TunnelManager& srv6TunnelManager() const;
 
@@ -223,6 +227,7 @@ class SaiManagerTable {
   std::unique_ptr<SaiWredManager> wredManager_;
   std::unique_ptr<SaiTamManager> tamManager_;
   std::unique_ptr<SaiTunnelManager> tunnelManager_;
+  std::unique_ptr<SaiSrv6Manager> srv6Manager_;
   std::unique_ptr<SaiSrv6TunnelManager> srv6TunnelManager_;
   std::unique_ptr<UnsupportedFeatureManager> teFlowEntryManager_;
   std::unique_ptr<SaiUdfManager> udfManager_;

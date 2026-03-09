@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","tahansb800bc","PASSED"
+"FwUtilHwTest.listFirmwareNames","tahansb800bc","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","tahansb800bc","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","tahansb800bc","PASSED"

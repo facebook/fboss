@@ -54,8 +54,8 @@ class LedTests : public ::testing::Test {
     EXPECT_EQ('0', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
     EXPECT_EQ(led::LedColor::OFF, led_->getLedState().get_ledColor());
-    VerifyYellowBlink("0");
-    VerifyBlueBlink("0");
+    VerifyYellowBlink("");
+    VerifyBlueBlink("");
   }
 
   // Verify that the blue file contains a single 1, the yellow file
@@ -64,7 +64,7 @@ class LedTests : public ::testing::Test {
     EXPECT_EQ('1', ReadLedFile(blueFd_));
     EXPECT_EQ('0', ReadLedFile(yellowFd_));
     EXPECT_EQ(led::LedColor::BLUE, led_->getLedState().get_ledColor());
-    VerifyYellowBlink("0");
+    VerifyYellowBlink("");
     VerifyBlueBlink(blink);
   }
 
@@ -75,23 +75,31 @@ class LedTests : public ::testing::Test {
     EXPECT_EQ('1', ReadLedFile(yellowFd_));
     EXPECT_EQ(led::LedColor::YELLOW, led_->getLedState().get_ledColor());
     VerifyYellowBlink(blink);
-    VerifyBlueBlink("0");
+    VerifyBlueBlink("");
   }
 
   void VerifyYellowBlink(const std::string& ledBlinkSpeed) {
     std::string yellow;
-    folly::readFile(yellowDelayOn_.c_str(), yellow);
-    EXPECT_EQ(ledBlinkSpeed, yellow);
     folly::readFile(yellowTrigger_.c_str(), yellow);
-    EXPECT_EQ("timer", yellow);
+    if (ledBlinkSpeed.empty()) {
+      EXPECT_EQ("none", yellow);
+    } else {
+      EXPECT_EQ("timer", yellow);
+      folly::readFile(yellowDelayOn_.c_str(), yellow);
+      EXPECT_EQ(ledBlinkSpeed, yellow);
+    }
   }
 
   void VerifyBlueBlink(const std::string& ledBlinkSpeed) {
     std::string blue;
-    folly::readFile(blueDelayOn_.c_str(), blue);
-    EXPECT_EQ(ledBlinkSpeed, blue);
     folly::readFile(blueTrigger_.c_str(), blue);
-    EXPECT_EQ("timer", blue);
+    if (ledBlinkSpeed.empty()) {
+      EXPECT_EQ("none", blue);
+    } else {
+      EXPECT_EQ("timer", blue);
+      folly::readFile(blueDelayOn_.c_str(), blue);
+      EXPECT_EQ(ledBlinkSpeed, blue);
+    }
   }
 
   folly::test::TemporaryDirectory tmpDir_;
@@ -140,12 +148,12 @@ TEST_F(LedTests, testFakeLed) {
   // Change current color from Off to Blue
   led_->setLedState(
       utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
-  VerifyBlueOn("0");
+  VerifyBlueOn("");
 
   // Since current color is Blue, setting it to Blue again will be noop
   led_->setLedState(
       utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF));
-  VerifyBlueOn("0");
+  VerifyBlueOn("");
 
   // Change current color from Blue to Off
   led_->setLedState(
@@ -155,12 +163,12 @@ TEST_F(LedTests, testFakeLed) {
   // Change current color from Off to Yellow
   led_->setLedState(
       utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
-  VerifyYellowOn("0");
+  VerifyYellowOn("");
 
   // Since current color is Yellow, setting it to Yellow again will be noop
   led_->setLedState(
       utility::constructLedState(led::LedColor::YELLOW, led::Blink::OFF));
-  VerifyYellowOn("0");
+  VerifyYellowOn("");
 }
 
 TEST_F(LedTests, TestBlink) {

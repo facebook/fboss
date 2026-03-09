@@ -180,6 +180,13 @@ switch_manager_unittest(
     ],
 )
 
+switch_manager_unittest(
+    name = "srv6_manager_test",
+    srcs = [
+        "Srv6ManagerTest.cpp",
+    ],
+)
+
 phy_switch_manager_unittest(
     name = "phy_switch_manager_test",
     srcs = [

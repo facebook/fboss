@@ -70,6 +70,7 @@ cpp_unittest(
         "CmdShowAgentSslTest.cpp",
         "CmdShowAggregatePortTest.cpp",
         "CmdShowArpTest.cpp",
+        "CmdShowConfigRunningTest.cpp",
         "CmdShowCpuPortTest.cpp",
         "CmdShowExampleTest.cpp",
         "CmdShowFlowletTest.cpp",
@@ -96,6 +97,7 @@ cpp_unittest(
         "CmdShowTransceiverTest.cpp",
         "CmdStartPcapTest.cpp",
         "CmdStopPcapTest.cpp",
+        "GitTest.cpp",
         "PortMapTest.cpp",
     ],
     # Config files for PortMapTest parameterized tests
@@ -106,6 +108,7 @@ cpp_unittest(
     # See: https://fburl.com/parameterized-test-not-supported
     supports_static_listing = False,
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         ":cmd_test_utils",
         "//configerator/structs/neteng/fboss/bgp:bgp_config-cpp2-types",
@@ -113,6 +116,7 @@ cpp_unittest(
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/cli/fboss2:cmd-subcommands",
+        "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/commands/show/acl:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/agent:model-cpp2-types",
@@ -140,6 +144,7 @@ cpp_unittest(
         "//fboss/cli/fboss2/commands/show/transceiver:model-cpp2-types",
         "//folly:file_util",
         "//folly:network_address",
+        "//folly:string",
         "//folly/json:dynamic",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//thrift/lib/cpp2/protocol:protocol",
@@ -147,6 +152,7 @@ cpp_unittest(
     ],
     external_deps = [
         ("boost", None, "boost_algorithm"),
+        ("boost", None, "boost_filesystem"),
     ],
 )
 

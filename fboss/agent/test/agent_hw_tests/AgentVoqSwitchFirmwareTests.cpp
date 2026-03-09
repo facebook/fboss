@@ -439,7 +439,7 @@ TYPED_TEST(AgentVoqSwitchIsolationFirmwareTest, forceLinkAdminDisable) {
     utility::checkFabricPortsActiveState(
         this->getAgentEnsemble(),
         this->masterLogicalFabricPortIds(),
-        this->expectFabricPortsActivePostIsolate());
+        true /* expect ACTIVE */);
     ASSERT_TRUE(!this->masterLogicalFabricPortIds().empty());
     this->forceLinkAdminDisable(this->masterLogicalFabricPortIds()[0]);
   };
