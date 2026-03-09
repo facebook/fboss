@@ -160,7 +160,8 @@ std::pair<apache::thrift::ident::lpoModule, Child<bool, ::apache::thrift::type_c
 std::pair<apache::thrift::ident::tunableLaserStatus, ChildThriftPath<::facebook::fboss::TunableLaserStatus, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::communicationError, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::errorStates, ChildThriftPath<::std::set<::facebook::fboss::TransceiverErrorState>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::moduleTechnology, Child<::facebook::fboss::ModuleTechnology, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ModuleTechnology>>>>;
+std::pair<apache::thrift::ident::moduleTechnology, Child<::facebook::fboss::ModuleTechnology, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::ModuleTechnology>>>,
+std::pair<apache::thrift::ident::pagingSupport, Child<::facebook::fboss::PagingSupport, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::PagingSupport>>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -195,6 +196,7 @@ std::pair<apache::thrift::ident::moduleTechnology, Child<::facebook::fboss::Modu
     STRUCT_CHILD_GETTERS(communicationError, 30);
     STRUCT_CHILD_GETTERS(errorStates, 31);
     STRUCT_CHILD_GETTERS(moduleTechnology, 32);
+    STRUCT_CHILD_GETTERS(pagingSupport, 33);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -227,6 +229,7 @@ std::pair<apache::thrift::ident::moduleTechnology, Child<::facebook::fboss::Modu
     else if constexpr (__id == apache::thrift::FieldId{30}) { return communicationError(); }
     else if constexpr (__id == apache::thrift::FieldId{31}) { return errorStates(); }
     else if constexpr (__id == apache::thrift::FieldId{32}) { return moduleTechnology(); }
+    else if constexpr (__id == apache::thrift::FieldId{33}) { return pagingSupport(); }
   }
 };
 
@@ -1992,7 +1995,9 @@ std::pair<apache::thrift::ident::rxEq2, Child<::std::int32_t, ::apache::thrift::
 std::pair<apache::thrift::ident::rxEq1, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::rxEqM, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::rxEqP1, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::rxEqP2, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::rxEqP2, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::rxPfLfq, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::rxPfHfq, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2015,6 +2020,8 @@ std::pair<apache::thrift::ident::rxEqP2, Child<::std::int32_t, ::apache::thrift:
     STRUCT_CHILD_GETTERS(rxEqM, 15);
     STRUCT_CHILD_GETTERS(rxEqP1, 16);
     STRUCT_CHILD_GETTERS(rxEqP2, 17);
+    STRUCT_CHILD_GETTERS(rxPfLfq, 18);
+    STRUCT_CHILD_GETTERS(rxPfHfq, 19);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -2035,6 +2042,8 @@ std::pair<apache::thrift::ident::rxEqP2, Child<::std::int32_t, ::apache::thrift:
     else if constexpr (__id == apache::thrift::FieldId{15}) { return rxEqM(); }
     else if constexpr (__id == apache::thrift::FieldId{16}) { return rxEqP1(); }
     else if constexpr (__id == apache::thrift::FieldId{17}) { return rxEqP2(); }
+    else if constexpr (__id == apache::thrift::FieldId{18}) { return rxPfLfq(); }
+    else if constexpr (__id == apache::thrift::FieldId{19}) { return rxPfHfq(); }
   }
 };
 

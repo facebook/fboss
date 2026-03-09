@@ -437,25 +437,42 @@ struct NextHopCombinedWeightsKey {
         intfId(nhop.intf()), // must be resolved next hop
         action(nhop.labelForwardingAction()),
         disableTTLDecrement(nhop.disableTTLDecrement()),
-        topologyInfo(nhop.topologyInfo()) {
+        topologyInfo(nhop.topologyInfo()),
+        srv6SegmentList(nhop.srv6SegmentList()),
+        tunnelType(nhop.tunnelType()),
+        tunnelId(nhop.tunnelId()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
   }
   bool operator<(const NextHopCombinedWeightsKey& other) const {
-    return std::tie(ip, intfId, action, disableTTLDecrement, topologyInfo) <
+    return std::tie(
+               ip,
+               intfId,
+               action,
+               disableTTLDecrement,
+               topologyInfo,
+               srv6SegmentList,
+               tunnelType,
+               tunnelId) <
         std::tie(
                other.ip,
                other.intfId,
                other.action,
                other.disableTTLDecrement,
-               other.topologyInfo);
+               other.topologyInfo,
+               other.srv6SegmentList,
+               other.tunnelType,
+               other.tunnelId);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
   std::optional<LabelForwardingAction> action;
   std::optional<bool> disableTTLDecrement;
   std::optional<NetworkTopologyInformation> topologyInfo;
+  std::vector<folly::IPAddressV6> srv6SegmentList;
+  std::optional<TunnelType> tunnelType;
+  std::optional<std::string> tunnelId;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -510,7 +527,11 @@ RouteNextHopSet mergeForwardInfosEcmp(
           ECMP_WEIGHT,
           fnh.labelForwardingAction(),
           fnh.disableTTLDecrement(),
-          fnh.topologyInfo()));
+          fnh.topologyInfo(),
+          std::nullopt, /* adjustedWeight */
+          fnh.srv6SegmentList(),
+          fnh.tunnelType(),
+          fnh.tunnelId()));
     }
   }
   return fwd;
@@ -584,7 +605,16 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
     const auto& topologyInfo = cw.first.topologyInfo;
     NextHopWeight w = fwdWeightGcd ? cw.second / fwdWeightGcd : 0;
     fwd.emplace(ResolvedNextHop(
-        addr, intf, w, action, disableTTLDecrement, topologyInfo));
+        addr,
+        intf,
+        w,
+        action,
+        disableTTLDecrement,
+        topologyInfo,
+        std::nullopt, /* adjustedWeight */
+        cw.first.srv6SegmentList,
+        cw.first.tunnelType,
+        cw.first.tunnelId));
   }
   return fwd;
 }
@@ -662,6 +692,9 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     bool* hasDrop,
     const std::optional<bool>& disableTTLDecrement,
     const std::optional<NetworkTopologyInformation>& topologyInfo,
+    const std::vector<folly::IPAddressV6>& srv6SegmentList,
+    const std::optional<TunnelType>& tunnelType,
+    const std::optional<std::string>& tunnelId,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -700,13 +733,22 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                 labelAction, rtNh.labelForwardingAction()),
             disableTTLDecrement.has_value() ? disableTTLDecrement
                                             : rtNh.disableTTLDecrement(),
-            topologyInfo));
+            topologyInfo,
+            std::nullopt, /* adjustedWeight */
+            srv6SegmentList,
+            tunnelType,
+            tunnelId));
       } else {
         std::for_each(
             nhops.begin(),
             nhops.end(),
-            [&fwd, labelAction, disableTTLDecrement, topologyInfo](
-                const auto& nhop) {
+            [&fwd,
+             labelAction,
+             disableTTLDecrement,
+             topologyInfo,
+             &srv6SegmentList,
+             &tunnelType,
+             &tunnelId](const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
@@ -715,7 +757,11 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                       labelAction, nhop.labelForwardingAction()),
                   disableTTLDecrement.has_value() ? disableTTLDecrement
                                                   : nhop.disableTTLDecrement(),
-                  topologyInfo));
+                  topologyInfo,
+                  std::nullopt, /* adjustedWeight */
+                  srv6SegmentList,
+                  tunnelType,
+                  tunnelId));
             });
       }
     }
@@ -790,6 +836,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               &hasDrop,
               nh.disableTTLDecrement(),
               nh.topologyInfo(),
+              nh.srv6SegmentList(),
+              nh.tunnelType(),
+              nh.tunnelId(),
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -801,6 +850,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               &hasDrop,
               nh.disableTTLDecrement(),
               nh.topologyInfo(),
+              nh.srv6SegmentList(),
+              nh.tunnelType(),
+              nh.tunnelId(),
               nhToFwds[nh]);
         }
       }

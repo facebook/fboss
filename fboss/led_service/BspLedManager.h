@@ -65,6 +65,8 @@ class BspLedManager : public LedManager {
       cfg::PortProfileID portProfile,
       led::LedState ledState) override;
 
+  std::set<led::LedState> getLedStateFromHW(uint32_t portId) const override;
+
   std::set<int> getLedIdFromSwPort(
       uint32_t portId,
       cfg::PortProfileID portProfile) const;

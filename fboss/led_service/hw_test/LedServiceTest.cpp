@@ -166,8 +166,15 @@ void LedServiceTest::checkLedColor(
   EXPECT_EQ(ledState.currentLedState()->ledColor().value(), color)
       << "LED state should be " << enumToName<led::LedColor>(color)
       << " for port " << portName.value() << " for test " << testNum;
+  std::set<led::LedState> ledStateSet = ledManager_->getLedStateFromHW(port);
+  for (const auto& state : ledStateSet) {
+    EXPECT_EQ(state.ledColor().value(), color)
+        << "LED state in IO should be " << enumToName<led::LedColor>(color)
+        << " for port " << portName.value() << " for test " << testNum;
+  }
   // // If the visual_delay_sec flag is specified, add a delay to enable seeing
   // the LED change
+  /* sleep override */
   sleep(FLAGS_visual_delay_sec);
 }
 
@@ -183,9 +190,16 @@ void LedServiceTest::checkLedBlink(
       << "LED Blink should be " << enumToName<led::Blink>(blink) << " for port "
       << portName.value() << " but current blink is "
       << enumToName<led::Blink>(currentBlink) << " for test " << testNum;
+  std::set<led::LedState> ledStateSet = ledManager_->getLedStateFromHW(port);
+  for (const auto& state : ledStateSet) {
+    EXPECT_EQ(state.blink().value(), blink)
+        << "LED state in IO should be " << enumToName<led::Blink>(blink)
+        << " for port " << portName.value() << " for test " << testNum;
+  }
   // If the visual_delay_sec flag is specified, add a delay to enable seeing the
   // LED blink.
-  /* sleep override */ sleep(FLAGS_visual_delay_sec);
+  /* sleep override */
+  sleep(FLAGS_visual_delay_sec);
 }
 
 TEST_F(LedServiceTest, checkLedColorChange) {

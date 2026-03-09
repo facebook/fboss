@@ -1,5 +1,6 @@
 {
   "defaultCommandLineArgs": {
+    "enable_xphy_link_training": "true",
     "firmware_upgrade_on_coldboot": "true",
     "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
@@ -2815,6 +2816,11 @@
         "aPortName": "eth1/129/4",
         "zPortName": "eth1/129/8",
         "profileID": 59
+      },
+      {
+        "aPortName": "eth1/1/1",
+        "zPortName": "eth1/2/1",
+        "profileID": 23
       }
     ]
   },
@@ -3076,7 +3082,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "0.b"
+              "version": "0.11"
             }
           ]
       },
@@ -3093,30 +3099,6 @@
             {
               "fwType": 1,
               "version": "2.6"
-            }
-          ]
-      },
-      "T-DQ4CNT-NF2": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
-            }
-          ]
-      },
-      "T-DQ4CNT-NFB": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
-            }
-          ]
-      },
-      "T-DQ4CNT-NFM": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
             }
           ]
       },

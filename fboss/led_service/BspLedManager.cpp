@@ -253,4 +253,38 @@ void BspLedManager::setLedState(
   }
 }
 
+/*
+ * getLedStateFromHW
+ *
+ * Get the LED state from HW for the LED(s) on a given port. A port may have
+ * multiple LEDs so this returns a set of LedState. This function reads the
+ * actual sysfs files rather than cached state.
+ */
+std::set<led::LedState> BspLedManager::getLedStateFromHW(
+    uint32_t portId) const {
+  if (portDisplayMap_.find(portId) == portDisplayMap_.end()) {
+    XLOG(ERR) << "Port " << portId
+              << " not found in portDisplayMap for getLedStateFromHW";
+    return {};
+  }
+
+  auto portProfile = portDisplayMap_.at(portId).portProfileId;
+  auto ledIds = getLedIdFromSwPort(portId, portProfile);
+  if (ledIds.empty()) {
+    XLOG(ERR) << "No Led Id found for the port " << portId;
+    return {};
+  }
+
+  auto tcvrId = platformMapping_->getTransceiverIdFromSwPort(PortID(portId));
+
+  std::set<led::LedState> ledStates;
+  for (auto& ledController :
+       bspSystemContainer_->getLedController(tcvrId + 1)) {
+    if (ledIds.count(ledController.first)) {
+      ledStates.insert(ledController.second->getLedState());
+    }
+  }
+  return ledStates;
+}
+
 } // namespace facebook::fboss
