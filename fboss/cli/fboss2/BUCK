@@ -106,6 +106,7 @@ cpp_library(
         ":cmd-common-utils",
         ":cmd-global-options",
         ":cmd-subcommands",
+        "//folly/executors:cpu_thread_pool_executor",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",

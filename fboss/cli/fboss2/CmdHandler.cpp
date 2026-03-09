@@ -14,6 +14,7 @@
 #include "thrift/lib/cpp/util/EnumUtils.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
+#include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/logging/xlog.h>
 #include <cstring>
 #include <future>
@@ -242,17 +243,33 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   std::vector<std::shared_future<std::tuple<std::string, RetType, std::string>>>
       futureList;
 
+  // Limit concurrent host queries to prevent resource exhaustion. The value of
+  // 20 was chosen empirically as a balance between parallelism and resource
+  // usage - it's high enough to provide good throughput for typical multi-host
+  // queries, but low enough to avoid overwhelming client resources. Consider
+  // increasing this value if queries to many hosts are consistently slow,
+  // or decreasing if resource exhaustion issues are observed.
+  constexpr int kMaxParallelism = 20;
+  const auto parallelism =
+      std::min(static_cast<int>(hosts.size()), kMaxParallelism);
+
+  folly::CPUThreadPoolExecutor executor(parallelism);
+
   for (const auto& host : hosts) {
-    futureList.push_back(
-        std::async(
-            std::launch::async,
-            &CmdHandler::asyncHandler,
-            this,
-            host,
-            parsedFilters,
-            validFilters)
-            .share());
+    auto promise = std::make_shared<
+        std::promise<std::tuple<std::string, RetType, std::string>>>();
+    futureList.push_back(promise->get_future().share());
+
+    executor.add([this, host, &parsedFilters, &validFilters, promise]() {
+      try {
+        promise->set_value(asyncHandler(host, parsedFilters, validFilters));
+      } catch (...) {
+        promise->set_exception(std::current_exception());
+      }
+    });
   }
+
+  executor.join();
 
   if (!parsedAggregationInput.has_value()) {
     if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
