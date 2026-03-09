@@ -43,13 +43,12 @@ class StateUpdateValidator {
       const HwAsicTable* asicTable,
       const SwitchIdScopeResolver* scopeResolver);
 
-  ResourceAccountant* getResourceAccountant() {
-    return resourceAccountant_.get();
-  }
+  void stateChanged(const StateDelta& delta);
+  void updateRejected(const StateDelta& delta);
+
   const ResourceAccountant* getResourceAccountant() const {
     return resourceAccountant_.get();
   }
-  void resetResourceAccountant(const std::shared_ptr<SwitchState>& oldState);
 
  private:
   cfg::AgentRunMode runMode_;

@@ -296,11 +296,17 @@ bool StateUpdateValidator::isValidUpdate(
   return isValid;
 }
 
-void StateUpdateValidator::resetResourceAccountant(
-    const std::shared_ptr<SwitchState>& oldState) {
+void StateUpdateValidator::stateChanged(const StateDelta& delta) {
+  resourceAccountant_->stateChanged(delta);
+}
+
+void StateUpdateValidator::updateRejected(const StateDelta& delta) {
+  /* reconstruct the resource account to reset resources accounted in earlier
+   * deltas */
   resourceAccountant_ =
       std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
   resourceAccountant_->stateChanged(
-      StateDelta(std::make_shared<SwitchState>(), oldState));
+      StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
 }
+
 } // namespace facebook::fboss
