@@ -1262,6 +1262,114 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
+// Test for VDM support on 800G ZR modules
+TEST_F(CmisTest, cmis800GZrVdmTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+
+  EXPECT_TRUE(xcvr->isVdmSupported());
+  // Verify all 4 VDM groups are supported (VDMSupport bits 1-0 = 0x03)
+  EXPECT_TRUE(xcvr->isVdmSupported(4));
+
+  // Verify coherent VDM parameters are found in VDM config (page 23h)
+  // with data values on page 27h
+  auto modulatorBiasXI =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::MODULATOR_BIAS_XI);
+  EXPECT_TRUE(modulatorBiasXI.vdmConfImplementedByModule);
+  EXPECT_EQ(modulatorBiasXI.vdmValPage, CmisPages::PAGE27);
+
+  auto modulatorBiasXQ =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::MODULATOR_BIAS_XQ);
+  EXPECT_TRUE(modulatorBiasXQ.vdmConfImplementedByModule);
+  EXPECT_EQ(modulatorBiasXQ.vdmValPage, CmisPages::PAGE27);
+
+  auto modulatorBiasYI =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::MODULATOR_BIAS_YI);
+  EXPECT_TRUE(modulatorBiasYI.vdmConfImplementedByModule);
+  EXPECT_EQ(modulatorBiasYI.vdmValPage, CmisPages::PAGE27);
+
+  auto modulatorBiasYQ =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::MODULATOR_BIAS_YQ);
+  EXPECT_TRUE(modulatorBiasYQ.vdmConfImplementedByModule);
+  EXPECT_EQ(modulatorBiasYQ.vdmValPage, CmisPages::PAGE27);
+
+  auto modulatorBiasXPhase =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::MODULATOR_BIAS_X_PHASE);
+  EXPECT_TRUE(modulatorBiasXPhase.vdmConfImplementedByModule);
+  EXPECT_EQ(modulatorBiasXPhase.vdmValPage, CmisPages::PAGE27);
+
+  auto modulatorBiasYPhase =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::MODULATOR_BIAS_Y_PHASE);
+  EXPECT_TRUE(modulatorBiasYPhase.vdmConfImplementedByModule);
+  EXPECT_EQ(modulatorBiasYPhase.vdmValPage, CmisPages::PAGE27);
+
+  auto cdLowGran =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::CD_LOW_GRANULARITY);
+  EXPECT_TRUE(cdLowGran.vdmConfImplementedByModule);
+  EXPECT_EQ(cdLowGran.vdmValPage, CmisPages::PAGE27);
+
+  auto sopmdLowGran =
+      xcvr->getVdmDiagsValLocation(VdmConfigType::SOPMD_LOW_GRANULARITY);
+  EXPECT_TRUE(sopmdLowGran.vdmConfImplementedByModule);
+  EXPECT_EQ(sopmdLowGran.vdmValPage, CmisPages::PAGE27);
+
+  // Program transceiver to populate port-to-media-lane mappings
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::EIGHTHUNDREDG;
+  portState.numHostLanes = 8;
+
+  cfg::OpticalChannelConfig optChanConfig;
+  cfg::FrequencyConfig freqConfig;
+  freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+  cfg::CenterFrequencyConfig centerFreq;
+  centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+  freqConfig.centerFrequencyConfig() = centerFreq;
+  optChanConfig.frequencyConfig() = freqConfig;
+  optChanConfig.txPower0P01Dbm() = 0;
+  optChanConfig.appSelCode() = 1;
+  portState.opticalChannelConfig = optChanConfig;
+
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+
+  std::vector<int32_t> xcvrIds = {xcvrID};
+  transceiverManager_->triggerVdmStatsCapture(xcvrIds);
+  transceiverManager_->refreshStateMachines();
+
+  const auto& newInfo = xcvr->getTransceiverInfo();
+  ASSERT_TRUE(newInfo.tcvrStats()->vdmPerfMonitorStats().has_value());
+  auto& vdmPerfMonStats = newInfo.tcvrStats()->vdmPerfMonitorStats().value();
+  ASSERT_FALSE(vdmPerfMonStats.mediaPortVdmStats()->empty());
+
+  // Validate coherent VDM values from page 0x27 (kCmis800GZrPage27)
+  // Values are computed as: rawU16 * LSB (or rawS16 * LSB for signed)
+  auto portIt = vdmPerfMonStats.mediaPortVdmStats()->find("eth1/1/1");
+  ASSERT_NE(portIt, vdmPerfMonStats.mediaPortVdmStats()->end());
+  ASSERT_TRUE(portIt->second.coherentVdmStats().has_value());
+  auto& coherentVdm = portIt->second.coherentVdmStats().value();
+
+  // Modulator Bias XI: raw U16 = 0x758b, LSB = 100/65535
+  EXPECT_EQ(int(*coherentVdm.modulatorBiasXI() * 100), 4591);
+  // Modulator Bias XQ: raw U16 = 0x6118, LSB = 100/65535
+  EXPECT_EQ(int(*coherentVdm.modulatorBiasXQ() * 100), 3792);
+  // Modulator Bias YI: raw U16 = 0x7764, LSB = 100/65535
+  EXPECT_EQ(int(*coherentVdm.modulatorBiasYI() * 100), 4663);
+  // Modulator Bias YQ: raw U16 = 0x63d1, LSB = 100/65535
+  EXPECT_EQ(int(*coherentVdm.modulatorBiasYQ() * 100), 3899);
+  // Modulator Bias X Phase: raw U16 = 0x6a5f, LSB = 100/65535
+  EXPECT_EQ(int(*coherentVdm.modulatorBiasXPhase() * 100), 4155);
+  // Modulator Bias Y Phase: raw U16 = 0x661b, LSB = 100/65535
+  EXPECT_EQ(int(*coherentVdm.modulatorBiasYPhase() * 100), 3988);
+  // CD low granularity: raw S16 = 0x0000, LSB = 20 ps/nm
+  EXPECT_EQ(*coherentVdm.cdLowGranularity(), 0.0);
+  // SOPMD low granularity: raw U16 = 0x0045 = 69, LSB = 1 ps^2
+  EXPECT_EQ(*coherentVdm.sopmdLowGranularity(), 69.0);
+}
+
 TEST_F(CmisTest, cmisCredo800AecInfoTest) {
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<CmisCredo800AEC>(

@@ -806,14 +806,14 @@ void sendArpReply(
   folly::io::Appender cursor(buf.get(), 0);
   cursor.push(dstMac.bytes(), MacAddress::SIZE);
   cursor.push(srcMac.bytes(), MacAddress::SIZE);
-  cursor.writeBE<uint16_t>(0x8100); // 802.1Q
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(0x8100)); // 802.1Q
   cursor.writeBE<uint16_t>(static_cast<uint16_t>(vlan));
-  cursor.writeBE<uint16_t>(0x0806); // ARP
-  cursor.writeBE<uint16_t>(1); // htype: ethernet
-  cursor.writeBE<uint16_t>(0x0800); // ptype: IPv4
-  cursor.writeBE<uint8_t>(6); // hlen: 6
-  cursor.writeBE<uint8_t>(4); // plen: 4
-  cursor.writeBE<uint16_t>(2); // ARP reply
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(0x0806)); // ARP
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(1)); // htype: ethernet
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(0x0800)); // ptype: IPv4
+  cursor.writeBE<uint8_t>(static_cast<uint8_t>(6)); // hlen: 6
+  cursor.writeBE<uint8_t>(static_cast<uint8_t>(4)); // plen: 4
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(2)); // ARP reply
   cursor.push(srcMac.bytes(), MacAddress::SIZE); // sender MAC
   cursor.write<uint32_t>(srcIP.toLong()); // sender IP
   cursor.push(dstMac.bytes(), MacAddress::SIZE); // target MAC

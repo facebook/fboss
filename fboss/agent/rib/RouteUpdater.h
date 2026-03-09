@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/types.h"
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
@@ -175,6 +176,9 @@ class RibRouteUpdater {
       bool* hasDrop,
       const std::optional<bool>& disableTTLDecrement,
       const std::optional<NetworkTopologyInformation>& topologyInfo,
+      const std::vector<folly::IPAddressV6>& srv6SegmentList,
+      const std::optional<TunnelType>& tunnelType,
+      const std::optional<std::string>& tunnelId,
       RouteNextHopSet& fwd);
 
   template <typename AddressT>
