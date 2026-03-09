@@ -828,8 +828,11 @@ sai_status_t get_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& port = fs->portManager.get(port_id);
+  auto& port = fs->portManager.get(port_id);
   for (int i = 0; i < attr_count; ++i) {
+    if (port.onGetAttribute) {
+      port.onGetAttribute();
+    }
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
         attr[i].value.booldata = port.adminState;
@@ -1082,6 +1085,16 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX:
         attr[i].value.u8 = port.priorityFlowControlTx;
+        break;
+      case SAI_PORT_ATTR_ERR_STATUS_LIST:
+        if (port.portErrStatusList.size() > attr[i].value.porterror.count) {
+          attr[i].value.porterror.count = port.portErrStatusList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.portErrStatusList.size(); ++j) {
+          attr[i].value.porterror.list[j] = port.portErrStatusList[j];
+        }
+        attr[i].value.porterror.count = port.portErrStatusList.size();
         break;
       case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
         if (port.ingressPriorityGroupList.size() >

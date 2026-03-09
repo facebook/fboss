@@ -71,7 +71,7 @@ std::shared_ptr<QsfpServiceThreads> createQsfpServiceThreads(
         qsfpServiceThreads->threadIdToThread.emplace(
             threadId, SlotThreadHelper(threadId));
         qsfpServiceThreads->tcvrToThreadId[*tcvrId] = threadId;
-        XLOG(ERR) << "Creating thread " << threadId << " for tcvr " << *tcvrId;
+        XLOG(INFO) << "Creating thread " << threadId << " for tcvr " << *tcvrId;
       }
     } else if (xphyId && !tcvrId) {
       // Port has xphy but no tcvr
@@ -82,7 +82,7 @@ std::shared_ptr<QsfpServiceThreads> createQsfpServiceThreads(
         qsfpServiceThreads->threadIdToThread.emplace(
             threadId, SlotThreadHelper(threadId));
         qsfpServiceThreads->xphyToThreadId[*xphyId] = threadId;
-        XLOG(ERR) << "Creating thread " << threadId << " for xphy " << *xphyId;
+        XLOG(INFO) << "Creating thread " << threadId << " for xphy " << *xphyId;
       }
     } else {
       // Port has both tcvr and xphy
@@ -98,8 +98,8 @@ std::shared_ptr<QsfpServiceThreads> createQsfpServiceThreads(
             threadId, SlotThreadHelper(threadId));
         qsfpServiceThreads->tcvrToThreadId[*tcvrId] = threadId;
         qsfpServiceThreads->xphyToThreadId[*xphyId] = threadId;
-        XLOG(ERR) << "Creating thread " << threadId << " for tcvr " << *tcvrId
-                  << " and xphy " << *xphyId;
+        XLOG(INFO) << "Creating thread " << threadId << " for tcvr " << *tcvrId
+                   << " and xphy " << *xphyId;
       } else {
         // Both already have threads - verify they are equivalent
         if (tcvrIt->second != xphyIt->second) {
@@ -132,8 +132,8 @@ std::shared_ptr<QsfpServiceThreads> createQsfpServiceThreads(
     qsfpServiceThreads->threadIdToThread.emplace(
         threadId, SlotThreadHelper(threadId));
     qsfpServiceThreads->tcvrToThreadId[tcvrId] = threadId;
-    XLOG(ERR) << "Creating thread " << threadId << " for transceiver "
-              << tcvrId;
+    XLOG(INFO) << "Creating thread " << threadId << " for transceiver "
+               << tcvrId;
   }
 
   return qsfpServiceThreads;

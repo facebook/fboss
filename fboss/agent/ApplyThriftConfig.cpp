@@ -6182,7 +6182,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
         }
       }
     }
-    if (!mirrorPortId.has_value()) {
+    if (!mirrorPortId.has_value() || *mirrorPortId == PortID(0)) {
       throw FbossError(
           "Mirror-on-Drop destination is not specified, "
           "and auto-detection is not supported on this ASIC");
