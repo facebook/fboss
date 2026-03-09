@@ -7,8 +7,8 @@ do not have overlaps.
 """
 
 import itertools
-import os
 import pathlib
+
 import pytest
 
 # Configuration files to check for overlaps
@@ -22,12 +22,12 @@ CONF_FILES = [
 def load_benchmarks_from_file(filepath):
     """Load benchmark names from a configuration file, ignoring comments and empty lines."""
     benchmarks = []
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         for line in f:
-            line = line.strip()
+            stripped_line = line.strip()
             # Skip empty lines and comments
-            if line and not line.startswith("#"):
-                benchmarks.append(line)
+            if stripped_line and not stripped_line.startswith("#"):
+                benchmarks.append(stripped_line)
     return set(benchmarks)
 
 
@@ -81,9 +81,9 @@ def test_no_empty_files():
     for filename in CONF_FILES:
         conf_file = get_conf_file_path(filename)
         benchmarks = load_benchmarks_from_file(conf_file)
-        assert (
-            benchmarks
-        ), f"Configuration file is empty or contains only comments: {filename}"
+        assert benchmarks, (
+            f"Configuration file is empty or contains only comments: {filename}"
+        )
 
 
 if __name__ == "__main__":

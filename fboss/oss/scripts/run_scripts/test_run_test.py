@@ -9,15 +9,12 @@ including benchmark loading, parsing, execution, and error handling.
 """
 
 import os
-import sys
-import tempfile
 import subprocess
-from unittest.mock import Mock, patch, MagicMock, call
+import tempfile
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
 from run_test import BenchmarkTestRunner
-
 
 # Fixtures
 
@@ -447,19 +444,21 @@ def test_run_test_some_missing_binaries(
     mock_isfile.side_effect = isfile_side_effect
 
     # Mock benchmark execution
-    with patch.object(BenchmarkTestRunner, "_run_benchmark_binary") as mock_run:
-        with patch("builtins.open", create=True):
-            mock_run.return_value = {
-                "benchmark_binary_name": "/opt/fboss/bin/benchmark1",
-                "benchmark_test_name": "Bench1",
-                "test_status": "OK",
-                "relative_time_per_iter": "1.0s",
-                "iters_per_sec": "1000m",
-                "cpu_time_usec": "1000000",
-                "max_rss": "100000",
-            }
+    with (
+        patch.object(BenchmarkTestRunner, "_run_benchmark_binary") as mock_run,
+        patch("builtins.open", create=True),
+    ):
+        mock_run.return_value = {
+            "benchmark_binary_name": "/opt/fboss/bin/benchmark1",
+            "benchmark_test_name": "Bench1",
+            "test_status": "OK",
+            "relative_time_per_iter": "1.0s",
+            "iters_per_sec": "1000m",
+            "cpu_time_usec": "1000000",
+            "max_rss": "100000",
+        }
 
-            runner.run_test(mock_args)
+        runner.run_test(mock_args)
 
     captured = capsys.readouterr()
     assert "Warning:" in captured.out

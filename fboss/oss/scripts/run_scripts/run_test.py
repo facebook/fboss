@@ -1688,8 +1688,6 @@ class BenchmarkTestRunner:
         - cpu_time_usec: str
         - max_rss: str
         """
-        import re
-
         result = {
             "benchmark_binary_name": binary_name,
             "benchmark_test_name": "",
@@ -1763,6 +1761,7 @@ class BenchmarkTestRunner:
             # Run the benchmark binary
             result = subprocess.run(
                 run_cmd,
+                check=False,
                 timeout=args.test_run_timeout,
                 capture_output=True,
                 text=True,
@@ -1783,7 +1782,7 @@ class BenchmarkTestRunner:
                 print(f"########## Benchmark {binary_name} completed")
             return self._parse_benchmark_output(binary_name, result.stdout)
 
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             print(
                 f"########## Benchmark {binary_name} timed out after {args.test_run_timeout} seconds"
             )
@@ -1798,7 +1797,7 @@ class BenchmarkTestRunner:
                 "max_rss": "",
             }
         except Exception as e:
-            print(f"########## Error running benchmark {binary_name}: {str(e)}")
+            print(f"########## Error running benchmark {binary_name}: {e!s}")
             # Return failed result with no metrics
             return {
                 "benchmark_binary_name": binary_name,
@@ -1847,7 +1846,7 @@ class BenchmarkTestRunner:
 
         return list(benchmarks_to_run)
 
-    def run_test(self, args):
+    def run_test(self, args):  # noqa: PLR0912 - complex benchmark orchestration; splitting would harm readability
         """Run benchmark test binaries"""
         benchmarks_to_run = self._get_benchmarks_to_run(args.filter_file)
 
@@ -1896,9 +1895,6 @@ class BenchmarkTestRunner:
             results.append(benchmark_result)
 
         # Write results to CSV file
-        import csv
-        from datetime import datetime
-
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         csv_filename = f"benchmark_results_{timestamp}.csv"
 
