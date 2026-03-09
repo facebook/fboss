@@ -5,17 +5,28 @@
     "onie": "fboss-distro-image_onie.bin"
   },
   "kernel": {
+    "execute": ["kernel/scripts/build_kernel.sh", "6.11.1", "/output"],
+    "artifact": "kernel-6.11.1.rpms.tar"
   },
   "other_dependencies": [
+    { "download": "https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/nano-5.6.1-7.el9.x86_64.rpm"},
+    { "execute": ["examples/thirdparty_build.sh"], "artifact": "thirdparty-pkg-1.0-1.noarch.rpm"}
   ],
   "fboss-platform-stack": {
+    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "platform"],
+    "artifact": "platform-stack.tar"
   },
   "bsps": [
   ],
   "sai": {
+    "download": "file:../fboss/oss/scripts/fake-sai-devel.tar.zstd"
   },
   "fboss-forwarding-stack": {
+    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"],
+    "artifact": "forwarding-stack.tar"
   },
   "image_build_hooks": {
+     "after_pkgs_install": "after_pkgs_install_input.json",
+     "after_pkgs_execute": "after_pkgs_execute_input.json"
   }
 }
