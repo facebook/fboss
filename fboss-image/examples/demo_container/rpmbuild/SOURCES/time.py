@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-import cowsay
+
 import time
+
+import cowsay
 
 while True:
     time.sleep(1)

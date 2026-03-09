@@ -96,36 +96,51 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
   return SaiMplsNextHopTraits::AdapterHostKey{rifId, ip, labels};
 }
 
-ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+std::shared_ptr<SaiSrv6SidList> SaiNextHopManager::createSrv6SidList(
     const ResolvedNextHop& swNextHop) {
+  if (swNextHop.srv6SegmentList().empty()) {
+    throw FbossError(
+        "Cannot create SRv6 SID list for next hop with empty srv6SegmentList");
+  }
+  auto interfaceId = swNextHop.intfID().value();
+  auto routerInterfaceHandle =
+      managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+          interfaceId);
+  if (!routerInterfaceHandle) {
+    throw FbossError("Missing SAI router interface for ", interfaceId);
+  }
+  auto rifId = routerInterfaceHandle->adapterKey();
+  folly::IPAddress ip = swNextHop.addr();
+  SaiSrv6SidListTraits::CreateAttributes sidListCreateAttrs{
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+      swNextHop.srv6SegmentList(),
+      std::nullopt};
+  SaiSrv6SidListTraits::AdapterHostKey sidListKey{
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, swNextHop.srv6SegmentList(), rifId, ip};
+  auto& store = saiStore_->get<SaiSrv6SidListTraits>();
+  return store.setObject(sidListKey, sidListCreateAttrs);
+}
+#endif
+
+ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
+    const ResolvedNextHop& swNextHop
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    ,
+    std::shared_ptr<SaiSrv6SidList> srv6SidList
+#endif
+) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   folly::IPAddress ip = swNextHop.addr();
 
   XLOG(DBG2) << "SaiNextHopManager::addManagedSaiNextHop: " << ip.str();
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  std::optional<sai_object_id_t> sidListId;
   std::shared_ptr<SaiSrv6SidList> sidList;
+  std::optional<sai_object_id_t> sidListId;
   if (!swNextHop.srv6SegmentList().empty()) {
-    auto interfaceId = swNextHop.intfID().value();
-    auto routerInterfaceHandle =
-        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
-            interfaceId);
-    if (!routerInterfaceHandle) {
-      throw FbossError("Missing SAI router interface for ", interfaceId);
-    }
-    auto rifId = routerInterfaceHandle->adapterKey();
-    SaiSrv6SidListTraits::CreateAttributes sidListCreateAttrs{
-        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-        swNextHop.srv6SegmentList(),
-        std::nullopt};
-    SaiSrv6SidListTraits::AdapterHostKey sidListKey{
-        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-        swNextHop.srv6SegmentList(),
-        rifId,
-        ip};
-    auto& store = saiStore_->get<SaiSrv6SidListTraits>();
-    sidList = store.setObject(sidListKey, sidListCreateAttrs);
+    sidList =
+        srv6SidList ? std::move(srv6SidList) : createSrv6SidList(swNextHop);
     sidListId = sidList->adapterKey();
   }
   auto nexthopKey = getAdapterHostKey(swNextHop, sidListId);
