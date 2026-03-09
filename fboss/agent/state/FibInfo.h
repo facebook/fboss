@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <optional>
+
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -97,6 +99,20 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
   // 1. Looking up the set of NextHopIds from IdToNextHopIdSetMap
   // 2. For each NextHopId, looking up the NextHop from IdToNextHopMap
   std::vector<NextHop> resolveNextHopSetFromId(NextHopSetId id) const;
+
+  // Named next-hop group accessors
+  // Get the NextHopSetId for a named next-hop group
+  std::optional<NextHopSetId> getNextHopSetIdIf(const std::string& name) const;
+  NextHopSetId getNextHopSetId(const std::string& name) const;
+
+  // Set the NextHopSetId for a named next-hop group
+  void setNextHopSetIdForName(const std::string& name, NextHopSetId id);
+
+  // Remove a named next-hop group
+  void removeNextHopSetForName(const std::string& name);
+
+  // Resolve a named next-hop group to NextHops
+  std::vector<NextHop> resolveNextHopSetFromName(const std::string& name) const;
 
  private:
   // Inherit constructors required for clone()
