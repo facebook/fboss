@@ -11,12 +11,18 @@ using folly::to;
 
 namespace {
 std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelMap{
-    SAI_ATTR_MAP(Tunnel, Type),
-    SAI_ATTR_MAP(Tunnel, UnderlayInterface),
-    SAI_ATTR_MAP(Tunnel, OverlayInterface),
-    SAI_ATTR_MAP(Tunnel, DecapTtlMode),
-    SAI_ATTR_MAP(Tunnel, DecapDscpMode),
-    SAI_ATTR_MAP(Tunnel, DecapEcnMode),
+    SAI_ATTR_MAP(IpInIpTunnel, Type),
+    SAI_ATTR_MAP(IpInIpTunnel, UnderlayInterface),
+    SAI_ATTR_MAP(IpInIpTunnel, OverlayInterface),
+    SAI_ATTR_MAP(IpInIpTunnel, DecapTtlMode),
+    SAI_ATTR_MAP(IpInIpTunnel, DecapDscpMode),
+    SAI_ATTR_MAP(IpInIpTunnel, DecapEcnMode),
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    SAI_ATTR_MAP(Srv6Tunnel, EncapSrcIp),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapTtlMode),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapEcnMode),
+    SAI_ATTR_MAP(Srv6Tunnel, EncapDscpMode),
+#endif
 };
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _TunnelTermMap{

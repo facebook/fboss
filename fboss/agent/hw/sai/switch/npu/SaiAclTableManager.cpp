@@ -100,8 +100,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         cfg::AsicType::ASIC_TYPE_JERICHO3;
     bool isJericho4 = platform_->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO4;
-    bool isChenab =
-        platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+    bool isChenab = platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,

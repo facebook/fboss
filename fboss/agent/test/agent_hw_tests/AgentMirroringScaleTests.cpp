@@ -196,7 +196,7 @@ TYPED_TEST(AgentMirroringScaleTest, MaxMirroringTest) {
         mirrors,
         this->getMaxMirrorsEntries(this->getAgentEnsemble()->getL3Asics()));
   };
-  this->verifyAcrossWarmBoots([] {}, verify);
+  this->verifyAcrossWarmBoots(verify);
 }
 
 TYPED_TEST(AgentMirroringScaleTest, ExceedMaxMirroringTest) {

@@ -79,6 +79,14 @@ std::shared_ptr<SwitchState> TamManager::resolveMirrorOnDropReports(
     auto& reports = std::as_const(mniter->second);
     for (auto iter = reports->cbegin(); iter != reports->cend(); ++iter) {
       auto report = iter->second;
+
+      // A non-zero mirrorPortId indicates the egress port is statically
+      // configured (e.g. DNX), so no mirror resolution is needed. Resolution
+      // only applies when mirrorPortId is 0 (e.g. XGS platforms like TH5).
+      if (report->getMirrorPortId() != PortID(0)) {
+        continue;
+      }
+
       const auto collectorIp = report->getCollectorIp();
 
       auto [resolvedMac, resolvedPort] = collectorIp.isV4()

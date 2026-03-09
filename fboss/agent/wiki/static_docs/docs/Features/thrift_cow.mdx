@@ -1,0 +1,604 @@
+---
+id: Features_thrift_cow
+title: Thrift COW (Copy-On-Write) Nodes
+---
+
+# Thrift COW Nodes
+
+## Overview
+
+The Thrift COW library (`fboss/thrift_cow/nodes/`) implements a **Copy-On-Write tree data structure** where every node in the tree corresponds to a Thrift type. It is the storage layer underlying the FBOSS [SwitchState](SwitchState.mdx) and [FSDB](fsdb.mdx).
+
+The high-level COW semantics are described in the [SwitchState](SwitchState.mdx) documentation. This page covers the implementation: how the Thrift COW node types are structured, how they map to Thrift types, and how the resolver and hybrid storage mechanisms work.
+
+### Key Goals
+
+- **Thrift-native storage**: Every node in the COW tree is typed by a Thrift struct, map, list, set, union, or primitive. Serialization uses Thrift protocols (Binary, Compact, SimpleJSON) rather than custom formats.
+- **Automatic tree construction**: Given a root Thrift type, the library recursively generates the entire COW tree structure at compile time via template metaprogramming.
+- **Resolver mechanism**: Custom C++ classes (e.g., `Port`, `ArpEntry`, `VlanMap`) can transparently wrap the generic COW nodes, preserving familiar APIs while gaining COW semantics.
+- **Hybrid storage**: An opt-in memory optimization where certain subtrees store raw Thrift objects instead of decomposing them into full COW node trees.
+
+## Node Types
+
+Each Thrift type class maps to a corresponding COW node type:
+
+| Thrift Type | COW Node Class | Internal Storage |
+|---|---|---|
+| Primitives (int, string, enum, float, bool) | `ThriftPrimitiveNode<TC, TType>` | `TType obj_` in `std::optional` |
+| `struct` | `ThriftStructNode<TType>` | `std::tuple<...>` (one slot per field, by ordinal) |
+| `map<K, V>` | `ThriftMapNode<Traits>` | `std::map<key_type, value_type>` |
+| `list<T>` | `ThriftListNode<TC, TType>` | `std::vector<value_type>` |
+| `set<T>` | `ThriftSetNode<TC, TType>` | `std::unordered_set<ImmutableThriftPrimitiveNode>` |
+| `union` | `ThriftUnionNode<TType>` | `std::tuple<...>` + active type enum |
+| Hybrid (raw Thrift) | `ThriftHybridNode<TC, TType>` | `TType obj_` (no decomposition) |
+
+The mapping from Thrift `type_class` to COW node type is performed by `ConvertToNodeTraits` in `Traits.h`, applied recursively for nested types.
+
+## Architecture
+
+### The Fields/Node Pattern
+
+Every composite COW node follows a two-class pattern:
+
+1. **Fields class** (e.g., `ThriftStructFields`): Owns the actual storage and provides non-COW operations — `toThrift()`, `fromThrift()`, getters, setters, iterators.
+2. **Node class** (e.g., `ThriftStructNode`): Inherits from `NodeBaseT<Self, Fields>` and `Serializable`. Adds COW semantics — `clone()`, `publish()`, `modify()`.
+
+This separation keeps the storage logic independent from the COW lifecycle management.
+
+### Inheritance Hierarchy
+
+```
+NodeBase (abstract)
+│   isPublished(), publish(), getGeneration(), getNodeID()
+│
+└── NodeBaseT<NodeT, FieldsT>  (CRTP)
+    │   clone(), publish(), getFields(), writableFields()
+    │
+    ├── ThriftStructNode<TType>      ─┐
+    ├── ThriftMapNode<Traits>         │
+    ├── ThriftListNode<TC, TType>     ├── all implement Serializable
+    ├── ThriftSetNode<TC, TType>      │
+    ├── ThriftUnionNode<TType>        │
+    └── ThriftHybridNode<TC, TType>  ─┘
+
+ThriftPrimitiveNode<TC, TType>
+    └── implements Serializable, but is NOT a NodeBase subclass
+        (stored as std::optional, not std::shared_ptr)
+```
+
+Key distinction:
+- **Composite nodes** (struct, map, list, set, union, hybrid) are `NodeBase` subclasses, managed by `std::shared_ptr`, with `CowType = NodeType`.
+- **Primitive nodes** are leaf values stored inline as `std::optional`, with `CowType = FieldsType`. They are not reference-counted.
+
+### The Serializable Interface
+
+All COW nodes implement the `Serializable` interface (`Serializer.h`), providing:
+
+- `encode(protocol)` / `encodeBuf(protocol)` — serialize to string or IOBuf
+- `fromEncoded(protocol, data)` / `fromEncodedBuf(protocol, buf)` — deserialize
+- `toFollyDynamic()` — convert to `folly::dynamic` (JSON-like)
+- `modify(path)` — clone-on-write modification at a path
+- `remove(path)` — remove a child at a path
+
+## Copy-On-Write Mechanics
+
+### Published State Invariant
+
+Every node has a `published` flag. Once set (via `publish()`), the node is immutable and can be safely read by multiple threads without locking. Any attempt to call `writableFields()` on a published node will CHECK-fail.
+
+### Modification Flow
+
+When a node needs to be modified:
+
+1. Check `isPublished()`.
+2. If published, call `clone()` (via `NodeBaseT::clone()`) to create a mutable copy.
+3. Swap the clone into the parent's child pointer.
+4. Repeat up the tree to the root (a new `SwitchState` is always created).
+
+For child access during modification, if a child `isPublished()`, it is also cloned before being returned for mutation. This ensures the original published tree is never altered.
+
+### Publishing
+
+`publish()` recursively marks the entire subtree as read-only by calling `forEachChild()` and publishing each child node.
+
+### Safe References
+
+`Types.h` defines `ReferenceWrapper<Type>` and the `safe_ref()` / `safe_cref()` methods. These prevent a subtle bug: when you hold `const std::shared_ptr<T>&`, dereferencing gives a non-const `T&`, which could accidentally mutate published nodes. The safe wrappers propagate constness correctly.
+
+## Resolver Mechanism
+
+The resolver mechanism allows custom C++ classes to act as typed wrappers around generic COW nodes. This is how FBOSS state objects like `Port`, `Vlan`, `ArpEntry`, and `SwitchState` are defined.
+
+### How It Works
+
+1. By default, `ThriftStructResolver<TType>` resolves to `ThriftStructNode<TType>`.
+2. Use the macro `ADD_THRIFT_RESOLVER_MAPPING(ThriftType, CppType)` to specialize the resolver.
+3. `CppType` must inherit from `ThriftStructNode<TType>` and **must not add any member data** (enforced by a `sizeof` assertion).
+4. Similarly, `ADD_THRIFT_MAP_RESOLVER_MAPPING(ThriftTraits, CppType)` works for maps.
+5. `ResolveMemberType<Derived, Ident>` allows per-member type overrides within a struct.
+
+### Example
+
+```cpp
+// In fboss/agent/state/Port.h:
+class Port : public ThriftStructNode<state::PortFields> {
+ public:
+  // Custom methods for port-specific logic
+  PortID getID() const;
+  std::string getName() const;
+  cfg::PortSpeed getSpeed() const;
+  // ... (no additional member variables)
+};
+
+// Register the mapping:
+ADD_THRIFT_RESOLVER_MAPPING(state::PortFields, Port);
+```
+
+After this mapping, whenever `state::PortFields` appears as a child in the COW tree (e.g., inside a `PortMap`), the library automatically uses `Port` instead of the generic `ThriftStructNode<state::PortFields>`.
+
+## Hybrid Storage
+
+Hybrid storage is a memory optimization for subtrees where fine-grained COW semantics are not needed (e.g., large nested structures that are always read or replaced as a whole).
+
+### How It Works
+
+- Template parameter `EnableHybridStorage` is propagated through the tree.
+- Thrift fields annotated with `@common.AllowSkipThriftCow` are stored as `ThriftHybridNode` instead of being decomposed into COW sub-nodes.
+- `ThriftHybridNode` stores the raw Thrift object directly, avoiding the overhead of `shared_ptr` wrappers and per-field COW nodes.
+
+### Trade-offs
+
+| Aspect | Full COW | Hybrid Storage |
+|---|---|---|
+| Memory usage | Higher (per-field node wrappers) | Lower (raw Thrift object) |
+| Modification granularity | Per-field clone-on-write | Whole-subtree clone |
+| Delta computation | Fine-grained field diffs | Coarse subtree diffs |
+| Use case | Frequently partially modified state | Rarely modified or bulk-replaced state |
+
+Hybrid storage is used by NSDB and can be enabled for specific subtrees in FSDB.
+
+## Struct Node Storage Details
+
+`ThriftStructFields` stores its fields in a `std::tuple` (aliased as `CowStorage`), with one slot per Thrift field indexed by ordinal. Each slot is either:
+
+- `std::optional<ThriftPrimitiveNode<TC, TType>>` for leaf fields (primitives)
+- `std::shared_ptr<ChildNode>` for composite child nodes (structs, maps, lists, etc.)
+
+Field access is compile-time typed via Thrift-generated tag types:
+
+```cpp
+// Access a field by its Thrift tag:
+auto& portName = structNode->get<port_tags::name>();
+
+// Modify a field (clone-on-write):
+structNode->ref<port_tags::speed>() = cfg::PortSpeed::HUNDREDG;
+```
+
+## Visitors
+
+The COW tree is traversed using visitor classes defined in `fboss/thrift_cow/visitors/`:
+
+| Visitor | Purpose |
+|---|---|
+| `PathVisitor` | Navigate to a specific path in the tree |
+| `DeltaVisitor` | Compute differences between two tree versions |
+| `RecurseVisitor` | Recursively walk the entire tree |
+| `ExtendedPathVisitor` | Navigate using wildcard/regex paths |
+| `PatchApplier` | Apply a serialized patch to the tree |
+
+These visitors are tightly coupled with the node types and are the primary mechanism for FSDB subscriptions and state delta computation.
+
+## Apache Thrift Integration
+
+The Thrift COW library is deeply integrated with `apache::thrift` (from `thrift/lib/cpp2/`). This section documents which Thrift framework features are used and how.
+
+### Type Class Dispatch
+
+Every COW node type, serializer specialization, and visitor is parameterized on a `type_class` tag from `apache::thrift::type_class`. The central dispatch point is `ConvertToNodeTraits` in `Traits.h`, which is template-specialized on `type_class` to map each Thrift type to its COW node:
+
+| `type_class` Specialization | COW Node | `isChild` |
+|---|---|---|
+| Default (primitives: `integral`, `string`, `enumeration`, `floating_point`) | `ThriftPrimitiveNode<TC, TType>` in `std::optional` | `false` |
+| `structure` | `ThriftStructNode` (or `ThriftHybridNode` if annotated) | `true` |
+| `variant` | `ThriftUnionNode<TType>` | `true` |
+| `list<ValueT>` | `ThriftListNode<list<ValueT>, TType>` | `true` |
+| `map<KeyT, ValueT>` | `ThriftMapNode` via `ThriftMapResolver` | `true` |
+| `set<ValueT>` | `ThriftSetNode<set<ValueT>, TType>` | `true` |
+
+The Thrift compiler now generates modern type tags (`apache::thrift::type::i32_t`, `type::struct_t<S>`, etc.) rather than legacy `type_class`. The bridge is `TypeTagToTypeClass` in `VisitorUtils.h`, which maps each modern tag back to the corresponding `type_class` used throughout the COW library. This is consumed via `CowFieldTraits`:
+
+```cpp
+using TC = typename TypeTagToTypeClass<TypeTag>::type;
+```
+
+A simplified enum `ThriftTCType` (`PRIMITIVE`, `STRUCTURE`, `VARIANT`, `MAP`, `SET`, `LIST`) in `ThriftTCType.h` reduces template instantiation cost when the full `type_class` tag is not needed.
+
+### Serialization Protocols
+
+The COW library supports three Thrift wire protocols, selected at runtime via `fsdb::OperProtocol`:
+
+| `OperProtocol` | Thrift Protocol Classes |
+|---|---|
+| `BINARY` | `apache::thrift::BinaryProtocolWriter` / `BinaryProtocolReader` |
+| `COMPACT` | `apache::thrift::CompactProtocolWriter` / `CompactProtocolReader` |
+| `SIMPLE_JSON` | `apache::thrift::SimpleJSONProtocolWriter` / `SimpleJSONProtocolReader` |
+
+The `Serializer<Protocol>` class in `Serializer.h` has two code paths based on the type being serialized:
+
+- **Structs and unions** (`tc_is_struct_or_union<TC>`): Use `apache::thrift::Cpp2Ops<TType>::write()` for serialization and `apache::thrift::Serializer<Reader, Writer>::deserialize<TType>()` for deserialization. These delegate to the Thrift-generated serialization code for the specific struct.
+- **Primitives and containers**: Use `apache::thrift::detail::pm::protocol_methods<TC, TType>::write()` and `::read()`. These are the low-level protocol methods from `thrift/lib/cpp2/protocol/detail/protocol_methods.h` that can serialize any type given its `type_class`.
+
+Serialization produces `folly::IOBuf` (via `folly::IOBufQueue`) for zero-copy buffer management. The `Serializable::fromEncoded()` convenience method wraps an `fbstring` into an `IOBuf` without copying via `folly::IOBuf::wrapBufferAsValue()`.
+
+### Struct Reflection (`op::*` APIs)
+
+The COW library uses the modern `apache::thrift::op::*` reflection APIs (from `thrift/lib/cpp2/op/`) for all compile-time field access and iteration. The key APIs and how they are used:
+
+| API | Purpose in thrift_cow |
+|---|---|
+| `op::for_each_field_id<TType>` | Iterate all fields of a struct — used in `ThriftStructFields` constructor, `toThrift()`, `fromThrift()`, `forEachChild()`, and all visitors |
+| `op::get_ordinal_v<TType, Id>` | Get 1-based ordinal to index into the `std::tuple` storage: `std::get<ordinal-1>(storage_)` |
+| `op::get<Id>(thrift)` | Access a field on a Thrift object — used in `fromThrift()`, `toThrift()`, visitors |
+| `op::invoke_by_field_id<TType>` | O(1) dispatch to a field by numeric ID — used in `visitMember()` and `PatchApplier` |
+| `op::get_name_v<TType, Id>` | Get field name as `string_view` — used in string-to-field resolution |
+| `op::get_native_type<TType, Id>` | Get C++ type for a field — used for `CowFieldTraits::NativeType` |
+| `op::get_type_tag<TType, Id>` | Get the type tag — used for `CowFieldTraits::TypeTag` |
+| `op::get_ident<TType, Id>` | Get the `ident::` tag — used for `CowFieldTraits::Ident` |
+| `op::get_field_id_v<TType, Id>` | Get the `FieldId` enum value — used in union type checking, `PatchApplier` |
+| `op::num_fields<TType>` | Count of fields — used for `CowStorage` tuple size computation |
+| `op::get_value_or_null` | Check if optional field is set — used in `fromThrift()` optional handling |
+| `apache::thrift::visit_union` | Visit the active member of a union — used in `PatchBuilder` and `PatchHelpers` |
+
+Field access on `ThriftStructFields` converts an `Id` tag to a tuple index:
+
+```cpp
+template <typename Id>
+TypeFor<Id> get() const {
+    constexpr size_t pos = static_cast<size_t>(op::get_ordinal_v<TType, Id>) - 1;
+    return std::get<pos>(storage_);
+}
+```
+
+String-to-field dispatch (in `visitMember()`) first tries parsing the string as a numeric field ID for O(1) lookup via `op::invoke_by_field_id`, falling back to a linear scan with `op::for_each_field_id` matching against `op::get_name_v`.
+
+### Thrift-Generated Code and Annotations
+
+The COW library relies on several Thrift-generated artifacts:
+
+| Generated Artifact | Usage |
+|---|---|
+| `apache::thrift::type::ordinal<N>` | Index into `CowStorageImpl` tuple slots |
+| `apache::thrift::is_thrift_class_v<T>` | Guard for `AllowSkipThriftCow` annotation checks |
+| `apache::thrift::has_field_annotation<Ann, T, Id>` | Detect per-field `@common.AllowSkipThriftCow` for hybrid storage |
+| `apache::thrift::has_struct_annotation<Ann, T>` | Detect per-struct `@common.AllowSkipThriftCow` for hybrid storage |
+| `apache::thrift::field_id<N>` | Construct `FieldId` for annotation checks |
+| `apache::thrift::ident::*` | Named field identifiers (e.g., `ident::inlineInt`) used as template tags |
+| `apache::thrift::Cpp2Ops<TType>` | Generated struct serialization entry point |
+| `apache::thrift::type::is_optional_or_union_field_v<T, Id>` | Optionality checks in `CowFieldTraits` and visitors |
+
+### `folly::dynamic` Conversion
+
+All COW nodes implement `toFollyDynamic()` (from `Serializable`), guarded by `#ifdef ENABLE_DYNAMIC_APIS`. The conversion always goes through the Thrift object:
+
+```cpp
+// COW Node -> toThrift() -> to_dynamic()
+folly::dynamic toDynamic() const {
+    folly::dynamic out;
+    facebook::thrift::to_dynamic(out, toThrift(), facebook::thrift::dynamic_format::JSON_1);
+    return out;
+}
+
+// from_dynamic() -> fromThrift() -> COW Node
+void fromDynamic(const folly::dynamic& value) {
+    TType thrift;
+    facebook::thrift::from_dynamic(thrift, value, facebook::thrift::dynamic_format::JSON_1);
+    fromThrift(thrift);
+}
+```
+
+When `ENABLE_DYNAMIC_APIS` is not defined, `toFollyDynamic()` returns an empty `folly::dynamic{}`.
+
+### Custom Patch System
+
+The COW library implements its own patch format, distinct from the standard Thrift Patch (`op::patch_type`). The schema is defined in `fboss/thrift_cow/patch.thrift`:
+
+```thrift
+union PatchNode {
+  1: Empty del;                // Delete the subtree
+  2: ByteBuffer val;           // Replace with serialized value
+  3: StructPatch struct_node;  // Per-field children: map<i16, PatchNode>
+  4: MapPatch map_node;        // Per-key children: map<string, PatchNode>
+  5: ListPatch list_node;      // Per-index children: map<i32, PatchNode>
+  6: SetPatch set_node;        // Per-element children: map<string, PatchNode>
+  7: VariantPatch variant_node; // Active member id + child PatchNode
+}
+```
+
+- **`PatchBuilder`** diffs two COW nodes using `DeltaVisitor` to produce a `PatchNode` tree.
+- **`PatchApplier`** applies a `PatchNode` to a COW node or raw Thrift object, using `op::invoke_by_field_id` and `op::for_each_field_id` for struct/union member dispatch.
+- **`PatchHelpers`** provides `compressPatch()`/`decompressPatch()` which serialize children maps into `folly::IOBuf` using `apache::thrift::BinarySerializer` for bandwidth reduction.
+
+The `ByteBuffer` type in the patch schema maps to `folly::IOBuf` via `@cpp.Type{name = "folly::IOBuf"}`.
+
+## Why OperDelta Construction Works
+
+The OperDelta system needs to solve three problems: **detect** what changed, **serialize** the changed pieces, and **apply** them on the receiver. All three are enabled by specific properties of the thrift_cow library.
+
+### Structural Sharing Enables Efficient Change Detection
+
+The COW tree's structural sharing makes change detection cheap. When a node is modified, the COW mechanism clones it and every ancestor up to the root, but leaves all other nodes as the same `shared_ptr`:
+
+```
+Old SwitchState                    New SwitchState
+      root_A                            root_B        ← new pointer (cloned)
+      /    \                            /    \
+  ports_A   vlans_A              ports_B   vlans_A    ← ports: new, vlans: SAME
+   / \                            / \
+ p1   p2                        p1   p3               ← p2 replaced by p3
+```
+
+The `DeltaVisitor` exploits this: `if (oldNode == newNode) return false`. When it reaches `vlans_A` on both sides and sees the same `shared_ptr`, it skips the entire subtree — no matter how large — in O(1). Without COW, you'd need a full deep comparison of every field in the state tree. With COW, you only traverse the "spine" of changed nodes.
+
+### Uniform Serialization at Any Granularity
+
+Every node in the COW tree is independently serializable via the `Serializable` interface. The chain is:
+
+```
+COW Node → toThrift() → apache::thrift::Cpp2Ops<TType>::write() → binary bytes
+```
+
+Because every COW node wraps a Thrift type and every Thrift type has generated serialization code, any node at any level can be encoded the same way — a `Port` struct, a `PortMap`, a single `adminState` enum field. This uniformity is what makes `buildOperDeltaUnit` work generically:
+
+```cpp
+if (newNode) {
+    unit.newState() = newNode->encode(protocol);  // works for ANY node type
+}
+```
+
+### Deterministic Path Addressing
+
+Every node in the COW tree is reachable by a `list<string>` path, built from Thrift reflection metadata:
+
+- **Struct fields**: named via `op::get_name_v` or addressed by numeric field ID via `op::get_field_id_v`
+- **Map entries**: keyed by the map key (converted to string)
+- **List entries**: keyed by index
+- **Set entries**: keyed by element value (converted to string)
+
+The visitor infrastructure builds these paths automatically during traversal. On the receiver, `PathVisitor` resolves a path back to the target node for deserialization.
+
+### Automatic Tree Construction
+
+Given a root Thrift type like `state::SwitchState`, `ConvertToNodeTraits` recursively generates the entire COW tree at compile time. When a new field is added to the `SwitchState` Thrift definition, the COW tree, visitors, and OperDelta system automatically handle it — no per-type code changes needed.
+
+### Bidirectional Serialization
+
+The thrift_cow library supports both directions uniformly:
+
+- **Encoding** (sender): `node->encode(BINARY)` → `toThrift()` → `BinaryProtocolWriter` → bytes
+- **Decoding** (receiver): `node->fromEncodedBuf(BINARY, buf)` → `BinaryProtocolReader` → `fromThrift()` → updates COW node
+
+The receiver's `CowStorage::patch_impl()` uses `set_encoded_impl()` which traverses the tree to the given path via `PathVisitor`, cloning nodes along the way (COW), then deserializes the binary blob into the target node.
+
+### The Type-Class Dispatch Architecture
+
+The `DeltaVisitor` is template-specialized per `type_class`. Each specialization knows how to iterate children, compare old vs new, and build the path with the correct key format:
+
+```cpp
+// For struct: iterate field IDs via Thrift reflection
+op::for_each_field_id<TType>([&](auto id) {
+    auto& oldChild = oldFields.template get<decltype(id)>();
+    auto& newChild = newFields.template get<decltype(id)>();
+    // recurse if pointers differ
+});
+
+// For map: iterate key-value pairs
+for (auto& [key, oldChild] : oldMap) {
+    auto newIt = newMap.find(key);
+    // handle modified, deleted entries
+}
+```
+
+### Summary: The Three Enabling Properties
+
+| Property | Provided By | Enables |
+|---|---|---|
+| Structural sharing (pointer identity) | COW semantics (`NodeBaseT`, `clone()`, `publish()`) | O(1) skip of unchanged subtrees during delta computation |
+| Uniform serialization at any granularity | `Serializable` interface + Thrift type mapping | Encoding any changed node to bytes, regardless of type or depth |
+| Deterministic path addressing | Thrift reflection (`op::get_name_v`, `op::get_field_id_v`) + visitor infrastructure | Locating the exact node to update on the receiver side |
+
+## OperDelta: Serialized State Deltas for RPC
+
+The `OperDelta` is the transport-friendly representation of COW tree changes. It bridges the in-memory COW tree and the Thrift RPC layer, enabling state synchronization between SwSwitch and HwAgent processes in multi-switch mode.
+
+### The OperDelta Thrift Types
+
+Defined in `fboss/fsdb/if/fsdb_oper.thrift`:
+
+```thrift
+struct OperPath {
+  1: list<string> raw;  // e.g. ["portMaps", "0", "port1", "adminState"]
+}
+
+struct OperDeltaUnit {
+  1: OperPath path;               // path to the changed node in the COW tree
+  2: optional fbbinary oldState;   // serialized old value (intentionally left empty)
+  3: optional fbbinary newState;   // serialized new value (Binary protocol)
+}
+
+struct OperDelta {
+  1: list<OperDeltaUnit> changes;  // list of individual change units
+  2: OperProtocol protocol;        // serialization protocol (always BINARY)
+}
+```
+
+Each `OperDeltaUnit` describes one changed node: the **path** through the tree and the **serialized new value**. The `oldState` field is intentionally left empty as a memory optimization — the receiver only needs the new state to apply.
+
+### Computing the OperDelta
+
+`StateDelta::getOperDelta()` is lazy-evaluated and cached. On first access, it calls `fsdb::computeOperDelta()` (`fboss/fsdb/common/Utils.h`) which:
+
+1. **Walks both COW trees** using `RootDeltaVisitor::visit()` from `thrift_cow/visitors/DeltaVisitor.h`.
+2. **Leverages COW pointer identity**: `if (oldNode == newNode) return false` — if two nodes share the same `shared_ptr`, the entire subtree is unchanged and skipped in O(1). This is the fundamental performance benefit of the COW tree structure.
+3. Uses **`DeltaVisitMode::MINIMAL`** — only emits the deepest changed nodes (leaf changes), not intermediate parents. This produces the most compact delta.
+4. For each changed leaf, calls **`node->encode(OperProtocol::BINARY)`** — this invokes the COW node's `Serializable` method, which calls `toThrift()` then serializes via `apache::thrift::BinaryProtocolWriter`.
+5. Collects all units into an `OperDelta` with `protocol = BINARY`.
+
+```cpp
+// Simplified from fboss/fsdb/common/Utils.h
+auto processDelta = [&](auto& traverser, auto oldNode, auto newNode, auto) {
+    auto fullPath = basePath + traverser.path();
+    // oldNode intentionally set to empty to reduce memory
+    decltype(oldNode) emptyOldNode;
+    operDeltaUnits.push_back(
+        buildOperDeltaUnit(fullPath, emptyOldNode, newNode, OperProtocol::BINARY));
+};
+
+RootDeltaVisitor::visit(oldNode, newNode,
+    DeltaVisitOptions(DeltaVisitMode::MINIMAL, DeltaVisitOrder::PARENTS_FIRST, outputIdPaths),
+    std::move(processDelta));
+```
+
+The `buildOperDeltaUnit` function calls `newNode->encode(protocol)` which chains through:
+- `ThriftStructNode::encode()` → `serialize<TC>(proto, toThrift())` → `Cpp2Ops<TType>::write(&writer, &obj)` → Thrift Binary wire format
+
+### Applying the OperDelta (Receiver Side)
+
+The `StateDelta` has a bidirectional constructor that reconstructs a new `SwitchState` from an old state plus an `OperDelta`:
+
+```cpp
+StateDelta::StateDelta(std::shared_ptr<SwitchState> oldState, fsdb::OperDelta operDelta)
+    : old_(oldState), operDelta_(std::move(operDelta)) {
+  fsdb::CowStorage<state::SwitchState, SwitchState> cowState{old_->clone()};
+  if (auto error = cowState.patch_impl(operDelta_.value())) {
+    throw FbossError("Error while applying the patch: ", error->toString());
+  }
+  new_ = cowState.root();
+  new_->publish();
+}
+```
+
+`CowStorage::patch_impl()` (`fboss/thrift_cow/storage/CowStorage.h`) iterates each `OperDeltaUnit`:
+
+- If `newState` is present: traverses the COW tree to the path and deserializes the binary blob via `set_encoded_impl()`, which calls `fromEncodedBuf(protocol, buf)` using `BinaryProtocolReader`.
+- If `newState` is absent: removes the node at that path (deletion case).
+- `oldState` is not checked (matching the optimization of not populating it).
+
+### Design Considerations
+
+| Aspect | Choice | Rationale |
+|---|---|---|
+| `oldState` always empty | Memory optimization | HwAgent reconstructs old state from its own programmed state |
+| Always Binary protocol | Speed over readability | OperDeltas are machine-to-machine; Binary is fastest |
+| `MINIMAL` visit mode | Compact deltas | Only leaf changes, not redundant parent paths |
+| Path uses field IDs | Stability | Field IDs don't change across renames (`FLAGS_state_oper_delta_use_id_paths`) |
+
+## Multi-Switch State Sync
+
+In multi-switch mode, SwSwitch (control plane) and HwAgent (ASIC process) run in separate processes. The `OperDelta` is the mechanism for synchronizing state between them over Thrift RPC.
+
+### The Sync Loop
+
+The `getNextStateOperDelta` RPC in `multiswitch_ctrl.thrift` is a **long-polling** mechanism:
+
+```thrift
+service MultiSwitchCtrl {
+  StateOperDelta getNextStateOperDelta(
+    1: i64 switchId,
+    2: StateOperDelta prevOperResult,  // ACK for the previous delta
+    3: i64 lastUpdateSeqNum,
+  );
+}
+
+struct StateOperDelta {
+  1: fsdb_oper.OperDelta operDelta_DEPRECATED;
+  2: bool transaction;           // whether to apply atomically
+  3: i64 seqNum;                 // monotonic sequence number
+  4: bool isFullState;           // true for initial/reconnect sync
+  5: list<fsdb_oper.OperDelta> operDeltas;  // batched deltas
+}
+```
+
+### Data Flow
+
+```
+SwSwitch produces state update (new SwitchState)
+    |
+    v
+StateDelta(oldState, newState).getOperDelta()
+    |
+    v
+RootDeltaVisitor walks COW trees (pointer-identity short-circuit)
+    |  for each changed leaf: node->encode(BINARY)
+    v
+OperDelta { changes: [{path, newState}...], protocol: BINARY }
+    |
+    v  (filtered per SwitchID by OperDeltaFilter)
+StateOperDelta { operDeltas, seqNum, transaction, isFullState }
+    |
+    v  (Thrift RPC: getNextStateOperDelta)
+HwAgent (OperDeltaSyncer client)
+    |
+    v
+StateDelta(programmedState, operDelta)  ← patches COW tree
+    |  CowStorage::patch_impl() → set_encoded_impl(path, binaryBlob)
+    v
+HwSwitch::stateChanged() → programs ASIC hardware
+    |
+    v
+Returns OperDelta of unapplied changes (empty = success)
+    |
+    v  (sent back as prevOperResult in next RPC call)
+SwSwitch processes ACK/NACK
+```
+
+### Server Side (SwSwitch)
+
+`MultiSwitchHwSwitchHandler::getNextStateOperDelta()` (`fboss/agent/mnpu/MultiSwitchHwSwitchHandler.cpp`):
+
+1. If `lastUpdateSeqNum == 0` or mismatches the expected sequence: triggers a **full sync** by sending the entire state as an OperDelta with `isFullState=true`.
+2. Otherwise: **blocks** (waits on a condition variable) until SwSwitch produces a new state update via `stateChanged()`.
+3. When a state update arrives, the OperDelta is filtered by `OperDeltaFilter` to include only paths relevant to the requesting `SwitchID` (based on the `HwSwitchMatcher` path component). Each HwAgent only receives deltas for its own ASIC.
+
+### Client Side (HwAgent)
+
+`OperDeltaSyncer::operSyncLoop()` (`fboss/agent/mnpu/OperDeltaSyncer.cpp`):
+
+1. Calls `sync_getNextStateOperDelta(switchId, prevResult, lastSeqNum)` — blocks until server responds.
+2. On response, dispatches to:
+   - **Full sync** (`isFullState=true`): starts from empty `SwitchState`, applies the full OperDelta, then computes a `StateDelta` from the current programmed state.
+   - **Incremental**: constructs `StateDelta(programmedState, operDelta)` which patches the COW tree.
+3. Calls `hw_->stateChanged(deltas)` or `stateChangedTransaction(deltas)` to program the ASIC.
+4. The returned `OperDelta` from `stateChanged()` represents unapplied changes (empty = full success). This is sent back as `prevOperResult` in the next RPC call, providing **exactly-once delivery semantics** with rollback support.
+5. Loops continuously; the RPC timeout (2x `oper_sync_req_timeout`, default 600s) serves as the keepalive.
+
+### Full Sync vs Incremental
+
+| Scenario | Mode | What Happens |
+|---|---|---|
+| HwAgent first connects | Full sync | Entire SwitchState serialized as OperDelta |
+| HwAgent reconnects after disconnect | Full sync | State re-derived from current SwSwitch state |
+| Sequence number mismatch | Full sync | Recovers from missed updates |
+| Normal operation | Incremental | Only changed leaf nodes sent |
+| Transaction flag set | Incremental (atomic) | All-or-nothing ASIC programming |
+
+## File Reference
+
+| File | Contents |
+|---|---|
+| `Types.h` | Marker types (`NodeType`, `FieldsType`, `HybridNodeType`), `ReferenceWrapper` |
+| `Traits.h` | `ConvertToNodeTraits`, `ThriftStructResolver`, `CowFieldTraits`, `CowStorage`, resolver macros |
+| `Serializer.h` | `Serializer<Protocol>`, `Serializable` interface, `SerializableWrapper` |
+| `NodeUtils.h` | `is_cow_type` trait, `NodeException` |
+| `ThriftPrimitiveNode-inl.h` | Leaf node for primitives |
+| `ThriftStructNode-inl.h` | `ThriftStructFields` + `ThriftStructNode` |
+| `ThriftMapNode-inl.h` | `ThriftMapFields` + `ThriftMapNode` |
+| `ThriftListNode-inl.h` | `ThriftListFields` + `ThriftListNode` |
+| `ThriftSetNode-inl.h` | `ThriftSetFields` + `ThriftSetNode` |
+| `ThriftUnionNode-inl.h` | `ThriftUnionFields` + `ThriftUnionNode` |
+| `ThriftHybridNode-inl.h` | `HybridNodeFields` + `ThriftHybridNode` |
+
+## Related Documentation
+
+- [SwitchState](SwitchState.mdx) — High-level COW tree semantics and rationale
+- [FSDB](fsdb.mdx) — The pub/sub state database built on top of Thrift COW
+- [Thrift](thrift.mdx) — FBOSS Thrift service definitions

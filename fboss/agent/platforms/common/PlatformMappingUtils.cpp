@@ -52,6 +52,7 @@
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
+#include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
 
 namespace {
 std::vector<int> getFakeSaiControllingPortIDs() {
@@ -230,6 +231,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
           ? std::make_unique<Blackwolf800banwPlatformMapping>()
           : std::make_unique<Blackwolf800banwPlatformMapping>(
                 platformMappingStr);
+    case PlatformType::PLATFORM_YANGRA2:
+      return platformMappingStr.empty()
+          ? std::make_unique<Yangra2PlatformMapping>()
+          : std::make_unique<Yangra2PlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);

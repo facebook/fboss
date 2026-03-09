@@ -816,7 +816,8 @@ sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
 void SaiSwitchManager::setPtpTcEnabled(bool ptpEnable) {
   isPtpTcEnabled_ = ptpEnable;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     auto ptpMode = utility::getSaiPortPtpMode(ptpEnable);
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::PtpMode{ptpMode});
@@ -1630,7 +1631,8 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
   bool ptpTcEnabled =
       isPtpTcEnabled_.has_value() ? isPtpTcEnabled_.value() : false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     ptpTcEnabled &=
         (GET_OPT_ATTR(Switch, PtpMode, switch_->attributes()) ==
          utility::getSaiPortPtpMode(true));

@@ -959,6 +959,12 @@ struct SaiPortSerdesTraits {
     struct AttributeRxPfWrapper {
       std::optional<sai_attr_id_t> operator()();
     };
+    struct AttributeRxPfLfqWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    struct AttributeRxPfHfqWrapper {
+      std::optional<sai_attr_id_t> operator()();
+    };
     struct AttributeRxEqP2Wrapper {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -1027,6 +1033,12 @@ struct SaiPortSerdesTraits {
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeFltSWrapper>;
     using RxPf =
         SaiExtensionAttribute<std::vector<sai_uint32_t>, AttributeRxPfWrapper>;
+    using RxPfLfq = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeRxPfLfqWrapper>;
+    using RxPfHfq = SaiExtensionAttribute<
+        std::vector<sai_uint32_t>,
+        AttributeRxPfHfqWrapper>;
     using RxEqP2 = SaiExtensionAttribute<
         std::vector<sai_uint32_t>,
         AttributeRxEqP2Wrapper>;
@@ -1389,6 +1401,8 @@ SAI_ATTRIBUTE_NAME(PortSerdes, Dco);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltM);
 SAI_ATTRIBUTE_NAME(PortSerdes, FltS);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxPf);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxPfLfq);
+SAI_ATTRIBUTE_NAME(PortSerdes, RxPfHfq);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxEqP2);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxEqP1);
 SAI_ATTRIBUTE_NAME(PortSerdes, RxEqM);

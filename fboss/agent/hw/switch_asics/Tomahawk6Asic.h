@@ -35,7 +35,6 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 9;
   }
   uint64_t getMMUSizeBytes() const override {
-    // TODO : revisit this. 666595 is the max
     return 500000 * getMMUCellSize();
   }
   uint64_t getSramSizeBytes() const override {
@@ -48,13 +47,11 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
   std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
-    /* TODO: Mimicking TH3 size here*/
-    return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
+    return portType == cfg::PortType::CPU_PORT ? (24 * getMMUCellSize()) : 0;
   }
   std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
-    /* TODO: Mimicking TH3 size here*/
     return cfg::MMUScalingFactor::TWO;
   }
 

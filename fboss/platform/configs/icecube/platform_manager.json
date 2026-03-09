@@ -1126,7 +1126,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "icecube_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_CPLD"
         },
         {
@@ -1374,7 +1374,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.0.0-1",
+  "bspKmodsRpmVersion": "4.1.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

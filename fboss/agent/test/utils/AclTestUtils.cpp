@@ -48,7 +48,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
   if (asicType != cfg::AsicType::ASIC_TYPE_JERICHO3) {
     qualifiers.push_back(cfg::AclTableQualifier::IP_TYPE);
   }
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     std::set<cfg::AclTableQualifier> remove{
         cfg::AclTableQualifier::SRC_IPV6,
         cfg::AclTableQualifier::DST_IPV6,
@@ -63,7 +64,8 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
       }
     }
   }
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
   }
 
@@ -298,7 +300,7 @@ void addDefaultAclTable(
   // TODO (pshaikh): create a method to return AclTables for a given asic type
   // and acl stage and retire this check
   auto asic = checkSameAndGetAsic(asicTable.getL3Asics());
-  auto split = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+  auto split = asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
   /* Create default ACL table similar to whats being done in Agent today */
   std::vector<cfg::AclTableQualifier> qualifiers = {};
@@ -573,7 +575,8 @@ void addAclEcmpHashCancelAction(
   cfg::MatchAction matchAction = cfg::MatchAction();
   auto asicType = checkSameAndGetAsicType(*cfg);
   // Chenab doesn't require/support hash action, just use permit
-  if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+      asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) {
     matchAction.ecmpHashAction() = cfg::SetEcmpHashAction();
     matchAction.ecmpHashAction()->switchingMode() =
         cfg::SwitchingMode::FIXED_ASSIGNMENT;

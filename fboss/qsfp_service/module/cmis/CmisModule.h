@@ -32,9 +32,11 @@ enum class CmisPages : int {
   PAGE20 = 0x20,
   PAGE21 = 0x21,
   PAGE22 = 0x22,
+  PAGE23 = 0x23,
   PAGE24 = 0x24,
   PAGE25 = 0x25,
   PAGE26 = 0x26,
+  PAGE27 = 0x27,
   PAGE2C = 0x2C,
   PAGE2F = 0x2F
 };
@@ -69,6 +71,15 @@ enum VdmConfigType {
   FEC_TAIL_MEDIA_IN_CURR = 107,
   FEC_TAIL_HOST_IN_MAX = 108,
   FEC_TAIL_HOST_IN_CURR = 109,
+  // Coherent 800G ZR VDM parameters (C-CMIS-01.3, Table 8)
+  MODULATOR_BIAS_XI = 128,
+  MODULATOR_BIAS_XQ = 129,
+  MODULATOR_BIAS_YI = 130,
+  MODULATOR_BIAS_YQ = 131,
+  MODULATOR_BIAS_X_PHASE = 132,
+  MODULATOR_BIAS_Y_PHASE = 133,
+  CD_LOW_GRANULARITY = 135,
+  SOPMD_LOW_GRANULARITY = 149,
 };
 
 class CmisModule : public QsfpModule {
@@ -196,9 +207,11 @@ class CmisModule : public QsfpModule {
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page23_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page24_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
@@ -838,6 +851,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats);
 
   void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
 

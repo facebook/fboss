@@ -326,6 +326,7 @@ add_library(core
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
+  fboss/agent/PacketStreamHandler.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp

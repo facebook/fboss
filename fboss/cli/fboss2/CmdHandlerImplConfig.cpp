@@ -12,6 +12,7 @@
 
 // Current linter doesn't properly handle the template functions which need the
 // following headers
+// NOLINTBEGIN(misc-include-cleaner)
 // @lint-ignore-every CLANGTIDY facebook-unused-include-check
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
@@ -85,6 +86,12 @@
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
+#include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
+#include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
+#include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
+// NOLINTEND(misc-include-cleaner)
 
 namespace facebook::fboss {
 
@@ -112,9 +119,19 @@ template void
 CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
 template void
 CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
+template void
+CmdHandler<CmdConfigSessionRebase, CmdConfigSessionRebaseTraits>::run();
 template void CmdHandler<CmdConfigQos, CmdConfigQosTraits>::run();
 template void
 CmdHandler<CmdConfigQosBufferPool, CmdConfigQosBufferPoolTraits>::run();
+template void CmdHandler<CmdConfigVlan, CmdConfigVlanTraits>::run();
+template void
+CmdHandler<CmdConfigVlanStaticMac, CmdConfigVlanStaticMacTraits>::run();
+template void
+CmdHandler<CmdConfigVlanStaticMacAdd, CmdConfigVlanStaticMacAddTraits>::run();
+template void CmdHandler<
+    CmdConfigVlanStaticMacDelete,
+    CmdConfigVlanStaticMacDeleteTraits>::run();
 
 // BGP config commands
 template void CmdHandler<CmdConfigProtocol, CmdConfigProtocolTraits>::run();

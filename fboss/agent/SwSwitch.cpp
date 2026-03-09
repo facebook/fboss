@@ -43,6 +43,7 @@
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #if FOLLY_HAS_COROUTINES
 #include "fboss/agent/MKAServiceManager.h"
+#include "fboss/agent/PacketStreamHandler.h"
 #endif
 #include "fboss/agent/AclNexthopHandler.h"
 #include "fboss/agent/BuildInfoWrapper.h"
@@ -2365,6 +2366,15 @@ void SwSwitch::handlePacketImpl(
         return;
       }
       break;
+    case PacketStreamHandler::ETHERTYPE_AIFM_CTRL:
+      if (packetStreamHandler_) {
+        packetStreamHandler_->handlePacket(std::move(pkt));
+        return;
+      } else {
+        LOG_EVERY_N(WARNING, 60)
+            << "Received Aifm Ctrl packet but no streamer present";
+      }
+      break;
 #endif
     case IPv4Handler::ETHERTYPE_IPV4:
       ipv4_->handlePacket(std::move(pkt), dstMac, srcMac, c, vlanOrIntf);
@@ -4433,4 +4443,13 @@ const ResourceAccountant* SwSwitch::getResourceAccountant() const {
 ResourceAccountant* SwSwitch::getResourceAccountant() {
   return stateUpdateValidator_->getResourceAccountant();
 }
+
+void SwSwitch::setPacketStreamHandler(PacketStreamHandler* handler) {
+#if FOLLY_HAS_COROUTINES
+  packetStreamHandler_ = handler;
+#endif
+  XLOG(INFO) << "PacketStreamHandler "
+             << (handler ? "registered" : "unregistered");
+}
+
 } // namespace facebook::fboss

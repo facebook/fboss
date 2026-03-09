@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiTunnelUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/state/IpTunnel.h"
 #include "fboss/agent/types.h"
@@ -40,28 +41,6 @@ sai_tunnel_term_table_entry_type_t getSaiTunnelTermType(
   throw FbossError("Failed to convert tunnel term type to SAI type: ", type);
 }
 
-sai_tunnel_ttl_mode_t getSaiTtlMode(cfg::TunnelMode mode) {
-  switch (mode) {
-    case cfg::TunnelMode::UNIFORM:
-      return SAI_TUNNEL_TTL_MODE_UNIFORM_MODEL;
-    case cfg::TunnelMode::PIPE:
-      return SAI_TUNNEL_TTL_MODE_PIPE_MODEL;
-    case cfg::TunnelMode::USER:
-      break;
-  }
-  throw FbossError("Failed to convert TTL mode to SAI type: ", mode);
-}
-sai_tunnel_dscp_mode_t getSaiDscpMode(cfg::TunnelMode mode) {
-  switch (mode) {
-    case cfg::TunnelMode::UNIFORM:
-      return SAI_TUNNEL_DSCP_MODE_UNIFORM_MODEL;
-    case cfg::TunnelMode::PIPE:
-      return SAI_TUNNEL_DSCP_MODE_PIPE_MODEL;
-    case cfg::TunnelMode::USER:
-      break;
-  }
-  throw FbossError("Failed to convert DSCP mode to SAI type: ", mode);
-}
 sai_tunnel_decap_ecn_mode_t getSaiDecapEcnMode(cfg::TunnelMode mode) {
   switch (mode) {
     case cfg::TunnelMode::UNIFORM:
@@ -136,14 +115,14 @@ TunnelSaiId SaiTunnelManager::addTunnel(
         swTunnel->getUnderlayIntfId());
   }
   RouterInterfaceSaiId saiIntfId{intfHandle->adapterKey()};
-  auto& tunnelStore = saiStore_->get<SaiTunnelTraits>();
+  auto& tunnelStore = saiStore_->get<SaiIpInIpTunnelTraits>();
   // TTL and DSCP mode options: UNIFORM and PIPE
   // ECN has three modes instead of 2, with a customized one
   // The three values of TTL, DSCP and decap ECN will be the same value so
   // the three getters return same variable
   // For overlay interface id, we use the same value as underlay for IpinIP
   // tunnel usecase
-  SaiTunnelTraits::CreateAttributes k1{
+  SaiIpInIpTunnelTraits::CreateAttributes k1{
       getSaiTunnelType(swTunnel->getType()),
       saiIntfId,
       saiIntfId,

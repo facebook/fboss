@@ -687,7 +687,7 @@ void IPv6Handler::sendICMPv6TimeExceeded(
 
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     // ICMPv6 unused field
-    sendCursor->writeBE<uint32_t>(0);
+    sendCursor->writeBE<uint32_t>(static_cast<uint32_t>(0));
     v6Hdr.serialize(sendCursor);
     auto remainingLength =
         icmpPayloadLength - ICMPHdr::ICMPV6_UNUSED_LEN - IPv6Hdr::SIZE;
@@ -749,7 +749,7 @@ void IPv6Handler::sendICMPv6PacketTooBig(
   auto bodyLength = std::min(bodyLengthLimit, fullPacketLength);
 
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
-    sendCursor->writeBE<uint32_t>(expectedMtu);
+    sendCursor->writeBE<uint32_t>(static_cast<uint32_t>(expectedMtu));
     v6Hdr.serialize(sendCursor);
     auto remainingLength =
         bodyLength - IPv6Hdr::SIZE - ICMPHdr::ICMPV6_UNUSED_LEN;
@@ -1177,7 +1177,7 @@ void IPv6Handler::sendNeighborSolicitation(
       ndpOptions.computeTotalLength();
 
   auto serializeBody = [&](RWPrivateCursor* cursor) {
-    cursor->writeBE<uint32_t>(0); // reserved
+    cursor->writeBE<uint32_t>(static_cast<uint32_t>(0)); // reserved
     cursor->push(neighborIP.bytes(), IPAddressV6::byteCount());
     ndpOptions.serialize(cursor);
   };

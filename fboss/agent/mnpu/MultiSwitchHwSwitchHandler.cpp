@@ -51,7 +51,8 @@ bool MultiSwitchHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
   auto asicType = getSwitchInfo().asicType().value();
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     return true;
   }
   if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
@@ -84,7 +85,9 @@ FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
 
 bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
-  if (cfg::AsicType::ASIC_TYPE_CHENAB == getSwitchInfo().asicType().value()) {
+  auto asicType = getSwitchInfo().asicType().value();
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     return false;
   }
   // if config is not present, fall back to true

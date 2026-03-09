@@ -13,6 +13,7 @@
 #include <folly/Synchronized.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
+#include <set>
 #include <stdexcept>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
@@ -103,6 +104,11 @@ class LedManager {
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;
+
+  virtual std::set<led::LedState> getLedStateFromHW(
+      uint32_t /* portId */) const {
+    return std::set<led::LedState>();
+  };
 
  protected:
   // Platform mapping to get SW Port -> Lane mapping

@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 #include "fboss/fsdb/oper/ExtendedPathBuilder.h"
 #include "fboss/fsdb/oper/PathConverter.h"
@@ -33,16 +34,19 @@ TEST(PathConverterTests, ConvertStateExtendedPath) {
                          .regex("1[0-5]")
                          .get();
 
-  using StateRootMembers =
-      apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
-  using AgentRootMembers = apache::thrift::reflect_struct<AgentData>::member;
-  using SwitchStateMembers = apache::thrift::reflect_struct<
-      facebook::fboss::state::SwitchState>::member;
-  auto extIdPath = ext_path_builder::raw(StateRootMembers::agent::id::value)
-                       .raw(AgentRootMembers::switchState::id::value)
-                       .raw(SwitchStateMembers::portMaps::id::value)
-                       .regex("1[0-5]")
-                       .get();
+  auto extIdPath =
+      ext_path_builder::raw(
+          apache::thrift::op::
+              get_field_id_v<FsdbOperStateRoot, apache::thrift::ident::agent>)
+          .raw(
+              apache::thrift::op::
+                  get_field_id_v<AgentData, apache::thrift::ident::switchState>)
+          .raw(
+              apache::thrift::op::get_field_id_v<
+                  facebook::fboss::state::SwitchState,
+                  apache::thrift::ident::portMaps>)
+          .regex("1[0-5]")
+          .get();
 
   auto idPathRes =
       PathConverter<FsdbOperStateRoot>::extPathToIdTokens(*extNamePath.path());

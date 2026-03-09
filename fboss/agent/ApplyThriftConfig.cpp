@@ -1201,6 +1201,7 @@ void ThriftConfigApplier::processUpdatedDsfNodes() {
             }
             break;
           case cfg::AsicType::ASIC_TYPE_CHENAB:
+          case cfg::AsicType::ASIC_TYPE_CHENAB2:
           case cfg::AsicType::ASIC_TYPE_TRIDENT2:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
           case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
@@ -6181,7 +6182,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
         }
       }
     }
-    if (!mirrorPortId.has_value()) {
+    if (!mirrorPortId.has_value() || *mirrorPortId == PortID(0)) {
       throw FbossError(
           "Mirror-on-Drop destination is not specified, "
           "and auto-detection is not supported on this ASIC");

@@ -438,7 +438,7 @@ class AgentCoppTest : public AgentHwTest {
     // no l2 bridging, need to create L3 loop or chenab in which case l3 rifs
     // are used
     return !this->isSupportedOnAllAsics(HwAsic::Feature::BRIDGE_PORT_8021Q) ||
-        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+        asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
   }
 
   void setupL3EcmpLoopIf() {
@@ -972,7 +972,7 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
     }
     bool outOfPort = false; /* route link local packet */
     auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       outOfPort = true; /* routing link local packet is not supported */
       skipTtlDecrement =
           true; /* ttl will not decrement because packet is not routed */
@@ -1218,7 +1218,7 @@ TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
   auto setup = [=, this]() {
     auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
     FLAGS_classid_for_unresolved_routes =
-        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB);
+        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
     this->setup();
     utility::EcmpSetupAnyNPorts6 ecmp6(
         this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());

@@ -130,8 +130,8 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     int baseIntfId,
     bool enableFabricPorts) {
   cfg::InterfaceType intfType =
-      hwSwitch->getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_CHENAB
+      hwSwitch->getPlatform()->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB
       ? cfg::InterfaceType::PORT
       : cfg::InterfaceType::VLAN;
   return multiplePortsPerIntfConfig(

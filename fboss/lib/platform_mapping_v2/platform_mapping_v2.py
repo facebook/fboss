@@ -137,7 +137,7 @@ class PlatformMappingParser:
             )
 
     def _read_csvs(self) -> None:
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add processing for yangra platform csv processing
             self._static_mapping = StaticMapping(az_connections=[])
             self._port_profile_mapping = PortProfileMapping(ports={})
@@ -337,7 +337,7 @@ class PlatformMappingV2:
     def _generate_chips(self) -> List[DataPlanePhyChip]:
         parsed_chips = self.pm_parser.get_static_mapping().get_chips()
         chips = []
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add logic to generate chips for yangra
             return chips
 
@@ -362,7 +362,7 @@ class PlatformMappingV2:
         self,
     ) -> List[PlatformPortProfileConfigEntry]:
         platform_config_entry = []
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add logic to generate platform supported profiles for yangra
             return platform_config_entry
 
@@ -416,7 +416,7 @@ class PlatformMappingV2:
     ]:
         ports = {}
         port_config_overrides: List[PlatformPortConfigOverride] = []
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add logic to generate ports for yangra
             return (ports, port_config_overrides)
 

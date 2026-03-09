@@ -907,6 +907,9 @@ ManagedRouteNextHop<NextHopTraitsT>::~ManagedRouteNextHop() {
 
 template class ManagedRouteNextHop<SaiIpNextHopTraits>;
 template class ManagedRouteNextHop<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template class ManagedRouteNextHop<SaiSrv6SidlistNextHopTraits>;
+#endif
 
 template SaiRouteTraits::RouteEntry
 SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV6>(

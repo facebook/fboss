@@ -9,7 +9,7 @@ thrift_library(
         "cpp2",
     ],
     no_plugin_deps = ["//thrift/annotation:all"],
-    thrift_cpp2_options = "json,reflection",
+    thrift_cpp2_options = "json",
     thrift_srcs = {"test.thrift": []},
     deps = [
         "//fboss/agent:switch_config",
