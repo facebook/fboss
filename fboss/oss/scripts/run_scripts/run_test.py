@@ -13,7 +13,7 @@ import sys
 import time
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import List, Optional
+from typing import ClassVar
 
 from fboss_agent_utils import (
     agent_can_warm_boot_file_path,
@@ -248,7 +248,7 @@ def _check_working_dir():
     current_dir = os.getcwd()
     if not current_dir.endswith("/opt/fboss"):
         print("Error: Script must be run from /opt/fboss directory.")
-        exit(1)
+        sys.exit(1)
 
 
 def run_script(script_file: str):
@@ -256,7 +256,7 @@ def run_script(script_file: str):
         raise Exception(f"Script file {script_file} does not exist")
     if not os.access(script_file, os.X_OK):
         raise Exception(f"Script file {script_file} is not executable")
-    subprocess.run(script_file, shell=True)
+    subprocess.run(script_file, check=False, shell=True)
 
 
 def setup_fboss_env() -> None:
@@ -286,7 +286,7 @@ def setup_fboss_env() -> None:
 
 
 class TestRunner(abc.ABC):
-    ENV_VAR = dict(os.environ)
+    ENV_VAR: ClassVar[dict] = dict(os.environ)
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
@@ -315,8 +315,8 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         pass
 
     @abc.abstractmethod
@@ -332,11 +332,11 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         pass
 
     @abc.abstractmethod
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         pass
 
     @abc.abstractmethod
@@ -348,15 +348,15 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         pass
 
     def _get_sai_replayer_log_path(
         self,
         test_prefix: str,
         test_name: str,
-        sai_replayer_logging_dir: Optional[str] = None,
-    ) -> Optional[str]:
+        sai_replayer_logging_dir: str | None = None,
+    ) -> str | None:
         if sai_replayer_logging_dir is None:
             return None
         return os.path.join(
@@ -445,14 +445,14 @@ class TestRunner(abc.ABC):
             #   ResolvedSpanMirror
             #
             # In this case, we just need to ignore the comment (starts with '#')
-            line = line.split("#")[0].strip()
-            if line.endswith("."):
-                class_name = line[:-1]
+            sanitized_line = line.split("#")[0].strip()
+            if sanitized_line.endswith("."):
+                class_name = sanitized_line[:-1]
             else:
                 if not class_name:
-                    raise "error"
-                func_name = line.strip()
-                ret.append("{}.{}".format(class_name, func_name))
+                    raise RuntimeError("error")
+                func_name = sanitized_line.strip()
+                ret.append(f"{class_name}.{func_name}")
 
         return ret
 
@@ -465,12 +465,12 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
-    def _list_tests_to_run(self, filter, should_print=True):
+    def _list_tests_to_run(self, test_filter, should_print=True):
         output = subprocess.check_output(
             [
                 self._get_test_binary_name(),
                 "--gtest_list_tests",
-                f"--gtest_filter={filter}",
+                f"--gtest_filter={test_filter}",
             ]
         )
         # Print all the matching tests
@@ -523,7 +523,7 @@ class TestRunner(abc.ABC):
                 test_names = self._list_tests_to_run(args.filter, False)
         else:
             test_names = self._list_tests_to_run("*", False)
-        filter = ""
+        test_filter = ""
         known_bad_test_regexes = self._get_known_bad_test_regexes()
         unsupported_test_regexes = self._get_unsupported_test_regexes()
         for test_name in test_names:
@@ -531,11 +531,11 @@ class TestRunner(abc.ABC):
                 re.match(r, test_name) for r in unsupported_test_regexes
             ):
                 continue
-            filter += f"{test_name}:"
-        if not filter:
+            test_filter += f"{test_name}:"
+        if not test_filter:
             return []
         should_print = not getattr(args, "list_tests_for_features", None)
-        return self._list_tests_to_run(filter, should_print)
+        return self._list_tests_to_run(test_filter, should_print)
 
     def _restart_bcmsim(self, asic):
         try:
@@ -561,7 +561,7 @@ class TestRunner(abc.ABC):
         setup_warmboot,
         sai_logging,
         fboss_logging,
-        sai_replayer_logging_path: Optional[str] = None,
+        sai_replayer_logging_path: str | None = None,
         test_run_timeout_in_second: int = DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     ):
         # Setup flags for the test binary before running the tests
@@ -636,7 +636,7 @@ class TestRunner(abc.ABC):
         except FileNotFoundError:
             print(f"File not found when replacing string: {file_path}")
         except Exception as e:
-            print(f"Error when replacing string in {file_path}: {str(e)}")
+            print(f"Error when replacing string in {file_path}: {e!s}")
 
     def _backup_and_modify_config(self, conf_file):
         """Create a copy of the config and modify settings"""
@@ -660,11 +660,11 @@ class TestRunner(abc.ABC):
                 )
                 return _config_file_modified
             except Exception as e:
-                print(f"Error creating config copy {conf_file}: {str(e)}")
+                print(f"Error creating config copy {conf_file}: {e!s}")
                 return conf_file
         return conf_file
 
-    def _run_tests(self, tests_to_run, conf_file, args):
+    def _run_tests(self, tests_to_run, conf_file, args):  # noqa: PLR0915 - complex orchestration; splitting would harm readability
         if args.sai_replayer_logging:
             if os.path.isdir(args.sai_replayer_logging) or os.path.isfile(
                 args.sai_replayer_logging
@@ -781,8 +781,8 @@ class TestRunner(abc.ABC):
                 test_summary_count[m.group()] += 1
         # Print test result counts
         print("Summary:")
-        for test_result in test_summary_count:
-            print("  ", test_result, ":", test_summary_count[test_result])
+        for test_result, value in test_summary_count.items():
+            print("  ", test_result, ":", value)
 
         self._write_results_to_csv(test_summaries)
 
@@ -844,8 +844,8 @@ class BcmTestRunner(TestRunner):
         return "bcm_test"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         # TODO
         return []
 
@@ -859,16 +859,16 @@ class BcmTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return []
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -900,8 +900,8 @@ class SaiTestRunner(TestRunner):
         return args.sai_bin if args.sai_bin else "sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         if sai_replayer_log_path is None:
             return []
         return [
@@ -929,18 +929,18 @@ class SaiTestRunner(TestRunner):
             )
         return args_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -981,8 +981,8 @@ class QsfpTestRunner(TestRunner):
         return "qsfp_hw_test"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
@@ -1010,19 +1010,19 @@ class QsfpTestRunner(TestRunner):
             )
         return arg_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         subprocess.Popen(
             # Clean up left over flags
             ["rm", "-rf", QSFP_SERVICE_DIR]
         )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -1090,8 +1090,8 @@ class LinkTestRunner(TestRunner):
         return "sai_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
@@ -1117,7 +1117,7 @@ class LinkTestRunner(TestRunner):
             )
         return arg_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
@@ -1134,7 +1134,7 @@ class LinkTestRunner(TestRunner):
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
@@ -1156,7 +1156,7 @@ class LinkTestRunner(TestRunner):
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -1242,8 +1242,8 @@ class SaiAgentTestRunner(TestRunner):
         return "sai_agent_hw_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         if sai_replayer_log_path is None:
             return []
         # Multi switch mode is using hw agent as a service, so the sai replayer logging needs to
@@ -1290,7 +1290,7 @@ class SaiAgentTestRunner(TestRunner):
             )
         return args_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1303,7 +1303,7 @@ class SaiAgentTestRunner(TestRunner):
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_warmboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1320,7 +1320,7 @@ class SaiAgentTestRunner(TestRunner):
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         if args.list_tests_for_features:
             target_features = set(args.list_tests_for_features.split(","))
             matching_tests = []
@@ -1332,9 +1332,9 @@ class SaiAgentTestRunner(TestRunner):
                 ]
                 ret = subprocess.run(
                     cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    universal_newlines=True,
+                    check=False,
+                    capture_output=True,
+                    text=True,
                 )
                 for line in ret.stdout.split("\n"):
                     if not line.startswith(FEATURE_LIST_PREFIX):
@@ -1351,10 +1351,9 @@ class SaiAgentTestRunner(TestRunner):
         if not args.enable_production_features:
             return tests
         asic = str(args.asic)
-        asic_production_features = json.load(open(args.production_features))
-        producition_features = {
-            feature for feature in asic_production_features["asicToFeatureNames"][asic]
-        }
+        with open(args.production_features) as f:
+            asic_production_features = json.load(f)
+        producition_features = set(asic_production_features["asicToFeatureNames"][asic])
         tests_to_run = []
         for test in tests:
             cmd = [
@@ -1364,9 +1363,9 @@ class SaiAgentTestRunner(TestRunner):
             ]
             ret = subprocess.run(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
+                check=False,
+                capture_output=True,
+                text=True,
             )
             for line in ret.stdout.split("\n"):
                 if not line.startswith(FEATURE_LIST_PREFIX):
@@ -1385,7 +1384,7 @@ class SaiAgentTestRunner(TestRunner):
 
 
 class PlatformServicesTestRunner(TestRunner):
-    TEST_TYPE_CHOICES = [
+    TEST_TYPE_CHOICES: ClassVar[list] = [
         SUB_ARG_PLATFORM_HW_TEST,
         SUB_ARG_DATA_CORRAL_HW_TEST,
         SUB_ARG_FAN_HW_TEST,
@@ -1427,8 +1426,8 @@ class PlatformServicesTestRunner(TestRunner):
         return binary_map.get(args.type, "platform_hw_test")
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
@@ -1440,16 +1439,16 @@ class PlatformServicesTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return []
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
     def _run_tests(self, tests_to_run, conf_file, args):
@@ -1524,7 +1523,7 @@ class CliTestRunner:
 
     CLI_TEST_DIR = "./share/cli_tests"
 
-    def run_test(self, args):
+    def run_test(self, args):  # noqa: PLR0912, PLR0915 - complex test orchestration; splitting would harm readability
         """Run CLI end-to-end tests"""
         print("Running CLI end-to-end tests...")
 
@@ -1572,6 +1571,7 @@ class CliTestRunner:
             try:
                 result = subprocess.run(
                     ["python3", test_script],
+                    check=False,
                     capture_output=True,
                     text=True,
                     timeout=300,  # 5 minute timeout per test
@@ -1841,12 +1841,11 @@ if __name__ == "__main__":
     args = ap.parse_known_args()
     args = ap.parse_args(args[1], args[0])
 
-    if args.oss:
-        if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
-            print(
-                "FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'"
-            )
-            sys.exit(0)
+    if args.oss and (
+        ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ)
+    ):
+        print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
+        sys.exit(0)
 
     if args.filter and args.filter_file:
         raise ValueError(
