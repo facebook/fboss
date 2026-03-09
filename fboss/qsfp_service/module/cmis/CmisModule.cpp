@@ -99,6 +99,20 @@ enum DiagnosticFeatureEncoding {
   LATCHED_BER = 0x11,
 };
 
+// VDM Config pages: 20h (Group 1), 21h (Group 2), 22h (Group 3), 23h (Group 4)
+constexpr std::array<CmisField, 4> kVdmConfPages = {
+    CmisField::PAGE_UPPER20H,
+    CmisField::PAGE_UPPER21H,
+    CmisField::PAGE_UPPER22H,
+    CmisField::PAGE_UPPER23H};
+
+// VDM Data pages: 24h (Group 1), 25h (Group 2), 26h (Group 3), 27h (Group 4)
+constexpr std::array<CmisField, 4> kVdmDataPages = {
+    CmisField::PAGE_UPPER24H,
+    CmisField::PAGE_UPPER25H,
+    CmisField::PAGE_UPPER26H,
+    CmisField::PAGE_UPPER27H};
+
 // Datapath init/deinit variables
 static const std::unordered_map<uint8_t, uint64_t> DpInitValToTimeMap = {
     {0, 1000}, // Tstate < 1 ms
@@ -372,12 +386,16 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER21H, {CmisPages::PAGE21, 128, 128}},
     // Page 22h
     {CmisField::PAGE_UPPER22H, {CmisPages::PAGE22, 128, 128}},
+    // Page 23h
+    {CmisField::PAGE_UPPER23H, {CmisPages::PAGE23, 128, 128}},
     // Page 24h
     {CmisField::PAGE_UPPER24H, {CmisPages::PAGE24, 128, 128}},
     // Page 25h
     {CmisField::PAGE_UPPER25H, {CmisPages::PAGE25, 128, 128}},
     // Page 26h
     {CmisField::PAGE_UPPER26H, {CmisPages::PAGE26, 128, 128}},
+    // Page 27h
+    {CmisField::PAGE_UPPER27H, {CmisPages::PAGE27, 128, 128}},
     // Page 2Ch
     {CmisField::PAGE_UPPER2CH, {CmisPages::PAGE2C, 128, 128}},
     {CmisField::PAM4_MPI_ALARMS, {CmisPages::PAGE2C, 208, 4}},
@@ -1637,15 +1655,8 @@ void CmisModule::updateVdmDiagsValLocation() {
     return;
   }
 
-  // The VdmConf can be present at any offset from page 0x20 to 0x22. Check all
-  // the descriptors (2 bytes) on these pages
-  std::vector<CmisField> cmisVdmConfPages = {
-      CmisField::PAGE_UPPER20H, CmisField::PAGE_UPPER21H};
-  if (isVdmSupported(3)) {
-    cmisVdmConfPages.push_back(CmisField::PAGE_UPPER22H);
-  }
-
-  for (auto field : cmisVdmConfPages) {
+  for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
+    auto field = kVdmConfPages[group - 1];
     int page;
     int startOffset;
     int endOffset;
@@ -2246,6 +2257,9 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE22:
         CHECK_LE(offset + length, sizeof(page22_));
         return (page22_ + offset);
+      case CmisPages::PAGE23:
+        CHECK_LE(offset + length, sizeof(page23_));
+        return (page23_ + offset);
       case CmisPages::PAGE24:
         CHECK_LE(offset + length, sizeof(page24_));
         return (page24_ + offset);
@@ -2255,6 +2269,9 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE26:
         CHECK_LE(offset + length, sizeof(page26_));
         return (page26_ + offset);
+      case CmisPages::PAGE27:
+        CHECK_LE(offset + length, sizeof(page27_));
+        return (page27_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -2316,9 +2333,11 @@ DOMDataUnion CmisModule::getDOMDataUnion() {
       cmisData.page20() = IOBuf::wrapBufferAsValue(page20_, MAX_QSFP_PAGE_SIZE);
       cmisData.page21() = IOBuf::wrapBufferAsValue(page21_, MAX_QSFP_PAGE_SIZE);
       cmisData.page22() = IOBuf::wrapBufferAsValue(page22_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page23() = IOBuf::wrapBufferAsValue(page23_, MAX_QSFP_PAGE_SIZE);
       cmisData.page24() = IOBuf::wrapBufferAsValue(page24_, MAX_QSFP_PAGE_SIZE);
       cmisData.page25() = IOBuf::wrapBufferAsValue(page25_, MAX_QSFP_PAGE_SIZE);
       cmisData.page26() = IOBuf::wrapBufferAsValue(page26_, MAX_QSFP_PAGE_SIZE);
+      cmisData.page27() = IOBuf::wrapBufferAsValue(page27_, MAX_QSFP_PAGE_SIZE);
     }
   }
   cmisData.timeCollected() = lastRefreshTime_;
@@ -4125,11 +4144,11 @@ void CmisModule::latchAndReadVdmDataLocked() {
   usleep(kUsecVdmLatchHold);
 
   // Read data for publishing to ODS
-  readCmisField(CmisField::PAGE_UPPER24H, page24_);
-  readCmisField(CmisField::PAGE_UPPER25H, page25_);
-  if (isVdmSupported(3)) {
-    // Cache VDM group 3 page only if it is supported
-    readCmisField(CmisField::PAGE_UPPER26H, page26_);
+  std::array<uint8_t*, 4> dataPageBuffers = {
+      page24_, page25_, page26_, page27_};
+
+  for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
+    readCmisField(kVdmDataPages[group - 1], dataPageBuffers[group - 1]);
   }
 
   // Write Byte 2F.144, bit 7 to 0 (clear latch)
@@ -4882,17 +4901,24 @@ void CmisModule::updateVdmCacheLocked() {
     QSFP_LOG(DBG5, this) << "Doesn't support VDM, skip updating VDM cache";
     return;
   }
-  readCmisField(CmisField::PAGE_UPPER20H, page20_);
-  readCmisField(CmisField::PAGE_UPPER21H, page21_);
-  readCmisField(CmisField::PAGE_UPPER24H, page24_);
-  readCmisField(CmisField::PAGE_UPPER25H, page25_);
-  if (isVdmSupported(3)) {
-    // Cache VDM group 3 page only if it is supported
+
+  std::array<uint8_t*, 4> confPageBuffers = {
+      page20_, page21_, page22_, page23_};
+  std::array<uint8_t*, 4> dataPageBuffers = {
+      page24_, page25_, page26_, page27_};
+
+  for (uint8_t group = 1; group <= vdmSupportedGroupsMax_; group++) {
+    uint8_t idx = group - 1;
+    // Cache config pages only once (static)
     if (!staticPagesCached_) {
-      readCmisField(CmisField::PAGE_UPPER22H, page22_);
-      staticPagesCached_ = true;
+      readCmisField(kVdmConfPages[idx], confPageBuffers[idx]);
     }
-    readCmisField(CmisField::PAGE_UPPER26H, page26_);
+    // Always read data pages (dynamic)
+    readCmisField(kVdmDataPages[idx], dataPageBuffers[idx]);
+  }
+
+  if (vdmSupportedGroupsMax_ >= 1) {
+    staticPagesCached_ = true;
   }
 }
 
