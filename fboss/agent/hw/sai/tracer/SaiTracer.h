@@ -492,6 +492,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnelTerm_"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      {SAI_OBJECT_TYPE_SRV6_SIDLIST, "srv6SidList_"},
+#endif
       {SAI_OBJECT_TYPE_UDF, "udf_"},
       {SAI_OBJECT_TYPE_UDF_MATCH, "udfMatch_"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udfGroup_"},
@@ -568,6 +571,9 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TAM, "tam_api->"},
       {SAI_OBJECT_TYPE_TUNNEL, "tunnel_api->"},
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnel_api->"},
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      {SAI_OBJECT_TYPE_SRV6_SIDLIST, "srv6_api->"},
+#endif
       {SAI_OBJECT_TYPE_UDF, "udf_api->"},
       {SAI_OBJECT_TYPE_UDF_MATCH, "udf_api->"},
       {SAI_OBJECT_TYPE_UDF_GROUP, "udf_api->"},
