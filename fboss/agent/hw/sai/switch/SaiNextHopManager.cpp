@@ -124,7 +124,12 @@ std::shared_ptr<SaiSrv6SidList> SaiNextHopManager::createSrv6SidList(
 #endif
 
 ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
-    const ResolvedNextHop& swNextHop) {
+    const ResolvedNextHop& swNextHop
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    ,
+    std::shared_ptr<SaiSrv6SidList> srv6SidList
+#endif
+) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
   folly::IPAddress ip = swNextHop.addr();
 
@@ -134,7 +139,8 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
   std::shared_ptr<SaiSrv6SidList> sidList;
   std::optional<sai_object_id_t> sidListId;
   if (!swNextHop.srv6SegmentList().empty()) {
-    sidList = createSrv6SidList(swNextHop);
+    sidList =
+        srv6SidList ? std::move(srv6SidList) : createSrv6SidList(swNextHop);
     sidListId = sidList->adapterKey();
   }
   auto nexthopKey = getAdapterHostKey(swNextHop, sidListId);
