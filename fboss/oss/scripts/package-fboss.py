@@ -8,7 +8,7 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
-
+from typing import ClassVar
 
 OPT_ARG_SCRATCH_PATH = "--scratch-path"
 OPT_ARG_COPY_ROOT_LIBS = "--copy-root-libs"
@@ -57,7 +57,7 @@ class PackageFboss:
 
     # Project names and binaries we want packaged.
     # If unspecified, all binaries for a given project will be copied over.
-    NAME_TO_BINARIES = {
+    NAME_TO_BINARIES: ClassVar[dict] = {
         FBOSS: [],
     }
 
@@ -82,8 +82,7 @@ class PackageFboss:
         if self.scratch_path is not None:
             scratch_path = self.scratch_path
             scratch_path_installed_dir = os.path.join(scratch_path, location, name)
-            target_installed_dirs = glob.glob(scratch_path_installed_dir + "*")
-            return target_installed_dirs
+            return glob.glob(scratch_path_installed_dir + "*")
 
         get_install_dir_cmd = [PackageFboss.GETDEPS, "show-inst-dir", name]
         if location == PackageFboss.BUILD:
@@ -111,8 +110,7 @@ class PackageFboss:
             candidate = os.path.join(fboss_root_path, path_suffix)
         if os.path.isdir(candidate):
             return candidate
-        else:
-            raise RuntimeError(f"Could not find directory for {path_suffix}")
+        raise RuntimeError(f"Could not find directory for {path_suffix}")
 
     def _copy_run_scripts(self, tmp_dir_name):
         run_scripts_path = self.get_fboss_subdirectory("fboss/oss/scripts/run_scripts")
@@ -237,11 +235,10 @@ class PackageFboss:
             # find the project directory: {scratch}/build/{name}
             project_dirs = self._get_dir_for(name, PackageFboss.BUILD)
             for project_dir in project_dirs:
-                if not binaries:
-                    binaries = os.listdir(project_dir)
+                effective_binaries = binaries if binaries else os.listdir(project_dir)
 
-                for bin in binaries:
-                    bin_abs_path = os.path.join(project_dir, bin)
+                for binary in effective_binaries:
+                    bin_abs_path = os.path.join(project_dir, binary)
                     try:
                         shutil.copy(bin_abs_path, bin_pkg_path)
                         print(f"Copied {bin_abs_path} to {bin_pkg_path}")
@@ -333,7 +330,8 @@ class PackageFboss:
         print("Compressing FBOSS Binaries...")
         tar_path = os.path.join(args.scratch_path, PackageFboss.FBOSS_BIN_TAR)
         subprocess.run(
-            ["tar", "-cvf", tar_path, "--zstd", "-C", self.tmp_dir_name, "."]
+            ["tar", "-cvf", tar_path, "--zstd", "-C", self.tmp_dir_name, "."],
+            check=False,
         )
         print(f"Compressed to {tar_path}")
 
