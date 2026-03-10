@@ -38,7 +38,8 @@ enum class CmisPages : int {
   PAGE26 = 0x26,
   PAGE27 = 0x27,
   PAGE2C = 0x2C,
-  PAGE2F = 0x2F
+  PAGE2F = 0x2F,
+  PAGE34 = 0x34
 };
 
 enum VdmConfigType {
@@ -224,6 +225,8 @@ class CmisModule : public QsfpModule {
   uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
+  // C-CMIS Performance Monitoring pages (coherent optics)
+  uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
@@ -862,6 +865,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats);
 
   void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
 

@@ -404,6 +404,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_GROUPS_SUPPORT, {CmisPages::PAGE2F, 128, 1}},
     {CmisField::VDM_LATCH_REQUEST, {CmisPages::PAGE2F, 144, 1}},
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
+    // Page 34h - Lane FEC Performance Monitoring (C-CMIS)
+    {CmisField::PAGE_UPPER34H, {CmisPages::PAGE34, 128, 128}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -2040,6 +2042,9 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   if (!fillVdmPerfMonitorCoherentVdm(vdmStats)) {
     QSFP_LOG(DBG2, this) << "Coherent VDM stats not available";
   }
+  if (!fillVdmPerfMonitorFecPm(vdmStats)) {
+    QSFP_LOG(DBG2, this) << "FEC PM stats not available";
+  }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
   QSFP_LOG(DBG5, this) << "Stats Collection Time: "
@@ -2304,6 +2309,9 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE27:
         CHECK_LE(offset + length, sizeof(page27_));
         return (page27_ + offset);
+      case CmisPages::PAGE34:
+        CHECK_LE(offset + length, sizeof(page34_));
+        return (page34_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -4935,6 +4943,10 @@ void CmisModule::updateVdmCacheLocked() {
   if (vdmSupportedGroupsMax_ >= 1) {
     staticPagesCached_ = true;
   }
+  // Read C-CMIS PM pages for coherent optics
+  if (isTunableOptics()) {
+    readCmisField(CmisField::PAGE_UPPER34H, page34_);
+  }
 }
 
 void CmisModule::updateCmisStateChanged(
@@ -5673,6 +5685,78 @@ bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
   }
 
   return foundAny;
+}
+
+/*
+ * fillVdmPerfMonitorFecPm
+ *
+ * Private function to fill in FEC Performance Monitoring stats from
+ * C-CMIS Page 34h (Section 7.4.7, Table 14). This page is a banked page
+ * with each bank referring to a single media lane.
+ *
+ * Page 34h byte layout (per OIF C-CMIS-01.3):
+ *   Bytes 128-135: rxBitsPm (U64) - Rx bits during prior PM interval
+ *   Bytes 136-143: rxBitsSubIntPm (U64) - Rx bits during any sub-interval
+ *   Bytes 144-151: rxCorrBitsPm (U64) - Corrected bits during prior PM
+ *   Bytes 152-159: rxMinCorrBitsSubIntPm (U64) - Min corrected bits sub-int
+ *   Bytes 160-167: rxMaxCorrBitsSubIntPm (U64) - Max corrected bits sub-int
+ *   Bytes 168-171: rxFramesPm (U32) - Rx frames during prior PM
+ *   Bytes 172-175: rxFramesSubIntPm (U32) - Rx frames during any sub-interval
+ *   Bytes 176-179: rxFramesUncorrErrPm (U32) - Uncorrectable error frames
+ *   Bytes 180-183: rxMinFramesUncorrErrSubIntPm (U32) - Min uncorr sub-int
+ *   Bytes 184-187: rxMaxFramesUncorrErrSubIntPm (U32) - Max uncorr sub-int
+ *
+ * Only available on coherent (tunable) optics modules.
+ */
+bool CmisModule::fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats) {
+  if (!isTunableOptics() || !cacheIsValid()) {
+    return false;
+  }
+
+  // Page 34h data is cached in page34_ buffer (128 bytes, offset 128-255)
+  const uint8_t* buf = page34_;
+
+  // Lambda to read a U64 value from the buffer (big-endian)
+  auto readU64 = [&](int offset) -> int64_t {
+    int idx = offset - 128; // Buffer starts at byte 128
+    uint64_t val = 0;
+    for (int i = 0; i < 8; i++) {
+      val = (val << 8) | buf[idx + i];
+    }
+    return static_cast<int64_t>(val);
+  };
+
+  // Lambda to read a U32 value from the buffer (big-endian)
+  auto readU32 = [&](int offset) -> int32_t {
+    int idx = offset - 128;
+    uint32_t val = 0;
+    for (int i = 0; i < 4; i++) {
+      val = (val << 8) | buf[idx + i];
+    }
+    return static_cast<int32_t>(val);
+  };
+
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  // ZR modules have a single media lane, so page 34h has only one bank.
+  // The same buffer data applies to all ports — no bank selection needed.
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    FecPm fecPm;
+    fecPm.rxBitsPm() = readU64(128);
+    fecPm.rxBitsSubIntPm() = readU64(136);
+    fecPm.rxCorrBitsPm() = readU64(144);
+    fecPm.rxMinCorrBitsSubIntPm() = readU64(152);
+    fecPm.rxMaxCorrBitsSubIntPm() = readU64(160);
+    fecPm.rxFramesPm() = readU32(168);
+    fecPm.rxFramesSubIntPm() = readU32(172);
+    fecPm.rxFramesUncorrErrPm() = readU32(176);
+    fecPm.rxMinFramesUncorrErrSubIntPm() = readU32(180);
+    fecPm.rxMaxFramesUncorrErrSubIntPm() = readU32(184);
+
+    vdmStats.mediaPortVdmStats()[portName].coherentVdmStats().ensure().fecPm() =
+        fecPm;
+  }
+  return true;
 }
 
 } // namespace fboss

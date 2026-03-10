@@ -1262,6 +1262,73 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_TRUE(info.tcvrState()->errorStates()->empty());
 }
 
+// Test coherent FEC Performance Monitoring stats from C-CMIS page 34h
+// on 800G ZR modules. Validates that fillVdmPerfMonitorFecPm correctly
+// decodes all FEC PM counters from the cached page34 data.
+TEST_F(CmisTest, cmis800GZrFecPmTest) {
+  auto xcvrID = TransceiverID(1);
+  auto xcvr = overrideCmisModule<Cmis800GZrTransceiver>(
+      xcvrID, TransceiverModuleIdentifier::OSFP);
+  const auto& info = xcvr->getTransceiverInfo();
+
+  ASSERT_TRUE(xcvr->isVdmSupported());
+  ASSERT_TRUE(xcvr->isTunableOptics());
+
+  // Program transceiver with OpticalChannelConfig for tunable optics
+  // to populate port-to-media-lane mappings needed for FEC PM stats
+  ProgramTransceiverState programTcvrState;
+  TransceiverPortState portState;
+  portState.portName = "eth1/1/1";
+  portState.startHostLane = 0;
+  portState.speed = cfg::PortSpeed::EIGHTHUNDREDG;
+  portState.numHostLanes = 8;
+
+  cfg::OpticalChannelConfig optChanConfig;
+  cfg::FrequencyConfig freqConfig;
+  freqConfig.frequencyGrid() = FrequencyGrid::LASER_6P25GHZ;
+  cfg::CenterFrequencyConfig centerFreq;
+  centerFreq.set_frequencyMhz(CmisModule::kDefaultFrequencyMhz);
+  freqConfig.centerFrequencyConfig() = centerFreq;
+  optChanConfig.frequencyConfig() = freqConfig;
+  optChanConfig.txPower0P01Dbm() = 0;
+  optChanConfig.appSelCode() = 1;
+  portState.opticalChannelConfig = optChanConfig;
+
+  programTcvrState.ports.emplace(portState.portName, portState);
+  xcvr->programTransceiver(programTcvrState, false);
+
+  std::vector<int32_t> xcvrIds = {xcvrID};
+  transceiverManager_->triggerVdmStatsCapture(xcvrIds);
+  transceiverManager_->refreshStateMachines();
+
+  const auto& newInfo = xcvr->getTransceiverInfo();
+  ASSERT_TRUE(newInfo.tcvrStats()->vdmPerfMonitorStats().has_value());
+  auto& vdmPerfMonStats = newInfo.tcvrStats()->vdmPerfMonitorStats().value();
+  ASSERT_FALSE(vdmPerfMonStats.mediaPortVdmStats()->empty());
+
+  // Validate coherent FEC PM values from C-CMIS page 34h
+  // Expected values are decoded from kCmis800GZrPage34 fake data
+  auto portIt = vdmPerfMonStats.mediaPortVdmStats()->find("eth1/1/1");
+  ASSERT_NE(portIt, vdmPerfMonStats.mediaPortVdmStats()->end());
+  ASSERT_TRUE(portIt->second.coherentVdmStats().has_value());
+  ASSERT_TRUE(portIt->second.coherentVdmStats()->fecPm().has_value());
+  auto& fecPm = portIt->second.coherentVdmStats()->fecPm().value();
+
+  // U64 FEC PM counters
+  EXPECT_EQ(*fecPm.rxBitsPm(), 61440720961536);
+  EXPECT_EQ(*fecPm.rxBitsSubIntPm(), 1809317888);
+  EXPECT_EQ(*fecPm.rxCorrBitsPm(), 20766418419);
+  EXPECT_EQ(*fecPm.rxMinCorrBitsSubIntPm(), 323226814);
+  EXPECT_EQ(*fecPm.rxMaxCorrBitsSubIntPm(), 395888028);
+
+  // U32 FEC PM counters
+  EXPECT_EQ(*fecPm.rxFramesPm(), 44643381);
+  EXPECT_EQ(*fecPm.rxFramesSubIntPm(), 744056);
+  EXPECT_EQ(*fecPm.rxFramesUncorrErrPm(), 0);
+  EXPECT_EQ(*fecPm.rxMinFramesUncorrErrSubIntPm(), 0);
+  EXPECT_EQ(*fecPm.rxMaxFramesUncorrErrSubIntPm(), 0);
+}
+
 // Test for VDM support on 800G ZR modules
 TEST_F(CmisTest, cmis800GZrVdmTest) {
   auto xcvrID = TransceiverID(1);
