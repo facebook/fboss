@@ -1938,6 +1938,11 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       setTunnelTermAttributes(attr_list, attr_count, attrLines, rv);
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_OBJECT_TYPE_SRV6_SIDLIST:
+      setSrv6SidListAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+#endif
     case SAI_OBJECT_TYPE_UDF:
       setUdfAttributes(attr_list, attr_count, attrLines, rv);
       break;

@@ -1390,6 +1390,20 @@ struct AggregatePort {
    * keep AggregatePort current oper state.
    */
   8: optional MinimumCapacity minimumCapacityToUp;
+  /*
+   * Extended key field to support i32 values for LAG identification.
+   *
+   * The i16 key field limits LAG identification to 32,767, which is insufficient
+   * for RBB (Rack-Based Backbone) use cases that require larger LAG key values.
+   * This i32 field allows values beyond the i16 range while maintaining backward
+   * compatibility - when extendedKey is set, it takes precedence over the i16 key.
+   *
+   * Note: FBOSS internally retains the full 32-bit value for LAG identification.
+   * However, the LACP protocol spec only supports 16-bit key fields in LACP PDUs,
+   * so the key is truncated to the lower 16 bits when used in LACP packets.
+   * Therefore, LAG keys must have unique lower 16 bits to avoid LACP conflicts.
+   */
+  9: i32 extendedKey = 0;
 }
 
 struct Lacp {

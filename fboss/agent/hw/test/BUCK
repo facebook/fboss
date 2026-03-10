@@ -319,13 +319,10 @@ hw_test_common_srcs = [
     "HwMirrorTests.cpp",
     "HwPortProfileTests.cpp",
     "HwPortStressTests.cpp",
-    "HwPtpTcTests.cpp",
-    "HwTrunkTests.cpp",
     "HwRouteTests.cpp",
     "HwTest.cpp",
     "HwVlanTests.cpp",
     "HwSplitAgentTest.cpp",
-    "HwSwitchStateReplayTest.cpp",
     "HwTestFullHashedPacketsForSaiTomahawk.cpp",
     "HwTestFullHashedPacketsForSaiTrident2.cpp",
     "HwTestFullHashedPacketsForTomahawk.cpp",
@@ -338,7 +335,6 @@ hw_test_common_srcs = [
 ]
 
 hw_test_asic_only_srcs = hw_test_common_srcs + [
-    "HwTeFlowTests.cpp",
     "HwAsicDefaultProgrammingTests.cpp",
 ]
 
@@ -350,11 +346,9 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwLoadBalancerTestsV6Flowlet.cpp",
     "dataplane_tests/HwProdInvariantHelper.cpp",
     "dataplane_tests/HwProdInvariantTests.cpp",
-    "dataplane_tests/HwPacketSendTests.cpp",
     "dataplane_tests/HwL3Tests.cpp",
     "dataplane_tests/HwSflowTests.cpp",
     "dataplane_tests/HwTrunkLoadBalancerTests.cpp",
-    "dataplane_tests/HwTeFlowTrafficTests.cpp",
     "dataplane_tests/HwRouteStatTests.cpp",
 ]
 
@@ -403,7 +397,6 @@ cpp_library(
         ":phy_capabilities",
         ":prod_config_factory",
         ":prod_config_utils",
-        ":teflow_utils",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
@@ -413,7 +406,6 @@ cpp_library(
         "//fboss/agent:gtest_defs",
         "//fboss/agent:hw_switch",
         "//fboss/agent:hwswitchcallback",
-        "//fboss/agent:lacp_types",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:packet",
         "//fboss/agent:platform_base",
@@ -431,7 +423,6 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:linkstate_toggler",
-        "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:trunk_utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:config_utils",
@@ -446,7 +437,6 @@ cpp_library(
         "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/phy:phy_utils",
-        "//folly:file_util",
         "//folly:network_address",
         "//folly:range",
         "//folly:singleton",
@@ -488,7 +478,6 @@ cpp_library(
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:constants",
-        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:gtest_defs",
         "//fboss/agent:hw_switch",
@@ -514,7 +503,6 @@ cpp_library(
         "//fboss/agent/test/utils:udf_test_utils",
         "//fboss/lib:common_utils",
         "//fboss/lib/phy:phy_utils",
-        "//folly:file_util",
         "//folly:network_address",
         "//folly:range",
         "//folly:singleton",

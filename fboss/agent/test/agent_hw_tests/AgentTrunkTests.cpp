@@ -4,6 +4,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/agent/test/utils/TrunkTestUtils.h"
 
 #include <gtest/gtest.h>
@@ -112,6 +113,74 @@ TEST_F(AgentTrunkTest, TrunkMemberPortDownMinLinksViolated) {
           utility::verifyAggregatePortMemberCount(
               *getAgentEnsemble(), aggId, 1));
     });
+  };
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+TEST_F(AgentTrunkTest, TrunkPortStats) {
+  auto setup = [=, this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    utility::addAggPort(1, {masterLogicalPortIds()[1]}, &cfg);
+    applyConfigAndEnableTrunks(cfg);
+    auto ecmpHelper = utility::EcmpSetupTargetedPorts6(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    applyNewState(
+        [&](const std::shared_ptr<SwitchState>& in) {
+          return ecmpHelper.resolveNextHops(
+              in, {PortDescriptor(AggregatePortID(1))});
+        },
+        "resolve next hops");
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(
+        &routeUpdater, {PortDescriptor(AggregatePortID(1))});
+  };
+  auto verify = [=, this]() {
+    const std::string kTrunkName = "AGG-1";
+    auto vlanId = VlanID(utility::kBaseVlanId);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), vlanId);
+    for (auto throughPort : {false, true}) {
+      auto portStats = getLatestPortStats(masterLogicalPortIds()[1]);
+      auto portPkts0 = *portStats.outUnicastPkts_() +
+          *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
+
+      auto getTrunkOutPkts = [&](const std::string& trunkName) -> int64_t {
+        auto hwStats = getHwSwitchStats();
+        for (const auto& [_, switchStats] : hwStats) {
+          auto it = switchStats.hwTrunkStats()->find(trunkName);
+          if (it != switchStats.hwTrunkStats()->end()) {
+            return *it->second.outUnicastPkts_() +
+                *it->second.outMulticastPkts_() +
+                *it->second.outBroadcastPkts_();
+          }
+        }
+        return 0;
+      };
+
+      int64_t trunkPkts0 = getTrunkOutPkts(kTrunkName);
+
+      auto pkt = utility::makeUDPTxPacket(
+          getSw(),
+          vlanId,
+          intfMac,
+          intfMac,
+          folly::IPAddress("2401::1"),
+          folly::IPAddress("2401::2"),
+          10001,
+          20001);
+      throughPort
+          ? getAgentEnsemble()->ensureSendPacketOutOfPort(
+                std::move(pkt), masterLogicalPortIds()[0])
+          : getAgentEnsemble()->ensureSendPacketSwitched(std::move(pkt));
+
+      portStats = getLatestPortStats(masterLogicalPortIds()[1]);
+      auto portPkts1 = *portStats.outUnicastPkts_() +
+          *portStats.outMulticastPkts_() + *portStats.outBroadcastPkts_();
+
+      int64_t trunkPkts1 = getTrunkOutPkts(kTrunkName);
+
+      EXPECT_GT(portPkts1, portPkts0);
+      EXPECT_GT(trunkPkts1, trunkPkts0);
+    }
   };
   verifyAcrossWarmBoots(setup, verify);
 }
