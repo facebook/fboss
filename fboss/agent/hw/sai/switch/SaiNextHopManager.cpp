@@ -25,7 +25,17 @@
 #include "fboss/agent/state/RouteNextHop.h"
 
 namespace facebook::fboss {
-
+namespace {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+ResolvedNextHop getSrv6UnderlayNextHop(const ResolvedNextHop& srv6Nhop) {
+  ResolvedNextHop underlaySrv6Nhop(srv6Nhop);
+  underlaySrv6Nhop.setSrv6SegmentList({});
+  underlaySrv6Nhop.setTunnelType(std::nullopt);
+  underlaySrv6Nhop.setTunnelId(std::nullopt);
+  return underlaySrv6Nhop;
+}
+#endif
+} // namespace
 std::shared_ptr<SaiIpNextHop> SaiNextHopManager::addNextHop(
     RouterInterfaceSaiId routerInterfaceId,
     const folly::IPAddress& ip) {
@@ -195,6 +205,9 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
       auto srv6NextHopKey =
           std::get_if<typename SaiSrv6SidlistNextHopTraits::AdapterHostKey>(
               &nexthopKey)) {
+    auto underlayNextHop =
+        addManagedSaiNextHop(getSrv6UnderlayNextHop(swNextHop));
+    CHECK(std::get<std::shared_ptr<ManagedIpNextHop>>(underlayNextHop));
     auto [entry, emplaced] = managedSrv6NextHops_.refOrEmplace(
         *srv6NextHopKey,
         this,
@@ -206,6 +219,13 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
     CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
     CHECK(sidList) << "SRv6 managed next hop must have a SID list";
+    // Set NextHopId in sidList before inserting into srv6Manager
+    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+        std::get<std::shared_ptr<ManagedIpNextHop>>(underlayNextHop)
+            ->getSaiObject()
+            ->adapterKey()};
+    sidList->setOptionalAttribute(std::move(nextHopIdAttr));
+    entry->setUnderlayNextHop(std::move(underlayNextHop));
 
     SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
         entry);
@@ -213,11 +233,6 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     // After subscribe, the SAI next hop should be created
     CHECK(entry->getSaiObject())
         << "SRv6 managed next hop must have underlying SAI object";
-
-    // Set NextHopId in sidList before inserting into srv6Manager
-    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
-        entry->getSaiObject()->adapterKey()};
-    sidList->setOptionalAttribute(std::move(nextHopIdAttr));
 
     auto srv6SidListHandle =
         managerTable_->srv6Manager().insertSrv6SidList(std::move(sidList));
@@ -270,7 +285,7 @@ std::string SaiNextHopManager::listManagedObjects() const {
 }
 
 template <typename NextHopTraits>
-void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
+void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects added) {
   CHECK(this->allPublishedObjectsAlive()) << "neighbors are not ready";
 
   std::optional<typename NextHopTraits::Attributes::DisableTtlDecrement>
@@ -304,6 +319,10 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
   else if constexpr (std::is_same_v<
                          NextHopTraits,
                          SaiSrv6SidlistNextHopTraits>) {
+    CHECK(underlayNextHop_.has_value());
+    auto underlayIpNhop =
+        std::get<std::shared_ptr<ManagedIpNextHop>>(*underlayNextHop_);
+    underlayIpNhop->createObject(added);
     object = manager_->createSaiObject<NextHopTraits>(
         key_,
         {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST,
@@ -312,20 +331,15 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
          std::get<typename NextHopTraits::Attributes::TunnelId>(key_),
          std::get<typename NextHopTraits::Attributes::Srv6SidlistId>(key_),
          std::nullopt});
-  }
-#endif
-  this->setObject(object);
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  if constexpr (std::is_same_v<NextHopTraits, SaiSrv6SidlistNextHopTraits>) {
     if (srv6SidListHandle_ && srv6SidListHandle_->sidList) {
       SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
-          this->getObject()->adapterKey()};
+          underlayIpNhop->getSaiObject()->adapterKey()};
       srv6SidListHandle_->sidList->setOptionalAttribute(
           std::move(nextHopIdAttr));
     }
   }
 #endif
+  this->setObject(object);
 
   XLOG(DBG2) << "ManagedNeighbor::createObject: " << toString();
 }

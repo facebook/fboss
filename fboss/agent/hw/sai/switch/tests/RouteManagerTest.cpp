@@ -660,11 +660,16 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});
   EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
 
-  // Verify NextHopId was set on the SID list
+  // Verify NextHopId was set on the SID list to the underlay IP nhop
   ASSERT_NE(managedNh->getSaiObject(), nullptr);
+  auto& underlayNhOpt = managedNh->getUnderlayNextHop();
+  ASSERT_TRUE(underlayNhOpt.has_value());
+  auto underlayIpNhop =
+      std::get<std::shared_ptr<ManagedIpNextHop>>(*underlayNhOpt);
+  ASSERT_NE(underlayIpNhop->getSaiObject(), nullptr);
   auto gotNextHopId = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
-  EXPECT_EQ(gotNextHopId, managedNh->getSaiObject()->adapterKey());
+  EXPECT_EQ(gotNextHopId, underlayIpNhop->getSaiObject()->adapterKey());
 }
 
 TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHop) {
