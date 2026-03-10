@@ -87,7 +87,7 @@ if [ -n "$NODHCPV6" ]; then
   dhcpv6_conf=""
 else
   dhcpv6_conf=" --enable-ra \
-  --dhcp-range=tag:fbossdut,::fb05:5000:0001,::fb05:50ff:ffff,constructor:$INTERFACE,5m \
+  --dhcp-range=tag:fbossdut,::fb05:5000:0001,::fb05:50ff:ffff,constructor:$INTERFACE,1h \
   --dhcp-option=tag:fbossdut,option6:bootfile-url,tftp://[${v6_ip}]/ipxev6.efi"
 fi
 

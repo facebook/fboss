@@ -160,6 +160,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentRouteOverflowTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRollbackTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouteRollbackTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentPacketStreamHandlerTests.cpp
 )
 
 target_link_libraries(agent_hw_test_src

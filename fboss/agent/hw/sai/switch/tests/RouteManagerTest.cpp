@@ -631,8 +631,11 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
 
   // Look up the managed SRv6 next hop via adapter host key
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto adapterHostKey =
-      saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop);
+  auto srv6SidList =
+      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto lookupSidListId = srv6SidList->adapterKey();
+  auto adapterHostKey = saiManagerTable->nextHopManager().getAdapterHostKey(
+      swNextHop, lookupSidListId);
   auto* srv6Key =
       std::get_if<SaiSrv6SidlistNextHopTraits::AdapterHostKey>(&adapterHostKey);
   ASSERT_NE(srv6Key, nullptr);

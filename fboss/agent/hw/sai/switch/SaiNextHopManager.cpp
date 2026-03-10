@@ -65,7 +65,9 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
           "Missing SRv6 tunnel for tunnel ID: ", swNextHop.tunnelId().value());
     }
     auto tunnelSaiId = tunnelHandle->tunnel->adapterKey();
-    auto sidListSaiId = sidListId.value_or(SAI_NULL_OBJECT_ID);
+    CHECK(sidListId.has_value())
+        << "sidListId must be provided for next hop with non-empty srv6SegmentList";
+    auto sidListSaiId = sidListId.value();
     return SaiSrv6SidlistNextHopTraits::AdapterHostKey{
         rifId, ip, tunnelSaiId, sidListSaiId};
   }
@@ -139,8 +141,9 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
   std::shared_ptr<SaiSrv6SidList> sidList;
   std::optional<sai_object_id_t> sidListId;
   if (!swNextHop.srv6SegmentList().empty()) {
-    sidList =
-        srv6SidList ? std::move(srv6SidList) : createSrv6SidList(swNextHop);
+    CHECK(srv6SidList)
+        << "srv6SidList must be provided for next hop with non-empty srv6SegmentList";
+    sidList = std::move(srv6SidList);
     sidListId = sidList->adapterKey();
   }
   auto nexthopKey = getAdapterHostKey(swNextHop, sidListId);

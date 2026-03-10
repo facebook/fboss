@@ -318,4 +318,8 @@ enum CmisField {
   INPUT_EQ_TX_3_4 = 458,
   INPUT_EQ_TX_5_6 = 459,
   INPUT_EQ_TX_7_8 = 460,
+
+  // C-CMIS Performance Monitoring Pages
+  // Page 34h - Lane FEC Performance Monitoring
+  PAGE_UPPER34H = 461,
 }
