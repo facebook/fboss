@@ -335,7 +335,6 @@ hw_test_common_srcs = [
 ]
 
 hw_test_asic_only_srcs = hw_test_common_srcs + [
-    "HwTeFlowTests.cpp",
     "HwAsicDefaultProgrammingTests.cpp",
 ]
 
@@ -350,7 +349,6 @@ hw_dataplane_test_srcs = [
     "dataplane_tests/HwL3Tests.cpp",
     "dataplane_tests/HwSflowTests.cpp",
     "dataplane_tests/HwTrunkLoadBalancerTests.cpp",
-    "dataplane_tests/HwTeFlowTrafficTests.cpp",
     "dataplane_tests/HwRouteStatTests.cpp",
 ]
 
@@ -399,7 +397,6 @@ cpp_library(
         ":phy_capabilities",
         ":prod_config_factory",
         ":prod_config_utils",
-        ":teflow_utils",
         "//fb303:service_data",
         "//fboss/agent:address_utils",
         "//fboss/agent:apply_thrift_config",
