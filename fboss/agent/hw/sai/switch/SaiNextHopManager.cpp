@@ -11,7 +11,6 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 
 #include "fboss/agent/FbossError.h"
-#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -322,8 +321,8 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects /*added*/) {
     if (srv6SidListHandle_ && srv6SidListHandle_->sidList) {
       SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
           this->getObject()->adapterKey()};
-      SaiApiTable::getInstance()->srv6Api().setAttribute(
-          srv6SidListHandle_->sidList->adapterKey(), nextHopIdAttr);
+      srv6SidListHandle_->sidList->setOptionalAttribute(
+          std::move(nextHopIdAttr));
     }
   }
 #endif
@@ -340,8 +339,8 @@ void ManagedNextHop<NextHopTraits>::clearSrv6SidListNextHopId() {
           << "SRv6 SID list handle must have a SID list";
       SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
           SAI_NULL_OBJECT_ID};
-      SaiApiTable::getInstance()->srv6Api().setAttribute(
-          srv6SidListHandle_->sidList->adapterKey(), nextHopIdAttr);
+      srv6SidListHandle_->sidList->setOptionalAttribute(
+          std::move(nextHopIdAttr));
     }
   }
 #endif
