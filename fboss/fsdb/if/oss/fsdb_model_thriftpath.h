@@ -5724,7 +5724,8 @@ std::pair<apache::thrift::ident::memberPorts, ChildThriftPath<::std::vector<::fa
 std::pair<apache::thrift::ident::minimumCapacity, ChildThriftPath<::facebook::fboss::cfg::MinimumCapacity, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::counterTags, ChildThriftPath<::std::vector<::std::string>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::aggregatePortType, Child<::facebook::fboss::cfg::AggregatePortType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::AggregatePortType>>>,
-std::pair<apache::thrift::ident::minimumCapacityToUp, ChildThriftPath<::facebook::fboss::cfg::MinimumCapacity, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::minimumCapacityToUp, ChildThriftPath<::facebook::fboss::cfg::MinimumCapacity, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::extendedKey, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -5738,6 +5739,7 @@ std::pair<apache::thrift::ident::minimumCapacityToUp, ChildThriftPath<::facebook
     STRUCT_CHILD_GETTERS(counterTags, 6);
     STRUCT_CHILD_GETTERS(aggregatePortType, 7);
     STRUCT_CHILD_GETTERS(minimumCapacityToUp, 8);
+    STRUCT_CHILD_GETTERS(extendedKey, 9);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -5749,6 +5751,7 @@ std::pair<apache::thrift::ident::minimumCapacityToUp, ChildThriftPath<::facebook
     else if constexpr (__id == apache::thrift::FieldId{6}) { return counterTags(); }
     else if constexpr (__id == apache::thrift::FieldId{7}) { return aggregatePortType(); }
     else if constexpr (__id == apache::thrift::FieldId{8}) { return minimumCapacityToUp(); }
+    else if constexpr (__id == apache::thrift::FieldId{9}) { return extendedKey(); }
   }
 };
 
