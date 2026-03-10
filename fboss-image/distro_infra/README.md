@@ -28,7 +28,7 @@ The first time a MAC address is given, a `<MAC>` directory under the persistent 
 image files to boot must be manually extracted. eg:
 
 ```
-$ ./distro_infra.sh vlan1033 images
+$ ./distro_infra.sh --intf vlan1033 --persist-dir images
 Listening on vlan1033 - 10.250.33.194
 dnsmasq: started, version 2.85 DNS disabled
 dnsmasq: compile time options: IPv6 GNU-getopt DBus no-UBus no-i18n IDN2 DHCP DHCPv6 no-Lua TFTP no-conntrack ipset auth
@@ -62,3 +62,29 @@ will stop serving PXE boot to that MAC. To serve PXE boot again, re-enter the MA
 necessary to recopy the image files.
 
 To terminate the script and container, enter a blank MAC address at the prompt: `Enter MAC address (blank to exit):`.
+
+IPv6 and DHCPv6
+---------------
+
+By default the Distro Infrastructure container will serve DHCPv6 with the necessary PXE boot options. However this will
+conflict with a pre-existing DHCPv6 server.  The `--nodhcpv6` option will prevent the Distro Infrastructure container
+from serving DHCPv6.
+
+To support PXE booting with an an external DHCPv6 server, that server must send the `bootfile-url` option with the value
+`tftp://[<v6_ip>]/ipxev6.efi`.  Where `<v6_ip>` is the global IPv6 address of the interface supplied in the argument to
+distro_infra.sh.
+
+For example, dnsmasq can be configured like so:
+```
+dhcp-option=option6:bootfile-url,tftp://[<v6_ip>]/ipxev6.efi
+```
+
+and with KEA the following configuratioun snippet would be added:
+```
+"option-data": [
+    {
+        "name": "bootfile-url",
+        "data": "tftp://[<v6_ip>]/ipxv6.efi"
+        }
+    ]
+```
