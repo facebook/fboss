@@ -59,7 +59,7 @@ These are simple functionality test cases that should provide basic confidence b
 - Control Plane: `.*Copp.* | .*PacketSend.* | .*RxReason.* | .*PacketFlood.*`
 - Port: `.*HwTest_PROFILE.* | .*FlextPort.*`
 - Queuing: `.*SendPacketToQueue.* | .*DscpQueueMapping.* | .*PortBandwidth.*`
-- Prbs: `.*PRBS.*`
+- Prbs: `.*Prbs.*`
 
 2. **Batch B tests**
 These are more complicated test cases that should pass, before testing teams run test plan to verify overall functionality.
