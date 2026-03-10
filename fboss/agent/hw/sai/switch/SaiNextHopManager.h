@@ -54,6 +54,17 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
       ManagedNextHop<NextHopTraits>,
       NextHopTraits,
       SaiNeighborTraits>;
+  // TODO: Support next hop group as underlay as well as and when
+  // that use case arises. Today, for underlay we only have a use
+  // case for a single nhop
+  using UnderlayNextHop = std::variant<
+      std::shared_ptr<ManagedNextHop<SaiIpNextHopTraits>>,
+      std::shared_ptr<ManagedNextHop<SaiMplsNextHopTraits>>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      ,
+      std::shared_ptr<ManagedNextHop<SaiSrv6SidlistNextHopTraits>>
+#endif
+      >;
   ManagedNextHop(
       SaiNextHopManager* manager,
       SaiNeighborTraits::NeighborEntry entry,
@@ -101,6 +112,14 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   }
 #endif
 
+  void setUnderlayNextHop(std::optional<UnderlayNextHop> underlayNextHop) {
+    underlayNextHop_ = std::move(underlayNextHop);
+  }
+
+  const std::optional<UnderlayNextHop>& getUnderlayNextHop() const {
+    return underlayNextHop_;
+  }
+
  private:
   void clearSrv6SidListNextHopId();
 
@@ -110,6 +129,7 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle_;
 #endif
+  std::optional<UnderlayNextHop> underlayNextHop_;
 };
 
 using ManagedIpNextHop = ManagedNextHop<SaiIpNextHopTraits>;
@@ -141,7 +161,18 @@ class SaiNextHopManager {
       const ResolvedNextHop& swNextHop,
       std::optional<sai_object_id_t> sidListId = std::nullopt);
 
-  ManagedSaiNextHop addManagedSaiNextHop(const ResolvedNextHop& swNextHop);
+  ManagedSaiNextHop addManagedSaiNextHop(
+      const ResolvedNextHop& swNextHop
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      ,
+      std::shared_ptr<SaiSrv6SidList> srv6SidList = nullptr
+#endif
+  );
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  std::shared_ptr<SaiSrv6SidList> createSrv6SidList(
+      const ResolvedNextHop& swNextHop);
+#endif
   const ManagedIpNextHop* getManagedNextHop(
       const ManagedIpNextHop::AdapterHostKey& key) const {
     return managedIpNextHops_.get(key);

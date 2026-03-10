@@ -1,0 +1,16 @@
+{
+  "_comment" : [
+               "This file is used to specify list of additional packages to install",
+               "that need to be part of the image.",
+               "",
+               "The 'packages' is a list packages to be installed."
+               ],
+
+  "packages": [
+    "bc", "rsync", "wget", "curl",
+    "net-tools", "tcpdump",
+    "strace",
+    "lsof",
+    "podman-docker"
+  ]
+}

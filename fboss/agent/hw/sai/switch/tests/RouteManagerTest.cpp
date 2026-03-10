@@ -631,8 +631,11 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
 
   // Look up the managed SRv6 next hop via adapter host key
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto adapterHostKey =
-      saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop);
+  auto srv6SidList =
+      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto lookupSidListId = srv6SidList->adapterKey();
+  auto adapterHostKey = saiManagerTable->nextHopManager().getAdapterHostKey(
+      swNextHop, lookupSidListId);
   auto* srv6Key =
       std::get_if<SaiSrv6SidlistNextHopTraits::AdapterHostKey>(&adapterHostKey);
   ASSERT_NE(srv6Key, nullptr);
@@ -657,11 +660,16 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});
   EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
 
-  // Verify NextHopId was set on the SID list
+  // Verify NextHopId was set on the SID list to the underlay IP nhop
   ASSERT_NE(managedNh->getSaiObject(), nullptr);
+  auto& underlayNhOpt = managedNh->getUnderlayNextHop();
+  ASSERT_TRUE(underlayNhOpt.has_value());
+  auto underlayIpNhop =
+      std::get<std::shared_ptr<ManagedIpNextHop>>(*underlayNhOpt);
+  ASSERT_NE(underlayIpNhop->getSaiObject(), nullptr);
   auto gotNextHopId = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
-  EXPECT_EQ(gotNextHopId, managedNh->getSaiObject()->adapterKey());
+  EXPECT_EQ(gotNextHopId, underlayIpNhop->getSaiObject()->adapterKey());
 }
 
 TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHop) {
@@ -789,5 +797,31 @@ TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHopGroup) {
 
   saiManagerTable->routeManager().removeRoute(route, RouterID(0));
   EXPECT_EQ(saiManagerTable->routeManager().getRouteHandle(saiEntry), nullptr);
+}
+
+TEST_F(Srv6RouteTest, createSrv6SidList) {
+  auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
+  auto sidList = saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  ASSERT_NE(sidList, nullptr);
+
+  // Verify SID list attributes
+  auto sidListId = sidList->adapterKey();
+  auto gotSegments = saiApiTable->srv6Api().getAttribute(
+      sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
+  EXPECT_EQ(gotSegments.size(), 2);
+  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
+  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+
+  auto gotType = saiApiTable->srv6Api().getAttribute(
+      sidListId, SaiSrv6SidListTraits::Attributes::Type{});
+  EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
+}
+
+TEST_F(Srv6RouteTest, createSrv6SidListThrowsOnEmptySegmentList) {
+  const auto& remote = intf0.remoteHosts.at(0);
+  ResolvedNextHop nhNoSrv6{remote.ip, InterfaceID(intf0.id), ECMP_WEIGHT};
+  EXPECT_THROW(
+      saiManagerTable->nextHopManager().createSrv6SidList(nhNoSrv6),
+      FbossError);
 }
 #endif

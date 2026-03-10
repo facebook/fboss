@@ -38,7 +38,8 @@ enum class CmisPages : int {
   PAGE26 = 0x26,
   PAGE27 = 0x27,
   PAGE2C = 0x2C,
-  PAGE2F = 0x2F
+  PAGE2F = 0x2F,
+  PAGE34 = 0x34
 };
 
 enum VdmConfigType {
@@ -188,6 +189,18 @@ class CmisModule : public QsfpModule {
     return ((1 << numLanes) - 1) << startLane;
   }
 
+  // Set the module to low power mode (writes SQUELCH_CONTROL | LOW_PWR_BIT)
+  void setModuleLowPowerModeLocked();
+
+  // Release low power mode (clears LOW_PWR_BIT, writes SQUELCH_CONTROL only)
+  void releaseModuleLowPowerModeLocked();
+
+  // Check if the module is in READY state
+  bool isModuleInReadyState();
+
+  // Poll until the module reaches READY state (up to 5s)
+  bool moduleReadyStatePoll();
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -212,6 +225,8 @@ class CmisModule : public QsfpModule {
   uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
+  // C-CMIS Performance Monitoring pages (coherent optics)
+  uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
@@ -834,8 +849,6 @@ class CmisModule : public QsfpModule {
 
   // Utility functions for power state management
   PowerControlState getCurrentPowerControlState();
-  bool isModuleInReadyState();
-  bool moduleReadyStatePoll();
 
   // Check if module should be kept in low power mode for AppSel programming.
   bool programAppSelInLowPowerMode() const;
@@ -852,6 +865,7 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats);
 
   void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
 

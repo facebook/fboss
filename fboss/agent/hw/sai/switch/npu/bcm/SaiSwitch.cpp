@@ -325,7 +325,8 @@ std::string errorType(sai_switch_error_type_t type) {
       return "SAI_SWITCH_ERROR_TYPE_FIRMWARE_CRASH";
 #endif
 #if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
-    defined(SAI_VERSION_14_0_EA_DNX_ODP)
+    defined(SAI_VERSION_14_0_EA_DNX_ODP) ||  \
+    defined(SAI_VERSION_14_2_0_0_DNX_ODP)
     case SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE:
       return "SAI_SWITCH_ERROR_TYPE_FABRIC_AUTO_LINK_DISABLE";
 #endif
@@ -1018,7 +1019,8 @@ void SaiSwitch::switchEventCallback(
       break;
 #endif
 #if defined(SAI_VERSION_12_2_0_0_DNX_ODP) || \
-    defined(SAI_VERSION_14_0_EA_DNX_ODP)
+    defined(SAI_VERSION_14_0_EA_DNX_ODP) ||  \
+    defined(SAI_VERSION_14_2_0_0_DNX_ODP)
     case SAI_SWITCH_EVENT_TYPE_FABRIC_AUTO_LINK_DISABLE:
       auto fwDisabledPortId = eventInfo->index;
       XLOG(ERR) << "Firmware Auto Admin Link Disable callback received: "

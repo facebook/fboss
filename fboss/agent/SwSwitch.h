@@ -227,9 +227,6 @@ class SwSwitch : public HwSwitchCallback {
     return hwSwitchThriftClientTable_.get();
   }
 
-  const ResourceAccountant* getResourceAccountant() const;
-  ResourceAccountant* getResourceAccountant();
-
   /*
    * Initialize the switch.
    *
@@ -1042,6 +1039,7 @@ class SwSwitch : public HwSwitchCallback {
   std::optional<VlanID> getVlanIDForTx(
       const std::shared_ptr<VlanOrIntfT>& vlanOrIntf) const;
   bool hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId);
+  const ResourceAccountant* getResourceAccountant() const;
 
  private:
   void initAgentInfo();

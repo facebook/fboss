@@ -362,8 +362,19 @@ void SaiRouteManager::addOrUpdateRoute(
       } else {
         bool localNexthop = routerInterfaceHandle->isLocal();
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        std::shared_ptr<SaiSrv6SidList> srv6SidList;
+        if (!swNextHop.srv6SegmentList().empty()) {
+          srv6SidList =
+              managerTable_->nextHopManager().createSrv6SidList(swNextHop);
+        }
+        auto managedSaiNextHop =
+            managerTable_->nextHopManager().addManagedSaiNextHop(
+                swNextHop, std::move(srv6SidList));
+#else
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
+#endif
         sai_object_id_t nextHopId{};
 
         /* claim the next hop first */
