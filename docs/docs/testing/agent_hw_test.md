@@ -53,11 +53,10 @@ However, it is challenging to verify and debug all these hundreds of agent hw te
 1. **Batch A tests**
 These are simple functionality test cases that should provide basic confidence before getting the ping milestone.
 - Vlan tests: all tests matching `.*Vlan.*`
-- L2 learning: `.*L2ClassID.* | .*MacLearning.* | .*MacSwLearning.*`
+- L2 learning: `.*MacLearning.* | .*MacSwLearning.*`
 - Neighbor resolution: `*Neighbor.*`
-- L3 routing: `.*L3.* | .*HwRoute.*`
+- L3 routing: `.*L3.*`
 - Control Plane: `.*Copp.* | .*PacketSend.* | .*RxReason.* | .*PacketFlood.*`
-- Port: `.*HwTest_PROFILE.* | .*FlextPort.*`
 - Queuing: `.*SendPacketToQueue.* | .*DscpQueueMapping.* | .*PortBandwidth.*`
 - Prbs: `.*Prbs.*`
 
