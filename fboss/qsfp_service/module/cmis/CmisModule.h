@@ -188,6 +188,18 @@ class CmisModule : public QsfpModule {
     return ((1 << numLanes) - 1) << startLane;
   }
 
+  // Set the module to low power mode (writes SQUELCH_CONTROL | LOW_PWR_BIT)
+  void setModuleLowPowerModeLocked();
+
+  // Release low power mode (clears LOW_PWR_BIT, writes SQUELCH_CONTROL only)
+  void releaseModuleLowPowerModeLocked();
+
+  // Check if the module is in READY state
+  bool isModuleInReadyState();
+
+  // Poll until the module reaches READY state (up to 5s)
+  bool moduleReadyStatePoll();
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -834,8 +846,6 @@ class CmisModule : public QsfpModule {
 
   // Utility functions for power state management
   PowerControlState getCurrentPowerControlState();
-  bool isModuleInReadyState();
-  bool moduleReadyStatePoll();
 
   // Check if module should be kept in low power mode for AppSel programming.
   bool programAppSelInLowPowerMode() const;

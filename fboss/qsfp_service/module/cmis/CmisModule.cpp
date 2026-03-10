@@ -1391,6 +1391,27 @@ bool CmisModule::moduleReadyStatePoll() {
   return false;
 }
 
+void CmisModule::setModuleLowPowerModeLocked() {
+  // Set to 0x60 = (SquelchControl=Reduce Pave | LowPwr)
+  uint8_t newModuleControl = SQUELCH_CONTROL | LOW_PWR_BIT;
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "setModuleLowPowerModeLocked: Setting module control to {:#x}",
+      newModuleControl);
+  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+  // Wait for 100ms before resetting the LP mode
+  /* sleep override */
+  usleep(kUsecBetweenPowerModeFlap);
+}
+
+void CmisModule::releaseModuleLowPowerModeLocked() {
+  // Clear low power bit (set to 0x20)
+  uint8_t newModuleControl = SQUELCH_CONTROL;
+  QSFP_LOG(INFO, this) << folly::sformat(
+      "releaseModuleLowPowerModeLocked: Clearing low power bit, module control to {:#x}",
+      newModuleControl);
+  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+}
+
 /*
  * For the specified field, collect alarm and warning flags for the channel.
  */
@@ -3601,19 +3622,7 @@ bool CmisModule::ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) {
   // mode, wait, reset the LP mode and then return false since the module
   // needs some time to converge its state machine
 
-  // Set to 0x60 = (SquelchControl=Reduce Pave | LowPwr)
-  uint8_t newModuleControl = SQUELCH_CONTROL | LOW_PWR_BIT;
-
-  QSFP_LOG(INFO, this) << folly::sformat(
-      "ensureTransceiverReadyLocked: Setting module to low power mode with squelch control: {:#x}",
-      newModuleControl);
-
-  // first set to low power
-  writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
-
-  // Wait for 100ms before resetting the LP mode
-  /* sleep override */
-  usleep(kUsecBetweenPowerModeFlap);
+  setModuleLowPowerModeLocked();
 
   if (isTunableOptics()) {
     QSFP_LOG(INFO, this) << folly::sformat(
@@ -3628,12 +3637,7 @@ bool CmisModule::ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) {
 
   // Clear low power bit (set to 0x20)
   if (!programAppSelInLowPowerMode()) {
-    newModuleControl = SQUELCH_CONTROL;
-    QSFP_LOG(INFO, this) << folly::sformat(
-        "ensureTransceiverReadyLocked: Clearing low power bit to enable high power mode: {:#x}",
-        newModuleControl);
-
-    writeCmisField(CmisField::MODULE_CONTROL, &newModuleControl);
+    releaseModuleLowPowerModeLocked();
     // Enforces next refresh is a full refresh.
     dirty_ = true;
     return false;
