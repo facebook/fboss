@@ -94,8 +94,11 @@ TEST_F(Srv6NextHopManagerTest, getAdapterHostKeySrv6) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
+  auto srv6SidList =
+      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto sidListId = srv6SidList->adapterKey();
   auto adapterHostKey =
-      saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop);
+      saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop, sidListId);
 
   auto* srv6Key =
       std::get_if<SaiSrv6SidlistNextHopTraits::AdapterHostKey>(&adapterHostKey);
@@ -197,11 +200,12 @@ TEST_F(Srv6NextHopManagerTest, getManagedSrv6NextHop) {
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
   auto srv6SidList =
       saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto sidListId = srv6SidList->adapterKey();
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
       swNextHop, std::move(srv6SidList));
 
   auto adapterHostKey =
-      saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop);
+      saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop, sidListId);
   auto* srv6Key =
       std::get_if<SaiSrv6SidlistNextHopTraits::AdapterHostKey>(&adapterHostKey);
   ASSERT_NE(srv6Key, nullptr);
