@@ -871,16 +871,24 @@ void ThriftHandler::updateUnicastRoutesImpl(
   auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
-  for (const auto& route : *routes) {
+  for (auto& route : *routes) {
     if (route.overrideEcmpSwitchingMode().has_value() ||
         route.overrideNextHops().has_value()) {
       throw FbossError(
           "Override nhops or switching mode cannot be set by clients");
     }
-    for (const auto& nhop : *route.nextHops()) {
+    for (auto& nhop : *route.nextHops()) {
       if (nhop.mplsAction().has_value() && !nhop.srv6SegmentList()->empty()) {
         throw FbossError(
             "Next hop cannot have both mplsAction (label stack) and srv6SegmentList");
+      }
+      if (!nhop.srv6SegmentList()->empty()) {
+        if (!nhop.tunnelType().has_value()) {
+          nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+        } else if (*nhop.tunnelType() != TunnelType::SRV6_ENCAP) {
+          throw FbossError(
+              "Next hop with srv6SegmentList must have tunnelType SRV6_ENCAP");
+        }
       }
     }
     updater.addRoute(routerID, clientID, route);
@@ -2860,7 +2868,7 @@ void ThriftHandler::listHwObjects(
     out = sw_->getMonolithicHwSwitchHandler()->listObjects(*hwObjects, cached);
   } else {
     throw FbossError(
-        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent insted");
+        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent instead");
   }
 }
 

@@ -1660,6 +1660,53 @@ TEST_F(ThriftTest, addUnicastRoutesRejectsMplsAndSrv6) {
   EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(srv6OnlyRoute)));
 }
 
+TEST_F(ThriftTest, addUnicastRoutesRejectsSrv6WithInvalidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto nhopAddr = "10.0.0.11";
+
+  // Next hop with srv6SegmentList and wrong tunnelType should be rejected
+  {
+    auto route = makeEcmpUnicastRoute("9.1.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    nh.tunnelType() = TunnelType::IP_IN_IP;
+    route->nextHops() = {nh};
+    EXPECT_THROW(
+        handler.addUnicastRoute(bgpClient, std::move(route)), FbossError);
+  }
+
+  // Next hop with srv6SegmentList, tunnelId, and SRV6_ENCAP tunnelType should
+  // be accepted
+  {
+    auto route = makeEcmpUnicastRoute("9.2.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    nh.tunnelType() = TunnelType::SRV6_ENCAP;
+    route->nextHops() = {nh};
+    EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(route)));
+  }
+
+  // Next hop with srv6SegmentList and no tunnelType should be accepted
+  // (defaults to SRV6_ENCAP)
+  {
+    auto route = makeEcmpUnicastRoute("9.3.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    // tunnelType not set — should default to SRV6_ENCAP
+    route->nextHops() = {nh};
+    EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(route)));
+  }
+}
+
 TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 
