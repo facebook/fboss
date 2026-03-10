@@ -139,8 +139,9 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
   std::shared_ptr<SaiSrv6SidList> sidList;
   std::optional<sai_object_id_t> sidListId;
   if (!swNextHop.srv6SegmentList().empty()) {
-    sidList =
-        srv6SidList ? std::move(srv6SidList) : createSrv6SidList(swNextHop);
+    CHECK(srv6SidList)
+        << "srv6SidList must be provided for next hop with non-empty srv6SegmentList";
+    sidList = std::move(srv6SidList);
     sidListId = sidList->adapterKey();
   }
   auto nexthopKey = getAdapterHostKey(swNextHop, sidListId);
