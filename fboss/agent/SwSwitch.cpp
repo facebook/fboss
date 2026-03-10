@@ -2041,14 +2041,15 @@ SwSwitch::applyUpdate(
   for (const auto& delta : deltas) {
     if (!isValidStateUpdate(delta, stats())) {
       updateRejected = true;
+      const auto& originalState = oldState;
+      const auto& rejectedState = delta.newState();
+      stateUpdateValidator_->updateRejected(
+          StateDelta(originalState, rejectedState));
       XLOG(ERR) << "State update rejected.";
       break;
     }
   }
   if (updateRejected) {
-    /* reconstruct the resource account to reset resources accounted in earlier
-     * deltas */
-    stateUpdateValidator_->resetResourceAccountant(oldState);
     return std::make_pair(oldState, newDesiredState);
   }
 
@@ -2098,7 +2099,7 @@ SwSwitch::applyUpdate(
   notifyStateObservers(StateDelta(oldState, newAppliedState));
 
   // Notifies resource accountant of new applied state.
-  getResourceAccountant()->stateChanged(
+  stateUpdateValidator_->stateChanged(
       StateDelta(newDesiredState, newAppliedState));
 
   auto end = std::chrono::steady_clock::now();
@@ -4436,20 +4437,16 @@ bool SwSwitch::hasQualifiedConfiguredDesiredPeer(const InterfaceID& intfId) {
   return false;
 }
 
-const ResourceAccountant* SwSwitch::getResourceAccountant() const {
-  return stateUpdateValidator_->getResourceAccountant();
-}
-
-ResourceAccountant* SwSwitch::getResourceAccountant() {
-  return stateUpdateValidator_->getResourceAccountant();
-}
-
 void SwSwitch::setPacketStreamHandler(PacketStreamHandler* handler) {
 #if FOLLY_HAS_COROUTINES
   packetStreamHandler_ = handler;
 #endif
   XLOG(INFO) << "PacketStreamHandler "
              << (handler ? "registered" : "unregistered");
+}
+
+const ResourceAccountant* SwSwitch::getResourceAccountant() const {
+  return stateUpdateValidator_->getResourceAccountant();
 }
 
 } // namespace facebook::fboss

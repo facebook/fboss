@@ -1660,6 +1660,75 @@ TEST_F(ThriftTest, addUnicastRoutesRejectsMplsAndSrv6) {
   EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(srv6OnlyRoute)));
 }
 
+TEST_F(ThriftTest, addUnicastRoutesRejectsSrv6WithInvalidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto nhopAddr = "10.0.0.11";
+
+  // Next hop with srv6SegmentList and wrong tunnelType should be rejected
+  {
+    auto route = makeEcmpUnicastRoute("9.1.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    nh.tunnelType() = TunnelType::IP_IN_IP;
+    route->nextHops() = {nh};
+    EXPECT_THROW(
+        handler.addUnicastRoute(bgpClient, std::move(route)), FbossError);
+  }
+
+  // Next hop with srv6SegmentList, tunnelId, and SRV6_ENCAP tunnelType should
+  // be accepted
+  {
+    auto route = makeEcmpUnicastRoute("9.2.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    nh.tunnelType() = TunnelType::SRV6_ENCAP;
+    route->nextHops() = {nh};
+    EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(route)));
+  }
+
+  // Next hop with srv6SegmentList, no tunnelId, and no SRV6_ENCAP tunnel in
+  // config should be rejected
+  {
+    auto route = makeEcmpUnicastRoute("9.3.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    // tunnelId not set and no SRV6_ENCAP tunnel in config
+    route->nextHops() = {nh};
+    EXPECT_THROW(
+        handler.addUnicastRoute(bgpClient, std::move(route)), FbossError);
+  }
+
+  // Next hop with srv6SegmentList and no tunnelId should default to first
+  // SRV6_ENCAP tunnel from config
+  {
+    // Add an SRv6 tunnel to the config so the defaulting logic can find it
+    auto config = sw_->getConfig();
+    cfg::Srv6Tunnel srv6Tunnel;
+    srv6Tunnel.srv6TunnelId() = "srv6Tunnel0";
+    srv6Tunnel.underlayIntfID() = 1;
+    srv6Tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
+    srv6Tunnel.srcIp() = "2001:db8::100";
+    config.srv6Tunnels() = {srv6Tunnel};
+    sw_->applyConfig("Add SRv6 tunnel", config);
+
+    auto route = makeEcmpUnicastRoute("9.4.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    // tunnelId not set — should default to "srv6Tunnel0" from config
+    route->nextHops() = {nh};
+    EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(route)));
+  }
+}
+
 TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 

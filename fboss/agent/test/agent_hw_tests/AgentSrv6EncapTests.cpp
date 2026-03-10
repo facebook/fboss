@@ -87,8 +87,7 @@ TEST_F(AgentSrv6EncapTest, sendPacketToEncapRoute) {
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
         getLocalMacAddress());
-    resolveNeighborAndProgramRoutes(
-        ecmpHelper, ecmpHelper.getNextHops().size());
+    resolveNeighbors(ecmpHelper, ecmpHelper.getNextHops().size());
 
     auto nhop = ecmpHelper.nhop(0);
     std::vector<folly::IPAddressV6> sidList{

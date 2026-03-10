@@ -70,6 +70,7 @@ cpp_unittest(
         "CmdShowAgentSslTest.cpp",
         "CmdShowAggregatePortTest.cpp",
         "CmdShowArpTest.cpp",
+        "CmdShowConfigRunningTest.cpp",
         "CmdShowCpuPortTest.cpp",
         "CmdShowExampleTest.cpp",
         "CmdShowFlowletTest.cpp",

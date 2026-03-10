@@ -1118,7 +1118,9 @@ getPlatformMappingForPlatformType(
           true /*multiNpuPlatformMapping*/};
       return &meru800bfa;
     }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA:
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIAB:
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIAC: {
       static facebook::fboss::Meru800biaPlatformMapping meru800bia;
       return &meru800bia;
     }
