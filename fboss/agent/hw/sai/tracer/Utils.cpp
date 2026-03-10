@@ -746,6 +746,44 @@ void u32ListAttr(
   }
 }
 
+void segmentListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    vector<string>& attrLines,
+    bool logEntry) {
+  uint32_t listLimit = SaiTracer::getInstance()->checkListCount(
+      listIndex + 1, sizeof(sai_ip6_t), attr_list[i].value.segmentlist.count);
+
+  string prefix = to<string>("s_a", "[", i, "].value.segmentlist.");
+  attrLines.push_back(
+      to<string>(prefix, "count=", attr_list[i].value.segmentlist.count));
+  if (logEntry && attr_list[i].value.segmentlist.list) {
+    attrLines.push_back(
+        to<string>(prefix, "list=(sai_ip6_t*)(list_", listIndex, ")"));
+    for (int j = 0;
+         j < std::min(attr_list[i].value.segmentlist.count, listLimit);
+         ++j) {
+      folly::IPAddressV6 ip6 = facebook::fboss::fromSaiIpAddress(
+          attr_list[i].value.segmentlist.list[j]);
+      attrLines.push_back(to<string>("// segment[", j, "]=", ip6.str()));
+      for (int k = 0; k < 16; ++k) {
+        attrLines.push_back(
+            to<string>(
+                prefix,
+                "list[",
+                j,
+                "][",
+                k,
+                "]=",
+                attr_list[i].value.segmentlist.list[j][k]));
+      }
+    }
+  } else {
+    attrLines.push_back(to<string>(prefix, "list=NULL"));
+  }
+}
+
 void s32RangeAttr(
     const sai_attribute_t* attr_list,
     int i,
