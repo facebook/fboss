@@ -56,10 +56,15 @@ cpp_library(
 cpp_binary(
     name = "hal_test",
     srcs = [
+        "HalTestModuleAdvertisement.cpp",
+        "HalTestModuleInit.cpp",
         "Main.cpp",
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
+        ":hal_test_base",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/module:qsfp-module",
         "//folly/init:init",
     ],
 )
