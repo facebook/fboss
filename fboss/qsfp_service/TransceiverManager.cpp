@@ -23,12 +23,9 @@
 
 using namespace std::chrono;
 
-// allow us to configure the qsfp_service dir so that the qsfp cold boot test
-// can run concurrently with itself
-DEFINE_string(
-    qsfp_service_volatile_dir,
-    "/dev/shm/fboss/qsfp_service",
-    "Path to the directory in which we store the qsfp_service's cold boot flag");
+// @nolint(facebook-hte-PreventUseOfDeclareGflag) - Flag defined in
+// QsfpConfig.cpp
+DECLARE_string(qsfp_service_volatile_dir);
 
 DEFINE_bool(
     can_qsfp_service_warm_boot,
