@@ -615,6 +615,7 @@ cpp_library(
         "//common/network:util",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:load_agent_config",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent/hw/test:config_factory",
