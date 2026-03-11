@@ -549,7 +549,7 @@ BaseEcmpResourceManagerTest::getPostConfigResolvedRoutes(
   std::vector<std::shared_ptr<RouteV6>> routes;
   for (const auto& [_, route] : std::as_const(*cfib(in))) {
     if (!route->isResolved() || route->isConnected() ||
-        route->getForwardInfo().getNextHopSet().empty()) {
+        facebook::fboss::getNextHops(in, route->getForwardInfo()).empty()) {
       continue;
     }
     routes.emplace_back(route);
@@ -595,7 +595,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
       auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
           RouterID(0), inRoute->prefix().toCidrNetwork());
       bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().getNextHopSet().size() > 1;
+          facebook::fboss::getNextHops(targetState, route->getForwardInfo())
+                  .size() > 1;
       if (isEcmpRoute) {
         ASSERT_NE(consolidatorGrpInfo, nullptr);
         if (!route->getForwardInfo().getOverrideEcmpSwitchingMode()) {
@@ -700,7 +701,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
             << " expected route " << route->str()
             << " to NOT have override ECMP group type or ecmp nhops";
         bool isEcmpRoute = route->isResolved() &&
-            route->getForwardInfo().getNextHopSet().size() > 1;
+            facebook::fboss::getNextHops(targetState, route->getForwardInfo())
+                    .size() > 1;
         if (isEcmpRoute) {
           EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
           EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
@@ -851,7 +853,7 @@ TEST_F(BaseEcmpResourceManagerTest, addCounterId) {
   const auto& nhopEntry = newRoute->getForwardInfo();
   std::optional<RouteCounterID> counterId("42");
   RouteNextHopEntry newNhopEntry(
-      nhopEntry.getNextHopSet(),
+      facebook::fboss::getNextHops(state_, nhopEntry),
       nhopEntry.getAdminDistance(),
       counterId,
       nhopEntry.getClassID());
