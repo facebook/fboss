@@ -12,6 +12,7 @@
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
 #include "fboss/agent/DHCPv6Handler.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PacketLogger.h"
 #include "fboss/agent/RxPacket.h"
@@ -961,7 +962,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
   }
 
   auto interfaces = state->getInterfaces();
-  auto nexthops = route->getForwardInfo().getNextHopSet();
+  auto nexthops = getNextHops(state, route->getForwardInfo());
 
   for (auto nexthop : nexthops) {
     // get interface needed to reach next hop
@@ -1027,7 +1028,7 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
   }
 
   auto intfs = state->getInterfaces();
-  auto nhs = route->getForwardInfo().getNextHopSet();
+  auto nhs = getNextHops(state, route->getForwardInfo());
   for (auto nh : nhs) {
     auto intf = intfs->getNodeIf(nh.intf());
     if (intf) {
