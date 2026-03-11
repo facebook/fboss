@@ -1001,7 +1001,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       propagationDelayMediaType, // CablePropagationDelayMediaType
+#if defined(CHENAB_SAI_SDK_VERSION_2505_34_0_32)
+      0xffff, // PfcPauseDurationOverride
+#else
       std::nullopt, // PfcPauseDurationOverride
+#endif
   };
 }
 
