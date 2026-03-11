@@ -85,8 +85,7 @@ class ForwardingInformationBaseUpdater {
       const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
       const std::shared_ptr<
           facebook::fboss::ForwardingInformationBase<AddressT>>& fib,
-      std::shared_ptr<SwitchState>& state,
-      NextHopIDManager* nextHopIDManager);
+      std::shared_ptr<SwitchState>& state);
   std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
   createUpdatedLabelFib(
       const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
