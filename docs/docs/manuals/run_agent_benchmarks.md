@@ -101,8 +101,35 @@ Remember to set the `BENCHMARK_INSTALL` env variable from the previous step.
 
 ### Step 3: Run Benchmark Binaries
 
-Run the relevant binaries that can be found in the `bin` directory on the
-switch:
+#### Option 1: Using the run_test.py Script (Recommended)
+
+The `run_test.py` script provides automated execution of benchmark suites with CSV output:
+
+```bash
+cd /opt/fboss
+source ./bin/setup_fboss_env
+
+# Run all benchmarks (T1 + T2 + additional)
+./bin/run_test.py benchmark
+
+# Run T1 benchmark suite
+./bin/run_test.py benchmark \
+--filter_file ./share/hw_benchmark_tests/t1_benchmarks.conf
+
+# Run T2 benchmark suite
+./bin/run_test.py benchmark \
+--filter_file ./share/hw_benchmark_tests/t2_benchmarks.conf
+
+# Run only additional benchmarks (not in T1 or T2)
+./bin/run_test.py benchmark \
+--filter_file ./share/hw_benchmark_tests/additional_benchmarks.conf
+```
+
+Results are written to a timestamped CSV file (e.g., `benchmark_results_20260119_143022.csv`) with detailed metrics.
+
+#### Option 2: Running Individual Binaries
+
+Run individual benchmark binaries directly from the `bin` directory:
 
 ```bash
 cd /opt/fboss
