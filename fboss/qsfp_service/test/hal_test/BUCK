@@ -54,7 +54,7 @@ cpp_library(
 )
 
 cpp_binary(
-    name = "hal_test",
+    name = "qsfp_hal_test",
     srcs = [
         "HalTestModuleAdvertisement.cpp",
         "HalTestModuleInit.cpp",

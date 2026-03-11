@@ -964,6 +964,13 @@ add_fbthrift_py_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  hal_test_config_cpp2
+  fboss/qsfp_service/test/hal_test/hal_test_config.thrift
+  OPTIONS
+    json
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})
