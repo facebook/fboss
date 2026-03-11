@@ -54,12 +54,14 @@ class SaiYangraPlatform : public SaiPlatform {
       BootType bootType) override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
+ protected:
+  std::unique_ptr<ChenabAsic> asic_;
+
  private:
   void setupAsic(
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> role) override;
-  std::unique_ptr<ChenabAsic> asic_;
 };
 
 } // namespace facebook::fboss
