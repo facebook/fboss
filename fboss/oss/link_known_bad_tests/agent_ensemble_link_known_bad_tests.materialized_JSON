@@ -10589,9 +10589,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -10685,9 +10682,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -10785,9 +10779,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -10881,9 +10872,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -10981,9 +10969,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -11077,9 +11062,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -11177,9 +11159,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -11273,9 +11252,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -11373,9 +11349,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -11469,9 +11442,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -11569,9 +11539,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -11665,9 +11632,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -11765,9 +11729,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -11861,9 +11822,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -11961,9 +11919,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -12057,9 +12012,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -12157,9 +12109,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -12253,9 +12202,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -12353,9 +12299,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -12449,9 +12392,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -12549,9 +12489,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -12639,9 +12576,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -12733,9 +12667,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -12823,9 +12754,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -12917,9 +12845,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -13007,9 +12932,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -13101,9 +13023,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -13191,9 +13110,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -13285,9 +13201,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -13375,9 +13288,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -13469,9 +13379,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -13559,9 +13466,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -13653,9 +13557,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -13743,9 +13644,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -13837,9 +13735,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -13927,9 +13822,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -14021,9 +13913,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -14111,9 +14000,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -14205,9 +14091,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -14295,9 +14178,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -14389,9 +14269,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -14479,9 +14356,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -14573,9 +14447,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -14663,9 +14534,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -14757,9 +14625,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -14847,9 +14712,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -14941,9 +14803,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -15031,9 +14890,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -15125,9 +14981,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -15217,9 +15070,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -15307,9 +15157,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -20693,9 +20540,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -20800,9 +20644,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -20899,9 +20740,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21003,9 +20841,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21112,9 +20947,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -21211,9 +21043,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21315,9 +21144,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21424,9 +21250,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -21523,9 +21346,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21627,9 +21447,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21736,9 +21553,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -21835,9 +21649,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -21939,9 +21750,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22048,9 +21856,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -22147,9 +21952,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22251,9 +22053,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22360,9 +22159,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -22459,9 +22255,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22563,9 +22356,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22672,9 +22462,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -22773,9 +22560,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -22869,9 +22653,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -22972,9 +22753,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23065,9 +22843,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23163,9 +22938,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23266,9 +23038,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23359,9 +23128,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23457,9 +23223,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23560,9 +23323,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23653,9 +23413,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23751,9 +23508,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -23854,9 +23608,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -23947,9 +23698,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24045,9 +23793,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24148,9 +23893,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24241,9 +23983,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24339,9 +24078,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24442,9 +24178,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24535,9 +24268,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24633,9 +24363,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24736,9 +24463,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -24829,9 +24553,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -24927,9 +24648,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -25030,9 +24748,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -25123,9 +24838,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -25221,9 +24933,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -25324,9 +25033,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -25417,9 +25123,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -25515,9 +25218,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -25618,9 +25318,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -25711,9 +25408,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -25809,9 +25503,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -25912,9 +25603,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -26011,9 +25699,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -26114,9 +25799,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -26213,9 +25895,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -26316,9 +25995,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -26415,9 +26091,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -26518,9 +26191,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -26617,9 +26287,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -26720,9 +26387,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -26819,9 +26483,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -26922,9 +26583,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -27021,9 +26679,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -27124,9 +26779,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -27223,9 +26875,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -27326,9 +26975,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -27425,9 +27071,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -27528,9 +27171,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -27627,9 +27267,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -27730,9 +27367,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -27831,9 +27465,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -27921,9 +27552,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -28015,9 +27643,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -28105,9 +27730,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -28199,9 +27821,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -28289,9 +27908,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -28383,9 +27999,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -28473,9 +28086,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -28567,9 +28177,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -28657,9 +28264,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -28751,9 +28355,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -28841,9 +28442,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -28935,9 +28533,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -29025,9 +28620,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -29119,9 +28711,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -29209,9 +28798,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -29303,9 +28889,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -29393,9 +28976,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -29487,9 +29067,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -29577,9 +29154,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -29671,9 +29245,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -29761,9 +29332,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -29855,9 +29423,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -29945,9 +29510,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -30039,9 +29601,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -30129,9 +29688,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -30223,9 +29779,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -30313,9 +29866,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -30407,9 +29957,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -30499,9 +30046,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -30589,9 +30133,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -30701,9 +30242,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -30806,9 +30344,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -30915,9 +30450,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -31020,9 +30552,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -31129,9 +30658,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -31234,9 +30760,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -31343,9 +30866,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -31448,9 +30968,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -31557,9 +31074,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -31662,9 +31176,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -31771,9 +31282,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -31876,9 +31384,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -31985,9 +31490,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -32090,9 +31592,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -32199,9 +31698,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -32304,9 +31800,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -32413,9 +31906,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -32518,9 +32008,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -32627,9 +32114,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -32732,9 +32216,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -32841,9 +32322,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -32940,9 +32418,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -33043,9 +32518,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -33142,9 +32614,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -33245,9 +32714,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -33344,9 +32810,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -33447,9 +32910,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -33546,9 +33006,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -33649,9 +33106,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -33748,9 +33202,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -33851,9 +33302,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -33950,9 +33398,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -34053,9 +33498,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -34152,9 +33594,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -34255,9 +33694,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -34354,9 +33790,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -34457,9 +33890,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -34556,9 +33986,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -34659,9 +34086,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -34758,9 +34182,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -34861,9 +34282,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -34960,9 +34378,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -35063,9 +34478,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -35162,9 +34574,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -35265,9 +34674,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -35364,9 +34770,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -35467,9 +34870,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -35566,9 +34966,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -35669,9 +35066,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -35768,9 +35162,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -35871,9 +35262,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -35967,9 +35355,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -36067,9 +35452,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -36163,9 +35545,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -36263,9 +35642,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -36359,9 +35735,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -36459,9 +35832,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -36555,9 +35925,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -36655,9 +36022,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -36751,9 +36115,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -36851,9 +36212,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -36947,9 +36305,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -37047,9 +36402,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -37143,9 +36495,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -37243,9 +36592,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -37339,9 +36685,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -37439,9 +36782,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -37535,9 +36875,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -37635,9 +36972,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -37731,9 +37065,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -37831,9 +37162,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -37929,9 +37257,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -38019,9 +37344,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -38113,9 +37435,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -38203,9 +37522,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -38297,9 +37613,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -38387,9 +37700,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -38481,9 +37791,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -38571,9 +37878,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -38665,9 +37969,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -38755,9 +38056,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -38849,9 +38147,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -38939,9 +38234,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -39033,9 +38325,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -39123,9 +38412,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -39217,9 +38503,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -39307,9 +38590,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -39401,9 +38681,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -39491,9 +38768,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -39585,9 +38859,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -39675,9 +38946,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -39769,9 +39037,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -39859,9 +39124,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -39953,9 +39215,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -40043,9 +39302,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -40137,9 +39393,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -40227,9 +39480,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -40321,9 +39571,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -40411,9 +39658,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -40505,9 +39749,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -40597,9 +39838,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -40687,9 +39925,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "Prbs.*$"
@@ -62702,9 +61937,6 @@
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -62780,9 +62012,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
@@ -62868,9 +62097,6 @@
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -62946,9 +62172,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
@@ -63034,9 +62257,6 @@
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "Prbs.*$"
         },
         {
@@ -63112,9 +62332,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
@@ -87814,9 +87031,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -87916,9 +87130,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -88022,9 +87233,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -88124,9 +87332,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -88230,9 +87435,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -88332,9 +87534,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -88438,9 +87637,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -88540,9 +87736,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -88646,9 +87839,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -88748,9 +87938,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -88854,9 +88041,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -88956,9 +88140,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -89062,9 +88243,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -89164,9 +88342,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -89270,9 +88445,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -89372,9 +88544,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -89478,9 +88647,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -89580,9 +88746,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -89686,9 +88849,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -89788,9 +88948,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -89894,9 +89051,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTcAfterLinkFlap.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -89990,9 +89144,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -90090,9 +89241,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -90186,9 +89334,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -90286,9 +89431,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -90382,9 +89524,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -90482,9 +89621,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -90578,9 +89714,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -90678,9 +89811,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -90774,9 +89904,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -90874,9 +90001,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -90970,9 +90094,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -91070,9 +90191,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -91166,9 +90284,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -91266,9 +90381,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -91362,9 +90474,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -91462,9 +90571,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -91558,9 +90664,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -91658,9 +90761,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -91754,9 +90854,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -91854,9 +90951,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -91950,9 +91044,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -92050,9 +91141,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -92146,9 +91234,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -92246,9 +91331,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -92342,9 +91424,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -92442,9 +91521,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -92538,9 +91614,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
@@ -92638,9 +91711,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -92736,9 +91806,6 @@
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
         },
         {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
-        },
-        {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
         },
         {
@@ -92832,9 +91899,6 @@
         },
         {
           "test_name_regex": "AgentEnsemblePtpTests.verifyPtpTc.*$"
-        },
-        {
-          "test_name_regex": "AgentEnsembleSpeedChangeTest.*$"
         },
         {
           "test_name_regex": "AgentEnsembleSpeedChangeTest.TWOHUNDREDGToFOURHUNDREDG$"
