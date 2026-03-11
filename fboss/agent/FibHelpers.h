@@ -20,6 +20,7 @@
 
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <folly/IPAddress.h>
@@ -58,6 +59,21 @@ std::vector<NextHop> getNextHops(
 std::vector<NextHop> getNextHops(
     const std::shared_ptr<SwitchState>& state,
     NextHopSetId id);
+
+// Resolve nexthops from RouteNextHopEntry.
+// When FLAGS_resolve_nexthops_from_id is on, resolves via resolvedNextHopSetID.
+// When off, falls back to entry.getNextHopSet().
+RouteNextHopSet getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
+
+// Resolve non-override normalized nexthops from RouteNextHopEntry.
+// When FLAGS_resolve_nexthops_from_id is on, resolves via
+// normalizedResolvedNextHopSetID.
+// When off, falls back to entry.nonOverrideNormalizedNextHops().
+RouteNextHopSet getNonOverrideNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
 
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
