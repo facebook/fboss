@@ -75,7 +75,8 @@ class DsfSubscription {
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,
-      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
+      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs,
+      bool grExpiry);
   void processGRHoldTimerExpired();
   void setupSubscription();
   void tearDownSubscription();

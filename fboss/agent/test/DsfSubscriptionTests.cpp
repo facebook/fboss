@@ -560,7 +560,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
   const auto prevState = this->sw_->getState();
   this->subscription_ = this->createSubscription();
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   const auto addedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 2, 0);
@@ -590,7 +590,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       ->second->setAddresses(updatedAddresses);
 
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   auto modifiedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(
@@ -603,7 +603,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       std::make_shared<InterfaceMap>();
 
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   waitForStateUpdates(this->sw_);
   auto deletedState = this->sw_->getState();
@@ -643,7 +643,7 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
     switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = rifs;
 
     this->subscription_->updateWithRollbackProtection(
-        switchId2SystemPorts, switchId2Intfs);
+        switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
     waitForStateUpdates(this->sw_);
 
