@@ -903,6 +903,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1000,6 +1001,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       propagationDelayMediaType, // CablePropagationDelayMediaType
+      std::nullopt, // PfcPauseDurationOverride
   };
 }
 

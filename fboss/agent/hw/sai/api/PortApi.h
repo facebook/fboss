@@ -692,7 +692,8 @@ struct SaiPortTraits {
       std::optional<Attributes::QosTcAndColorToDot1pMap>,
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
-      std::optional<Attributes::CablePropagationDelayMediaType>>;
+      std::optional<Attributes::CablePropagationDelayMediaType>,
+      std::optional<Attributes::PfcPauseDurationOverride>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
