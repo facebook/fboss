@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -11,12 +12,15 @@
 #include <folly/Benchmark.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 #include <sys/resource.h>
 
 #include <common/base/Proc.h>
 #include "fboss/thrift_cow/storage/CowStorage.h"
 #include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
+
+DECLARE_int32(bm_memory_iters);
 
 namespace facebook::fboss::thrift_cow::test {
 
@@ -80,12 +84,15 @@ template <typename RootType>
 void bm_storage_metrics_helper(
     test_data::IDataGenerator& factory,
     folly::UserCounters& counters,
-    unsigned iters,
+    unsigned /* iters */,
     test_data::RoleSelector /* selector */,
     bool enableHybridStorage) {
   std::vector<int64_t> memoryMeasurements;
 
-  for (unsigned i = 0; i < iters; i++) {
+  // Use FLAGS_bm_memory_iters instead of folly's iters for memory measurement
+  int iterations = FLAGS_bm_memory_iters;
+
+  for (int i = 0; i < iterations; i++) {
     auto memoryUsage =
         bm_storage_helper<RootType>(factory, enableHybridStorage);
     if (memoryUsage > 0) {
@@ -105,11 +112,21 @@ void bm_storage_metrics_helper(
 
     int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
 
+    // Compute standard deviation
+    double variance = 0.0;
+    for (int64_t mem : memoryMeasurements) {
+      double diff = static_cast<double>(mem - avgMem);
+      variance += diff * diff;
+    }
+    variance /= static_cast<double>(memoryMeasurements.size() - 1);
+    double stddev = std::sqrt(variance);
+
     // Report metrics - these will appear as columns in benchmark output
     counters["avg_memory_KB"] =
         folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
     counters["max_memory_KB"] =
         folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
+    counters["stddev_memory_KB"] = folly::UserMetric(stddev / 1024.0);
   }
 }
 

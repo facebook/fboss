@@ -2,6 +2,11 @@
 
 #include "fboss/thrift_cow/storage/tests/CowStorageBenchHelper.h"
 
+DEFINE_int32(
+    bm_memory_iters,
+    10,
+    "Number of memory measurement iterations per benchmark");
+
 namespace facebook::fboss::thrift_cow::test {
 
 int64_t timevalToUsec(const timeval& tv) {
