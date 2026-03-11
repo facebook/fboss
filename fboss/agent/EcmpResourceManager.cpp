@@ -1016,6 +1016,14 @@ EcmpResourceManager::InputOutputState::InputOutputState(
               &newStateWithOldFibs);
         }
       }
+      // Copy over ID maps from current state so nexthops can be
+      // resolved from IDs in the reconstructed state
+      if (auto idToNextHopIdSetMap = curFibInfo->getIdToNextHopIdSetMap()) {
+        fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+      }
+      if (auto idToNextHopMap = curFibInfo->getIdToNextHopMap()) {
+        fibInfo->setIdToNextHopMap(idToNextHopMap);
+      }
       fibInfoMap->addNode(matcherStr, fibInfo);
     }
     newStateWithOldFibs->resetFibsInfoMap(std::move(fibInfoMap));
