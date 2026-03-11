@@ -10,6 +10,9 @@
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/HwSwitchMatcher.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -40,16 +43,95 @@ class EcmpResourceManagerDsfScaleTest : public ::testing::Test {
         allNextHops_.begin() + nhopStart + kEcmpWidth);
   }
   void SetUp() override;
+  // Assign nexthop IDs to all FIB routes and populate FibInfo maps
+  void assignNextHopIds(std::shared_ptr<SwitchState>& state);
   std::vector<StateDelta> consolidate(
       const std::shared_ptr<SwitchState>& newState);
   std::unique_ptr<EcmpResourceManager> ecmpResourceMgr_;
   std::shared_ptr<SwitchState> state_;
   RouteNextHopSet allNextHops_;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
 };
+
+void EcmpResourceManagerDsfScaleTest::assignNextHopIds(
+    std::shared_ptr<SwitchState>& state) {
+  if (!nextHopIDManager_) {
+    return;
+  }
+
+  auto fibContainer = state->getFibsInfoMap()->getFibContainerIf(RouterID(0));
+  if (!fibContainer) {
+    return;
+  }
+
+  // Assign IDs to resolved routes that don't have them yet
+  auto assignIds = [&](auto mutableFib, const auto& constFib) {
+    for (const auto& [_, route] : std::as_const(*constFib)) {
+      if (!route->isResolved() ||
+          route->getForwardInfo().getAction() !=
+              RouteNextHopEntry::Action::NEXTHOPS) {
+        continue;
+      }
+      const auto& fwdInfo = route->getForwardInfo();
+      if (fwdInfo.getResolvedNextHopSetID().has_value()) {
+        continue; // Already has IDs
+      }
+      auto resolvedResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(
+          fwdInfo.getNextHopSet());
+      auto normalizedResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(
+          fwdInfo.nonOverrideNormalizedNextHops());
+
+      std::optional<NextHopSetID> resolvedId =
+          resolvedResult.nextHopIdSetIter->second.id;
+      std::optional<NextHopSetID> normalizedId =
+          normalizedResult.nextHopIdSetIter->second.id;
+
+      RouteNextHopEntry updatedFwd;
+      updatedFwd.fromThrift(fwdInfo.toThrift());
+      updatedFwd.setResolvedNextHopSetID(resolvedId);
+      updatedFwd.setNormalizedResolvedNextHopSetID(normalizedId);
+      auto clonedRoute = route->clone();
+      clonedRoute->setResolved(updatedFwd);
+      clonedRoute->publish();
+      mutableFib->updateNode(clonedRoute);
+    }
+  };
+
+  assignIds(fib(state), fibContainer->getFibV6());
+  assignIds(fib4(state), fibContainer->getFibV4());
+
+  // Populate FibInfo maps from the manager
+  auto fibInfoMap = state->getFibsInfoMap()->modify(&state);
+  auto matcher = HwSwitchMatcher::defaultHwSwitchMatcherKey();
+  auto fibInfo = fibInfoMap->getNodeIf(matcher);
+  if (!fibInfo) {
+    fibInfo = std::make_shared<FibInfo>();
+    fibInfoMap->addNode(matcher, fibInfo);
+  }
+  auto fibInfoPtr = fibInfo->modify(&state);
+
+  auto id2Nhop = std::make_shared<IdToNextHopMap>();
+  auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
+  for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
+    id2Nhop->addNextHop(id, nhop.toThrift());
+  }
+  for (const auto& [id, nhopIdSet] : nextHopIDManager_->getIdToNextHopIdSet()) {
+    std::set<int64_t> nhopIds;
+    for (const auto& nhopId : nhopIdSet) {
+      nhopIds.insert(static_cast<int64_t>(nhopId));
+    }
+    id2NhopSetIds->addNextHopIdSet(id, nhopIds);
+  }
+  fibInfoPtr->setIdToNextHopMap(id2Nhop);
+  fibInfoPtr->setIdToNextHopIdSetMap(id2NhopSetIds);
+}
 
 std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
     const std::shared_ptr<SwitchState>& newState) {
-  auto deltas = ecmpResourceMgr_->consolidate(StateDelta(state_, newState));
+  auto stateWithIds = newState->clone();
+  assignNextHopIds(stateWithIds);
+  stateWithIds->publish();
+  auto deltas = ecmpResourceMgr_->consolidate(StateDelta(state_, stateWithIds));
   state_ = deltas.back().newState();
   ecmpResourceMgr_->updateDone();
   assertResourceMgrCorrectness(*ecmpResourceMgr_, state_);
@@ -61,6 +143,9 @@ std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
 
 void EcmpResourceManagerDsfScaleTest::SetUp() {
   FLAGS_ecmp_width = kEcmpWidth;
+  if (FLAGS_enable_nexthop_id_manager) {
+    nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+  }
   ecmpResourceMgr_ = makeResourceMgr();
   state_ = std::make_shared<SwitchState>();
   addSwitchInfo(state_);
@@ -155,6 +240,8 @@ TEST_F(EcmpResourceManagerDsfScaleTest, maxScaleInterfaceRoutes) {
   // Reconstruct from switch state with maximal scale + 20K
   // interface routes. This simulates what happens
   // during warm boot
+  assignNextHopIds(newState);
+  newState->publish();
   auto resourceMgr = makeResourceMgr();
   resourceMgr->reconstructFromSwitchState(newState);
 }
