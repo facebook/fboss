@@ -307,7 +307,15 @@ void BaseEcmpResourceManagerTest::failUpdate(
 void BaseEcmpResourceManagerTest::failUpdate(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<SwitchState>& failTo) {
-  StateDelta delta(state_, state);
+  state->publish();
+  // Push routes through SwSwitch to get NextHop IDs assigned,
+  // then revert SwSwitch so it doesn't retain the failed update.
+  auto savedSwState = sw_->getState();
+  updateRoutes(state);
+  auto consolidatorNewState = copyNextHopIdsToState(state, sw_->getState());
+  updateRoutes(savedSwState);
+  state_ = sw_->getState();
+  StateDelta delta(state_, consolidatorNewState);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateFailed(failTo);
 }
