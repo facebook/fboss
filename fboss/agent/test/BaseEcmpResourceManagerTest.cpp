@@ -10,7 +10,10 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/FileBasedWarmbootUtils.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -137,11 +140,116 @@ BaseEcmpResourceManagerTest::makeResourceMgrWithEcmpLimit(
             ecmpGroupLimit, getEcmpCompressionThresholdPct());
 }
 
+std::shared_ptr<SwitchState> BaseEcmpResourceManagerTest::copyNextHopIdsToState(
+    const std::shared_ptr<SwitchState>& targetState,
+    const std::shared_ptr<SwitchState>& srcState) {
+  if (!FLAGS_resolve_nexthops_from_id) {
+    return targetState;
+  }
+  // Check if any routes need IDs copied before cloning.
+  auto needsIdCopy = [&](const auto& targetFib, const auto& srcFib) {
+    for (const auto& [_, targetRoute] : std::as_const(*targetFib)) {
+      auto srcRoute = srcFib->getRouteIf(targetRoute->prefix());
+      if (!srcRoute) {
+        continue;
+      }
+      const auto& srcFwd = srcRoute->getForwardInfo();
+      const auto& targetFwd = targetRoute->getForwardInfo();
+      if (srcFwd.getResolvedNextHopSetID() !=
+              targetFwd.getResolvedNextHopSetID() ||
+          srcFwd.getNormalizedResolvedNextHopSetID() !=
+              targetFwd.getNormalizedResolvedNextHopSetID()) {
+        return true;
+      }
+    }
+    return false;
+  };
+  bool needsCopy = needsIdCopy(cfib(targetState), cfib(srcState)) ||
+      needsIdCopy(cfib4(targetState), cfib4(srcState));
+  // Check if FibInfo ID maps differ
+  if (!needsCopy) {
+    for (const auto& [matcherStr, srcFibInfo] :
+         std::as_const(*srcState->getFibsInfoMap())) {
+      auto targetFibInfo = targetState->getFibsInfoMap()->getNodeIf(matcherStr);
+      if (!targetFibInfo) {
+        continue;
+      }
+      if (srcFibInfo->getIdToNextHopMap() !=
+              targetFibInfo->getIdToNextHopMap() ||
+          srcFibInfo->getIdToNextHopIdSetMap() !=
+              targetFibInfo->getIdToNextHopIdSetMap()) {
+        needsCopy = true;
+        break;
+      }
+    }
+  }
+  if (!needsCopy) {
+    return targetState;
+  }
+  // Clone and copy IDs
+  auto clonedState = targetState->clone();
+  auto copyRouteIds = [&](auto targetFib, const auto& srcFib) {
+    for (const auto& [_, targetRoute] : std::as_const(*targetFib)) {
+      auto srcRoute = srcFib->getRouteIf(targetRoute->prefix());
+      if (!srcRoute) {
+        continue;
+      }
+      const auto& srcFwd = srcRoute->getForwardInfo();
+      const auto& targetFwd = targetRoute->getForwardInfo();
+      auto resolvedId = srcFwd.getResolvedNextHopSetID();
+      auto normalizedId = srcFwd.getNormalizedResolvedNextHopSetID();
+      if (resolvedId == targetFwd.getResolvedNextHopSetID() &&
+          normalizedId == targetFwd.getNormalizedResolvedNextHopSetID()) {
+        continue;
+      }
+      RouteNextHopEntry updatedFwd;
+      updatedFwd.fromThrift(targetFwd.toThrift());
+      updatedFwd.setResolvedNextHopSetID(resolvedId);
+      updatedFwd.setNormalizedResolvedNextHopSetID(normalizedId);
+      auto clonedRoute = targetRoute->clone();
+      clonedRoute->setResolved(updatedFwd);
+      clonedRoute->publish();
+      targetFib->updateNode(clonedRoute);
+    }
+  };
+  auto fib6 = fibImpl<folly::IPAddressV6>(clonedState);
+  auto fib4 = fibImpl<folly::IPAddressV4>(clonedState);
+  copyRouteIds(fib6, cfib(srcState));
+  copyRouteIds(fib4, cfib4(srcState));
+  for (const auto& [matcherStr, srcFibInfo] :
+       std::as_const(*srcState->getFibsInfoMap())) {
+    auto fibInfoMap = clonedState->getFibsInfoMap()->modify(&clonedState);
+    auto targetFibInfo = fibInfoMap->getNodeIf(matcherStr);
+    if (!targetFibInfo) {
+      continue;
+    }
+    auto modifiedFibInfo = targetFibInfo->clone();
+    if (auto idToNextHopMap = srcFibInfo->getIdToNextHopMap()) {
+      modifiedFibInfo->setIdToNextHopMap(idToNextHopMap);
+    }
+    if (auto idToNextHopIdSetMap = srcFibInfo->getIdToNextHopIdSetMap()) {
+      modifiedFibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+    }
+    fibInfoMap->updateNode(matcherStr, modifiedFibInfo);
+  }
+  clonedState->publish();
+  return clonedState;
+}
+
 std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   state->publish();
+  // Run SwSwitch path first so routes get NextHop IDs assigned
+  XLOG(DBG2) << " SwSwitch update start";
+  updateFlowletSwitchingConfig(state);
+  updateRoutes(state);
+  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
+  XLOG(DBG2) << " SwSwitch update done";
+  // Copy nexthop IDs from sw_->getState() to the new state so that
+  // assertResourceMgrCorrectness can resolve nexthops via IDs.
+  auto consolidatorNewState = copyNextHopIdsToState(state, sw_->getState());
   XLOG(DBG2) << " Consolidator update start";
-  StateDelta delta(state_, state);
+  StateDelta delta(state_, consolidatorNewState);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateDone();
   if (deltas.size()) {
@@ -150,11 +258,6 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     assertResourceMgrCorrectness(*consolidator_, deltas.back().newState());
   }
   XLOG(DBG2) << " Consolidator update done";
-  XLOG(DBG2) << " SwSwitch update start";
-  updateFlowletSwitchingConfig(state);
-  updateRoutes(state);
-  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
-  XLOG(DBG2) << " SwSwitch update done";
   CHECK(state_->isPublished());
   state_ = sw_->getState();
   /*
