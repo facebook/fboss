@@ -89,6 +89,30 @@ class AgentSrv6EncapTest : public AgentHwTest {
     return aggPort->sortedSubports().front().portID;
   }
 
+  void verifyEncapPacket(PortID egressPort) {
+    auto portStatsBefore = this->getLatestPortStats(egressPort);
+    auto bytesBefore = *portStatsBefore.outBytes_();
+
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+    auto txPacket = utility::makeUDPTxPacket(
+        this->getSw(),
+        this->getVlanIDForTx(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("1::10"),
+        folly::IPAddressV6("2800:2::1"),
+        8000,
+        8001);
+    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(egressPort);
+      auto bytesAfter = *portStatsAfter.outBytes_();
+      EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+    });
+  }
+
  private:
   cfg::Srv6Tunnel makeSrv6TunnelConfig(
       const std::string& name,
@@ -176,28 +200,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
         this->getSw()->needL2EntryForNeighbor(),
         getLocalMacAddress());
     auto egressPort = this->getEgressPort(ecmpHelper.ecmpPortDescriptorAt(0));
-
-    auto portStatsBefore = this->getLatestPortStats(egressPort);
-    auto bytesBefore = *portStatsBefore.outBytes_();
-
-    auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
-    auto txPacket = utility::makeUDPTxPacket(
-        this->getSw(),
-        this->getVlanIDForTx(),
-        intfMac,
-        intfMac,
-        folly::IPAddressV6("1::10"),
-        folly::IPAddressV6("2800:2::1"),
-        8000,
-        8001);
-    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
-
-    WITH_RETRIES({
-      auto portStatsAfter = this->getLatestPortStats(egressPort);
-      auto bytesAfter = *portStatsAfter.outBytes_();
-      EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
-    });
+    this->verifyEncapPacket(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
