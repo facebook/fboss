@@ -4,8 +4,11 @@
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
+#include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
@@ -13,9 +16,47 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
+class SaiSrv6Manager;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 using SaiSrv6SidList = SaiObject<SaiSrv6SidListTraits>;
+
+class ManagedSrv6SidList : public detail::SaiObjectEventSingleSubscriber<
+                               ManagedSrv6SidList,
+                               SaiIpNextHopTraits> {
+ public:
+  using Base = detail::
+      SaiObjectEventSingleSubscriber<ManagedSrv6SidList, SaiIpNextHopTraits>;
+  using IpNextHopWeakPtr = std::weak_ptr<const SaiObject<SaiIpNextHopTraits>>;
+
+  ManagedSrv6SidList(
+      SaiSrv6Manager* manager,
+      typename SaiIpNextHopTraits::AdapterHostKey nexthopKey,
+      SaiSrv6SidListTraits::AdapterHostKey sidListKey,
+      SaiSrv6SidListTraits::CreateAttributes attrs)
+      : Base(std::move(nexthopKey)),
+        manager_(manager),
+        sidListKey_(std::move(sidListKey)),
+        attrs_(std::move(attrs)) {}
+
+  template <typename PublishedObjectTrait>
+  void afterCreateNotifyAggregateSubscriber() {}
+
+  template <typename PublishedObjectTrait>
+  void beforeRemoveNotifyAggregateSubscriber() {}
+
+  template <typename PublishedObjectTrait>
+  void notifyLinkDownAggregateSubscriber() {}
+
+  const SaiSrv6SidListTraits::AdapterHostKey& getSidListKey() const {
+    return sidListKey_;
+  }
+
+ private:
+  SaiSrv6Manager* manager_;
+  SaiSrv6SidListTraits::AdapterHostKey sidListKey_;
+  SaiSrv6SidListTraits::CreateAttributes attrs_;
+};
 #endif
 
 struct SaiSrv6SidListHandle {
