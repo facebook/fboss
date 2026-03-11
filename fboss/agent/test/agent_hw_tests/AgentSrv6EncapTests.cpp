@@ -4,38 +4,89 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
 
+struct PhysicalPortSrv6 {
+  static constexpr bool isTrunk = false;
+};
+struct AggregatePortSrv6 {
+  static constexpr bool isTrunk = true;
+};
+using Srv6EncapPortTypes =
+    ::testing::Types<PhysicalPortSrv6, AggregatePortSrv6>;
+
+template <typename PortType>
 class AgentSrv6EncapTest : public AgentHwTest {
  protected:
+  static constexpr bool kIsTrunk = PortType::isTrunk;
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (kIsTrunk) {
+      return {ProductionFeature::SRV6_ENCAP, ProductionFeature::LAG};
+    }
     return {ProductionFeature::SRV6_ENCAP};
   }
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+    cfg::SwitchConfig cfg;
+    if constexpr (kIsTrunk) {
+      cfg = utility::oneL3IntfTwoPortConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds()[0],
+          ensemble.masterLogicalPortIds()[1]);
+      utility::addAggPort(
+          1, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[0])}, &cfg);
+      utility::addAggPort(
+          2, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[1])}, &cfg);
+    } else {
+      cfg = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds(),
+          true /*interfaceHasSubnet*/);
+    }
     addSrv6TunnelConfig(cfg);
     return cfg;
   }
 
+  void applyConfigAndEnableTrunks(const cfg::SwitchConfig& config) {
+    this->applyNewConfig(config);
+    this->applyNewState(
+        [](const std::shared_ptr<SwitchState> state) {
+          return utility::enableTrunkPorts(state);
+        },
+        "enable trunk ports");
+  }
+
   void setupHelper() {
+    if constexpr (kIsTrunk) {
+      applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(),
-        getSw()->needL2EntryForNeighbor(),
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
         getLocalMacAddress());
-    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
+    this->resolveNeighbors(ecmpHelper, 2);
+  }
+
+  PortID getEgressPort(const PortDescriptor& portDesc) const {
+    if (portDesc.isPhysicalPort()) {
+      return portDesc.phyPortID();
+    }
+    auto aggPort = this->getProgrammedState()->getAggregatePorts()->getNodeIf(
+        portDesc.aggPortID());
+    return aggPort->sortedSubports().front().portID;
   }
 
  private:
@@ -61,33 +112,39 @@ class AgentSrv6EncapTest : public AgentHwTest {
   }
 };
 
-TEST_F(AgentSrv6EncapTest, CreateSrv6Tunnel) {
-  auto setup = [=, this]() { setupHelper(); };
+TYPED_TEST_SUITE(AgentSrv6EncapTest, Srv6EncapPortTypes);
+
+TYPED_TEST(AgentSrv6EncapTest, CreateSrv6Tunnel) {
+  auto setup = [=, this]() { this->setupHelper(); };
   auto verify = [=, this]() {
     auto tunnel =
-        getProgrammedState()->getSrv6Tunnels()->getNodeIf("srv6Tunnel0");
+        this->getProgrammedState()->getSrv6Tunnels()->getNodeIf("srv6Tunnel0");
     ASSERT_NE(tunnel, nullptr);
     EXPECT_EQ(tunnel->getID(), "srv6Tunnel0");
     EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_ENCAP);
     EXPECT_EQ(
         tunnel->getUnderlayIntfId(),
-        InterfaceID(initialConfig(*getAgentEnsemble())
+        InterfaceID(this->initialConfig(*this->getAgentEnsemble())
                         .interfaces()[0]
                         .intfID()
                         .value()));
     EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddress("2001:db8::1"));
     EXPECT_EQ(tunnel->getDstIP(), std::nullopt);
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentSrv6EncapTest, sendPacketToEncapRoute) {
+TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
   auto setup = [this]() {
+    if constexpr (TestFixture::kIsTrunk) {
+      this->applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(),
-        getSw()->needL2EntryForNeighbor(),
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
         getLocalMacAddress());
-    resolveNeighbors(ecmpHelper, ecmpHelper.getNextHops().size());
+    this->resolveNeighbors(ecmpHelper, ecmpHelper.getNextHops().size());
 
     auto nhop = ecmpHelper.nhop(0);
     std::vector<folly::IPAddressV6> sidList{
@@ -105,7 +162,7 @@ TEST_F(AgentSrv6EncapTest, sendPacketToEncapRoute) {
         sidList,
         TunnelType::SRV6_ENCAP,
         std::string("srv6Tunnel0"))};
-    auto routeUpdater = getSw()->getRouteUpdater();
+    auto routeUpdater = this->getSw()->getRouteUpdater();
     routeUpdater.addRoute(
         RouterID(0),
         folly::IPAddressV6("2800:2::"),
@@ -117,34 +174,34 @@ TEST_F(AgentSrv6EncapTest, sendPacketToEncapRoute) {
 
   auto verify = [this]() {
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        getProgrammedState(),
-        getSw()->needL2EntryForNeighbor(),
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
         getLocalMacAddress());
-    auto egressPort = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
+    auto egressPort = this->getEgressPort(ecmpHelper.ecmpPortDescriptorAt(0));
 
-    auto portStatsBefore = getLatestPortStats(egressPort);
+    auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
-        getSw(),
-        getVlanIDForTx(),
+        this->getSw(),
+        this->getVlanIDForTx(),
         intfMac,
         intfMac,
         folly::IPAddressV6("1::10"),
         folly::IPAddressV6("2800:2::1"),
         8000,
         8001);
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
 
     WITH_RETRIES({
-      auto portStatsAfter = getLatestPortStats(egressPort);
+      auto portStatsAfter = this->getLatestPortStats(egressPort);
       auto bytesAfter = *portStatsAfter.outBytes_();
       EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
     });
   };
-  verifyAcrossWarmBoots(setup, verify);
+  this->verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss
