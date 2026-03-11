@@ -56,12 +56,15 @@ class DsfSubscription {
  private:
   struct DsfUpdate {
     bool isEmpty() const {
-      return switchId2SystemPorts.empty() && switchId2Intfs.empty();
+      return switchId2SystemPorts.empty() && switchId2Intfs.empty() &&
+          !grExpiry;
     }
     void clear() {
       switchId2SystemPorts.clear();
       switchId2Intfs.clear();
+      grExpiry = false;
     }
+    bool grExpiry{false};
     std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
     std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
   };
