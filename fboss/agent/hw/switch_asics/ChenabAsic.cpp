@@ -477,7 +477,7 @@ uint32_t ChenabAsic::getThresholdGranularity() const {
 
 std::vector<prbs::PrbsPolynomial> ChenabAsic::getSupportedPrbsPolynomials()
     const {
-  return {prbs::PrbsPolynomial::PRBS13};
+  return {prbs::PrbsPolynomial::PRBS13, prbs::PrbsPolynomial::PRBS31};
 }
 
 std::optional<uint32_t> ChenabAsic::getMaxArsGroups() const {
