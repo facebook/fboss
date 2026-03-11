@@ -62,7 +62,7 @@ RUN dnf download libtool && \
     rpm -ivh --nodeps libtool-*.rpm && \
     rm -f libtool-*.rpm
 
-RUN python3 -m pip install boto3 botocore gitpython meson jinja2
+RUN python3 -m pip install boto3 botocore gitpython meson jinja2 pytest
 
 COPY .pre-commit-config.yaml /tmp/.pre-commit-config.yaml
 COPY ./fboss/oss/docker/setup_clang.sh /tmp/setup_clang.sh
