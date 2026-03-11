@@ -135,6 +135,9 @@
         <package name="libusbx"/>
         <package name="dmidecode"/>
         <package name="libaio"/>
+        <package name="tcpdump"/>
+        <package name="usbutils"/>
+        <package name="ndisc6"/>
     </packages>
 
     <packages type="bootstrap">
