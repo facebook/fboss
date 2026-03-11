@@ -25,6 +25,7 @@
 #include <folly/IPAddressV6.h>
 
 DECLARE_bool(enable_nexthop_id_manager);
+DECLARE_bool(resolve_nexthops_from_id);
 
 using folly::IPAddressV4;
 using folly::IPAddressV6;
@@ -37,21 +38,28 @@ HwSwitchMatcher scope() {
 }
 } // namespace
 
-template <typename AddrType>
+template <typename AddrType, bool ResolveFromId = false>
+struct FibHelperTestParams {
+  using AddrT = AddrType;
+  static constexpr bool resolveFromId = ResolveFromId;
+};
+
+template <typename Params>
 class FibHelperTest : public ::testing::Test {
  public:
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = AddrType;
+  using AddrT = typename Params::AddrT;
   static constexpr bool hasStandAloneRib = true;
+  static constexpr bool resolveFromId = Params::resolveFromId;
 
   void SetUp() override {
     FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_resolve_nexthops_from_id = resolveFromId;
     auto config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
 
-    // Install kPrefix1 in FIB
     programRoute(kPrefix1());
   }
 
@@ -179,8 +187,11 @@ class FibHelperTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-using FibHelperTestTypes =
-    ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
+using FibHelperTestTypes = ::testing::Types<
+    FibHelperTestParams<folly::IPAddressV4, false>,
+    FibHelperTestParams<folly::IPAddressV4, true>,
+    FibHelperTestParams<folly::IPAddressV6, false>,
+    FibHelperTestParams<folly::IPAddressV6, true>>;
 
 TYPED_TEST_CASE(FibHelperTest, FibHelperTestTypes);
 
@@ -248,7 +259,7 @@ TYPED_TEST(FibHelperTest, getNexthopsResolvesRouteIds) {
   for (const auto& [_, route] : std::as_const(*fib)) {
     const auto& fwdInfo = route->getForwardInfo();
     auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
-    const auto& expectedNextHopSet = fwdInfo.getNextHopSet();
+    const auto& expectedNextHopSet = getNextHops(state, fwdInfo);
 
     // Skip routes without nexthops (TO_CPU/DROP actions)
     if (expectedNextHopSet.empty()) {
@@ -278,6 +289,42 @@ TYPED_TEST(FibHelperTest, getNexthopsInvalidIdThrows) {
   // Try to resolve a non-existent NextHopSetId
   NextHopSetId invalidId = 999999;
   EXPECT_THROW(getNextHops(state, invalidId), FbossError);
+}
+
+TYPED_TEST(FibHelperTest, getNextHopsFromEntry) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  auto fib = this->getFib(fibContainer);
+
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    const auto& fwdInfo = route->getForwardInfo();
+    if (fwdInfo.getNextHopSet().empty()) {
+      continue;
+    }
+    auto result = getNextHops(state, fwdInfo);
+    EXPECT_EQ(result, fwdInfo.getNextHopSet());
+  }
+}
+
+TYPED_TEST(FibHelperTest, getNonOverrideNormalizedNextHopsFromEntry) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  auto fib = this->getFib(fibContainer);
+
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    const auto& fwdInfo = route->getForwardInfo();
+    if (fwdInfo.getNextHopSet().empty()) {
+      continue;
+    }
+    auto result = getNonOverrideNormalizedNextHops(state, fwdInfo);
+    EXPECT_EQ(result, fwdInfo.nonOverrideNormalizedNextHops());
+  }
 }
 
 } // namespace facebook::fboss
