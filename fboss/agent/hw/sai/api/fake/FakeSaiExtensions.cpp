@@ -309,6 +309,11 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+  return SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE;
+}
+
+std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
   return std::nullopt;
 }

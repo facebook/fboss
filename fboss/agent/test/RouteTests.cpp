@@ -2912,3 +2912,81 @@ TEST_F(RouteTest, addRouteWithMixedSrv6AndPlainNextHops) {
     }
   }
 }
+
+TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
+  auto rid = RouterID(0);
+
+  // SRv6 segment list that should propagate through recursive resolution
+  const std::vector<folly::IPAddressV6> sidList{
+      folly::IPAddressV6("3001:db8:1::"),
+      folly::IPAddressV6("3001:db8:2::"),
+      folly::IPAddressV6("3001:db8:3::")};
+
+  // Step 1: Add an IGP route 2801::/48 with 2 directly-resolvable next hops.
+  // 1::10 resolves via interface 1 (1::1/48), 2::10 via interface 2 (2::1/48).
+  auto updater = this->sw_->getRouteUpdater();
+  RouteNextHopSet igpNhops = makeNextHops({"1::10", "2::10"});
+  updater.addRoute(
+      rid,
+      IPAddress("2801::"),
+      48,
+      kClientA,
+      RouteNextHopEntry(igpNhops, DISTANCE));
+
+  // Step 2: Add an SRv6 route 2800:1::/64 with a single unresolved next hop
+  // pointing at 2801::1, which should resolve recursively via 2801::/48.
+  RouteNextHopSet srv6Nhops;
+  srv6Nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("2801::1"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  updater.addRoute(
+      rid,
+      IPAddress("2800:1::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(srv6Nhops, EBGP_DISTANCE));
+  updater.program();
+
+  // Step 3: Verify the SRv6 route resolved to 2 next hops, each carrying the
+  // original srv6SegmentList, tunnelType, and tunnelId.
+  auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:1::/64");
+  ASSERT_NE(nullptr, rt);
+  EXPECT_TRUE(rt->isResolved());
+
+  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(2, fwdNhops.size());
+
+  // Build expected resolved next hops with SRv6 fields
+  RouteNextHopSet expectedNhops;
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("1::10"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("2::10"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidList,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+
+  EXPECT_EQ(expectedNhops, fwdNhops);
+}

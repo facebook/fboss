@@ -9,13 +9,11 @@
  */
 #pragma once
 
-#include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/platforms/sai/SaiYangraPlatform.h"
 
 namespace facebook::fboss {
 
-class Chenab2Asic;
-
-class SaiYangra2Platform : public SaiPlatform {
+class SaiYangra2Platform : public SaiYangraPlatform {
  public:
   SaiYangra2Platform(
       std::unique_ptr<PlatformProductInfo> productInfo,
@@ -27,39 +25,17 @@ class SaiYangra2Platform : public SaiPlatform {
       std::unique_ptr<PlatformMapping> platformMapping);
   ~SaiYangra2Platform() override;
 
-  std::optional<SaiSwitchTraits::Attributes::AclFieldList> getAclFieldList()
-      const override;
-
-  HwAsic* getAsic() const override;
-  bool isSerdesApiSupported() const override;
-  std::vector<PortID> getAllPortsInGroup(PortID /*portID*/) const override;
-  std::vector<FlexPortMode> getSupportedFlexPortModes() const override;
-  std::optional<sai_port_interface_type_t> getInterfaceType(
-      TransmitterTechnology /*transmitterTech*/,
-      cfg::PortSpeed /*speed*/) const override;
-  bool supportInterfaceType() const override;
-  void initLEDs() override;
-
-  const std::set<sai_api_t>& getSupportedApiList() const override;
-
-  virtual const std::unordered_map<std::string, std::string>
-  getSaiProfileVendorExtensionValues() const override;
-
-  std::string getHwConfig() override;
-
   SaiSwitchTraits::CreateAttributes getSwitchAttributes(
       bool mandatoryOnly,
       cfg::SwitchType switchType,
       std::optional<int64_t> switchId,
       BootType bootType) override;
-  HwSwitchWarmBootHelper* getWarmBootHelper() override;
 
  private:
   void setupAsic(
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> role) override;
-  std::unique_ptr<Chenab2Asic> asic_;
 };
 
 } // namespace facebook::fboss

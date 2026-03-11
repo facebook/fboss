@@ -160,11 +160,16 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
   EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
   EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
 
-  // Verify NextHopId was set on the SID list
+  // Verify NextHopId was set on the SID list to the underlay IP nhop
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
+  auto& underlayNhOpt = (*srv6NextHop)->getUnderlayNextHop();
+  ASSERT_TRUE(underlayNhOpt.has_value());
+  auto underlayIpNhop =
+      std::get<std::shared_ptr<ManagedIpNextHop>>(*underlayNhOpt);
+  ASSERT_NE(underlayIpNhop->getSaiObject(), nullptr);
   auto gotNextHopId = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
-  EXPECT_EQ(gotNextHopId, (*srv6NextHop)->getSaiObject()->adapterKey());
+  EXPECT_EQ(gotNextHopId, underlayIpNhop->getSaiObject()->adapterKey());
 }
 
 TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {
@@ -280,16 +285,23 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
 
   // Record initial SAI object and SID list info
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
-  auto initialNextHopId = (*srv6NextHop)->getSaiObject()->adapterKey();
   auto& sidListHandle = (*srv6NextHop)->getSrv6SidListHandle();
   ASSERT_NE(sidListHandle, nullptr);
   ASSERT_NE(sidListHandle->sidList, nullptr);
   auto sidListId = sidListHandle->sidList->adapterKey();
 
-  // Verify NextHopId was set on the SID list initially
+  // Get the underlay IP nhop whose adapter key is used as NextHopId
+  auto& underlayNhOpt = (*srv6NextHop)->getUnderlayNextHop();
+  ASSERT_TRUE(underlayNhOpt.has_value());
+  auto underlayIpNhop =
+      std::get<std::shared_ptr<ManagedIpNextHop>>(*underlayNhOpt);
+  ASSERT_NE(underlayIpNhop->getSaiObject(), nullptr);
+  auto initialUnderlayNhopId = underlayIpNhop->getSaiObject()->adapterKey();
+
+  // Verify NextHopId was set on the SID list initially to the underlay nhop
   auto gotNextHopId = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
-  EXPECT_EQ(gotNextHopId, initialNextHopId);
+  EXPECT_EQ(gotNextHopId, initialUnderlayNhopId);
 
   // Simulate link down — cascades through FDB → neighbor → managed next hop
   const auto& remoteHost = intf0.remoteHosts[0];
@@ -313,7 +325,6 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
 
   // SAI next hop object should be recreated
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
-  auto newNextHopId = (*srv6NextHop)->getSaiObject()->adapterKey();
 
   // The cached sidListHandle should still be valid with same sidList object
   auto& cachedHandle = (*srv6NextHop)->getSrv6SidListHandle();
@@ -321,9 +332,11 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
   ASSERT_NE(cachedHandle->sidList, nullptr);
   EXPECT_EQ(cachedHandle->sidList->adapterKey(), sidListId);
 
-  // NextHopId on the SID list should be updated to the new next hop
+  // NextHopId on the SID list should be updated to the new underlay nhop
+  ASSERT_NE(underlayIpNhop->getSaiObject(), nullptr);
+  auto newUnderlayNhopId = underlayIpNhop->getSaiObject()->adapterKey();
   auto updatedNextHopId = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::NextHopId{});
-  EXPECT_EQ(updatedNextHopId, newNextHopId);
+  EXPECT_EQ(updatedNextHopId, newUnderlayNhopId);
 }
 #endif

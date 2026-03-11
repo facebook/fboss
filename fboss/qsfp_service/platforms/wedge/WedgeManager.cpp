@@ -4,6 +4,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
 #include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
@@ -28,6 +29,10 @@ DEFINE_bool(
     optics_data_post_to_rest,
     false,
     "Enable qsfp_service to post optics thermal data to BMC");
+
+// @nolint(facebook-hte-PreventUseOfDeclareGflag) - Flag defined in
+// QsfpConfig.cpp
+DECLARE_string(qsfp_service_volatile_dir);
 
 namespace facebook {
 namespace fboss {
@@ -85,6 +90,8 @@ void WedgeManager::loadConfig() {
   const auto& qsfpCfg = qsfpConfig_->thrift;
   tcvrConfig_ = std::make_shared<TransceiverConfig>(
       *qsfpCfg.transceiverConfigOverrides());
+
+  qsfpConfig_->writePhyConfigToFile();
 
   if (FLAGS_publish_state_to_fsdb) {
     fsdbSyncManager_->updateConfig(qsfpCfg);
@@ -1006,6 +1013,18 @@ bool WedgeManager::initExternalPhyMap(
   if (!phyManager) {
     // If there's no PhyManager for such platform, skip init xphy map
     return true;
+  }
+
+  // For platforms that require PHY config, fail hard if the phy config file doesn't exist.
+  if (requiresPhyConfig()) {
+    auto phyConfigPath = folly::to<std::string>(
+        FLAGS_qsfp_service_volatile_dir, "/", kPhyHwConfigFileName);
+    if (!checkFileExists(phyConfigPath)) {
+      throw FbossError(
+          "Platform requires PHY config but phy config file does not exist: ",
+          phyConfigPath,
+          ". Ensure 'phyConfig' is present in qsfp_service_config.");
+    }
   }
 
   // forceWarmboot is only used to skip checking the warmboot file

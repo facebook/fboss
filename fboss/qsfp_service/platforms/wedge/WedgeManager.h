@@ -120,6 +120,14 @@ class WedgeManager : public TransceiverManager {
       override;
 
   /*
+   * Returns true if this platform requires PHY/retimer config to operate.
+   * Currently only Ladakh platform requires it.
+   */
+  bool requiresPhyConfig() const {
+    return platformType_ == PlatformType::PLATFORM_LADAKH800BCLS;
+  }
+
+  /*
    * Virtual function to program a PHY port on external PHY. This is a dummy
    * function here, it needs to be implemented by the platforms which support
    * external PHY and the PHY code is running in this qsfp_service process

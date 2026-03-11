@@ -138,4 +138,12 @@ struct QsfpServiceConfig {
 
   // Port name to optical channel config map
   8: optional map<string, OpticalChannelConfig> tunableOpticsConfig;
+
+  // PHY/Retimer configuration content for platforms with external PHY (eg: Ladakh)
+  // This is the raw content of the phy_config_file stored as a single-line
+  // string with \n for newlines. At runtime, this content is written to a
+  // temp file and passed to SAI initialization via the phy_config_file flag.
+  // NOTE: This field is MANDATORY for Ladakh platform - QSFP service will
+  // fail to start if this field is missing
+  9: optional string phyConfig;
 }

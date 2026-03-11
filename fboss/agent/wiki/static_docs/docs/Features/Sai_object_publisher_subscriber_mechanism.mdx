@@ -5,12 +5,475 @@ title: SAI Object Publisher Subscriber Mechanism
 
 # SAI Object Publisher Subscriber Mechanism
 
-SAI or Switch Abstraction Interface models elements of traffic forwarding as objects. These objects typically have some relationship between them. The relation is that of either ownership or referencing.
+## Overview
 
-Example - a route is an object, which references a next hop or next hop group. Many routes may reference a next hop group. Next hop group is an object - which contains or owns next hop group member. Next hop group member references a next hop. FDB entry references a bridge port. But bridge port is owned by SAI port.
+SAI (Switch Abstraction Interface) models elements of traffic forwarding as objects. These objects have relationships between them — either ownership ("has-a") or reference ("uses"). For example, a route references a next hop, an FDB entry references a bridge port, and a next hop group owns its members.
 
-Ownership relationship is modeled by “Has-A” or “aggregation” relationship. Example, next hop group contains next hop group members.
+The ownership relationship is straightforward. However, the reference relationship is harder to manage because:
 
-However there is no easy way to model “references” relationship. Further this relationship is always enforced in SDK. Example - if next hop group member references a next hop, then deleting a next hop would fail. Example - if FDB entry references a bridge port, then removal of that bridge port will fail with in-use error.
+1. **Creation ordering**: Object A cannot be created before the object B it references.
+2. **Deletion ordering**: Object B cannot be deleted while object A still references it — the SDK enforces this with "in-use" errors.
+3. **State propagation**: When object B changes state (e.g., a neighbor becomes unresolved), all objects referencing it must react (e.g., next hop group must shrink).
 
-Similarly, a behavior may be needed for seemingly un-related objects as well. Example - neighbor and next hop group member. Neighbor gets unresolved, should lead to next hop group member getting deleted and subsequently next hop group shrinking. To facilitate this and other possibly complex dependencies, a mechanism has been introduced in SAI Switch. This uses Subscriber-Publisher model, where objects are subscribers, publishers or both. A subscriber subscribes for create or delete event of publisher and react to birth or death of publisher. Example - a neighbor is born, next hop is created, a next hop group member is created, next hop group expands. Conversely - a neighbor is deleted, next hop is removed, next hop group member dies and next hop group shrinks.
+To manage these dependencies, FBOSS uses a **Publisher-Subscriber mechanism**. Objects are publishers, subscribers, or both. Subscribers subscribe to lifecycle events (create, delete, link-down) of publishers and react accordingly.
+
+**Example cascade**: A neighbor is created → a next hop is created (subscriber of neighbor) → a next hop group member is created (subscriber of next hop) → the next hop group expands.
+
+## Architecture
+
+### Source Files
+
+| File | Role |
+|------|------|
+| `fboss/agent/hw/sai/store/SaiObjectEventPublisher.h` | Publisher singleton and per-trait publisher with `subscribe()`, `notifyCreate()`, `notifyDelete()`, `notifyLinkDown()` |
+| `fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h` | Subscriber base classes: `SaiObjectEventSubscriber`, `SaiObjectEventSinglePublisherSubscriber`, `SaiObjectEventAggregateSubscriber` |
+| `fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h` | Out-of-line `resetObject()` implementations (needs complete `SaiObject` type) |
+| `fboss/agent/hw/sai/store/SaiObject.h` | RAII `SaiObject` that calls `notifyAfterCreate()` / `notifyBeforeDestroy()` during its lifecycle |
+| `fboss/agent/hw/sai/store/SaiStore.h` | `SaiObjectStore::setObject()` creates/updates objects and triggers publisher notifications |
+| `fboss/agent/hw/sai/store/Traits.h` | Trait definitions: `IsObjectPublisher`, `PublisherKey`, `IsPublisherKeyAdapterHostKey`, etc. |
+| `fboss/lib/RefMap.h` | `UnorderedRefMap` — self-managed reference-counted map used for subscriptions |
+
+### Class Hierarchy
+
+```
+detail::SaiObjectEventSubscriber<PublisherObjectTraits>     (base interface)
+  │
+  ├── SaiObjectEventSinglePublisherSubscriber<Impl, SubTraits, PubTrait>
+  │     (CRTP base for subscribers with exactly one publisher)
+  │     Concrete examples: ManagedFdbEntry, ManagedVlanRifNeighbor,
+  │                        ManagedNextHop<T>, ManagedVlanMember
+  │
+  └── detail::SaiObjectEventSingleSubscriber<AggSub, PubTrait>
+        (facade that dispatches to aggregate subscriber)
+        │
+        └── SaiObjectEventAggregateSubscriber<Impl, SubTraits, PubTraits...>
+              (subscriber for multiple publishers)
+              Concrete example: ManagedSaiNextHopGroupMember
+```
+
+## Publisher
+
+### What Is a Publisher
+
+A publisher is a `SaiObject<T>` whose trait `T` has `IsObjectPublisher<T>` set to `std::true_type`. Publisher objects automatically notify subscribers when they are created or destroyed.
+
+Current publisher traits:
+
+| Publisher Trait | SAI Object | Publisher Key Type |
+|----------------|------------|-------------------|
+| `SaiBridgePortTraits` | Bridge Port | `SaiPortDescriptor` (custom) |
+| `SaiFdbTraits` | FDB Entry | `tuple<InterfaceID, MacAddress>` (custom) |
+| `SaiNeighborTraits` | Neighbor | Adapter Host Key |
+| `SaiIpNextHopTraits` | IP Next Hop | Adapter Host Key |
+| `SaiMplsNextHopTraits` | MPLS Next Hop | Adapter Host Key |
+| `SaiSrv6SidlistNextHopTraits` | SRv6 Next Hop | Adapter Host Key |
+| `SaiVlanRouterInterfaceTraits` | VLAN Router Interface | `InterfaceID` (custom) |
+
+### Publisher Key
+
+Each publisher is identified by a **publisher key** — a value that uniquely identifies the publisher instance. Subscribers use this key to specify which publisher they want to monitor.
+
+The key type is configured via trait specializations in `SaiObjectEventPublisher.h`:
+
+- **Adapter Host Key** (`IsPublisherKeyAdapterHostKey`): The publisher's logical identifier. Used by neighbors and next hops.
+- **Custom type** (`IsPublisherKeyCustomType` + `PublisherKey<T>`): A user-defined type. Used by bridge ports (`SaiPortDescriptor`), FDB entries (`tuple<InterfaceID, MacAddress>`), and VLAN router interfaces (`InterfaceID`).
+
+### How Publisher Notifications Are Triggered
+
+**On creation** — triggered by `SaiObjectStore::setObject()`:
+
+```cpp
+// SaiStore.h — setObject()
+auto [object, programmed] = program(adapterHostKey, attributes);
+if (notify && programmed) {
+  if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+    object->notifyAfterCreate(object);  // passes shared_ptr to self
+  }
+}
+```
+
+`notifyAfterCreate()` on the `SaiObject` calls into the publisher singleton:
+
+```cpp
+// SaiObject.h — notifyAfterCreate()
+void notifyAfterCreate(const std::shared_ptr<const SaiObject<T>>& object) const {
+  auto publisherKey = getPublisherKey();
+  auto& publisher = SaiObjectEventPublisher::getInstance()->get<T>();
+  publisher.notifyCreate(publisherKey, object);
+}
+```
+
+**On destruction** — triggered by `SaiObject::~SaiObject()`:
+
+```cpp
+// SaiObject.h — ~SaiObject() calls remove()
+void remove() {
+  if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
+    notifyBeforeDestroy();  // notify subscribers BEFORE hardware removal
+  }
+  api.remove(adapterKey_);  // then remove from hardware
+}
+```
+
+Note: `notifyBeforeDestroy()` fires **before** the SAI hardware object is removed, ensuring subscribers can still access the publisher's state during the notification.
+
+**On link-down** — triggered explicitly by manager code (not automatic):
+
+```cpp
+// Example from SaiFdbManager.cpp
+SaiObjectEventPublisher::getInstance()
+    ->get<SaiFdbTraits>()
+    .notifyLinkDown(intfIDAndMac_);
+```
+
+## Subscriber
+
+### What Is a Subscriber
+
+A subscriber is a "managed object" — a wrapper around a `SaiObject` that can be created independently of its publisher. The subscriber listens for lifecycle events from the publisher and creates/destroys its inner SAI object in response.
+
+For example, `ManagedVlanMember` wraps `SaiObject<SaiVlanMemberTraits>` and subscribes to `SaiBridgePortTraits`. When the bridge port is created, `ManagedVlanMember` creates the vlan member. When the bridge port is destroyed, it destroys the vlan member.
+
+### Single-Publisher Subscriber (`SaiObjectEventSinglePublisherSubscriber`)
+
+This is the common case — a subscriber that depends on exactly one publisher. It uses CRTP (Curiously Recurring Template Pattern) to dispatch events to the concrete implementation.
+
+```cpp
+template <typename SubscriberImpl, typename SubscriberTraits, typename PublishedObjectTrait>
+class SaiObjectEventSinglePublisherSubscriber
+    : public detail::SaiObjectEventSubscriber<PublishedObjectTrait> {
+
+  void afterCreate(PublisherObjectSharedPtr object) override {
+    this->setPublisherObject(object);
+    // CRTP dispatch to concrete implementation
+    static_cast<SubscriberImpl*>(this)->createObject(object);
+  }
+
+  void beforeRemove() override {
+    // CRTP dispatch to concrete implementation
+    static_cast<SubscriberImpl*>(this)->removeObject();
+    this->setPublisherObject(nullptr);
+  }
+
+  void linkDown() override {
+    static_cast<SubscriberImpl*>(this)->handleLinkDown();
+  }
+};
+```
+
+A concrete subscriber must implement:
+
+| Method | Signature | Purpose |
+|--------|-----------|---------|
+| `createObject` | `void createObject(const PublisherObjectSharedPtr& publisher)` | Create the SAI object using the publisher's adapter key |
+| `removeObject` | `void removeObject()` | Destroy or reset the SAI object (default: calls `resetObject()`) |
+| `handleLinkDown` | `void handleLinkDown()` | React to link-down event on the publisher |
+
+**Example — ManagedFdbEntry** (`SaiFdbManager.h`):
+
+```cpp
+class ManagedFdbEntry : public SaiObjectEventSinglePublisherSubscriber<
+                            ManagedFdbEntry,
+                            SaiFdbTraits,
+                            SaiBridgePortTraits> {
+ public:
+  void createObject(const Base::PublisherObjectSharedPtr& publisher);
+  void removeObject();
+  void handleLinkDown();
+};
+```
+
+In `createObject`, the subscriber accesses the publisher's adapter key to create its own SAI object:
+
+```cpp
+void ManagedFdbEntry::createObject(const Base::PublisherObjectSharedPtr& publisher) {
+  auto bridgePortId = publisher->adapterKey();
+  // Create FDB entry using bridge port's SAI ID
+  SaiFdbTraits::CreateAttributes attributes{...bridgePortId...};
+  auto& store = saiStore_->get<SaiFdbTraits>();
+  auto fdbEntry = store.setObject(adapterHostKey, attributes);
+  this->setObject(fdbEntry);
+}
+```
+
+### Aggregate Subscriber (`SaiObjectEventAggregateSubscriber`)
+
+For subscribers that depend on **multiple publishers**, the aggregate subscriber tracks liveness of all publishers and only creates its SAI object when all are alive.
+
+```cpp
+template <typename SubscriberImpl, typename SubscriberTraits, typename... PublishedObjectTraits>
+class SaiObjectEventAggregateSubscriber
+    : public detail::SaiObjectEventSingleSubscriber<Self, PublishedObjectTraits>... {
+
+  // Called when any publisher is created
+  template <typename PublishedObjectTrait>
+  void afterCreateNotifyAggregateSubscriber() {
+    livePublisherObjects_[index] = true;
+    if (allPublishedObjectsAlive()) {
+      static_cast<SubscriberImpl*>(this)->createObject(gatherPublisherObjects());
+    }
+  }
+
+  // Called when any publisher is removed
+  template <typename PublishedObjectTrait>
+  void beforeRemoveNotifyAggregateSubscriber() {
+    livePublisherObjects_[index] = false;
+    static_cast<SubscriberImpl*>(this)->removeObject(index, gatherPublisherObjects());
+  }
+};
+```
+
+A concrete aggregate subscriber must implement:
+
+| Method | Signature | Purpose |
+|--------|-----------|---------|
+| `createObject` | `void createObject(PublisherObjects publishers)` | Create SAI object using a tuple of weak_ptrs to all publishers |
+| `removeObject` | `void removeObject(size_t index, PublisherObjects publishers)` | React to removal of the publisher at the given index |
+| `handleLinkDown` | `void handleLinkDown()` | React to link-down event |
+
+**Example — ManagedSaiNextHopGroupMember** (`SaiNextHopGroupManager.h`):
+
+```cpp
+template <typename NextHopTraitsT>
+class ManagedSaiNextHopGroupMember
+    : public SaiObjectEventAggregateSubscriber<
+          ManagedSaiNextHopGroupMember<NextHopTraitsT>,
+          SaiNextHopGroupMemberTraits,
+          NextHopTraitsT> {
+  void createObject(PublisherObjects publishers) {
+    auto nextHop = std::get<NextHopTraitsT>(publishers).lock();
+    auto nextHopId = nextHop->adapterKey();
+    // Create next hop group member referencing this next hop
+  }
+};
+```
+
+### Intermediate Subscriber Base: `ManagedNextHopSubscriber`
+
+For route and MPLS label next hops (`ManagedRouteNextHop` and `ManagedInSegNextHop`), a common base class `ManagedNextHopSubscriber<NextHopTraitsT>` consolidates shared boilerplate:
+
+```cpp
+template <typename NextHopTraitsT>
+class ManagedNextHopSubscriber
+    : public detail::SaiObjectEventSubscriber<NextHopTraitsT> {
+ public:
+  explicit ManagedNextHopSubscriber(
+      std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop)
+      : Base(managedNextHop->adapterHostKey()),
+        managedNextHop_(std::move(managedNextHop)) {}
+  void linkDown() override {}
+ protected:
+  std::shared_ptr<ManagedNextHop<NextHopTraitsT>> managedNextHop_;
+};
+```
+
+This base provides the adapter host key from the managed next hop, stores the managed next hop reference, and defines a no-op `linkDown()` since routes and label entries don't need link-down handling.
+
+## Publisher Singleton (`SaiObjectEventPublisher`)
+
+The `SaiObjectEventPublisher` singleton is the central registry for all publisher-subscriber interactions.
+
+### Internal Structure
+
+```cpp
+class SaiObjectEventPublisher {
+  // Holds one per-trait publisher for each publisher type
+  std::tuple<
+      detail::SaiObjectEventPublisher<SaiBridgePortTraits>,
+      detail::SaiObjectEventPublisher<SaiFdbTraits>,
+      detail::SaiObjectEventPublisher<SaiNeighborTraits>,
+      detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
+      detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>,
+      detail::SaiObjectEventPublisher<SaiSrv6SidlistNextHopTraits>,
+      detail::SaiObjectEventPublisher<SaiVlanRouterInterfaceTraits>>
+      publishers_;
+};
+```
+
+Each per-trait publisher maintains two data structures:
+
+| Data Structure | Type | Purpose |
+|----------------|------|---------|
+| `livePublishers_` | `std::unordered_map<Key, weak_ptr<PublisherObject>>` | Tracks which publishers are currently alive, enabling late-join notifications |
+| `subscriptions_` | `UnorderedRefMap<Key, Subscription>` | Self-managed map of publisher key → subscription (signals). Exists only while at least one subscriber exists for that key |
+
+A `Subscription` bundles three `boost::signals2::signal` objects:
+
+```cpp
+class Subscription {
+  boost::signals2::signal<void(shared_ptr<PublisherObject>)> createSignal_;
+  boost::signals2::signal<void()> removeSignal_;
+  boost::signals2::signal<void()> linkDownSignal_;
+};
+```
+
+### Subscription Flow
+
+When a subscriber subscribes via `subscribe(subscriberWeakPtr)`:
+
+1. **Lock the subscriber's weak_ptr** to get a shared_ptr.
+2. **Get or create a Subscription** in `subscriptions_` RefMap for the subscriber's publisher key.
+3. **Connect three signal slots** (create, remove, link-down) with `track_foreign(subscriberWeakPtr)` for automatic disconnection when the subscriber is destroyed.
+4. **Save the subscription** in the subscriber (stored as `std::any` to break circular dependencies).
+5. **Late-join check**: If the publisher is already alive (found in `livePublishers_`), immediately call `afterCreate()` on the subscriber.
+
+```cpp
+void subscribe(std::weak_ptr<Subscriber> subscriberWeakPtr) {
+  auto subscriber = subscriberWeakPtr.lock();
+  auto subscription = subscriptions_.refOrEmplace(subscriber->getPublisherKey());
+
+  auto* raw = subscriber.get();
+  connectTracked(subscription->createSignal_,
+      [raw](auto obj) { raw->afterCreate(std::move(obj)); },
+      subscriberWeakPtr);
+  connectTracked(subscription->removeSignal_,
+      [raw]() { raw->beforeRemove(); },
+      subscriberWeakPtr);
+  connectTracked(subscription->linkDownSignal_,
+      [raw]() { raw->linkDown(); },
+      subscriberWeakPtr);
+
+  subscriber->saveSubscription(subscription);
+
+  // Late-join: if publisher is already alive, notify immediately
+  auto publisher = livePublishers_.find(subscriber->getPublisherKey());
+  if (publisher != livePublishers_.end()) {
+    subscriber->afterCreate(publisher->second.lock());
+  }
+}
+```
+
+### Notification Flow
+
+**`notifyCreate(key, object)`**:
+1. Store `weak_ptr` to publisher in `livePublishers_`.
+2. Look up `Subscription` for this key.
+3. Fire `createSignal_` passing `shared_ptr` to the publisher object.
+
+**`notifyDelete(key)`**:
+1. Erase from `livePublishers_`.
+2. Look up `Subscription` for this key.
+3. Fire `removeSignal_`.
+
+**`notifyLinkDown(key)`**:
+1. Look up `Subscription` for this key.
+2. Fire `linkDownSignal_`.
+
+### Self-Managed Subscriptions
+
+Subscriptions use `UnorderedRefMap` (reference-counted map). A `Subscription` entry exists as long as at least one subscriber holds a `shared_ptr` to it (stored in the subscriber's `subscription_` field as `std::any`). When the last subscriber for a given key is destroyed, the subscription is automatically cleaned up via the `RefMap`'s custom deleter.
+
+### Slot Lifetime via `track_foreign`
+
+Signal slots capture a raw pointer to the subscriber for efficiency. To prevent dangling pointers, each slot is registered with `boost::signals2::slot::track_foreign(subscriberWeakPtr)`. This tells boost::signals2 to:
+
+1. At signal emission time, lock the tracked `weak_ptr`.
+2. If the lock fails (subscriber was destroyed), skip the slot and auto-disconnect it.
+3. If the lock succeeds, hold the `shared_ptr` alive for the duration of the slot call.
+
+This guarantees the raw pointer is always valid during slot execution.
+
+## Event Cascade: Full Dependency Chain
+
+The publisher-subscriber mechanism creates a cascade of notifications. Here is the full chain:
+
+```
+Port link-down event
+  │
+  ▼
+BridgePort publisher ──notifyLinkDown──> ManagedFdbEntry subscriber
+  │                                         │
+  │                                         ▼
+  │                               FDB publisher ──notifyLinkDown──> ManagedVlanRifNeighbor subscriber
+  │                                                                    │
+  │                                                                    ▼
+  │                                                          Neighbor publisher ──notifyLinkDown──>
+  │                                                                    │           ManagedNextHop subscriber
+  │                                                                    │              │
+  │                                                                    │              ▼
+  │                                                                    │    NextHop publisher ──notifyLinkDown──>
+  │                                                                    │       ManagedSaiNextHopGroupMember
+  │                                                                    │              │
+  │                                                                    │              ▼
+  │                                                                    │    Next hop group shrinks
+  │                                                                    │
+  ├──notifyLinkDown──> ManagedVlanMember subscriber
+  │
+  ▼
+BridgePort destroyed (notifyBeforeDestroy)
+  ├──> ManagedFdbEntry::removeObject() → FDB destroyed
+  │       └──> ManagedVlanRifNeighbor::removeObject() → Neighbor destroyed
+  │               └──> ManagedNextHop::removeObject() → NextHop destroyed
+  │                       └──> ManagedSaiNextHopGroupMember::removeObject()
+  │                               → NextHopGroupMember removed, group shrinks
+  └──> ManagedVlanMember::removeObject() → VlanMember destroyed
+```
+
+### Complete Dependency Table
+
+| Subscriber Class | Managed SAI Object | Publisher(s) | Publisher Key |
+|------------------|--------------------|-------------|---------------|
+| `ManagedVlanMember` | Vlan Member | Bridge Port | `SaiPortDescriptor` |
+| `ManagedFdbEntry` | FDB Entry | Bridge Port | `SaiPortDescriptor` |
+| `ManagedVlanRifNeighbor` | Neighbor | FDB Entry | `tuple<InterfaceID, MacAddress>` |
+| `PortRifNeighbor` | Neighbor (port RIF) | *(no publisher, created directly)* | N/A |
+| `ManagedNextHop<SaiIpNextHopTraits>` | IP Next Hop | Neighbor | Adapter Host Key |
+| `ManagedNextHop<SaiMplsNextHopTraits>` | MPLS Next Hop | Neighbor | Adapter Host Key |
+| `ManagedNextHop<SaiSrv6SidlistNextHopTraits>` | SRv6 Next Hop | Neighbor | Adapter Host Key |
+| `ManagedSaiNextHopGroupMember<T>` | Next Hop Group Member | Next Hop | Adapter Host Key |
+| `ManagedRouteNextHop<T>` | Route (single NH) | Next Hop | Adapter Host Key |
+| `ManagedInSegNextHop<T>` | InSeg/Label (single NH) | Next Hop | Adapter Host Key |
+
+## Object Lifecycle: setObject and resetObject
+
+### Creating a Subscriber's SAI Object
+
+When `createObject()` is called on a subscriber, it typically:
+1. Extracts the publisher's adapter key from the passed `shared_ptr`.
+2. Uses `SaiStore::setObject()` to create or update the SAI object.
+3. Calls `this->setObject(saiObject)` to store the reference.
+
+### Destroying a Subscriber's SAI Object
+
+When `removeObject()` is called (or the default implementation is used), it calls `resetObject()`:
+1. `resetObject()` calls `object_.reset()`, dropping the subscriber's `shared_ptr` to its `SaiObject`.
+2. If this was the last reference, `SaiObject::~SaiObject()` fires, which calls `remove()`.
+3. If this object is also a publisher, `remove()` calls `notifyBeforeDestroy()` before hardware removal, cascading the destruction to downstream subscribers.
+
+This cascade ensures the entire dependency chain is cleaned up in the correct order.
+
+## Thread Safety
+
+### Threading Model
+
+All publisher-subscriber operations are serialized by `saiSwitchMutex_` in `SaiSwitch`. Three threads interact with this mechanism:
+
+| Thread | Name | What it does | Lock pattern |
+|--------|------|-------------|--------------|
+| State update | main/HwAgent | Processes `StateDelta` — creates/removes SAI objects | `FineGrainedLockPolicy(saiSwitchMutex_)` — lock per sub-operation |
+| Link scan BH | `fbossSaiLnkScnBH` | Handles link-down fast path | `std::lock_guard<std::mutex>{saiSwitchMutex_}` — holds for full link-down processing |
+| FDB event BH | `fbossSaiFdbBH` | Handles FDB learn/age notifications | `std::lock_guard<std::mutex>(saiSwitchMutex_)` — holds for event processing |
+
+### No Internal Synchronization
+
+The publisher-subscriber infrastructure has **zero internal mutexes**:
+- `livePublishers_`: plain `std::unordered_map`
+- `subscriptions_`: `UnorderedRefMap` backed by plain `std::unordered_map`
+- `publisherObject_`: plain `std::weak_ptr`
+- `RefMap`: no locking
+
+Thread safety relies entirely on the external `saiSwitchMutex_` serializing all access. The `boost::signals2` signals have their own internal mutexes for slot list management, but these are redundant given the external serialization.
+
+### Safety Analysis
+
+| Concern | Status | Reasoning |
+|---------|--------|-----------|
+| `notifyDelete()` racing with `subscribe()` on `livePublishers_` | **Safe** | Both paths hold `saiSwitchMutex_` |
+| Raw pointer dangling in signal slots | **Safe** | `track_foreign` holds subscriber alive during slot execution |
+| Publisher destroyed during `createSignal_` firing | **Safe** | `shared_ptr` copy in `notifyCreate` keeps publisher alive; mutex prevents concurrent `notifyDelete` |
+| `removeSignal_` firing after publisher destroyed | **Safe by design** | `notifyBeforeDestroy()` fires before hardware removal in `SaiObject::remove()` |
+| `FineGrainedLockPolicy` releasing mutex between sub-operations | **Safe** | Each publisher-subscriber cascade completes within a single lock acquisition (synchronous call chain from `setObject`) |
+
+### Design Considerations
+
+The design is correct but relies on an implicit invariant: **all code paths that touch publisher-subscriber state must hold `saiSwitchMutex_`**. There are no compile-time or runtime checks enforcing this. Any future code path that bypasses the mutex would introduce undefined behavior on the unguarded data structures.
