@@ -147,7 +147,7 @@ bool AgentFsdbSyncManager::modify(
   SubscribedMaps maps;
   tupleForEach(
       [&](auto& element) {
-        using tag = std::decay_t<decltype(element)>;
+        using tag = typename std::decay_t<decltype(element)>::type;
         changed |= modifyImpl<tag>(outState, inState);
       },
       maps);

@@ -568,7 +568,9 @@ void RibRouteTables::setOverrideEcmpMode(
           curForwardInfo.getCounterID(),
           curForwardInfo.getClassID(),
           overrideEcmpMode,
-          curForwardInfo.getOverrideNextHops());
+          curForwardInfo.getOverrideNextHops(),
+          curForwardInfo.getNormalizedResolvedNextHopSetID(),
+          curForwardInfo.getResolvedNextHopSetID());
       ritr->value()->setResolved(newForwardInfo);
       ritr->value()->publish();
     };
@@ -612,7 +614,9 @@ void RibRouteTables::setOverrideEcmpNhops(
           curForwardInfo.getCounterID(),
           curForwardInfo.getClassID(),
           curForwardInfo.getOverrideEcmpSwitchingMode(),
-          overrideNhops);
+          overrideNhops,
+          curForwardInfo.getNormalizedResolvedNextHopSetID(),
+          curForwardInfo.getResolvedNextHopSetID());
       ritr->value()->setResolved(newForwardInfo);
       ritr->value()->publish();
     };

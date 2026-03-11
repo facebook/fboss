@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<cef0ee217331d2047454e236b3fc913f>>"
+        "@generated SignedSource<<ac0f882d498bb4259ebd260e6fbf4ab0>>"
     ],
     "MINIPACK": [
         {
@@ -93,18 +93,6 @@
             "asicSdk": "6.5.26"
         }
     ],
-    "WEDGE": [
-        {
-            "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.29",
-            "saiSdk": "10.2.0.0_odp",
-            "saiVersion": "1.13.2"
-        },
-        {
-            "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.26"
-        }
-    ],
     "WEDGE400": [
         {
             "rolloutType": "PRODUCTION",
@@ -138,15 +126,17 @@
     "WEDGE400C": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "1.42.8",
-            "saiSdk": "1.42.8",
-            "saiVersion": "1.7.4"
-        },
-        {
-            "rolloutType": "RELEASE_CANDIDATE",
             "asicSdk": "24.8.3001",
             "saiSdk": "24.8.3001",
             "saiVersion": "1.14.0"
+        }
+    ],
+    "ICECUBE800BC": [
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.34",
+            "saiSdk": "14.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ],
     "MINIPACK3N": [
@@ -244,9 +234,17 @@
     "TAHANSB800BC": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "6.5.32",
-            "saiSdk": "13.3.0.0_odp",
-            "saiVersion": "1.16.1"
+            "asicSdk": "6.5.34",
+            "saiSdk": "14.0_ea_odp",
+            "saiVersion": "1.15.7"
+        }
+    ],
+    "LADAKH800BCLS": [
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "6.5.34",
+            "saiSdk": "14.0_ea_odp",
+            "saiVersion": "1.15.7"
         }
     ]
 }

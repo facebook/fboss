@@ -29,11 +29,18 @@ class ResourceAccountant {
 
   bool isValidUpdate(const StateDelta& delta);
   void stateChanged(const StateDelta& delta);
+  void setMinWidthForArsVirtualGroup(
+      std::optional<int32_t> minWidthForArsVirtualGroup);
+  void setMaxArsVirtualGroups(std::optional<int32_t> maxArsVirtualGroups);
+  void setMaxArsVirtualGroupWidth(
+      std::optional<int32_t> maxArsVirtualGroupWidth);
 
  private:
   size_t getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkArsResource(bool intermediateState) const;
+  bool isVirtualArsGroup(const RouteNextHopEntry::NextHopSet& nhSet) const;
+  void updateArsVirtualGroupConfig(const StateDelta& delta);
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool isValidRouteUpdate(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
@@ -98,7 +105,11 @@ class ResourceAccountant {
   bool checkRouteUpdate_;
   uint32_t l2Entries_{0};
   uint32_t ecmpMemberUsage_{0};
+  uint32_t virtualArsGroupCount_{0};
   uint32_t routeUsage_{0};
+  std::optional<int32_t> minWidthForArsVirtualGroup_;
+  std::optional<int32_t> maxArsVirtualGroups_;
+  std::optional<int32_t> maxArsVirtualGroupWidth_;
   std::unordered_map<SwitchID, uint32_t> ndpEntriesMap_;
   std::unordered_map<SwitchID, uint32_t> arpEntriesMap_;
 
@@ -112,6 +123,7 @@ class ResourceAccountant {
       ResourceAccountantTest,
       checkAndUpdateGenericEcmpResourceForUcmpWeights);
   FRIEND_TEST(ResourceAccountantTest, checkAndUpdateArsEcmpResource);
+  FRIEND_TEST(ResourceAccountantTest, virtualArsGroups);
   FRIEND_TEST(ResourceAccountantTest, computeWeightedEcmpMemberCount);
   FRIEND_TEST(ResourceAccountantTest, checkNeighborResource);
   FRIEND_TEST(ResourceAccountantTest, routeWithAdjustedWeightZero);

@@ -153,7 +153,7 @@ void AgentVoqSwitchTest::rxPacketToCpuHelper(
     });
   };
 
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(

@@ -22,7 +22,6 @@ jobs:
           --target
           fboss_platform_mapping_gen
           --no-docker-output
-          --no-system-deps
           --env-var
           GITHUB_ACTIONS_BUILD
           --local

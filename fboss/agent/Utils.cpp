@@ -554,7 +554,7 @@ std::vector<PortID> getPortsForInterface(
       auto vlanId = intf->getVlanID();
       auto vlan = state->getVlans()->getNodeIf(vlanId);
       if (vlan) {
-        for (const auto& memberPort : vlan->getPorts()) {
+        for (const auto& memberPort : vlan->getPortsInfo()) {
           ports.emplace_back(memberPort.first);
         }
       }
@@ -1118,7 +1118,9 @@ getPlatformMappingForPlatformType(
           true /*multiNpuPlatformMapping*/};
       return &meru800bfa;
     }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA:
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIAB:
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIAC: {
       static facebook::fboss::Meru800biaPlatformMapping meru800bia;
       return &meru800bia;
     }

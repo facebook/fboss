@@ -42,6 +42,7 @@ cpp_unittest(
         "RouteNextHopTests.cpp",
         "RouteTests.cpp",
         "SflowCollectorTests.cpp",
+        "Srv6TunnelTests.cpp",
         "StateUtilsTests.cpp",
         "SwitchSettingsTests.cpp",
         "SwitchStatePruningTests.cpp",

@@ -813,6 +813,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
       port.pfcMonitorDirection = attr->value.s32;
       break;
+    case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
+      port.cablePropagationDelayMediaType = attr->value.s32;
+      break;
+    case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
+      port.pfcPauseDurationOverride = attr->value.u16;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -825,8 +831,11 @@ sai_status_t get_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& port = fs->portManager.get(port_id);
+  auto& port = fs->portManager.get(port_id);
   for (int i = 0; i < attr_count; ++i) {
+    if (port.onGetAttribute) {
+      port.onGetAttribute();
+    }
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
         attr[i].value.booldata = port.adminState;
@@ -1080,6 +1089,16 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX:
         attr[i].value.u8 = port.priorityFlowControlTx;
         break;
+      case SAI_PORT_ATTR_ERR_STATUS_LIST:
+        if (port.portErrStatusList.size() > attr[i].value.porterror.count) {
+          attr[i].value.porterror.count = port.portErrStatusList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.portErrStatusList.size(); ++j) {
+          attr[i].value.porterror.list[j] = port.portErrStatusList[j];
+        }
+        attr[i].value.porterror.count = port.portErrStatusList.size();
+        break;
       case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
         if (port.ingressPriorityGroupList.size() >
             attr[i].value.objlist.count) {
@@ -1205,6 +1224,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
         attr[i].value.s32 = port.pfcMonitorDirection;
+        break;
+      case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
+        attr[i].value.s32 = port.cablePropagationDelayMediaType;
+        break;
+      case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
+        attr[i].value.u16 = port.pfcPauseDurationOverride;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

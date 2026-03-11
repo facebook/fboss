@@ -9,6 +9,7 @@ cpp_binary(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/lib:thrift_service_utils",
         "//fboss/platform/helpers:init",
         "//fboss/platform/sensor_service:core",
         "//fboss/platform/sensor_service:service",

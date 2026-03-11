@@ -15,6 +15,8 @@ inline constexpr folly::StringPiece kInputConfigPrefix{
     "fboss/lib/bsp/bspmapping/input/"};
 inline constexpr folly::StringPiece kPortMappingMontblancCsv{
     "Montblanc_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingMinipack3BTACsv{
+    "Minipack3BTA_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMinipack3NCsv{
     "Minipack3N_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMeru400bfuCsv{
@@ -43,6 +45,8 @@ inline constexpr folly::StringPiece kPortMappingWedge800CACTCsv{
     "Wedge800CACT_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingLadakh800bclsCsv{
     "Ladakh800bcls_BspMapping.csv"};
+inline constexpr folly::StringPiece kPortMappingIcecube800banwCsv{
+    "Icecube800banw_BspMapping.csv"};
 
 class Parser {
  public:

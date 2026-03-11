@@ -3,6 +3,7 @@
 #include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
 #include <fmt/format.h>
 #include <folly/IPAddress.h>
+#include <folly/base64.h>
 
 #include "fboss/thrift_cow/nodes/Serializer.h"
 
@@ -14,6 +15,12 @@
 
 // Include StateGenerator for remote system ports and interfaces
 #include "fboss/fsdb/benchmarks/StateGenerator.h"
+
+// Include builders for populating additional fields
+#include "fboss/thrift_cow/storage/tests/AgentStatsBuilders.h"
+
+#include <thrift/lib/cpp2/protocol/Serializer.h>
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace facebook::fboss::test_data {
 
@@ -123,7 +130,9 @@ fsdb::FsdbOperStateRoot FsdbStateDataFactory::buildFsdbOperStateRoot() {
 
 SwitchState FsdbStateDataFactory::buildSwitchState() {
   SwitchState switchState;
+  SwitchStateScale scale = getRoleScale(selector_);
 
+  // Populate FIBs
   auto fibsData = buildFibData();
   std::string switchIdList = "Id:0";
   std::map<int16_t, FibContainerFields> FibsMap;
@@ -132,6 +141,26 @@ SwitchState FsdbStateDataFactory::buildSwitchState() {
 
   // Populate remote system ports and interfaces for RDSW and EDSW roles
   populateRemoteSystemPortsAndInterfaces(switchState);
+
+  // NEW - call builders from SwitchStateBuilders.h
+  facebook::fboss::fsdb::test::populatePorts(switchState, scale);
+  facebook::fboss::fsdb::test::populateVlans(switchState, scale);
+  facebook::fboss::fsdb::test::populateInterfaces(switchState, scale);
+  facebook::fboss::fsdb::test::populateTransceivers(switchState, scale);
+  facebook::fboss::fsdb::test::populateSystemPorts(switchState, scale);
+  facebook::fboss::fsdb::test::populateDsfNodes(switchState, scale);
+  facebook::fboss::fsdb::test::populateControlPlane(switchState, scale);
+  facebook::fboss::fsdb::test::populateSwitchSettings(switchState, scale);
+  facebook::fboss::fsdb::test::populateBufferPoolCfg(switchState, scale);
+  facebook::fboss::fsdb::test::populateMirrors(switchState, scale);
+  facebook::fboss::fsdb::test::populateQosPolicies(switchState, scale);
+  facebook::fboss::fsdb::test::populateLoadBalancers(switchState, scale);
+  facebook::fboss::fsdb::test::populateAclTableGroups(switchState, scale);
+  facebook::fboss::fsdb::test::populateAcls(switchState, scale);
+  facebook::fboss::fsdb::test::populateIpTunnels(switchState, scale);
+  facebook::fboss::fsdb::test::populateAggregatePorts(switchState, scale);
+  facebook::fboss::fsdb::test::populatePortFlowletCfg(switchState, scale);
+  facebook::fboss::fsdb::test::populateMirrorOnDropReports(switchState, scale);
 
   return switchState;
 }
@@ -302,24 +331,466 @@ void FsdbStateDataFactory::populateRemoteSystemPortsAndInterfaces(
       std::move(remoteInterfaceMap);
 }
 // Scale configurations for different deployment roles
+// Data compiled from nao5, zas, and prn sample data (using max across regions)
 SwitchStateScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
+  // Helper lambda to create SwitchStateScale with all fields
+  auto makeScale = [](int fibV4,
+                      int fibV6,
+                      int v4Nh,
+                      int v6Nh,
+                      int remSysPort,
+                      int remIntf,
+                      int portCnt,
+                      int vlanCnt,
+                      int xcvrCnt,
+                      int intfCnt,
+                      int sysPortCnt,
+                      int dsfNodeCnt,
+                      int aclCnt,
+                      int bufPoolCnt,
+                      int mirrorCnt,
+                      int qosCnt,
+                      int lbCnt,
+                      int tunnelCnt,
+                      int aggPortCnt,
+                      int flowletCnt,
+                      int modReportCnt,
+                      bool hasCP,
+                      bool hasSS,
+                      bool hasAclGrp) -> SwitchStateScale {
+    SwitchStateScale s;
+    s.fibV4Size = fibV4;
+    s.fibV6Size = fibV6;
+    s.v4Nexthops = v4Nh;
+    s.v6Nexthops = v6Nh;
+    s.remoteSystemPortMapSize = remSysPort;
+    s.remoteInterfaceMapSize = remIntf;
+    s.portCount = portCnt;
+    s.vlanCount = vlanCnt;
+    s.transceiverCount = xcvrCnt;
+    s.interfaceCount = intfCnt;
+    s.systemPortCount = sysPortCnt;
+    s.dsfNodeCount = dsfNodeCnt;
+    s.aclCount = aclCnt;
+    s.bufferPoolCfgCount = bufPoolCnt;
+    s.mirrorCount = mirrorCnt;
+    s.qosPolicyCount = qosCnt;
+    s.loadBalancerCount = lbCnt;
+    s.ipTunnelCount = tunnelCnt;
+    s.aggregatePortCount = aggPortCnt;
+    s.portFlowletCfgCount = flowletCnt;
+    s.mirrorOnDropReportCount = modReportCnt;
+    s.hasControlPlane = hasCP;
+    s.hasSwitchSettings = hasSS;
+    s.hasAclTableGroup = hasAclGrp;
+    return s;
+  };
+
   static const std::map<RoleSelector, SwitchStateScale> roleScales = {
-      // Role, fibV4Size, fibV6Size, v4Nexthops, v6Nexthops,
-      // remoteSystemPortMapSize, remoteInterfaceMapSize
-      {RTSW, {1, 3500, 0, 32, 0, 0}},
-      {FTSW, {1, 2000, 0, 32, 0, 0}},
-      {STSW, {1, 2000, 0, 8, 0, 0}},
-      {RSW, {150, 2000, 8, 8, 0, 0}},
-      {FSW, {150, 1000, 50, 100, 0, 0}},
-      {SSW, {875, 4200, 50, 64, 0, 0}},
-      {XSW, {150, 512, 40, 128, 0, 0}},
-      {MA, {13000, 16000, 50, 50, 0, 0}},
-      {FA, {13000, 20000, 100, 100, 0, 0}},
-      {RDSW, {1, 22000, 0, 2, 21750, 21750}},
-      {EDSW, {1, 22000, 0, 1, 21750, 21750}},
+      // RDSW - Rack DSF switch (nao5)
+      {RDSW,
+       makeScale(
+           1,
+           22000,
+           0,
+           2,
+           21750,
+           21750,
+           203,
+           0,
+           39,
+           43,
+           43,
+           1296,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           1,
+           true,
+           true,
+           true)},
+      // RSW - Rack switch
+      {RSW,
+       makeScale(
+           150,
+           2000,
+           8,
+           8,
+           0,
+           0,
+           48,
+           21,
+           33,
+           20,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           2,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // EDSW - Edge DSF switch (nao5)
+      {EDSW,
+       makeScale(
+           1,
+           22000,
+           0,
+           1,
+           21750,
+           21750,
+           183,
+           0,
+           37,
+           23,
+           23,
+           1296,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           1,
+           true,
+           true,
+           true)},
+      // FSW - Fabric switch
+      {FSW,
+       makeScale(
+           150,
+           1000,
+           50,
+           100,
+           0,
+           0,
+           128,
+           131,
+           96,
+           130,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           2,
+           1,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // FA - Fabric aggregator
+      {FA,
+       makeScale(
+           13000,
+           20000,
+           100,
+           100,
+           0,
+           0,
+           120,
+           122,
+           120,
+           121,
+           0,
+           0,
+           0,
+           0,
+           1,
+           0,
+           2,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // SSW - Spine switch
+      {SSW,
+       makeScale(
+           875,
+           4200,
+           50,
+           64,
+           0,
+           0,
+           128,
+           130,
+           46,
+           129,
+           0,
+           0,
+           0,
+           1,
+           1,
+           0,
+           1,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // FDSW - Fabric DSF switch (nao5)
+      {FDSW,
+       makeScale(
+           1,
+           1000,
+           0,
+           2,
+           0,
+           0,
+           203,
+           0,
+           39,
+           43,
+           0,
+           0,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // SDSW - Spine DSF switch (nao5)
+      {SDSW,
+       makeScale(
+           1,
+           1000,
+           0,
+           2,
+           0,
+           0,
+           203,
+           0,
+           39,
+           43,
+           0,
+           0,
+           0,
+           1,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // XSW - Cross switch (zas)
+      {XSW,
+       makeScale(
+           150,
+           512,
+           40,
+           128,
+           0,
+           0,
+           128,
+           130,
+           118,
+           129,
+           0,
+           0,
+           0,
+           0,
+           1,
+           0,
+           2,
+           0,
+           0,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // MA - Metro aggregator (zas)
+      {MA,
+       makeScale(
+           13000,
+           16000,
+           50,
+           50,
+           0,
+           0,
+           104,
+           106,
+           76,
+           105,
+           0,
+           0,
+           0,
+           0,
+           1,
+           0,
+           2,
+           0,
+           8,
+           0,
+           0,
+           true,
+           true,
+           true)},
+      // RTSW - Regional transport switch (zas)
+      {RTSW,
+       makeScale(
+           1,
+           3500,
+           0,
+           32,
+           0,
+           0,
+           64,
+           66,
+           64,
+           65,
+           0,
+           0,
+           23,
+           1,
+           2,
+           0,
+           1,
+           0,
+           0,
+           1,
+           0,
+           true,
+           true,
+           false)},
+      // FTSW - Fabric transport switch (zas)
+      {FTSW,
+       makeScale(
+           1,
+           2000,
+           0,
+           32,
+           0,
+           0,
+           64,
+           66,
+           64,
+           65,
+           0,
+           0,
+           17,
+           1,
+           1,
+           0,
+           1,
+           0,
+           0,
+           1,
+           0,
+           true,
+           true,
+           false)},
+      // STSW - Spine transport switch (zas)
+      {STSW,
+       makeScale(
+           1,
+           2000,
+           0,
+           8,
+           0,
+           0,
+           64,
+           66,
+           64,
+           65,
+           0,
+           0,
+           17,
+           1,
+           1,
+           0,
+           1,
+           0,
+           0,
+           1,
+           0,
+           true,
+           true,
+           false)},
       // Default fallback
-      {Minimal, {1, 1, 1, 1, 0, 0}},
-      {MaxScale, {100, 100, 10, 10, 0, 0}},
+      {Minimal,
+       makeScale(
+           1,
+           1,
+           1,
+           1,
+           0,
+           0,
+           1,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           false,
+           false,
+           false)},
+      {MaxScale,
+       makeScale(
+           100,
+           100,
+           10,
+           10,
+           0,
+           0,
+           100,
+           50,
+           50,
+           50,
+           0,
+           0,
+           10,
+           1,
+           2,
+           3,
+           2,
+           1,
+           4,
+           1,
+           1,
+           true,
+           true,
+           true)},
   };
 
   auto it = roleScales.find(role);
@@ -327,7 +798,31 @@ SwitchStateScale FsdbStateDataFactory::getRoleScale(RoleSelector role) {
     return it->second;
   }
 
-  return {1, 1, 1, 1, 0, 0};
+  return makeScale(
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      false,
+      false,
+      false);
 }
 
 // AgentStatsDataFactory Implementation
@@ -396,6 +891,24 @@ AgentStats FsdbStatsDataFactory::buildAgentStats() {
   if (!agentStats.sysPortStats()->empty()) {
     agentStats.sysPortStatsMap()[0] = *agentStats.sysPortStats();
   }
+
+  // Call the new AgentStats builders for remaining fields
+  facebook::fboss::fsdb::test::populateHwResourceStatsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateHwAsicErrorsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateCpuPortStatsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateSwitchDropStatsMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateSwitchWatermarkStatsMap(
+      agentStats, scale);
+  facebook::fboss::fsdb::test::populateFabricReachabilityStatsMap(
+      agentStats, scale);
+  facebook::fboss::fsdb::test::populateSwitchPipelineStatsMap(
+      agentStats, scale);
+  facebook::fboss::fsdb::test::populateSysPortShelStateMap(agentStats, scale);
+  facebook::fboss::fsdb::test::populateAsicTemp(agentStats, scale);
+  facebook::fboss::fsdb::test::populateFlowletStats(agentStats, scale);
+  facebook::fboss::fsdb::test::populateSimpleCounters(agentStats, scale);
+  facebook::fboss::fsdb::test::populateHwAgentStatus(agentStats, scale);
+  facebook::fboss::fsdb::test::populateFabricOverdrainPct(agentStats, scale);
 
   return agentStats;
 }
@@ -581,19 +1094,293 @@ HwSysPortStats FsdbStatsDataFactory::createSysPortStats(
 }
 
 AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
-  // Stats scale based on role.
+  // Helper lambda to create AgentStatsScale with all fields
+  auto makeScale = [](int hwPort,
+                      int phy,
+                      int sysPort,
+                      int asicCnt,
+                      int shelStateCnt,
+                      int asicTempCnt,
+                      bool hwRes,
+                      bool hwAsicErr,
+                      bool cpuPort,
+                      bool dropSt,
+                      bool watermark,
+                      bool fabricReach,
+                      bool pipeline,
+                      bool fabricOverdrain,
+                      bool flowlet) -> AgentStatsScale {
+    AgentStatsScale s;
+    s.hwPortStatsCount = hwPort;
+    s.phyStatsCount = phy;
+    s.sysPortStatsCount = sysPort;
+    s.asicCount = asicCnt;
+    s.sysPortShelStateCount = shelStateCnt;
+    s.asicTempCount = asicTempCnt;
+    s.hasHwResourceStats = hwRes;
+    s.hasHwAsicErrors = hwAsicErr;
+    s.hasCpuPortStats = cpuPort;
+    s.hasSwitchDropStats = dropSt;
+    s.hasSwitchWatermarkStats = watermark;
+    s.hasFabricReachabilityStats = fabricReach;
+    s.hasSwitchPipelineStats = pipeline;
+    s.hasFabricOverdrainPct = fabricOverdrain;
+    s.hasFlowletStats = flowlet;
+    return s;
+  };
+
   static const std::map<RoleSelector, AgentStatsScale> roleScales = {
-      // Role, hwPortStats,	phyStats,	sysPortStats
-      {FA, {108, 108, 0}},
-      {RSW, {24, 24, 0}},
-      {RTSW, {64, 64, 0}},
-      {RDSW, {203, 197, 21766}},
-      {FDSW, {1024, 1024, 0}},
-      {SDSW, {800, 800, 0}},
-      {EDSW, {183, 177, 21766}},
+      // RDSW - Rack DSF switch
+      {RDSW,
+       makeScale(
+           203,
+           197,
+           21766,
+           1,
+           1181,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false)},
+      // EDSW - Edge DSF switch
+      {EDSW,
+       makeScale(
+           183,
+           177,
+           21766,
+           1,
+           1124,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false)},
+      // FDSW - Fabric DSF switch
+      {FDSW,
+       makeScale(
+           1024,
+           1024,
+           1,
+           2,
+           0,
+           156,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // SDSW - Spine DSF switch
+      {SDSW,
+       makeScale(
+           800,
+           800,
+           1,
+           2,
+           0,
+           156,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // FA - Fabric aggregator
+      {FA,
+       makeScale(
+           120,
+           120,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // RSW - Rack switch
+      {RSW,
+       makeScale(
+           48,
+           48,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // SSW - Spine switch
+      {SSW,
+       makeScale(
+           128,
+           128,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      // RTSW - Regional transport switch
+      {RTSW,
+       makeScale(
+           64,
+           64,
+           0,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // FTSW - Fabric transport switch
+      {FTSW,
+       makeScale(
+           64,
+           64,
+           0,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // STSW - Spine transport switch
+      {STSW,
+       makeScale(
+           64,
+           64,
+           0,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // XSW - Cross switch
+      {XSW,
+       makeScale(
+           118,
+           118,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
+      // MA - Metro aggregator
+      {MA,
+       makeScale(
+           76,
+           76,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           true)},
       // Default fallback
-      {Minimal, {1, 1, 1}},
-      {MaxScale, {10, 10, 10}},
+      {Minimal,
+       makeScale(
+           1,
+           1,
+           1,
+           1,
+           0,
+           0,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           false,
+           false)},
+      {MaxScale,
+       makeScale(
+           100,
+           100,
+           100,
+           2,
+           100,
+           50,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true,
+           true)},
   };
 
   auto it = roleScales.find(role);
@@ -601,7 +1388,264 @@ AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
     return it->second;
   }
 
-  return {1, 1, 1};
+  return makeScale(
+      1, 1, 1, 1, 0, 0, true, true, true, true, true, true, true, false, false);
+}
+
+// BgpRibMapDataGenerator implementation
+TaggedOperState BgpRibMapDataGenerator::getStateUpdate(
+    int /* unused */,
+    bool /* unused */) {
+  TaggedOperState state;
+  OperState chunk;
+  std::vector<std::string> basePath;
+  chunk.protocol() = protocol_;
+
+  auto fsdbRoot = buildFsdbOperStateRoot();
+
+  chunk.contents() = facebook::fboss::thrift_cow::serialize<
+      apache::thrift::type_class::structure>(protocol_, fsdbRoot);
+
+  state.state() = std::move(chunk);
+  state.path()->path() = std::move(basePath);
+  return state;
+}
+
+fsdb::FsdbOperStateRoot BgpRibMapDataGenerator::buildFsdbOperStateRoot() {
+  fsdb::FsdbOperStateRoot root;
+
+  root.agent() = fsdb::AgentData{};
+  root.bgp() = buildBgpData();
+  root.openr() = fsdb::OpenrData{};
+
+  return root;
+}
+
+BgpRibMapScale BgpRibMapDataGenerator::getScale(RoleSelector role) {
+  static const std::map<RoleSelector, BgpRibMapScale> roleScales = {
+      // Role, ribV4EntryCount, ribV6EntryCount, bestPathsPerEntry,
+      // communitiesPerPath, asPathSegments, extCommunitiesPerPath
+      {RSW, {317, 754, 4, 13, 2, 0}},
+      {FSW, {555, 901, 24, 14, 1, 0}},
+      {FA, {8890, 14221, 10, 12, 1, 1}},
+      // Default fallback
+      {Minimal, {5, 5, 1, 5, 1, 0}},
+      {MaxScale, {10000, 15000, 10, 12, 2, 1}},
+  };
+
+  auto it = roleScales.find(role);
+  if (it == roleScales.end()) {
+    // default to Minimal
+    it = roleScales.find(Minimal);
+  }
+  return it->second;
+}
+
+fsdb::BgpData BgpRibMapDataGenerator::buildBgpData() {
+  fsdb::BgpData bgpData;
+  BgpRibMapScale scale = getScale(selector_);
+
+  std::map<std::string, TRibEntry> ribMap;
+
+  // Generate IPv4 RIB entries
+  for (int i = 0; i < scale.ribV4EntryCount; i++) {
+    TRibEntry entry = buildTRibEntry(scale, i, false);
+    std::string prefixKey = createPrefixKey(*entry.prefix());
+    ribMap[prefixKey] = std::move(entry);
+  }
+
+  // Generate IPv6 RIB entries
+  for (int i = 0; i < scale.ribV6EntryCount; i++) {
+    TRibEntry entry = buildTRibEntry(scale, i, true);
+    std::string prefixKey = createPrefixKey(*entry.prefix());
+    ribMap[prefixKey] = std::move(entry);
+  }
+
+  bgpData.ribMap() = std::move(ribMap);
+  return bgpData;
+}
+
+TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
+    const BgpRibMapScale& scale,
+    int index,
+    bool isV6) {
+  TRibEntry entry;
+
+  auto prefix = createPrefix(index, isV6);
+  entry.prefix() = prefix;
+
+  // Generate paths map with "best" group
+  std::vector<neteng::fboss::bgp::thrift::TBgpPath> bestPaths;
+  for (int j = 0; j < scale.bestPathsPerEntry; j++) {
+    auto path = createBgpPath(
+        index,
+        j,
+        scale.communitiesPerPath,
+        scale.asPathSegments,
+        scale.extCommunitiesPerPath);
+    bestPaths.emplace_back(std::move(path));
+  }
+
+  std::map<std::string, std::vector<neteng::fboss::bgp::thrift::TBgpPath>>
+      pathsMap;
+  pathsMap["best"] = std::move(bestPaths);
+
+  // Set best_group
+  entry.best_group() = "best";
+
+  // Set best_next_hop (use first path's next_hop)
+  if (!pathsMap["best"].empty()) {
+    *entry.best_next_hop() = *pathsMap["best"][0].next_hop();
+  }
+
+  entry.paths() = std::move(pathsMap);
+
+  // Create prefix key string
+  std::string prefixKey = createPrefixKey(prefix);
+
+  return entry;
+}
+
+facebook::neteng::fboss::bgp_attr::TIpPrefix
+BgpRibMapDataGenerator::createPrefix(int index, bool isV6) {
+  facebook::neteng::fboss::bgp_attr::TIpPrefix prefix;
+
+  if (isV6) {
+    // IPv6 prefix
+    prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+    int hex3 = (index / 512) % 256;
+    int hex4 = index % 256;
+    std::string prefixStr = fmt::format("2401:db00:{:x}:{:x}::/64", hex3, hex4);
+    auto network = folly::IPAddress::createNetwork(prefixStr);
+    auto bytes = network.first.asV6().toByteArray();
+    std::string encoded = folly::base64Encode(
+        std::string_view(
+            reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+    prefix.prefix_bin() = encoded;
+    prefix.num_bits() = 64;
+  } else {
+    // IPv4 prefix
+    prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV4;
+    int octet2 = (index / 256) % 256;
+    int octet3 = index % 256;
+    std::string prefixStr = fmt::format("10.{}.{}.0/24", octet2, octet3);
+    auto network = folly::IPAddress::createNetwork(prefixStr);
+    auto bytes = network.first.asV4().toByteArray();
+    std::string encoded = folly::base64Encode(
+        std::string_view(
+            reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+    prefix.prefix_bin() = encoded;
+    prefix.num_bits() = 24;
+  }
+
+  return prefix;
+}
+
+neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
+    int entryIndex,
+    int pathIndex,
+    int numCommunities,
+    int numAsPathSegments,
+    int numExtCommunities) {
+  neteng::fboss::bgp::thrift::TBgpPath path;
+
+  // Create next_hop
+  facebook::neteng::fboss::bgp_attr::TIpPrefix nextHop;
+  nextHop.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+  std::string nextHopStr =
+      fmt::format("fe80::{:x}:{:x}", entryIndex % 65536, pathIndex % 65536);
+  auto nextHopAddr = folly::IPAddress(nextHopStr);
+  auto bytes = nextHopAddr.asV6().toByteArray();
+  std::string encoded = folly::base64Encode(
+      std::string_view(
+          reinterpret_cast<const char*>(bytes.data()), bytes.size()));
+  nextHop.prefix_bin() = encoded;
+  nextHop.num_bits() = 128;
+  path.next_hop() = nextHop;
+
+  // Create AS path
+  facebook::neteng::fboss::bgp_attr::TAsPath asPath;
+  for (int i = 0; i < numAsPathSegments; i++) {
+    facebook::neteng::fboss::bgp_attr::TAsPathSeg segment;
+    segment.seg_type() =
+        facebook::neteng::fboss::bgp_attr::TAsPathSegType::AS_SEQUENCE;
+
+    // Add 2-3 ASNs per segment
+    int numAsns = 2 + (pathIndex % 2);
+    std::vector<int32_t> asns;
+    std::vector<int64_t> asns_4_byte;
+    for (int j = 0; j < numAsns; j++) {
+      int32_t asn = 65000 + ((entryIndex + pathIndex + i + j) % 1000);
+      asns.push_back(asn);
+      asns_4_byte.push_back(asn);
+    }
+    segment.asns() = asns;
+    segment.asns_4_byte() = asns_4_byte;
+    asPath.push_back(segment);
+  }
+  path.as_path() = asPath;
+
+  // Create communities
+  std::vector<facebook::neteng::fboss::bgp_attr::TBgpCommunity> communities;
+  for (int i = 0; i < numCommunities; i++) {
+    facebook::neteng::fboss::bgp_attr::TBgpCommunity community;
+    int16_t asn = 65400 + (i % 100);
+    int16_t value = 100 + ((entryIndex + pathIndex + i) % 200);
+    community.asn() = asn;
+    community.value() = value;
+    community.community() = (static_cast<int32_t>(asn) << 16) | value;
+    communities.push_back(community);
+  }
+  path.communities() = communities;
+
+  // Create extended communities
+  if (numExtCommunities > 0) {
+    std::vector<neteng::fboss::bgp::thrift::TBgpExtCommunity> extCommunities;
+    for (int i = 0; i < numExtCommunities; i++) {
+      neteng::fboss::bgp::thrift::TBgpExtCommunity extComm;
+      neteng::fboss::bgp::thrift::TBgpExtCommUnion extCommUnion;
+      neteng::fboss::bgp::thrift::TBgpTwoByteAsnExtComm twoByteAsn;
+      twoByteAsn.type() = 64;
+      twoByteAsn.sub_type() = 4;
+      twoByteAsn.asn() = 65000 + (i % 100);
+      twoByteAsn.value() = 1000000 + ((entryIndex + pathIndex) % 1000000);
+      extCommUnion.two_byte_asn() = twoByteAsn;
+      extComm.u() = extCommUnion;
+      extCommunities.push_back(extComm);
+    }
+    path.extCommunities() = extCommunities;
+  }
+
+  // Set other path attributes
+  path.cluster_list() = std::vector<int64_t>{}; // Empty for most paths
+  path.local_pref() = 100;
+  path.router_id() = 3232235777 + (entryIndex % 1000); // ~192.0.2.1 range
+  path.origin() = 0; // IGP
+  path.peer_id() = nextHop;
+  path.bestpath_filter_descr() = "";
+  path.last_modified_time() = 1700000000000000LL + (entryIndex * 1000);
+
+  // Mark first path as best
+  if (pathIndex == 0) {
+    path.is_best_path() = true;
+  }
+
+  return path;
+}
+
+std::string BgpRibMapDataGenerator::createPrefixKey(
+    const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix) {
+  auto decoded = folly::base64Decode(*prefix.prefix_bin());
+  auto addrResult = folly::IPAddress::tryFromBinary(
+      folly::ByteRange(
+          reinterpret_cast<const unsigned char*>(decoded.data()),
+          decoded.size()));
+  if (addrResult.hasValue()) {
+    auto& addr = addrResult.value();
+    int numBits = *prefix.num_bits();
+    return addr.str() + "/" + std::to_string(numBits);
+  }
+  return "unknown_prefix";
 }
 
 } // namespace facebook::fboss::test_data

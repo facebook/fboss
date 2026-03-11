@@ -871,11 +871,44 @@ void ThriftHandler::updateUnicastRoutesImpl(
   auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
-  for (const auto& route : *routes) {
+  // Pre-compute the first SRV6_ENCAP tunnel name from config for defaulting
+  // tunnelId on next hops with non-empty srv6SegmentList
+  std::optional<std::string> defaultSrv6TunnelId;
+  auto config = sw_->getConfig();
+  if (config.srv6Tunnels().has_value()) {
+    for (const auto& tunnel : config.srv6Tunnels().value()) {
+      if (*tunnel.tunnelType() == TunnelType::SRV6_ENCAP) {
+        defaultSrv6TunnelId = *tunnel.srv6TunnelId();
+        break;
+      }
+    }
+  }
+  for (auto& route : *routes) {
     if (route.overrideEcmpSwitchingMode().has_value() ||
         route.overrideNextHops().has_value()) {
       throw FbossError(
           "Override nhops or switching mode cannot be set by clients");
+    }
+    for (auto& nhop : *route.nextHops()) {
+      if (nhop.mplsAction().has_value() && !nhop.srv6SegmentList()->empty()) {
+        throw FbossError(
+            "Next hop cannot have both mplsAction (label stack) and srv6SegmentList");
+      }
+      if (!nhop.srv6SegmentList()->empty()) {
+        if (!nhop.tunnelType().has_value()) {
+          nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+        } else if (*nhop.tunnelType() != TunnelType::SRV6_ENCAP) {
+          throw FbossError(
+              "Next hop with srv6SegmentList must have tunnelType SRV6_ENCAP");
+        }
+        if (!nhop.tunnelId().has_value()) {
+          if (!defaultSrv6TunnelId.has_value()) {
+            throw FbossError(
+                "Next hop with srv6SegmentList requires a tunnelId, but no SRV6_ENCAP tunnel found in config");
+          }
+          nhop.tunnelId() = defaultSrv6TunnelId.value();
+        }
+      }
     }
     updater.addRoute(routerID, clientID, route);
   }
@@ -911,7 +944,7 @@ static void populateInterfaceDetail(
       *interfaceDetail.vlanId() = intf->getVlanID();
       auto vlan = state->getVlans()->getNodeIf(intf->getVlanID());
       if (!intf->isVirtual() && vlan != nullptr) {
-        auto members = vlan->getPorts();
+        auto members = vlan->getPortsInfo();
         for (auto member : members) {
           auto port = state->getPorts()->getNode(PortID(member.first));
           interfaceDetail.portNames()->emplace_back(port->getName());
@@ -2560,7 +2593,7 @@ void ThriftHandler::addMplsRoutes(
     auto newState = state->clone();
 
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState), sw_->stats())) {
       throw FbossError("Invalid MPLS routes");
     }
     return newState;
@@ -2585,6 +2618,11 @@ void ThriftHandler::addMplsRoutesImpl(
     auto topLabel = *mplsRoute.topLabel();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
+    }
+    for (const auto& nhop : *mplsRoute.nextHops()) {
+      if (!nhop.srv6SegmentList()->empty()) {
+        throw FbossError("MPLS route next hop cannot have srv6SegmentList");
+      }
     }
     auto adminDistance = mplsRoute.adminDistance().has_value()
         ? mplsRoute.adminDistance().value()
@@ -2672,6 +2710,11 @@ void ThriftHandler::addMplsRibRoutes(
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
     }
+    for (const auto& nhop : *route.nextHops()) {
+      if (!nhop.srv6SegmentList()->empty()) {
+        throw FbossError("MPLS route next hop cannot have srv6SegmentList");
+      }
+    }
     updater.addRoute(clientID, route);
   }
   RouteUpdateWrapper::SyncFibFor syncFibs;
@@ -2750,7 +2793,7 @@ void ThriftHandler::syncMplsFib(
     auto newState = purgeEntriesForClient(
         *(sw_->getScopeResolver()), state, ClientID(clientId));
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState), sw_->stats())) {
       throw FbossError("Invalid MPLS routes");
     }
     return newState;
@@ -2844,7 +2887,7 @@ void ThriftHandler::listHwObjects(
     out = sw_->getMonolithicHwSwitchHandler()->listObjects(*hwObjects, cached);
   } else {
     throw FbossError(
-        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent insted");
+        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent instead");
   }
 }
 

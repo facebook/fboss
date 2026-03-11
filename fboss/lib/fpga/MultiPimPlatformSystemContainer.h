@@ -9,11 +9,14 @@
  */
 #pragma once
 
+#include "fboss/agent/types.h"
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 #include "fboss/lib/if/gen-cpp2/pim_state_types.h"
 
+#include <folly/Synchronized.h>
 #include <map>
 #include <memory>
+#include <set>
 
 namespace facebook::fboss {
 
@@ -60,6 +63,17 @@ class MultiPimPlatformSystemContainer {
 
   std::map<int, PimState> getPimStates() const;
 
+  // Record an xphy getPortInfo failure for a specific PIM and xphy ID.
+  // This is called by PhyManager when getPortInfo() fails.
+  void recordXphyGetPortInfoFailure(
+      const PimID& pimId,
+      const GlobalXphyID& xphyId);
+
+  // Clear recorded xphy getPortInfo failure for a specific PIM.
+  void clearXphyGetPortInfoFailures(
+      const PimID& pimId,
+      const GlobalXphyID& xphyId);
+
  protected:
   void setPimContainer(
       int pim,
@@ -74,5 +88,11 @@ class MultiPimPlatformSystemContainer {
 
   std::unique_ptr<FpgaDevice> fpgaDevice_;
   std::map<int, std::unique_ptr<MultiPimPlatformPimContainer>> pims_;
+
+  // Map from PIM ID to set of xphy IDs that have failed getPortInfo().
+  // Synchronized for thread safety since PhyManager may record failures
+  // from multiple PIM threads concurrently.
+  folly::Synchronized<std::map<PimID, std::set<GlobalXphyID>>>
+      pimToFailedGetInfoXphyIds_;
 };
 } // namespace facebook::fboss

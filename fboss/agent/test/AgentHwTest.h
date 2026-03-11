@@ -110,6 +110,7 @@ class AgentHwTest : public ::testing::Test {
   }
   SwSwitch* getSw() const;
   SwitchID getCurrentSwitchIdForTesting() const;
+  static SwitchID getSwitchIdUnderTest(const AgentEnsemble& ensemble);
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
     return getAgentEnsemble()->getL3Asics();
@@ -210,7 +211,12 @@ class AgentHwTest : public ::testing::Test {
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.programRoutes(&wrapper, width);
   }
-
+  template <typename EcmpHelperT>
+  void resolveNeighbors(const EcmpHelperT& ecmp, int width) {
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.resolveNextHops(in, width);
+    });
+  }
   template <typename EcmpHelperT>
   void unprogramRoutes(const EcmpHelperT& ecmp) {
     auto wrapper = getSw()->getRouteUpdater();
@@ -269,6 +275,8 @@ class AgentHwTest : public ::testing::Test {
 
   void populateArpNeighborsToCache(const std::shared_ptr<Interface>& interface);
   void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
+
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
 
   std::optional<VlanID> getVlanIDForTx() const {
     return agentEnsemble_->getVlanIDForTx();

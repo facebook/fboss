@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <functional>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -91,6 +92,7 @@ struct FakePort {
   sai_uint8_t priorityFlowControlRx{0xff};
   sai_uint8_t priorityFlowControlTx{0xff};
   sai_port_err_status_list_t portError;
+  std::vector<sai_port_err_status_t> portErrStatusList;
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
@@ -112,6 +114,9 @@ struct FakePort {
   sai_uint32_t staticModuleId{};
   bool resetQueueCreditBalance{false};
   sai_int32_t pfcMonitorDirection{0};
+  sai_int32_t cablePropagationDelayMediaType{0};
+  sai_uint16_t pfcPauseDurationOverride{0};
+  std::function<void()> onGetAttribute; // test-only hook
 };
 
 struct FakePortSerdes {

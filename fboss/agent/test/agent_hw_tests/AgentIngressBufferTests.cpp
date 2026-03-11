@@ -22,7 +22,7 @@ constexpr int kPgResumeOffsetCells = 5;
 constexpr int kPgMinLimitCells = 6;
 constexpr int kPgHeadroomLimitCells = 2;
 constexpr int kPoolHeadroomLimitCells = 10;
-constexpr int kPoolSharedCells = 10000;
+constexpr int kPoolSharedCells = 11000;
 constexpr int kPoolReservedCells = 4000;
 /*
  * SDK has the expectation that pool_total_size - delta <= shared size,
@@ -58,7 +58,7 @@ std::vector<cfg::PortPgConfig> getPortPgConfig(
     }
     pgConfig.minLimitBytes() =
         (kPgMinLimitCells + queueId + deltaValue) * mmuCellBytes;
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       pgConfig.resumeBytes() =
           (kPgResumeCells + queueId + deltaValue) * mmuCellBytes;
     } else {

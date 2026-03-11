@@ -9,12 +9,12 @@
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
+#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
 
 using folly::dynamic;
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
-using k = facebook::fboss::test_tags::strings;
+namespace k = apache::thrift::ident;
 using namespace testing;
 
 namespace {

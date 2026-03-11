@@ -2,8 +2,6 @@
 
 #include "fboss/platform/sensor_service/PmClientFactory.h"
 
-#include <folly/io/async/AsyncSSLSocket.h>
-#include <folly/io/async/SSLOptions.h>
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 namespace facebook::fboss::platform::sensor_service {

@@ -84,6 +84,44 @@ std::vector<NextHop> FibInfo::resolveNextHopSetFromId(NextHopSetId id) const {
   return nextHops;
 }
 
+std::optional<NextHopSetId> FibInfo::getNextHopSetIdIf(
+    const std::string& name) const {
+  auto nameToIdMap = safe_cref<switch_state_tags::nameToNextHopSetId>();
+  if (!nameToIdMap) {
+    return std::nullopt;
+  }
+  auto iter = nameToIdMap->find(name);
+  if (iter == nameToIdMap->end()) {
+    return std::nullopt;
+  }
+  return iter->second->toThrift();
+}
+
+NextHopSetId FibInfo::getNextHopSetId(const std::string& name) const {
+  auto idOpt = getNextHopSetIdIf(name);
+  if (!idOpt) {
+    throw FbossError("Named next-hop group '", name, "' not found");
+  }
+  return *idOpt;
+}
+
+void FibInfo::setNextHopSetIdForName(const std::string& name, NextHopSetId id) {
+  ref<switch_state_tags::nameToNextHopSetId>()->emplace(name, id);
+}
+
+void FibInfo::removeNextHopSetForName(const std::string& name) {
+  ref<switch_state_tags::nameToNextHopSetId>()->remove(name);
+}
+
+std::vector<NextHop> FibInfo::resolveNextHopSetFromName(
+    const std::string& name) const {
+  auto idOpt = getNextHopSetIdIf(name);
+  if (!idOpt) {
+    throw FbossError("Named next-hop group '", name, "' not found");
+  }
+  return resolveNextHopSetFromId(*idOpt);
+}
+
 template struct ThriftStructNode<FibInfo, state::FibInfoFields>;
 
 } // namespace facebook::fboss

@@ -229,15 +229,19 @@ void HwTestThriftHandler::triggerParityError() {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
       triggerBcmXgsParityError(hwSwitch_);
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
       triggerBcmJericho2ParityError(hwSwitch_);
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       triggerBcmJericho3ParityError(hwSwitch_);
       break;
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       triggerChenabParityError(hwSwitch_);
       break;
   }

@@ -132,9 +132,21 @@ if (SAI_BRCM_IMPL)
   # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
   # Refactor/fix the code and then remove this flag.
   add_definitions (-DIS_OSS_BRCM_SAI=true)
-  # Build for BCM DNX by default. For XGS, set the ENV variable SAI_SDK_VERSION
-  # to build for BCM XGS.
-  set(SAI_SDK_VERSION "SAI_VERSION_11_0_EA_DNX_ODP")
+
+  # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
+  if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
+    message(FATAL_ERROR
+      "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
+      "Please set SAI_SDK_VERSION to the appropriate SDK version, for example:\n"
+      "  export SAI_SDK_VERSION=SAI_VERSION_13_3_0_0_ODP  # For BCM XGS\n"
+      "  export SAI_SDK_VERSION=SAI_VERSION_14_0_EA_DNX_ODP  # For BCM DNX")
+  endif()
+
+  set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
+  message(STATUS "Building for SAI_SDK_VERSION: ${SAI_SDK_VERSION}")
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${SAI_SDK_VERSION}")
+  message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
 # SAI version is set. Extract MAJOR, MINOR, RELEASE ver
@@ -142,25 +154,12 @@ strtok(${SAI_VERSION} "." tokens)
 set(listLength 0)
 list(LENGTH tokens listLength)
 if(NOT ${listLength} EQUAL 3)
-  message(Invalid SAI_VERSION in env variable $ENV{SAI_VERSION})
+  message(FATAL_ERROR "Invalid SAI_VERSION in env variable $ENV{SAI_VERSION}")
 else()
   list(GET tokens 0 SAI_VER_MAJOR)
   list(GET tokens 1 SAI_VER_MINOR)
   list(GET tokens 2 SAI_VER_RELEASE)
 endif()
-#endif
-
-if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
-  message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
-  set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
-endif()
-message(STATUS "Building for SAI_SDK_VERSION: ${SAI_SDK_VERSION}")
-
-if (NOT "${SAI_SDK_VERSION}" STREQUAL "")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${SAI_SDK_VERSION}")
-endif()
-message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-
 message(STATUS "Building for SAI Spec ${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 
 set(CMAKE_MODULE_PATH
@@ -200,7 +199,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-constexpr")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unneeded-internal-declaration")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=nullability-completeness")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
   # Use lld linker and disable PIE
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -no-pie")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
@@ -1079,9 +1078,35 @@ add_custom_target(fboss2_targets)
 add_dependencies(fboss2_targets
   fboss2
   fboss2_cmd_test
+  fboss2_cmd_config_test
   fboss2_framework_test
   fboss2-dev
 )
+
+if (SAI_IMPL OR BUILD_SAI_FAKE)
+  add_custom_target(fboss_forwarding_stack)
+  # Common forwarding services
+  add_dependencies(fboss_forwarding_stack
+    diag_shell_client
+    fboss2
+    fboss2-dev
+    fsdb
+    qsfp_service
+    wedge_qsfp_util
+  )
+
+  if (BUILD_SAI_FAKE)
+    add_dependencies(fboss_forwarding_stack
+      fboss_fake_agent_targets
+    )
+  else()
+    add_dependencies(fboss_forwarding_stack
+      fboss_hw_agent-sai_impl
+      fboss_sw_agent
+      wedge_agent-sai_impl
+    )
+  endif()
+endif()
 
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services
@@ -1176,3 +1201,6 @@ if (GITHUB_ACTIONS_BUILD)
     fsdb_all_services
   )
 endif()
+
+# FBOSS Image Builder distro_cli tests
+include(cmake/FbossImageDistroCliTests.cmake)

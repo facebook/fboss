@@ -41,8 +41,7 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 5000",
-    "SMBus iSMT adapter at 20fffa7b000"
+    "SMBus I801 adapter at 5000"
   ],
   "versionedPmUnitConfigs": {
     "NETLAKE": [
@@ -348,12 +347,6 @@
           "address": "0x4f",
           "kernelDeviceName": "lm75b",
           "pmUnitScopedName": "PB_INLET_TSENSOR"
-        },
-        {
-          "busName": "MCB_IOB_I2C_MASTER_9",
-          "address": "0x40",
-          "kernelDeviceName": "ina238",
-          "pmUnitScopedName": "48V_STBY_CURRENT_SENSOR"
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_9",
@@ -783,7 +776,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "tahansb_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_CPLD"
         },
         {
@@ -827,7 +820,6 @@
     "/run/devmap/sensors/MCB_COME_INLET_TSENSOR": "/[MCB_COME_INLET_TSENSOR]",
     "/run/devmap/sensors/PB_INLET_TSENSOR": "/[PB_INLET_TSENSOR]",
     "/run/devmap/sensors/MCB_COME_OUTLET_TSENSOR": "/[MCB_COME_OUTLET_TSENSOR]",
-    "/run/devmap/sensors/48V_STBY_CURRENT_SENSOR": "/[48V_STBY_CURRENT_SENSOR]",
     "/run/devmap/sensors/48V_STBY_PWR_SENSOR": "/[48V_STBY_PWR_SENSOR]",
     "/run/devmap/sensors/MCB_FAN_CPLD": "/[MCB_FAN_CPLD]",
     "/run/devmap/sensors/LOAD_SWITCH_MONITOR": "/[LOAD_SWITCH_MONITOR]",
@@ -903,11 +895,12 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 9,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.0.0-1",
+  "bspKmodsRpmVersion": "4.1.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
+    "fboss_iob_i2c",
     "ledtrig_timer"
   ]
 }

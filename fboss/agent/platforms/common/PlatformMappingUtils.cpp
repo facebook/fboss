@@ -14,14 +14,17 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/platforms/common/PlatformMappingUtils.h"
+#include "fboss/agent/platforms/common/blackwolf800banw/Blackwolf800banwPlatformMapping.h"
 #include "fboss/agent/platforms/common/darwin/DarwinPlatformMapping.h"
 #include "fboss/agent/platforms/common/elbert/ElbertPlatformMapping.h"
 #include "fboss/agent/platforms/common/fake_test/FakeTestPlatformMapping.h"
 #include "fboss/agent/platforms/common/fuji/FujiPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyFCPlatformMapping.h"
 #include "fboss/agent/platforms/common/galaxy/GalaxyLCPlatformMapping.h"
+#include "fboss/agent/platforms/common/icecube800banw/Icecube800banwPlatformMapping.h"
 #include "fboss/agent/platforms/common/icecube800bc/Icecube800bcPlatformMapping.h"
 #include "fboss/agent/platforms/common/icetea800bc/Icetea800bcPlatformMapping.h"
+#include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
@@ -49,6 +52,7 @@
 #include "fboss/agent/platforms/common/wedge800cact/Wedge800CACTPlatformMapping.h"
 #include "fboss/agent/platforms/common/yamp/YampPlatformMapping.h"
 #include "fboss/agent/platforms/common/yangra/YangraPlatformMapping.h"
+#include "fboss/agent/platforms/common/yangra2/Yangra2PlatformMapping.h"
 
 namespace {
 std::vector<int> getFakeSaiControllingPortIDs() {
@@ -194,6 +198,10 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Icecube800bcPlatformMapping>()
           : std::make_unique<Icecube800bcPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_ICECUBE800BANW:
+      return platformMappingStr.empty()
+          ? std::make_unique<Icecube800banwPlatformMapping>()
+          : std::make_unique<Icecube800banwPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_WEDGE800BACT:
       return platformMappingStr.empty()
           ? std::make_unique<Wedge800BACTPlatformMapping>()
@@ -214,6 +222,19 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Ladakh800bclsPlatformMapping>()
           : std::make_unique<Ladakh800bclsPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_J4SIM:
+      return platformMappingStr.empty()
+          ? std::make_unique<J4SimPlatformMapping>()
+          : std::make_unique<J4SimPlatformMapping>(platformMappingStr);
+    case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      return platformMappingStr.empty()
+          ? std::make_unique<Blackwolf800banwPlatformMapping>()
+          : std::make_unique<Blackwolf800banwPlatformMapping>(
+                platformMappingStr);
+    case PlatformType::PLATFORM_YANGRA2:
+      return platformMappingStr.empty()
+          ? std::make_unique<Yangra2PlatformMapping>()
+          : std::make_unique<Yangra2PlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_FAKE_SAI: {
       std::vector<int> controllingPorts = getFakeSaiControllingPortIDs();
       return std::make_unique<FakeTestPlatformMapping>(controllingPorts);

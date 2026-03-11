@@ -41,6 +41,7 @@ class NextHopGroupStoreTest : public SaiStoreTest {
          0,
          std::nullopt,
          std::nullopt,
+         std::nullopt,
          std::nullopt},
         0);
   }
@@ -67,6 +68,23 @@ class NextHopGroupStoreTest : public SaiStoreTest {
     return nextHopApi.create<SaiMplsNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, labels, std::nullopt}, 0);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  NextHopSaiId createSrv6SidlistNextHop(
+      const folly::IPAddress& ip,
+      sai_object_id_t tunnelId,
+      sai_object_id_t srv6SidlistId) {
+    auto& nextHopApi = saiApiTable->nextHopApi();
+    return nextHopApi.create<SaiSrv6SidlistNextHopTraits>(
+        {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST,
+         42,
+         ip,
+         tunnelId,
+         srv6SidlistId,
+         std::nullopt},
+        0);
+  }
+#endif
 };
 
 TEST_F(NextHopGroupStoreTest, loadEmptyNextHopGroup) {
@@ -320,15 +338,11 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJson) {
 
   auto iter = nhgAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
   EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter);
-  auto memberList = json[AttributeName<
-      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-  EXPECT_EQ(iter->second, memberList);
+  EXPECT_EQ(iter->second, json);
 
   auto iter0 = nhgAk2AhkJson.find(folly::to<std::string>(got0->adapterKey()));
   EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter0);
-  auto memberList0 = json0[AttributeName<
-      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-  EXPECT_EQ(iter0->second, memberList0);
+  EXPECT_EQ(iter0->second, json0);
 }
 
 TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
@@ -388,3 +402,69 @@ TEST_F(NextHopGroupStoreTest, bulkSetNextHopGroup) {
           nextHopGroupId, nextHopId2, weight4}));
 #endif
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+TEST_F(NextHopGroupStoreTest, nextHopGroupJsonAllNextHopTypes) {
+  // Create a next hop group with IP, MPLS, and SRv6 next hops
+  auto nextHopGroupId = createNextHopGroup();
+
+  folly::IPAddress ip1{"10.10.10.1"};
+  folly::IPAddress ip2{"10.10.10.2"};
+  folly::IPAddress ip3{"10.10.10.3"};
+  sai_uint32_t weight1 = 5;
+  sai_uint32_t weight2 = 10;
+  sai_uint32_t weight3 = 15;
+
+  sai_object_id_t tunnelId = 100;
+  sai_object_id_t srv6SidlistId = 200;
+
+  auto nextHopId1 = createNextHop(ip1);
+  auto nextHopId2 = createMplsNextHop(ip2, {301, 302});
+  auto nextHopId3 = createSrv6SidlistNextHop(ip3, tunnelId, srv6SidlistId);
+
+  createNextHopGroupMember(nextHopGroupId, nextHopId1, weight1);
+  createNextHopGroupMember(nextHopGroupId, nextHopId2, weight2);
+  createNextHopGroupMember(nextHopGroupId, nextHopId3, weight3);
+
+  // perform a warm boot load
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiNextHopGroupTraits>();
+
+  SaiNextHopGroupTraits::AdapterHostKey k;
+  k.nhopMemberSet.insert(
+      std::make_pair(SaiIpNextHopTraits::AdapterHostKey{42, ip1}, weight1));
+  k.nhopMemberSet.insert(
+      std::make_pair(
+          SaiMplsNextHopTraits::AdapterHostKey{
+              42, ip2, std::vector<sai_uint32_t>{301, 302}},
+          weight2));
+  k.nhopMemberSet.insert(
+      std::make_pair(
+          SaiSrv6SidlistNextHopTraits::AdapterHostKey{
+              42, ip3, tunnelId, srv6SidlistId},
+          weight3));
+
+  auto got = store.get(k);
+  EXPECT_TRUE(got);
+
+  // Verify round-trip serialization
+  auto json = got->adapterHostKeyToFollyDynamic();
+  auto recoveredKey =
+      SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(json);
+  EXPECT_EQ(recoveredKey, k);
+
+  // Verify the member list contains all three next hop types
+  auto memberList = json[AttributeName<
+      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
+  EXPECT_EQ(memberList.size(), 3);
+
+  // Verify adapterKeys2AdapterHostKeys map
+  auto ak2AhkJson = s.adapterKeys2AdapterHostKeysFollyDynamic();
+  auto& nhgAk2AhkJson =
+      ak2AhkJson[saiObjectTypeToString(SAI_OBJECT_TYPE_NEXT_HOP_GROUP)];
+  EXPECT_TRUE(!nhgAk2AhkJson.empty());
+  auto iter = nhgAk2AhkJson.find(folly::to<std::string>(got->adapterKey()));
+  EXPECT_FALSE(nhgAk2AhkJson.items().end() == iter);
+}
+#endif

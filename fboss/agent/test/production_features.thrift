@@ -114,6 +114,9 @@ enum ProductionFeature {
   MIRROR_ON_DROP_XGS = 96,
   ECN_PROBABILISTIC_MARKING = 97,
   PFC_RX_TX_DURATION = 98,
+  VIRTUAL_ARS_GROUP = 99,
+  SRV6_ENCAP = 100,
+  AIFM_PACKET_STREAM_HANDLER = 101,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

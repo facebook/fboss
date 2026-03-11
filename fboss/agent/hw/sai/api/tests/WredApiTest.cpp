@@ -32,7 +32,9 @@ class WredApiTest : public ::testing::Test {
       const sai_uint32_t greenDropProbability,
       const sai_ecn_mark_mode_t ecnMarkMode,
       const sai_uint32_t ecnGreenMinThreshold,
-      const sai_uint32_t ecnGreenMaxThreshold) const {
+      const sai_uint32_t ecnGreenMaxThreshold,
+      const std::optional<sai_uint32_t> ecnGreenMarkProbability =
+          std::nullopt) const {
     SaiWredTraits::Attributes::GreenEnable greenEnableAttribute{greenEnable};
     SaiWredTraits::Attributes::GreenMinThreshold greenMinThresholdAttribute{
         greenMinThreshold};
@@ -45,6 +47,13 @@ class WredApiTest : public ::testing::Test {
         ecnGreenMinThresholdAttribute{ecnGreenMinThreshold};
     SaiWredTraits::Attributes::EcnGreenMaxThreshold
         ecnGreenMaxThresholdAttribute{ecnGreenMaxThreshold};
+    std::optional<SaiWredTraits::Attributes::EcnGreenMarkProbability>
+        ecnGreenMarkProbabilityAttribute;
+    if (ecnGreenMarkProbability) {
+      ecnGreenMarkProbabilityAttribute =
+          SaiWredTraits::Attributes::EcnGreenMarkProbability{
+              *ecnGreenMarkProbability};
+    }
 
     return wredApi->create<SaiWredTraits>(
         {greenEnableAttribute,
@@ -53,7 +62,8 @@ class WredApiTest : public ::testing::Test {
          greenDropProbabilityAttribute,
          ecnMarkModeAttribute,
          ecnGreenMinThresholdAttribute,
-         ecnGreenMaxThresholdAttribute},
+         ecnGreenMaxThresholdAttribute,
+         ecnGreenMarkProbabilityAttribute},
         0);
   }
 
@@ -75,6 +85,10 @@ class WredApiTest : public ::testing::Test {
 
   sai_uint32_t kEcnGreenMaxThreshold() const {
     return 2000;
+  }
+
+  sai_uint32_t kEcnGreenMarkProbability() const {
+    return 50;
   }
 
   void checkWredId(WredSaiId wredId) const {
@@ -258,4 +272,37 @@ TEST_F(WredApiTest, setEcnAttributes) {
       wredApi->getAttribute(
           wredId, SaiWredTraits::Attributes::EcnGreenMaxThreshold{}),
       42);
+}
+
+TEST_F(WredApiTest, setEcnGreenMarkProbability) {
+  auto wredId = createWredProfile(
+      false,
+      0,
+      0,
+      0,
+      SAI_ECN_MARK_MODE_GREEN,
+      kEcnGreenMinThreshold(),
+      kEcnGreenMaxThreshold());
+
+  checkWredId(wredId);
+
+  // Set EcnGreenMarkProbability via setAttribute (not in CreateAttributes)
+  wredApi->setAttribute(
+      wredId,
+      SaiWredTraits::Attributes::EcnGreenMarkProbability{
+          kEcnGreenMarkProbability()});
+
+  EXPECT_EQ(
+      wredApi->getAttribute(
+          wredId, SaiWredTraits::Attributes::EcnGreenMarkProbability{}),
+      kEcnGreenMarkProbability());
+
+  // Update the value
+  wredApi->setAttribute(
+      wredId, SaiWredTraits::Attributes::EcnGreenMarkProbability{75});
+
+  EXPECT_EQ(
+      wredApi->getAttribute(
+          wredId, SaiWredTraits::Attributes::EcnGreenMarkProbability{}),
+      75);
 }

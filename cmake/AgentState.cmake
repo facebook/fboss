@@ -92,6 +92,8 @@ add_library(state
   fboss/agent/state/RouteTypes.cpp
   fboss/agent/state/SflowCollector.cpp
   fboss/agent/state/SflowCollectorMap.cpp
+  fboss/agent/state/Srv6Tunnel.cpp
+  fboss/agent/state/Srv6TunnelMap.cpp
   fboss/agent/state/StateDelta.cpp
   fboss/agent/state/StateDelta-computeOperDelta.cpp
   fboss/agent/state/StateUtils.cpp

@@ -88,6 +88,8 @@ class PortStoreTest : public SaiStoreTest {
         std::nullopt, // QosTcAndColorToDot1pMap
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
   }
 

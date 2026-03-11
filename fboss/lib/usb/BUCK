@@ -9,12 +9,12 @@ cpp_library(
         "UsbHandle.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":usb-api",
         "//folly:scope_guard",
     ],
     exported_external_deps = [
         "libusb",
-        "glog",
     ],
 )
 
@@ -24,6 +24,7 @@ cpp_library(
         "CP2112.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":usb",
         ":usb-api",
         "//fboss/lib:bmc-rest-client",
@@ -34,7 +35,6 @@ cpp_library(
         "//folly/logging:logging",
     ],
     exported_external_deps = [
-        "glog",
         "libusb",
     ],
 )
@@ -87,6 +87,7 @@ cpp_library(
         "WedgeI2CBus.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":base-i2c-dependencies",
         ":cp2112",
         ":i2-api",
@@ -101,9 +102,6 @@ cpp_library(
         "//folly/container:enumerate",
         "//folly/logging:logging",
     ],
-    exported_external_deps = [
-        "glog",
-    ],
 )
 
 cpp_library(
@@ -112,12 +110,10 @@ cpp_library(
         "BaseWedgeI2CBus.cpp",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         ":cp2112",
         ":i2-api",
         ":usb-api",
         "//folly:range",
-    ],
-    exported_external_deps = [
-        "glog",
     ],
 )

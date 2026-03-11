@@ -9,9 +9,6 @@
 
 namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
-namespace {
-const re2::RE2 kSensorSymlinkRegex{"(?P<Path>/run/devmap/sensors/.+)(/.+)+"};
-}; // namespace
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   XLOG(INFO) << "Validating sensor_service config";

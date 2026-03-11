@@ -5,7 +5,7 @@ ARG USERNAME=root
 ARG USER_UID=0
 ARG USER_GID=0
 ARG USER_SHELL=/bin/bash
-ARG USE_CLANG=false
+ARG USE_CLANG=true
 
 # Download and install sccache
 RUN version=v0.11.0 && \
@@ -78,7 +78,17 @@ RUN if [ "$USE_CLANG" = "true" ]; then \
     rm -rf build
 
 # The following libraries are needed for building SDK
-RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel
+RUN dnf install -y doxygen aspell libyaml-devel vim-common libnsl libnsl2-devel glibc-static libstdc++-static
+
+# Install libyaml.a for SDK purposes
+RUN git clone https://github.com/yaml/libyaml.git && \
+    cd libyaml && \
+    ./bootstrap && \
+    ./configure --enable-static --disable-shared && \
+    make -j && \
+    cp src/.libs/libyaml.a /lib64/ && \
+    cd .. && rm -rf libyaml
+
 # Install Perl modules
 RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-Compare \
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
@@ -98,5 +108,8 @@ RUN if [ "$USERNAME" != "root" ] && [ "$USER_UID" != "0" ]; then \
     useradd -l -m -u $USER_UID -g $USER_GID -G adm,wheel,users -s $USER_SHELL $USERNAME && \
     chown -R $USERNAME /var/FBOSS; \
     fi
+
+# Support sudo in a privileged container
+RUN chmod 600 /etc/shadow
 
 USER ${USERNAME}

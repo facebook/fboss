@@ -136,7 +136,8 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
     cfg::SwitchingMode switchingMode,
-    cfg::SwitchingMode backupSwitchingMode) {
+    cfg::SwitchingMode backupSwitchingMode,
+    bool supportsFuturePortLoad) {
   cfg::FlowletSwitchingConfig flowletCfg;
   flowletCfg.inactivityIntervalUsecs() = 16;
   flowletCfg.flowletTableSize() = 2048;
@@ -152,12 +153,16 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
   // SAI has sample rate in msec while native BCM is number of ticks
   if (isSai) {
     flowletCfg.dynamicEgressLoadExponent() = 1;
-    flowletCfg.dynamicQueueExponent() = 1;
+    if (supportsFuturePortLoad) {
+      flowletCfg.dynamicQueueExponent() = 1;
+    }
     flowletCfg.dynamicPhysicalQueueExponent() = 5;
     flowletCfg.dynamicSampleRate() = 1000;
   } else {
     flowletCfg.dynamicEgressLoadExponent() = 0;
-    flowletCfg.dynamicQueueExponent() = 0;
+    if (supportsFuturePortLoad) {
+      flowletCfg.dynamicQueueExponent() = 0;
+    }
     flowletCfg.dynamicPhysicalQueueExponent() = 4;
     flowletCfg.dynamicSampleRate() = 1000000;
   }
@@ -183,7 +188,8 @@ void addFlowletAcl(
   acl.proto() = 17;
   acl.l4DstPort() = 4791;
   acl.dstIp() = "2001::/16";
-  if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      checkSameAndGetAsicType(cfg) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     acl.etherType() = cfg::EtherType::IPv6;
   }
   if (FLAGS_enable_th5_ars_scale_mode) {
@@ -226,10 +232,11 @@ void addFlowletConfigs(
     const std::vector<PortID>& ports,
     bool isSai,
     cfg::SwitchingMode switchingMode,
-    cfg::SwitchingMode backupSwitchingMode) {
+    cfg::SwitchingMode backupSwitchingMode,
+    bool supportsFuturePortLoad) {
   cfg::FlowletSwitchingConfig flowletCfg =
       utility::getDefaultFlowletSwitchingConfig(
-          isSai, switchingMode, backupSwitchingMode);
+          isSai, switchingMode, backupSwitchingMode, supportsFuturePortLoad);
   if (FLAGS_enable_th5_ars_scale_mode) {
     flowletCfg.primaryPathQualityThreshold() = 7;
     flowletCfg.alternatePathCost() = 0;
@@ -245,7 +252,9 @@ void addFlowletConfigs(
     portFlowletConfig.scalingFactor() = kScalingFactor;
   }
   portFlowletConfig.loadWeight() = kLoadWeight;
-  portFlowletConfig.queueWeight() = kQueueWeight;
+  if (supportsFuturePortLoad) {
+    portFlowletConfig.queueWeight() = kQueueWeight;
+  }
   portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
   cfg.portFlowletConfigs() = portFlowletCfgMap;
 
@@ -533,8 +542,8 @@ size_t pumpRoCETraffic(
     uint8_t reserved,
     const std::optional<std::vector<uint8_t>>& nxtHdr,
     bool sameDstQueue) {
-  auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.0.0.1");
-  auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.0.0.1");
+  auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "100.10.0.1");
+  auto dstIp = folly::IPAddress(isV6 ? "2001::1" : "200.10.0.1");
 
   return pumpRoCETraffic(
       isV6,
@@ -664,13 +673,13 @@ size_t pumpTraffic(
   for (auto i = 0; i < int(std::sqrt(numPackets)); ++i) {
     auto srcIp = folly::IPAddress(
         folly::sformat(
-            isV6 ? "1001::{}:{}" : "100.0.{}.{}",
+            isV6 ? "1001::{}:{}" : "100.10.{}.{}",
             (i + 1) / 256,
             (i + 1) % 256));
     for (auto j = 0; j < int(numPackets / std::sqrt(numPackets)); ++j) {
       auto dstIp = folly::IPAddress(
           folly::sformat(
-              isV6 ? "2001::{}:{}" : "201.0.{}.{}",
+              isV6 ? "2001::{}:{}" : "201.10.{}.{}",
               (j + 1) / 256,
               (j + 1) % 256));
       auto pkt = makeUDPTxPacket(
@@ -782,11 +791,11 @@ void pumpDeterministicRandomTraffic(
   for (auto i = 0; i < 1000; ++i) {
     auto srcIp = isV6
         ? folly::IPAddress(folly::sformat("1001::{}", intToHex(srcV6())))
-        : folly::IPAddress(folly::sformat("100.0.0.{}", srcV4()));
+        : folly::IPAddress(folly::sformat("100.10.0.{}", srcV4()));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = isV6
           ? folly::IPAddress(folly::sformat("2001::{}", intToHex(dstV6())))
-          : folly::IPAddress(folly::sformat("200.0.0.{}", dstV4()));
+          : folly::IPAddress(folly::sformat("200.10.0.{}", dstV4()));
 
       auto pkt = makeUDPTxPacket(
           allocateFn,
@@ -829,10 +838,10 @@ void pumpMplsTraffic(
   std::unique_ptr<TxPacket> pkt;
   for (auto i = 0; i < 100; ++i) {
     auto srcIp = folly::IPAddress(
-        folly::sformat(isV6 ? "1001::{}" : "100.0.0.{}", i + 1));
+        folly::sformat(isV6 ? "1001::{}" : "100.10.0.{}", i + 1));
     for (auto j = 0; j < 100; ++j) {
       auto dstIp = folly::IPAddress(
-          folly::sformat(isV6 ? "2001::{}" : "200.0.0.{}", j + 1));
+          folly::sformat(isV6 ? "2001::{}" : "200.10.0.{}", j + 1));
 
       auto frame = isV6 ? utility::getEthFrame(
                               intfMac,

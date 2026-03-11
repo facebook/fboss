@@ -745,9 +745,12 @@ std::shared_ptr<SwitchState> BcmSwitch::getColdBootSwitchState() const {
     }
     ports->addNode(swPort, scopeResolver->scope(swPort));
 
-    memberPorts.insert(make_pair(portID, false));
+    state::VlanInfo vlanInfo;
+    *vlanInfo.tagged() = false;
+    *vlanInfo.priorityTagged() = false;
+    memberPorts.insert(make_pair(portID, vlanInfo));
   }
-  vlan->setPorts(memberPorts);
+  vlan->setPortsInfo(memberPorts);
   auto vlans = bootState->getVlans()->modify(&bootState);
   vlans->addNode(vlan, scopeResolver->scope(vlan));
   bootState->publish();
@@ -1502,7 +1505,9 @@ void BcmSwitch::processMacTableChanges(const StateDelta& stateDelta) {
 }
 
 std::shared_ptr<SwitchState> BcmSwitch::stateChangedImpl(
-    const std::vector<StateDelta>& deltas) {
+    const std::vector<StateDelta>& deltas,
+    const std::optional<
+        StateDeltaApplication>& /* deltaApplicationBehavior */) {
   // This is unlikely to happen but if it does, return current state
   if (deltas.size() == 0) {
     return getProgrammedState();
@@ -2430,8 +2435,8 @@ void BcmSwitch::processChangedVlan(
   BCM_PBMP_CLEAR(addedUntaggedPorts);
   bcm_pbmp_t removedPorts;
   BCM_PBMP_CLEAR(removedPorts);
-  const auto& oldPorts = oldVlan->getPorts();
-  const auto& newPorts = newVlan->getPorts();
+  const auto& oldPorts = oldVlan->getPortsInfo();
+  const auto& newPorts = newVlan->getPortsInfo();
 
   auto oldIter = oldPorts.begin();
   auto newIter = newPorts.begin();
@@ -2444,7 +2449,7 @@ void BcmSwitch::processChangedVlan(
       ++numAdded;
       bcm_port_t bcmPort = portTable_->getBcmPortId(PortID(newIter->first));
       BCM_PBMP_PORT_ADD(addedPorts, bcmPort);
-      if (!newIter->second) {
+      if (!*newIter->second.tagged()) {
         BCM_PBMP_PORT_ADD(addedUntaggedPorts, bcmPort);
       }
       ++newIter;
@@ -2477,17 +2482,17 @@ void BcmSwitch::processChangedVlan(
 
 void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
   XLOG(DBG2) << "creating VLAN " << vlan->getID() << " with "
-             << vlan->getPorts().size() << " ports";
+             << vlan->getPortsInfo().size() << " ports";
 
   bcm_pbmp_t pbmp;
   bcm_pbmp_t ubmp;
   BCM_PBMP_CLEAR(pbmp);
   BCM_PBMP_CLEAR(ubmp);
 
-  for (const auto& entry : vlan->getPorts()) {
+  for (const auto& entry : vlan->getPortsInfo()) {
     bcm_port_t bcmPort = portTable_->getBcmPortId(PortID(entry.first));
     BCM_PBMP_PORT_ADD(pbmp, bcmPort);
-    if (!entry.second) {
+    if (!*entry.second.tagged()) {
       BCM_PBMP_PORT_ADD(ubmp, bcmPort);
     }
   }
@@ -2505,7 +2510,7 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
     const auto& existingVlan = vlanItr->second;
     if (!equivalent(VlanInfo(vlan->getID(), ubmp, pbmp), existingVlan)) {
       XLOG(DBG1) << "updating VLAN " << vlan->getID() << " with "
-                 << vlan->getPorts().size() << " ports";
+                 << vlan->getPortsInfo().size() << " ports";
       auto oldVlan = vlan->clone();
       warmBootCache_->fillVlanPortInfo(oldVlan.get());
       processChangedVlan(oldVlan, vlan);
@@ -2515,7 +2520,7 @@ void BcmSwitch::processAddedVlan(const shared_ptr<Vlan>& vlan) {
     warmBootCache_->programmed(vlanItr);
   } else {
     XLOG(DBG1) << "creating VLAN " << vlan->getID() << " with "
-               << vlan->getPorts().size() << " ports";
+               << vlan->getPortsInfo().size() << " ports";
     auto rv = bcm_vlan_create(unit_, vlan->getID());
     bcmCheckError(rv, "failed to add VLAN ", vlan->getID());
     rv = bcm_vlan_port_add(unit_, vlan->getID(), pbmp, ubmp);
@@ -4205,7 +4210,8 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-      case cfg::AsicType::ASIC_TYPE_TOMAHAWK6: {
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
         auto rv = bcm_switch_control_set(unit_, bcmSwitchPcieHotSwapDisable, 1);
         bcmCheckError(rv, "Failed to disable hotswap");
       } break;
@@ -4213,12 +4219,15 @@ void BcmSwitch::disableHotSwap() const {
       case cfg::AsicType::ASIC_TYPE_GARONNE:
       case cfg::AsicType::ASIC_TYPE_YUBA:
       case cfg::AsicType::ASIC_TYPE_CHENAB:
+      case cfg::AsicType::ASIC_TYPE_CHENAB2:
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
       case cfg::AsicType::ASIC_TYPE_AGERA3:
       case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
       case cfg::AsicType::ASIC_TYPE_JERICHO2:
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       case cfg::AsicType::ASIC_TYPE_RAMON:
       case cfg::AsicType::ASIC_TYPE_RAMON3:
       case cfg::AsicType::ASIC_TYPE_G202X:

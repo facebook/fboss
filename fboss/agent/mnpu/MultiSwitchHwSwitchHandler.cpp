@@ -51,7 +51,8 @@ bool MultiSwitchHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
 bool MultiSwitchHwSwitchHandler::transactionsSupported(
     std::optional<cfg::SdkVersion> sdkVersion) const {
   auto asicType = getSwitchInfo().asicType().value();
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     return true;
   }
   if (asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
@@ -84,7 +85,9 @@ FabricReachabilityStats MultiSwitchHwSwitchHandler::getFabricReachabilityStats()
 
 bool MultiSwitchHwSwitchHandler::needL2EntryForNeighbor(
     const cfg::SwitchConfig* config) const {
-  if (cfg::AsicType::ASIC_TYPE_CHENAB == getSwitchInfo().asicType().value()) {
+  auto asicType = getSwitchInfo().asicType().value();
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     return false;
   }
   // if config is not present, fall back to true
@@ -141,7 +144,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
     bool transaction,
     const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   multiswitch::StateOperDelta stateDelta;
   CHECK_GE(deltas.size(), 1);
   {
@@ -179,7 +183,8 @@ MultiSwitchHwSwitchHandler::stateChanged(
         deltas,
         transaction,
         currOperDeltaSeqNum_,
-        hwWriteBehavior);
+        hwWriteBehavior,
+        deltaApplicationBehavior);
     ++currOperDeltaSeqNum_;
     nextOperDelta_ = &stateDelta;
   }
@@ -406,7 +411,8 @@ void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
     const std::vector<fsdb::OperDelta>& deltas,
     bool transaction,
     int64_t lastSeqNum,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   // Send full delta if this is first switchstate update.
   // Sequence number 0 indicates first update
   if (lastSeqNum == 0) {
@@ -421,6 +427,9 @@ void MultiSwitchHwSwitchHandler::fillMultiswitchOperDelta(
   stateDelta.transaction() = transaction;
   stateDelta.seqNum() = lastSeqNum + 1;
   stateDelta.hwWriteBehavior() = hwWriteBehavior;
+  if (deltaApplicationBehavior.has_value()) {
+    stateDelta.deltaApplicationBehavior() = deltaApplicationBehavior.value();
+  }
 }
 
 void MultiSwitchHwSwitchHandler::operDeltaAckTimeout() {
@@ -434,4 +443,9 @@ state::SwitchState MultiSwitchHwSwitchHandler::reconstructSwitchState() {
       "reconstructSwitchState Not implemented in MultiSwitchHwSwitchHandler");
 }
 
+bool MultiSwitchHwSwitchHandler::isValidStateUpdate(
+    const StateDelta& /*delta*/) const {
+  throw FbossError(
+      "isValidStateUpdate Not implemented in MultiSwitchHwSwitchHandler, use state update validator instead");
+}
 } // namespace facebook::fboss

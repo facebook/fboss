@@ -94,9 +94,12 @@ class ColdBootPacketHandlingFixture : public ::testing::Test {
     auto matcher = HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID{0}}));
     for (const auto& port : ports) {
       coldBootState->getPorts()->addNode(port, matcher);
-      memberPorts.insert(make_pair(port->getID(), false));
+      state::VlanInfo vlanInfo;
+      *vlanInfo.tagged() = false;
+      *vlanInfo.priorityTagged() = false;
+      memberPorts.insert(make_pair(port->getID(), vlanInfo));
     }
-    vlan->setPorts(memberPorts);
+    vlan->setPortsInfo(memberPorts);
     coldBootState->getVlans()->addNode(vlan, matcher);
     return coldBootState;
   }

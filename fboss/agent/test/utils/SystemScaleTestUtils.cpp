@@ -321,7 +321,7 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
 }
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
   auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     return;
   }
   // TH3 had existing slowness of l2 callbacks. To exercise the callback path,

@@ -1,0 +1,29 @@
+{
+  "fwConfigs": {
+    "smb_fpga": {
+      "upgrade": [
+        {
+          "commandType": "flashrom",
+          "flashromArgs": {
+            "spi_layout": "0:3FFFFF image",
+            "programmer_type": "linux_spi:dev=",
+            "programmer": "/run/devmap/flashes/SMB_SPI_MASTER0_DEVICE1",
+            "flashromExtraArgs": [
+              "-i",
+              "image"
+            ],
+            "chip": [
+              "MT25QL256",
+              "MX25L25635F/MX25L25645G"
+            ]
+          }
+        }
+      ],
+      "version": {
+        "versionType": "sysfs",
+        "path": "/run/devmap/inforoms/ICECUBE800BANW_SMB_FPGA_INFO_ROM/fw_ver"
+      },
+      "priority": 1
+    }
+  }
+}

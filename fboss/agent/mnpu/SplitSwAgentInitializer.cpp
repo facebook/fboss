@@ -2,6 +2,7 @@
 
 #include "fboss/agent/mnpu/SplitSwAgentInitializer.h"
 #include "fboss/agent/MultiSwitchThriftHandler.h"
+#include "fboss/agent/PacketStreamHandler.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -42,6 +43,15 @@ SplitSwAgentInitializer::getThrifthandlers() {
   auto handler = std::make_shared<MultiSwitchThriftHandler>(sw_.get());
   multiSwitchThriftHandler_ = handler.get();
   handlers.push_back(handler);
+
+  if (FLAGS_enable_aifm_ctrl_handler) {
+    packetStreamHandler_ = std::make_shared<PacketStreamHandler>(
+        sw_.get(), "aifm_ctrl_packet_stream", "AifmCtrlAgent");
+    handlers.push_back(packetStreamHandler_);
+    sw_->setPacketStreamHandler(packetStreamHandler_.get());
+    XLOG(INFO) << "PacketStreamHandler enabled (split mode)";
+  }
+
   return handlers;
 }
 

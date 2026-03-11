@@ -10,7 +10,6 @@
 #include <type_traits>
 
 #include <fboss/agent/AddressUtil.h>
-#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchMatcher.h"
@@ -19,8 +18,7 @@
 
 #include "common/network/if/gen-cpp2/Address_types.h"
 
-#include "fboss/agent/gen-cpp2/switch_state_fatal.h"
-#include "fboss/agent/gen-cpp2/switch_state_fatal_types.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 
 #include "fboss/thrift_cow/nodes/Types.h"
 
@@ -28,10 +26,10 @@ namespace facebook::fboss {
 
 class SwitchState;
 
-using switch_state_tags = state::switch_state_tags::strings;
-using switch_config_tags = cfg::switch_config_tags::strings;
-using ctrl_if_tags = ctrl_tags::strings;
-using common_if_tags = common_tags::strings;
+namespace switch_state_tags = apache::thrift::ident;
+namespace switch_config_tags = apache::thrift::ident;
+namespace ctrl_if_tags = apache::thrift::ident;
+namespace common_if_tags = apache::thrift::ident;
 
 template <typename NodeT>
 struct IsThriftCowNode {
@@ -409,6 +407,10 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
   using InnerMap = typename Traits::InnerMap;
   using InnerNode = typename InnerMap::Traits::Node;
 
+  static auto kNodeName() {
+    return apache::thrift::op::get_class_name_v<typename InnerNode::ThriftType>;
+  }
+
   void addNode(
       std::shared_ptr<InnerNode> node,
       const HwSwitchMatcher& matcher) {
@@ -438,8 +440,8 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       if (mitr->second->remove(key)) {
         return;
       }
-    }
-    throw FbossError("Node to remove not found: ", key);
+    };
+    throw FbossError("Node ", kNodeName(), " to remove not found: ", key);
   }
 
   void removeNode(std::shared_ptr<InnerNode> node) {
@@ -461,7 +463,7 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
       const typename InnerMap::Traits::KeyType& key) const {
     auto node = getNodeIf(key);
     if (!node) {
-      throw FbossError("Node to get not found: ", key);
+      throw FbossError("Node ", kNodeName(), " to get not found: ", key);
     }
     return node;
   }
@@ -474,7 +476,8 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
         return std::make_pair(nitr->second, HwSwitchMatcher(mnitr->first));
       }
     }
-    throw FbossError("Node and scope to get not found: ", key);
+    throw FbossError(
+        "Node ", kNodeName(), " and scope to get not found: ", key);
   }
 
   size_t numNodes() const {
@@ -523,20 +526,5 @@ struct ThriftMultiSwitchMapNode : public ThriftMapNode<MAP, Traits, Resolver> {
     return nodes;
   }
 };
-
-namespace utility {
-template <typename T, T...>
-struct TagName;
-
-template <typename T, T... Values>
-struct TagName<fatal::sequence<T, Values...>> {
-  static constexpr std::size_t size = sizeof...(Values);
-  static constexpr std::array<T, size> array = {Values...};
-  static std::string value() {
-    return std::string(std::begin(array), std::end(array));
-  }
-};
-
-} // namespace utility
 
 } // namespace facebook::fboss

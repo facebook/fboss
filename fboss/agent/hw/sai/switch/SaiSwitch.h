@@ -40,7 +40,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 class SaiStore;
-
+class FineGrainedLockPolicy;
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
  * necessary FDB event attributes from sai_fdb_event_notification_data_t.
@@ -89,14 +89,17 @@ class SaiSwitch : public HwSwitch {
    * port RIF is enough to get the egress port.
    */
   bool needL2EntryForNeighbor() const override {
-    if (asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       return false;
     }
     return getSwitchType() == cfg::SwitchType::NPU;
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& deltas) override;
+      const std::vector<StateDelta>& deltas,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
@@ -182,9 +185,13 @@ class SaiSwitch : public HwSwitch {
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t event_type);
-  void pfcDeadlockNotificationCallback(
+  void pfcDeadlockNotificationCallbackTopHalf(
       uint32_t count,
       const sai_queue_deadlock_notification_data_t* data);
+  void pfcDeadlockNotificationCallbackBottomHalf(
+      uint32_t count,
+      const sai_queue_deadlock_notification_data_t* data);
+
   void vendorSwitchEventNotificationCallback(
       sai_size_t bufferSize,
       const void* buffer,
@@ -309,10 +316,14 @@ class SaiSwitch : public HwSwitch {
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
+  std::string listCachedObjectsLocked(
+      const std::vector<sai_object_type_t>& objects,
+      const SaiStore* store,
+      const FineGrainedLockPolicy& policy) const;
   void listManagedObjectsLocked(
       std::string& output,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   TeFlowStats getTeFlowStats() const override;
@@ -772,6 +783,9 @@ class SaiSwitch : public HwSwitch {
   FbossEventBase switchAsicSdkHealthNotificationBHEventBase_{
       "SwitchAsicSdkHealthNotificationEventBase"};
 #endif
+  std::unique_ptr<std::thread> pfcDeadlockNotificationBottomHalfThread_;
+  FbossEventBase pfcDeadlockNotificationBottomHalfEventBase_{
+      "PfcDeadlockNotificationBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};

@@ -76,6 +76,7 @@ The `run_test.py` script is a helper utility to simplify the process of running 
 - QSFP Hardware tests
 - Link tests
 - SAI Agent tests
+- Platform tests
 
 Examples of the command to run for each of the various types of tests are shown below.
 
@@ -124,6 +125,18 @@ Special flags:
 Special flags:
 
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
-1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the link tests. Currently it supports "mono" and "legacy" modes. If not specified, it will use "legacy" mode.
+1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the link tests. Currently it supports "mono", "multi_switch", and "legacy" modes. If not specified, it will use "legacy" mode.
 1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP service binary.
 1. `--platform_mapping_override_path`: an optional flag to override the ASIC platform mapping. This value is passed through to the QSFP service binary and the link tests binary.
+
+### Platform tests
+
+```
+# Run all Platform Services tests
+./bin/run_test.py platform
+```
+
+Special flags:
+
+1. `--filter`: FBOSS uses GTEST for its test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
+1. `--type`: an optional flag to run specified platform service test (platform_hw_test, data_corral_service_hw_test, fan_service_hw_test, fw_util_hw_test, sensor_service_hw_test, weutil_hw_test, platform_manager_hw_test).

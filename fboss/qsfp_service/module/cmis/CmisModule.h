@@ -32,11 +32,14 @@ enum class CmisPages : int {
   PAGE20 = 0x20,
   PAGE21 = 0x21,
   PAGE22 = 0x22,
+  PAGE23 = 0x23,
   PAGE24 = 0x24,
   PAGE25 = 0x25,
   PAGE26 = 0x26,
+  PAGE27 = 0x27,
   PAGE2C = 0x2C,
-  PAGE2F = 0x2F
+  PAGE2F = 0x2F,
+  PAGE34 = 0x34
 };
 
 enum VdmConfigType {
@@ -69,6 +72,15 @@ enum VdmConfigType {
   FEC_TAIL_MEDIA_IN_CURR = 107,
   FEC_TAIL_HOST_IN_MAX = 108,
   FEC_TAIL_HOST_IN_CURR = 109,
+  // Coherent 800G ZR VDM parameters (C-CMIS-01.3, Table 8)
+  MODULATOR_BIAS_XI = 128,
+  MODULATOR_BIAS_XQ = 129,
+  MODULATOR_BIAS_YI = 130,
+  MODULATOR_BIAS_YQ = 131,
+  MODULATOR_BIAS_X_PHASE = 132,
+  MODULATOR_BIAS_Y_PHASE = 133,
+  CD_LOW_GRANULARITY = 135,
+  SOPMD_LOW_GRANULARITY = 149,
 };
 
 class CmisModule : public QsfpModule {
@@ -177,6 +189,18 @@ class CmisModule : public QsfpModule {
     return ((1 << numLanes) - 1) << startLane;
   }
 
+  // Set the module to low power mode (writes SQUELCH_CONTROL | LOW_PWR_BIT)
+  void setModuleLowPowerModeLocked();
+
+  // Release low power mode (clears LOW_PWR_BIT, writes SQUELCH_CONTROL only)
+  void releaseModuleLowPowerModeLocked();
+
+  // Check if the module is in READY state
+  bool isModuleInReadyState();
+
+  // Poll until the module reaches READY state (up to 5s)
+  bool moduleReadyStatePoll();
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -196,12 +220,19 @@ class CmisModule : public QsfpModule {
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page23_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page24_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
+  // C-CMIS Performance Monitoring pages (coherent optics)
+  uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
+
+  // Cached firmware build number from CDB Get Firmware Info command
+  std::optional<uint16_t> cachedFwBuildNumber_;
 
   /*
    * Structure to hold datapath init/deinit state per port using timers
@@ -254,7 +285,8 @@ class CmisModule : public QsfpModule {
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  void customizeTransceiverLocked(TransceiverPortState& portState) override;
+  void customizeTransceiverLocked(
+      const TransceiverPortState& portState) override;
 
   /*
    * Returns whether customization is supported at all.
@@ -307,10 +339,7 @@ class CmisModule : public QsfpModule {
    * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
-      const std::string& portName,
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
-      uint8_t numHostLanesForPort,
+      const TransceiverPortState& portState,
       uint8_t newAppSelCode);
 
   /*
@@ -335,10 +364,9 @@ class CmisModule : public QsfpModule {
    * Otherwise, the default setApplicationSelectCode will be used.
    */
   void programApplicationSelectCode(
-      const std::string& portName,
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       std::optional<std::function<void()>> appSelectFunc = std::nullopt);
 
@@ -516,6 +544,12 @@ class CmisModule : public QsfpModule {
   FirmwareStatus getFwStatus();
 
   /*
+   * Fetches the firmware build number from CDB Get Firmware Info command.
+   * Returns the build number if successful, or std::nullopt on failure.
+   */
+  std::optional<uint16_t> fetchFwBuildNumberFromCdb();
+
+  /*
    * Gather host side per lane configuration settings and return false when it
    * fails
    */
@@ -571,9 +605,21 @@ class CmisModule : public QsfpModule {
   void resetDataPath(const std::string& portName) override;
 
   /*
+   * Returns true if the current module is LPO
+   */
+  bool isLpoModule() const override;
+
+  /*
+   * Return if module is AEC cable.
+   */
+  bool isAecModule() const override {
+    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
+  }
+
+  /*
    * returns whether optics frequency is tunable or not
    */
-  bool isTunableOptics() const;
+  bool isTunableOptics() const override;
 
   /*
    * returns the tunable optics laser status and laser frequency
@@ -803,8 +849,6 @@ class CmisModule : public QsfpModule {
 
   // Utility functions for power state management
   PowerControlState getCurrentPowerControlState();
-  bool isModuleInReadyState();
-  bool moduleReadyStatePoll();
 
   // Check if module should be kept in low power mode for AppSel programming.
   bool programAppSelInLowPowerMode() const;
@@ -820,16 +864,23 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats);
+
+  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+
+  uint8_t setExplicitControl(
+      const TransceiverPortState& state,
+      const uint8_t laneMask);
 
   void setApplicationSelectCode(
       uint8_t apSelCode,
       uint8_t mediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
 
@@ -846,18 +897,6 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
-
-  /*
-   * Returns true if the current module is LPO
-   */
-  bool isLpoModule() const override;
-
-  /*
-   * Return if module is AEC cable.
-   */
-  bool isAecModule() const {
-    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
-  }
 
   std::time_t vdmIntervalStartTime_{0};
 };

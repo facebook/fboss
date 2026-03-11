@@ -427,6 +427,28 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
 
     checkTransceiverProgrammed(getPresentTransceivers());
     checkTransceiverProgrammed(getAbsentTransceivers());
+
+    // Also verify backplane XPHY ports (XPHY ports without transceivers)
+    // These ports are not associated with any transceiver, so they won't be
+    // covered by the transceiver-based verification above.
+    auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+    if (phyManager) {
+      auto xphyPorts = phyManager->getXphyPorts();
+
+      for (const auto& portId : xphyPorts) {
+        // Check if this port has a transceiver - if so, it was already
+        // verified in the transceiver loop above
+        auto tcvrId = utility::getTranscieverIdx(portId, getHwQsfpEnsemble());
+        if (tcvrId.has_value()) {
+          continue;
+        }
+        auto programmedProfile = phyManager->getProgrammedProfile(portId);
+        if (programmedProfile.has_value()) {
+          utility::verifyXphyPort(
+              portId, *programmedProfile, std::nullopt, getHwQsfpEnsemble());
+        }
+      }
+    }
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }

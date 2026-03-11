@@ -1,8 +1,6 @@
 namespace cpp2 facebook.fboss
 namespace py3 neteng.fboss
 
-namespace cpp2 fboss.agent.hw.test.dataplane_tests
-
 const set<string> _BCM_COMMON_TESTED_CMDS = [
   "ps",
   "show count",

@@ -12,7 +12,6 @@
 
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/product/gen-cpp2/model_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
@@ -29,27 +28,11 @@ class CmdShowProduct : public CmdHandler<CmdShowProduct, CmdShowProductTraits> {
   using ObjectArgType = CmdShowProductTraits::ObjectArgType;
   using RetType = CmdShowProductTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    ProductInfo productInfo;
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_getProductInfo(productInfo);
-    return createModel(productInfo);
-  }
+  RetType queryClient(const HostInfo& hostInfo);
 
-  RetType createModel(const ProductInfo& productInfo) {
-    RetType model;
-    model.product() = productInfo.product().value();
-    model.oem() = productInfo.oem().value();
-    model.serial() = productInfo.serial().value();
-    return model;
-  }
+  RetType createModel(const ProductInfo& productInfo);
 
-  void printOutput(const RetType& model, std::ostream& out = std::cout) {
-    out << "Product: " << model.product().value() << std::endl;
-    out << "OEM: " << model.oem().value() << std::endl;
-    out << "Serial: " << model.serial().value() << std::endl;
-  }
+  void printOutput(const RetType& model, std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

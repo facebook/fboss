@@ -157,13 +157,20 @@ void subscribeDelta(
   };
 
   if (subscribeStats) {
-    pubSubMgr->addStatDeltaSubscription(
+    auto operStateCb = [](OperState&& state) {
+      consume(state, FLAGS_consumeDelayMs, FLAGS_resetDelayAfterNChunks);
+      if (FLAGS_printChunks) {
+        auto contents = state.contents() ? *state.contents() : "null";
+        std::cout << "New value: " << contents << std::endl;
+      }
+    };
+    pubSubMgr->addStatPathSubscription(
         rawPath,
         std::move(stateChangeCb),
-        std::move(operDeltaCb),
+        std::move(operStateCb),
         std::move(connectionOptions));
     std::cout
-        << "Subscribed via FsdbPubSubManager (stat delta). Press Ctrl+C to exit."
+        << "Subscribed via FsdbPubSubManager (stat path). Press Ctrl+C to exit."
         << std::endl;
   } else {
     pubSubMgr->addStateDeltaSubscription(

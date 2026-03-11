@@ -101,19 +101,22 @@ void NDPOptions::tryParse(folly::io::Cursor& cursor) {
 
 void NDPOptions::serialize(folly::io::RWPrivateCursor* cursor) const {
   if (mtu) {
-    cursor->write<uint8_t>(NDPOptionType::MTU);
-    cursor->write<uint8_t>(NDPOptionLength::MTU);
-    cursor->writeBE<uint16_t>(0);
+    cursor->write<uint8_t>(static_cast<uint8_t>(NDPOptionType::MTU));
+    cursor->write<uint8_t>(static_cast<uint8_t>(NDPOptionLength::MTU));
+    cursor->writeBE<uint16_t>(static_cast<uint16_t>(0));
     cursor->writeBE<uint32_t>(*mtu);
   }
   if (sourceLinkLayerAddress) {
-    cursor->write<uint8_t>(NDPOptionType::SRC_LL_ADDRESS);
-    cursor->write<uint8_t>(NDPOptionLength::SRC_LL_ADDRESS_IEEE802);
+    cursor->write<uint8_t>(static_cast<uint8_t>(NDPOptionType::SRC_LL_ADDRESS));
+    cursor->write<uint8_t>(
+        static_cast<uint8_t>(NDPOptionLength::SRC_LL_ADDRESS_IEEE802));
     cursor->push(sourceLinkLayerAddress->bytes(), MacAddress::SIZE);
   }
   if (targetLinkLayerAddress) {
-    cursor->write<uint8_t>(NDPOptionType::TARGET_LL_ADDRESS);
-    cursor->write<uint8_t>(NDPOptionLength::TARGET_LL_ADDRESS_IEEE802);
+    cursor->write<uint8_t>(
+        static_cast<uint8_t>(NDPOptionType::TARGET_LL_ADDRESS));
+    cursor->write<uint8_t>(
+        static_cast<uint8_t>(NDPOptionLength::TARGET_LL_ADDRESS_IEEE802));
     cursor->push(targetLinkLayerAddress->bytes(), MacAddress::SIZE);
   }
 }

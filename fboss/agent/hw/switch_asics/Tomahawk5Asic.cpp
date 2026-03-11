@@ -123,6 +123,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BULK_CREATE_ECMP_MEMBER:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -177,6 +178,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
@@ -190,7 +192,6 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CRC_ERROR_DETECT:
     case HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW:
     case HwAsic::Feature::SWITCH_REACHABILITY_CHANGE_NOTIFY:
-    case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::DATA_CELL_FILTER:
     case HwAsic::Feature::DRAM_BLOCK_TIME:
     case HwAsic::Feature::VOQ_LATENCY_WATERMARK_BIN:
@@ -231,6 +232,7 @@ bool Tomahawk5Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
       return false;
   }
   return false;
@@ -288,5 +290,9 @@ std::optional<uint32_t> Tomahawk5Asic::getArsBaseIndex() const {
   // >(4096-256)
   // So setting default start index as 3840
   return getMaxEcmpGroups().value() - 256;
+}
+
+std::optional<uint32_t> Tomahawk5Asic::getMaxArsWidth() const {
+  return 64;
 }
 } // namespace facebook::fboss

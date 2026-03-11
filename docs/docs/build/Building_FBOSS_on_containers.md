@@ -82,11 +82,6 @@ link against. More specifically, you'll need the static library `libsai_impl.a`
 for the SDK which you are trying to link against, as well as the associated set
 of SAI headers. In order to run the build:
 
-#### Run the Build Helper
-
-```bash file=./static/code_snips/build_helper.sh
-```
-
 #### Set Important Environment Variables
 
 ```bash file=./static/code_snips/important_environment_variables.sh
@@ -105,7 +100,7 @@ and start the build:
 For some project that needs to use XPHY(Retimer) which has its own SAI SDK, we need
 to build QSFP targets to link with the precompiled PHY SDK library just like we did
 above for Agent targets linking with ASIC SDK. However, we won't be able to support
-building both Agent and QSFP targets with the single `getdeps.py build fboss` command
+building both Agent and QSFP targets with the single `run-getdeps.py build fboss` command
 like above, mainly because ASIC SAI SDK and PHY SAI SDK usually don't use the same SAI
 version and implementation.
 Therefore, for any platform that needs linking both ASIC SAI SDK and PHY SAI SDK,
@@ -116,6 +111,19 @@ we highly recommend to do it in the following order:
 
 ```bash file=./static/code_snips/build_qsfp_targets_with_brcm_pai.sh
 ```
+
+### Build Type Options
+
+The `getdeps.py` script supports different build types via the `--build-type` flag. This controls optimization levels and debug information:
+
+| Build Type | Description | Use Case |
+|------------|-------------|----------|
+| **Debug** | No optimization, full debug symbols | Development and debugging |
+| **RelWithDebInfo** | Optimized with debug symbols | **Default** - Balances performance with debuggability |
+| **MinSizeRel** | Optimized for size, no debug symbols | Production deployments and resource-constrained environments |
+| **Release** | Full optimization, no debug symbols | Maximum performance (may have compatibility issues) |
+
+**Note**: If `--build-type` is not specified, the build defaults to `RelWithDebInfo`, which balances performance with the ability to debug issues.
 
 ### Limit the Build to a Specific Target
 

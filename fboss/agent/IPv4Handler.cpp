@@ -184,9 +184,9 @@ void IPv4Handler::sendICMPTimeExceeded(
   // Lambda function to serialize the body with extension headers
   auto serializeBody = [&](RWPrivateCursor* sendCursor) {
     // RFC4884, section 4.2.  Write the length surrounded by unused
-    sendCursor->writeBE<uint8_t>(0); // unused bytes
+    sendCursor->writeBE<uint8_t>(static_cast<uint8_t>(0)); // unused bytes
     sendCursor->writeBE<uint8_t>(lengthIn32BitWords); // Length
-    sendCursor->writeBE<uint16_t>(0); // unused bytes
+    sendCursor->writeBE<uint16_t>(static_cast<uint16_t>(0)); // unused bytes
 
     // Write the IP header, and as much of the "original datagram"
     // as possible.
@@ -197,7 +197,7 @@ void IPv4Handler::sendICMPTimeExceeded(
 
     // Pad the payload to the nearest 32-bit boundary
     for (auto i = 0; i < paddingBytesRequired; i++) {
-      sendCursor->writeBE<uint8_t>(0);
+      sendCursor->writeBE<uint8_t>(static_cast<uint8_t>(0));
     }
 
     // Write the extension header

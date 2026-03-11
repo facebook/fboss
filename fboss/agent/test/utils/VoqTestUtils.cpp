@@ -754,4 +754,78 @@ int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass) {
   return trafficClass;
 }
 
+// Get the remote VOQ switch ID from DSF nodes configuration.
+SwitchID getRemoteVoqSwitchId(SwSwitch* sw) {
+  const auto config = sw->getConfig();
+  const auto dsfNodes = config.dsfNodes();
+  CHECK(!dsfNodes->empty()) << "DSF nodes configuration is empty";
+  // Remote switch Id is the last one added
+  const auto& [switchId, remoteNode] = *dsfNodes->crbegin();
+  CHECK(*remoteNode.type() == cfg::DsfNodeType::INTERFACE_NODE);
+  return SwitchID(switchId);
+}
+
+// Add remote system port and interface for a remote switch. Creates the
+// necessary state for forwarding traffic to a remote VOQ switch.
+void addRemoteSysPortAndInterface(
+    SwSwitch* sw,
+    const SwitchID& remoteSwitchID,
+    const SystemPortID& remoteSysPortId,
+    const InterfaceID& remoteIntfId,
+    const Interface::Addresses& intfAddrs) {
+  auto makeSwitchId2SystemPorts = [&](const SwitchID& switchId)
+      -> std::map<SwitchID, std::shared_ptr<SystemPortMap>> {
+    std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+    const auto& remoteSysPort = makeRemoteSysPort(remoteSysPortId, switchId);
+    auto remoteSysPorts = std::make_shared<SystemPortMap>();
+    remoteSysPorts->addNode(remoteSysPort);
+    switchId2SystemPorts[switchId] = std::move(remoteSysPorts);
+    return switchId2SystemPorts;
+  };
+
+  auto makeSwitchId2Rifs = [&](const SwitchID& switchId)
+      -> std::map<SwitchID, std::shared_ptr<InterfaceMap>> {
+    std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Rifs;
+    auto remoteIntf = makeRemoteInterface(remoteIntfId, intfAddrs);
+    auto remoteIntfs = std::make_shared<InterfaceMap>();
+    remoteIntfs->addNode(remoteIntf);
+    switchId2Rifs[switchId] = std::move(remoteIntfs);
+    return switchId2Rifs;
+  };
+
+  auto updateDsfStateFn = [=](const std::shared_ptr<SwitchState>& in) {
+    auto switchId2SystemPorts = makeSwitchId2SystemPorts(remoteSwitchID);
+    auto switchId2Rifs = makeSwitchId2Rifs(remoteSwitchID);
+
+    return DsfStateUpdaterUtil::getUpdatedState(
+        in,
+        sw->getScopeResolver(),
+        sw->getRib(),
+        switchId2SystemPorts,
+        switchId2Rifs);
+  };
+  sw->getRib()->updateStateInRibThread([sw, updateDsfStateFn]() {
+    sw->updateStateWithHwFailureProtection(
+        "Update state for remote node", updateDsfStateFn);
+  });
+}
+
+// Resolve route to a remote neighbor and program the route and sets up ECMP
+// routing to forward traffic to dstIp via the remote system port.
+void resolveRouteToRemoteSysPort(
+    const std::shared_ptr<SwitchState>& state,
+    SwSwitch* sw,
+    TestEnsembleIf* ensemble,
+    const SystemPortID& remoteSysPortId,
+    const folly::IPAddressV6& dstIp) {
+  EcmpSetupTargetedPorts6 ecmpHelper(state, sw->needL2EntryForNeighbor());
+  auto routeUpdater = sw->getRouteUpdater();
+  resolveRemoteNhops(ensemble, ecmpHelper);
+
+  ecmpHelper.programRoutes(
+      &routeUpdater,
+      {PortDescriptor(remoteSysPortId)},
+      {RoutePrefixV6{dstIp, 128}});
+}
+
 } // namespace facebook::fboss::utility

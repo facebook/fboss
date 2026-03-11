@@ -126,6 +126,9 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
       }
 #endif
+// TODO(daiweix): enable fabricControlRx|TxPacketStats after resolving
+// CS00012448723
+#if !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::FABRIC_LINK_MONITORING)) {
         counterIds.insert(
@@ -137,6 +140,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             SaiPortTraits::fabricControlTxPacketStats().begin(),
             SaiPortTraits::fabricControlTxPacketStats().end());
       }
+#endif
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
@@ -459,6 +463,7 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
+  changeClm(oldPort, newPort);
 }
 
 void SaiPortManager::attributesFromSaiStore(
@@ -660,6 +665,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platform_->getInterfaceType(transmitterTech, speed)) {
     interfaceType = saiInterfaceType.value();
   }
+  std::optional<sai_port_media_type_t> propagationDelayMediaType;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
+      managerTable_->switchManager().isMeasureCableLengthEnabled()) {
+    if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
+        swPort->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      propagationDelayMediaType =
+          utility::getSaiCablePropagationDelayMediaType(transmitterTech);
+    }
+  }
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::optional<SaiPortTraits::Attributes::InterFrameGap> interFrameGap;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
@@ -752,8 +769,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      if (platform_->getAsic()->getAsicType() !=
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (platform_->getAsic()->getAsicVendor() !=
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
         if (platform_->getAsic()->isSupported(
@@ -885,6 +902,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosTcAndColorToDot1pMap
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -981,6 +1000,12 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosTcAndColorToDot1pMap
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
+      propagationDelayMediaType, // CablePropagationDelayMediaType
+#if defined(CHENAB_SAI_SDK_VERSION_2505_34_0_32)
+      0xffff, // PfcPauseDurationOverride
+#else
+      std::nullopt, // PfcPauseDurationOverride
+#endif
   };
 }
 

@@ -183,7 +183,8 @@ void addDscpMarkingAclsTableHelper(
     dscpSrcMarkingAcl.actionType() = cfg::AclActionType::PERMIT;
     dscpSrcMarkingAcl.proto() = static_cast<int>(proto);
     dscpSrcMarkingAcl.l4SrcPort() = port;
-    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       dscpSrcMarkingAcl.etherType() = cfg::EtherType::IPv6;
     }
     addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
@@ -201,7 +202,8 @@ void addDscpMarkingAclsTableHelper(
     dscpDstMarkingAcl.actionType() = cfg::AclActionType::PERMIT;
     dscpDstMarkingAcl.proto() = static_cast<int>(proto);
     dscpDstMarkingAcl.l4DstPort() = port;
-    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       dscpDstMarkingAcl.etherType() = cfg::EtherType::IPv6;
     }
     utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);

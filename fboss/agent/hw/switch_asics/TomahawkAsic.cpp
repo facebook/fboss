@@ -159,6 +159,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_DLB_OFFSET:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
@@ -227,6 +228,7 @@ bool TomahawkAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
   }

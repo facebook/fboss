@@ -129,6 +129,10 @@ class NextHopGroupMember {
       ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =
       ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  using ManagedSrv6NextHopGroupMember =
+      ManagedSaiNextHopGroupMember<SaiSrv6SidlistNextHopTraits>;
+#endif
 
   NextHopGroupMember(
       SaiNextHopGroupManager* manager,
@@ -197,7 +201,12 @@ class NextHopGroupMember {
  private:
   std::variant<
       std::shared_ptr<ManagedIpNextHopGroupMember>,
-      std::shared_ptr<ManagedMplsNextHopGroupMember>>
+      std::shared_ptr<ManagedMplsNextHopGroupMember>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      ,
+      std::shared_ptr<ManagedSrv6NextHopGroupMember>
+#endif
+      >
       managedNextHopGroupMember_;
 };
 
@@ -259,6 +268,9 @@ class SaiNextHopGroupManager {
   void setPrimaryArsSwitchingMode(
       std::optional<cfg::SwitchingMode> switchingMode);
 
+  void setMinWidthForArsVirtualGroup(
+      std::optional<int32_t> minWidthForArsVirtualGroup);
+
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
 
@@ -277,6 +289,7 @@ class SaiNextHopGroupManager {
       NextHopGroupMember>
       nextHopGroupMembers_;
   std::optional<cfg::SwitchingMode> primaryArsMode_;
+  std::optional<int32_t> minWidthForArsVirtualGroup_;
 };
 
 } // namespace facebook::fboss

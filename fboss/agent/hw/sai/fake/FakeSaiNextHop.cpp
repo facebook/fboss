@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
 
@@ -27,6 +28,10 @@ sai_status_t create_next_hop_fn(
   std::optional<sai_object_id_t> routerInterfaceId;
   std::vector<sai_uint32_t> labelStack;
   bool disableTtlDecrement{false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  sai_object_id_t tunnelId{SAI_NULL_OBJECT_ID};
+  sai_object_id_t srv6SidlistId{SAI_NULL_OBJECT_ID};
+#endif
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_NEXT_HOP_ATTR_TYPE:
@@ -50,6 +55,14 @@ sai_status_t create_next_hop_fn(
       case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         disableTtlDecrement = attr_list[i].value.booldata;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_NEXT_HOP_ATTR_TUNNEL_ID:
+        tunnelId = attr_list[i].value.oid;
+        break;
+      case SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID:
+        srv6SidlistId = attr_list[i].value.oid;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -63,6 +76,11 @@ sai_status_t create_next_hop_fn(
       routerInterfaceId.value(),
       labelStack,
       disableTtlDecrement);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  auto& nextHop = fs->nextHopManager.get(*next_hop_id);
+  nextHop.tunnelId = tunnelId;
+  nextHop.srv6SidlistId = srv6SidlistId;
+#endif
 
   return SAI_STATUS_SUCCESS;
 }
@@ -115,6 +133,14 @@ sai_status_t get_next_hop_attribute_fn(
       case SAI_NEXT_HOP_ATTR_DISABLE_DECREMENT_TTL:
         attr[i].value.booldata = nextHop.disableTtlDecrement;
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      case SAI_NEXT_HOP_ATTR_TUNNEL_ID:
+        attr[i].value.oid = nextHop.tunnelId;
+        break;
+      case SAI_NEXT_HOP_ATTR_SRV6_SIDLIST_ID:
+        attr[i].value.oid = nextHop.srv6SidlistId;
+        break;
+#endif
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }

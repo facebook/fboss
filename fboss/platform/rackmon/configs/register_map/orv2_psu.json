@@ -1,21 +1,24 @@
 {
     "name": "ORV2_PSU",
     "address_range": [
-        [160, 191]
+        [
+            160,
+            191
+        ]
     ],
     "probe_register": 104,
     "baudrate": 19200,
     "special_handlers": [
-      {
-        "reg": 298,
-        "len": 2,
-        "period": 3600,
-        "action": "write",
-        "info": {
-          "interpret": "INTEGER",
-          "shell": "date +%s"
+        {
+            "reg": 298,
+            "len": 2,
+            "period": 3600,
+            "action": "write",
+            "info": {
+                "interpret": "INTEGER",
+                "shell": "date +%s"
+            }
         }
-      }
     ],
     "max_span_length": 16,
     "registers": [
@@ -68,19 +71,58 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [13, "Forced Backup"],
-                [11, "Power Fail signal"],
-                [10, "Redundancy Lost"],
-                [9, "PSU Not Responding"],
-                [8, "SoH Discharge"],
-                [7, "SoH Requested"],
-                [6, "Battery Alarm"],
-                [5, "Fan Alarm"],
-                [4, "Temp Alarm"],
-                [3, "Current Feed (Boost Converter) Failed"],
-                [2, "Battery Charger Failed"],
-                [1, "Aux 54V Converter failed"],
-                [0, "Main Converter Failed"]
+                [
+                    13,
+                    "Forced Backup"
+                ],
+                [
+                    11,
+                    "Power Fail signal"
+                ],
+                [
+                    10,
+                    "Redundancy Lost"
+                ],
+                [
+                    9,
+                    "PSU Not Responding"
+                ],
+                [
+                    8,
+                    "SoH Discharge"
+                ],
+                [
+                    7,
+                    "SoH Requested"
+                ],
+                [
+                    6,
+                    "Battery Alarm"
+                ],
+                [
+                    5,
+                    "Fan Alarm"
+                ],
+                [
+                    4,
+                    "Temp Alarm"
+                ],
+                [
+                    3,
+                    "Current Feed (Boost Converter) Failed"
+                ],
+                [
+                    2,
+                    "Battery Charger Failed"
+                ],
+                [
+                    1,
+                    "Aux 54V Converter failed"
+                ],
+                [
+                    0,
+                    "Main Converter Failed"
+                ]
             ],
             "name": "PSU Status"
         },
@@ -91,18 +133,54 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [15, "Unknown Error"],
-                [14, "Bad Size"],
-                [13, "Overflow/Underflow"],
-                [12, "Access Denied"],
-                [11, "Unsupported Command"],
-                [9, "Busy"],
-                [8, "Normal"],
-                [7, "BBU Charge_Enable_L signal mismatch"],
-                [6, "BBU Stop_Discharge_L signal mismatch"],
-                [2, "End of Life"],
-                [1, "Low Voltage"],
-                [0, "BBU Fail"]
+                [
+                    15,
+                    "Unknown Error"
+                ],
+                [
+                    14,
+                    "Bad Size"
+                ],
+                [
+                    13,
+                    "Overflow/Underflow"
+                ],
+                [
+                    12,
+                    "Access Denied"
+                ],
+                [
+                    11,
+                    "Unsupported Command"
+                ],
+                [
+                    9,
+                    "Busy"
+                ],
+                [
+                    8,
+                    "Normal"
+                ],
+                [
+                    7,
+                    "BBU Charge_Enable_L signal mismatch"
+                ],
+                [
+                    6,
+                    "BBU Stop_Discharge_L signal mismatch"
+                ],
+                [
+                    2,
+                    "End of Life"
+                ],
+                [
+                    1,
+                    "Low Voltage"
+                ],
+                [
+                    0,
+                    "BBU Fail"
+                ]
             ],
             "name": "BBU Status (0x00 of the BBU)"
         },
@@ -113,14 +191,38 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [15, "Capacity Mode"],
-                [14, "Charger Mode"],
-                [13, "Alarm Mode"],
-                [9, "Primary Battery"],
-                [8, "Charge Controller Enabled"],
-                [7, "Battery OK Flag"],
-                [1, "Primary Battery Support"],
-                [0, "Internal Charge Controller"]
+                [
+                    15,
+                    "Capacity Mode"
+                ],
+                [
+                    14,
+                    "Charger Mode"
+                ],
+                [
+                    13,
+                    "Alarm Mode"
+                ],
+                [
+                    9,
+                    "Primary Battery"
+                ],
+                [
+                    8,
+                    "Charge Controller Enabled"
+                ],
+                [
+                    7,
+                    "Battery OK Flag"
+                ],
+                [
+                    1,
+                    "Primary Battery Support"
+                ],
+                [
+                    0,
+                    "Internal Charge Controller"
+                ]
             ],
             "name": "BBU Battery Mode (0x03 of BBU)"
         },
@@ -131,16 +233,46 @@
             "changes_only": true,
             "format": "FLAGS",
             "flags": [
-                [15, "Over Charged Alarm"],
-                [14, "Terminated Charge Alarm"],
-                [12, "Over Temp Alarm"],
-                [11, "Terminate Discharge Alarm"],
-                [9, "Remaining Capacity Alarm"],
-                [8, "Remaining Time Alarm"],
-                [7, "Initialized"],
-                [6, "Discharging"],
-                [5, "Fully Charged"],
-                [4, "Fully Discharged"]
+                [
+                    15,
+                    "Over Charged Alarm"
+                ],
+                [
+                    14,
+                    "Terminated Charge Alarm"
+                ],
+                [
+                    12,
+                    "Over Temp Alarm"
+                ],
+                [
+                    11,
+                    "Terminate Discharge Alarm"
+                ],
+                [
+                    9,
+                    "Remaining Capacity Alarm"
+                ],
+                [
+                    8,
+                    "Remaining Time Alarm"
+                ],
+                [
+                    7,
+                    "Initialized"
+                ],
+                [
+                    6,
+                    "Discharging"
+                ],
+                [
+                    5,
+                    "Fully Charged"
+                ],
+                [
+                    4,
+                    "Fully Discharged"
+                ]
             ],
             "name": "BBU Battery Status (0x16 of BBU)"
         },
@@ -592,14 +724,38 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [7, "Communication"],
-                [6, "Fan"],
-                [5, "Temperature"],
-                [4, "Battery Charger"],
-                [3, "Auxiliary"],
-                [2, "Boost Converter"],
-                [1, "DCDC"],
-                [0, "PFC"]
+                [
+                    7,
+                    "Communication"
+                ],
+                [
+                    6,
+                    "Fan"
+                ],
+                [
+                    5,
+                    "Temperature"
+                ],
+                [
+                    4,
+                    "Battery Charger"
+                ],
+                [
+                    3,
+                    "Auxiliary"
+                ],
+                [
+                    2,
+                    "Boost Converter"
+                ],
+                [
+                    1,
+                    "DCDC"
+                ],
+                [
+                    0,
+                    "PFC"
+                ]
             ],
             "name": "General Alarm Status Register"
         },
@@ -608,14 +764,38 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [11, "LLC enabled"],
-                [10, "Input relay on"],
-                [9, "!(Bulk ok)"],
-                [8, "AC_OK"],
-                [5, "!(AC_FREQ_GOOD_HIGH)"],
-                [4, "!(AC_FREQ_GOOD_LOW)"],
-                [1, "AC_OVP"],
-                [0, "AC_UVP"]
+                [
+                    11,
+                    "LLC enabled"
+                ],
+                [
+                    10,
+                    "Input relay on"
+                ],
+                [
+                    9,
+                    "!(Bulk ok)"
+                ],
+                [
+                    8,
+                    "AC_OK"
+                ],
+                [
+                    5,
+                    "!(AC_FREQ_GOOD_HIGH)"
+                ],
+                [
+                    4,
+                    "!(AC_FREQ_GOOD_LOW)"
+                ],
+                [
+                    1,
+                    "AC_OVP"
+                ],
+                [
+                    0,
+                    "AC_UVP"
+                ]
             ],
             "name": "PFC Alarm Status Register"
         },
@@ -624,13 +804,34 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [10, "Oring fail"],
-                [9, "Secondary DSP fail"],
-                [8, "DC/DC fail"],
-                [3, "MAIN_SCKT"],
-                [2, "MAIN_OCP"],
-                [1, "MAIN_OVP"],
-                [0, "MAIN_UVP"]
+                [
+                    10,
+                    "Oring fail"
+                ],
+                [
+                    9,
+                    "Secondary DSP fail"
+                ],
+                [
+                    8,
+                    "DC/DC fail"
+                ],
+                [
+                    3,
+                    "MAIN_SCKT"
+                ],
+                [
+                    2,
+                    "MAIN_OCP"
+                ],
+                [
+                    1,
+                    "MAIN_OVP"
+                ],
+                [
+                    0,
+                    "MAIN_UVP"
+                ]
             ],
             "name": "DC/DC Alarm Status Register"
         },
@@ -639,12 +840,30 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [8, "CF Failure"],
-                [4, "OPP"],
-                [3, "Battery UVP"],
-                [2, "BOOST_OCP/Battery OVP"],
-                [1, "BOOST_UVP"],
-                [0, "BOOST_OVP"]
+                [
+                    8,
+                    "CF Failure"
+                ],
+                [
+                    4,
+                    "OPP"
+                ],
+                [
+                    3,
+                    "Battery UVP"
+                ],
+                [
+                    2,
+                    "BOOST_OCP/Battery OVP"
+                ],
+                [
+                    1,
+                    "BOOST_UVP"
+                ],
+                [
+                    0,
+                    "BOOST_OVP"
+                ]
             ],
             "name": "Current Feed Alarm Status Register"
         },
@@ -653,10 +872,22 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [8, "Aux alarm"],
-                [2, "OCP"],
-                [1, "OVP"],
-                [0, "UVP"]
+                [
+                    8,
+                    "Aux alarm"
+                ],
+                [
+                    2,
+                    "OCP"
+                ],
+                [
+                    1,
+                    "OVP"
+                ],
+                [
+                    0,
+                    "UVP"
+                ]
             ],
             "name": "Auxiliary Alarm Status Register"
         },
@@ -665,12 +896,30 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [6, "CHARGER_SCKT"],
-                [5, "CHARGER_HW_OVP"],
-                [3, "Charger_Failure_Timeout"],
-                [2, "CHARGER_OCP"],
-                [1, "CHARGER_UVP"],
-                [0, "CHARGER_OVP"]
+                [
+                    6,
+                    "CHARGER_SCKT"
+                ],
+                [
+                    5,
+                    "CHARGER_HW_OVP"
+                ],
+                [
+                    3,
+                    "Charger_Failure_Timeout"
+                ],
+                [
+                    2,
+                    "CHARGER_OCP"
+                ],
+                [
+                    1,
+                    "CHARGER_UVP"
+                ],
+                [
+                    0,
+                    "CHARGER_OVP"
+                ]
             ],
             "name": "Battery Charger Alarm Status Register"
         },
@@ -679,20 +928,62 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [15, "PFC FET 2 temp alarm"],
-                [14, "PFC FET 1 temp alarm"],
-                [13, "Bridge temp alarm"],
-                [12, "Buck temp alarm"],
-                [9, "Charger temp alarm"],
-                [8, "Boost temp alarm"],
-                [7, "PFC temp alarm"],
-                [6, "LLC temp alarm"],
-                [5, "CF temp alarm"],
-                [4, "Aux temp alarm"],
-                [3, "Sync temp alarm"],
-                [2, "Oring temp alarm"],
-                [1, "Inlet temp alarm"],
-                [0, "Outlet temp alarm"]
+                [
+                    15,
+                    "PFC FET 2 temp alarm"
+                ],
+                [
+                    14,
+                    "PFC FET 1 temp alarm"
+                ],
+                [
+                    13,
+                    "Bridge temp alarm"
+                ],
+                [
+                    12,
+                    "Buck temp alarm"
+                ],
+                [
+                    9,
+                    "Charger temp alarm"
+                ],
+                [
+                    8,
+                    "Boost temp alarm"
+                ],
+                [
+                    7,
+                    "PFC temp alarm"
+                ],
+                [
+                    6,
+                    "LLC temp alarm"
+                ],
+                [
+                    5,
+                    "CF temp alarm"
+                ],
+                [
+                    4,
+                    "Aux temp alarm"
+                ],
+                [
+                    3,
+                    "Sync temp alarm"
+                ],
+                [
+                    2,
+                    "Oring temp alarm"
+                ],
+                [
+                    1,
+                    "Inlet temp alarm"
+                ],
+                [
+                    0,
+                    "Outlet temp alarm"
+                ]
             ],
             "name": "Temperature Alarm Status Register"
         },
@@ -701,7 +992,10 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [0, "Fan Tacho Fail"]
+                [
+                    0,
+                    "Fan Tacho Fail"
+                ]
             ],
             "name": "Fan Alarm Status Register"
         },
@@ -710,18 +1004,54 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [11, "BBU not_insert"],
-                [14, "BBU protection"],
-                [13, "BBU sleep"],
-                [12, "BBU fail"],
-                [11, "BBU eol"],
-                [10, "soh_check"],
-                [9, "charge_enable"],
-                [8, "stop_discharge"],
-                [3, "Discharger - Logic Fault"],
-                [2, "Secondary - Logic Fault"],
-                [1, "Primary - Secondary Fault"],
-                [0, "BBU Comm Fault"]
+                [
+                    11,
+                    "BBU not_insert"
+                ],
+                [
+                    14,
+                    "BBU protection"
+                ],
+                [
+                    13,
+                    "BBU sleep"
+                ],
+                [
+                    12,
+                    "BBU fail"
+                ],
+                [
+                    11,
+                    "BBU eol"
+                ],
+                [
+                    10,
+                    "soh_check"
+                ],
+                [
+                    9,
+                    "charge_enable"
+                ],
+                [
+                    8,
+                    "stop_discharge"
+                ],
+                [
+                    3,
+                    "Discharger - Logic Fault"
+                ],
+                [
+                    2,
+                    "Secondary - Logic Fault"
+                ],
+                [
+                    1,
+                    "Primary - Secondary Fault"
+                ],
+                [
+                    0,
+                    "BBU Comm Fault"
+                ]
             ],
             "name": "Communication Alarm Status Register"
         },
@@ -776,44 +1106,158 @@
             "length": 4,
             "format": "FLAGS",
             "flags": [
-                [63, "Charge timeout"],
-                [61, "BMS Failure"],
-                [60, "Cell voltage under 2.0V"],
-                [59, "FET Failure"],
-                [58, "Temperature above 85C"],
-                [57, "Cell voltage above 4.22V (analog)"],
-                [56, "Cell voltage above 4.22V"],
-                [55, "Temperature protection for charge"],
-                [54, "Charge current above 6A"],
-                [53, "Cell voltage above 4.12V"],
-                [51, "Full charge state"],
-                [50, "Cell balancing failure"],
-                [49, "Fuse blown detected - general"],
-                [48, "Fuse blown detected - during charge"],
-                [47, "SoH test is enabled"],
-                [46, "PSU failure"],
-                [45, "Sleep mode"],
-                [44, "End of Life"],
-                [42, "Temperature protection for discharge"],
-                [41, "Discharge current over 132A"],
-                [40, "Cell voltage under 2.6V"],
-                [31, "Stop Discharge"],
-                [30, "EoL"],
-                [29, "SoH check"],
-                [28, "Charge Enable"],
-                [27, "Fail"],
-                [26, "EoL LED"],
-                [25, "Fail LED"],
-                [24, "Online LED"],
-                [16, "Sleep"],
-                [15, "BatTest FCC update successful"],
-                [14, "BatTest FCC calculation"],
-                [13, "BatTest OCV checking after discharge"],
-                [12, "BatTest discharging"],
-                [11, "BatTest discharge permission"],
-                [10, "BatTest start time measured after wake up"],
-                [9, "BatTest suspended"],
-                [8, "BatTest start time elapsed"]
+                [
+                    63,
+                    "Charge timeout"
+                ],
+                [
+                    61,
+                    "BMS Failure"
+                ],
+                [
+                    60,
+                    "Cell voltage under 2.0V"
+                ],
+                [
+                    59,
+                    "FET Failure"
+                ],
+                [
+                    58,
+                    "Temperature above 85C"
+                ],
+                [
+                    57,
+                    "Cell voltage above 4.22V (analog)"
+                ],
+                [
+                    56,
+                    "Cell voltage above 4.22V"
+                ],
+                [
+                    55,
+                    "Temperature protection for charge"
+                ],
+                [
+                    54,
+                    "Charge current above 6A"
+                ],
+                [
+                    53,
+                    "Cell voltage above 4.12V"
+                ],
+                [
+                    51,
+                    "Full charge state"
+                ],
+                [
+                    50,
+                    "Cell balancing failure"
+                ],
+                [
+                    49,
+                    "Fuse blown detected - general"
+                ],
+                [
+                    48,
+                    "Fuse blown detected - during charge"
+                ],
+                [
+                    47,
+                    "SoH test is enabled"
+                ],
+                [
+                    46,
+                    "PSU failure"
+                ],
+                [
+                    45,
+                    "Sleep mode"
+                ],
+                [
+                    44,
+                    "End of Life"
+                ],
+                [
+                    42,
+                    "Temperature protection for discharge"
+                ],
+                [
+                    41,
+                    "Discharge current over 132A"
+                ],
+                [
+                    40,
+                    "Cell voltage under 2.6V"
+                ],
+                [
+                    31,
+                    "Stop Discharge"
+                ],
+                [
+                    30,
+                    "EoL"
+                ],
+                [
+                    29,
+                    "SoH check"
+                ],
+                [
+                    28,
+                    "Charge Enable"
+                ],
+                [
+                    27,
+                    "Fail"
+                ],
+                [
+                    26,
+                    "EoL LED"
+                ],
+                [
+                    25,
+                    "Fail LED"
+                ],
+                [
+                    24,
+                    "Online LED"
+                ],
+                [
+                    16,
+                    "Sleep"
+                ],
+                [
+                    15,
+                    "BatTest FCC update successful"
+                ],
+                [
+                    14,
+                    "BatTest FCC calculation"
+                ],
+                [
+                    13,
+                    "BatTest OCV checking after discharge"
+                ],
+                [
+                    12,
+                    "BatTest discharging"
+                ],
+                [
+                    11,
+                    "BatTest discharge permission"
+                ],
+                [
+                    10,
+                    "BatTest start time measured after wake up"
+                ],
+                [
+                    9,
+                    "BatTest suspended"
+                ],
+                [
+                    8,
+                    "BatTest start time elapsed"
+                ]
             ],
             "name": "BBU FB Status (0x31 of the BBU)"
         },
@@ -835,10 +1279,22 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [12, "Variable Charger CC Mode Override"],
-                [5, "Forced discharge"],
-                [4, "Charge timeout disable"],
-                [0, "SoH Override"]
+                [
+                    12,
+                    "Variable Charger CC Mode Override"
+                ],
+                [
+                    5,
+                    "Forced discharge"
+                ],
+                [
+                    4,
+                    "Charge timeout disable"
+                ],
+                [
+                    0,
+                    "SoH Override"
+                ]
             ],
             "name": "Rack Monitor BBU Control Enable"
         },
@@ -847,10 +1303,22 @@
             "length": 1,
             "format": "FLAGS",
             "flags": [
-                [7, "RED LED"],
-                [6, "AMBER LED"],
-                [5, "GREEN LED"],
-                [0, "LED Override"]
+                [
+                    7,
+                    "RED LED"
+                ],
+                [
+                    6,
+                    "AMBER LED"
+                ],
+                [
+                    5,
+                    "GREEN LED"
+                ],
+                [
+                    0,
+                    "LED Override"
+                ]
             ],
             "name": "LED Override"
         },
@@ -919,3 +1387,4 @@
         }
     ]
 }
+

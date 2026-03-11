@@ -101,7 +101,9 @@ SaiHostifManager::packetReasonToHostifTrap(
   if ((platform->getAsic()->getAsicType() ==
        cfg::AsicType::ASIC_TYPE_JERICHO2) ||
       (platform->getAsic()->getAsicType() ==
-       cfg::AsicType::ASIC_TYPE_JERICHO3)) {
+       cfg::AsicType::ASIC_TYPE_JERICHO3) ||
+      (platform->getAsic()->getAsicType() ==
+       cfg::AsicType::ASIC_TYPE_JERICHO4)) {
     ndpAction = SAI_PACKET_ACTION_TRAP;
   } else {
     ndpAction = SAI_PACKET_ACTION_COPY;
@@ -221,7 +223,8 @@ SaiHostifManager::ensureHostifUserDefinedTrap(uint32_t queueId) {
   auto hostifTrapGroup = ensureHostifTrapGroup(queueId);
   auto priority =
       SaiHostifUserDefinedTrapTraits::Attributes::TrapPriority::defaultValue();
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     // Chenab has following hardware limitations -
     //  - CPU queues in Chenab are 0...3.
     //  - trap priorities are in range of 0...3.
@@ -389,8 +392,8 @@ void SaiHostifManager::processRxReasonToQueueDelta(
      */
     auto priority = newRxReasonToQueue->size() - index;
     CHECK_GT(priority, 0);
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Chenab has following hardware limitations -
       //  - CPU queues in Chenab are 0...3.
       //  - trap priorities are in range of 0...3.

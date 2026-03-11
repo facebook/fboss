@@ -42,6 +42,13 @@ static const string kVlan1299("Vlan1299");
 HwSwitchMatcher scope() {
   return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
 }
+
+state::VlanInfo makeVlanInfo(bool tagged, bool priorityTagged) {
+  state::VlanInfo info;
+  *info.tagged() = tagged;
+  *info.priorityTagged() = priorityTagged;
+  return info;
+}
 } // namespace
 
 template <typename Entry>
@@ -74,7 +81,7 @@ TEST(Vlan, applyConfig) {
     EXPECT_FALSE(vlanV0->isPublished());
     EXPECT_EQ(VlanID(1234), vlanV0->getID());
     Vlan::MemberPorts emptyPorts;
-    EXPECT_EQ(emptyPorts, vlanV0->getPorts());
+    EXPECT_EQ(emptyPorts, vlanV0->getPortsInfo());
 
     vlanV0->publish();
     EXPECT_TRUE(vlanV0->isPublished());
@@ -99,17 +106,19 @@ TEST(Vlan, applyConfig) {
     config.vlanPorts()[0].logicalPort() = 1;
     config.vlanPorts()[0].vlanID() = 1234;
     config.vlanPorts()[0].emitTags() = false;
+    config.vlanPorts()[0].emitPriorityTags() = false;
     config.vlanPorts()[1].logicalPort() = 2;
     config.vlanPorts()[1].vlanID() = 1234;
     config.vlanPorts()[1].emitTags() = true;
+    config.vlanPorts()[1].emitPriorityTags() = false;
 
     config.interfaces()->resize(1);
     config.interfaces()[0].intfID() = 1234;
     config.interfaces()[0].vlanID() = 1234;
 
     Vlan::MemberPorts expectedPorts;
-    expectedPorts.insert(std::make_pair(1, false));
-    expectedPorts.insert(std::make_pair(2, true));
+    expectedPorts.insert(std::make_pair(1, makeVlanInfo(false, false)));
+    expectedPorts.insert(std::make_pair(2, makeVlanInfo(true, false)));
 
     auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
     auto vlanV1 = stateV1->getVlans()->getNode(VlanID(1234));
@@ -121,7 +130,7 @@ TEST(Vlan, applyConfig) {
     EXPECT_FALSE(vlanV1->isPublished());
     EXPECT_EQ(VlanID(1234), vlanV1->getID());
     EXPECT_EQ(kVlan1234, vlanV1->getName());
-    EXPECT_EQ(expectedPorts, vlanV1->getPorts());
+    EXPECT_EQ(expectedPorts, vlanV1->getPortsInfo());
     EXPECT_EQ(0, vlanV1->getArpResponseTable()->size());
     EXPECT_EQ(InterfaceID(1234), vlanV1->getInterfaceID());
     EXPECT_EQ(folly::IPAddressV4("30.1.1.1"), vlanV1->getDhcpV4Relay());
@@ -162,7 +171,7 @@ TEST(Vlan, applyConfig) {
     EXPECT_FALSE(vlanV2->isPublished());
     EXPECT_EQ(VlanID(1), vlanV2->getID());
     EXPECT_EQ("vlan1", vlanV2->getName());
-    EXPECT_EQ(0, vlanV2->getPorts().size());
+    EXPECT_EQ(0, vlanV2->getPortsInfo().size());
     EXPECT_EQ(InterfaceID(1), vlanV2->getInterfaceID());
 
     if (use_intf_nbr_tables) {
@@ -424,11 +433,12 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(kVlan1234, vlan1234v0->getName());
   EXPECT_EQ(0, vlan1234v0->getGeneration());
   Vlan::MemberPorts ports1234v0;
-  ports1234v0.insert(make_pair(1, false));
-  ports1234v0.insert(make_pair(2, false));
-  ports1234v0.insert(make_pair(3, false));
-  ports1234v0.insert(make_pair(4, false));
-  EXPECT_EQ(ports1234v0, vlan1234v0->getPorts());
+  auto untaggedInfo = makeVlanInfo(false, false);
+  ports1234v0.insert(make_pair(1, untaggedInfo));
+  ports1234v0.insert(make_pair(2, untaggedInfo));
+  ports1234v0.insert(make_pair(3, untaggedInfo));
+  ports1234v0.insert(make_pair(4, untaggedInfo));
+  EXPECT_EQ(ports1234v0, vlan1234v0->getPortsInfo());
 
   // Check the new settings for VLAN 99
   auto vlan99v0 = vlansV1->getNode(VlanID(99));
@@ -441,10 +451,10 @@ TEST(VlanMap, applyConfig) {
   EXPECT_EQ(kVlan99, vlan99v0->getName());
   EXPECT_EQ(0, vlan99v0->getGeneration());
   Vlan::MemberPorts ports99v1;
-  ports99v1.insert(make_pair(9, false));
-  ports99v1.insert(make_pair(19, false));
-  ports99v1.insert(make_pair(29, false));
-  EXPECT_EQ(ports99v1, vlan99v0->getPorts());
+  ports99v1.insert(make_pair(9, untaggedInfo));
+  ports99v1.insert(make_pair(19, untaggedInfo));
+  ports99v1.insert(make_pair(29, untaggedInfo));
+  EXPECT_EQ(ports99v1, vlan99v0->getPortsInfo());
 
   // getVlan() should throw on a non-existent VLAN
   EXPECT_THROW(vlansV1->getNode(VlanID(1)), FbossError);
@@ -469,10 +479,10 @@ TEST(VlanMap, applyConfig) {
   EXPECT_NE(vlan1234v0, vlan1234v1);
   EXPECT_EQ(1, vlan1234v1->getGeneration());
   Vlan::MemberPorts ports1234v1;
-  ports1234v1.insert(make_pair(2, false));
-  ports1234v1.insert(make_pair(3, false));
-  ports1234v1.insert(make_pair(4, false));
-  EXPECT_EQ(ports1234v1, vlan1234v1->getPorts());
+  ports1234v1.insert(make_pair(2, untaggedInfo));
+  ports1234v1.insert(make_pair(3, untaggedInfo));
+  ports1234v1.insert(make_pair(4, untaggedInfo));
+  EXPECT_EQ(ports1234v1, vlan1234v1->getPortsInfo());
 
   // VLAN 99 should not have changed
   EXPECT_EQ(vlan99v0, vlansV2->getNode(VlanID(99)));
@@ -507,6 +517,75 @@ TEST(VlanMap, applyConfig) {
   checkChangedVlans(vlansV2, vlansV3, {}, {}, {99});
 }
 
+TEST(Vlan, priorityTagging) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
+  registerPort(stateV0, PortID(3), "port3", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(3);
+  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[1], 2);
+  preparedMockPortConfig(config.ports()[2], 3);
+
+  config.vlans()->resize(1);
+  config.vlans()[0].id() = 100;
+  config.vlans()[0].name() = "vlan100";
+  config.vlans()[0].intfID() = 100;
+
+  // Configure ports with different tagging modes
+  config.vlanPorts()->resize(3);
+  // Port 1: untagged (no tags, no priority tags)
+  config.vlanPorts()[0].logicalPort() = 1;
+  config.vlanPorts()[0].vlanID() = 100;
+  config.vlanPorts()[0].emitTags() = false;
+  config.vlanPorts()[0].emitPriorityTags() = false;
+
+  // Port 2: tagged (VLAN tags, no priority tags)
+  config.vlanPorts()[1].logicalPort() = 2;
+  config.vlanPorts()[1].vlanID() = 100;
+  config.vlanPorts()[1].emitTags() = true;
+  config.vlanPorts()[1].emitPriorityTags() = false;
+
+  // Port 3: priority tagged (no VLAN ID, but has 802.1p priority)
+  config.vlanPorts()[2].logicalPort() = 3;
+  config.vlanPorts()[2].vlanID() = 100;
+  config.vlanPorts()[2].emitTags() = false;
+  config.vlanPorts()[2].emitPriorityTags() = true;
+
+  config.interfaces()->resize(1);
+  config.interfaces()[0].intfID() = 100;
+  config.interfaces()[0].vlanID() = 100;
+
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto vlan = stateV1->getVlans()->getNode(VlanID(100));
+  ASSERT_NE(nullptr, vlan);
+
+  // Verify the port membership with correct tagging modes
+  auto ports = vlan->getPortsInfo();
+  EXPECT_EQ(3, ports.size());
+
+  // Port 1: untagged
+  auto port1Info = ports.find(1);
+  ASSERT_NE(port1Info, ports.end());
+  EXPECT_FALSE(*port1Info->second.tagged());
+  EXPECT_FALSE(*port1Info->second.priorityTagged());
+
+  // Port 2: tagged
+  auto port2Info = ports.find(2);
+  ASSERT_NE(port2Info, ports.end());
+  EXPECT_TRUE(*port2Info->second.tagged());
+  EXPECT_FALSE(*port2Info->second.priorityTagged());
+
+  // Port 3: priority tagged
+  auto port3Info = ports.find(3);
+  ASSERT_NE(port3Info, ports.end());
+  EXPECT_FALSE(*port3Info->second.tagged());
+  EXPECT_TRUE(*port3Info->second.priorityTagged());
+}
+
 TEST(Vlan, vlanModifyUnpublished) {
   auto state = make_shared<SwitchState>();
   auto vlan = make_shared<Vlan>(VlanID(1234), kVlan1234);
@@ -520,4 +599,132 @@ TEST(Vlan, vlanModifyPublished) {
   state->getVlans()->addNode(vlan, scope());
   state->publish();
   EXPECT_NE(vlan.get(), vlan->modify(&state));
+}
+
+TEST(Vlan, warmbootMigration) {
+  // This verifies that toThrift() properly populates both old ports field
+  // and new portsInfo field for backward compatibility
+
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+  registerPort(stateV0, PortID(2), "port2", scope());
+  registerPort(stateV0, PortID(3), "port3", scope());
+
+  cfg::SwitchConfig config;
+  config.ports()->resize(3);
+  preparedMockPortConfig(config.ports()[0], 1);
+  preparedMockPortConfig(config.ports()[1], 2);
+  preparedMockPortConfig(config.ports()[2], 3);
+
+  config.vlans()->resize(1);
+  config.vlans()[0].id() = 200;
+  config.vlans()[0].name() = "vlan200";
+  config.vlans()[0].intfID() = 200;
+
+  config.vlanPorts()->resize(3);
+  // Port 1: untagged
+  config.vlanPorts()[0].logicalPort() = 1;
+  config.vlanPorts()[0].vlanID() = 200;
+  config.vlanPorts()[0].emitTags() = false;
+  config.vlanPorts()[0].emitPriorityTags() = false;
+
+  // Port 2: tagged
+  config.vlanPorts()[1].logicalPort() = 2;
+  config.vlanPorts()[1].vlanID() = 200;
+  config.vlanPorts()[1].emitTags() = true;
+  config.vlanPorts()[1].emitPriorityTags() = false;
+
+  // Port 3: priority tagged
+  config.vlanPorts()[2].logicalPort() = 3;
+  config.vlanPorts()[2].vlanID() = 200;
+  config.vlanPorts()[2].emitTags() = false;
+  config.vlanPorts()[2].emitPriorityTags() = true;
+
+  config.interfaces()->resize(1);
+  config.interfaces()[0].intfID() = 200;
+  config.interfaces()[0].vlanID() = 200;
+
+  // Create initial state with all ports configured
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  auto vlan = stateV1->getVlans()->getNode(VlanID(200));
+  ASSERT_NE(nullptr, vlan);
+
+  // Verify initial state has correct portsInfo via getPortsInfo()
+  auto ports = vlan->getPortsInfo();
+  EXPECT_EQ(3, ports.size());
+  EXPECT_FALSE(*ports[1].tagged());
+  EXPECT_FALSE(*ports[1].priorityTagged());
+  EXPECT_TRUE(*ports[2].tagged());
+  EXPECT_FALSE(*ports[2].priorityTagged());
+  EXPECT_FALSE(*ports[3].tagged());
+  EXPECT_TRUE(*ports[3].priorityTagged());
+
+  // Serialize state and verify both old and new fields are populated
+  auto serializedState = stateV1->toThrift();
+
+  // Find the VLAN in serialized state
+  bool foundVlan = false;
+  for (const auto& [matcherKey, vlanMapThrift] : *serializedState.vlanMaps()) {
+    for (const auto& [vlanId, vlanThrift] : vlanMapThrift) {
+      if (vlanId == 200) {
+        foundVlan = true;
+
+        // Verify new portsInfo field has all the data including priorityTagged
+        EXPECT_EQ(3, vlanThrift.portsInfo()->size());
+
+        auto& portsInfo = *vlanThrift.portsInfo();
+        EXPECT_FALSE(*portsInfo.at(1).tagged());
+        EXPECT_FALSE(*portsInfo.at(1).priorityTagged());
+        EXPECT_TRUE(*portsInfo.at(2).tagged());
+        EXPECT_FALSE(*portsInfo.at(2).priorityTagged());
+        EXPECT_FALSE(*portsInfo.at(3).tagged());
+        EXPECT_TRUE(*portsInfo.at(3).priorityTagged());
+
+        // Verify old ports field was also populated by toThrift() for warmboot
+        ASSERT_TRUE(vlanThrift.ports_DEPRECATED().has_value());
+        EXPECT_EQ(3, vlanThrift.ports_DEPRECATED()->size());
+
+        auto& oldPorts = *vlanThrift.ports_DEPRECATED();
+        EXPECT_FALSE(oldPorts.at(1)); // untagged
+        EXPECT_TRUE(oldPorts.at(2)); // tagged
+        EXPECT_FALSE(
+            oldPorts.at(3)); // priority-tagged appears as untagged in old field
+      }
+    }
+  }
+  EXPECT_TRUE(foundVlan);
+
+  // Test round-trip: deserialize and re-serialize
+  auto restoredState = SwitchState::fromThrift(serializedState);
+  ASSERT_NE(nullptr, restoredState);
+
+  auto restoredVlan = restoredState->getVlans()->getNodeIf(VlanID(200));
+  ASSERT_NE(nullptr, restoredVlan);
+
+  // Verify deserialized state preserves all data
+  auto restoredPorts = restoredVlan->getPortsInfo();
+  EXPECT_EQ(3, restoredPorts.size());
+  EXPECT_FALSE(*restoredPorts[1].tagged());
+  EXPECT_FALSE(*restoredPorts[1].priorityTagged());
+  EXPECT_TRUE(*restoredPorts[2].tagged());
+  EXPECT_FALSE(*restoredPorts[2].priorityTagged());
+  EXPECT_FALSE(*restoredPorts[3].tagged());
+  EXPECT_TRUE(*restoredPorts[3].priorityTagged());
+
+  // Verify re-serialization still populates both fields
+  auto reserializedState = restoredState->toThrift();
+  foundVlan = false;
+  for (const auto& [matcherKey, vlanMapThrift] :
+       *reserializedState.vlanMaps()) {
+    for (const auto& [vlanId, vlanThrift] : vlanMapThrift) {
+      if (vlanId == 200) {
+        foundVlan = true;
+        EXPECT_EQ(3, vlanThrift.portsInfo()->size());
+        ASSERT_TRUE(vlanThrift.ports_DEPRECATED().has_value());
+        EXPECT_EQ(3, vlanThrift.ports_DEPRECATED()->size());
+      }
+    }
+  }
+  EXPECT_TRUE(foundVlan);
 }

@@ -5,7 +5,7 @@
 
 if(BUILD_SAI_FAKE)
 add_executable(store_test
-    fboss/agent/test/oss/Main.cpp
+    fboss/util/oss/TestMain.cpp
     fboss/agent/hw/sai/store/tests/AclTableGroupStoreTest.cpp
     fboss/agent/hw/sai/store/tests/AclTableStoreTest.cpp
     fboss/agent/hw/sai/store/tests/BridgeStoreTest.cpp
@@ -30,6 +30,7 @@ add_executable(store_test
     fboss/agent/hw/sai/store/tests/SamplePacketStoreTest.cpp
     fboss/agent/hw/sai/store/tests/SchedulerStoreTest.cpp
     fboss/agent/hw/sai/store/tests/TamStoreTest.cpp
+    fboss/agent/hw/sai/store/tests/Srv6StoreTest.cpp
     fboss/agent/hw/sai/store/tests/TunnelStoreTest.cpp
     fboss/agent/hw/sai/store/tests/UdfStoreTest.cpp
     fboss/agent/hw/sai/store/tests/VlanStoreTest.cpp

@@ -7,6 +7,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -279,7 +280,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void TearDown() override {
     if (!FLAGS_list_production_feature) {
       auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         auto ports = masterLogicalInterfacePortIds();
         getAgentEnsemble()->bringDownPorts(ports);
       }
@@ -305,7 +306,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void applyPlatformConfigOverrides(
       const cfg::SwitchConfig& sw,
       cfg::PlatformConfig& config) const override {
-    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       return;
     }
 
@@ -327,7 +329,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
 
-    if (checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       FLAGS_num_packets_to_trigger_pfc = 2000;
       FLAGS_setup_for_warmboot = false;
     }
@@ -538,10 +541,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
             vlan,
             srcMac,
             intfMac,
-            folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+            folly::IPAddressV6(kTestSrcIpV6),
             ips[j],
-            8000,
-            8001,
+            kTestSrcPort,
+            kTestDstPort,
             dscp << 2, // dscp is last 6 bits in TC
             255,
             std::vector<uint8_t>(2000, 0xff));
@@ -550,7 +553,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
         // set to losslessPriority (2).
 
         auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB &&
+        if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB &&
             vlan.has_value()) {
           // If we want to use a provided vlan ID, we need to send packets out
           // switched, so that they egress out of the correct traffic class.
@@ -890,7 +893,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       cfg::SwitchConfig& cfg,
       const PortID& portId,
       const VlanID& vlanId) {
-    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB2) {
       return;
     }
     // For Chenab, we need to create a VLAN so that packets that are switched
@@ -966,13 +970,16 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           pfcWatchdog.recoveryTimeMsecs() = 1000;
           pfcWatchdog.detectionTimeMsecs() = 198;
           break;
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
           pfcWatchdog.recoveryTimeMsecs() = 100;
           pfcWatchdog.detectionTimeMsecs() = 10;
           break;
         case cfg::AsicType::ASIC_TYPE_CHENAB:
+        case cfg::AsicType::ASIC_TYPE_CHENAB2:
           // The Chenab ASIC requires recovery time>=200 and detection
           // time>=200.
           pfcWatchdog.recoveryTimeMsecs() = 1000;
@@ -1034,7 +1041,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       auto txPfcCtrOld = folly::get_default(
           *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
       // pass vlan id for chenab to trigger deadlock detection
-      auto vlanId = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB
+      auto vlanId =
+          asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB
           ? std::make_optional<VlanID>(kTxForVlanForChenab)
           : getVlanIDForTx();
       pumpTraffic(
@@ -1242,9 +1250,9 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
         portId, deadlockCtrBefore, recoveryCtrBefore);
     // Stop PFC trigger
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    waitForPfcDeadlocksToSettle(portId);
     // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
-    waitForPfcDeadlocksToSettle(portId);
   };
 
   auto verify = [&]() {

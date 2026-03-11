@@ -57,8 +57,11 @@ enum PlatformType {
   PLATFORM_WEDGE800CACT = 44,
   PLATFORM_LADAKH800BCLS = 45,
   PLATFORM_MINIPACK3BTA = 46,
-  # Placeholder for unknown platform type
-  PLATFORM_UNKNOWN = 1000,
+  PLATFORM_ICECUBE800BANW = 47,
+  PLATFORM_BLACKWOLF800BANW = 48,
+  PLATFORM_J4SIM = 49,
+  PLATFORM_YANGRA2 = 50,
+  PLATFORM_UNKNOWN = 1000, # Placeholder for unknown platform type
 }
 
 enum SdkVersionRolloutType {

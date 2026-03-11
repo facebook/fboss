@@ -723,14 +723,20 @@ bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
     Vlan::MemberPorts memberPorts;
     bcm_port_t idx;
     BCM_PBMP_ITER(vlanItr->second.untagged, idx) {
-      memberPorts.insert(make_pair(PortID(idx), false));
+      state::VlanInfo vlanInfo;
+      *vlanInfo.tagged() = false;
+      *vlanInfo.priorityTagged() = false;
+      memberPorts.insert(make_pair(PortID(idx), vlanInfo));
     }
     BCM_PBMP_ITER(vlanItr->second.allPorts, idx) {
       if (memberPorts.find(PortID(idx)) == memberPorts.end()) {
-        memberPorts.insert(make_pair(PortID(idx), true));
+        state::VlanInfo vlanInfo;
+        *vlanInfo.tagged() = true;
+        *vlanInfo.priorityTagged() = false;
+        memberPorts.insert(make_pair(PortID(idx), vlanInfo));
       }
     }
-    vlan->setPorts(memberPorts);
+    vlan->setPortsInfo(memberPorts);
     return true;
   }
   return false;

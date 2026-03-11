@@ -11,7 +11,6 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/io/async/EventBase.h>
-#include <folly/io/async/test/EventBaseTestLib.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 

@@ -11,7 +11,7 @@
 # pyre-unsafe
 
 from fboss.cli.commands import commands as cmds
-from neteng.fboss.ctrl.ttypes import L2EntryType
+from neteng.fboss.ctrl.thrift_types import L2EntryType
 
 
 class L2TableCmd(cmds.FbossCmd):

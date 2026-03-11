@@ -33,6 +33,7 @@ cpp_library(
         "FakeSaiRouterInterface.cpp",
         "FakeSaiSamplePacket.cpp",
         "FakeSaiScheduler.cpp",
+        "FakeSaiSrv6.cpp",
         "FakeSaiSwitch.cpp",
         "FakeSaiSystemPort.cpp",
         "FakeSaiTam.cpp",

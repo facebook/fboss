@@ -24,9 +24,11 @@ void SaiStore::setSwitchId(sai_object_id_t switchId) {
 
 void SaiStore::reload(
     const folly::dynamic* adapterKeysJson,
-    const folly::dynamic* adapterKeys2AdapterHostKeyJson) {
+    const folly::dynamic* adapterKeys2AdapterHostKeyJson,
+    const std::vector<sai_object_type_t>& objTypes) {
   tupleForEach(
-      [adapterKeysJson, adapterKeys2AdapterHostKeyJson](auto& store) {
+      [adapterKeysJson, adapterKeys2AdapterHostKeyJson, &objTypes](
+          auto& store) {
         using ObjectTraits =
             typename std::decay_t<decltype(store)>::ObjectTraits;
         const folly::dynamic* adapterKeys = adapterKeysJson
@@ -35,24 +37,22 @@ void SaiStore::reload(
         const folly::dynamic* adapterHostKeys = adapterKeys2AdapterHostKeyJson
             ? adapterKeys2AdapterHostKeyJson->get_ptr(store.objectTypeName())
             : nullptr;
-        // Refer to D75845886 for details
-        // In the adapterKey2AdapterHostKey map in warm boot file,
-        // Pre D75845886, adapterHostKey for nhop-group is a simple list of
-        // nhop members.
-        // Post D75845886, adapterHostKey changes to a pair of <members, mode>
+
+        if (!objTypes.empty() &&
+            std::find(
+                objTypes.begin(), objTypes.end(), ObjectTraits::ObjectType) ==
+                objTypes.end()) {
+          // reloading only for the specified object types
+          return;
+        }
+        // Before D95141819, 2 formats of nhop-group keys were written
+        //  - "nhop-group" holds the old members only key
+        //  - "nhop-group-with-mode" holds the <members, mode> pair
         //
-        // To support warmboot downgrade, both formats will be written to
-        //  - Existing "nhop-group" holds the old members only key
-        //  - Temporary "nhop-group-temporary" holds the <members, mode> pair
-        // More details in SaiStore::adapterKeys2AdapterHostKeysFollyDynamic
-        //
-        // Until all SAI switches upgrade to the 2nd format above, both maps
-        // with above keys will be written to the warm boot file
-        //
-        // For the 1st warmboot to this image, "nhop-group-temporary" will be
-        // absent and below code would be a NOP.
-        // If it is present, prefer the new map with the new format
+        // After D95141819, only "nhop-group" with <members, mode> pair
+        // Below special handling will remain to support warmboot with D95141819
         if (ObjectTraits::ObjectType == SAI_OBJECT_TYPE_NEXT_HOP_GROUP) {
+          // if the temp "nhop-group-with-mode" still exists, read from there
           const folly::dynamic* newAdapterHostKeys =
               adapterKeys2AdapterHostKeyJson
               ? adapterKeys2AdapterHostKeyJson->get_ptr(kNhopGroupWithModeName)
@@ -109,42 +109,7 @@ folly::dynamic SaiStore::adapterKeys2AdapterHostKeysFollyDynamic() const {
             json[folly::to<std::string>(object->adapterKey())] =
                 object->adapterHostKeyToFollyDynamic();
           }
-          // Refer to D75845886 for details
-          if (ObjectTraits::ObjectType == SAI_OBJECT_TYPE_NEXT_HOP_GROUP) {
-            /* For backward compatibility, existing map "nhop-group" is updated
-             * in old format
-             *
-             * "nhop-group" : {
-             *   "nhopGroup0" : [ memberList ],
-             *   "nhopGroup1" : [ memberList ],
-             * }
-             */
-            // Just get the members from the new format and ignore mode
-            folly::dynamic temporaryJson = folly::dynamic::object;
-            for (const auto& object : json.items()) {
-              temporaryJson[object.first] = object.second[AttributeName<
-                  SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-            }
-            storeJson[store.objectTypeName()] = temporaryJson;
-
-            // TODO(ravi) Remove this new map and use the new format in the
-            // above existing nhop-group map
-            /* New format goes into a new map called "nhop-group-temporary"
-             * "nhop-group-temporary" : {
-             *   "nhopGroup0" : {
-             *     "NextHopMemberList" : [ memberList ],
-             *     "Mode" : 2,
-             *   },
-             *   "nhopGroup1" : {
-             *     "NextHopMemberList" : [ memberList ],
-             *     "Mode" : 4,
-             *   },
-             * }
-             */
-            storeJson[kNhopGroupWithModeName] = json;
-          } else {
-            storeJson[store.objectTypeName()] = json;
-          }
+          storeJson[store.objectTypeName()] = json;
         }
       },
       stores_);
@@ -166,6 +131,16 @@ std::string SaiStore::storeStr(sai_object_type_t objType) const {
   if (!output.size()) {
     throw FbossError("Object type {}, not found ", objType);
   }
+  return output;
+}
+
+std::string SaiStore::storeStr(
+    const std::vector<sai_object_type_t>& objTypes) const {
+  std::string output;
+  std::for_each(
+      objTypes.begin(), objTypes.end(), [&output, this](auto objType) {
+        output += storeStr(objType);
+      });
   return output;
 }
 

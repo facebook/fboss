@@ -406,6 +406,7 @@ struct FirmwareStatus {
   2: optional i32 fwFault;
   3: optional string dspFwVer;
   4: optional string buildRev;
+  5: optional i32 buildNumber;
 }
 
 struct MediaLaneSettings {
@@ -452,6 +453,26 @@ struct RxEqualizerSettings {
   3: i32 mainAmplitude;
 }
 
+// VDM-unique coherent parameters for 800G ZR modules (DCO)
+// Per OIF C-CMIS-01.3 specification, Section 7.3.1, Table 8
+struct CoherentVdmStats {
+  // Modulator Bias parameters (Unit: %, LSB Scaling: 100/65,535)
+  1: optional double modulatorBiasXI;
+  2: optional double modulatorBiasXQ;
+  3: optional double modulatorBiasYI;
+  4: optional double modulatorBiasYQ;
+  5: optional double modulatorBiasXPhase;
+  6: optional double modulatorBiasYPhase;
+  // CD low granularity (Unit: ps/nm, LSB: 20) - VDM only, no PM support
+  7: optional double cdLowGranularity;
+  // SOPMD low granularity (Unit: ps^2, LSB: 1) - VDM only, no PM support
+  8: optional double sopmdLowGranularity;
+  // FEC Performance Monitoring (C-CMIS Page 34h, Section 7.4.7, Table 14)
+  9: optional FecPm fecPm;
+  // Link Performance Monitoring (C-CMIS Page 35h, Section 7.4.8, Table 15)
+  10: optional LinkPm linkPm;
+}
+
 struct VdmPerfMonitorPortSideStats {
   1: link.LinkPerfMonitorParamEachSideVal datapathBER;
   2: link.LinkPerfMonitorParamEachSideVal datapathErroredFrames;
@@ -466,6 +487,109 @@ struct VdmPerfMonitorPortSideStats {
   11: optional i16 fecTailCurr;
   12: optional i16 maxSupportedFecTail;
   13: map<i32, FlagLevels> lanePam4MPIFlags;
+  14: optional CoherentVdmStats coherentVdmStats;
+}
+
+/*
+ * Lane FEC Performance Monitoring Stats (C-CMIS Page 34h).
+ * Per OIF C-CMIS-01.3 specification, Section 7.4.7, Table 14:
+ * Lane FEC Performance Monitoring.
+ * Page 34h is a banked page with each bank referring to a single lane.
+ */
+struct FecPm {
+  // Number of bits received during prior PM interval (U64)
+  1: optional i64 rxBitsPm;
+
+  // Number of bits received during any sub-interval of prior PM interval (U64)
+  2: optional i64 rxBitsSubIntPm;
+
+  // Number of corrected bits during prior PM interval (U64)
+  3: optional i64 rxCorrBitsPm;
+
+  // Minimum number of corrected bits over any sub-interval (U64)
+  4: optional i64 rxMinCorrBitsSubIntPm;
+
+  // Maximum number of corrected bits over any sub-interval (U64)
+  5: optional i64 rxMaxCorrBitsSubIntPm;
+
+  // Number of frames received during prior PM interval (U32)
+  6: optional i32 rxFramesPm;
+
+  // Number of frames received over any sub-interval (U32)
+  7: optional i32 rxFramesSubIntPm;
+
+  // Number of frames with uncorrectable errors during prior PM interval (U32)
+  8: optional i32 rxFramesUncorrErrPm;
+
+  // Minimum frames with uncorrectable errors over any sub-interval (U32)
+  9: optional i32 rxMinFramesUncorrErrSubIntPm;
+
+  // Maximum frames with uncorrectable errors over any sub-interval (U32)
+  10: optional i32 rxMaxFramesUncorrErrSubIntPm;
+}
+
+/*
+ * Lane Link Performance Monitoring Stats (C-CMIS Page 35h).
+ * Per OIF C-CMIS-01.3 specification, Section 7.4.8, Table 15:
+ * Lane Link Performance Monitoring.
+ * Page 35h is a banked page with each bank referring to a single lane.
+ * All values are collected during the prior PM interval.
+ */
+struct LinkPm {
+  // Note: Low granularity CD is VDM-only (no PM support), see VdmPerfMonitorPortSideStats
+  1: optional link.LinkPerfMonitorParamEachSideVal cd;
+
+  // Differential Group Delay (DGD) - Unit: ps, LSB: 0.01
+  2: optional link.LinkPerfMonitorParamEachSideVal dgd;
+
+  // Note: Low granularity SOPMD is VDM-only (no PM support), see VdmPerfMonitorPortSideStats
+  3: optional link.LinkPerfMonitorParamEachSideVal sopmd;
+
+  // Polarization Dependent Loss (PDL) - Unit: dB, LSB: 0.1
+  4: optional link.LinkPerfMonitorParamEachSideVal pdl;
+
+  // Optical Signal-to-Noise Ratio (OSNR) - Unit: dB, LSB: 0.1
+  5: optional link.LinkPerfMonitorParamEachSideVal osnr;
+
+  // Electrical SNR (eSNR) - Unit: dB, LSB: 0.1
+  6: optional link.LinkPerfMonitorParamEachSideVal esnr;
+
+  // Carrier Frequency Offset (CFO) - Unit: MHz, LSB: 1
+  7: optional link.LinkPerfMonitorParamEachSideVal cfo;
+
+  // Error Vector Magnitude Modem (EVM) - Unit: %, LSB: 100/65535
+  8: optional link.LinkPerfMonitorParamEachSideVal evmModem;
+
+  // Tx Output Optical Power - Unit: dBm, LSB: 0.01
+  9: optional link.LinkPerfMonitorParamEachSideVal txPower;
+
+  // Rx Input Optical Power - Unit: dBm, LSB: 0.01
+  10: optional link.LinkPerfMonitorParamEachSideVal rxPower;
+
+  // Rx Input Optical Signal Power - Unit: dBm, LSB: 0.01
+  11: optional link.LinkPerfMonitorParamEachSideVal rxSigPower;
+
+  // State of Polarization Change Rate (SOP ROC) - Unit: krad/s, LSB: 1
+  12: optional link.LinkPerfMonitorParamEachSideVal sopcr;
+
+  // Modulation Error Ratio (MER) - Unit: dB, LSB: 0.1
+  13: optional link.LinkPerfMonitorParamEachSideVal mer;
+
+  // Clock Recovery Loop Monitor - Unit: %, LSB: 100/32767
+  // Bytes 212-217, avg/min/max values of clock recovery loop monitor over PM interval
+  14: optional link.LinkPerfMonitorParamEachSideVal clockRecoveryLoop;
+
+  // SNR Margin - Unit: dB, LSB: 0.1
+  // Bytes 224-229, avg/min/max values of SNR Margin over PM interval
+  15: optional link.LinkPerfMonitorParamEachSideVal snrMargin;
+
+  // Q-factor - Unit: dB, LSB: 0.1
+  // Bytes 230-235, avg/min/max values of Q factor over PM interval
+  16: optional link.LinkPerfMonitorParamEachSideVal qFactor;
+
+  // Q-margin - Unit: dB, LSB: 0.1
+  // Bytes 236-241, avg/min/max values of Q Margin over PM interval
+  17: optional link.LinkPerfMonitorParamEachSideVal qMargin;
 }
 
 struct VdmPerfMonitorStats {
@@ -583,6 +707,24 @@ enum TransceiverErrorState {
   INVALID_DATA_PATH_LANE_STATE = 0x2,
 }
 
+// Module Technology. Used to identify
+// properties of module in special NGT cases.
+enum ModuleTechnology {
+  GREY = 0,
+  LPO = 1,
+  TUNABLE = 2,
+  AEC = 3,
+
+  // unknown
+  UNKNOWN = -1,
+}
+
+enum PagingSupport {
+  UNKNOWN = 0,
+  FLAT_MEM = 1,
+  PAGED = 2,
+}
+
 struct TcvrState {
   1: bool present;
   2: TransceiverType transceiver;
@@ -608,13 +750,15 @@ struct TcvrState {
   25: bool fwUpgradeInProgress;
   26: set<string> interfaces;
   27: string tcvrName;
-  28: bool lpoModule;
+  28: bool lpoModule; // Deprecated, use ModuleTechnology instead
   29: optional TunableLaserStatus tunableLaserStatus;
   // Will be set to true if the last attempt to read data from this transceiver
   // was unsuccessful
   30: bool communicationError;
   // All the error states that require transceiver remediation from self healing
   31: set<TransceiverErrorState> errorStates;
+  32: ModuleTechnology moduleTechnology = GREY;
+  33: PagingSupport pagingSupport = PagingSupport.UNKNOWN;
 }
 
 struct TcvrStats {
@@ -806,6 +950,8 @@ struct CmisData {
   16: optional IOBuf page26;
   17: optional IOBuf page04;
   18: optional IOBuf page12;
+  19: optional IOBuf page23;
+  20: optional IOBuf page27;
 }
 
 struct TransceiverIOParameters {

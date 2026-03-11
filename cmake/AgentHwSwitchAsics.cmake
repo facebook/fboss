@@ -13,6 +13,7 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/YubaAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.cpp
   fboss/agent/hw/switch_asics/HwAsic.h
+  fboss/agent/hw/switch_asics/TomahawkUltra1Asic.cpp
   fboss/agent/hw/switch_asics/Tomahawk6Asic.cpp
   fboss/agent/hw/switch_asics/Tomahawk5Asic.cpp
   fboss/agent/hw/switch_asics/Tomahawk4Asic.cpp
@@ -23,11 +24,14 @@ add_library(switch_asics
   fboss/agent/hw/switch_asics/Agera3PhyAsic.cpp
   fboss/agent/hw/switch_asics/Jericho2Asic.cpp
   fboss/agent/hw/switch_asics/Jericho3Asic.cpp
+  fboss/agent/hw/switch_asics/Jericho4Asic.cpp
   fboss/agent/hw/switch_asics/RamonAsic.cpp
   fboss/agent/hw/switch_asics/Ramon3Asic.cpp
   fboss/agent/hw/switch_asics/ChenabAsic.cpp
+  fboss/agent/hw/switch_asics/Chenab2Asic.cpp
   fboss/agent/hw/switch_asics/BroadcomXgsAsic.cpp
   fboss/agent/hw/switch_asics/G202xAsic.cpp
+  fboss/agent/hw/switch_asics/Qumran4DAsic.cpp
 )
 
 target_link_libraries(switch_asics

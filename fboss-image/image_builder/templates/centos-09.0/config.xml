@@ -113,9 +113,14 @@
         <package name="sudo"/>
         <package name="wget"/>
         <package name="vim"/>
+        <package name="flashrom"/>
+        <package name="libgpiod-utils"/>
         <package name="vi"/>
         <package name="btrfs-progs"/>
         <package name="createrepo"/>
+        <package name="libnl3"/>
+        <package name="python3.12"/>
+        <package name="nvme-cli"/>
         <package name="re2"/>
         <package name="libsodium"/>
         <package name="double-conversion"/>
@@ -129,6 +134,7 @@
         <package name="zstd"/>
         <package name="libusbx"/>
         <package name="dmidecode"/>
+        <package name="libaio"/>
     </packages>
 
     <packages type="bootstrap">

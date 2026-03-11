@@ -6,7 +6,6 @@ namespace py neteng.fboss.switch_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.switch_config
 namespace cpp2 facebook.fboss.cfg
-namespace go neteng.fboss.switch_config
 namespace php fboss_switch_config
 
 include "fboss/agent/if/common.thrift"
@@ -121,6 +120,7 @@ enum PortSpeed {
   TWOHUNDREDG = 200000, // 200G
   FOURHUNDREDG = 400000, // 400G
   EIGHTHUNDREDG = 800000, // 800G
+  ONEPOINTSIXT = 1600000, // 1.6T
   THREEPOINTTWOT = 3200000, // 3.2T
 }
 
@@ -1324,6 +1324,12 @@ struct Port {
    * Controls whether AM idles are enabled on the port.
    */
   37: optional bool amIdles;
+
+  /*
+   * Cable Length Measurement (CLM) enable configuration.
+   * Controls whether cable length measurement is enabled on the port.
+   */
+  38: optional bool clmEnable;
 }
 
 enum LacpPortRate {
@@ -1384,6 +1390,20 @@ struct AggregatePort {
    * keep AggregatePort current oper state.
    */
   8: optional MinimumCapacity minimumCapacityToUp;
+  /*
+   * Extended key field to support i32 values for LAG identification.
+   *
+   * The i16 key field limits LAG identification to 32,767, which is insufficient
+   * for RBB (Rack-Based Backbone) use cases that require larger LAG key values.
+   * This i32 field allows values beyond the i16 range while maintaining backward
+   * compatibility - when extendedKey is set, it takes precedence over the i16 key.
+   *
+   * Note: FBOSS internally retains the full 32-bit value for LAG identification.
+   * However, the LACP protocol spec only supports 16-bit key fields in LACP PDUs,
+   * so the key is truncated to the lower 16 bits when used in LACP packets.
+   * Therefore, LAG keys must have unique lower 16 bits to avoid LACP conflicts.
+   */
+  9: i32 extendedKey = 0;
 }
 
 struct Lacp {
@@ -1450,6 +1470,8 @@ struct VlanPort {
    * (Primarily useful when there are multiple VLANs on the same port.)
    */
   4: bool emitTags;
+  // whether to emit priority tags with vlan id 0 outgoing ethernet frames
+  5: bool emitPriorityTags;
 }
 
 /**
@@ -1536,6 +1558,10 @@ enum AsicType {
   ASIC_TYPE_AGERA3 = 19,
   ASIC_TYPE_G202X = 20,
   ASIC_TYPE_FAKE_NO_WARMBOOT = 21,
+  ASIC_TYPE_TOMAHAWKULTRA1 = 22,
+  ASIC_TYPE_QUMRAN4D = 23,
+  ASIC_TYPE_JERICHO4 = 24,
+  ASIC_TYPE_CHENAB2 = 25,
 }
 /**
  * The configuration for an interface
@@ -1884,6 +1910,7 @@ struct SwitchInfo {
    */
   13: optional i32 minLinksPerDeviceToRemainInVOQDomain;
   14: optional i32 minLinksPerDeviceToJoinVOQDomain;
+  15: SystemPortRanges localSystemPortRanges;
 }
 
 /*
@@ -2044,14 +2071,10 @@ struct SdkVersion {
   3: optional string firmware;
 }
 
-enum IpTunnelMode {
+enum TunnelMode {
   UNIFORM = 0,
   PIPE = 1,
   USER = 2,
-}
-
-enum TunnelType {
-  IP_IN_IP = 0,
 }
 
 enum TunnelTerminationType {
@@ -2068,11 +2091,23 @@ struct IpInIpTunnel {
   4: optional string srcIp;
   5: optional string dstIpMask;
   6: optional string srcIpMask;
-  7: optional IpTunnelMode ttlMode;
-  8: optional IpTunnelMode dscpMode;
-  9: optional IpTunnelMode ecnMode;
+  7: optional TunnelMode ttlMode;
+  8: optional TunnelMode dscpMode;
+  9: optional TunnelMode ecnMode;
   10: optional TunnelTerminationType tunnelTermType;
-  11: optional TunnelType tunnelType;
+  11: optional common.TunnelType tunnelType;
+}
+
+struct Srv6Tunnel {
+  1: string srv6TunnelId;
+  2: i32 underlayIntfID;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional TunnelMode ttlMode;
+  6: optional TunnelMode dscpMode;
+  7: optional TunnelMode ecnMode;
+  8: optional TunnelTerminationType tunnelTermType;
+  9: common.TunnelType tunnelType;
 }
 
 enum DsfNodeType {
@@ -2104,6 +2139,7 @@ struct DsfNode {
   // Offset from where to start local system port
   // ID allocation from
   12: optional i32 globalSystemPortOffset;
+  // Global system port ranges
   13: SystemPortRanges systemPortRanges;
   // Inband port ID - port used by this DSF node
   // for inband communication. This must be known
@@ -2115,6 +2151,7 @@ struct DsfNode {
   // If strict priority, using spPriority
   // If weighted round robin, use wrrWeight
   16: optional SchedulingParam schedulingParam;
+  17: SystemPortRanges localSystemPortRanges;
 }
 
 /**
@@ -2252,6 +2289,12 @@ struct FlowletSwitchingConfig {
   15: optional i32 alternatePathCost;
   // alternate path bias
   16: optional i32 alternatePathBias;
+  // minimum width for ARS virtual group
+  17: optional i32 minWidthForArsVirtualGroup;
+  // ARS virtual group max width
+  18: optional i32 maxArsVirtualGroupWidth;
+  // maximum number of ARS virtual groups
+  19: optional i32 maxArsVirtualGroups;
 }
 
 /*
@@ -2398,4 +2441,5 @@ struct SwitchConfig {
   56: optional list<AclTableGroup> aclTableGroups;
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
   58: optional list<StaticMacEntry> staticMacAddrs;
+  59: optional list<Srv6Tunnel> srv6Tunnels;
 }

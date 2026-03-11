@@ -37,7 +37,8 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual std::vector<PortID> masterLogicalPortIds() const = 0;
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const {
-    return masterLogicalPortIdsImpl(portTypes, {});
+    return masterLogicalPortIdsImpl(
+        portTypes, {SwitchID(FLAGS_switch_id_for_testing)});
   }
   std::vector<PortID> masterLogicalPortIds(
       const std::set<SwitchID>& switchIds) const {
