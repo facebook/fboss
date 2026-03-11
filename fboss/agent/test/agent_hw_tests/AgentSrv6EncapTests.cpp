@@ -148,9 +148,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
 
     auto nhop = ecmpHelper.nhop(0);
     std::vector<folly::IPAddressV6> sidList{
-        folly::IPAddressV6("3001:db8:1::"),
-        folly::IPAddressV6("3001:db8:2::"),
-        folly::IPAddressV6("3001:db8:3::")};
+        folly::IPAddressV6("3001:db8:1:2:3::")};
     RouteNextHopSet nhops{ResolvedNextHop(
         nhop.ip,
         nhop.intf,
