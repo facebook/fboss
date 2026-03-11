@@ -1023,7 +1023,8 @@ std::pair<apache::thrift::ident::qsfpTestConfig, ChildThriftPath<::facebook::fbo
 std::pair<apache::thrift::ident::transceiverFirmwareVersions, ChildThriftPath<::facebook::fboss::cfg::TransceiverFirmware, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::transceiverI2cLogging, ChildThriftPath<::facebook::fboss::cfg::TransceiverI2cLogging, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::transceiverValidationConfig, ChildThriftPath<::std::vector<::facebook::fboss::VendorConfig>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::tunableOpticsConfig, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::cfg::OpticalChannelConfig>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::tunableOpticsConfig, ChildThriftPath<::std::map<::std::string, ::facebook::fboss::cfg::OpticalChannelConfig>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::phyConfig, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -1037,6 +1038,7 @@ std::pair<apache::thrift::ident::tunableOpticsConfig, ChildThriftPath<::std::map
     STRUCT_CHILD_GETTERS(transceiverI2cLogging, 6);
     STRUCT_CHILD_GETTERS(transceiverValidationConfig, 7);
     STRUCT_CHILD_GETTERS(tunableOpticsConfig, 8);
+    STRUCT_CHILD_GETTERS(phyConfig, 9);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -1048,6 +1050,7 @@ std::pair<apache::thrift::ident::tunableOpticsConfig, ChildThriftPath<::std::map
     else if constexpr (__id == apache::thrift::FieldId{6}) { return transceiverI2cLogging(); }
     else if constexpr (__id == apache::thrift::FieldId{7}) { return transceiverValidationConfig(); }
     else if constexpr (__id == apache::thrift::FieldId{8}) { return tunableOpticsConfig(); }
+    else if constexpr (__id == apache::thrift::FieldId{9}) { return phyConfig(); }
   }
 };
 
