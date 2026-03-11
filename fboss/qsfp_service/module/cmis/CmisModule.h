@@ -201,6 +201,9 @@ class CmisModule : public QsfpModule {
   // Poll until the module reaches READY state (up to 5s)
   bool moduleReadyStatePoll();
 
+  // Read the datapath init max delay time from the module spec (in usec)
+  std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -746,13 +749,6 @@ class CmisModule : public QsfpModule {
    * return 200G-FR4
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
-
-  /*
-   * Helper function to read the datapath max delay time from module spec.
-   * Returns the max delay time in microseconds if found, or std::nullopt if
-   * unable to retrieve from the module.
-   */
-  std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
 
   uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
