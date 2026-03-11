@@ -111,6 +111,16 @@ class IDataGenerator {
   virtual ~IDataGenerator() = default;
 
   virtual TaggedOperState getStateUpdate(int version, bool minimal) = 0;
+
+  // Set a path filter to only populate the subtree at the given path.
+  // Path tokens should be the FSDB path components, e.g.
+  // {"agent", "switchState", "fibsMap"}.
+  void setPathFilter(std::vector<std::string> pathTokens) {
+    pathFilter_ = std::move(pathTokens);
+  }
+
+ protected:
+  std::vector<std::string> pathFilter_;
 };
 
 class TestDataFactory : public IDataGenerator {

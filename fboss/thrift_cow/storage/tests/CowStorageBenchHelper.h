@@ -21,11 +21,14 @@
 #include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
 
 DECLARE_int32(bm_memory_iters);
+DECLARE_string(bm_fsdb_path);
 
 namespace facebook::fboss::thrift_cow::test {
 
 using facebook::fboss::fsdb::CowStorage;
 using facebook::fboss::fsdb::TaggedOperState;
+
+std::vector<std::string> parseFsdbPath(const std::string& path);
 
 template <bool EnableHybridStorage>
 class StorageBenchmarkHelper {
@@ -66,16 +69,20 @@ int64_t bm_storage_helper(
   int64_t endingMemoryBytes = 0;
   suspender.dismiss();
 
+  // Measure memory inside each branch to ensure `storage` stays alive during
+  // measurement. Moving these lines outside the braces would measure memory
+  // after storage is destroyed, giving incorrect results.
   if (enableHybridStorage) {
     StorageBenchmarkHelper<true> helper;
     auto storage = helper.initStorage<RootType>(state);
+    suspender.rehire();
+    endingMemoryBytes = facebook::Proc::getMemoryUsage();
   } else {
     StorageBenchmarkHelper<false> helper;
     auto storage = helper.initStorage<RootType>(state);
+    suspender.rehire();
+    endingMemoryBytes = facebook::Proc::getMemoryUsage();
   }
-
-  suspender.rehire();
-  endingMemoryBytes = facebook::Proc::getMemoryUsage();
 
   return (endingMemoryBytes - startingMemoryBytes);
 }
@@ -88,6 +95,12 @@ void bm_storage_metrics_helper(
     test_data::RoleSelector /* selector */,
     bool enableHybridStorage) {
   std::vector<int64_t> memoryMeasurements;
+
+  // Set path filter on factory if --bm_fsdb_path is specified
+  auto pathTokens = parseFsdbPath(FLAGS_bm_fsdb_path);
+  if (!pathTokens.empty()) {
+    factory.setPathFilter(pathTokens);
+  }
 
   // Use FLAGS_bm_memory_iters instead of folly's iters for memory measurement
   int iterations = FLAGS_bm_memory_iters;
@@ -112,14 +125,17 @@ void bm_storage_metrics_helper(
 
     int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
 
-    // Compute standard deviation
-    double variance = 0.0;
-    for (int64_t mem : memoryMeasurements) {
-      double diff = static_cast<double>(mem - avgMem);
-      variance += diff * diff;
+    // Compute standard deviation (sample stddev requires at least 2 points)
+    double stddev = 0.0;
+    if (memoryMeasurements.size() > 1) {
+      double variance = 0.0;
+      for (int64_t mem : memoryMeasurements) {
+        double diff = static_cast<double>(mem - avgMem);
+        variance += diff * diff;
+      }
+      variance /= static_cast<double>(memoryMeasurements.size() - 1);
+      stddev = std::sqrt(variance);
     }
-    variance /= static_cast<double>(memoryMeasurements.size() - 1);
-    double stddev = std::sqrt(variance);
 
     // Report metrics - these will appear as columns in benchmark output
     counters["avg_memory_KB"] =
