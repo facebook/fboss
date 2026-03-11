@@ -311,16 +311,13 @@ inline void reportResults(
     json["total_received"] = results.totalReceived;
     json["total_dropped"] = results.totalDropped;
     json["out_of_order"] = results.outOfOrder;
-
-    folly::dynamic latencyJson = folly::dynamic::object;
-    latencyJson["min_ms"] = results.minMs;
-    latencyJson["max_ms"] = results.maxMs;
-    latencyJson["avg_ms"] = results.avgMs;
-    latencyJson["p50_ms"] = results.p50Ms;
-    latencyJson["p99_ms"] = results.p99Ms;
-    latencyJson["ci_95_lower_ms"] = results.ciLowerMs;
-    latencyJson["ci_95_upper_ms"] = results.ciUpperMs;
-    json["latency_ms"] = latencyJson;
+    json["latency_min_ms"] = results.minMs;
+    json["latency_max_ms"] = results.maxMs;
+    json["latency_avg_ms"] = results.avgMs;
+    json["latency_p50_ms"] = results.p50Ms;
+    json["latency_p99_ms"] = results.p99Ms;
+    json["latency_ci_95_lower_ms"] = results.ciLowerMs;
+    json["latency_ci_95_upper_ms"] = results.ciUpperMs;
 
     std::cout << toPrettyJson(json) << std::endl;
   } else {
