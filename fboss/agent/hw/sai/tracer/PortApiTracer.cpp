@@ -204,6 +204,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, StaticModuleId)
   SAI_EXT_ATTR_MAP(Port, PfcMonitorDirection)
   SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMediaType)
+  SAI_EXT_ATTR_MAP(Port, PfcPauseDurationOverride)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

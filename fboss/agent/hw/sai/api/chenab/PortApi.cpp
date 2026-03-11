@@ -2,7 +2,8 @@
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
 
-#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0)
+#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0) || \
+    defined(CHENAB_SAI_SDK_VERSION_2505_34_0_32)
 #include "saiportcustom.h"
 #endif
 
@@ -411,6 +412,15 @@ std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeCablePropagationDelayMediaType::operator()() {
 #if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0)
   return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+#if defined(CHENAB_SAI_SDK_VERSION_2505_34_0_32)
+  return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
 #else
   return std::nullopt;
 #endif
