@@ -1,0 +1,58 @@
+cpp_include "fboss/fsdb/client/test/cgo_subscriber.h";
+namespace "facebook::fboss::fsdb";
+output_cpp_namespace "facebook::fboss::fsdb::cgo";
+
+unique class FsdbCgoSubscriber {
+  ctor(string clientId, string hostIp, i32 fsdbPort) noexcept;
+
+  // Generic hooks
+  mut void init() throws;
+
+  mut void cleanup() throws;
+
+  // Path subscriptions
+  mut void subscribeStatePath(vec<string> path) throws;
+
+  mut void subscribeStatPath(vec<string> path) throws;
+
+  mut void unsubscribeStatePath() throws;
+
+  mut void unsubscribeStatPath() throws;
+
+  // Delta subscriptions
+  mut void subscribeStateDelta(vec<string> path) throws;
+
+  mut void subscribeStatDelta(vec<string> path) throws;
+
+  mut void unsubscribeStateDelta() throws;
+
+  mut void unsubscribeStatDelta() throws;
+
+  // Patch subscriptions
+  mut void subscribeStatePatch(vec<vec<string>> paths, bool isStats) throws;
+
+  mut void unsubscribeStatePatch() throws;
+
+  // Unsubscribe all
+  mut void unsubscribeAll() throws;
+
+  // State observation (subscriptionType: 0=Path, 1=Delta, 2=Patch)
+  i32 getSubscriptionState(i32 subscriptionType) throws;
+
+  bool isInitialSyncComplete(i32 subscriptionType) throws;
+
+  // Update consumption
+  mut bool waitForUpdate(i64 timeoutMs) throws;
+
+  i64 getPathUpdateCount() throws;
+
+  i64 getDeltaUpdateCount() throws;
+
+  i64 getPatchUpdateCount() throws;
+
+  string getLastPathUpdateContent() throws;
+
+  string getLastDeltaUpdateContent() throws;
+
+  string getLastPatchUpdateContent() throws;
+}
