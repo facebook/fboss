@@ -68,16 +68,48 @@ class AgentSrv6EncapTest : public AgentHwTest {
         "enable trunk ports");
   }
 
+  utility::EcmpSetupAnyNPorts6 makeEcmpHelper() {
+    return utility::EcmpSetupAnyNPorts6(
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        getLocalMacAddress());
+  }
+
   void setupHelper() {
     if constexpr (kIsTrunk) {
       applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        this->getProgrammedState(),
-        this->getSw()->needL2EntryForNeighbor(),
-        getLocalMacAddress());
+    auto ecmpHelper = makeEcmpHelper();
     this->resolveNeighbors(ecmpHelper, 2);
+  }
+
+  void addEncapRoute(
+      const utility::EcmpSetupAnyNPorts6& ecmpHelper,
+      const std::vector<std::vector<folly::IPAddressV6>>& sidLists) {
+    RouteNextHopSet nhops;
+    for (auto i = 0; i < sidLists.size(); ++i) {
+      auto nhop = ecmpHelper.nhop(i);
+      nhops.insert(ResolvedNextHop(
+          nhop.ip,
+          nhop.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidLists[i],
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0")));
+    }
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2800:2::"),
+        64,
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    routeUpdater.program();
   }
 
   PortID getEgressPort(const PortDescriptor& portDesc) const {
@@ -160,50 +192,19 @@ TYPED_TEST(AgentSrv6EncapTest, CreateSrv6Tunnel) {
 
 TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
   auto setup = [this]() {
-    if constexpr (TestFixture::kIsTrunk) {
-      this->applyConfigAndEnableTrunks(
-          this->initialConfig(*this->getAgentEnsemble()));
-    }
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        this->getProgrammedState(),
-        this->getSw()->needL2EntryForNeighbor(),
-        getLocalMacAddress());
-    this->resolveNeighbors(ecmpHelper, ecmpHelper.getNextHops().size());
-
-    auto nhop = ecmpHelper.nhop(0);
-    std::vector<folly::IPAddressV6> sidList{
-        folly::IPAddressV6("3001:db8:1:2:3::")};
-    RouteNextHopSet nhops{ResolvedNextHop(
-        nhop.ip,
-        nhop.intf,
-        ECMP_WEIGHT,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        std::nullopt,
-        sidList,
-        TunnelType::SRV6_ENCAP,
-        std::string("srv6Tunnel0"))};
-    auto routeUpdater = this->getSw()->getRouteUpdater();
-    routeUpdater.addRoute(
-        RouterID(0),
-        folly::IPAddressV6("2800:2::"),
-        64,
-        ClientID::BGPD,
-        RouteNextHopEntry(nhops, AdminDistance::EBGP));
-    routeUpdater.program();
+    this->setupHelper();
+    auto ecmpHelper = this->makeEcmpHelper();
+    this->addEncapRoute(ecmpHelper, {{folly::IPAddressV6("3001:db8:1:2:3::")}});
     // Flap ports and re-resolve neighbors
-    this->bringDownPort(this->getEgressPort(nhop.portDesc));
-    this->bringUpPort(this->getEgressPort(nhop.portDesc));
-    this->resolveNeighbors(ecmpHelper, ecmpHelper.getNextHops().size());
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    this->bringDownPort(egressPort);
+    this->bringUpPort(egressPort);
+    this->resolveNeighbors(ecmpHelper, 2);
   };
 
   auto verify = [this]() {
-    utility::EcmpSetupAnyNPorts6 ecmpHelper(
-        this->getProgrammedState(),
-        this->getSw()->needL2EntryForNeighbor(),
-        getLocalMacAddress());
-    auto egressPort = this->getEgressPort(ecmpHelper.ecmpPortDescriptorAt(0));
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->verifyEncapPacket(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
