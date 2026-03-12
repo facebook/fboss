@@ -224,10 +224,6 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
         entry);
 
-    // After subscribe, the SAI next hop should be created
-    CHECK(entry->getSaiObject())
-        << "SRv6 managed next hop must have underlying SAI object";
-
     entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
 
     return entry;
