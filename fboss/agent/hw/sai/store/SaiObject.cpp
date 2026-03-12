@@ -373,7 +373,7 @@ SaiObject<SaiSrv6SidListTraits>::follyDynamicToAdapterHostKey(
   if (json.find("segmentList") != json.items().end()) {
     std::vector<folly::IPAddressV6> segments;
     for (const auto& seg : json["segmentList"]) {
-      segments.push_back(folly::IPAddressV6(seg.asString()));
+      segments.emplace_back(seg.asString());
     }
     segmentList = segments;
   }
