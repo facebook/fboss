@@ -871,6 +871,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/Git.h
   fboss/cli/fboss2/session/Git.cpp
+  fboss/cli/fboss2/session/SystemdInterface.h
+  fboss/cli/fboss2/session/SystemdInterface.cpp
+  fboss/cli/fboss2/utils/InterfacesConfig.cpp
+  fboss/cli/fboss2/utils/InterfacesConfig.h
   fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/utils/InterfaceList.h
   fboss/cli/fboss2/CmdListConfig.cpp
@@ -881,6 +885,7 @@ target_link_libraries(fboss2_config_lib
   fboss2_lib
   agent_dir_util
   switch_config_cpp2
+  switchinfo_utils
   Folly::folly
 )
 
