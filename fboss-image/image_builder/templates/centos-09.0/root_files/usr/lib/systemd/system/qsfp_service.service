@@ -3,6 +3,8 @@
 Description=FBOSS QSFP Service
 After=platform_manager.service
 After=rc-local.service
+Wants=fboss_init.service
+After=fboss_init.service
 
 [Service]
 Type=simple
