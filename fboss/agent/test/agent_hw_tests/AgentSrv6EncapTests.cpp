@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -11,6 +12,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
@@ -60,6 +62,13 @@ class AgentSrv6EncapTest : public AgentHwTest {
           true /*interfaceHasSubnet*/);
     }
     addSrv6TunnelConfig(cfg);
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    utility::addTrapPacketAcl(
+        asic,
+        &cfg,
+        {folly::CIDRNetwork{kSid0, 128},
+         folly::CIDRNetwork{kSid1, 128},
+         folly::CIDRNetwork{kSid2, 128}});
     return cfg;
   }
 
