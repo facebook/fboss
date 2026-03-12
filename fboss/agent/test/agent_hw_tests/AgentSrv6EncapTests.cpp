@@ -197,8 +197,24 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
     this->addEncapRoute(
         {folly::IPAddressV6("2800:2::"), 64},
         {{folly::IPAddressV6("3001:db8:1:2:3::")}});
+  };
+
+  auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    this->verifyEncapPacket(egressPort);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
+  auto setup = [this]() {
+    this->setupHelper();
+    this->addEncapRoute(
+        {folly::IPAddressV6("2800:2::"), 64},
+        {{folly::IPAddressV6("3001:db8:1:2:3::")}});
     // Flap ports and re-resolve neighbors
+    auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->bringDownPort(egressPort);
     this->bringUpPort(egressPort);
