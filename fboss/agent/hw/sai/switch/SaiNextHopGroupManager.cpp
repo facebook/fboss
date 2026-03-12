@@ -83,7 +83,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
           routerInterfaceHandle->adapterKey(), resolvedNextHop);
       auto sidListHandle = managerTable_->srv6Manager().addOrReuseSrv6SidList(
           sidListKey, sidListAttrs);
-      sidListId = sidListHandle->sidList->adapterKey();
+      sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
       srv6SidListMap.emplace(&resolvedNextHop, std::move(sidListHandle));
     }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(

@@ -43,7 +43,7 @@ TEST_F(Srv6ManagerTest, addSrv6SidList) {
   auto handle =
       saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key, attrs);
   EXPECT_NE(handle, nullptr);
-  EXPECT_NE(handle->sidList, nullptr);
+  EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
 }
 
 TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
@@ -56,15 +56,16 @@ TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
   auto handle =
       saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key, attrs);
   EXPECT_NE(handle, nullptr);
-  EXPECT_NE(handle->sidList, nullptr);
+  EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
 
   auto& srv6Api = saiApiTable->srv6Api();
   auto gotType = srv6Api.getAttribute(
-      handle->sidList->adapterKey(), SaiSrv6SidListTraits::Attributes::Type{});
+      handle->managedSidList->getSidList()->adapterKey(),
+      SaiSrv6SidListTraits::Attributes::Type{});
   EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
 
   auto gotSegments = srv6Api.getAttribute(
-      handle->sidList->adapterKey(),
+      handle->managedSidList->getSidList()->adapterKey(),
       SaiSrv6SidListTraits::Attributes::SegmentList{});
   EXPECT_EQ(gotSegments.size(), 3);
   EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::1"));
@@ -81,7 +82,9 @@ TEST_F(Srv6ManagerTest, reuseSrv6SidList) {
       saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key, attrs);
   // Same key should return the same handle
   EXPECT_EQ(handle1, handle2);
-  EXPECT_EQ(handle1->sidList, handle2->sidList);
+  EXPECT_EQ(
+      handle1->managedSidList->getSidList(),
+      handle2->managedSidList->getSidList());
 }
 
 TEST_F(Srv6ManagerTest, getSrv6SidListHandle) {
@@ -92,7 +95,7 @@ TEST_F(Srv6ManagerTest, getSrv6SidListHandle) {
       saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key, attrs);
   auto* handle = saiManagerTable->srv6Manager().getSrv6SidListHandle(key);
   EXPECT_NE(handle, nullptr);
-  EXPECT_NE(handle->sidList, nullptr);
+  EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
 }
 
 TEST_F(Srv6ManagerTest, getNonexistentSrv6SidList) {
@@ -112,9 +115,11 @@ TEST_F(Srv6ManagerTest, addDifferentSidLists) {
   auto handle2 =
       saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key2, attrs2);
   EXPECT_NE(handle1, handle2);
-  EXPECT_NE(handle1->sidList, nullptr);
-  EXPECT_NE(handle2->sidList, nullptr);
-  EXPECT_NE(handle1->sidList->adapterKey(), handle2->sidList->adapterKey());
+  EXPECT_NE(handle1->managedSidList->getSidList(), nullptr);
+  EXPECT_NE(handle2->managedSidList->getSidList(), nullptr);
+  EXPECT_NE(
+      handle1->managedSidList->getSidList()->adapterKey(),
+      handle2->managedSidList->getSidList()->adapterKey());
 }
 
 TEST_F(Srv6ManagerTest, refCountRelease) {
@@ -138,15 +143,16 @@ TEST_F(Srv6ManagerTest, recreateAfterRelease) {
   {
     auto handle =
         saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key, attrs);
-    firstAdapterKey = handle->sidList->adapterKey();
+    firstAdapterKey = handle->managedSidList->getSidList()->adapterKey();
   }
   // Entry released; creating again should produce a fresh object
   auto handle =
       saiManagerTable->srv6Manager().addOrReuseSrv6SidList(key, attrs);
   EXPECT_NE(handle, nullptr);
-  EXPECT_NE(handle->sidList, nullptr);
+  EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
   // New SAI object gets a different adapter key
-  EXPECT_NE(handle->sidList->adapterKey(), firstAdapterKey);
+  EXPECT_NE(
+      handle->managedSidList->getSidList()->adapterKey(), firstAdapterKey);
 }
 
 #endif

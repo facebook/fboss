@@ -33,13 +33,10 @@ class ManagedSrv6SidList : public detail::SaiObjectEventSingleSubscriber<
 
   ManagedSrv6SidList(
       SaiSrv6Manager* manager,
+      SaiStore* saiStore,
       typename SaiIpNextHopTraits::AdapterHostKey nexthopKey,
       SaiSrv6SidListTraits::AdapterHostKey sidListKey,
-      SaiSrv6SidListTraits::CreateAttributes attrs)
-      : Base(std::move(nexthopKey)),
-        manager_(manager),
-        sidListKey_(std::move(sidListKey)),
-        attrs_(std::move(attrs)) {}
+      SaiSrv6SidListTraits::CreateAttributes attrs);
 
   template <typename PublishedObjectTrait>
   void afterCreateNotifyAggregateSubscriber() {}
@@ -54,16 +51,21 @@ class ManagedSrv6SidList : public detail::SaiObjectEventSingleSubscriber<
     return sidListKey_;
   }
 
+  std::shared_ptr<SaiSrv6SidList> getSidList() const {
+    return sidList_;
+  }
+
  private:
   SaiSrv6Manager* manager_;
   SaiSrv6SidListTraits::AdapterHostKey sidListKey_;
   SaiSrv6SidListTraits::CreateAttributes attrs_;
+  std::shared_ptr<SaiSrv6SidList> sidList_;
 };
 #endif
 
 struct SaiSrv6SidListHandle {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  std::shared_ptr<SaiSrv6SidList> sidList;
+  std::shared_ptr<ManagedSrv6SidList> managedSidList;
 #endif
 };
 
