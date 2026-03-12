@@ -78,7 +78,7 @@ def _setup_fsdb_service(
     # Prepare fsdb
     fsdb_arg_for_config = f"--fsdb_config={fsdb_service_config_path}"
     fsdb_args_for_testing = "--checkOperOwnership=false  --ssl_policy=disabled"
-    fsdb_args_for_prod_features = "--useIdPathsForSubs --serveHeartbeats"
+    fsdb_args_for_prod_features = "--useIdPathsForSubs=false --serveHeartbeats"
 
     fsdb_service_cmd = f"{fsdb_service_bin_path} {fsdb_arg_for_config} {fsdb_args_for_testing} {fsdb_args_for_prod_features}"
 
