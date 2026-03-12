@@ -14,10 +14,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include <fb303/ServiceData.h>
-#include <folly/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
-#include <thrift/lib/cpp2/async/PooledRequestChannel.h>
-#include <thrift/lib/cpp2/async/RocketClientChannel.h>
 
 #if FOLLY_HAS_COROUTINES
 
@@ -115,8 +112,6 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
     CHECK(handler);
     clientEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>(
         "packet_stream_test_client");
-    sinkEvbThread_ = std::make_shared<folly::ScopedEventBaseThread>(
-        "packet_stream_sink_client");
     client_ = std::make_unique<TestPacketStreamClient>(
         "packet_stream_test_client", clientEvbThread_->getEventBase());
     client_->connectToServer("::1", FLAGS_port);
@@ -126,12 +121,14 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
       ASSERT_EVENTUALLY_TRUE(
           handler->isClientConnected("packet_stream_test_client"));
     });
+    client_->createSink();
+    WITH_RETRIES_N_TIMED(
+        30, 500ms, { ASSERT_EVENTUALLY_TRUE(client_->isSinkReady()); });
   }
 
   void teardownClient() {
     client_.reset();
     clientEvbThread_.reset();
-    sinkEvbThread_.reset();
   }
 
   // Build a TxPacket with AIFM ctrl ethertype and send it out a port.
@@ -176,23 +173,7 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
         reinterpret_cast<const char*>(iobuf->data()), iobuf->length());
   }
 
-  // Create a thrift client for calling packetSink sink.
-  std::unique_ptr<apache::thrift::Client<PacketStream>>
-  createPacketStreamClient() {
-    auto channel = apache::thrift::PooledRequestChannel::newChannel(
-        sinkEvbThread_->getEventBase(),
-        sinkEvbThread_,
-        [this](folly::EventBase& evb) mutable {
-          return apache::thrift::RocketClientChannel::newChannel(
-              folly::AsyncSocket::UniquePtr(
-                  new folly::AsyncSocket(&evb, "::1", FLAGS_port)));
-        });
-    return std::make_unique<apache::thrift::Client<PacketStream>>(
-        std::move(channel));
-  }
-
   std::unique_ptr<folly::ScopedEventBaseThread> clientEvbThread_;
-  std::shared_ptr<folly::ScopedEventBaseThread> sinkEvbThread_;
   std::unique_ptr<TestPacketStreamClient> client_;
 };
 
@@ -225,22 +206,14 @@ TEST_F(AgentPacketStreamHandlerTest, VerifySinkToStreamLoopback) {
     // Build a frame with AIFM ctrl ethertype so it loops back to us
     auto frame = buildAifmCtrlFrame();
 
-    // Send packets via sink -> processReceivedPacket -> HW
-    auto sinkClient = createPacketStreamClient();
+    // Send packets via client_->send() -> sink -> processReceivedPacket -> HW
     constexpr int kPacketCount = 5;
-
-    folly::coro::blockingWait([&]() -> folly::coro::Task<void> {
-      auto sink =
-          co_await sinkClient->co_packetSink("packet_stream_test_client");
-      co_await sink.sink([&]() -> folly::coro::AsyncGenerator<TPacket&&> {
-        for (int i = 0; i < kPacketCount; i++) {
-          TPacket pkt;
-          pkt.l2Port() = portName;
-          pkt.buf() = frame;
-          co_yield std::move(pkt);
-        }
-      }());
-    }());
+    for (int i = 0; i < kPacketCount; i++) {
+      TPacket pkt;
+      pkt.l2Port() = portName;
+      pkt.buf() = frame;
+      client_->send(std::move(pkt));
+    }
 
     // Verify Rx path counters (sink -> processReceivedPacket -> HW)
     WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(500), {
