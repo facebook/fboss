@@ -34,10 +34,12 @@ std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::addOrReuseSrv6SidList(
     const SaiSrv6SidListTraits::CreateAttributes& createAttributes) {
   auto [handle, emplaced] = srv6SidLists_.refOrEmplace(adapterHostKey);
   if (emplaced) {
+    SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+        std::get<2>(adapterHostKey), std::get<3>(adapterHostKey)};
     handle->managedSidList = std::make_shared<ManagedSrv6SidList>(
         this,
         saiStore_,
-        SaiIpNextHopTraits::AdapterHostKey{},
+        std::move(nexthopKey),
         adapterHostKey,
         createAttributes);
   }
