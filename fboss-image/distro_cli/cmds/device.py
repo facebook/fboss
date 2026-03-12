@@ -11,7 +11,7 @@ import logging
 
 from lib.cli import validate_path
 
-logger = logging.getLogger("fboss-image")
+logger = logging.getLogger(__name__)
 
 
 def image_upstream_command(args):
