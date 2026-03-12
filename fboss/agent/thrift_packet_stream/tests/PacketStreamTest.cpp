@@ -487,4 +487,288 @@ TEST_F(PacketStreamTest, WaitForDisconnectedServer) {
   baton->reset();
   EXPECT_FALSE(streamClient->isConnectedToServer());
 }
+// --- Tests for PacketStreamClient::send() (client-to-server via sink) ---
+
+// Service that tracks packets received via the sink (processReceivedPacket).
+// Uses portRegistration=false since the sink path doesn't use port
+// registration.
+class SinkTrackingService : public PacketStreamService {
+ public:
+  explicit SinkTrackingService(const std::string& serviceName)
+      : PacketStreamService(serviceName, false /* portRegistration */) {}
+
+  void clientConnected(const std::string& /*clientId*/) override {}
+  void clientDisconnected(const std::string& /*clientId*/) override {
+    disconnectBaton_.post();
+  }
+  void addPort(const std::string& /*clientId*/, const std::string& /*l2Port*/)
+      override {}
+  void removePort(
+      const std::string& /*clientId*/,
+      const std::string& /*l2Port*/) override {}
+
+  void processReceivedPacket(const std::string& clientId, TPacket&& packet)
+      override {
+    std::lock_guard<std::mutex> lk(mutex_);
+    receivedPackets_.push_back(std::move(packet));
+    lastClientId_ = clientId;
+  }
+
+  size_t receivedCount() {
+    std::lock_guard<std::mutex> lk(mutex_);
+    return receivedPackets_.size();
+  }
+
+  TPacket getReceivedPacket(size_t index) {
+    std::lock_guard<std::mutex> lk(mutex_);
+    return receivedPackets_.at(index);
+  }
+
+  void waitForDisconnect() {
+    disconnectBaton_.try_wait_for(std::chrono::milliseconds(500));
+    disconnectBaton_.reset();
+  }
+
+ private:
+  std::vector<TPacket> receivedPackets_;
+  std::string lastClientId_;
+  std::mutex mutex_;
+  folly::Baton<> disconnectBaton_;
+};
+
+// Minimal client that just counts received packets (from server stream).
+class SimpleRecvClient : public PacketStreamClient {
+ public:
+  SimpleRecvClient(const std::string& clientId, folly::EventBase* evb)
+      : PacketStreamClient(clientId, evb) {}
+
+  void recvPacket(TPacket&& /*packet*/) override {
+    recvCount_.fetch_add(1);
+  }
+
+ private:
+  std::atomic<size_t> recvCount_{0};
+};
+
+class PacketStreamClientSendTest : public Test {
+ public:
+  void SetUp() override {
+    sinkHandler_ = std::make_shared<SinkTrackingService>("SinkTestService");
+    sinkServer_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+        sinkHandler_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
+  }
+
+  void TearDown() override {
+    sendClient_.reset();
+    sinkHandler_->waitForDisconnect();
+  }
+
+  void connectSendClient() {
+    sendClientEvb_ =
+        std::make_unique<folly::ScopedEventBaseThread>("sink_send_test_client");
+    sendClient_ = std::make_unique<SimpleRecvClient>(
+        g_client, sendClientEvb_->getEventBase());
+    sendClient_->connectToServer("::1", sinkServer_->getPort());
+
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!sendClient_->isConnectedToServer() &&
+           std::chrono::steady_clock::now() < deadline) {
+      /* sleep override */ std::this_thread::sleep_for(
+          std::chrono::milliseconds(50));
+    }
+    ASSERT_TRUE(sendClient_->isConnectedToServer());
+
+    ASSERT_NO_THROW(sendClient_->createSink());
+
+    deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!sendClient_->isSinkReady() &&
+           std::chrono::steady_clock::now() < deadline) {
+      /* sleep override */ std::this_thread::sleep_for(
+          std::chrono::milliseconds(50));
+    }
+    ASSERT_TRUE(sendClient_->isSinkReady());
+  }
+
+  bool waitForSinkRecv(size_t count, int timeoutMs = 5000) {
+    auto deadline =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+    while (sinkHandler_->receivedCount() < count &&
+           std::chrono::steady_clock::now() < deadline) {
+      /* sleep override */ std::this_thread::sleep_for(
+          std::chrono::milliseconds(50));
+    }
+    return sinkHandler_->receivedCount() >= count;
+  }
+
+  std::shared_ptr<SinkTrackingService> sinkHandler_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> sinkServer_;
+  std::unique_ptr<folly::ScopedEventBaseThread> sendClientEvb_;
+  std::unique_ptr<SimpleRecvClient> sendClient_;
+};
+
+TEST_F(PacketStreamClientSendTest, SinkReadyAfterCreateSink) {
+  sendClientEvb_ =
+      std::make_unique<folly::ScopedEventBaseThread>("sink_send_test_client");
+  sendClient_ = std::make_unique<SimpleRecvClient>(
+      g_client, sendClientEvb_->getEventBase());
+
+  EXPECT_FALSE(sendClient_->isSinkReady());
+
+  sendClient_->connectToServer("::1", sinkServer_->getPort());
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (!sendClient_->isConnectedToServer() &&
+         std::chrono::steady_clock::now() < deadline) {
+    /* sleep override */ std::this_thread::sleep_for(
+        std::chrono::milliseconds(50));
+  }
+  ASSERT_TRUE(sendClient_->isConnectedToServer());
+  EXPECT_FALSE(sendClient_->isSinkReady());
+
+  EXPECT_NO_THROW(sendClient_->createSink());
+
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (!sendClient_->isSinkReady() &&
+         std::chrono::steady_clock::now() < deadline) {
+    /* sleep override */ std::this_thread::sleep_for(
+        std::chrono::milliseconds(50));
+  }
+  EXPECT_TRUE(sendClient_->isSinkReady());
+}
+
+TEST_F(PacketStreamClientSendTest, SendSinglePacket) {
+  connectSendClient();
+
+  TPacket pkt;
+  pkt.l2Port() = "eth0";
+  pkt.buf() = "hello";
+  EXPECT_TRUE(sendClient_->send(std::move(pkt)));
+
+  ASSERT_TRUE(waitForSinkRecv(1));
+  auto received = sinkHandler_->getReceivedPacket(0);
+  EXPECT_EQ(*received.l2Port(), "eth0");
+  EXPECT_EQ(*received.buf(), "hello");
+}
+
+TEST_F(PacketStreamClientSendTest, SendMultiplePackets) {
+  connectSendClient();
+
+  constexpr int kCount = 100;
+  for (int i = 0; i < kCount; i++) {
+    TPacket pkt;
+    pkt.l2Port() = "eth0";
+    pkt.buf() = "pkt_" + std::to_string(i);
+    sendClient_->send(std::move(pkt));
+  }
+
+  ASSERT_TRUE(waitForSinkRecv(kCount, 10000));
+  for (int i = 0; i < kCount; i++) {
+    auto received = sinkHandler_->getReceivedPacket(i);
+    EXPECT_EQ(*received.buf(), "pkt_" + std::to_string(i));
+  }
+}
+
+TEST_F(PacketStreamClientSendTest, SendDropsBeforeSinkReady) {
+  sendClientEvb_ =
+      std::make_unique<folly::ScopedEventBaseThread>("sink_send_test_client");
+  sendClient_ = std::make_unique<SimpleRecvClient>(
+      g_client, sendClientEvb_->getEventBase());
+
+  // Send before createSink — should return false (dropped)
+  TPacket pkt;
+  pkt.l2Port() = "eth0";
+  pkt.buf() = "dropped";
+  EXPECT_FALSE(sendClient_->send(std::move(pkt)));
+
+  // Connect and create sink
+  sendClient_->connectToServer("::1", sinkServer_->getPort());
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (!sendClient_->isConnectedToServer() &&
+         std::chrono::steady_clock::now() < deadline) {
+    /* sleep override */ std::this_thread::sleep_for(
+        std::chrono::milliseconds(50));
+  }
+  ASSERT_TRUE(sendClient_->isConnectedToServer());
+  sendClient_->createSink();
+
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (!sendClient_->isSinkReady() &&
+         std::chrono::steady_clock::now() < deadline) {
+    /* sleep override */ std::this_thread::sleep_for(
+        std::chrono::milliseconds(50));
+  }
+  ASSERT_TRUE(sendClient_->isSinkReady());
+
+  // Now send a real packet — should return true
+  TPacket realPkt;
+  realPkt.l2Port() = "eth0";
+  realPkt.buf() = "real";
+  EXPECT_TRUE(sendClient_->send(std::move(realPkt)));
+
+  ASSERT_TRUE(waitForSinkRecv(1));
+  // Only the post-sink packet should arrive, not the dropped one
+  EXPECT_EQ(sinkHandler_->receivedCount(), 1);
+  auto received = sinkHandler_->getReceivedPacket(0);
+  EXPECT_EQ(*received.buf(), "real");
+}
+
+TEST_F(PacketStreamClientSendTest, CancelStopsSinkLoop) {
+  connectSendClient();
+
+  TPacket pkt;
+  pkt.l2Port() = "eth0";
+  pkt.buf() = "before_cancel";
+  sendClient_->send(std::move(pkt));
+
+  ASSERT_TRUE(waitForSinkRecv(1));
+  EXPECT_TRUE(sendClient_->isSinkReady());
+
+  sendClient_->cancel();
+  EXPECT_FALSE(sendClient_->isSinkReady());
+}
+
+TEST_F(PacketStreamClientSendTest, ConcurrentSend) {
+  connectSendClient();
+
+  constexpr int kThreads = 4;
+  constexpr int kPerThread = 50;
+  constexpr int kTotal = kThreads * kPerThread;
+
+  std::vector<std::thread> threads;
+  for (int t = 0; t < kThreads; t++) {
+    threads.emplace_back([&, t]() {
+      for (int i = 0; i < kPerThread; i++) {
+        TPacket pkt;
+        pkt.l2Port() = "eth0";
+        pkt.buf() = "t" + std::to_string(t) + "_p" + std::to_string(i);
+        sendClient_->send(std::move(pkt));
+      }
+    });
+  }
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  EXPECT_TRUE(waitForSinkRecv(kTotal, 10000));
+}
+
+TEST_F(PacketStreamClientSendTest, SendMultiplePorts) {
+  connectSendClient();
+
+  std::vector<std::string> ports = {"eth0", "eth1", "eth2"};
+  for (const auto& port : ports) {
+    TPacket pkt;
+    pkt.l2Port() = port;
+    pkt.buf() = "payload_" + port;
+    sendClient_->send(std::move(pkt));
+  }
+
+  ASSERT_TRUE(waitForSinkRecv(ports.size()));
+  for (size_t i = 0; i < ports.size(); i++) {
+    auto received = sinkHandler_->getReceivedPacket(i);
+    EXPECT_EQ(*received.l2Port(), ports[i]);
+    EXPECT_EQ(*received.buf(), "payload_" + ports[i]);
+  }
+}
+
 #endif
