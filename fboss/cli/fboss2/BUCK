@@ -937,6 +937,7 @@ cpp_library(
         "commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp",
         "session/ConfigSession.cpp",
         "session/Git.cpp",
+        "session/SystemdInterface.cpp",
         "utils/InterfaceList.cpp",
     ],
     headers = [
@@ -1003,6 +1004,7 @@ cpp_library(
         "commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h",
         "session/ConfigSession.h",
         "session/Git.h",
+        "session/SystemdInterface.h",
         "utils/InterfaceList.h",
     ],
     exported_deps = [
@@ -1017,6 +1019,7 @@ cpp_library(
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:agent_dir_util",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:switchinfo_utils",
         "//fboss/agent/if:ctrl-cpp2-clients",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",

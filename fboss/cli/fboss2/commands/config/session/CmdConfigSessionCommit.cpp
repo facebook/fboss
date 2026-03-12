@@ -32,16 +32,30 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
   std::vector<std::string> reloadedServices;
 
   for (const auto& [service, level] : result.actions) {
-    std::string serviceName = ConfigSession::getServiceName(service);
+    // Get the actual service names that were restarted/reloaded
+    auto it = result.serviceNames.find(service);
+    if (it == result.serviceNames.end()) {
+      continue; // Skip if no service names found
+    }
+    const auto& serviceNamesList = it->second;
+
     switch (level) {
       case cli::ConfigActionLevel::AGENT_COLDBOOT:
-        restartedServices.push_back(fmt::format("{} (coldboot)", serviceName));
+        for (const auto& serviceName : serviceNamesList) {
+          restartedServices.push_back(
+              fmt::format("{} (coldboot)", serviceName));
+        }
         break;
       case cli::ConfigActionLevel::AGENT_WARMBOOT:
-        restartedServices.push_back(fmt::format("{} (warmboot)", serviceName));
+        for (const auto& serviceName : serviceNamesList) {
+          restartedServices.push_back(
+              fmt::format("{} (warmboot)", serviceName));
+        }
         break;
       case cli::ConfigActionLevel::HITLESS:
-        reloadedServices.push_back(serviceName);
+        for (const auto& serviceName : serviceNamesList) {
+          reloadedServices.push_back(serviceName);
+        }
         break;
     }
   }
