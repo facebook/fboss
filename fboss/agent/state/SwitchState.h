@@ -503,6 +503,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<InterfaceMap> getInterfaces(SwitchID switchId) const;
 
   InterfaceID getInterfaceIDForPort(const PortDescriptor& port) const;
+  std::optional<InterfaceID> getInterfaceIDForPortIf(
+      const PortDescriptor& port) const;
   /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are

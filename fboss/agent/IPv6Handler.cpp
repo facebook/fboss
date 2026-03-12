@@ -222,8 +222,11 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfID = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
-    intf = state->getInterfaces()->getNodeIf(intfID);
+    auto intfIDOpt =
+        sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+    if (intfIDOpt) {
+      intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
+    }
   } else if (ipv6.dstAddr.isLinkLocal()) {
     // If srcPort == CPU port, this packet was injected by self, and then
     // trapped back via RX callback. We don't need to handle self injected
@@ -237,9 +240,11 @@ void IPv6Handler::handlePacket(
     } else {
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
-      auto intfID =
-          sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
-      intf = state->getInterfaces()->getNodeIf(intfID);
+      auto intfIDOpt =
+          sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+      if (intfIDOpt) {
+        intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
+      }
       if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
         intf = nullptr;
       }
@@ -381,9 +386,11 @@ void IPv6Handler::handleRouterSolicitation(
 
   cursor.skip(4); // 4 reserved bytes
 
-  auto intfID =
-      sw_->getState()->getInterfaceIDForPort(PortDescriptor(pkt->getSrcPort()));
-  auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID);
+  auto intfIDOpt = sw_->getState()->getInterfaceIDForPortIf(
+      PortDescriptor(pkt->getSrcPort()));
+  auto intf = intfIDOpt
+      ? sw_->getState()->getInterfaces()->getNodeIf(intfIDOpt.value())
+      : nullptr;
   if (!intf) {
     sw_->portStats(pkt)->pktDropped();
     return;

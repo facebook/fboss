@@ -244,10 +244,15 @@ void DHCPv6Handler::processDHCPv6Packet(
 
   auto switchIp = state->getDhcpV6RelaySrc();
   if (switchIp.isZero()) {
-    switchIp = getSwitchIntfIPv6(
-        state,
-        sw->getState()->getInterfaceIDForPort(
-            PortDescriptor(pkt->getSrcPort())));
+    auto intfIDOpt = sw->getState()->getInterfaceIDForPortIf(
+        PortDescriptor(pkt->getSrcPort()));
+    if (!intfIDOpt) {
+      sw->stats()->dhcpV6DropPkt();
+      XLOG(ERR) << "No interface for port " << pkt->getSrcPort()
+                << ", DHCPv6 packet dropped";
+      return;
+    }
+    switchIp = getSwitchIntfIPv6(state, intfIDOpt.value());
   }
 
   // link address set to unspecified

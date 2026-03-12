@@ -804,18 +804,27 @@ std::vector<SwitchID> SwitchState::getIntraClusterSwitchIds(
   return clusterIdToSwitchIds[clusterId.value()];
 }
 
-InterfaceID SwitchState::getInterfaceIDForPort(
+std::optional<InterfaceID> SwitchState::getInterfaceIDForPortIf(
     const PortDescriptor& port) const {
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
-      auto physicalPort = getPorts()->getNode(port.phyPortID());
+      auto physicalPort = getPorts()->getNodeIf(port.phyPortID());
+      if (!physicalPort) {
+        XLOG(ERR) << "No port node found for port " << port.phyPortID();
+        return std::nullopt;
+      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).
       return physicalPort->getInterfaceID();
     }
     case PortDescriptor::PortType::AGGREGATE: {
-      auto aggregatePort = getAggregatePorts()->getNode(port.aggPortID());
+      auto aggregatePort = getAggregatePorts()->getNodeIf(port.aggPortID());
+      if (!aggregatePort || aggregatePort->getInterfaceIDs()->empty()) {
+        XLOG(ERR) << "No aggregate port or interface found for "
+                  << port.aggPortID();
+        return std::nullopt;
+      }
       // All aggregate member ports always belong to the same interface(s).
       // Thus, pick the interface for any member port.
       return InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
@@ -824,7 +833,16 @@ InterfaceID SwitchState::getInterfaceIDForPort(
       XLOG(FATAL) << "Cannot get interface ID for system port: "
                   << port.sysPortID();
   }
-  return InterfaceID(0);
+  return std::nullopt;
+}
+
+InterfaceID SwitchState::getInterfaceIDForPort(
+    const PortDescriptor& port) const {
+  auto intfID = getInterfaceIDForPortIf(port);
+  if (!intfID) {
+    throw FbossError("No interface found for port ", port.str());
+  }
+  return intfID.value();
 }
 
 std::shared_ptr<SwitchState> SwitchState::fromThrift(

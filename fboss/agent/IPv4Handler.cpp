@@ -107,8 +107,8 @@ void IPv4Handler::sendICMPTimeExceeded(
   std::unique_ptr<ICMPExtIPSubObject> ipObj = nullptr;
   IPAddressV4 srcIp;
   try {
-    srcIp = getSwitchIntfIP(
-        state, sw_->getState()->getInterfaceIDForPort(PortDescriptor(port)));
+    auto intfId = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
+    srcIp = getSwitchIntfIP(state, intfId);
     ipObj = std::make_unique<ICMPExtIpSubObjectV4>(ICMPExtIpSubObjectV4(srcIp));
 
   } catch (const std::exception&) {
@@ -308,8 +308,11 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    auto intfID = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
-    intf = state->getInterfaces()->getNodeIf(intfID);
+    auto intfIDOpt =
+        sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+    if (intfIDOpt) {
+      intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
+    }
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
     // using v4 link locals in a special way on Galaxy/6pack which needs
