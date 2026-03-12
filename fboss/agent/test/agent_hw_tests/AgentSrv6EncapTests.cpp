@@ -4,7 +4,9 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/packet/Srv6Packet.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
@@ -12,6 +14,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -150,7 +153,36 @@ class AgentSrv6EncapTest : public AgentHwTest {
         folly::IPAddressV6("2800:2::1"),
         8000,
         8001);
+
+    auto packetComparator = [](const utility::EthFrame& /*expectedFrame*/,
+                               const utility::EthFrame& receivedFrame) {
+      auto ethHdr = receivedFrame.header();
+      if (ethHdr.etherType !=
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
+        return false;
+      }
+      auto ioBuf = receivedFrame.toIOBuf();
+      // Skip the ethernet header to get to the IPv6/SRv6 payload
+      folly::io::Cursor cursor(ioBuf.get());
+      cursor += ethHdr.size();
+      utility::Srv6Packet srv6Pkt(cursor);
+      XLOG(DBG2) << "Received SRv6 packet: " << srv6Pkt.toString();
+      return true;
+    };
+
+    utility::SwSwitchPacketSnooper snooper(
+        this->getSw(),
+        "srv6EncapSnooper",
+        std::nullopt,
+        std::nullopt,
+        packetComparator);
+
     this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+
+    WITH_RETRIES({
+      auto frameRx = snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+    });
 
     WITH_RETRIES({
       auto portStatsAfter = this->getLatestPortStats(egressPort);
