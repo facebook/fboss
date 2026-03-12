@@ -1352,4 +1352,66 @@ TYPED_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry) {
       beforeNumSysPorts, beforeNumRifs, kFinalNumSysPorts);
 }
 
+TYPED_TEST(DsfSubscriptionTest, GRExpiryProcessedViaQueueDsfUpdate) {
+  // Verify that GR expiry going through queueDsfUpdate (the new unified path)
+  // actually marks remote ports/interfaces as STALE and clears neighbor tables.
+  // Existing queue tests always end with a regular update overwriting GR,
+  // so GR's effects are never verified through this path.
+  this->subscription_ = this->createSubscription();
+
+  // Add remote system ports and interfaces directly
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId});
+    auto rifs = makeRifs(sysPorts.get());
+    switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
+  waitForStateUpdates(this->sw_);
+
+  // Verify remote ports are added and LIVE
+  auto sysPortsBefore = this->getRemoteSystemPorts();
+  ASSERT_GT(sysPortsBefore->size(), 0);
+  for (const auto& [_, sysPort] : *sysPortsBefore) {
+    if (sysPort->getRemoteSystemPortType().has_value() &&
+        sysPort->getRemoteSystemPortType().value() ==
+            RemoteSystemPortType::DYNAMIC_ENTRY) {
+      EXPECT_EQ(sysPort->getRemoteLivenessStatus(), LivenessStatus::LIVE);
+    }
+  }
+
+  // Trigger GR expiry through queueDsfUpdate (the new unified path)
+  this->subscription_->processGRHoldTimerExpired();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify remote system ports are marked as STALE
+  WITH_RETRIES({
+    auto remotePorts = this->getRemoteSystemPorts();
+    for (const auto& [_, sysPort] : *remotePorts) {
+      if (sysPort->getRemoteSystemPortType().has_value() &&
+          sysPort->getRemoteSystemPortType().value() ==
+              RemoteSystemPortType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            sysPort->getRemoteLivenessStatus(), LivenessStatus::STALE);
+      }
+    }
+    // Verify remote interfaces are STALE with cleared neighbor tables
+    auto remoteIntfs = this->getRemoteInterfaces();
+    for (const auto& [_, rif] : *remoteIntfs) {
+      if (rif->getRemoteInterfaceType().has_value() &&
+          rif->getRemoteInterfaceType().value() ==
+              RemoteInterfaceType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            rif->getRemoteLivenessStatus(), LivenessStatus::STALE);
+        EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+        EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      }
+    }
+  });
+}
+
 } // namespace facebook::fboss
