@@ -2,7 +2,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 
-#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
@@ -24,19 +23,6 @@ std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::addOrReuseSrv6SidList(
     auto& store = saiStore_->get<SaiSrv6SidListTraits>();
     handle->sidList = store.setObject(adapterHostKey, createAttributes);
   }
-  return handle;
-}
-
-std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::insertSrv6SidList(
-    std::shared_ptr<SaiSrv6SidList> sidList) {
-  const auto& adapterHostKey = sidList->adapterHostKey();
-  auto existing = srv6SidLists_.ref(adapterHostKey);
-  if (existing) {
-    throw FbossError("SRv6 SID list already exists for the given key");
-  }
-  auto [handle, emplaced] = srv6SidLists_.refOrEmplace(adapterHostKey);
-  CHECK(emplaced);
-  handle->sidList = std::move(sidList);
   return handle;
 }
 

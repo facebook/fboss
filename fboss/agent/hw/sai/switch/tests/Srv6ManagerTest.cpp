@@ -35,13 +35,6 @@ class Srv6ManagerTest : public ManagerTestBase {
       folly::IPAddress ip = folly::IPAddress("10.0.0.1")) {
     return SaiSrv6SidListTraits::AdapterHostKey{type, segmentList, rifId, ip};
   }
-
-  std::shared_ptr<SaiSrv6SidList> createSaiSrv6SidList(
-      const SaiSrv6SidListTraits::AdapterHostKey& key,
-      const SaiSrv6SidListTraits::CreateAttributes& attrs) {
-    auto& store = saiStore->get<SaiSrv6SidListTraits>();
-    return store.setObject(key, attrs);
-  }
 };
 
 TEST_F(Srv6ManagerTest, addSrv6SidList) {
@@ -154,29 +147,6 @@ TEST_F(Srv6ManagerTest, recreateAfterRelease) {
   EXPECT_NE(handle->sidList, nullptr);
   // New SAI object gets a different adapter key
   EXPECT_NE(handle->sidList->adapterKey(), firstAdapterKey);
-}
-
-TEST_F(Srv6ManagerTest, insertSrv6SidList) {
-  auto key = makeAdapterHostKey();
-  auto attrs = makeCreateAttributes();
-  auto sidList = createSaiSrv6SidList(key, attrs);
-  auto handle = saiManagerTable->srv6Manager().insertSrv6SidList(sidList);
-  EXPECT_NE(handle, nullptr);
-  EXPECT_EQ(handle->sidList, sidList);
-}
-
-TEST_F(Srv6ManagerTest, insertSrv6SidListThrowsOnDuplicate) {
-  auto key = makeAdapterHostKey();
-  auto attrs = makeCreateAttributes();
-  auto sidList1 = createSaiSrv6SidList(key, attrs);
-  auto handle = saiManagerTable->srv6Manager().insertSrv6SidList(sidList1);
-  EXPECT_NE(handle, nullptr);
-
-  // Same key returns the same object from the store, so insertSrv6SidList
-  // should throw because it already exists in the RefMap
-  auto sidList2 = createSaiSrv6SidList(key, attrs);
-  EXPECT_THROW(
-      saiManagerTable->srv6Manager().insertSrv6SidList(sidList2), FbossError);
 }
 
 #endif

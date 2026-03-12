@@ -79,9 +79,6 @@ class SaiSrv6Manager {
       const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey,
       const SaiSrv6SidListTraits::CreateAttributes& createAttributes);
 
-  std::shared_ptr<SaiSrv6SidListHandle> insertSrv6SidList(
-      std::shared_ptr<SaiSrv6SidList> sidList);
-
   const SaiSrv6SidListHandle* getSrv6SidListHandle(
       const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey) const;
 #endif
