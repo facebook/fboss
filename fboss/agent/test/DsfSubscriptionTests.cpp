@@ -560,7 +560,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
   const auto prevState = this->sw_->getState();
   this->subscription_ = this->createSubscription();
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   const auto addedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 2, 0);
@@ -590,7 +590,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       ->second->setAddresses(updatedAddresses);
 
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   auto modifiedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(
@@ -603,7 +603,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       std::make_shared<InterfaceMap>();
 
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   waitForStateUpdates(this->sw_);
   auto deletedState = this->sw_->getState();
@@ -643,7 +643,7 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
     switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = rifs;
 
     this->subscription_->updateWithRollbackProtection(
-        switchId2SystemPorts, switchId2Intfs);
+        switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
     waitForStateUpdates(this->sw_);
 
@@ -885,22 +885,17 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
   EXPECT_EQ(queueSizeAfterFirst, initialQueueSize + 1);
 
-  // Step 2: Call processGRHoldTimerExpired - should queue another event
+  // Step 2: Call processGRHoldTimerExpired - should override the DsfUpdate
   this->subscription_->processGRHoldTimerExpired();
-
-  // Verify second event was queued
   auto queueSizeAfterGR =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-  EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 2);
+  EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 1);
 
-  // Step 3: Second queueDsfUpdate call - should queue a third event.
-  queueSysPortUpdate(finalNumSysPorts);
-
-  // Verify the fix of race condition: there should be only 3 events in the
-  // queue. The GR expiry should not be the last event.
+  // Step 3: Second queueDsfUpdate call - should override the DsfUpdate
   auto finalQueueSize =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-  EXPECT_EQ(finalQueueSize, initialQueueSize + 3);
+  queueSysPortUpdate(finalNumSysPorts);
+  EXPECT_EQ(finalQueueSize, initialQueueSize + 1);
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -966,7 +961,8 @@ TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Queue second update with 2 sysports per switch - should coalesce
+  // Queue second update with 2 sysports per switch - should override the
+  // dsfUpdate
   queueSysPortUpdate(2 /*numSysPorts*/);
 
   // Second update should NOT add a new event (coalesced with first)
@@ -974,7 +970,8 @@ TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Queue third update with 3 sysports per switch - should also coalesce
+  // Queue third update with 3 sysports per switch - should override the
+  // dsfUpdate
   queueSysPortUpdate(3 /*numSysPorts*/);
 
   // Third update should still be coalesced - only 1 event total
@@ -1003,8 +1000,6 @@ TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
 }
 
 TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
-  // Test that when a GR event occurs between DSF updates, both updates
-  // are processed separately (not coalesced).
   this->subscription_ = this->createSubscription();
 
   // Use Baton to block hwUpdateEvb_
@@ -1041,28 +1036,28 @@ TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Trigger GR event - this should set lastEventGR_ flag
+  // Trigger GR event - this should queue GR update
   this->subscription_->processGRHoldTimerExpired();
 
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 2);
+      initialQueueSize + 1);
 
-  // Queue second update - should NOT coalesce due to GR event
+  // Queue second update
   queueSysPortUpdate(2 /*numSysPorts*/);
 
-  // Should have 3 events: first update, GR, second update
+  // Should have only 1 event with second update
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
 
   // Queue third update - should coalesce with second (no GR between them)
   queueSysPortUpdate(3 /*numSysPorts*/);
 
-  // Still 3 events (third coalesced with second)
+  // Still 1 events (third should overwrite the second)
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -1085,8 +1080,6 @@ TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
 }
 
 TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
-  // Test that multiple GR events each cause subsequent updates to be
-  // queued separately.
   this->subscription_ = this->createSubscription();
 
   // Use Baton to block hwUpdateEvb_
@@ -1116,7 +1109,7 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
   };
 
   // Sequence: Update1 -> GR1 -> Update2 -> GR2 -> Update3
-  // Expected events: 5 total
+  // Expected events: only 1 - Update 3 will overwrite previous updates
 
   // Update 1
   queueSysPortUpdate(1 /*numSysPorts*/);
@@ -1128,25 +1121,25 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
   this->subscription_->processGRHoldTimerExpired();
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 2);
+      initialQueueSize + 1);
 
-  // Update 2 (should not coalesce due to GR1)
+  // Update 2
   queueSysPortUpdate(2 /*numSysPorts*/);
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
 
   // GR 2
   this->subscription_->processGRHoldTimerExpired();
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 4);
+      initialQueueSize + 1);
 
-  // Update 3 (should not coalesce due to GR2)
+  // Update 3
   queueSysPortUpdate(3 /*numSysPorts*/);
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 5);
+      initialQueueSize + 1);
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -1168,18 +1161,6 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
 }
 
 TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
-  // Test that an update is skipped when newer updates exist in the queue
-  // after a GR event. This verifies the optimization in queueDsfUpdate where
-  // needsUpdate = dsfUpdateQueue_.empty() - if the queue is not empty after
-  // dequeueing the current update, the current update is skipped.
-  //
-  // Scenario: Update1 -> GR -> Update2
-  // When Update1's event runs, it dequeues Update1 but sees Update2 still in
-  // the queue, so it skips processing (needsUpdate = false).
-  //
-  // We verify this by checking the SW switch state generation number:
-  // - If Update1 is skipped: 2 state updates (GR + Update2)
-  // - If Update1 is NOT skipped: 3 state updates (Update1 + GR + Update2)
   this->subscription_ = this->createSubscription();
 
   // Use Baton to block hwUpdateEvb_ and simulate the race condition
@@ -1194,9 +1175,6 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
 
   auto initialQueueSize =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-
-  // Record the initial state generation
-  auto initialStateGeneration = this->sw_->getState()->getGeneration();
 
   auto queueSysPortUpdate = [&](int numSysPorts) {
     DsfSubscription::DsfUpdate update;
@@ -1215,19 +1193,20 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Trigger GR event - this sets lastEventGR_ flag
+  // Trigger GR event
   this->subscription_->processGRHoldTimerExpired();
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 2);
+      initialQueueSize + 1);
 
-  // Queue Update2 with 2 sysports per switch - because of GR, this will
-  // be queued as a separate entry. When Update1's event runs, it will see
-  // Update2 in the queue and skip processing Update1.
+  // Queue Update2 with 2 sysports per switch
   queueSysPortUpdate(2);
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
+
+  // Record the initial state generation
+  auto initialStateGeneration = this->sw_->getState()->getGeneration();
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -1241,17 +1220,13 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
   // Wait for state updates to complete
   waitForStateUpdates(this->sw_);
 
-  // Verify the state generation only incremented by 2 (GR + Update2).
-  // If Update1 was NOT skipped, the generation would increment by 3.
-  // This proves Update1 was skipped because the queue was not empty after
-  // dequeueing it (Update2 was still in the queue).
+  // Verify that only one event is being enqueued and updated.
   auto finalStateGeneration = this->sw_->getState()->getGeneration();
   auto stateUpdates = finalStateGeneration - initialStateGeneration;
 
-  // We expect exactly 2 state updates:
-  // 1. GR event (processGRHoldTimerExpired calls updateDsfState)
-  // 2. Update2 event (queue was empty after dequeue, so needsUpdate = true)
-  // Update1 is skipped because queue was NOT empty after dequeue.
+  // We expect one update from the last DsfUpdate.
+  // Due to the state observer of AclNexthopHandler, it will schedule another
+  // update for fib change
   EXPECT_EQ(stateUpdates, 2);
 }
 

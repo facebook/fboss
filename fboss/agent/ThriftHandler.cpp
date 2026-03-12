@@ -1905,36 +1905,39 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
-  forAllRoutes(state, [&routes](const RouterID& /*rid*/, const auto& route) {
-    UnicastRoute tempRoute;
-    if (!route->isResolved()) {
-      XLOG(DBG2) << "Skipping unresolved route: " << route->toFollyDynamic();
-      return;
-    }
-    const auto& fwdInfo = route->getForwardInfo();
-    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
-    tempRoute.dest()->prefixLength() = route->prefix().mask();
-    tempRoute.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
-    // If there are no overrides, nonOverrideNormalizedNextHops ==
-    // normalizedNextHops
-    tempRoute.nextHops() =
-        util::fromRouteNextHopSet(fwdInfo.nonOverrideNormalizedNextHops());
-    if (fwdInfo.getCounterID().has_value()) {
-      tempRoute.counterID() = *fwdInfo.getCounterID();
-    }
-    if (fwdInfo.getClassID().has_value()) {
-      tempRoute.classID() = *fwdInfo.getClassID();
-    }
-    if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
-      tempRoute.overrideEcmpSwitchingMode() =
-          *fwdInfo.getOverrideEcmpSwitchingMode();
-    }
-    if (fwdInfo.getOverrideNextHops().has_value()) {
-      tempRoute.overrideNextHops() =
-          util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
-    }
-    routes.emplace_back(std::move(tempRoute));
-  });
+  forAllRoutes(
+      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+        UnicastRoute tempRoute;
+        if (!route->isResolved()) {
+          XLOG(DBG2) << "Skipping unresolved route: "
+                     << route->toFollyDynamic();
+          return;
+        }
+        const auto& fwdInfo = route->getForwardInfo();
+        tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
+        tempRoute.dest()->prefixLength() = route->prefix().mask();
+        tempRoute.nextHopAddrs() =
+            util::fromFwdNextHops(getNextHops(state, fwdInfo));
+        // If there are no overrides, nonOverrideNormalizedNextHops ==
+        // normalizedNextHops
+        tempRoute.nextHops() = util::fromRouteNextHopSet(
+            getNonOverrideNormalizedNextHops(state, fwdInfo));
+        if (fwdInfo.getCounterID().has_value()) {
+          tempRoute.counterID() = *fwdInfo.getCounterID();
+        }
+        if (fwdInfo.getClassID().has_value()) {
+          tempRoute.classID() = *fwdInfo.getClassID();
+        }
+        if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
+          tempRoute.overrideEcmpSwitchingMode() =
+              *fwdInfo.getOverrideEcmpSwitchingMode();
+        }
+        if (fwdInfo.getOverrideNextHops().has_value()) {
+          tempRoute.overrideNextHops() =
+              util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+        }
+        routes.emplace_back(std::move(tempRoute));
+      });
 }
 
 void ThriftHandler::getRouteTableByClient(
@@ -2008,7 +2011,7 @@ void ThriftHandler::getIpRoute(
     const auto& fwdInfo = match->getForwardInfo();
     *route.dest()->ip() = toBinaryAddress(match->prefix().network());
     *route.dest()->prefixLength() = match->prefix().mask();
-    *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    *route.nextHopAddrs() = util::fromFwdNextHops(getNextHops(state, fwdInfo));
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
       route.counterID() = *counterID;
@@ -2031,7 +2034,7 @@ void ThriftHandler::getIpRoute(
     const auto& fwdInfo = match->getForwardInfo();
     *route.dest()->ip() = toBinaryAddress(match->prefix().network());
     *route.dest()->prefixLength() = match->prefix().mask();
-    *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    *route.nextHopAddrs() = util::fromFwdNextHops(getNextHops(state, fwdInfo));
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
       route.counterID() = *counterID;

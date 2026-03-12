@@ -320,6 +320,11 @@ DEFINE_bool(
     false,
     "Enable NextHop ID allocation and management for routes");
 
+DEFINE_bool(
+    resolve_nexthops_from_id,
+    false,
+    "Resolve nexthops from NextHopSetID in FibInfo maps instead of inline nexthops");
+
 DEFINE_int32(
     ecmp_resource_manager_make_before_break_buffer,
     2,

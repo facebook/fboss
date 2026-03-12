@@ -180,6 +180,34 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     true);
 
 BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    FDSW_ThriftCow,
+    test_data::RoleSelector::FDSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    FDSW_HybridCow,
+    test_data::RoleSelector::FDSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    SDSW_ThriftCow,
+    test_data::RoleSelector::SDSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_state_storage,
+    counters,
+    SDSW_HybridCow,
+    test_data::RoleSelector::SDSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
     ribmap_state_storage,
     counters,
     RibMap_RSW_ThriftCow,

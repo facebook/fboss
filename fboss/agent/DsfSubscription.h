@@ -10,8 +10,6 @@
 #include "fboss/fsdb/client/FsdbSubManager.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 
-#include <deque>
-#include <mutex>
 #include <string>
 
 namespace facebook::fboss {
@@ -56,12 +54,15 @@ class DsfSubscription {
  private:
   struct DsfUpdate {
     bool isEmpty() const {
-      return switchId2SystemPorts.empty() && switchId2Intfs.empty();
+      return switchId2SystemPorts.empty() && switchId2Intfs.empty() &&
+          !grExpiry;
     }
     void clear() {
       switchId2SystemPorts.clear();
       switchId2Intfs.clear();
+      grExpiry = false;
     }
+    bool grExpiry{false};
     std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
     std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
   };
@@ -72,7 +73,8 @@ class DsfSubscription {
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,
-      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
+      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs,
+      bool grExpiry);
   void processGRHoldTimerExpired();
   void setupSubscription();
   void tearDownSubscription();
@@ -86,7 +88,6 @@ class DsfSubscription {
       const MultiSwitchSystemPortMap& newPortMap,
       const MultiSwitchInterfaceMap& newInterfaceMap);
   void queueDsfUpdate(DsfUpdate&& dsfUpdate);
-  void clearDsfUpdateQueueAndGRFlag();
 
   fsdb::FsdbStreamClient::State getStreamState() const;
 
@@ -102,27 +103,7 @@ class DsfSubscription {
   folly::IPAddress remoteIp_;
   SwSwitch* sw_;
   DsfSession session_;
-  // Use a queue of DsfUpdates to store updates across GR expiry events. Updates
-  // are only coalesced if they are not between GR expiry events. For example,
-  // if the following events happen chronologically
-  //
-  // [Update1, Update2, GR, Update 3, Update4]
-  //
-  // The queue should be like
-  // 1. [Update 1]
-  // 2. [Update 2] (overwriting update 1)
-  // 3. [Update 2, GR]
-  // 4. [Update 2, GR, Update 3]
-  // 5. [Update 2, GR, Update 4] (overwriting update 3)
-  // In this case, we should still schedule 3 events for above 2 updates and 1
-  // GR.
-  //
-  // Since the opreation of scheduling and euqueueing are inexpensive, use the
-  // update mutex to guard the critical sections conservatively. The boolean
-  // flag of lastEventGR_ will also be used to enqueue new updates after GR.
-  std::mutex dsfUpdateMutex_;
-  std::deque<DsfUpdate> dsfUpdateQueue_;
-  bool lastEventGR_{false};
+  folly::Synchronized<std::unique_ptr<DsfUpdate>> nextDsfUpdate_;
   // Cache current state of sysports and intfs received from remote
   // node. Since after the initial update we are not guaranteed to
   // receive the entire set of sysports and rifs in any update. For

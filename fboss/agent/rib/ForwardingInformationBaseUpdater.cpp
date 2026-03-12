@@ -78,21 +78,12 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
     fibInfo->updateFibContainer(previousFibContainer, &nextState);
   }
   CHECK(previousFibContainer);
-  // Cast to non-const for ID allocation/deallocation operations
-  // See constructor comment for rationale
-  auto* nextHopIDManager = const_cast<NextHopIDManager*>(nextHopIDManager_);
 
   auto newFibV4 = createUpdatedFib(
-      v4NetworkToRoute_,
-      previousFibContainer->getFibV4(),
-      nextState,
-      nextHopIDManager);
+      v4NetworkToRoute_, previousFibContainer->getFibV4(), nextState);
 
   auto newFibV6 = createUpdatedFib(
-      v6NetworkToRoute_,
-      previousFibContainer->getFibV6(),
-      nextState,
-      nextHopIDManager);
+      v6NetworkToRoute_, previousFibContainer->getFibV6(), nextState);
 
   auto newLabelFib = createUpdatedLabelFib(
       labelToRoute_, state->getLabelForwardingInformationBase());
@@ -162,8 +153,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
     const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
     const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
         fib,
-    std::shared_ptr<SwitchState>& state,
-    NextHopIDManager* nextHopIDManager) {
+    std::shared_ptr<SwitchState>& state) {
   typename facebook::fboss::ForwardingInformationBase<
       AddressT>::Base::NodeContainer updatedFib;
 
@@ -187,12 +177,12 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
       if (fibRoute == ribRoute || fibRoute->isSame(ribRoute.get())) {
         // Pointer or contents are same
       } else {
-        // Route has changed - need to update ResolvedNextHopSetID
+        // Route has changed
         fibRoute = ribRoute;
         updated = true;
       }
     } else {
-      // New route - allocate NextHopSetID
+      // New route
       fibRoute = ribRoute;
       updated = true;
     }
@@ -201,9 +191,6 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
   }
   // Check for deleted routes. Routes that were in the previous FIB
   // and have now been removed
-  // We must process all deleted routes (no early break) to ensure proper
-  // NextHop ID deallocation. Each deleted route may contain NextHops whose
-  // reference counts need to be decremented in the ID maps.
   for (const auto& iter : std::as_const(*fib)) {
     const auto& fibEntry = iter.second;
     auto prefix = fibEntry->getID();

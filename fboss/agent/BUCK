@@ -800,6 +800,7 @@ cpp_library(
         "FibHelpers.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":fboss-types",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",

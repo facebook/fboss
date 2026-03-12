@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -59,7 +60,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
   std::vector<ResolvedNextHop> resolvedNextHops;
   resolvedNextHops.reserve(swNextHops.size());
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  std::unordered_map<const ResolvedNextHop*, std::shared_ptr<SaiSrv6SidList>>
+  std::unordered_map<
+      const ResolvedNextHop*,
+      std::shared_ptr<SaiSrv6SidListHandle>>
       srv6SidListMap;
 #endif
   for (const auto& swNextHop : swNextHops) {
@@ -76,10 +79,12 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     std::optional<sai_object_id_t> sidListId;
     if (!resolvedNextHop.srv6SegmentList().empty()) {
-      auto sidList =
-          managerTable_->nextHopManager().createSrv6SidList(resolvedNextHop);
-      sidListId = sidList->adapterKey();
-      srv6SidListMap.emplace(&resolvedNextHop, std::move(sidList));
+      auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+          routerInterfaceHandle->adapterKey(), resolvedNextHop);
+      auto sidListHandle = managerTable_->srv6Manager().addOrReuseSrv6SidList(
+          sidListKey, sidListAttrs);
+      sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
+      srv6SidListMap.emplace(&resolvedNextHop, std::move(sidListHandle));
     }
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
         resolvedNextHop, sidListId);
@@ -189,13 +194,13 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 
   for (auto& resolvedNextHop : resolvedNextHops) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-    std::shared_ptr<SaiSrv6SidList> sidList;
+    std::shared_ptr<SaiSrv6SidListHandle> sidListHandle;
     auto it = srv6SidListMap.find(&resolvedNextHop);
     if (it != srv6SidListMap.end()) {
-      sidList = std::move(it->second);
+      sidListHandle = std::move(it->second);
     }
     auto managedNextHop = managerTable_->nextHopManager().addManagedSaiNextHop(
-        resolvedNextHop, std::move(sidList));
+        resolvedNextHop, std::move(sidListHandle));
 #else
     auto managedNextHop =
         managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNextHop);

@@ -73,6 +73,7 @@ cpp_library(
         "//common/base:proc",
         "//fboss/thrift_cow/storage:cow_storage",
         "//folly:benchmark",
+        "//folly:string",
         "//folly/init:init",
         "//folly/json:dynamic",
     ],

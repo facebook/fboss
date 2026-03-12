@@ -647,8 +647,8 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
   // Verify SID list attributes via SAI API
   auto& sidListHandle = managedNh->getSrv6SidListHandle();
   ASSERT_NE(sidListHandle, nullptr);
-  ASSERT_NE(sidListHandle->sidList, nullptr);
-  auto sidListId = sidListHandle->sidList->adapterKey();
+  ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
+  auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
 
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
@@ -763,9 +763,9 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
     auto* sidListHandle =
         saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(sidListHandle, nullptr);
-    ASSERT_NE(sidListHandle->sidList, nullptr);
+    ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
 
-    auto sidListId = sidListHandle->sidList->adapterKey();
+    auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
     auto gotSegments = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
     EXPECT_EQ(gotSegments.size(), 2);

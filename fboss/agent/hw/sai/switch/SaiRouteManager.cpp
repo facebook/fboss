@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -363,14 +364,17 @@ void SaiRouteManager::addOrUpdateRoute(
         bool localNexthop = routerInterfaceHandle->isLocal();
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-        std::shared_ptr<SaiSrv6SidList> srv6SidList;
+        std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle;
         if (!swNextHop.srv6SegmentList().empty()) {
-          srv6SidList =
-              managerTable_->nextHopManager().createSrv6SidList(swNextHop);
+          auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+              routerInterfaceHandle->adapterKey(), swNextHop);
+          srv6SidListHandle =
+              managerTable_->srv6Manager().addOrReuseSrv6SidList(
+                  sidListKey, sidListAttrs);
         }
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(
-                swNextHop, std::move(srv6SidList));
+                swNextHop, std::move(srv6SidListHandle));
 #else
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);

@@ -78,15 +78,16 @@ void BcmEcmpTest::programRouteWithUnresolvedNhops() {
 }
 
 const BcmMultiPathNextHop* BcmEcmpTest::getBcmMultiPathNextHop() const {
-  auto resolvedRoute = findRoute<folly::IPAddressV6>(
-      kRid, kDefaultRoutePrefix, getProgrammedState());
+  auto state = getProgrammedState();
+  auto resolvedRoute =
+      findRoute<folly::IPAddressV6>(kRid, kDefaultRoutePrefix, state);
   const auto multiPathTable = getHwSwitch()->getMultiPathNextHopTable();
   RouteNextHopSet nhops;
   std::unordered_map<IPAddress, NextHopWeight> ws;
   for (uint8_t i = 0; i < kNumNextHops; ++i) {
     ws[ecmpHelper_->ip(i)] = UCMP_DEFAULT_WEIGHT;
   }
-  for (const auto& nhop : resolvedRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nhop : getNextHops(state, resolvedRoute->getForwardInfo())) {
     nhops.insert(ResolvedNextHop(nhop.addr(), nhop.intf(), ws[nhop.addr()]));
   }
   return multiPathTable->getNextHop(

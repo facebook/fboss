@@ -782,7 +782,7 @@ bool LookupClassRouteUpdater::addRouteToMultiNextHopMap(
     const std::shared_ptr<RouteT>& route,
     std::optional<std::pair<folly::IPAddress, VlanID>> addedNeighborIPandVlan,
     const RidAndCidr& ridAndCidr) {
-  for (const auto& nextHop : route->getForwardInfo().getNextHopSet()) {
+  for (const auto& nextHop : getNextHops(newState, route->getForwardInfo())) {
     auto vlanID =
         newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
@@ -824,7 +824,8 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
   auto& newState = stateDelta.newState();
   std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
   std::set<folly::IPAddress> neighborsWithClassId;
-  for (const auto& nextHop : addedRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nextHop :
+       getNextHops(newState, addedRoute->getForwardInfo())) {
     auto vlanID =
         newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
@@ -1041,8 +1042,10 @@ void LookupClassRouteUpdater::processRouteRemoved(
           removedRoute->prefix().network(), removedRoute->prefix().mask()});
 
   auto routeClassID = removedRoute->getClassID();
+  auto& oldState = stateDelta.oldState();
   auto& newState = stateDelta.newState();
-  for (const auto& nextHop : removedRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nextHop :
+       getNextHops(oldState, removedRoute->getForwardInfo())) {
     auto vlanID =
         newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
@@ -1120,8 +1123,8 @@ void LookupClassRouteUpdater::processRouteChanged(
      * processRouteRemoved does not schedule state update, so the only
      * additional overhead of this approach is some local computation.
      */
-    if ((oldRoute->getForwardInfo().getNextHopSet() !=
-         newRoute->getForwardInfo().getNextHopSet()) ||
+    if ((getNextHops(stateDelta.oldState(), oldRoute->getForwardInfo()) !=
+         getNextHops(stateDelta.newState(), newRoute->getForwardInfo())) ||
         (oldRoute->getClassID() != newRoute->getClassID())) {
       processRouteRemoved(stateDelta, rid, oldRoute);
       processRouteAdded(stateDelta, rid, newRoute);

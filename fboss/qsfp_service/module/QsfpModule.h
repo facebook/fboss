@@ -332,6 +332,25 @@ class QsfpModule : public Transceiver {
   bool upgradeFirmware(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
 
+  /*
+   * Update the cached data with the information from the physical QSFP.
+   *
+   * The 'allPages' parameter determines which pages we refresh. Data
+   * on the first page holds most of the fields that actually change,
+   * so unless we have reason to believe the transceiver was unplugged
+   * there is not much point in refreshing static data on other pages.
+   */
+  virtual void updateQsfpData(bool allPages = true) = 0;
+
+  /*
+   * Gets the module media interface. This is the intended media interface
+   * application for this module. The module may be able to run in a different
+   * application (with lesser bandwidth). For example if a 200G-FR4 module is
+   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
+   * return 200G-FR4
+   */
+  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
+
  protected:
   /* Qsfp Internal Implementation */
   TransceiverImpl* qsfpImpl_;
@@ -544,16 +563,6 @@ class QsfpModule : public Transceiver {
   void periodicUpdateQsfpData();
 
   /*
-   * Update the cached data with the information from the physical QSFP.
-   *
-   * The 'allPages' parameter determines which pages we refresh. Data
-   * on the first page holds most of the fields that actually change,
-   * so unless we have reason to believe the transceiver was unplugged
-   * there is not much point in refreshing static data on other pages.
-   */
-  virtual void updateQsfpData(bool allPages = true) = 0;
-
-  /*
    * Helpers to parse DOM data for DAC cables. These incorporate some
    * extra fields that FB has vendors put in the 'Vendor specific'
    * byte range of the SFF spec.
@@ -575,15 +584,6 @@ class QsfpModule : public Transceiver {
   // set to low power and then back to original setting. This has
   // effect of restarting the transceiver state machine
   virtual void resetLowPowerMode() {}
-
-  /*
-   * Gets the module media interface. This is the intended media interface
-   * application for this module. The module may be able to run in a different
-   * application (with lesser bandwidth). For example if a 200G-FR4 module is
-   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
-   * return 200G-FR4
-   */
-  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
 
   /*
    * Returns true if getting the mediaInterfaceId is successful, false otherwise

@@ -19,6 +19,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/DHCPv4Handler.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/IPHeaderV4.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
@@ -422,7 +423,7 @@ bool IPv4Handler::resolveMac(
   }
 
   auto intfs = state->getInterfaces();
-  auto nhs = route->getForwardInfo().getNextHopSet();
+  auto nhs = getNextHops(state, route->getForwardInfo());
   auto sent = false;
   for (auto nh : nhs) {
     auto intf = intfs->getNodeIf(nh.intf());

@@ -237,7 +237,7 @@ void assertFibAndGroupsMatch(
       }
       ASSERT_NE(route, nullptr);
       bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().getNextHopSet().size() > 1;
+          getNextHops(state, route->getForwardInfo()).size() > 1;
       if (!isEcmpRoute) {
         continue;
       }
@@ -264,7 +264,7 @@ void assertFibAndGroupsMatch(
       // Non override nhops must map to a entry in nhops2Id. Confirming
       // that nhops map to a existing group in resourceMgr
       auto nonOverrideNormalizedHops =
-          route->getForwardInfo().nonOverrideNormalizedNextHops();
+          getNonOverrideNormalizedNextHops(state, route->getForwardInfo());
       auto nitr = nhops2Id.find(nonOverrideNormalizedHops);
       ASSERT_NE(nitr, nhops2Id.end());
       auto umGroupRefItr =

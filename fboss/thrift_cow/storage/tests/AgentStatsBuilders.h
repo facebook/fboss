@@ -63,4 +63,11 @@ void populateFabricOverdrainPct(
     const AgentStatsScale& scale,
     int64_t version = 0);
 
+// Zero out all scale fields except those for the given target field.
+// If targetField is empty, returns scale unchanged.
+// Returns false if targetField is not a recognized AgentStats field.
+bool filterAgentStatsScaleForPath(
+    AgentStatsScale& scale,
+    const std::string& targetField);
+
 } // namespace facebook::fboss::fsdb::test

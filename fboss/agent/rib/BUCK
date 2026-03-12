@@ -112,6 +112,7 @@ cpp_unittest(
     ],
     deps = [
         ":standalone_rib",
+        "//fboss/agent:fib_helpers",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/mock:mock",
         "//fboss/agent/state:state",

@@ -18,6 +18,7 @@
 
 // Include builders for populating additional fields
 #include "fboss/thrift_cow/storage/tests/AgentStatsBuilders.h"
+#include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
 
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
@@ -132,17 +133,37 @@ SwitchState FsdbStateDataFactory::buildSwitchState() {
   SwitchState switchState;
   SwitchStateScale scale = getRoleScale(selector_);
 
-  // Populate FIBs
-  auto fibsData = buildFibData();
-  std::string switchIdList = "Id:0";
-  std::map<int16_t, FibContainerFields> FibsMap;
-  FibsMap[0] = std::move(fibsData);
-  switchState.fibsMap()[switchIdList] = std::move(FibsMap);
+  // Determine which SwitchState field to populate.
+  // Path format: /agent/switchState/<field>
+  // If no path filter or path doesn't reach switchState level, populate all.
+  std::string targetField;
+  if (pathFilter_.size() >= 3 && pathFilter_[0] == "agent" &&
+      pathFilter_[1] == "switchState") {
+    targetField = pathFilter_[2];
+  }
 
-  // Populate remote system ports and interfaces for RDSW and EDSW roles
-  populateRemoteSystemPortsAndInterfaces(switchState);
+  // Filter scale to zero out fields not matching the target path.
+  // populate* functions have early-return guards for zero counts/false bools.
+  if (!facebook::fboss::fsdb::test::filterSwitchStateScaleForPath(
+          scale, targetField)) {
+    LOG(FATAL) << "Unknown switchState field in --bm_fsdb_path: '"
+               << targetField << "'";
+  }
 
-  // NEW - call builders from SwitchStateBuilders.h
+  // fibsMap and remote port/interface maps use internal scales,
+  // so check the filtered scale before calling them.
+  if (scale.fibV4Size > 0 || scale.fibV6Size > 0) {
+    auto fibsData = buildFibData();
+    std::string switchIdList = "Id:0";
+    std::map<int16_t, FibContainerFields> FibsMap;
+    FibsMap[0] = std::move(fibsData);
+    switchState.fibsMap()[switchIdList] = std::move(FibsMap);
+  }
+
+  if (scale.remoteSystemPortMapSize > 0 || scale.remoteInterfaceMapSize > 0) {
+    populateRemoteSystemPortsAndInterfaces(switchState);
+  }
+
   facebook::fboss::fsdb::test::populatePorts(switchState, scale);
   facebook::fboss::fsdb::test::populateVlans(switchState, scale);
   facebook::fboss::fsdb::test::populateInterfaces(switchState, scale);
@@ -857,7 +878,22 @@ AgentStats FsdbStatsDataFactory::buildAgentStats() {
   AgentStatsScale scale = getRoleScale(selector_);
   int64_t baseTimestamp = 1755207740; // Pick a random timestamp
 
-  // Generate hwPortStats
+  // Determine which AgentStats field to populate.
+  // Path format: /agent/<field>
+  // If no path filter or path doesn't reach agent level, populate all.
+  std::string targetField;
+  if (pathFilter_.size() >= 2 && pathFilter_[0] == "agent") {
+    targetField = pathFilter_[1];
+  }
+
+  // Filter scale to zero out fields not matching the target path.
+  // populate* functions have early-return guards for zero counts/false bools.
+  if (!facebook::fboss::fsdb::test::filterAgentStatsScaleForPath(
+          scale, targetField)) {
+    LOG(FATAL) << "Unknown AgentStats field in --bm_fsdb_path: '" << targetField
+               << "'";
+  }
+
   for (int i = 0; i < scale.hwPortStatsCount; i++) {
     std::string portName = fmt::format(
         "eth{}/{}/{}", (i / 100) + 1, ((i / 10) % 10) + 1, (i % 10) + 1);
@@ -865,14 +901,12 @@ AgentStats FsdbStatsDataFactory::buildAgentStats() {
         createHwPortStats(portName, baseTimestamp, i);
   }
 
-  // Generate phyStats
   for (int i = 0; i < scale.phyStatsCount; i++) {
     std::string portName = fmt::format(
         "eth{}/{}/{}", (i / 100) + 1, ((i / 10) % 10) + 1, (i % 10) + 1);
     agentStats.phyStats()[portName] = createPhyStats(baseTimestamp, i);
   }
 
-  // Generate sysPortStats
   for (int i = 0; i < scale.sysPortStatsCount; i++) {
     std::string portName = fmt::format(
         "edsw{:03d}.n{:03d}.l{:03d}.nao{}:rcy{}/{}/{}",
@@ -887,12 +921,10 @@ AgentStats FsdbStatsDataFactory::buildAgentStats() {
     agentStats.sysPortStats()[portName] = sysPortStatsData;
   }
 
-  // Populate sysPortStatsMap[0] with the same data as sysPortStats
   if (!agentStats.sysPortStats()->empty()) {
     agentStats.sysPortStatsMap()[0] = *agentStats.sysPortStats();
   }
 
-  // Call the new AgentStats builders for remaining fields
   facebook::fboss::fsdb::test::populateHwResourceStatsMap(agentStats, scale);
   facebook::fboss::fsdb::test::populateHwAsicErrorsMap(agentStats, scale);
   facebook::fboss::fsdb::test::populateCpuPortStatsMap(agentStats, scale);

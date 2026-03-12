@@ -683,4 +683,71 @@ void populateMirrorOnDropReports(
   state.mirrorOnDropReportMaps()[switchIdList] = std::move(modReportMap);
 }
 
+bool filterSwitchStateScaleForPath(
+    SwitchStateScale& scale,
+    const std::string& targetField) {
+  if (targetField.empty()) {
+    return true;
+  }
+
+  // Save the values for the target field, zero everything, then restore.
+  // Note: SwitchStateScale has default-true bools, so we must zero them.
+  SwitchStateScale filtered{};
+  filtered.hasControlPlane = false;
+  filtered.hasSwitchSettings = false;
+  filtered.hasAclTableGroup = false;
+
+  if (targetField == "fibsMap") {
+    filtered.fibV4Size = scale.fibV4Size;
+    filtered.fibV6Size = scale.fibV6Size;
+    filtered.v4Nexthops = scale.v4Nexthops;
+    filtered.v6Nexthops = scale.v6Nexthops;
+  } else if (targetField == "remoteSystemPortMaps") {
+    filtered.remoteSystemPortMapSize = scale.remoteSystemPortMapSize;
+  } else if (targetField == "remoteInterfaceMaps") {
+    filtered.remoteInterfaceMapSize = scale.remoteInterfaceMapSize;
+  } else if (targetField == "portMaps") {
+    filtered.portCount = scale.portCount;
+  } else if (targetField == "vlanMaps") {
+    filtered.vlanCount = scale.vlanCount;
+  } else if (targetField == "interfaceMaps") {
+    filtered.interfaceCount = scale.interfaceCount;
+  } else if (targetField == "transceiverMaps") {
+    filtered.transceiverCount = scale.transceiverCount;
+  } else if (targetField == "systemPortMaps") {
+    filtered.systemPortCount = scale.systemPortCount;
+  } else if (targetField == "dsfNodesMap") {
+    filtered.dsfNodeCount = scale.dsfNodeCount;
+  } else if (targetField == "controlPlaneMap") {
+    filtered.hasControlPlane = scale.hasControlPlane;
+  } else if (targetField == "switchSettingsMap") {
+    filtered.hasSwitchSettings = scale.hasSwitchSettings;
+  } else if (targetField == "bufferPoolCfgMaps") {
+    filtered.bufferPoolCfgCount = scale.bufferPoolCfgCount;
+  } else if (targetField == "mirrorMaps") {
+    filtered.mirrorCount = scale.mirrorCount;
+  } else if (targetField == "qosPolicyMaps") {
+    filtered.qosPolicyCount = scale.qosPolicyCount;
+  } else if (targetField == "loadBalancerMaps") {
+    filtered.loadBalancerCount = scale.loadBalancerCount;
+  } else if (targetField == "aclTableGroupMaps") {
+    filtered.hasAclTableGroup = scale.hasAclTableGroup;
+  } else if (targetField == "aclMaps") {
+    filtered.aclCount = scale.aclCount;
+  } else if (targetField == "ipTunnelMaps") {
+    filtered.ipTunnelCount = scale.ipTunnelCount;
+  } else if (targetField == "aggregatePortMaps") {
+    filtered.aggregatePortCount = scale.aggregatePortCount;
+  } else if (targetField == "portFlowletCfgMaps") {
+    filtered.portFlowletCfgCount = scale.portFlowletCfgCount;
+  } else if (targetField == "mirrorOnDropReportMaps") {
+    filtered.mirrorOnDropReportCount = scale.mirrorOnDropReportCount;
+  } else {
+    return false;
+  }
+
+  scale = filtered;
+  return true;
+}
+
 } // namespace facebook::fboss::fsdb::test

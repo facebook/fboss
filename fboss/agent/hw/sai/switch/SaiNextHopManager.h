@@ -165,7 +165,7 @@ class SaiNextHopManager {
       const ResolvedNextHop& swNextHop
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       ,
-      std::shared_ptr<SaiSrv6SidList> srv6SidList = nullptr
+      std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle = nullptr
 #endif
   );
 

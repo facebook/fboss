@@ -81,4 +81,11 @@ void populateMirrorOnDropReports(
     state::SwitchState& state,
     const SwitchStateScale& scale);
 
+// Zero out all scale fields except those for the given target field.
+// If targetField is empty, returns scale unchanged.
+// Returns false if targetField is not a recognized switchState field.
+bool filterSwitchStateScaleForPath(
+    SwitchStateScale& scale,
+    const std::string& targetField);
+
 } // namespace facebook::fboss::fsdb::test

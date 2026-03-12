@@ -4,6 +4,7 @@
 
 #include <folly/logging/xlog.h>
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
@@ -47,7 +48,7 @@ RouteNextHopEntry::NextHopSet NextHopResolver<AddrT>::resolveNextHops(
   if (!route || !route->isResolved()) {
     return RouteNextHopEntry::NextHopSet();
   }
-  return route->getForwardInfo().getNextHopSet();
+  return getNextHops(state, route->getForwardInfo());
 }
 
 template <typename AddrT>

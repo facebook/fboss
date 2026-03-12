@@ -10,6 +10,7 @@
 
 #include "fboss/agent/FibHelpers.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -149,6 +150,45 @@ std::vector<NextHop> getNextHops(
   }
 
   throw FbossError("NextHopSetId ", id, " not found in any FibInfo");
+}
+
+RouteNextHopSet getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto resolvedSetId = entry.getResolvedNextHopSetID();
+    if (!resolvedSetId.has_value()) {
+      CHECK(entry.isDrop() || entry.isToCPU())
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action route "
+          << "has no resolvedNextHopSetID";
+      return {};
+    }
+    auto nhops = getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
+    return RouteNextHopSet(nhops.begin(), nhops.end());
+  }
+  return entry.getNextHopSet();
+}
+
+RouteNextHopSet getNonOverrideNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto normalizedSetId = entry.getNormalizedResolvedNextHopSetID();
+    if (!normalizedSetId.has_value()) {
+      CHECK(entry.isDrop() || entry.isToCPU())
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action route "
+          << "has no normalizedResolvedNextHopSetID";
+      return {};
+    }
+    auto nhops =
+        getNextHops(state, static_cast<NextHopSetId>(*normalizedSetId));
+    return RouteNextHopSet(nhops.begin(), nhops.end());
+  }
+  return entry.nonOverrideNormalizedNextHops();
 }
 
 } // namespace facebook::fboss
