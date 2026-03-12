@@ -176,6 +176,7 @@ thrift_library(
     deps = [
         ":switch_config",
         "//common/network/if:if",
+        "//configerator/structs/neteng/fboss/thrift:common",
         "//fboss/agent/if:common",
         "//fboss/agent/if:ctrl",
         "//fboss/lib/phy:phy",

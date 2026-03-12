@@ -12,8 +12,8 @@ thrift_library(
     thrift_cpp2_options = "json",
     thrift_srcs = {"test.thrift": []},
     deps = [
+        "//configerator/structs/neteng/fboss/thrift:common",
         "//fboss/agent:switch_config",
-        "//fboss/agent/if:common",
         "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],

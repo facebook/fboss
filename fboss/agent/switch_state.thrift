@@ -9,6 +9,7 @@ namespace go neteng.fboss.switch_state
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "fboss/agent/if/common.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
@@ -543,9 +544,9 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  @common.AllowSkipThriftCow
+  @fboss_common.AllowSkipThriftCow
   2: map<string, RouteFields> fibV4;
-  @common.AllowSkipThriftCow
+  @fboss_common.AllowSkipThriftCow
   3: map<string, RouteFields> fibV6;
 }
 
@@ -624,7 +625,7 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
-@common.AllowSkipThriftCow
+@fboss_common.AllowSkipThriftCow
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;

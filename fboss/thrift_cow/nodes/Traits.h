@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <fboss/agent/if/gen-cpp2/common_types.h>
+#include <configerator/structs/neteng/fboss/thrift/gen-cpp2/common_types.h>
 #include <fboss/thrift_cow/nodes/Types.h>
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/gen/module_types_h.h>
@@ -23,18 +23,21 @@ namespace facebook::fboss::thrift_cow {
 // Concept to check if a Thrift field is annotated with AllowSkipThriftCow at
 // compile time
 template <typename TStruct, typename FieldId>
-concept field_allow_skip_thrift_cow = apache::thrift::is_thrift_class_v<
-                                          TStruct> &&
-    apache::thrift::has_field_annotation<facebook::fboss::AllowSkipThriftCow,
-                                         TStruct,
-                                         FieldId>();
+concept field_allow_skip_thrift_cow =
+    apache::thrift::is_thrift_class_v<TStruct> &&
+    apache::thrift::has_field_annotation<
+        facebook::neteng::fboss::common::AllowSkipThriftCow,
+        TStruct,
+        FieldId>();
 
 // Concept to check if a Thrift type is annotated with AllowSkipThriftCow at
 // compile time
 template <typename TType>
-concept type_allow_skip_thrift_cow = apache::thrift::is_thrift_class_v<TType> &&
-    apache::thrift::
-        has_struct_annotation<facebook::fboss::AllowSkipThriftCow, TType>();
+concept type_allow_skip_thrift_cow =
+    apache::thrift::is_thrift_class_v<TType> &&
+    apache::thrift::has_struct_annotation<
+        facebook::neteng::fboss::common::AllowSkipThriftCow,
+        TType>();
 
 template <typename TType, bool EnableHybridStorage = false>
 struct ThriftStructResolver {

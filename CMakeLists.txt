@@ -360,6 +360,13 @@ add_fbthrift_py_library(
     json
 )
 add_fbthrift_cpp_library(
+  cfgr_fboss_common_cpp2
+  configerator/structs/neteng/fboss/thrift/common.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   fboss_common_cpp2
   fboss/lib/if/fboss_common.thrift
   OPTIONS
@@ -450,6 +457,7 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
+    cfgr_fboss_common_cpp2
     switch_config_cpp2
     phy_cpp2
     ctrl_cpp2
@@ -697,6 +705,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     agent_stats_cpp2
+    cfgr_fboss_common_cpp2
     fboss_cpp2
     fb303_cpp2
     mpls_cpp2
