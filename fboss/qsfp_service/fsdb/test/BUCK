@@ -1,0 +1,17 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "fsdb-test-utils",
+    headers = ["QsfpFsdbTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/qsfp_service/if:config-cpp2-serialization",
+        "//fboss/qsfp_service/if:state-cpp2-serialization",
+        "//fboss/qsfp_service/if:stats-cpp2-serialization",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
