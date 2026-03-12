@@ -192,6 +192,10 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
         ClientID::BGPD,
         RouteNextHopEntry(nhops, AdminDistance::EBGP));
     routeUpdater.program();
+    // Flap ports and re-resolve neighbors
+    this->bringDownPort(this->getEgressPort(nhop.portDesc));
+    this->bringUpPort(this->getEgressPort(nhop.portDesc));
+    this->resolveNeighbors(ecmpHelper, ecmpHelper.getNextHops().size());
   };
 
   auto verify = [this]() {
