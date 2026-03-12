@@ -20,6 +20,7 @@ from fboss_agent_utils import (
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
 )
+from fsdb_service_utils import cleanup_fsdb_service, setup_and_start_fsdb_service
 from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
 
 # Helper to run HwTests
@@ -185,6 +186,9 @@ OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
 OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
+OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
+OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
+OPT_ARG_FSDB_BIN_PATH = "--fsdb-bin-path"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -1115,13 +1119,25 @@ class LinkTestRunner(TestRunner):
                     args.platform_mapping_override_path,
                 ]
             )
+
+        arg_list.extend(["--fsdb_client_ssl_preferred=false"])
+
         return arg_list
 
     def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        # Start FSDB service if not disabled
+        if not args.disable_fsdb:
+            setup_and_start_fsdb_service(
+                fsdb_service_bin_path=args.fsdb_bin_path,
+                fsdb_service_config_path=args.fsdb_config,
+                is_warm_boot=False,
+            )
+
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_fsdb_disabled=args.disable_fsdb,
             is_warm_boot=False,
         )
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1131,14 +1147,23 @@ class LinkTestRunner(TestRunner):
                 hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=False,
             )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        # Start FSDB service if not disabled
+        if not args.disable_fsdb:
+            setup_and_start_fsdb_service(
+                fsdb_service_bin_path=args.fsdb_bin_path,
+                fsdb_service_config_path=args.fsdb_config,
+                is_warm_boot=True,
+            )
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_fsdb_disabled=args.disable_fsdb,
             is_warm_boot=True,
         )
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1148,11 +1173,14 @@ class LinkTestRunner(TestRunner):
                 hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=True,
             )
 
     def _end_run(self):
         cleanup_qsfp_service()
+        if not args.disable_fsdb:
+            cleanup_fsdb_service()
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
@@ -1787,6 +1815,30 @@ if __name__ == "__main__":
         action="store_true",
         help="Modify SAI settings to run on reference board instead of real product",
         default=False,
+    )
+
+    ap.add_argument(
+        OPT_ARG_DISABLE_FSDB,
+        action="store_true",
+        help="Disable FSDB service for link tests",
+        default=False,
+    )
+    ap.add_argument(
+        OPT_ARG_FSDB_CONFIG_FILE,
+        type=str,
+        help=(
+            "run tests with specified fsdb config with the absolute path e.g. "
+            + OPT_ARG_FSDB_CONFIG_FILE
+            + "=/opt/fboss/share/fsdb_test_configs/meru400bfu.materialized_JSON"
+        ),
+        default=None,
+    )
+    ap.add_argument(
+        OPT_ARG_FSDB_BIN_PATH,
+        nargs="?",
+        type=str,
+        help="FBOSS FSDB binary path(absolute path).",
+        default=None,
     )
 
     # Add subparsers for different test types
