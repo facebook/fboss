@@ -5,10 +5,12 @@
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
+#include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
@@ -91,5 +93,14 @@ class SaiSrv6Manager {
       srv6SidLists_;
 #endif
 };
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+std::pair<
+    SaiSrv6SidListTraits::AdapterHostKey,
+    SaiSrv6SidListTraits::CreateAttributes>
+makeSrv6SidListKeyAndAttributes(
+    RouterInterfaceSaiId rifId,
+    const ResolvedNextHop& swNextHop);
+#endif
 
 } // namespace facebook::fboss

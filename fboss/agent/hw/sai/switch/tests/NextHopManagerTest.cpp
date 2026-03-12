@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
@@ -86,6 +87,17 @@ class Srv6NextHopManagerTest : public ManagerTestBase {
         tunnelId};
   }
 
+  std::shared_ptr<SaiSrv6SidListHandle> makeSrv6SidListHandle(
+      const ResolvedNextHop& swNextHop) {
+    auto rifHandle =
+        saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+            swNextHop.intfID().value());
+    auto [sidListKey, sidListAttrs] =
+        makeSrv6SidListKeyAndAttributes(rifHandle->adapterKey(), swNextHop);
+    return saiManagerTable->srv6Manager().addOrReuseSrv6SidList(
+        sidListKey, sidListAttrs);
+  }
+
   TestInterface intf0;
 };
 
@@ -94,9 +106,8 @@ TEST_F(Srv6NextHopManagerTest, getAdapterHostKeySrv6) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
-  auto sidListId = srv6SidList->adapterKey();
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
+  auto sidListId = srv6SidListHandle->sidList->adapterKey();
   auto adapterHostKey =
       saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop, sidListId);
 
@@ -117,10 +128,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHop) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto* srv6NextHop =
       std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);
@@ -133,10 +143,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto* srv6NextHop =
       std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);
@@ -177,10 +186,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   // Get the SID list's AdapterHostKey from the managed next hop
   auto* srv6NextHop =
@@ -203,11 +211,10 @@ TEST_F(Srv6NextHopManagerTest, getManagedSrv6NextHop) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
-  auto sidListId = srv6SidList->adapterKey();
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
+  auto sidListId = srv6SidListHandle->sidList->adapterKey();
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto adapterHostKey =
       saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop, sidListId);
@@ -227,11 +234,10 @@ TEST_F(Srv6NextHopManagerTest, sidListFreedWhenManagedNextHopDestroyed) {
 
   {
     auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-    auto srv6SidList =
-        saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+    auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
     auto managedNextHop =
         saiManagerTable->nextHopManager().addManagedSaiNextHop(
-            swNextHop, std::move(srv6SidList));
+            swNextHop, std::move(srv6SidListHandle));
 
     // Get the SID list key from the managed next hop
     auto* srv6NextHop =
@@ -259,10 +265,9 @@ TEST_F(Srv6NextHopManagerTest, listManagedSrv6NextHops) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto output = saiManagerTable->nextHopManager().listManagedObjects();
   EXPECT_FALSE(output.empty());
@@ -273,10 +278,9 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto* srv6NextHop =
       std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);

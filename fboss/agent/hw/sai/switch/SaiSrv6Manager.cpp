@@ -45,6 +45,24 @@ const SaiSrv6SidListHandle* SaiSrv6Manager::getSrv6SidListHandle(
   return srv6SidLists_.get(adapterHostKey);
 }
 
+std::pair<
+    SaiSrv6SidListTraits::AdapterHostKey,
+    SaiSrv6SidListTraits::CreateAttributes>
+makeSrv6SidListKeyAndAttributes(
+    RouterInterfaceSaiId rifId,
+    const ResolvedNextHop& swNextHop) {
+  SaiSrv6SidListTraits::AdapterHostKey key{
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+      swNextHop.srv6SegmentList(),
+      rifId,
+      swNextHop.addr()};
+  SaiSrv6SidListTraits::CreateAttributes attrs{
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+      swNextHop.srv6SegmentList(),
+      std::nullopt};
+  return {std::move(key), std::move(attrs)};
+}
+
 #endif
 
 } // namespace facebook::fboss

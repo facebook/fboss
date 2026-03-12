@@ -138,7 +138,7 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     const ResolvedNextHop& swNextHop
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     ,
-    std::shared_ptr<SaiSrv6SidList> srv6SidList
+    std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle
 #endif
 ) {
   auto switchId = managerTable_->switchManager().getSwitchSaiId();
@@ -147,12 +147,11 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
   XLOG(DBG2) << "SaiNextHopManager::addManagedSaiNextHop: " << ip.str();
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  std::shared_ptr<SaiSrv6SidList> sidList;
   std::optional<sai_object_id_t> sidListId;
   if (!swNextHop.srv6SegmentList().empty()) {
-    CHECK(srv6SidList)
-        << "srv6SidList must be provided for next hop with non-empty srv6SegmentList";
-    sidList = std::move(srv6SidList);
+    CHECK(srv6SidListHandle)
+        << "srv6SidListHandle must be provided for next hop with non-empty srv6SegmentList";
+    auto sidList = srv6SidListHandle->sidList;
     sidListId = sidList->adapterKey();
   }
   auto nexthopKey = getAdapterHostKey(swNextHop, sidListId);
@@ -218,13 +217,14 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
 
     entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
     CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
-    CHECK(sidList) << "SRv6 managed next hop must have a SID list";
-    // Set NextHopId in sidList before inserting into srv6Manager
+    CHECK(srv6SidListHandle)
+        << "SRv6 managed next hop must have a SID list handle";
+    // Set NextHopId in sidList before subscribing
     SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
         std::get<std::shared_ptr<ManagedIpNextHop>>(underlayNextHop)
             ->getSaiObject()
             ->adapterKey()};
-    sidList->setOptionalAttribute(std::move(nextHopIdAttr));
+    srv6SidListHandle->sidList->setOptionalAttribute(std::move(nextHopIdAttr));
     entry->setUnderlayNextHop(std::move(underlayNextHop));
 
     SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
@@ -234,8 +234,6 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     CHECK(entry->getSaiObject())
         << "SRv6 managed next hop must have underlying SAI object";
 
-    auto srv6SidListHandle =
-        managerTable_->srv6Manager().insertSrv6SidList(std::move(sidList));
     entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
 
     return entry;
