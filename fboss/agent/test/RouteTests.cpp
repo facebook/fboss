@@ -3006,3 +3006,174 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }
+
+TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
+  auto rid = RouterID(0);
+
+  // Segment lists for the top-level SRv6 route (should be preserved)
+  const std::vector<folly::IPAddressV6> sidListA{
+      folly::IPAddressV6("3001:db8:a1::"),
+      folly::IPAddressV6("3001:db8:a2::"),
+      folly::IPAddressV6("3001:db8:a3::")};
+  const std::vector<folly::IPAddressV6> sidListB{
+      folly::IPAddressV6("3001:db8:b1::"),
+      folly::IPAddressV6("3001:db8:b2::"),
+      folly::IPAddressV6("3001:db8:b3::")};
+
+  // Segment lists on the IGP routes (should NOT propagate to the top-level
+  // route)
+  const std::vector<folly::IPAddressV6> igpSidListA{
+      folly::IPAddressV6("4001:db8:a1::"), folly::IPAddressV6("4001:db8:a2::")};
+  const std::vector<folly::IPAddressV6> igpSidListB{
+      folly::IPAddressV6("4001:db8:b1::"), folly::IPAddressV6("4001:db8:b2::")};
+
+  auto updater = this->sw_->getRouteUpdater();
+
+  // Step 1: Add IGP route A (2801::/48) with SRv6 next hops carrying
+  // igpSidListA. 1::10 resolves via intf 1, 2::10 via intf 2.
+  RouteNextHopSet igpNhopsA;
+  igpNhopsA.emplace(UnresolvedNextHop(
+      folly::IPAddress("1::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelA")));
+  igpNhopsA.emplace(UnresolvedNextHop(
+      folly::IPAddress("2::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelA")));
+  updater.addRoute(
+      rid,
+      IPAddress("2801::"),
+      48,
+      kClientA,
+      RouteNextHopEntry(igpNhopsA, DISTANCE));
+
+  // Step 2: Add IGP route B (2802::/48) with SRv6 next hops carrying
+  // igpSidListB. 3::10 resolves via intf 3, 4::10 via intf 4.
+  RouteNextHopSet igpNhopsB;
+  igpNhopsB.emplace(UnresolvedNextHop(
+      folly::IPAddress("3::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelB")));
+  igpNhopsB.emplace(UnresolvedNextHop(
+      folly::IPAddress("4::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelB")));
+  updater.addRoute(
+      rid,
+      IPAddress("2802::"),
+      48,
+      kClientA,
+      RouteNextHopEntry(igpNhopsB, DISTANCE));
+
+  // Step 3: Add SRv6 route (2800:5::/64) with 2 unresolved next hops pointing
+  // at 2801::1 (sidListA) and 2802::1 (sidListB).
+  RouteNextHopSet srv6Nhops;
+  srv6Nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("2801::1"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  srv6Nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("2802::1"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
+  updater.addRoute(
+      rid,
+      IPAddress("2800:5::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(srv6Nhops, EBGP_DISTANCE));
+  updater.program();
+
+  // Step 4: Verify the SRv6 route resolved to 4 next hops, each carrying the
+  // original route's segment list (sidListA or sidListB), NOT the IGP route's.
+  auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:5::/64");
+  ASSERT_NE(nullptr, rt);
+  EXPECT_TRUE(rt->isResolved());
+
+  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(4, fwdNhops.size());
+
+  RouteNextHopSet expectedNhops;
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("1::10"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("2::10"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("3::10"),
+      InterfaceID(3),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("4::10"),
+      InterfaceID(4),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
+
+  EXPECT_EQ(expectedNhops, fwdNhops);
+}
