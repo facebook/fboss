@@ -58,6 +58,7 @@ class LedManager {
     std::optional<PortLedExternalState> ledExternalState;
     std::optional<bool> activeState{std::nullopt};
     bool drained;
+    bool mismatchedNeighbor{false};
   };
 
   LedManager();

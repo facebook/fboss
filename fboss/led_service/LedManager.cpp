@@ -117,12 +117,15 @@ void LedManager::updateLedStatus(
     portInfo.portName = portName;
     portInfo.portProfileId = portProfileEnumVal;
     portInfo.operationStateUp = switchStateUpdate.operState;
+    bool cablignError{false}, cablingLoop{false};
     if (switchStateUpdate.ledExternalState.has_value()) {
-      portInfo.cablingError = switchStateUpdate.ledExternalState.value() ==
-              PortLedExternalState::CABLING_ERROR ||
-          switchStateUpdate.ledExternalState.value() ==
-              PortLedExternalState::CABLING_ERROR_LOOP_DETECTED;
+      cablignError = switchStateUpdate.ledExternalState.value() ==
+          PortLedExternalState::CABLING_ERROR;
+      cablingLoop = switchStateUpdate.ledExternalState.value() ==
+          PortLedExternalState::CABLING_ERROR_LOOP_DETECTED;
     }
+    portInfo.cablingError =
+        (cablignError || cablingLoop || switchStateUpdate.mismatchedNeighbor);
     if (portDisplayMap_.find(portId) != portDisplayMap_.end()) {
       // If the port info exists then carry the current color and port forced
       // LED info

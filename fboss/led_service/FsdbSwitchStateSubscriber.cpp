@@ -100,6 +100,12 @@ void FsdbSwitchStateSubscriber::subscribeToState(
                   onePortInfo.activeErrors()->end();
           ledSwitchStateUpdate[onePortId].drained =
               localPortDrained || peerPortDrained;
+          ledSwitchStateUpdate[onePortId].mismatchedNeighbor =
+              std::find(
+                  onePortInfo.activeErrors()->begin(),
+                  onePortInfo.activeErrors()->end(),
+                  PortError::MISMATCHED_NEIGHBOR) !=
+              onePortInfo.activeErrors()->end();
         }
       }
 
