@@ -2,8 +2,7 @@ Distro Infrastructure
 =====================
 
 This directory contains the FBOSS Distro Infracture container. Right now it provides only the necessary support for IPv4
-and IPv6 PXE boot. Under IPv4 the network must have a DHCP server providing IP addresses. Under IPv6 the network must
-**NOT** have a DHCP server providing IP addresses.
+and IPv6 PXE boot. Under IPv4 the network must have a DHCP server providing IP addresses.
 
 Building
 --------
@@ -17,9 +16,10 @@ Start the container by running the 'distro_infra.sh' script which will start the
 arguments:
 
 - interface: The interface to attach to. This must have L2 adjacency with the management port of the FBOSS duts
+  - Nexthop Specific: Right now it's always `f"vlan{1000 + testbed ID}"` and you can get the testbed ID from `nh tb details`
 - persistent directory: The directory to use for persistent storage, primarily of images to load
 
-For example, `mkdir images; ./distro_infra.sh vlan1033 images`.
+For example, `mkdir images; ./distro_infra.sh --intf vlan1033 --persist-dir images`.
 
 This will start an interactive tool to configure supplying PXE boot options to a given MAC address. Exiting the tool
 terminates the container.
@@ -34,7 +34,8 @@ dnsmasq: started, version 2.85 DNS disabled
 dnsmasq: compile time options: IPv6 GNU-getopt DBus no-UBus no-i18n IDN2 DHCP DHCPv6 no-Lua TFTP no-conntrack ipset auth
 cryptohash DNSSEC loop-detect inotify dumpfile
 dnsmasq-dhcp: DHCP, proxy on subnet 10.250.33.194
-...
+dnsmasq-dhcp: DHCP, sockets bound exclusively to interface vlan1033
+dnsmasq-tftp: TFTP root is /distro_infra/persistent secure mode
 Enter MAC address (blank to exit): DC-DA-4D-FC-AD-2D
 ```
 

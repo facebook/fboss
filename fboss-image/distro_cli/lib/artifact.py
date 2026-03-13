@@ -184,10 +184,10 @@ class ArtifactStore:
             # For directories, move the entire tree
             if dest_path.exists():
                 shutil.rmtree(dest_path)
-            shutil.move(str(source), str(dest_path))
+            shutil.copytree(str(source), str(dest_path))
         else:
             # For files, move directly
-            shutil.move(str(source), str(dest_path))
+            shutil.copy(str(source), str(dest_path))
 
     def invalidate(self, store_key: str) -> None:
         """Remove an artifact from the store.

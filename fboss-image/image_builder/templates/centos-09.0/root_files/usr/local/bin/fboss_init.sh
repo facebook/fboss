@@ -61,12 +61,19 @@ generate_fruid() {
 
   mkdir -p "$(dirname "$FRUID_FILE")"
 
-  if /opt/fboss/bin/weutil --json >"$FRUID_FILE" 2>/dev/null; then
-    log "Generated fruid.json: $FRUID_FILE"
-  else
-    error "Failed to generate fruid.json"
-    rm -f "$FRUID_FILE"
-  fi
+  local retries=3
+  local delay=1
+  for ((i = 1; i <= retries; i++)); do
+    if /opt/fboss/bin/weutil --json >"$FRUID_FILE"; then
+      log "Generated fruid.json: $FRUID_FILE"
+      return
+    fi
+    log "Attempt $i/$retries failed. Retrying in ${delay}s..."
+    sleep "$delay"
+  done
+
+  error "Failed to generate fruid.json after $retries attempts"
+  rm -f "$FRUID_FILE"
 }
 
 setup_coop_configs() {
@@ -74,6 +81,21 @@ setup_coop_configs() {
   mkdir -p "$COOP_DIR"
   copy_config "${platform_dir}/agent.conf" "${COOP_DIR}/agent.conf" "agent.conf"
   copy_config "${platform_dir}/qsfp.conf" "${COOP_DIR}/qsfp.conf" "qsfp.conf"
+}
+
+enable_hw_agents() {
+  local platform_dir="$1"
+  local num_hw_agents
+  if [ ! -f "${platform_dir}/num_hw_agents" ]; then
+    num_hw_agents=1
+  else
+    num_hw_agents=$(cat "${platform_dir}/num_hw_agents")
+  fi
+  for i in $(seq ${num_hw_agents}); do
+    systemctl enable "fboss_hw_agent@$((i - 1)).service"
+    # Calling systemctl start inside a starting systemd service deadlocks
+    systemctl start "fboss_hw_agent@$((i - 1)).service" &
+  done
 }
 
 main() {
@@ -86,6 +108,7 @@ main() {
 
   setup_coop_configs "$platform_dir"
   generate_fruid
+  enable_hw_agents "$platform_dir"
 
   log "FBOSS initialization complete"
 }

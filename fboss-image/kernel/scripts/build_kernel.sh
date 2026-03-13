@@ -33,13 +33,15 @@ bash "$CONTAINER_SCRIPTS_DIR/setup_kernel_build_deps.sh"
 # Use a separate build directory to avoid cluttering dist/
 BUILD_DIR="$CONTAINER_DIST_DIR/build-$KERNEL_VERSION"
 
-rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/SOURCES"
 cd "$BUILD_DIR"
 
 # Download kernel source (spectool is part of rpmdevtools)
-spectool -g -C SOURCES "$CONTAINER_SPECS_DIR/kernel.spec" \
-  --define "kernel_version $KERNEL_VERSION"
+if [ ! -f "$BUILD_DIR/SOURCES/linux-$KERNEL_VERSION.tar.xz" ]; then
+  spectool -g -C SOURCES "$CONTAINER_SPECS_DIR/kernel.spec" \
+    --define "kernel_version $KERNEL_VERSION"
+fi
 
 # Ensure FBOSS config sources are present for rpmbuild
 cp "$CONTAINER_CONFIGS_DIR/fboss-reference.config" "$BUILD_DIR/SOURCES/"
@@ -59,6 +61,7 @@ rpmbuild -ba "$CONTAINER_SPECS_DIR/kernel.spec" \
   echo "$(date) Kernel build failed with rv=$rv" >&2
   exit 1
 }
+chmod -R a+r "${CONTAINER_DIST_DIR}"
 echo "$(date) Kernel build completed successfully"
 
 # Copy RPMs to output directory
@@ -75,6 +78,8 @@ tar -cf $OUT_DIR/kernel-$KERNEL_VERSION.rpms.tar \
   --transform 's|.*/||' \
   --transform 's|^\(kernel-[^-]\+\)-.*\.\(x86_64\)\.rpm$|\1-\2.rpm|' \
   $(find RPMS -name "*.rpm")
+
+rm -rf "${CONTAINER_DIST_DIR}/build-"*
 
 echo 'Kernel RPM build complete!'
 echo 'Output files:'

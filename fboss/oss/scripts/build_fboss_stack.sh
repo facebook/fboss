@@ -76,10 +76,10 @@ if [ -d "/src" ]; then
 
   if [ "$need_sai" -eq 1 ]; then
     # Link /opt/sdk -> extracted SAI dependency
-    # build_entrypoint extracts /deps/sai to /deps/sai-extracted
+    # build_entrypoint extracts /deps/hw_agent_sai to /deps/hw_agent_sai-extracted
     if [ ! -e "/opt/sdk" ]; then
-      ln -sf /deps/sai-extracted /opt/sdk
-      echo "  Created: /opt/sdk -> /deps/sai-extracted"
+      ln -sf /deps/hw_agent_sai-extracted /opt/sdk
+      echo "  Created: /opt/sdk -> /deps/hw_agent_sai-extracted"
     fi
   fi
 fi

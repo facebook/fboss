@@ -3,3 +3,7 @@ distro_infra/parts/ipxe/ipxev4.efi
 distro_infra/parts/ipxe/ipxev6.efi
 image_builder/logs
 image_builder/output
+kernel/dist
+.cache
+*.iso
+*.tar

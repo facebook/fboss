@@ -1,0 +1,6 @@
+[Unit]
+Description=FBOSS HW Agents Target
+Wants=fboss_hw_agent@0.service fboss_hw_agent@1.service fboss_hw_agent@2.service fboss_hw_agent@3.service
+
+[Install]
+WantedBy=multi-user.target
