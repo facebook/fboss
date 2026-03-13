@@ -179,15 +179,15 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
     this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
 
-    WITH_RETRIES({
-      auto frameRx = snooper.waitForPacket(1);
-      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
-    });
-
+    auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
       auto portStatsAfter = this->getLatestPortStats(egressPort);
       auto bytesAfter = *portStatsAfter.outBytes_();
       EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+      if (!frameRx.has_value()) {
+        frameRx = snooper.waitForPacket(1);
+      }
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
     });
   }
 
