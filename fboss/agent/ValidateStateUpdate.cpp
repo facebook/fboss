@@ -272,28 +272,33 @@ StateUpdateValidator::StateUpdateValidator(
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
     SwitchStats* stats) const {
-  bool isValid = resourceAccountant_->isValidUpdate(delta);
-  if (!isValid) {
+  if (!resourceAccountant_->isValidUpdate(delta)) {
     stats->resourceAccountantRejectedUpdates();
     XLOG(ERR) << "State updated rejected by resource accountant.";
-    return isValid;
+    return false;
+  }
+
+  if (!isStateUpdateValidCommon(delta, asicTable_)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
   }
 
   switch (runMode_) {
-    case cfg::AgentRunMode::MONO: {
-      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
-          hwSwitchHandler_->isValidStateUpdate(delta);
-    } break;
-    case cfg::AgentRunMode::MULTI_SWITCH: {
-      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
-          isStateUpdateValidMultiSwitch(
-                    delta, scopeResolver_, asicTable_->getHwAsics());
-    } break;
+    case cfg::AgentRunMode::MONO:
+      if (!hwSwitchHandler_->isValidStateUpdate(delta)) {
+        XLOG(ERR) << "State update is not valid.";
+        return false;
+      }
+      break;
+    case cfg::AgentRunMode::MULTI_SWITCH:
+      if (!isStateUpdateValidMultiSwitch(
+              delta, scopeResolver_, asicTable_->getHwAsics())) {
+        XLOG(ERR) << "State update is not valid.";
+        return false;
+      }
+      break;
   }
-  if (!isValid) {
-    XLOG(ERR) << "State update is not valid.";
-  }
-  return isValid;
+  return true;
 }
 
 void StateUpdateValidator::stateChanged(const StateDelta& delta) {
