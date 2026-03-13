@@ -140,8 +140,6 @@ led::LedState BspLedManager::calculateLedState(
   bool anyUndrainedPort{false};
   bool anyPortUp{false};
 
-  // todo: need to remove activeState from portDisplayMap
-
   for (auto swPort : commonSwPorts) {
     auto itr2 = portDisplayMap_.find(swPort);
     if (itr2 == portDisplayMap_.end()) {

@@ -355,7 +355,6 @@ TEST_F(LedServiceTest, checkLedBlinking) {
           enumToName<cfg::PortProfileID>(profile),
           true /*operationalState*/,
           PortLedExternalState::NONE,
-          true /*activeState*/,
           false /*drain*/,
       };
 
@@ -394,7 +393,6 @@ TEST_F(LedServiceTest, checkLedBlinking) {
       // Reset attributes so that this port doesn't interfere in inferring led
       // color/blink of other ports sharing the same LED.
       updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
-      updateMap[swPort].activeState = false;
       updateMap[swPort].operState = false;
       ledManager_->updateLedStatus(updateMap);
     }
