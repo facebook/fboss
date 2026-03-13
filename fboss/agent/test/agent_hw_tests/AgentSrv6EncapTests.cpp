@@ -140,6 +140,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
   void verifyEncapPacket(
       PortID egressPort,
+      bool ecnMarked,
       std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
@@ -148,6 +149,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     constexpr auto kTc{42};
     constexpr auto kTtl{24};
+    auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
+                             : static_cast<uint8_t>(kTc << 2);
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
@@ -157,7 +160,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
         folly::IPAddressV6("2800:2::1"),
         8000,
         8001,
-        kTc << 2, // TC
+        tcField,
         kTtl);
 
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6EncapSnooper");
@@ -192,18 +195,20 @@ class AgentSrv6EncapTest : public AgentHwTest {
     EXPECT_EQ(v6Hdr.dstAddr, kSid0);
     // Flow label must be non 0
     EXPECT_NE(v6Hdr.flowLabel, 0);
-    // DSCP is preserved
-    // EXPECT_EQ(v6Hdr.trafficClass, kTc); //failing - MT-864
+    // ECN bits in outer header
+    EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
   }
 
   void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
-    // Variation 1: send via pipeline (sendPacketSwitchedAsync)
-    verifyEncapPacket(egressPort);
-    // Variation 2: inject on a port that is UP but not the egress port
     auto injectPort = findInjectPort(egressPort);
-    verifyEncapPacket(egressPort, injectPort);
+    // ECN not marked
+    verifyEncapPacket(egressPort, false);
+    verifyEncapPacket(egressPort, false, injectPort);
+    // ECN marked
+    verifyEncapPacket(egressPort, true);
+    verifyEncapPacket(egressPort, true, injectPort);
   }
 
   PortID findInjectPort(PortID egressPort) {
