@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <thrift/lib/cpp/util/EnumUtils.h>
+
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/test/hal_test/HalTest.h"
 
@@ -70,51 +72,50 @@ bool isModeSupported(
 
 } // namespace
 
-// Individual per-mode tests that program a transceiver with a hard reset
-// before each mode change. Each test skips transceivers that don't support
-// the mode and skips entirely if no transceiver supports it.
+// Parameterized test fixture for per-mode tests that program a transceiver
+// with a hard reset before each mode change. Each test skips transceivers that
+// don't support the mode and skips entirely if no transceiver supports it.
 
-#define PROGRAM_MODE_TEST(MODE_NAME)                                     \
-  TEST_F(HalTest, programMode_##MODE_NAME) {                             \
-    bool tested = false;                                                 \
-    for (auto tcvrId : getPresentTransceiverIds()) {                     \
-      auto* module = getModule(tcvrId);                                  \
-      auto* cmisModule = dynamic_cast<CmisModule*>(module);              \
-      ASSERT_NE(cmisModule, nullptr)                                     \
-          << "Transceiver " << tcvrId << " is not CMIS";                 \
-      module->refresh();                                                 \
-      if (!isModeSupported(                                              \
-              module, getConfig(), TcvrOperationalMode::MODE_NAME)) {    \
-        XLOG(INFO) << "Transceiver " << tcvrId                           \
-                   << " does not support mode " #MODE_NAME ", skipping"; \
-        continue;                                                        \
-      }                                                                  \
-      tested = true;                                                     \
-      getImpl(tcvrId)->triggerQsfpHardReset();                           \
-      module->detectPresence();                                          \
-      bringModuleToReady(cmisModule, tcvrId);                            \
-      module->refresh();                                                 \
-      auto programState = hal_test::createProgramTransceiverState(       \
-          TcvrOperationalMode::MODE_NAME);                               \
-      module->programTransceiver(programState, true);                    \
-      verifyMediaInterfaceCodes(                                         \
-          module, tcvrId, TcvrOperationalMode::MODE_NAME);               \
-    }                                                                    \
-    if (!tested) {                                                       \
-      GTEST_SKIP() << "No transceiver supports mode " #MODE_NAME;        \
-    }                                                                    \
+class HalTestProgramMode
+    : public HalTest,
+      public ::testing::WithParamInterface<TcvrOperationalMode> {};
+
+TEST_P(HalTestProgramMode, programMode) {
+  auto mode = GetParam();
+  bool tested = false;
+  for (auto tcvrId : getPresentTransceiverIds()) {
+    auto* module = getModule(tcvrId);
+    auto* cmisModule = dynamic_cast<CmisModule*>(module);
+    ASSERT_NE(cmisModule, nullptr)
+        << "Transceiver " << tcvrId << " is not CMIS";
+    module->refresh();
+    if (!isModeSupported(module, getConfig(), mode)) {
+      XLOG(INFO) << "Transceiver " << tcvrId << " does not support mode "
+                 << apache::thrift::util::enumNameSafe(mode) << ", skipping";
+      continue;
+    }
+    tested = true;
+    getImpl(tcvrId)->triggerQsfpHardReset();
+    module->detectPresence();
+    bringModuleToReady(cmisModule, tcvrId);
+    module->refresh();
+    auto programState = hal_test::createProgramTransceiverState(mode);
+    module->programTransceiver(programState, true);
+    verifyMediaInterfaceCodes(module, tcvrId, mode);
   }
+  if (!tested) {
+    GTEST_SKIP() << "No transceiver supports mode "
+                 << apache::thrift::util::enumNameSafe(mode);
+  }
+}
 
-PROGRAM_MODE_TEST(MODE_2x400G_FR4)
-PROGRAM_MODE_TEST(MODE_8x100G_FR1)
-PROGRAM_MODE_TEST(MODE_400G_FR4_200G_FR4)
-PROGRAM_MODE_TEST(MODE_200G_FR4_400G_FR4)
-PROGRAM_MODE_TEST(MODE_2x200G_FR4)
-PROGRAM_MODE_TEST(MODE_2x800G_DR4)
-PROGRAM_MODE_TEST(MODE_8x200G_DR1)
-PROGRAM_MODE_TEST(MODE_4x400G_DR2)
-PROGRAM_MODE_TEST(MODE_1x800G_FR8)
-PROGRAM_MODE_TEST(MODE_8x100G_DR1)
+INSTANTIATE_TEST_SUITE_P(
+    ProgramMode,
+    HalTestProgramMode,
+    testing::ValuesIn(apache::thrift::TEnumTraits<TcvrOperationalMode>::values),
+    [](const testing::TestParamInfo<TcvrOperationalMode>& info) {
+      return std::string(apache::thrift::util::enumNameSafe(info.param));
+    });
 
 // Individual per-transition tests that program a transceiver from one mode
 // to another without a hard reset in between. Each test skips transceivers

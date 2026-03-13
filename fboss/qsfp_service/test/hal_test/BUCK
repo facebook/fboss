@@ -72,5 +72,6 @@ cpp_binary(
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module:qsfp-module",
         "//folly/init:init",
+        "//thrift/lib/cpp/util:enum_utils",
     ],
 )
