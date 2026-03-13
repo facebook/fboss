@@ -162,6 +162,7 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
 OPT_ARG_FILTER_FILE = "--filter_file"
+OPT_ARG_PROFILE = "--profile"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
@@ -517,11 +518,22 @@ class TestRunner(abc.ABC):
         if args.filter or args.filter_file:
             if args.filter_file:
                 with open(args.filter_file) as file:
-                    gtest_regexes = [
-                        line.strip()
-                        for line in file
-                        if line.strip() and not line.strip().startswith("#")
-                    ]
+                    gtest_regexes = []
+                    for line in file:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        parts = line.split()
+                        pattern = parts[0]
+                        tags = parts[1:] if len(parts) > 1 else []
+                        if args.profile:
+                            if args.profile not in tags:
+                                continue
+                        else:
+                            # no --profile: include untagged lines and t-tagged lines
+                            if tags and "t" not in tags:
+                                continue
+                        gtest_regexes.append(pattern)
                     test_names = self._list_tests_to_run(":".join(gtest_regexes), False)
             elif args.filter:
                 test_names = self._list_tests_to_run(args.filter, False)
@@ -1687,6 +1699,15 @@ if __name__ == "__main__":
         ),
     )
     ap.add_argument(
+        OPT_ARG_PROFILE,
+        type=str,
+        help=(
+            "when used with "
+            + OPT_ARG_FILTER_FILE
+            + ", only include patterns tagged with this profile (e.g. t for traditional, s for scale-up). Without this flag, all patterns are included."
+        ),
+    )
+    ap.add_argument(
         OPT_ARG_LIST_TESTS,
         action="store_true",
         default=False,
@@ -1903,6 +1924,11 @@ if __name__ == "__main__":
     if args.filter and args.filter_file:
         raise ValueError(
             f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
+        )
+
+    if args.profile and not args.filter_file:
+        raise ValueError(
+            f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
     try:
