@@ -61,6 +61,7 @@ cpp_library(
 cpp_binary(
     name = "qsfp_hal_test",
     srcs = [
+        "HalTestApplicationModes.cpp",
         "HalTestModuleAdvertisement.cpp",
         "HalTestModuleInit.cpp",
         "Main.cpp",
