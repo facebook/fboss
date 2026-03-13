@@ -105,6 +105,16 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "unique_ref_map_test",
+    srcs = [
+        "UniqueRefMapTest.cpp",
+    ],
+    deps = [
+        "//fboss/lib:unique_ref_map",
+    ],
+)
+
+cpp_unittest(
     name = "tuple_utils_test",
     srcs = [
         "TupleUtilsTest.cpp",
