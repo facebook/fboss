@@ -769,9 +769,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
 
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv4), true, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4), true, false));
+        });
       }
 
       // Clear kernel entries
@@ -853,9 +858,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
 
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, false));
+        });
       }
 
       // Clear kernel entries
