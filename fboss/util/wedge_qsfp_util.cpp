@@ -147,6 +147,32 @@ enum VdmConfigTypeKey : uint8_t {
   VDM_CONFIG_PAM4_LEVEL2_SD_LINE = 102,
   VDM_CONFIG_PAM4_LEVEL3_SD_LINE = 103,
   VDM_CONFIG_PAM4_MPI_LINE = 104,
+  // Coherent 800G ZR VDM parameters
+  VDM_CONFIG_MODULATOR_BIAS_XI = 128,
+  VDM_CONFIG_MODULATOR_BIAS_XQ = 129,
+  VDM_CONFIG_MODULATOR_BIAS_YI = 130,
+  VDM_CONFIG_MODULATOR_BIAS_YQ = 131,
+  VDM_CONFIG_MODULATOR_BIAS_X_PHASE = 132,
+  VDM_CONFIG_MODULATOR_BIAS_Y_PHASE = 133,
+  VDM_CONFIG_CD_LOW_GRANULARITY = 135,
+  VDM_CONFIG_SOPMD_LOW_GRANULARITY = 149,
+  // Coherent Link PM current values from VDM
+  VDM_CONFIG_CD_HIGH_GRANULARITY = 134,
+  VDM_CONFIG_DGD = 136,
+  VDM_CONFIG_SOPMD_HIGH_GRANULARITY = 137,
+  VDM_CONFIG_PDL = 138,
+  VDM_CONFIG_OSNR = 139,
+  VDM_CONFIG_ESNR = 140,
+  VDM_CONFIG_CFO = 141,
+  VDM_CONFIG_EVM = 142,
+  VDM_CONFIG_TX_POWER = 143,
+  VDM_CONFIG_RX_TOTAL_POWER = 144,
+  VDM_CONFIG_RX_SIGNAL_POWER = 145,
+  VDM_CONFIG_SOP_ROC = 146,
+  VDM_CONFIG_MER = 147,
+  VDM_CONFIG_SNR_MARGIN = 150,
+  VDM_CONFIG_Q_FACTOR = 151,
+  VDM_CONFIG_Q_MARGIN = 152,
 };
 
 struct VdmConfigType {
@@ -186,6 +212,32 @@ std::map<VdmConfigTypeKey, VdmConfigType> vdmConfigTypeMap = {
   {VDM_CONFIG_ERR_FRAMES_HOST_IN_MAX, {"Err Frames Host Input Maximum", VDM_DATA_TYPE_F16, 0, ""}},
   {VDM_CONFIG_ERR_FRAMES_HOST_IN_AVG, {"Err Frames Host Input Accumulated", VDM_DATA_TYPE_F16, 0, ""}},
   {VDM_CONFIG_ERR_FRAMES_HOST_IN_CURR, {"Err Frames Host Input Current", VDM_DATA_TYPE_F16, 0, ""}},
+  // Coherent 800G ZR VDM parameters
+  {VDM_CONFIG_MODULATOR_BIAS_XI, {"Modulator Bias X/I", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_MODULATOR_BIAS_XQ, {"Modulator Bias X/Q", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_MODULATOR_BIAS_YI, {"Modulator Bias Y/I", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_MODULATOR_BIAS_YQ, {"Modulator Bias Y/Q", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_MODULATOR_BIAS_X_PHASE, {"Modulator Bias X Phase", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_MODULATOR_BIAS_Y_PHASE, {"Modulator Bias Y Phase", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_CD_LOW_GRANULARITY, {"CD Low Granularity", VDM_DATA_TYPE_U16, 20.0, "ps/nm"}},
+  {VDM_CONFIG_SOPMD_LOW_GRANULARITY, {"SOPMD Low Granularity", VDM_DATA_TYPE_U16, 1.0, "ps^2"}},
+  // Coherent Link PM current values from VDM
+  {VDM_CONFIG_CD_HIGH_GRANULARITY, {"CD High Granularity", VDM_DATA_TYPE_U16, 1.0, "ps/nm"}},
+  {VDM_CONFIG_DGD, {"DGD", VDM_DATA_TYPE_U16, 0.01, "ps"}},
+  {VDM_CONFIG_SOPMD_HIGH_GRANULARITY, {"SOPMD High Granularity", VDM_DATA_TYPE_U16, 0.01, "ps^2"}},
+  {VDM_CONFIG_PDL, {"PDL", VDM_DATA_TYPE_U16, 0.1, "dB"}},
+  {VDM_CONFIG_OSNR, {"OSNR", VDM_DATA_TYPE_U16, 0.1, "dB"}},
+  {VDM_CONFIG_ESNR, {"eSNR", VDM_DATA_TYPE_U16, 0.1, "dB"}},
+  {VDM_CONFIG_CFO, {"CFO", VDM_DATA_TYPE_U16, 1.0, "MHz"}},
+  {VDM_CONFIG_EVM, {"EVM", VDM_DATA_TYPE_U16, 100.0/65535.0, "%"}},
+  {VDM_CONFIG_TX_POWER, {"Tx Power", VDM_DATA_TYPE_U16, 0.01, "dBm"}},
+  {VDM_CONFIG_RX_TOTAL_POWER, {"Rx Total Power", VDM_DATA_TYPE_U16, 0.01, "dBm"}},
+  {VDM_CONFIG_RX_SIGNAL_POWER, {"Rx Signal Power", VDM_DATA_TYPE_U16, 0.01, "dBm"}},
+  {VDM_CONFIG_SOP_ROC, {"SOP ROC", VDM_DATA_TYPE_U16, 1.0, "krad/s"}},
+  {VDM_CONFIG_MER, {"MER", VDM_DATA_TYPE_U16, 0.1, "dB"}},
+  {VDM_CONFIG_SNR_MARGIN, {"SNR Margin", VDM_DATA_TYPE_U16, 0.1, "dB"}},
+  {VDM_CONFIG_Q_FACTOR, {"Q-factor", VDM_DATA_TYPE_U16, 0.1, "dB"}},
+  {VDM_CONFIG_Q_MARGIN, {"Q-margin", VDM_DATA_TYPE_U16, 0.1, "dB"}},
 };
 // clang-format on
 } // namespace
@@ -3652,6 +3704,137 @@ bool printVdmInfoViaService(unsigned int port, folly::EventBase& evb) {
       printf("\n  PAM4 LTP   :  ");
       for (auto& [channel, val] : mediaPortStats.lanePam4LTP().value()) {
         printf("%4.2f  ", val);
+      }
+    }
+
+    // Coherent 800G ZR VDM parameters
+    if (mediaPortStats.coherentVdmStats().has_value()) {
+      auto& coherentVdm = mediaPortStats.coherentVdmStats().value();
+      if (coherentVdm.modulatorBiasXI().has_value()) {
+        printf("\n\n  Coherent VDM Parameters:");
+        printf(
+            "\n  Mod Bias XI     : %6.2f %%",
+            coherentVdm.modulatorBiasXI().value());
+        if (coherentVdm.modulatorBiasXQ().has_value()) {
+          printf(
+              "\n  Mod Bias XQ     : %6.2f %%",
+              coherentVdm.modulatorBiasXQ().value());
+        }
+        if (coherentVdm.modulatorBiasYI().has_value()) {
+          printf(
+              "\n  Mod Bias YI     : %6.2f %%",
+              coherentVdm.modulatorBiasYI().value());
+        }
+        if (coherentVdm.modulatorBiasYQ().has_value()) {
+          printf(
+              "\n  Mod Bias YQ     : %6.2f %%",
+              coherentVdm.modulatorBiasYQ().value());
+        }
+        if (coherentVdm.modulatorBiasXPhase().has_value()) {
+          printf(
+              "\n  Mod Bias XPhase : %6.2f %%",
+              coherentVdm.modulatorBiasXPhase().value());
+        }
+        if (coherentVdm.modulatorBiasYPhase().has_value()) {
+          printf(
+              "\n  Mod Bias YPhase : %6.2f %%",
+              coherentVdm.modulatorBiasYPhase().value());
+        }
+      }
+      if (coherentVdm.cdLowGranularity().has_value()) {
+        printf(
+            "\n  CD (low gran)   : %8.1f ps/nm",
+            coherentVdm.cdLowGranularity().value());
+      }
+      if (coherentVdm.sopmdLowGranularity().has_value()) {
+        printf(
+            "\n  SOPMD (low gran): %8.1f ps^2",
+            coherentVdm.sopmdLowGranularity().value());
+      }
+
+      // FEC Performance Monitoring (Page 34h)
+      if (coherentVdm.fecPm().has_value()) {
+        auto& fecPm = coherentVdm.fecPm().value();
+        printf("\n\n  FEC Performance Monitoring (Page 34h):");
+        if (fecPm.rxBitsPm().has_value()) {
+          printf("\n  Rx Bits PM         : %ld", fecPm.rxBitsPm().value());
+        }
+        if (fecPm.rxBitsSubIntPm().has_value()) {
+          printf(
+              "\n  Rx Bits SubInt PM  : %ld", fecPm.rxBitsSubIntPm().value());
+        }
+        if (fecPm.rxCorrBitsPm().has_value()) {
+          printf("\n  Rx Corr Bits PM    : %ld", fecPm.rxCorrBitsPm().value());
+        }
+        if (fecPm.rxMinCorrBitsSubIntPm().has_value()) {
+          printf(
+              "\n  Rx Min Corr SubInt : %ld",
+              fecPm.rxMinCorrBitsSubIntPm().value());
+        }
+        if (fecPm.rxMaxCorrBitsSubIntPm().has_value()) {
+          printf(
+              "\n  Rx Max Corr SubInt : %ld",
+              fecPm.rxMaxCorrBitsSubIntPm().value());
+        }
+        if (fecPm.rxFramesPm().has_value()) {
+          printf("\n  Rx Frames PM       : %d", fecPm.rxFramesPm().value());
+        }
+        if (fecPm.rxFramesSubIntPm().has_value()) {
+          printf(
+              "\n  Rx Frames SubInt   : %d", fecPm.rxFramesSubIntPm().value());
+        }
+        if (fecPm.rxFramesUncorrErrPm().has_value()) {
+          printf(
+              "\n  Rx Uncorr Err PM   : %d",
+              fecPm.rxFramesUncorrErrPm().value());
+        }
+        if (fecPm.rxMinFramesUncorrErrSubIntPm().has_value()) {
+          printf(
+              "\n  Rx Min Uncorr Sub  : %d",
+              fecPm.rxMinFramesUncorrErrSubIntPm().value());
+        }
+        if (fecPm.rxMaxFramesUncorrErrSubIntPm().has_value()) {
+          printf(
+              "\n  Rx Max Uncorr Sub  : %d",
+              fecPm.rxMaxFramesUncorrErrSubIntPm().value());
+        }
+      }
+
+      // Link Performance Monitoring (Page 35h)
+      if (coherentVdm.linkPm().has_value()) {
+        auto& linkPm = coherentVdm.linkPm().value();
+        printf("\n\n  Link Performance Monitoring (Page 35h):");
+        printf("\n  %-22s %10s %10s %10s %10s", "", "Avg", "Min", "Max", "Cur");
+        auto printLinkPmParam =
+            [](const char* name, const auto& param, const char* unit) {
+              if (param.has_value()) {
+                printf(
+                    "\n  %-22s %10.2f %10.2f %10.2f %10.2f %s",
+                    name,
+                    param->avg().value(),
+                    param->min().value(),
+                    param->max().value(),
+                    param->cur().value(),
+                    unit);
+              }
+            };
+        printLinkPmParam("CD", linkPm.cd(), "ps/nm");
+        printLinkPmParam("DGD", linkPm.dgd(), "ps");
+        printLinkPmParam("SOPMD", linkPm.sopmd(), "ps^2");
+        printLinkPmParam("PDL", linkPm.pdl(), "dB");
+        printLinkPmParam("OSNR", linkPm.osnr(), "dB");
+        printLinkPmParam("eSNR", linkPm.esnr(), "dB");
+        printLinkPmParam("CFO", linkPm.cfo(), "MHz");
+        printLinkPmParam("EVM", linkPm.evmModem(), "%");
+        printLinkPmParam("Tx Power", linkPm.txPower(), "dBm");
+        printLinkPmParam("Rx Power", linkPm.rxPower(), "dBm");
+        printLinkPmParam("Rx Signal Power", linkPm.rxSigPower(), "dBm");
+        printLinkPmParam("SOP ROC", linkPm.sopcr(), "krad/s");
+        printLinkPmParam("MER", linkPm.mer(), "dB");
+        printLinkPmParam("Clock Recovery", linkPm.clockRecoveryLoop(), "%");
+        printLinkPmParam("SNR Margin", linkPm.snrMargin(), "dB");
+        printLinkPmParam("Q-factor", linkPm.qFactor(), "dB");
+        printLinkPmParam("Q-margin", linkPm.qMargin(), "dB");
       }
     }
   }
