@@ -278,7 +278,7 @@ bool StateUpdateValidator::isValidUpdate(
     return false;
   }
 
-  if (!isStateUpdateValidCommon(delta, asicTable_)) {
+  if (!isValidUpdateCommon(delta)) {
     XLOG(ERR) << "State update is not valid.";
     return false;
   }
@@ -291,14 +291,23 @@ bool StateUpdateValidator::isValidUpdate(
       }
       break;
     case cfg::AgentRunMode::MULTI_SWITCH:
-      if (!isStateUpdateValidMultiSwitch(
-              delta, scopeResolver_, asicTable_->getHwAsics())) {
+      if (!isValidUpdateMultiSwitch(delta)) {
         XLOG(ERR) << "State update is not valid.";
         return false;
       }
       break;
   }
   return true;
+}
+
+bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) const {
+  return isStateUpdateValidCommon(delta, asicTable_);
+}
+
+bool StateUpdateValidator::isValidUpdateMultiSwitch(
+    const StateDelta& delta) const {
+  return isStateUpdateValidMultiSwitch(
+      delta, scopeResolver_, asicTable_->getHwAsics());
 }
 
 void StateUpdateValidator::stateChanged(const StateDelta& delta) {

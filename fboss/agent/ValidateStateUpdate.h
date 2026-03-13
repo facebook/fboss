@@ -51,6 +51,9 @@ class StateUpdateValidator {
   }
 
  private:
+  bool isValidUpdateCommon(const StateDelta& delta) const;
+  bool isValidUpdateMultiSwitch(const StateDelta& delta) const;
+
   cfg::AgentRunMode runMode_;
   const HwSwitchHandler* hwSwitchHandler_;
   const HwAsicTable* asicTable_;
