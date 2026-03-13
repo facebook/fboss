@@ -375,55 +375,6 @@ TEST(ThriftySwitchState, IpAddressConversion) {
   }
 }
 
-TEST(ThriftySwitchState, ToThriftFibsInfoMapMigration) {
-  // Test that toThrift() correctly migrates fibsInfoMap to fibsMap for rollback
-  // compatibility
-  auto state = std::make_shared<SwitchState>();
-  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-
-  // Create a FibInfo with a populated FibsMap
-  auto fibInfo = std::make_shared<FibInfo>();
-  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
-
-  // Create a FibContainer for VRF 0
-  RouterID vrf0(0);
-  auto fibContainer =
-      std::make_shared<ForwardingInformationBaseContainer>(vrf0);
-  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-
-  // Create a FibContainer for VRF 1
-  RouterID vrf1(1);
-  auto fibContainer1 =
-      std::make_shared<ForwardingInformationBaseContainer>(vrf1);
-  fibsMap->updateForwardingInformationBaseContainer(fibContainer1);
-
-  // Set the fibsMap in FibInfo
-  fibInfo->resetFibsMap(fibsMap);
-
-  // Create MultiSwitchFibInfoMap and add the FibInfo
-  auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-  fibsInfoMap->updateFibInfo(fibInfo, scope());
-  state->resetFibsInfoMap(fibsInfoMap);
-
-  // Call toThrift() and verify fibsMap is populated
-  auto stateThrift = state->toThrift();
-
-  // Verify fibsMap is populated with the correct structure
-  ASSERT_TRUE(stateThrift.fibsMap().has_value());
-  EXPECT_FALSE(stateThrift.fibsMap()->empty());
-  EXPECT_TRUE(
-      stateThrift.fibsMap()->find(matcherKey) != stateThrift.fibsMap()->end());
-
-  // Verify the fibsMap contains both VRF 0 and VRF 1
-  const auto& fibsMapThrift = stateThrift.fibsMap()->at(matcherKey);
-  EXPECT_TRUE(fibsMapThrift.find(0) != fibsMapThrift.end());
-  EXPECT_TRUE(fibsMapThrift.find(1) != fibsMapThrift.end());
-
-  // Verify fibsInfoMap is still populated in thrift
-  ASSERT_TRUE(stateThrift.fibsInfoMap().has_value());
-  EXPECT_FALSE(stateThrift.fibsInfoMap()->empty());
-}
-
 TEST(ThriftySwitchState, FromThriftFibsInfoMapMigration) {
   // Test that fromThrift() correctly migrates fibsMap to fibsInfoMap
   auto state = SwitchState();

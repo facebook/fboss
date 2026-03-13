@@ -896,29 +896,6 @@ state::SwitchState SwitchState::toThrift() const {
     aclTableGroupMaps->clear();
   }
 
-  // Reverse migrate new fibsInfoMap to old fibsMap for rollback compatibility
-  // The new fibsInfoMap contains map<SwitchIdList, FibInfoFields>
-  // We need to populate old fibsMap with map<SwitchIdList, map<vrf,
-  // FibContainerFields>>
-  // Please refer to the comment in uniquePtrFromThrift() for more details -
-  // (FIB Migration: Four-stage transition from fibsMap to fibsInfoMap) We will
-  // remove this code once we fully migrate to new FIB in stage 4.
-
-  auto fibsInfoMapThrift = data.fibsInfoMap();
-  if (fibsInfoMapThrift.has_value()) {
-    std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
-    if (!fibsInfoMapThrift.value().empty()) {
-      for (const auto& [switchIdListStr, fibInfoFields] :
-           fibsInfoMapThrift.value()) {
-        if (fibInfoFields.fibsMap().has_value()) {
-          // Copy the ForwardingInformationBaseMap to the old fibsMap structure
-          fibsMap[switchIdListStr] = fibInfoFields.fibsMap().value();
-        }
-      }
-    }
-    data.fibsMap() = fibsMap;
-  }
-
   // Migrate new portsInfo field to old ports field for warmboot compatibility
   for (auto& [matcherKey, vlanMapThrift] : *data.vlanMaps()) {
     for (auto& [vlanId, vlanThrift] : vlanMapThrift) {
