@@ -35,6 +35,7 @@ class ConfigValidator {
       const std::vector<std::string>& i2cAdaptersFromCpu);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
+  bool isValidCpldSysfsAttrs(const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);

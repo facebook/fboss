@@ -71,6 +71,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
+        ":fbcpld_ioctl_h",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":platform_manager_validators-cpp2-types",
@@ -299,6 +300,13 @@ cpp_binary(
         "//fboss/platform/helpers:structured_logger",
     ],
     external_deps = [("systemd", None, "systemd")],
+)
+
+cpp_library(
+    name = "fbcpld_ioctl_h",
+    headers = [
+        "uapi/fbcpld-ioctl.h",
+    ],
 )
 
 cpp_library(

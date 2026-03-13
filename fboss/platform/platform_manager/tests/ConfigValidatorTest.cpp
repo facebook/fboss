@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -1637,4 +1638,138 @@ TEST(ConfigValidatorTest, NoOpticsConfigForDarwinPlatforms) {
   config.symbolicLinkToDevicePath() = {
       {"/run/devmap/xcvrs/xcvr_1", "/[XCVR_1]"}};
   EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+}
+
+namespace {
+CpldSysfsAttr getValidCpldSysfsAttr(const std::string& name) {
+  CpldSysfsAttr attr;
+  attr.name() = name;
+  attr.mode() = "ro";
+  attr.reg() = "0x10";
+  attr.bitOffset() = 0;
+  attr.numBits() = 1;
+  attr.flags() = {};
+  attr.description() = "test attribute";
+  return attr;
+}
+} // namespace
+
+TEST(ConfigValidatorTest, CpldSysfsAttrs) {
+  ConfigValidator validator;
+
+  // Valid: single attribute
+  EXPECT_TRUE(
+      validator.isValidCpldSysfsAttrs({getValidCpldSysfsAttr("board_id")}));
+
+  // Valid: multiple attributes
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs(
+      {getValidCpldSysfsAttr("board_id"), getValidCpldSysfsAttr("cpld_ver")}));
+
+  // Invalid: empty list
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({}));
+
+  // Invalid: empty name
+  auto attr = getValidCpldSysfsAttr("");
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: duplicate names
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs(
+      {getValidCpldSysfsAttr("board_id"), getValidCpldSysfsAttr("board_id")}));
+
+  // Invalid: bad mode
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.mode() = "wx";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: rw mode
+  attr.mode() = "rw";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: wo mode
+  attr.mode() = "wo";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: empty reg
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.reg() = "";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: non-hex reg
+  attr.reg() = "16";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: max reg value
+  attr.reg() = "0xFF";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: min reg value
+  attr.reg() = "0x0";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: reg value exceeds 0xFF
+  attr.reg() = "0x100";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: empty description
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.description() = "";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset negative
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.bitOffset() = -1;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset > 7
+  attr.bitOffset() = 8;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: numBits 0
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.numBits() = 0;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: numBits > 8
+  attr.numBits() = 9;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset + numBits > 8
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.bitOffset() = 5;
+  attr.numBits() = 4;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: bitOffset + numBits == 8
+  attr.bitOffset() = 4;
+  attr.numBits() = 4;
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: recognized flags
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.flags() = {"negate", "decimal"};
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: unrecognized flag
+  attr.flags() = {"negate", "negatte"};
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: unknown flag
+  attr.flags() = {"unknown_flag"};
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: all recognized flags
+  attr.flags() = {"log_write", "show_notes", "decimal", "negate"};
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: exceeds max attrs (64)
+  std::vector<CpldSysfsAttr> tooMany;
+  tooMany.reserve(65);
+  for (int i = 0; i < 65; ++i) {
+    tooMany.push_back(getValidCpldSysfsAttr(fmt::format("attr_{}", i)));
+  }
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs(tooMany));
+
+  // Valid: exactly 64 attrs
+  tooMany.pop_back();
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs(tooMany));
 }

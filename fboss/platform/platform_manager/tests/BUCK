@@ -8,6 +8,7 @@ cpp_unittest(
         "ConfigValidatorTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/platform/platform_manager:config_validator",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
