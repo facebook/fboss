@@ -16,6 +16,7 @@
 
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/platform_manager/CpldManager.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
@@ -541,6 +542,13 @@ void PlatformExplorer::exploreI2cDevices(
               errMsg);
         }
       }
+      if (i2cDeviceConfig.cpldSysfsAttrs() &&
+          !i2cDeviceConfig.cpldSysfsAttrs()->empty()) {
+        setupCpldSysfsAttrs(
+            devicePath, busNum, devAddr, *i2cDeviceConfig.cpldSysfsAttrs());
+        dataStore_.updateCharDevPath(
+            devicePath, getCpldCharDevPath(busNum, devAddr));
+      }
     } catch (const std::exception& ex) {
       auto errMsg = fmt::format(
           "Failed to explore I2C device {} at {}. {}",
@@ -992,6 +1000,20 @@ void PlatformExplorer::setupI2cDevice(
     XLOG(ERR) << ex.what();
     explorationSummary_.addError(
         ExplorationErrorType::I2C_DEVICE_REG_INIT, devicePath, ex.what());
+  }
+}
+
+void PlatformExplorer::setupCpldSysfsAttrs(
+    const std::string& devicePath,
+    uint16_t busNum,
+    const I2cAddr& addr,
+    const std::vector<CpldSysfsAttr>& cpldSysfsAttrs) {
+  try {
+    createCpldSysfsAttrs(busNum, addr, cpldSysfsAttrs);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
+    explorationSummary_.addError(
+        ExplorationErrorType::CPLD_SYSFS_ATTR_CREATE, devicePath, ex.what());
   }
 }
 
