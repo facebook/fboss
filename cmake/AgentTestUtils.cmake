@@ -257,6 +257,18 @@ target_link_libraries(dscp_marking_utils
   switch_config_cpp2
 )
 
+add_library(srv6_test_utils
+  fboss/agent/test/utils/Srv6TestUtils.cpp
+)
+
+target_link_libraries(srv6_test_utils
+  agent_ensemble
+  config_utils
+  fboss_types
+  load_balancer_test_utils
+  switch_config_cpp2
+)
+
 add_library(trap_packet_utils
   fboss/agent/test/utils/TrapPacketUtils.cpp
 )

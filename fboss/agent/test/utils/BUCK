@@ -3,6 +3,20 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
+    name = "srv6_test_utils",
+    srcs = [
+        "Srv6TestUtils.cpp",
+    ],
+    exported_deps = [
+        ":config_utils",
+        ":load_balancer_test_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/test:agent_ensemble",
+    ],
+)
+
+cpp_library(
     name = "acl_test_utils",
     srcs = ["AclTestUtils.cpp"],
     headers = ["AclTestUtils.h"],

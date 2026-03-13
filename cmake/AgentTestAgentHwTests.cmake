@@ -204,6 +204,7 @@ target_link_libraries(agent_hw_test_src
   stats
   route_scale_gen
   route_test_utils
+  srv6_test_utils
   switch_asics
   trunk_test_utils
   resourcelibutil

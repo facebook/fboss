@@ -15,6 +15,7 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -224,24 +225,11 @@ class AgentSrv6EncapTest : public AgentHwTest {
   }
 
  private:
-  cfg::Srv6Tunnel makeSrv6TunnelConfig(
-      const std::string& name,
-      InterfaceID interfaceId) const {
-    cfg::Srv6Tunnel tunnel;
-    tunnel.srv6TunnelId() = name;
-    tunnel.underlayIntfID() = interfaceId;
-    tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
-    tunnel.srcIp() = "2001:db8::1";
-    tunnel.ttlMode() = cfg::TunnelMode::PIPE;
-    tunnel.dscpMode() = cfg::TunnelMode::UNIFORM;
-    tunnel.ecnMode() = cfg::TunnelMode::UNIFORM;
-    return tunnel;
-  }
-
   void addSrv6TunnelConfig(cfg::SwitchConfig& cfg) const {
     std::vector<cfg::Srv6Tunnel> tunnelList;
-    tunnelList.push_back(makeSrv6TunnelConfig(
-        "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value())));
+    tunnelList.push_back(
+        utility::makeSrv6TunnelConfig(
+            "srv6Tunnel0", InterfaceID(cfg.interfaces()[0].intfID().value())));
     cfg.srv6Tunnels() = tunnelList;
   }
 };

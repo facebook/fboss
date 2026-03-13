@@ -322,6 +322,7 @@ cpp_library(
         "//fboss/agent/test/utils:queue_per_host_test_utils",
         "//fboss/agent/test/utils:queue_test_utils",
         "//fboss/agent/test/utils:route_test_utils",
+        "//fboss/agent/test/utils:srv6_test_utils",
         "//fboss/agent/test/utils:traffic_policy_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
         "//fboss/agent/test/utils:trunk_test_utils",
