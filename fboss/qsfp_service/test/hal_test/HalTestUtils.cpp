@@ -8,6 +8,9 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/test/hal_test/gen-cpp2/hal_test_config_constants.h"
 
 namespace facebook::fboss::hal_test {
 
@@ -90,7 +93,7 @@ std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config) {
   std::map<int, HalTestModule> modules;
   for (const auto& entry : *config.transceivers()) {
     int id = *entry.id();
-    modules.emplace(id, createQsfpModule(entry));
+    modules[id] = createQsfpModule(entry);
   }
   return modules;
 }
@@ -102,6 +105,138 @@ HalTestConfig loadHalTestConfig(const std::string& configPath) {
   }
   return apache::thrift::SimpleJSONSerializer::deserialize<HalTestConfig>(
       contents);
+}
+
+TransceiverPortState createTransceiverPortState(
+    uint8_t startHostLane,
+    uint8_t numHostLanes,
+    cfg::PortSpeed speed) {
+  TransceiverPortState portState;
+  portState.portName = fmt::format("dummyPort/{:d}", startHostLane);
+  portState.startHostLane = startHostLane;
+  portState.speed = speed;
+  portState.numHostLanes = numHostLanes;
+  return portState;
+}
+
+std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
+    TcvrOperationalMode mode) {
+  switch (mode) {
+    case TcvrOperationalMode::MODE_8x100G_FR1:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR1_100G);
+    case TcvrOperationalMode::MODE_8x200G_DR1:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR1_200G);
+    case TcvrOperationalMode::MODE_8x100G_DR1:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR1_100G);
+    case TcvrOperationalMode::MODE_2x400G_FR4:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR4_400G);
+    case TcvrOperationalMode::MODE_2x800G_DR4:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR4_800G);
+    case TcvrOperationalMode::MODE_2x200G_FR4:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR4_200G);
+    case TcvrOperationalMode::MODE_400G_FR4_200G_FR4:
+      return {
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_200G};
+    case TcvrOperationalMode::MODE_200G_FR4_400G_FR4:
+      return {
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_200G,
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_400G,
+          MediaInterfaceCode::FR4_400G};
+    case TcvrOperationalMode::MODE_4x400G_DR2:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR2_400G);
+    case TcvrOperationalMode::MODE_1x800G_FR8:
+      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR8_800G);
+  }
+}
+
+ProgramTransceiverState createProgramTransceiverState(
+    TcvrOperationalMode mode) {
+  std::vector<TransceiverPortState> portStates;
+  switch (mode) {
+    case TcvrOperationalMode::MODE_8x100G_FR1:
+      for (int i = 0; i < 8; i++) {
+        portStates.push_back(
+            createTransceiverPortState(i, 1, cfg::PortSpeed::HUNDREDG));
+      }
+      break;
+    case TcvrOperationalMode::MODE_2x400G_FR4:
+      portStates.push_back(
+          createTransceiverPortState(0, 4, cfg::PortSpeed::FOURHUNDREDG));
+      portStates.push_back(
+          createTransceiverPortState(4, 4, cfg::PortSpeed::FOURHUNDREDG));
+      break;
+    case TcvrOperationalMode::MODE_2x800G_DR4:
+      portStates.push_back(
+          createTransceiverPortState(0, 4, cfg::PortSpeed::EIGHTHUNDREDG));
+      portStates.push_back(
+          createTransceiverPortState(4, 4, cfg::PortSpeed::EIGHTHUNDREDG));
+      break;
+    case TcvrOperationalMode::MODE_8x200G_DR1:
+      for (int i = 0; i < 8; i++) {
+        portStates.push_back(
+            createTransceiverPortState(i, 1, cfg::PortSpeed::TWOHUNDREDG));
+      }
+      break;
+    case TcvrOperationalMode::MODE_2x200G_FR4:
+      portStates.push_back(
+          createTransceiverPortState(0, 4, cfg::PortSpeed::TWOHUNDREDG));
+      portStates.push_back(
+          createTransceiverPortState(4, 4, cfg::PortSpeed::TWOHUNDREDG));
+      break;
+    case TcvrOperationalMode::MODE_400G_FR4_200G_FR4:
+      portStates.push_back(
+          createTransceiverPortState(0, 4, cfg::PortSpeed::FOURHUNDREDG));
+      portStates.push_back(
+          createTransceiverPortState(4, 4, cfg::PortSpeed::TWOHUNDREDG));
+      break;
+    case TcvrOperationalMode::MODE_200G_FR4_400G_FR4:
+      portStates.push_back(
+          createTransceiverPortState(0, 4, cfg::PortSpeed::TWOHUNDREDG));
+      portStates.push_back(
+          createTransceiverPortState(4, 4, cfg::PortSpeed::FOURHUNDREDG));
+      break;
+    case TcvrOperationalMode::MODE_4x400G_DR2:
+      for (int i = 0; i < 4; i++) {
+        portStates.push_back(
+            createTransceiverPortState(i * 2, 2, cfg::PortSpeed::FOURHUNDREDG));
+      }
+      break;
+    case TcvrOperationalMode::MODE_1x800G_FR8:
+      portStates.push_back(
+          createTransceiverPortState(0, 8, cfg::PortSpeed::EIGHTHUNDREDG));
+      break;
+    case TcvrOperationalMode::MODE_8x100G_DR1:
+      for (int i = 0; i < 8; i++) {
+        portStates.push_back(
+            createTransceiverPortState(i, 1, cfg::PortSpeed::HUNDREDG));
+      }
+      break;
+  }
+  ProgramTransceiverState state;
+  for (auto portState : portStates) {
+    state.ports.emplace(portState.portName, portState);
+  }
+  return state;
+}
+
+const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>&
+getMediaInterfaceConfigs(const HalTestConfig& config) {
+  if (config.mediaInterfaceConfigs()->empty()) {
+    return hal_test_config_constants::DEFAULT_MEDIA_INTERFACE_CONFIGS();
+  }
+  return *config.mediaInterfaceConfigs();
 }
 
 } // namespace facebook::fboss::hal_test

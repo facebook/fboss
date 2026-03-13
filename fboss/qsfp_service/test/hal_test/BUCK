@@ -9,6 +9,9 @@ thrift_library(
     languages = ["cpp2"],
     thrift_cpp2_options = "json",
     thrift_srcs = {"hal_test_config.thrift": []},
+    deps = [
+        "//fboss/qsfp_service/if:transceiver",
+    ],
 )
 
 cpp_library(
@@ -30,7 +33,9 @@ cpp_library(
         ":bsp_transceiver_impl",
         ":hal_test_config-cpp2-types",
         "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
         "//fboss/lib/bsp:bsp_platform_mapping-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module:qsfp-module",
         "//folly:conv",
         "//folly:file_util",

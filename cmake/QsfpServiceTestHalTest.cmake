@@ -21,7 +21,9 @@ target_link_libraries(hal_test_utils
   bsp_transceiver_impl
   hal_test_config_cpp2
   fboss_error
+  switch_config_cpp2
   bsp_platform_mapping_cpp2
+  transceiver_cpp2
   qsfp_module
   Folly::folly
   FBThrift::thriftcpp2

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
+#include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/test/hal_test/BspTransceiverImpl.h"
 #include "fboss/qsfp_service/test/hal_test/gen-cpp2/hal_test_config_types.h"
@@ -35,5 +36,17 @@ std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config);
 
 // Load HalTestConfig from a JSON file.
 HalTestConfig loadHalTestConfig(const std::string& configPath);
+
+ProgramTransceiverState createProgramTransceiverState(TcvrOperationalMode mode);
+
+// Returns the expected per-lane MediaInterfaceCodes for a given operational
+// mode.
+std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
+    TcvrOperationalMode mode);
+
+// Returns the effective media interface configs — user-provided if set,
+// otherwise falls back to the thrift const default.
+const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>&
+getMediaInterfaceConfigs(const HalTestConfig& config);
 
 } // namespace facebook::fboss::hal_test

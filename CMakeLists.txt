@@ -978,6 +978,8 @@ add_fbthrift_cpp_library(
   fboss/qsfp_service/test/hal_test/hal_test_config.thrift
   OPTIONS
     json
+  DEPENDS
+    transceiver_cpp2
 )
 
 find_library(USB usb-1.0)

@@ -39,6 +39,8 @@ void BspTransceiverImpl::triggerQsfpHardReset() {
   tcvrContainer_->holdTransceiverReset();
   usleep(100000); // 100ms
   tcvrContainer_->releaseTransceiverReset();
+  /* sleep override */
+  sleep(2);
 }
 
 folly::StringPiece BspTransceiverImpl::getName() {
