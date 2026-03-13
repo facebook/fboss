@@ -146,6 +146,69 @@ void LedManager::updateLedStatus(
 }
 
 /*
+ * updateLedStatus
+ *
+ * This function checks the presence of transceiver. If present,
+ * get the LOS map (per port). Check that if LOS is set for all lanes
+ * of a specific port then declare an LOS (from LED point of view) for
+ * this port.
+ * LOS is used in the drained state LED color calculation
+ *
+ */
+void LedManager::updateLedStatus(
+    const std::map<int, LedTransceiverStateUpdate>& newTcvrUpdate) {
+  if (newTcvrUpdate.empty()) {
+    // No change in port info so return from here
+    return;
+  }
+
+  std::map<uint32_t, PortLosInfo> portLosMap;
+  for (const auto& [tcvrId, stateUpdate] : newTcvrUpdate) {
+    if (!stateUpdate.present) {
+      // We will use this and ignore LOS values, inside the calculation
+      // of the LED state.
+      continue;
+    }
+    auto swPorts = platformMapping_->getSwPortListFromTransceiverId(tcvrId);
+    auto& mediaSignals = stateUpdate.mediaLaneSignals;
+    if (mediaSignals.empty()) {
+      // Applicable to DAC.
+      XLOG(DBG3) << "No media signals for tcvrId " << tcvrId;
+      continue;
+    }
+    for (auto& swPort : swPorts) {
+      auto portName = platformMapping_->getPortNameByPortId(swPort).value_or(
+          "UNKNOWN_PORT");
+      if (portName == "UNKNOWN_PORT") {
+        XLOG(ERR) << "Port " << swPort << " name not found in platform mapping";
+        continue;
+      }
+      const auto& portNameToMediaLanes = stateUpdate.portNameToMediaLanes;
+      // Map of lane to rxLos for a specific swPort
+      std::map<int, bool> rxLos;
+      auto itr = portNameToMediaLanes.find(portName);
+      if (itr != portNameToMediaLanes.end()) {
+        for (auto& lane : itr->second) {
+          if (mediaSignals.size() > lane) {
+            rxLos[lane] = mediaSignals[lane].rxLos().value_or(false);
+          } else {
+            XLOG(ERR) << "Unexpected lane " << lane << " for port " << portName;
+            continue;
+          }
+        }
+        portLosMap[swPort].rxLos = rxLos;
+
+        std::string los;
+        for (auto& [lane, laneLos] : rxLos) {
+          los += folly::sformat(" Lane={:d} rxLos={:d} ", lane, laneLos);
+        }
+        XLOG(DBG3) << "Port " << swPort << " name " << portName << los;
+      }
+    }
+  }
+}
+
+/*
  * setExternalLedState
  *
  * This function sets the LED forced mode (on/off) as told through thrift call.

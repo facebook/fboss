@@ -49,6 +49,10 @@ class LedManager {
     bool drained{false};
   };
 
+  using PortLosInfo = struct PortLosInfo {
+    std::optional<std::map<int, bool>> rxLos{std::nullopt};
+  };
+
  public:
   using LedSwitchStateUpdate = struct LedSwitchStateUpdate {
     short swPortId;
@@ -61,6 +65,12 @@ class LedManager {
     bool mismatchedNeighbor{false};
   };
 
+  using LedTransceiverStateUpdate = struct LedTransceiverStateUpdate {
+    bool present{false};
+    std::map<std::string, std::vector<int>> portNameToMediaLanes;
+    std::vector<fboss::MediaLaneSignals> mediaLaneSignals;
+  };
+
   LedManager();
   virtual ~LedManager();
 
@@ -69,9 +79,18 @@ class LedManager {
   // Initialize the Led Manager, get system container
   virtual void initLedManager() {}
 
-  // On getting the update from FSDB, update portDisplayMap_
+  // On getting the update from FSDB for Agent switch change, update
+  // portDisplayMap_
   void updateLedStatus(
       const std::map<short, LedSwitchStateUpdate>& newSwitchState);
+
+  // On getting the update from FSDB for transceiver state change, update
+  // portLosMap_
+  // The reason LedTransceiverStateUpdate is not added to portDisplayMap_ is
+  // because the transceiver may report ports that are not active in agent,
+  // which will impact logic of led color calculation.
+  void updateLedStatus(
+      const std::map<int, LedTransceiverStateUpdate>& newTcvrUpdate);
 
   folly::EventBase* getEventBase() {
     return eventBase_.get();
@@ -117,6 +136,9 @@ class LedManager {
 
   // Port Name to PortDisplayInfo map, no lock needed
   std::map<uint32_t, PortDisplayInfo> portDisplayMap_;
+
+  // Port Name to PortLosInfo map, no lock needed
+  std::map<uint32_t, PortLosInfo> portLosMap_;
 
   std::unique_ptr<FsdbSwitchStateSubscriber> fsdbSwitchStateSubscriber_;
   std::unique_ptr<fsdb::FsdbPubSubManager> fsdbPubSubMgr_;

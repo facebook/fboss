@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/led_service/FsdbSwitchStateSubscriber.h"
+#include <fboss/qsfp_service/if/gen-cpp2/qsfp_state_types.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -17,7 +18,7 @@ namespace facebook::fboss {
  * callback will update the Led Manager synchronized port info map
  */
 void FsdbSwitchStateSubscriber::subscribeToStates(LedManager* ledManager) {
-  subscribeToState(getSwitchStatePath(), ledManager);
+  subscribeToState(getSwitchStatePath(), getTransceiverStatePath(), ledManager);
 }
 
 /*
@@ -26,7 +27,7 @@ void FsdbSwitchStateSubscriber::subscribeToStates(LedManager* ledManager) {
  * This function removes the subscriptions to FSDB
  */
 void FsdbSwitchStateSubscriber::removeStateSubscriptions() {
-  removeStateSubscribe(getSwitchStatePath());
+  removeStateSubscribe(getSwitchStatePath(), getTransceiverStatePath());
 }
 
 /*
@@ -37,6 +38,7 @@ void FsdbSwitchStateSubscriber::removeStateSubscriptions() {
  */
 void FsdbSwitchStateSubscriber::subscribeToState(
     const std::vector<std::string>& switchStatePath,
+    const std::vector<std::string>& transceiverStatePath,
     LedManager* ledManager) {
   // Subscribe to FSDB only if the LED config is enabled
   if (!ledManager || !ledManager->isLedControlledThroughService()) {
@@ -126,6 +128,43 @@ void FsdbSwitchStateSubscriber::subscribeToState(
   }
   XLOG(INFO) << "LED Service Subscribed to FSDB switch state path"
              << fullPathSwitch;
+
+  auto tcvrStateCb = [](fsdb::SubscriptionState /*old*/,
+                        fsdb::SubscriptionState /*new*/,
+                        std::optional<bool> /*initialSyncHasData*/) {};
+  auto tcvrDataCb = [=](fsdb::OperState&& state) {
+    if (auto contents = state.contents()) {
+      auto newTcvrStateData = apache::thrift::BinarySerializer::deserialize<
+          std::map<int32_t, fboss::TcvrState>>(*contents);
+
+      std::map<int, LedManager::LedTransceiverStateUpdate>
+          ledTransceiverStateUpdate;
+
+      // Add presence, portNameToMediaLanes and mediaLaneSignals to data.
+      for (auto& [tcvrId, tcvrState] : newTcvrStateData) {
+        ledTransceiverStateUpdate[tcvrId].present = tcvrState.present().value();
+        ledTransceiverStateUpdate[tcvrId].portNameToMediaLanes =
+            tcvrState.portNameToMediaLanes().value();
+        ledTransceiverStateUpdate[tcvrId].mediaLaneSignals =
+            tcvrState.mediaLaneSignals().value_or({});
+      }
+
+      if (ledManager) {
+        folly::via(ledManager->getEventBase()).thenValue([=](auto&&) {
+          ledManager->updateLedStatus(ledTransceiverStateUpdate);
+        });
+      }
+    }
+  };
+
+  pubSubMgr()->addStatePathSubscription(
+      transceiverStatePath, tcvrStateCb, tcvrDataCb);
+  std::string fullPathTransceiver;
+  for (auto& path : transceiverStatePath) {
+    fullPathTransceiver += "/" + path;
+  }
+  XLOG(INFO) << "LED Service Subscribed to FSDB transceiver state path"
+             << fullPathTransceiver;
 }
 
 /*
@@ -135,13 +174,15 @@ void FsdbSwitchStateSubscriber::subscribeToState(
  * path
  */
 void FsdbSwitchStateSubscriber::removeStateSubscribe(
-    const std::vector<std::string>& switchPath) {
+    const std::vector<std::string>& switchPath,
+    const std::vector<std::string>& transceiverPath) {
   pubSubMgr()->removeStatePathSubscription(switchPath);
   std::string fullPathSwitch;
   for (auto& path : switchPath) {
     fullPathSwitch += "/" + path;
   }
   XLOG(INFO) << "LED Service Removed from FSDB subscription" << fullPathSwitch;
+  pubSubMgr()->removeStatePathSubscription(transceiverPath);
 }
 
 } // namespace facebook::fboss
