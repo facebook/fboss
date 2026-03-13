@@ -16,6 +16,7 @@ class AgentNetWhoAmI {
   virtual bool isChenabPlatform() const;
   virtual bool isBcmVoqPlatform() const;
   virtual bool isTajoMorgan800ccPlatform() const;
+  virtual bool isTajoWedge800cPlatform() const;
   virtual bool isFdsw() const;
   virtual bool isSdsw() const;
   virtual bool isNotDrainable() const;
