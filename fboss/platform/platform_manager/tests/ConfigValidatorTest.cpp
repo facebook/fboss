@@ -1645,7 +1645,7 @@ CpldSysfsAttr getValidCpldSysfsAttr(const std::string& name) {
   CpldSysfsAttr attr;
   attr.name() = name;
   attr.mode() = "ro";
-  attr.reg() = "0x10";
+  attr.regAddr() = "0x10";
   attr.bitOffset() = 0;
   attr.numBits() = 1;
   attr.flags() = {};
@@ -1691,23 +1691,23 @@ TEST(ConfigValidatorTest, CpldSysfsAttrs) {
 
   // Invalid: empty reg
   attr = getValidCpldSysfsAttr("board_id");
-  attr.reg() = "";
+  attr.regAddr() = "";
   EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
 
   // Invalid: non-hex reg
-  attr.reg() = "16";
+  attr.regAddr() = "16";
   EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
 
   // Valid: max reg value
-  attr.reg() = "0xFF";
+  attr.regAddr() = "0xFF";
   EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
 
   // Valid: min reg value
-  attr.reg() = "0x0";
+  attr.regAddr() = "0x0";
   EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
 
   // Invalid: reg value exceeds 0xFF
-  attr.reg() = "0x100";
+  attr.regAddr() = "0x100";
   EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
 
   // Invalid: empty description

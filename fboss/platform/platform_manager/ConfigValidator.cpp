@@ -13,6 +13,7 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/op/Get.h>
 
+#include "fboss/platform/platform_manager/CpldManager.h"
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_validators_constants.h"
@@ -625,19 +626,20 @@ bool ConfigValidator::isValidCpldSysfsAttrs(
           *attr.mode());
       return false;
     }
-    if (attr.reg()->empty() || !re2::RE2::FullMatch(*attr.reg(), kHexRegex)) {
+    if (attr.regAddr()->empty() ||
+        !re2::RE2::FullMatch(*attr.regAddr(), kHexRegex)) {
       XLOG(ERR) << fmt::format(
-          "CpldSysfsAttr '{}' has invalid reg '{}'. Must be hex (e.g. 0x10)",
+          "CpldSysfsAttr '{}' has invalid regAddr '{}'. Must be hex (e.g. 0x10)",
           *attr.name(),
-          *attr.reg());
+          *attr.regAddr());
       return false;
     }
-    auto regValue = std::stoul(*attr.reg(), nullptr, 16);
+    auto regValue = std::stoul(*attr.regAddr(), nullptr, 16);
     if (regValue > 0xFF) {
       XLOG(ERR) << fmt::format(
-          "CpldSysfsAttr '{}' has reg '{}' out of range. Must be 0x0-0xFF",
+          "CpldSysfsAttr '{}' has regAddr '{}' out of range. Must be 0x0-0xFF",
           *attr.name(),
-          *attr.reg());
+          *attr.regAddr());
       return false;
     }
     if (attr.description()->empty()) {
@@ -667,12 +669,10 @@ bool ConfigValidator::isValidCpldSysfsAttrs(
           *attr.numBits());
       return false;
     }
-    static const std::set<std::string> kValidFlags = {
-        "negate", "decimal", "show_notes", "log_write"};
     for (const auto& flag : *attr.flags()) {
-      if (kValidFlags.find(flag) == kValidFlags.end()) {
+      if (!getCpldFlagMap().contains(flag)) {
         XLOG(ERR) << fmt::format(
-            "CpldSysfsAttr '{}' has invalid flag '{}'. Valid flags: negate, decimal, show_notes, log_write",
+            "CpldSysfsAttr '{}' has unrecognized flag '{}'",
             *attr.name(),
             flag);
         return false;

@@ -161,7 +161,7 @@ struct I2cRegData {
 // `mode`: Access mode - "ro" (read-only, 0444), "rw" (read-write, 0644),
 // or "wo" (write-only, 0200). Defaults to "ro".
 //
-// `reg`: Register address as hex string (e.g., "0x10").
+// `regAddr`: Register address as hex string (e.g., "0x10").
 //
 // `bitOffset`: Starting bit position in the register (0-7). Defaults to 0.
 //
@@ -178,7 +178,7 @@ struct I2cRegData {
 struct CpldSysfsAttr {
   1: string name;
   2: string mode = "ro";
-  3: string reg;
+  3: string regAddr;
   4: i32 bitOffset = 0;
   5: i32 numBits = 1;
   6: list<string> flags;
