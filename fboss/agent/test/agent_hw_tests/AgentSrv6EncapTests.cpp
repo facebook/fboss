@@ -144,6 +144,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+    constexpr auto kTc{42};
+    constexpr auto kTtl{24};
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
@@ -152,30 +154,11 @@ class AgentSrv6EncapTest : public AgentHwTest {
         folly::IPAddressV6("1::10"),
         folly::IPAddressV6("2800:2::1"),
         8000,
-        8001);
+        8001,
+        kTc << 2, // TC
+        kTtl);
 
-    auto packetComparator = [](const utility::EthFrame& /*expectedFrame*/,
-                               const utility::EthFrame& receivedFrame) {
-      auto ethHdr = receivedFrame.header();
-      if (ethHdr.etherType !=
-          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6)) {
-        return false;
-      }
-      auto ioBuf = receivedFrame.toIOBuf();
-      // Skip the ethernet header to get to the IPv6/SRv6 payload
-      folly::io::Cursor cursor(ioBuf.get());
-      cursor += ethHdr.size();
-      utility::Srv6Packet srv6Pkt(cursor);
-      XLOG(DBG2) << "Received SRv6 packet: " << srv6Pkt.toString();
-      return true;
-    };
-
-    utility::SwSwitchPacketSnooper snooper(
-        this->getSw(),
-        "srv6EncapSnooper",
-        std::nullopt,
-        std::nullopt,
-        packetComparator);
+    utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6EncapSnooper");
 
     this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
 
@@ -189,6 +172,23 @@ class AgentSrv6EncapTest : public AgentHwTest {
       }
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
     });
+    ASSERT_TRUE(frameRx.has_value());
+    folly::io::Cursor cursor((*frameRx).get());
+    utility::EthFrame frame(cursor);
+    auto ethHdr = frame.header();
+    EXPECT_EQ(
+        ethHdr.etherType, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
+    auto v6Payload = frame.v6PayLoad();
+    EXPECT_TRUE(v6Payload.has_value());
+    auto v6Hdr = v6Payload->header();
+    // Outer header should have dst addr set to kSid0
+    EXPECT_EQ(v6Hdr.dstAddr, kSid0);
+    // Flow label must be non 0
+    EXPECT_NE(v6Hdr.flowLabel, 0);
+    // DSCP is preserved
+    // EXPECT_EQ(v6Hdr.trafficClass, kTc); //failing - MT-864
+    // TTL is decremented
+    EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
   }
 
  private:
