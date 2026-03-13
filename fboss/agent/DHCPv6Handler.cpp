@@ -140,9 +140,10 @@ void DHCPv6Handler::handlePacket(
   DHCPv6Packet dhcp6Pkt;
   try {
     dhcp6Pkt.parse(&cursor);
-  } catch (const FbossError&) {
+  } catch (const FbossError& ex) {
     sw->portStats(pkt->getSrcPort())->dhcpV6BadPkt();
-    throw; // Rethrow
+    XLOG(ERR) << "Failed to parse DHCPv6 packet: " << ex.what();
+    return;
   }
   if (dhcp6Pkt.type == static_cast<uint8_t>(DHCPv6Type::DHCPv6_RELAY_FORWARD)) {
     XLOG(DBG4) << "Received DHCPv6 relay forward packet: "
