@@ -150,6 +150,10 @@ class LedManager {
     return false;
   }
 
+  bool areAllNeighborsRxLos(uint32_t portID) const;
+
+  uint32_t portsUpAndCorrectReachability(uint32_t portID) const;
+
   // Forbidden copy constructor and assignment operator
   LedManager(LedManager const&) = delete;
   LedManager& operator=(LedManager const&) = delete;

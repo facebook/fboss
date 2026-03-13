@@ -124,6 +124,8 @@ led::LedState BspLedManager::calculateLedState(
         led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
   }
   const auto& portName = itr->second.portName;
+  const auto portNamePlatformMapping =
+      platformMapping_->getPortNameByPortId(PortID(portId)).value_or("UNKNOWN");
 
   // Get all the SW ports which share the LED with the current port. Then find
   // port up, reachability info for all common ports and then decide LED color
@@ -243,8 +245,9 @@ led::LedState BspLedManager::calculateLedState(
       pNState != itr->second.portNeighborState) {
     itr->second.portNeighborState = pNState;
     XLOG(ERR) << fmt::format(
-        "Port {:s} ledChanged={:s} totalPorts={:d} portsUpAndCorrectReachability={:d} portsWithAllLanesRxLos={:d} anyUndrainedPort={:s} operState={:s} anyPortUp={:s} ledColor={:s} ledBlink={:s}",
+        "Port {:s} {:s} ledChanged={:s} totalPorts={:d} portsUpAndCorrectReachability={:d} portsWithAllLanesRxLos={:d} anyUndrainedPort={:s} operState={:s} anyPortUp={:s} ledColor={:s} ledBlink={:s}",
         portName,
+        portNamePlatformMapping,
         newLedState != itr->second.currentLedState ? "True" : "False",
         pNState.totalPorts,
         pNState.portsUpAndCorrectReachability,

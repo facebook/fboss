@@ -106,7 +106,10 @@ TEST_F(LedServiceTest, checkForceLed) {
         static_cast<short>(swPort),
         "",
         enumToName<cfg::PortProfileID>(profile),
-        false};
+        false,
+        PortLedExternalState::NONE,
+        false /*drain*/,
+        false /*mismatchedNeighbor*/};
 
     std::map<short, LedManager::LedSwitchStateUpdate> switchUpdate_0;
     switchUpdate_0[swPort] = ledUpdate;
@@ -220,7 +223,10 @@ TEST_F(LedServiceTest, checkLedColorChange) {
           "",
           enumToName<cfg::PortProfileID>(profile),
           false /*operationalState*/,
-          PortLedExternalState::NONE};
+          PortLedExternalState::NONE,
+          false /*drain*/,
+          false /*mismatchedNeighbor*/,
+      };
 
       std::map<short, LedManager::LedSwitchStateUpdate> updateMap;
       updateMap[swPort] = ledUpdate;
@@ -356,6 +362,7 @@ TEST_F(LedServiceTest, checkLedBlinking) {
           true /*operationalState*/,
           PortLedExternalState::NONE,
           false /*drain*/,
+          false /*mismatchedNeighbor*/,
       };
 
       std::map<short, LedManager::LedSwitchStateUpdate> updateMap;
@@ -395,6 +402,197 @@ TEST_F(LedServiceTest, checkLedBlinking) {
       updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
       updateMap[swPort].operState = false;
       ledManager_->updateLedStatus(updateMap);
+    }
+  }
+}
+
+TEST_F(LedServiceTest, testTcvrLos) {
+  auto transceivers = getAllTransceivers(platformMap_);
+  auto blinkSupported = ledManager_->blinkingSupported();
+
+  for (auto tcvr : transceivers) {
+    XLOG(INFO) << "Testing transceiver " << tcvr;
+    auto swPorts = platformMap_->getSwPortListFromTransceiverId(tcvr);
+    for (auto& swPort : swPorts) {
+      // Do the first update from FSDB to LedService. LED set to inactive.
+      auto maxSpeed = platformMap_->getPortMaxSpeed(swPort);
+      auto profile = platformMap_->getProfileIDBySpeed(swPort, maxSpeed);
+      XLOG(INFO) << "Testing SW Port " << swPort << " with speed "
+                 << enumToName<cfg::PortSpeed>(maxSpeed) << " and profile "
+                 << enumToName<cfg::PortProfileID>(profile);
+      LedManager::LedSwitchStateUpdate ledUpdate = {
+          static_cast<short>(swPort),
+          "",
+          enumToName<cfg::PortProfileID>(profile),
+          true /*operationalState*/,
+          PortLedExternalState::NONE,
+          false /*drain*/,
+          false /*mismatchedNeighbor*/,
+      };
+
+      std::map<short, LedManager::LedSwitchStateUpdate> updateMap;
+      updateMap[swPort] = ledUpdate;
+      ledManager_->updateLedStatus(updateMap);
+
+      auto swPortName = platformMap_->getPortNameByPortId(swPort);
+      CHECK(swPortName.has_value());
+
+      int testNum = 0;
+      // 1- Verify Default creation with operational state = true, drain = false
+      // that the LED color is on, blink is off
+      auto colorBefore = ledManager_->getCurrentLedColor(swPort);
+      EXPECT_NE(colorBefore, led::LedColor::OFF);
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(swPort, led::Blink::OFF, testNum);
+
+      // 2- Set the drain state to true, verify that the LED color is same but
+      // the LED blinks fast since port is up and there is no cabling error.
+      updateMap[swPort].drained = true;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      // 3- Set the port state down error, and verify that the LED color is
+      // yellow and fast blink if other neighboring ports have correct
+      // reachability
+      ++testNum;
+      updateMap[swPort].operState = false;
+      ledManager_->updateLedStatus(updateMap);
+      if (ledManager_->portsUpAndCorrectReachability(swPort) > 0) {
+        checkLedColor(swPort, led::LedColor::YELLOW, testNum);
+        checkLedBlink(
+            swPort,
+            blinkSupported ? led::Blink::FAST : led::Blink::OFF,
+            testNum);
+      }
+
+      // 4 Go back to operState up. LED state is same as before
+      updateMap[swPort].operState = true;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      std::vector<PortLedExternalState> cablingErrors = {
+          PortLedExternalState::CABLING_ERROR,
+          PortLedExternalState::CABLING_ERROR_LOOP_DETECTED};
+
+      // 5/6, 7/8- Set cabling Error. Check that its the same scenario as test 3
+      for (auto& cablingError : cablingErrors) {
+        updateMap[swPort].ledExternalState = cablingError;
+        ledManager_->updateLedStatus(updateMap);
+        if (ledManager_->portsUpAndCorrectReachability(swPort) > 0) {
+          checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
+          checkLedBlink(
+              swPort,
+              blinkSupported ? led::Blink::FAST : led::Blink::OFF,
+              testNum);
+        }
+
+        // Go back to no cabling error. LED state is same as before
+        updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
+        ledManager_->updateLedStatus(updateMap);
+        checkLedColor(swPort, colorBefore, ++testNum);
+        checkLedBlink(
+            swPort,
+            blinkSupported ? led::Blink::FAST : led::Blink::OFF,
+            testNum);
+      }
+
+      // 9- Test Mismatched Neighbor (resulting in cabling error). Same scenario
+      // as test 3.
+      updateMap[swPort].mismatchedNeighbor = true;
+      ledManager_->updateLedStatus(updateMap);
+      if (ledManager_->portsUpAndCorrectReachability(swPort) > 0) {
+        checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
+        checkLedBlink(
+            swPort,
+            blinkSupported ? led::Blink::FAST : led::Blink::OFF,
+            testNum);
+      }
+
+      // 10- Go back to no cabling error. LED state is same as before
+      updateMap[swPort].mismatchedNeighbor = false;
+      ledManager_->updateLedStatus(updateMap);
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      // Now that we are drained, we want to play with the Rx LOS for the port.
+      auto createSignals =
+          [&](uint16_t size,
+              uint16_t bitsLos) -> std::vector<MediaLaneSignals> {
+        std::vector<MediaLaneSignals> ret(size);
+        CHECK(bitsLos <= size);
+        for (uint16_t i = 0; i < bitsLos; i++) {
+          ret[i].rxLos() = true;
+        }
+        for (uint16_t i = bitsLos; i < size; i++) {
+          ret[i].rxLos() = false;
+        }
+        return ret;
+      };
+
+      LedManager::LedTransceiverStateUpdate tcvrUpdate;
+      tcvrUpdate.present = true;
+      tcvrUpdate.mediaLaneSignals = createSignals(2, 0);
+      tcvrUpdate.portNameToMediaLanes[swPortName.value()] = {1, 2};
+      std::map<int, LedManager::LedTransceiverStateUpdate> xcvrLosMap;
+      xcvrLosMap[tcvr] = tcvrUpdate;
+      ledManager_->updateLedStatus(xcvrLosMap);
+
+      // 11- Led color/blink remains same if all RX LOS are not in port, as long
+      // as the port is not down
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      // 12- set 1 lanes with LOS
+      tcvrUpdate.mediaLaneSignals = createSignals(2, 1);
+      xcvrLosMap[tcvr] = tcvrUpdate;
+      ledManager_->updateLedStatus(xcvrLosMap);
+      // Led color/blink remains same if all RX LOS are cleared in port, as long
+      // as the port is not down
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      // 13- set all lanes with LOS
+      tcvrUpdate.mediaLaneSignals = createSignals(2, 2);
+      xcvrLosMap[tcvr] = tcvrUpdate;
+      ledManager_->updateLedStatus(xcvrLosMap);
+      // Led color/blink remains same if all RX LOS are cleared in port, as long
+      // as the port is not down
+      checkLedColor(swPort, colorBefore, ++testNum);
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
+
+      // 14- As soon as port goes down, we will check how many ports have all
+      // lanes with LOS. If some lanes have LOS, we will be YELLOW + blink slow
+      // otherwise, we will be BLUE + blink slow (indicating some light is
+      // detected)
+      updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
+      updateMap[swPort].operState = false;
+      ledManager_->updateLedStatus(updateMap);
+
+      // Platforms that support LED blinking + RX Los choice: When drained
+      // the led color will depend on how many ports have neighbors that
+      // are also seeing LOS (i.e. BMC-Lite platforms excluding Darwin)
+      // For platforms that dont support blinking, since the port operState is
+      // down, the LED will be off (i.e. Pre BMC-Lite platforms)
+      if (blinkSupported) {
+        if (ledManager_->areAllNeighborsRxLos(swPort)) {
+          checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
+        } else {
+          checkLedColor(swPort, led::LedColor::BLUE, ++testNum);
+        }
+      } else {
+        checkLedColor(swPort, led::LedColor::OFF, ++testNum);
+      }
+      // Blinking should be slow if there is an LOS detected.
+      checkLedBlink(
+          swPort, blinkSupported ? led::Blink::SLOW : led::Blink::OFF, testNum);
     }
   }
 }

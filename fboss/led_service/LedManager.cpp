@@ -319,4 +319,38 @@ led::PortLedState LedManager::getPortLedState(
   return portLedState;
 }
 
+/*
+ * areAllNeighborsRxLos
+ * Multiple ports can control the same LED. This function will return true if
+ * all the neighbors of a port are in Rx LOS state. LOS State means that
+ * all the lanes of the port are in LOS state.
+ */
+bool LedManager::areAllNeighborsRxLos(uint32_t portID) const {
+  auto itr = portDisplayMap_.find(portID);
+  if (itr == portDisplayMap_.end()) {
+    throw(std::runtime_error(
+        folly::sformat("Port {:d} not found in portLosMap_", portID)));
+  }
+  auto neighborInfo = itr->second.portNeighborState;
+  if (neighborInfo.portsWithAllLanesRxLos == neighborInfo.totalPorts) {
+    return true;
+  }
+  return false;
+}
+
+/*
+ * portsUpAndCorrectReachability
+ * For the number of ports that control the same LED, return the number of
+ * ports that are up and have the correct reachability.
+ */
+uint32_t LedManager::portsUpAndCorrectReachability(uint32_t portID) const {
+  auto itr = portDisplayMap_.find(portID);
+  if (itr == portDisplayMap_.end()) {
+    throw(std::runtime_error(
+        folly::sformat("Port {:d} not found in portLosMap_", portID)));
+  }
+  auto neighborInfo = itr->second.portNeighborState;
+  return neighborInfo.portsUpAndCorrectReachability;
+}
+
 } // namespace facebook::fboss
