@@ -281,8 +281,66 @@ void BspLedManager::setLedState(
   auto tcvrId = platformMapping_->getTransceiverIdFromSwPort(PortID(portId));
   auto ledControllers = bspSystemContainer_->getLedController(tcvrId + 1);
 
-  for (auto& ledController : ledControllers) {
+  // A special scenario where a single port controls more than 1 led and
+  // the port is down and drained (i.e. Slow blink).
+  // In this case, we will set the LEDs to match the LOS status per led to the
+  // associated lanes to clarify which fibers are getting a signal v.s
+  // ones not getting a signal.
+  if (ledState.blink() == led::Blink::SLOW && ledIds.size() > 1) {
+    // In this scenario, we want individual LEDs to represent the
+    // LOS lanes in the port.
+    setLedBasedOnLOS(portId, ledIds, ledControllers, ledState);
+  } else {
+    for (auto& ledController : ledControllers) {
+      if (ledIds.count(ledController.first)) {
+        ledController.second.first->setLedState(ledState);
+      }
+    }
+  }
+}
+
+void BspLedManager::setLedBasedOnLOS(
+    const uint32_t portId,
+    const std::set<int>& ledIds,
+    const std::map<uint32_t, std::pair<LedIO*, std::set<int>>>& controllers,
+    led::LedState ledState) {
+  auto itr = portLosMap_.find(portId);
+  if (itr == portLosMap_.end()) {
+    XLOG(ERR) << "No entry in LOS map for the port " << portId;
+    return;
+  }
+  const auto& rxLos = itr->second.rxLos;
+  if (!rxLos.has_value()) {
+    XLOG(ERR) << "No Los value is set for the port " << portId;
+    return;
+  }
+  const auto& losMap = rxLos.value();
+
+  // For Each of the led controllers, check if all the lanes
+  // in the led controller are seeing LOS, if so set individual
+  // LED to Yellow.
+  for (const auto& ledController : controllers) {
     if (ledIds.count(ledController.first)) {
+      bool allLanesLos = true;
+      for (const auto& lane : ledController.second.second) {
+        auto itr2 = losMap.find(lane);
+        if (itr2 == losMap.end()) {
+          XLOG(ERR) << "No entry in LOS map for lane " << lane << " in port "
+                    << portId;
+        } else if (itr2->second == false) {
+          allLanesLos = false;
+          break;
+        }
+      }
+      if (allLanesLos) {
+        ledState.ledColor() = led::LedColor::YELLOW;
+      } else {
+        ledState.ledColor() = led::LedColor::BLUE;
+      }
+      XLOG(INFO) << "Los Control: Setting LED to "
+                 << apache::thrift::util::enumNameSafe(
+                        ledState.ledColor().value())
+                 << " for port " << portId << " led " << ledController.first;
       ledController.second.first->setLedState(ledState);
     }
   }

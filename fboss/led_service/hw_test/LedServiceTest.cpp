@@ -14,9 +14,12 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/agent/EnumUtils.h"
+#include "fboss/led_service/BspLedManager.h"
 #include "fboss/led_service/LedManager.h"
 #include "fboss/led_service/LedUtils.h"
 #include "fboss/led_service/hw_test/LedServiceTest.h"
+#include "fboss/lib/bsp/BspSystemContainer.h"
+#include "fboss/lib/led/LedIO.h"
 
 namespace facebook::fboss {
 
@@ -593,6 +596,81 @@ TEST_F(LedServiceTest, testTcvrLos) {
       // Blinking should be slow if there is an LOS detected.
       checkLedBlink(
           swPort, blinkSupported ? led::Blink::SLOW : led::Blink::OFF, testNum);
+
+      // 15- For multi-LED ports, test per-LED color differentiation.
+      // When a port controls multiple LEDs and is in SLOW blink mode
+      // (drained + down), each LED should individually show YELLOW
+      // (all its lanes have LOS) or BLUE (some lanes have signal).
+      auto* bspMgr = dynamic_cast<BspLedManager*>(ledManager_);
+      if (bspMgr && blinkSupported) {
+        auto ledCtrls =
+            bspMgr->getBspSystemContainer()->getLedController(tcvr + 1);
+        auto portLedIds = bspMgr->getLedIdFromSwPort(swPort, profile);
+
+        // Filter LED controllers to those belonging to this port
+        std::map<uint32_t, std::pair<LedIO*, std::set<int>>> portLedCtrls;
+        for (const auto& [ledId, ctrlPair] : ledCtrls) {
+          if (portLedIds.count(ledId)) {
+            portLedCtrls[ledId] = ctrlPair;
+          }
+        }
+
+        if (portLedCtrls.size() > 1) {
+          ++testNum;
+          XLOG(INFO) << "Testing multi-LED port " << swPort << " with "
+                     << portLedCtrls.size() << " LEDs for test " << testNum;
+
+          // Collect all lanes from this port's LED controllers
+          std::vector<int> allPortLanes;
+          int maxLane = 0;
+          for (const auto& [ledId, ctrlPair] : portLedCtrls) {
+            for (auto lane : ctrlPair.second) {
+              allPortLanes.push_back(lane);
+              maxLane = std::max(maxLane, lane);
+            }
+          }
+
+          // Create signals with mixed LOS: first LED's lanes have LOS,
+          // remaining LEDs' lanes have signal
+          std::vector<MediaLaneSignals> signals(maxLane + 1);
+          auto firstLedIt = portLedCtrls.begin();
+          for (auto lane : firstLedIt->second.second) {
+            signals[lane].rxLos() = true;
+          }
+          for (auto it = std::next(firstLedIt); it != portLedCtrls.end();
+               ++it) {
+            for (auto lane : it->second.second) {
+              signals[lane].rxLos() = false;
+            }
+          }
+
+          tcvrUpdate.mediaLaneSignals = signals;
+          tcvrUpdate.portNameToMediaLanes[swPortName.value()] = allPortLanes;
+          xcvrLosMap[tcvr] = tcvrUpdate;
+          ledManager_->updateLedStatus(xcvrLosMap);
+
+          // First LED: all its lanes have LOS -> YELLOW + SLOW
+          auto firstLedState = firstLedIt->second.first->getLedState();
+          EXPECT_EQ(firstLedState.ledColor().value(), led::LedColor::YELLOW)
+              << "First LED should be YELLOW for port " << swPortName.value()
+              << " test " << testNum;
+          EXPECT_EQ(firstLedState.blink().value(), led::Blink::SLOW)
+              << "First LED should blink SLOW for port " << swPortName.value()
+              << " test " << testNum;
+
+          // Remaining LEDs: some lanes have signal -> BLUE + SLOW
+          for (auto it = std::next(firstLedIt); it != portLedCtrls.end();
+               ++it) {
+            auto ledState = it->second.first->getLedState();
+            EXPECT_EQ(ledState.ledColor().value(), led::LedColor::BLUE)
+                << "LED " << it->first << " should be BLUE for port "
+                << swPortName.value() << " test " << testNum;
+            EXPECT_EQ(ledState.blink().value(), led::Blink::SLOW)
+                << "LED " << it->first << " should blink SLOW for port "
+                << swPortName.value() << " test " << testNum;
+          }
+        }
+      }
     }
   }
 }
