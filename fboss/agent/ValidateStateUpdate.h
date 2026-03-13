@@ -36,7 +36,7 @@ bool isStateUpdateValidMultiSwitch(
 
 class StateUpdateValidator {
  public:
-  bool isValidUpdate(const StateDelta& delta, SwitchStats* stats) const;
+  bool isValidUpdate(const StateDelta& delta, SwitchStats* stats);
   StateUpdateValidator(
       const cfg::AgentRunMode& runMode,
       const HwSwitchHandler* hwSwitchHandler,
@@ -51,9 +51,9 @@ class StateUpdateValidator {
   }
 
  private:
-  bool isValidUpdateCommon(const StateDelta& delta) const;
+  bool isValidUpdateCommon(const StateDelta& delta);
   bool isValidUpdateMultiSwitch(const StateDelta& delta) const;
-  bool hasSingleNbrMacPerIntf(const StateDelta& delta) const;
+  bool hasSingleNbrMacPerIntf(const StateDelta& delta);
 
   cfg::AgentRunMode runMode_;
   const HwSwitchHandler* hwSwitchHandler_;

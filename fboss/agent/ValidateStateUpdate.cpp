@@ -272,7 +272,7 @@ StateUpdateValidator::StateUpdateValidator(
 
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
-    SwitchStats* stats) const {
+    SwitchStats* stats) {
   if (!resourceAccountant_->isValidUpdate(delta)) {
     stats->resourceAccountantRejectedUpdates();
     XLOG(ERR) << "State updated rejected by resource accountant.";
@@ -301,7 +301,7 @@ bool StateUpdateValidator::isValidUpdate(
   return true;
 }
 
-bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) const {
+bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) {
   if (!isStateUpdateValidCommon(delta, asicTable_)) {
     return false;
   }
@@ -312,7 +312,7 @@ bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) const {
 }
 
 bool StateUpdateValidator::hasSingleNbrMacPerIntf(
-    const StateDelta& /* delta */) const {
+    const StateDelta& /* delta */) {
   // TODO: Implement single neighbor MAC per interface validation
   return true;
 }
