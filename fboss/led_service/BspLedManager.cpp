@@ -283,7 +283,7 @@ void BspLedManager::setLedState(
 
   for (auto& ledController : ledControllers) {
     if (ledIds.count(ledController.first)) {
-      ledController.second->setLedState(ledState);
+      ledController.second.first->setLedState(ledState);
     }
   }
 }
@@ -316,7 +316,7 @@ std::set<led::LedState> BspLedManager::getLedStateFromHW(
   for (auto& ledController :
        bspSystemContainer_->getLedController(tcvrId + 1)) {
     if (ledIds.count(ledController.first)) {
-      ledStates.insert(ledController.second->getLedState());
+      ledStates.insert(ledController.second.first->getLedState());
     }
   }
   return ledStates;

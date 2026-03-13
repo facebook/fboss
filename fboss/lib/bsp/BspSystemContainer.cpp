@@ -122,15 +122,16 @@ std::pair<uint64_t, uint64_t> BspSystemContainer::getI2cTimeProfileMsec(
   return getPimContainerFromTcvrID(tcvrID)->getI2cTimeProfileMsec(tcvrID);
 }
 
-std::map<uint32_t, LedIO*> BspSystemContainer::getLedController(
-    int tcvrID) const {
-  std::map<uint32_t, LedIO*> ledControllers;
+std::map<uint32_t, std::pair<LedIO*, std::set<int>>>
+BspSystemContainer::getLedController(int tcvrID) const {
+  std::map<uint32_t, std::pair<LedIO*, std::set<int>>> ledControllers;
 
   auto ledContainers =
       getPimContainerFromTcvrID(tcvrID)->getLedContainer(tcvrID);
   for (auto& ledContainer : ledContainers) {
-    ledControllers[ledContainer.first] =
-        ledContainer.second->getLedController();
+    ledControllers[ledContainer.first] = std::make_pair(
+        ledContainer.second.first->getLedController(),
+        ledContainer.second.second);
   }
   return ledControllers;
 }
