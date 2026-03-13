@@ -11,21 +11,21 @@
 namespace facebook::fboss {
 
 /*
- * subscribeToSwitchState
+ * subscribeToStates
  *
  * This function subscribes the state callback to FSDB Port Info updates. The
  * callback will update the Led Manager synchronized port info map
  */
-void FsdbSwitchStateSubscriber::subscribeToSwitchState(LedManager* ledManager) {
+void FsdbSwitchStateSubscriber::subscribeToStates(LedManager* ledManager) {
   subscribeToState(getSwitchStatePath(), ledManager);
 }
 
 /*
- * removeSwitchStateSubscription
+ * removeStateSubscriptions
  *
- * This function removes the switch state subscription from FSDB
+ * This function removes the subscriptions to FSDB
  */
-void FsdbSwitchStateSubscriber::removeSwitchStateSubscription() {
+void FsdbSwitchStateSubscriber::removeStateSubscriptions() {
   removeStateSubscribe(getSwitchStatePath());
 }
 
@@ -36,7 +36,7 @@ void FsdbSwitchStateSubscriber::removeSwitchStateSubscription() {
  * a given path.
  */
 void FsdbSwitchStateSubscriber::subscribeToState(
-    const std::vector<std::string>& path,
+    const std::vector<std::string>& switchStatePath,
     LedManager* ledManager) {
   // Subscribe to FSDB only if the LED config is enabled
   if (!ledManager || !ledManager->isLedControlledThroughService()) {
@@ -47,7 +47,7 @@ void FsdbSwitchStateSubscriber::subscribeToState(
   auto stateCb = [](fsdb::SubscriptionState /*old*/,
                     fsdb::SubscriptionState /*new*/,
                     std::optional<bool> /*initialSyncHasData*/) {};
-  auto dataCb = [=](fsdb::OperState&& state) {
+  auto switchDataCb = [=](fsdb::OperState&& state) {
     if (auto contents = state.contents()) {
       // Deserialize the FSDB update to switch state struct. This will be
       // used by LED manager thread later
@@ -113,8 +113,13 @@ void FsdbSwitchStateSubscriber::subscribeToState(
       }
     }
   };
-  pubSubMgr()->addStatePathSubscription(path, stateCb, dataCb);
-  XLOG(INFO) << "LED Service Subscribed to FSDB switch state path";
+  pubSubMgr()->addStatePathSubscription(switchStatePath, stateCb, switchDataCb);
+  std::string fullPathSwitch;
+  for (auto& path : switchStatePath) {
+    fullPathSwitch += "/" + path;
+  }
+  XLOG(INFO) << "LED Service Subscribed to FSDB switch state path"
+             << fullPathSwitch;
 }
 
 /*
@@ -124,9 +129,13 @@ void FsdbSwitchStateSubscriber::subscribeToState(
  * path
  */
 void FsdbSwitchStateSubscriber::removeStateSubscribe(
-    const std::vector<std::string>& path) {
-  pubSubMgr()->removeStatePathSubscription(path);
-  XLOG(INFO) << "LED Service Removed from FSDB subscription";
+    const std::vector<std::string>& switchPath) {
+  pubSubMgr()->removeStatePathSubscription(switchPath);
+  std::string fullPathSwitch;
+  for (auto& path : switchPath) {
+    fullPathSwitch += "/" + path;
+  }
+  XLOG(INFO) << "LED Service Removed from FSDB subscription" << fullPathSwitch;
 }
 
 } // namespace facebook::fboss

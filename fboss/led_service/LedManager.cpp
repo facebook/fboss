@@ -36,7 +36,7 @@ void LedManager::subscribeToFsdb() {
   fsdbPubSubMgr_ = std::make_unique<fsdb::FsdbPubSubManager>("led_service");
   fsdbSwitchStateSubscriber_ =
       std::make_unique<FsdbSwitchStateSubscriber>(fsdbPubSubMgr_.get());
-  fsdbSwitchStateSubscriber_->subscribeToSwitchState(this);
+  fsdbSwitchStateSubscriber_->subscribeToStates(this);
 }
 
 /*
@@ -46,7 +46,7 @@ void LedManager::subscribeToFsdb() {
  */
 LedManager::~LedManager() {
   if (fsdbSwitchStateSubscriber_) {
-    fsdbSwitchStateSubscriber_->removeSwitchStateSubscription();
+    fsdbSwitchStateSubscriber_->removeStateSubscriptions();
     XLOG(INFO) << "Removed LED manager subscription from FSDB";
   }
 
