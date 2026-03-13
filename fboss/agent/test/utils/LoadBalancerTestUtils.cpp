@@ -51,6 +51,12 @@ cfg::Fields getFullHashFields() {
   return hashFields;
 }
 
+cfg::Fields getFullHashFieldsWithFlowLabel() {
+  auto hashFields = getFullHashFields();
+  hashFields.ipv6Fields()->insert(cfg::IPv6Field::FLOW_LABEL);
+  return hashFields;
+}
+
 cfg::Fields getFullHashUdf() {
   auto hashFields = getHalfHashFields();
   hashFields.transportFields() = std::set<cfg::TransportField>(
@@ -94,7 +100,23 @@ cfg::LoadBalancer getFullHashUdfConfig(
   *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
   return loadBalancer;
 }
+cfg::LoadBalancer getFullHashWithFlowLabelConfig(
+    const HwAsic& asic,
+    cfg::LoadBalancerID id) {
+  cfg::LoadBalancer loadBalancer;
+  *loadBalancer.id() = id;
+  if (asic.isSupported(HwAsic::Feature::HASH_FIELDS_CUSTOMIZATION)) {
+    *loadBalancer.fieldSelection() = getFullHashFieldsWithFlowLabel();
+  }
+  *loadBalancer.algorithm() = cfg::HashingAlgorithm::CRC16_CCITT;
+  return loadBalancer;
+}
 } // namespace
+cfg::LoadBalancer getEcmpFullWithFlowLabelHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getFullHashWithFlowLabelConfig(
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+}
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
