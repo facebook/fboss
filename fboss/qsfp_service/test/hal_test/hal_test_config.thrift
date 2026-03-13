@@ -17,6 +17,7 @@ struct HalTestTransceiverEntry {
 
 struct HalTestMediaInterfaceConfig {
   1: list<TcvrOperationalMode> supportedModes = [];
+  2: list<list<TcvrOperationalMode>> speedChangeTransitions = [];
 }
 
 struct HalTestConfig {
@@ -53,6 +54,20 @@ const map<
       TcvrOperationalMode.MODE_2x200G_FR4,
       TcvrOperationalMode.MODE_8x100G_FR1,
     ],
+    "speedChangeTransitions": [
+      [
+        TcvrOperationalMode.MODE_2x400G_FR4,
+        TcvrOperationalMode.MODE_2x200G_FR4,
+      ],
+      [
+        TcvrOperationalMode.MODE_2x200G_FR4,
+        TcvrOperationalMode.MODE_200G_FR4_400G_FR4,
+      ],
+      [
+        TcvrOperationalMode.MODE_2x400G_FR4,
+        TcvrOperationalMode.MODE_400G_FR4_200G_FR4,
+      ],
+    ],
   },
   transceiver.MediaInterfaceCode.DR4_2x800G: {
     "supportedModes": [
@@ -61,5 +76,6 @@ const map<
       TcvrOperationalMode.MODE_8x200G_DR1,
       TcvrOperationalMode.MODE_8x100G_DR1,
     ],
+    "speedChangeTransitions": [],
   },
 };

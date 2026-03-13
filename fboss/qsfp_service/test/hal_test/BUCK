@@ -69,6 +69,8 @@ cpp_binary(
     deps = [
         "fbsource//third-party/googletest:gtest",
         ":hal_test_base",
+        ":hal_test_config-cpp2-types",
+        ":hal_test_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module:qsfp-module",
         "//folly/init:init",

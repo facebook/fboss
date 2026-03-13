@@ -1,13 +1,16 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <algorithm>
+#include <utility>
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/test/hal_test/HalTest.h"
+#include "fboss/qsfp_service/test/hal_test/HalTestUtils.h"
 
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/test/hal_test/gen-cpp2/hal_test_config_constants.h"
 
 namespace facebook::fboss {
 
@@ -117,50 +120,60 @@ INSTANTIATE_TEST_SUITE_P(
       return std::string(apache::thrift::util::enumNameSafe(info.param));
     });
 
-// Individual per-transition tests that program a transceiver from one mode
-// to another without a hard reset in between. Each test skips transceivers
-// that don't support both modes.
+// Parameterized test fixture for speed-change transitions. Transitions are
+// defined in the thrift config (speedChangeTransitions). At static init time
+// we use DEFAULT_MEDIA_INTERFACE_CONFIGS; at runtime the test body checks
+// the actual config via isSpeedChangeSupportedForModule().
 
-#define MODE_CHANGE_TEST(FROM_MODE, TO_MODE)                                   \
-  TEST_F(HalTest, speedChange_##FROM_MODE##_to_##TO_MODE) {                    \
-    bool tested = false;                                                       \
-    for (auto tcvrId : getPresentTransceiverIds()) {                           \
-      auto* module = getModule(tcvrId);                                        \
-      auto* cmisModule = dynamic_cast<CmisModule*>(module);                    \
-      ASSERT_NE(cmisModule, nullptr)                                           \
-          << "Transceiver " << tcvrId << " is not CMIS";                       \
-      module->refresh();                                                       \
-      if (!isModeSupported(                                                    \
-              module, getConfig(), TcvrOperationalMode::FROM_MODE) ||          \
-          !isModeSupported(                                                    \
-              module, getConfig(), TcvrOperationalMode::TO_MODE)) {            \
-        XLOG(INFO) << "Transceiver " << tcvrId                                 \
-                   << " does not support transition " #FROM_MODE               \
-                      " -> " #TO_MODE ", skipping";                            \
-        continue;                                                              \
-      }                                                                        \
-      tested = true;                                                           \
-      auto fromState = hal_test::createProgramTransceiverState(                \
-          TcvrOperationalMode::FROM_MODE);                                     \
-      module->programTransceiver(fromState, true);                             \
-      verifyMediaInterfaceCodes(                                               \
-          module, tcvrId, TcvrOperationalMode::FROM_MODE);                     \
-      auto toState = hal_test::createProgramTransceiverState(                  \
-          TcvrOperationalMode::TO_MODE);                                       \
-      module->programTransceiver(toState, true);                               \
-      verifyMediaInterfaceCodes(module, tcvrId, TcvrOperationalMode::TO_MODE); \
-      module->programTransceiver(fromState, true);                             \
-      verifyMediaInterfaceCodes(                                               \
-          module, tcvrId, TcvrOperationalMode::FROM_MODE);                     \
-    }                                                                          \
-    if (!tested) {                                                             \
-      GTEST_SKIP() << "No transceiver supports transition "                    \
-                   << #FROM_MODE " -> " #TO_MODE;                              \
-    }                                                                          \
+class HalTestSpeedChange
+    : public HalTest,
+      public ::testing::WithParamInterface<
+          std::pair<TcvrOperationalMode, TcvrOperationalMode>> {};
+
+TEST_P(HalTestSpeedChange, speedChange) {
+  auto [fromMode, toMode] = GetParam();
+  bool tested = false;
+  for (auto tcvrId : getPresentTransceiverIds()) {
+    auto* module = getModule(tcvrId);
+    auto* cmisModule = dynamic_cast<CmisModule*>(module);
+    ASSERT_NE(cmisModule, nullptr)
+        << "Transceiver " << tcvrId << " is not CMIS";
+    module->refresh();
+    if (!hal_test::isSpeedChangeSupportedForModule(
+            module, getConfig(), fromMode, toMode)) {
+      XLOG(INFO) << "Transceiver " << tcvrId << " does not support transition "
+                 << apache::thrift::util::enumNameSafe(fromMode) << " -> "
+                 << apache::thrift::util::enumNameSafe(toMode) << ", skipping";
+      continue;
+    }
+    tested = true;
+    auto fromState = hal_test::createProgramTransceiverState(fromMode);
+    module->programTransceiver(fromState, true);
+    verifyMediaInterfaceCodes(module, tcvrId, fromMode);
+    auto toState = hal_test::createProgramTransceiverState(toMode);
+    module->programTransceiver(toState, true);
+    verifyMediaInterfaceCodes(module, tcvrId, toMode);
+    module->programTransceiver(fromState, true);
+    verifyMediaInterfaceCodes(module, tcvrId, fromMode);
   }
+  if (!tested) {
+    GTEST_SKIP() << "No transceiver supports transition "
+                 << apache::thrift::util::enumNameSafe(fromMode) << " -> "
+                 << apache::thrift::util::enumNameSafe(toMode);
+  }
+}
 
-MODE_CHANGE_TEST(MODE_2x400G_FR4, MODE_2x200G_FR4)
-MODE_CHANGE_TEST(MODE_2x200G_FR4, MODE_200G_FR4_400G_FR4)
-MODE_CHANGE_TEST(MODE_2x400G_FR4, MODE_400G_FR4_200G_FR4)
+INSTANTIATE_TEST_SUITE_P(
+    SpeedChange,
+    HalTestSpeedChange,
+    testing::ValuesIn(
+        hal_test::getAllSpeedChangeTransitions(
+            hal_test_config_constants::DEFAULT_MEDIA_INTERFACE_CONFIGS())),
+    [](const testing::TestParamInfo<
+        std::pair<TcvrOperationalMode, TcvrOperationalMode>>& info) {
+      return std::string(apache::thrift::util::enumNameSafe(info.param.first)) +
+          "_to_" +
+          std::string(apache::thrift::util::enumNameSafe(info.param.second));
+    });
 
 } // namespace facebook::fboss

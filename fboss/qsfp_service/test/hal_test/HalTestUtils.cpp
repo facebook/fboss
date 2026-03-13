@@ -239,4 +239,38 @@ getMediaInterfaceConfigs(const HalTestConfig& config) {
   return *config.mediaInterfaceConfigs();
 }
 
+std::vector<std::pair<TcvrOperationalMode, TcvrOperationalMode>>
+getAllSpeedChangeTransitions(
+    const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>& configs) {
+  std::vector<std::pair<TcvrOperationalMode, TcvrOperationalMode>> result;
+  for (const auto& [_, mediaConfig] : configs) {
+    for (const auto& transition : *mediaConfig.speedChangeTransitions()) {
+      if (transition.size() == 2) {
+        result.emplace_back(transition[0], transition[1]);
+      }
+    }
+  }
+  return result;
+}
+
+bool isSpeedChangeSupportedForModule(
+    QsfpModule* module,
+    const HalTestConfig& config,
+    TcvrOperationalMode from,
+    TcvrOperationalMode to) {
+  auto mediaInterface = module->getModuleMediaInterface();
+  const auto& mediaConfigs = getMediaInterfaceConfigs(config);
+  auto it = mediaConfigs.find(mediaInterface);
+  if (it == mediaConfigs.end()) {
+    return false;
+  }
+  for (const auto& transition : *it->second.speedChangeTransitions()) {
+    if (transition.size() == 2 && transition[0] == from &&
+        transition[1] == to) {
+      return true;
+    }
+  }
+  return false;
+}
+
 } // namespace facebook::fboss::hal_test

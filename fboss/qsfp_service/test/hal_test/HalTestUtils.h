@@ -5,6 +5,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
@@ -48,5 +50,18 @@ std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
 // otherwise falls back to the thrift const default.
 const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>&
 getMediaInterfaceConfigs(const HalTestConfig& config);
+
+// Collect all speed-change transitions from a media-interface config map.
+std::vector<std::pair<TcvrOperationalMode, TcvrOperationalMode>>
+getAllSpeedChangeTransitions(
+    const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>& configs);
+
+// Check if a module's media interface code has a given transition in its
+// config.
+bool isSpeedChangeSupportedForModule(
+    QsfpModule* module,
+    const HalTestConfig& config,
+    TcvrOperationalMode from,
+    TcvrOperationalMode to);
 
 } // namespace facebook::fboss::hal_test
