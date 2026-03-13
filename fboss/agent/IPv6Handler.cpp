@@ -222,8 +222,7 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfIDOpt =
-        sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
     if (intfIDOpt) {
       intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
     }
@@ -240,8 +239,7 @@ void IPv6Handler::handlePacket(
     } else {
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
-      auto intfIDOpt =
-          sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+      auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
       if (intfIDOpt) {
         intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
       }

@@ -308,8 +308,7 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    auto intfIDOpt =
-        sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
     if (intfIDOpt) {
       intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
     }
