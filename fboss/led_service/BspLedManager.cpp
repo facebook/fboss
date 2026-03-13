@@ -89,12 +89,12 @@ std::vector<uint32_t> BspLedManager::getCommonLedSwPorts(
   commonSwPorts.push_back(portId);
 
   for (auto swPort : allSwPortsForTcvr) {
-    if (PortID(portId) == swPort ||
-        portDisplayMap_.find(swPort) == portDisplayMap_.end()) {
+    auto itr = portDisplayMap_.find(swPort);
+    if (PortID(portId) == swPort || itr == portDisplayMap_.end()) {
       continue;
     }
 
-    auto thisPortProfile = portDisplayMap_.at(swPort).portProfileId;
+    auto thisPortProfile = itr->second.portProfileId;
     auto thisSwPortLedIds = getLedIdFromSwPort(swPort, thisPortProfile);
     if (anyLedMatch(currSwPortLedIds, thisSwPortLedIds)) {
       commonSwPorts.push_back(swPort);
@@ -134,28 +134,23 @@ led::LedState BspLedManager::calculateLedState(
         led::LedColor::UNKNOWN, led::Blink::UNKNOWN);
   }
 
-  uint32_t totalPorts{0}, portsUpAndCorrectReachability{0},
-      portsWithAllLanesRxLos{0};
-  bool anyForcedOn{false}, anyForcedOff{false};
-  bool anyUndrainedPort{false};
-  bool anyPortUp{false};
-
+  PortNeighborState pNState;
   for (auto swPort : commonSwPorts) {
     auto itr2 = portDisplayMap_.find(swPort);
     if (itr2 == portDisplayMap_.end()) {
       continue;
     }
     const auto& portDisplayInfo = itr2->second;
-    totalPorts++;
-    portsUpAndCorrectReachability =
+    pNState.totalPorts++;
+    pNState.portsUpAndCorrectReachability =
         portDisplayInfo.operationStateUp && !portDisplayInfo.cablingError
-        ? portsUpAndCorrectReachability + 1
-        : portsUpAndCorrectReachability;
-    anyPortUp |= portDisplayInfo.operationStateUp;
+        ? pNState.portsUpAndCorrectReachability + 1
+        : pNState.portsUpAndCorrectReachability;
+    pNState.anyPortUp |= portDisplayInfo.operationStateUp;
 
-    anyForcedOn |= portDisplayInfo.forcedOn;
-    anyForcedOff |= portDisplayInfo.forcedOff;
-    anyUndrainedPort |= !portDisplayInfo.drained;
+    pNState.anyForcedOn |= portDisplayInfo.forcedOn;
+    pNState.anyForcedOff |= portDisplayInfo.forcedOff;
+    pNState.anyUndrainedPort |= !portDisplayInfo.drained;
 
     auto itrLos = portLosMap_.find(swPort);
     if (itrLos != portLosMap_.end()) {
@@ -170,26 +165,26 @@ led::LedState BspLedManager::calculateLedState(
           }
         }
         if (allLanesRxLos) {
-          portsWithAllLanesRxLos++;
+          pNState.portsWithAllLanesRxLos++;
         }
       }
     }
   }
 
   // Sanity check warning
-  if (anyForcedOn && anyForcedOff) {
+  if (pNState.anyForcedOn && pNState.anyForcedOff) {
     XLOG(WARN) << fmt::format(
         "Port {:s} LED is Forced inconsistently On and Off. Forcing it on",
         portName);
-    anyForcedOn = true;
-    anyForcedOff = false;
+    pNState.anyForcedOn = true;
+    pNState.anyForcedOff = false;
   }
 
   // Foced LED value overrides the status
-  if (anyForcedOn) {
+  if (pNState.anyForcedOn) {
     XLOG(DBG2) << fmt::format("Port {:d} Forced On", portId);
     return utility::constructLedState(led::LedColor::BLUE, led::Blink::OFF);
-  } else if (anyForcedOff) {
+  } else if (pNState.anyForcedOff) {
     XLOG(DBG2) << fmt::format("Port {:d} Forced Off", portId);
     return utility::constructLedState(led::LedColor::OFF, led::Blink::OFF);
   }
@@ -214,25 +209,26 @@ led::LedState BspLedManager::calculateLedState(
   led::LedColor currPortColor{led::LedColor::OFF};
   led::Blink currBlink{led::Blink::OFF};
 
-  if (anyUndrainedPort) {
+  if (pNState.anyUndrainedPort) {
     currBlink = led::Blink::OFF;
-    if (portsUpAndCorrectReachability == totalPorts) {
+    if (pNState.portsUpAndCorrectReachability == pNState.totalPorts) {
       currPortColor = led::LedColor::BLUE;
-    } else if (anyPortUp) {
+    } else if (pNState.anyPortUp) {
       currPortColor = led::LedColor::YELLOW;
     } else {
       currPortColor = led::LedColor::OFF;
     }
   } else {
-    if (portsUpAndCorrectReachability == totalPorts) {
+    if (pNState.portsUpAndCorrectReachability == pNState.totalPorts) {
       currPortColor = led::LedColor::BLUE;
       currBlink = led::Blink::FAST;
-    } else if (anyPortUp) {
+    } else if (pNState.anyPortUp) {
       currPortColor = led::LedColor::YELLOW;
       currBlink = led::Blink::FAST;
     } else {
-      // portsUpAndCorrectReachability == 0
-      if (portsWithAllLanesRxLos < totalPorts) {
+      // No port is up, now check if there is any port has some light incoming
+      // vs no light
+      if (pNState.portsWithAllLanesRxLos < pNState.totalPorts) {
         currPortColor = led::LedColor::BLUE;
         currBlink = led::Blink::SLOW;
       } else {
@@ -242,16 +238,24 @@ led::LedState BspLedManager::calculateLedState(
     }
   }
 
-  XLOG(DBG3) << fmt::format(
-      "Port {:s}, totalPorts={:d} portsUpAndCorrectReachability={:d} portsWithAllLanesRxLos={:d} anyUndrainedPort={:s} ledColor={:s} ledBlink={:s}",
-      portName,
-      totalPorts,
-      portsUpAndCorrectReachability,
-      portsWithAllLanesRxLos,
-      anyUndrainedPort ? "True" : "False",
-      apache::thrift::util::enumNameSafe(currPortColor),
-      apache::thrift::util::enumNameSafe(currBlink));
-  return utility::constructLedState(currPortColor, currBlink);
+  auto newLedState = utility::constructLedState(currPortColor, currBlink);
+  if (newLedState != itr->second.currentLedState ||
+      pNState != itr->second.portNeighborState) {
+    itr->second.portNeighborState = pNState;
+    XLOG(ERR) << fmt::format(
+        "Port {:s} ledChanged={:s} totalPorts={:d} portsUpAndCorrectReachability={:d} portsWithAllLanesRxLos={:d} anyUndrainedPort={:s} operState={:s} anyPortUp={:s} ledColor={:s} ledBlink={:s}",
+        portName,
+        newLedState != itr->second.currentLedState ? "True" : "False",
+        pNState.totalPorts,
+        pNState.portsUpAndCorrectReachability,
+        pNState.portsWithAllLanesRxLos,
+        pNState.anyUndrainedPort ? "True" : "False",
+        pNState.anyPortUp ? "Up" : "Down",
+        itr->second.operationStateUp ? "Up" : "Down",
+        apache::thrift::util::enumNameSafe(currPortColor),
+        apache::thrift::util::enumNameSafe(currBlink));
+  }
+  return newLedState;
 }
 
 /*

@@ -35,6 +35,33 @@ namespace facebook::fboss {
  * then update the LED in hardware
  */
 class LedManager {
+ protected:
+  // struct describing the state of the port neightbors. This helps
+  // us in calculating the LED state.
+  // e.g. eth1/1/1 and eth1/1/2 may control the same LED, and will influence
+  // led state based on how all these ports interact.
+  using PortNeighborState = struct PortNeighborState {
+    bool operator==(const PortNeighborState& other) const {
+      return (
+          totalPorts == other.totalPorts &&
+          portsUpAndCorrectReachability ==
+              other.portsUpAndCorrectReachability &&
+          portsWithAllLanesRxLos == other.portsWithAllLanesRxLos &&
+          anyForcedOn == other.anyForcedOn &&
+          anyForcedOff == other.anyForcedOff &&
+          anyUndrainedPort == other.anyUndrainedPort &&
+          anyPortUp == other.anyPortUp);
+    }
+    uint32_t totalPorts{0};
+    uint32_t portsUpAndCorrectReachability{0};
+    uint32_t portsWithAllLanesRxLos{0};
+    bool anyForcedOn{false};
+    bool anyForcedOff{false};
+    bool anyUndrainedPort{false};
+    bool anyPortUp{false};
+  };
+
+ private:
   using PortDisplayInfo = struct PortDisplayInfo {
     std::string portName;
     cfg::PortProfileID portProfileId;
@@ -46,6 +73,7 @@ class LedManager {
         led::LedColor::UNKNOWN,
         led::Blink::UNKNOWN)};
     bool drained{false};
+    mutable PortNeighborState portNeighborState;
   };
 
   using PortLosInfo = struct PortLosInfo {
