@@ -243,11 +243,10 @@ void BspLedManager::setLedState(
   }
 
   auto tcvrId = platformMapping_->getTransceiverIdFromSwPort(PortID(portId));
+  auto ledControllers = bspSystemContainer_->getLedController(tcvrId + 1);
 
-  for (auto& ledController :
-       bspSystemContainer_->getLedController(tcvrId + 1)) {
-    if (std::find(ledIds.begin(), ledIds.end(), ledController.first) !=
-        ledIds.end()) {
+  for (auto& ledController : ledControllers) {
+    if (ledIds.count(ledController.first)) {
       ledController.second->setLedState(ledState);
     }
   }
