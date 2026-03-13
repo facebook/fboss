@@ -2,6 +2,7 @@
 
 #include "fboss/agent/ValidateStateUpdate.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitchHandler.h"
@@ -301,7 +302,19 @@ bool StateUpdateValidator::isValidUpdate(
 }
 
 bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) const {
-  return isStateUpdateValidCommon(delta, asicTable_);
+  if (!isStateUpdateValidCommon(delta, asicTable_)) {
+    return false;
+  }
+  if (FLAGS_enforce_single_nbr_mac_per_intf && !hasSingleNbrMacPerIntf(delta)) {
+    return false;
+  }
+  return true;
+}
+
+bool StateUpdateValidator::hasSingleNbrMacPerIntf(
+    const StateDelta& /* delta */) const {
+  // TODO: Implement single neighbor MAC per interface validation
+  return true;
 }
 
 bool StateUpdateValidator::isValidUpdateMultiSwitch(
