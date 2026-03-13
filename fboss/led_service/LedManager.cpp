@@ -61,14 +61,45 @@ LedManager::~LedManager() {
 }
 
 /*
+ * triggerLedUpdate
+ * This function is called from updateLedStatus.
+ * The function will trigger re-calculation of the ledState for all ports
+ */
+void LedManager::triggerLedUpdate() {
+  for (auto& [portId, portDisplayInfo] : portDisplayMap_) {
+    if (portDisplayInfo.forcedOn || portDisplayInfo.forcedOff) {
+      continue;
+    }
+    auto& portName = portDisplayInfo.portName;
+    auto portProfile = portDisplayInfo.portProfileId;
+    try {
+      auto newLedState = calculateLedState(portId, portProfile);
+      if (newLedState != portDisplayInfo.currentLedState) {
+        setLedState(portId, portProfile, newLedState);
+        portDisplayInfo.currentLedState = newLedState;
+        XLOG(DBG2) << folly::sformat(
+            "Port {:s} LED color changed to {:s}, Blink changed to {:s}",
+            portName,
+            enumToName<led::LedColor>(newLedState.ledColor().value()),
+            enumToName<led::Blink>(newLedState.blink().value()));
+      }
+    } catch (const std::exception& ex) {
+      XLOG(ERR) << "Failed to update LED color for port " << portName << ": "
+                << ex.what();
+    }
+  }
+}
+
+/*
  * updateLedStatus
  *
  * This function does these two things:
  * 1. Look into the FSDB pushed data (switch states) in newSwitchState and
  *    updates the local structure portDisplayMap_ as per the operational values
  *    in latest switch state
- * 2. Compute LED colors for new state and if the color for a port is different
- *    than existing one then set the new color on LED
+ * 2. Trigger an LED update (triggerLedUpdate. This will Compute LED colors for
+ * new state and if the color for a port is different than existing one then set
+ * the new color on LED
  */
 void LedManager::updateLedStatus(
     const std::map<short, LedSwitchStateUpdate>& newSwitchState) {
@@ -108,35 +139,7 @@ void LedManager::updateLedStatus(
     portDisplayMap_[portId] = portInfo;
   }
 
-  for (const auto& [portId, switchStateUpdate] : newSwitchState) {
-    // Step 2. Update LED color if required
-
-    // If the LED state is forced by user then don't change LED color
-    if ((portDisplayMap_.find(portId) != portDisplayMap_.end()) &&
-        (portDisplayMap_[portId].forcedOn ||
-         portDisplayMap_[portId].forcedOff)) {
-      continue;
-    }
-
-    auto portName = switchStateUpdate.portName;
-    auto portProfile = switchStateUpdate.portProfile;
-    auto portProfileEnumVal = nameToEnum<cfg::PortProfileID>(portProfile);
-    try {
-      auto newLedState = calculateLedState(portId, portProfileEnumVal);
-      if (newLedState != portDisplayMap_[portId].currentLedState) {
-        setLedState(portId, portProfileEnumVal, newLedState);
-        portDisplayMap_[portId].currentLedState = newLedState;
-        XLOG(DBG2) << folly::sformat(
-            "Port {:s} LED color changed to {:s}, Blink changed to {:s}",
-            portName,
-            enumToName<led::LedColor>(newLedState.ledColor().value()),
-            enumToName<led::Blink>(newLedState.blink().value()));
-      }
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "Failed to update LED color for port " << portName << ": "
-                << ex.what();
-    }
-  }
+  triggerLedUpdate();
 }
 
 /*
