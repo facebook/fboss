@@ -138,7 +138,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
     return aggPort->sortedSubports().front().portID;
   }
 
-  void verifyEncapPacket(PortID egressPort) {
+  void verifyEncapPacket(
+      PortID egressPort,
+      std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
@@ -160,7 +162,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6EncapSnooper");
 
-    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    if (injectPort.has_value()) {
+      this->getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), injectPort.value());
+    } else {
+      this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    }
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -189,6 +196,26 @@ class AgentSrv6EncapTest : public AgentHwTest {
     // EXPECT_EQ(v6Hdr.trafficClass, kTc); //failing - MT-864
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
+  }
+
+  void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
+    // Variation 1: send via pipeline (sendPacketSwitchedAsync)
+    verifyEncapPacket(egressPort);
+    // Variation 2: inject on a port that is UP but not the egress port
+    auto injectPort = findInjectPort(egressPort);
+    verifyEncapPacket(egressPort, injectPort);
+  }
+
+  PortID findInjectPort(PortID egressPort) {
+    for (const auto& portMap :
+         std::as_const(*this->getProgrammedState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        if (port->getID() != egressPort && port->isPortUp()) {
+          return port->getID();
+        }
+      }
+    }
+    throw FbossError("No UP port found besides egress port");
   }
 
  private:
@@ -245,7 +272,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacket(egressPort);
+    this->verifyEncapPacketCpuAndFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -265,7 +292,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacket(egressPort);
+    this->verifyEncapPacketCpuAndFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -297,7 +324,7 @@ TYPED_TEST(AgentSrv6EncapTest, resolveNeighborsAfterRouteProgram) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacket(egressPort);
+    this->verifyEncapPacketCpuAndFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
