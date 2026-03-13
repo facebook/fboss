@@ -169,7 +169,11 @@ SaiPlatform::SaiPlatform(
         (FLAGS_hide_interface_ports &&
          *platPorts.find(static_cast<int32_t>(itPort.first))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
       continue;
     }
     masterLogicalPortIds_.push_back(itPort.first);

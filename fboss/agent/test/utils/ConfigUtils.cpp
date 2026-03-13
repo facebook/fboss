@@ -967,7 +967,11 @@ cfg::SwitchConfig genPortVlanCfg(
         (FLAGS_hide_interface_ports &&
          *platformPorts.find(static_cast<int32_t>(portID))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
       continue;
     }
     config.ports()->push_back(
