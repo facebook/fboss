@@ -266,7 +266,8 @@ TEST_F(LedServiceTest, checkLedColorChange) {
       ledManager_->setExternalLedState(swPort, PortLedExternalState::NONE);
       checkLedColor(swPort, colorBefore, ++testNum);
 
-      // 7- Set the cabling error, expect yellow LED.
+      // 7- Set the cabling error, expect LED off since portsUp & !cablingErr =
+      // 0.
       updateMap[swPort].ledExternalState = PortLedExternalState::CABLING_ERROR;
       ledManager_->updateLedStatus(updateMap);
       checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
@@ -374,15 +375,16 @@ TEST_F(LedServiceTest, checkLedBlinking) {
       checkLedBlink(swPort, led::Blink::OFF, testNum);
 
       // 2- Set the drain state to true, verify that the LED color is same but
-      // the LED blinks fast since port is up and there is no cabling error
+      // the LED blinks fast since port is up and there is no cabling error.
       updateMap[swPort].drained = true;
       ledManager_->updateLedStatus(updateMap);
       checkLedColor(swPort, colorBefore, ++testNum);
       checkLedBlink(
-          swPort, blinkSupported ? led::Blink::SLOW : led::Blink::OFF, testNum);
+          swPort, blinkSupported ? led::Blink::FAST : led::Blink::OFF, testNum);
 
       // 3- Introduce a cabling error. Thus, port is up and drained but there is
-      // a cabling error. LED is expected to be yellow and blinking fast
+      // a cabling error. LED is expected to be Blue and blinking Slow since
+      // number of portsUpAndCorrectReachability is 0 and there is no RX LOS
       updateMap[swPort].ledExternalState = PortLedExternalState::CABLING_ERROR;
       ledManager_->updateLedStatus(updateMap);
       checkLedColor(swPort, led::LedColor::YELLOW, ++testNum);
@@ -393,7 +395,7 @@ TEST_F(LedServiceTest, checkLedBlinking) {
       // color/blink of other ports sharing the same LED.
       updateMap[swPort].ledExternalState = PortLedExternalState::NONE;
       updateMap[swPort].activeState = false;
-      updateMap[swPort].drained = true;
+      updateMap[swPort].operState = false;
       ledManager_->updateLedStatus(updateMap);
     }
   }

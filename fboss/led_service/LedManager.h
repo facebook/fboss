@@ -51,6 +51,9 @@ class LedManager {
 
   using PortLosInfo = struct PortLosInfo {
     std::optional<std::map<int, bool>> rxLos{std::nullopt};
+    bool operator==(const PortLosInfo& other) const {
+      return rxLos == other.rxLos;
+    }
   };
 
  public:

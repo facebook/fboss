@@ -206,6 +206,11 @@ void LedManager::updateLedStatus(
       }
     }
   }
+  if (portLosMap_ != portLosMap) {
+    portLosMap_ = portLosMap;
+    XLOG(DBG2) << "Port LOS map changed";
+    triggerLedUpdate();
+  }
 }
 
 /*
