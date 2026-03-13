@@ -188,9 +188,8 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
  * 6. Verify both fromAifmCtrlAgent and toAifmCtrlAgent counters
  */
 TEST_F(AgentPacketStreamHandlerTest, VerifySinkToStreamLoopback) {
-  auto setup = [this]() { connectClient(); };
-
   auto verify = [this]() {
+    connectClient();
     auto port = masterLogicalPortIds({cfg::PortType::INTERFACE_PORT})[0];
     auto portName = getSw()->getState()->getPorts()->getNode(port)->getName();
 
@@ -235,7 +234,7 @@ TEST_F(AgentPacketStreamHandlerTest, VerifySinkToStreamLoopback) {
     EXPECT_GE(txSentAfter - txSentBefore, kPacketCount);
   };
 
-  verifyAcrossWarmBoots(setup, verify);
+  verifyAcrossWarmBoots([]() {}, verify);
 }
 
 } // namespace facebook::fboss
