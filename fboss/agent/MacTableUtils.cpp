@@ -11,8 +11,6 @@
 
 #include "fboss/agent/Utils.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace {
 
 using facebook::fboss::ArpTable;
@@ -203,9 +201,9 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
   };
   auto vlan = state->getVlans()->getNode(vlanId).get();
   const auto& arpTable =
-      *getNeighborTableForVlan<ArpTable>(state, vlanId, FLAGS_intf_nbr_tables);
+      *getNeighborTableForVlan<ArpTable>(state, vlanId, true);
   const auto& ndpTable =
-      *getNeighborTableForVlan<NdpTable>(state, vlanId, FLAGS_intf_nbr_tables);
+      *getNeighborTableForVlan<NdpTable>(state, vlanId, true);
   auto arpItr = findNeighbor(arpTable);
   auto ndpItr = findNeighbor(ndpTable);
   if (arpItr != arpTable.end() || ndpItr != ndpTable.end()) {
