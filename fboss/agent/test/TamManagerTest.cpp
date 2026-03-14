@@ -131,8 +131,6 @@ class TamManagerTest : public ::testing::Test {
   using AddrT = AddrType;
 
   void SetUp() override {
-    // Neighbor tables are always on interfaces (FLAGS_intf_nbr_tables defaults
-    // to true)
     cfg::SwitchConfig config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -209,8 +207,7 @@ class TamManagerTest : public ::testing::Test {
       InterfaceID interfaceID,
       const PortID& portID,
       bool wait = true) {
-    // Neighbor tables are always on interfaces (FLAGS_intf_nbr_tables defaults
-    // to true)
+    // Neighbor tables are always on interfaces
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
       sw_->getNeighborUpdater()->receivedArpMineForIntf(
           interfaceID,

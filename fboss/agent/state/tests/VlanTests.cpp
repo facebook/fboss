@@ -62,8 +62,6 @@ void validateRespEntry(
 }
 
 TEST(Vlan, applyConfig) {
-  // Neighbor tables are now always on interfaces (FLAGS_intf_nbr_tables
-  // defaults to true)
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
   auto vlanV0 = make_shared<Vlan>(VlanID(1234), kVlan1234);
