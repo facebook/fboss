@@ -362,7 +362,11 @@ mkdir -p /var/facebook/logs/fboss/sdk
 semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
 restorecon -Rv /var/facebook/logs/fboss
 
-# 8. Done! Cleanup and install additional packages
+# 8. Fix NetworkManager connection profile permissions
+# NM ignores profiles that are world-readable
+chmod 600 /etc/NetworkManager/system-connections/eth0.nmconnection
+
+# 9. Done! Cleanup and install additional packages
 echo "Cleaning up /repos directory..."
 rm -rf /repos
 
