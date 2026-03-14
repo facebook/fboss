@@ -163,6 +163,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
         tcField,
         kTtl);
 
+    auto origFrame = utility::makeEthFrame(*txPacket);
+
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6EncapSnooper");
 
     if (injectPort.has_value()) {
@@ -199,6 +201,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
     EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
+    // Compare origPacket against inner packet
+    auto origPacket = origFrame.v6PayLoad();
+    ASSERT_TRUE(origPacket.has_value());
+    // Inner packet should match origPacket. Note makeEthFrame(txPacket) already
+    // does a TTL decrement by default, so we don't have to account for it here.
+    EXPECT_EQ(*v6Payload->v6PayLoad(), *origPacket);
   }
 
   void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
