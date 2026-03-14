@@ -180,7 +180,10 @@ void IPv6Handler::handlePacket(
   if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
-    udpHdr.parse(&udpCursor, sw_->portStats(port));
+    if (!udpHdr.tryParse(&udpCursor, sw_->portStats(port))) {
+      XLOG_EVERY_MS(ERR, 1000) << "failed to parse udp header";
+      return;
+    }
     XLOG(DBG4) << "DHCP UDP packet, source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
