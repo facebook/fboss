@@ -30,8 +30,6 @@ DEFINE_bool(
     false,
     "Disable neighbor updater in agent");
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 using facebook::fboss::DeltaFunctions::forEachChanged;
@@ -112,11 +110,7 @@ void NeighborUpdater::processVlanUpdates(const StateDelta& stateDelta) {
 void NeighborUpdater::stateUpdated(const StateDelta& delta) {
   CHECK(sw_->getUpdateEvb()->inRunningEventBaseThread());
 
-  if (FLAGS_intf_nbr_tables) {
-    processInterfaceUpdates(delta);
-  } else {
-    processVlanUpdates(delta);
-  }
+  processInterfaceUpdates(delta);
 
   const auto& oldState = delta.oldState();
   const auto& newState = delta.newState();
