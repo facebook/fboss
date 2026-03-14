@@ -35,8 +35,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 DEFINE_bool(
     disable_icmp_error_response,
     false,
@@ -990,8 +988,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
         return;
       } else {
         // Check if destination is unknown, in which case trigger NDP
-        auto entry = getNeighborEntryForIP<NdpEntry>(
-            state, intf, target, FLAGS_intf_nbr_tables);
+        auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target, true);
 
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
