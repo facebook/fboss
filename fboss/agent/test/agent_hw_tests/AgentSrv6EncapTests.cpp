@@ -199,6 +199,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
     EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
+    // DSCP copied from inner header (upper 6 bits of trafficClass)
+    EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
   }
 
   void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
