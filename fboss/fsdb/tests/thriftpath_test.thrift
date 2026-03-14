@@ -85,4 +85,7 @@ struct TestStruct {
   19: list<OtherStruct> listofStructs;
   20: set<string> setOfStrings = [];
   21: map<i32, TestHybridStruct> mapOfHybridStruct;
+  22: optional TestHybridStruct optionalAnnotatedStruct;
+  @fboss_common.AllowSkipThriftCow
+  23: map<string, OtherStruct> fieldAnnotatedMap;
 }
