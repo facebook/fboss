@@ -165,8 +165,6 @@ DEFINE_int32(
     64,
     "Expected minimum ethernet packet length");
 
-DECLARE_bool(intf_nbr_tables);
-
 DEFINE_int32(
     hwagent_base_thrift_port,
     5931,
@@ -2268,23 +2266,9 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     }
   }
 
-  if (FLAGS_intf_nbr_tables) {
-    auto intfIdOpt = state->getInterfaceIDForPortIf(getPortFromPkt(pkt.get()));
-    if (!intfIdOpt) {
-      XLOG_EVERY_N(ERR, 10000)
-          << "No interface for port " << pkt->getSrcPort() << ", dropping pkt";
-      portStats(pkt)->pktDropped();
-      return;
-    }
-    auto intf = state->getInterfaces()->getNodeIf(intfIdOpt.value());
-    handlePacketImpl(std::move(pkt), intf);
-  } else {
-    // TODO: get rid of getVlanIDHelper, packet must have a valid vlan here if
-    // vlans are maintained
-    auto vlan =
-        state->getVlans()->getNodeIf(getVlanIDHelper(pkt->getSrcVlanIf()));
-    handlePacketImpl(std::move(pkt), vlan);
-  }
+  auto intf = getState()->getInterfaces()->getNodeIf(
+      getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
+  handlePacketImpl(std::move(pkt), intf);
 }
 
 template <typename VlanOrIntfT>
@@ -3543,8 +3527,8 @@ void SwSwitch::sendL3Packet(
       } else {
         const auto dstAddrV6 = dstAddr.asV6();
         try {
-          auto entry = getNeighborEntryForIP<NdpEntry>(
-              state, intf, dstAddrV6, FLAGS_intf_nbr_tables);
+          auto entry =
+              getNeighborEntryForIP<NdpEntry>(state, intf, dstAddrV6, true);
           if (entry) {
             dstMac = entry->getMac();
           } else {
@@ -3821,8 +3805,7 @@ bool SwSwitch::sendArpRequestHelper(
     folly::IPAddressV4 source,
     folly::IPAddressV4 target) {
   bool sent = false;
-  auto entry = getNeighborEntryForIP<ArpEntry>(
-      state, intf, target, FLAGS_intf_nbr_tables);
+  auto entry = getNeighborEntryForIP<ArpEntry>(state, intf, target, true);
   if (entry == nullptr) {
     // No entry in ARP table, send ARP request
     ArpHandler::sendArpRequest(
@@ -3845,8 +3828,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
     std::shared_ptr<SwitchState> state,
     const folly::IPAddressV6& target) {
   bool sent = false;
-  auto entry = getNeighborEntryForIP<NdpEntry>(
-      state, intf, target, FLAGS_intf_nbr_tables);
+  auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target, true);
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(
@@ -3896,23 +3878,13 @@ InterfaceID SwSwitch::getInterfaceIDForAggregatePort(
 void SwSwitch::sentArpRequest(
     const std::shared_ptr<Interface>& intf,
     folly::IPAddressV4 target) {
-  if (FLAGS_intf_nbr_tables) {
-    getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
-  } else {
-    getNeighborUpdater()->sentArpRequest(intf->getVlanIDHelper(), target);
-  }
+  getNeighborUpdater()->sentArpRequestForIntf(intf->getID(), target);
 }
 
 void SwSwitch::sentNeighborSolicitation(
     const std::shared_ptr<Interface>& intf,
     const folly::IPAddressV6& target) {
-  if (FLAGS_intf_nbr_tables) {
-    getNeighborUpdater()->sentNeighborSolicitationForIntf(
-        intf->getID(), target);
-  } else {
-    getNeighborUpdater()->sentNeighborSolicitation(
-        intf->getVlanIDHelper(), target);
-  }
+  getNeighborUpdater()->sentNeighborSolicitationForIntf(intf->getID(), target);
 }
 
 std::shared_ptr<SwitchState> SwSwitch::stateChanged(
