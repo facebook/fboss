@@ -33,7 +33,6 @@
 
 using facebook::network::toBinaryAddress;
 
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(classid_for_unresolved_routes);
 
 namespace {
