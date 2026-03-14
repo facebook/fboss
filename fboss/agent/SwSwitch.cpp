@@ -2333,17 +2333,18 @@ void SwSwitch::handlePacketImpl(
   }
 
   auto vlanID = getVlanIDFromVlanOrIntf(vlanOrIntf);
-  auto vlanIDStr = vlanID.has_value()
-      ? folly::to<std::string>(static_cast<int>(vlanID.value()))
-      : "None";
 
   XLOG(DBG5) << "trapped packet: src_port=" << pkt->getSrcPort()
              << " srcAggPort="
              << (pkt->isFromAggregatePort()
                      ? folly::to<string>(pkt->getSrcAggregatePort())
                      : "None")
-             << " vlan=" << vlanIDStr << " length=" << len << " src=" << srcMac
-             << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
+             << " vlan="
+             << (vlanID.has_value()
+                     ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+                     : "None")
+             << " length=" << len << " src=" << srcMac << " dst=" << dstMac
+             << " ethertype=0x" << std::hex << ethertype
              << " :: " << pkt->describeDetails();
   XLOG_EVERY_N(DBG2, 10000)
       << "sampled " << "trapped packet: src_port=" << pkt->getSrcPort()
@@ -2351,8 +2352,12 @@ void SwSwitch::handlePacketImpl(
       << (pkt->isFromAggregatePort()
               ? folly::to<string>(pkt->getSrcAggregatePort())
               : "None")
-      << " vlan=" << vlanIDStr << " length=" << len << " src=" << srcMac
-      << " dst=" << dstMac << " ethertype=0x" << std::hex << ethertype
+      << " vlan="
+      << (vlanID.has_value()
+              ? folly::to<std::string>(static_cast<int>(vlanID.value()))
+              : "None")
+      << " length=" << len << " src=" << srcMac << " dst=" << dstMac
+      << " ethertype=0x" << std::hex << ethertype
       << " :: " << pkt->describeDetails();
 
   switch (ethertype) {
