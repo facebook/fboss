@@ -73,7 +73,6 @@ cpp_library(
         "IPPacket.cpp",
         "MPLSPacket.cpp",
         "PktFactory.cpp",
-        "Srv6Packet.cpp",
         "TCPPacket.cpp",
         "UDPDatagram.cpp",
     ],

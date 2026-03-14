@@ -6,7 +6,6 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
-#include "fboss/agent/packet/Srv6Packet.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
