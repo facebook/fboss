@@ -496,27 +496,8 @@ void sendNeighborAdvertisement(
 
 } // unnamed namespace
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class NdpTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
-  void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
-  }
-
   unique_ptr<HwTestHandle> setupTestHandle(
       seconds raInterval = seconds(0),
       seconds ndpInterval = seconds(0),
@@ -583,9 +564,7 @@ class NdpTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-TYPED_TEST_SUITE(NdpTest, NbrTableTypes);
-
-TYPED_TEST(NdpTest, UnsolicitedRequest) {
+TEST_F(NdpTest, UnsolicitedRequest) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -645,10 +624,7 @@ TYPED_TEST(NdpTest, UnsolicitedRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
-TYPED_TEST(NdpTest, UnsolicitedRequestPortRif) {
-  if (!this->isIntfNbrTable()) {
-    GTEST_SKIP();
-  }
+TEST_F(NdpTest, UnsolicitedRequestPortRif) {
   auto handle = this->setupTestHandleWithPortRif();
   auto sw = handle->getSw();
 
@@ -706,7 +682,7 @@ TYPED_TEST(NdpTest, UnsolicitedRequestPortRif) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 1);
 }
 
-TYPED_TEST(NdpTest, NeighborSoliciationNotMine) {
+TEST_F(NdpTest, NeighborSoliciationNotMine) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -760,11 +736,7 @@ TYPED_TEST(NdpTest, NeighborSoliciationNotMine) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.ndp.not_mine.sum", 1);
 }
 
-TYPED_TEST(NdpTest, NeighborSoliciationNotMinePortRif) {
-  if (!this->isIntfNbrTable()) {
-    GTEST_SKIP();
-  }
-
+TEST_F(NdpTest, NeighborSoliciationNotMinePortRif) {
   auto handle = this->setupTestHandleWithPortRif();
   auto sw = handle->getSw();
 
@@ -816,15 +788,9 @@ TYPED_TEST(NdpTest, NeighborSoliciationNotMinePortRif) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "ipv6.ndp.not_mine.sum", 1);
 }
 
-TYPED_TEST(NdpTest, TriggerSolicitation) {
-  // Keep test disabled for intf nbr tables because pending neighbor entries are
-  // currently not stored in intfs.
-  // TODO(jeffkim8482) Remove test once intf nbr migration is complete
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
+TEST_F(NdpTest, TriggerSolicitation) {
+  // Will be migrated and then enabled
+  GTEST_SKIP();
 
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
@@ -963,9 +929,7 @@ TYPED_TEST(NdpTest, TriggerSolicitation) {
       sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
 }
 
-template <typename EnableIntfNbrTableT>
-void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
-    std::optional<std::string> configuredRouterIp) {
+void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
   seconds raInterval(1);
   auto config =
       createSwitchConfig(raInterval, seconds(0), false, configuredRouterIp);
@@ -1113,8 +1077,7 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdv(
   EXPECT_GT(counters.value("PrimaryInterface.router_advertisements.sum"), 0);
 }
 
-template <typename EnableIntfNbrTableT>
-void NdpTest<EnableIntfNbrTableT>::validateRouterAdvForPortRif(
+void NdpTest::validateRouterAdvForPortRif(
     std::optional<std::string> configuredRouterIp) {
   seconds raInterval(1);
   auto config = testConfigAWithPortInterfaces();
@@ -1275,65 +1238,47 @@ void NdpTest<EnableIntfNbrTableT>::validateRouterAdvForPortRif(
   EXPECT_GT(counters.value("fboss6001.router_advertisements.sum"), 0);
 }
 
-TYPED_TEST(NdpTest, RouterAdvertisement) {
+TEST_F(NdpTest, RouterAdvertisement) {
   this->validateRouterAdv(std::nullopt);
 }
 
-TYPED_TEST(NdpTest, RouterAdvertisementPortRif) {
-  if (!this->isIntfNbrTable()) {
-    GTEST_SKIP() << "Test only valid for intf nbr table";
-  }
+TEST_F(NdpTest, RouterAdvertisementPortRif) {
   this->validateRouterAdvForPortRif(std::nullopt);
 }
 
-TYPED_TEST(NdpTest, BrokenRouterAdvConfig) {
+TEST_F(NdpTest, BrokenRouterAdvConfig) {
   seconds raInterval(1);
   auto config = createSwitchConfig(raInterval, seconds(0), false, "2::2");
   EXPECT_THROW(createTestHandle(&config), FbossError);
 }
 
-TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddress) {
+TEST_F(NdpTest, RouterAdvConfigWithRouterAddress) {
   this->validateRouterAdv("fe80::face:b00c");
 }
 
-TYPED_TEST(NdpTest, RouterAdvConfigWithRouterAddressPortRif) {
-  if (!this->isIntfNbrTable()) {
-    GTEST_SKIP() << "Test only valid for intf nbr table";
-  }
+TEST_F(NdpTest, RouterAdvConfigWithRouterAddressPortRif) {
   this->validateRouterAdvForPortRif("fe80::face:b00c");
 }
 
-TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
+TEST_F(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
-  if (this->isIntfNbrTable()) {
-    auto intfID =
-        sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
-    WaitForNdpEntryCreation neighbor1Create(
-        sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
-    sendNeighborAdvertisement(
-        handle.get(),
-        "2401:db00:2110:3004::b",
-        "02:05:73:f9:46:fb",
-        PortDescriptor(PortID(1)),
-        5,
-        false);
-    EXPECT_TRUE(neighbor1Create.wait());
-  } else {
-    WaitForNdpEntryCreation neighbor1Create(
-        sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
-    sendNeighborAdvertisement(
-        handle.get(),
-        "2401:db00:2110:3004::b",
-        "02:05:73:f9:46:fb",
-        PortDescriptor(PortID(1)),
-        5,
-        false);
-    EXPECT_TRUE(neighbor1Create.wait());
-  }
+  auto intfID =
+      sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
+  WaitForNdpEntryCreation neighbor1Create(
+      sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
+  sendNeighborAdvertisement(
+      handle.get(),
+      "2401:db00:2110:3004::b",
+      "02:05:73:f9:46:fb",
+      PortDescriptor(PortID(1)),
+      5,
+      false);
+  EXPECT_TRUE(neighbor1Create.wait());
+
   ThriftHandler thriftHandler(sw);
   auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
   auto numFlushed =
@@ -1341,7 +1286,7 @@ TYPED_TEST(NdpTest, receiveNeighborAdvertisementUnsolicited) {
   EXPECT_EQ(numFlushed, 1);
 }
 
-TYPED_TEST(NdpTest, FlushEntry) {
+TEST_F(NdpTest, FlushEntry) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
@@ -1349,302 +1294,153 @@ TYPED_TEST(NdpTest, FlushEntry) {
 
   // Send two unsolicited neighbor advertisements, state should update at
   // least once
-  if (this->isIntfNbrTable()) {
-    // Helper for checking entries in NDP table
-    auto getNDPTableEntry = [&](IPAddressV6 ip, InterfaceID intf) {
-      return sw->getState()
-          ->getInterfaces()
-          ->getNodeIf(intf)
-          ->getNdpTable()
-          ->getEntryIf(ip);
-    };
-    auto intfID =
-        sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
-    WaitForNdpEntryCreation neighbor1Create(
-        sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
-    WaitForNdpEntryCreation neighbor2Create(
-        sw, IPAddressV6("2401:db00:2110:3004::c"), intfID, false);
-    sendNeighborAdvertisement(
-        handle.get(),
-        "2401:db00:2110:3004::b",
-        "02:05:73:f9:46:fb",
-        PortDescriptor(PortID(1)),
-        5);
-    sendNeighborAdvertisement(
-        handle.get(),
-        "2401:db00:2110:3004::c",
-        "02:05:73:f9:46:fc",
-        PortDescriptor(PortID(1)),
-        5);
+  // Helper for checking entries in NDP table
+  auto getNDPTableEntry = [&](IPAddressV6 ip, InterfaceID intf) {
+    return sw->getState()
+        ->getInterfaces()
+        ->getNodeIf(intf)
+        ->getNdpTable()
+        ->getEntryIf(ip);
+  };
+  auto intfID =
+      sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
+  WaitForNdpEntryCreation neighbor1Create(
+      sw, IPAddressV6("2401:db00:2110:3004::b"), intfID, false);
+  WaitForNdpEntryCreation neighbor2Create(
+      sw, IPAddressV6("2401:db00:2110:3004::c"), intfID, false);
+  sendNeighborAdvertisement(
+      handle.get(),
+      "2401:db00:2110:3004::b",
+      "02:05:73:f9:46:fb",
+      PortDescriptor(PortID(1)),
+      5);
+  sendNeighborAdvertisement(
+      handle.get(),
+      "2401:db00:2110:3004::c",
+      "02:05:73:f9:46:fc",
+      PortDescriptor(PortID(1)),
+      5);
 
-    EXPECT_TRUE(neighbor1Create.wait());
-    EXPECT_TRUE(neighbor2Create.wait());
+  EXPECT_TRUE(neighbor1Create.wait());
+  EXPECT_TRUE(neighbor2Create.wait());
 
-    // Flush 2401:db00:2110:3004::b
-    WaitForNdpEntryExpiration neighbor1Expire(
-        sw, IPAddressV6("2401:db00:2110:3004::b"), intfID);
-    auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
-    auto numFlushed = thriftHandler.flushNeighborEntry(
-        make_unique<BinaryAddress>(binAddr), 5);
-    EXPECT_EQ(numFlushed, 1);
-    EXPECT_TRUE(neighbor1Expire.wait());
+  // Flush 2401:db00:2110:3004::b
+  WaitForNdpEntryExpiration neighbor1Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::b"), intfID);
+  auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
+  auto numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
+  EXPECT_EQ(numFlushed, 1);
+  EXPECT_TRUE(neighbor1Expire.wait());
 
-    // Still one entry
-    // Only one entry now
-    auto entry0 =
-        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), intfID);
-    EXPECT_EQ(entry0, nullptr);
+  // Still one entry
+  // Only one entry now
+  auto entry0 = getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), intfID);
+  EXPECT_EQ(entry0, nullptr);
 
-    auto entry1 =
-        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), intfID);
-    EXPECT_NE(entry1, nullptr);
-    EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
+  auto entry1 = getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), intfID);
+  EXPECT_NE(entry1, nullptr);
+  EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
 
-    // Now flush 2401:db00:2110:3004::c, but using special Vlan0
-    WaitForNdpEntryExpiration neighbor2Expire(
-        sw, IPAddressV6("2401:db00:2110:3004::c"), intfID);
-    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-    // NDP removal should trigger a static MAC entry removal
-    EXPECT_STATE_UPDATE_TIMES(sw, 1);
-    numFlushed = thriftHandler.flushNeighborEntry(
-        make_unique<BinaryAddress>(binAddr), 0);
-    EXPECT_EQ(numFlushed, 1);
-    EXPECT_TRUE(neighbor2Expire.wait());
-    waitForStateUpdates(sw);
+  // Now flush 2401:db00:2110:3004::c, but using special Vlan0
+  WaitForNdpEntryExpiration neighbor2Expire(
+      sw, IPAddressV6("2401:db00:2110:3004::c"), intfID);
+  binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+  // NDP removal should trigger a static MAC entry removal
+  EXPECT_STATE_UPDATE_TIMES(sw, 1);
+  numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 0);
+  EXPECT_EQ(numFlushed, 1);
+  EXPECT_TRUE(neighbor2Expire.wait());
+  waitForStateUpdates(sw);
 
-    // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
-    EXPECT_STATE_UPDATE_TIMES(sw, 0);
-    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-    numFlushed = thriftHandler.flushNeighborEntry(
-        make_unique<BinaryAddress>(binAddr), 5);
-    EXPECT_EQ(numFlushed, 0);
-  } else {
-    // Helper for checking entries in NDP table
-    auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
-      return sw->getState()
-          ->getVlans()
-          ->getNodeIf(vlan)
-          ->getNdpTable()
-          ->getEntryIf(ip);
-    };
-    WaitForNdpEntryCreation neighbor1Create(
-        sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5), false);
-    WaitForNdpEntryCreation neighbor2Create(
-        sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5), false);
-
-    sendNeighborAdvertisement(
-        handle.get(),
-        "2401:db00:2110:3004::b",
-        "02:05:73:f9:46:fb",
-        PortDescriptor(PortID(1)),
-        5);
-    sendNeighborAdvertisement(
-        handle.get(),
-        "2401:db00:2110:3004::c",
-        "02:05:73:f9:46:fc",
-        PortDescriptor(PortID(1)),
-        5);
-
-    EXPECT_TRUE(neighbor1Create.wait());
-    EXPECT_TRUE(neighbor2Create.wait());
-
-    // Flush 2401:db00:2110:3004::b
-    WaitForNdpEntryExpiration neighbor1Expire(
-        sw, IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
-    auto binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::b"));
-    auto numFlushed = thriftHandler.flushNeighborEntry(
-        make_unique<BinaryAddress>(binAddr), 5);
-    EXPECT_EQ(numFlushed, 1);
-    EXPECT_TRUE(neighbor1Expire.wait());
-
-    // Still one entry
-    // Only one entry now
-    auto entry0 =
-        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::b"), VlanID(5));
-    EXPECT_EQ(entry0, nullptr);
-
-    auto entry1 =
-        getNDPTableEntry(IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
-    EXPECT_NE(entry1, nullptr);
-    EXPECT_EQ(entry1->getMac(), MacAddress("02:05:73:f9:46:fc"));
-
-    // Now flush 2401:db00:2110:3004::c, but using special Vlan0
-    WaitForNdpEntryExpiration neighbor2Expire(
-        sw, IPAddressV6("2401:db00:2110:3004::c"), VlanID(5));
-    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-    // NDP removal should trigger a static MAC entry removal in the same
-    // transaction
-    EXPECT_STATE_UPDATE_TIMES(sw, 1);
-    numFlushed = thriftHandler.flushNeighborEntry(
-        make_unique<BinaryAddress>(binAddr), 0);
-    EXPECT_EQ(numFlushed, 1);
-    EXPECT_TRUE(neighbor2Expire.wait());
-    waitForStateUpdates(sw);
-
-    // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
-    EXPECT_STATE_UPDATE_TIMES(sw, 0);
-    binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
-    numFlushed = thriftHandler.flushNeighborEntry(
-        make_unique<BinaryAddress>(binAddr), 5);
-    EXPECT_EQ(numFlushed, 0);
-  }
+  // Try flushing 2401:db00:2110:3004::c again (should be a no-op)
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
+  binAddr = toBinaryAddress(IPAddressV6("2401:db00:2110:3004::c"));
+  numFlushed =
+      thriftHandler.flushNeighborEntry(make_unique<BinaryAddress>(binAddr), 5);
+  EXPECT_EQ(numFlushed, 0);
 }
 
 // Ensure that NDP entries learned against a port are
 // flushed when the port become part of Aggregate
-TYPED_TEST(NdpTest, FlushOnAggPortTransition) {
+TEST_F(NdpTest, FlushOnAggPortTransition) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
 
   ThriftHandler thriftHandler(sw);
-  if (this->isIntfNbrTable()) {
-    // Helper for checking entries in NDP table
-    auto getNDPTableEntry = [&](IPAddressV6 ip, InterfaceID intf) {
-      return sw->getState()
-          ->getInterfaces()
-          ->getNodeIf(intf)
-          ->getNdpTable()
-          ->getEntryIf(ip);
-    };
-    auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
-    auto intfID =
-        sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
+  // Helper for checking entries in NDP table
+  auto getNDPTableEntry = [&](IPAddressV6 ip, InterfaceID intf) {
+    return sw->getState()
+        ->getInterfaces()
+        ->getNodeIf(intf)
+        ->getNdpTable()
+        ->getEntryIf(ip);
+  };
+  auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
+  auto intfID =
+      sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
 
-    // Create NDP entry against a port
-    WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, intfID, false);
+  // Create NDP entry against a port
+  WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, intfID, false);
 
-    sendNeighborAdvertisement(
-        handle.get(),
-        neighborAddr.str(),
-        "02:05:73:f9:46:fb",
-        PortDescriptor(PortID(1)),
-        5);
+  sendNeighborAdvertisement(
+      handle.get(),
+      neighborAddr.str(),
+      "02:05:73:f9:46:fb",
+      PortDescriptor(PortID(1)),
+      5);
 
-    EXPECT_TRUE(neighbor1Create.wait());
-    auto entry = getNDPTableEntry(neighborAddr, intfID);
-    EXPECT_NE(entry, nullptr);
+  EXPECT_TRUE(neighbor1Create.wait());
+  auto entry = getNDPTableEntry(neighborAddr, intfID);
+  EXPECT_NE(entry, nullptr);
 
-    // Create an Aggregate port with a subport that has
-    // NDP entries already present
-    seconds raInterval = seconds(0);
-    seconds ndpInterval = seconds(0);
-    auto config = createSwitchConfig(raInterval, ndpInterval, true);
-    sw->applyConfig("Add aggports", config);
+  // Create an Aggregate port with a subport that has
+  // NDP entries already present
+  seconds raInterval = seconds(0);
+  seconds ndpInterval = seconds(0);
+  auto config = createSwitchConfig(raInterval, ndpInterval, true);
+  sw->applyConfig("Add aggports", config);
 
-    // Enable the subPorts
-    AggregatePort::PartnerState pState{};
-    for (int i = 0; i < kSubportCount; i++) {
-      ProgramForwardingAndPartnerState addPort1ToAggregatePort(
-          PortID(i + 1),
-          kAggregatePortID,
-          AggregatePort::Forwarding::ENABLED,
-          pState);
-      sw->updateStateNoCoalescing(
-          "Adding member port to AggregatePort", addPort1ToAggregatePort);
-    }
-
-    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
-      // Old entry should be flushed
-      auto flushedEntry = getNDPTableEntry(neighborAddr, intfID);
-      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
-    });
-
-    // Send neighbor advertisement on Aggregate
-    WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, intfID, false);
-
-    sendNeighborAdvertisement(
-        handle.get(),
-        neighborAddr.str(),
-        "02:05:73:f9:46:fb",
-        PortDescriptor(AggregatePortID(kAggregatePortID)),
-        5,
-        true);
-
-    EXPECT_TRUE(neighbor2Create.wait());
-    entry = getNDPTableEntry(neighborAddr, intfID);
-    EXPECT_NE(entry, nullptr);
-    EXPECT_EQ(
-        entry->getPort(), PortDescriptor(AggregatePortID(kAggregatePortID)));
-  } else {
-    // Helper for checking entries in NDP table
-    auto getNDPTableEntry = [&](IPAddressV6 ip, VlanID vlan) {
-      return sw->getState()
-          ->getVlans()
-          ->getNodeIf(vlan)
-          ->getNdpTable()
-          ->getEntryIf(ip);
-    };
-
-    auto neighborAddr = IPAddressV6("2401:db00:2110:3004::b");
-
-    // Create NDP entry against a port
-    WaitForNdpEntryCreation neighbor1Create(sw, neighborAddr, VlanID(5), false);
-
-    sendNeighborAdvertisement(
-        handle.get(),
-        neighborAddr.str(),
-        "02:05:73:f9:46:fb",
-        PortDescriptor(PortID(1)),
-        5);
-
-    EXPECT_TRUE(neighbor1Create.wait());
-    auto entry = getNDPTableEntry(neighborAddr, VlanID(5));
-    EXPECT_NE(entry, nullptr);
-
-    // Create an Aggregate port with a subport that has
-    // NDP entries already present
-    seconds raInterval = seconds(0);
-    seconds ndpInterval = seconds(0);
-    auto config = createSwitchConfig(raInterval, ndpInterval, true);
-    sw->applyConfig("Add aggports", config);
-
-    // Enable the subPorts
-    AggregatePort::PartnerState pState{};
-    for (int i = 0; i < kSubportCount; i++) {
-      ProgramForwardingAndPartnerState addPort1ToAggregatePort(
-          PortID(i + 1),
-          kAggregatePortID,
-          AggregatePort::Forwarding::ENABLED,
-          pState);
-      sw->updateStateNoCoalescing(
-          "Adding member port to AggregatePort", addPort1ToAggregatePort);
-    }
-
-    WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
-      // Old entry should be flushed
-      auto flushedEntry = getNDPTableEntry(neighborAddr, VlanID(5));
-      EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
-    });
-
-    // Send neighbor advertisement on Aggregate
-    WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, VlanID(5), false);
-
-    sendNeighborAdvertisement(
-        handle.get(),
-        neighborAddr.str(),
-        "02:05:73:f9:46:fb",
-        PortDescriptor(AggregatePortID(kAggregatePortID)),
-        5);
-
-    EXPECT_TRUE(neighbor2Create.wait());
-    entry = getNDPTableEntry(neighborAddr, VlanID(5));
-    EXPECT_NE(entry, nullptr);
-    EXPECT_EQ(
-        entry->getPort(),
-        PortDescriptor(
-            AggregatePortID(static_cast<uint16_t>(kAggregatePortID))));
+  // Enable the subPorts
+  AggregatePort::PartnerState pState{};
+  for (int i = 0; i < kSubportCount; i++) {
+    ProgramForwardingAndPartnerState addPort1ToAggregatePort(
+        PortID(i + 1),
+        kAggregatePortID,
+        AggregatePort::Forwarding::ENABLED,
+        pState);
+    sw->updateStateNoCoalescing(
+        "Adding member port to AggregatePort", addPort1ToAggregatePort);
   }
+
+  WITH_RETRIES_N_TIMED(5, std::chrono::milliseconds(1000), {
+    // Old entry should be flushed
+    auto flushedEntry = getNDPTableEntry(neighborAddr, intfID);
+    EXPECT_EVENTUALLY_EQ(flushedEntry, nullptr);
+  });
+
+  // Send neighbor advertisement on Aggregate
+  WaitForNdpEntryCreation neighbor2Create(sw, neighborAddr, intfID, false);
+
+  sendNeighborAdvertisement(
+      handle.get(),
+      neighborAddr.str(),
+      "02:05:73:f9:46:fb",
+      PortDescriptor(AggregatePortID(kAggregatePortID)),
+      5,
+      true);
+
+  EXPECT_TRUE(neighbor2Create.wait());
+  entry = getNDPTableEntry(neighborAddr, intfID);
+  EXPECT_NE(entry, nullptr);
+  EXPECT_EQ(
+      entry->getPort(), PortDescriptor(AggregatePortID(kAggregatePortID)));
 }
 
-TYPED_TEST(NdpTest, PendingNdp) {
-  // Keep test disabled for intf nbr tables because pending neighbor entries are
-  // currently not stored in intfs.
-  // TODO(jeffkim8482) Remove test once intf nbr migration is complete
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
+TEST_F(NdpTest, PendingNdp) {
+  // Will be migrated and then enabled
+  GTEST_SKIP();
 
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
@@ -1747,15 +1543,9 @@ TYPED_TEST(NdpTest, PendingNdp) {
   EXPECT_EQ(entry->isPending(), false);
 };
 
-TYPED_TEST(NdpTest, PendingNdpCleanup) {
-  // Keep test disabled for intf nbr tables because pending neighbor entries are
-  // currently not stored in intfs.
-  // TODO(jeffkim8482) Remove test once intf nbr migration is complete
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
+TEST_F(NdpTest, PendingNdpCleanup) {
+  // Will be migrated and then enabled
+  GTEST_SKIP();
 
   seconds ndpTimeout(1);
   auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
@@ -1932,15 +1722,9 @@ TYPED_TEST(NdpTest, PendingNdpCleanup) {
   EXPECT_NE(sw, nullptr);
 };
 
-TYPED_TEST(NdpTest, NdpExpiration) {
-  // Keep test disabled for intf nbr tables because pending neighbor entries are
-  // currently not stored in intfs.
-  // TODO(jeffkim8482) Remove test once intf nbr migration is complete
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
+TEST_F(NdpTest, NdpExpiration) {
+  // Will be migrated and then enabled
+  GTEST_SKIP();
 
   seconds ndpTimeout(1);
   auto handle = this->setupTestHandleWithNdpTimeout(ndpTimeout);
@@ -2197,7 +1981,7 @@ TYPED_TEST(NdpTest, NdpExpiration) {
   EXPECT_EQ(entry3, nullptr);
 }
 
-TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
+TEST_F(NdpTest, FlushEntryWithConcurrentUpdate) {
   auto handle = this->setupTestHandle();
   auto sw = handle->getSw();
   ThriftHandler thriftHandler(sw);
@@ -2211,56 +1995,29 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
   for (uint32_t i = 1; i <= 255; i++) {
     targetIPs.emplace_back("2401:db00:2110:3004::" + std::to_string(i));
   }
-  if (this->isIntfNbrTable()) {
-    // populate ndp entries first before flush
-    {
-      auto intfID =
-          sw->getState()->getInterfaceIDForPort(PortDescriptor(portID));
-      std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
-      std::transform(
-          targetIPs.begin(),
-          targetIPs.end(),
-          ndpReachables.begin(),
-          [&](const IPAddressV6& ip) {
-            return make_unique<WaitForNdpEntryReachable>(sw, ip, intfID);
-          });
-      for (auto& ip : targetIPs) {
-        sendNeighborAdvertisement(
-            handle.get(),
-            ip.str(),
-            "02:05:73:f9:46:fb",
-            PortDescriptor(PortID(portID)),
-            vlanID,
-            false);
-        waitForStateUpdates(sw);
-      }
-      for (auto& ndpReachable : ndpReachables) {
-        EXPECT_TRUE(ndpReachable->wait());
-      }
+  // populate ndp entries first before flush
+  {
+    auto intfID = sw->getState()->getInterfaceIDForPort(PortDescriptor(portID));
+    std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
+    std::transform(
+        targetIPs.begin(),
+        targetIPs.end(),
+        ndpReachables.begin(),
+        [&](const IPAddressV6& ip) {
+          return make_unique<WaitForNdpEntryReachable>(sw, ip, intfID);
+        });
+    for (auto& ip : targetIPs) {
+      sendNeighborAdvertisement(
+          handle.get(),
+          ip.str(),
+          "02:05:73:f9:46:fb",
+          PortDescriptor(PortID(portID)),
+          vlanID,
+          false);
+      waitForStateUpdates(sw);
     }
-  } else {
-    // populate ndp entries first before flush
-    {
-      std::array<std::unique_ptr<WaitForNdpEntryReachable>, 255> ndpReachables;
-      std::transform(
-          targetIPs.begin(),
-          targetIPs.end(),
-          ndpReachables.begin(),
-          [&](const IPAddressV6& ip) {
-            return make_unique<WaitForNdpEntryReachable>(sw, ip, vlanID);
-          });
-      for (auto& ip : targetIPs) {
-        sendNeighborAdvertisement(
-            handle.get(),
-            ip.str(),
-            "02:05:73:f9:46:fb",
-            PortDescriptor(PortID(portID)),
-            vlanID,
-            false);
-      }
-      for (auto& ndpReachable : ndpReachables) {
-        EXPECT_TRUE(ndpReachable->wait());
-      }
+    for (auto& ndpReachable : ndpReachables) {
+      EXPECT_TRUE(ndpReachable->wait());
     }
   }
 
@@ -2294,15 +2051,9 @@ TYPED_TEST(NdpTest, FlushEntryWithConcurrentUpdate) {
   ndpReplies.join();
 }
 
-TYPED_TEST(NdpTest, PortFlapRecover) {
-  // Keep test disabled for intf nbr tables because pending neighbor entries are
-  // currently not stored in intfs.
-  // TODO(jeffkim8482) Remove test once intf nbr migration is complete
-  if (this->isIntfNbrTable()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-  }
+TEST_F(NdpTest, PortFlapRecover) {
+  // Will be migrated and then enabled
+  GTEST_SKIP();
 
   auto handle = this->setupTestHandleWithNdpTimeout(seconds(0));
   auto sw = handle->getSw();
@@ -2550,7 +2301,7 @@ TYPED_TEST(NdpTest, PortFlapRecover) {
   EXPECT_EQ(entry3->isPending(), false);
 }
 
-TYPED_TEST(NdpTest, stressSendMulticastNeighborSoclicitsDuringStateUpdate) {
+TEST_F(NdpTest, stressSendMulticastNeighborSoclicitsDuringStateUpdate) {
   // create 100 L3 interfaces
   auto handle = this->setupTestHandleWithNdpTimeout(seconds(0), 100);
   auto sw = handle->getSw();
@@ -2565,11 +2316,8 @@ TYPED_TEST(NdpTest, stressSendMulticastNeighborSoclicitsDuringStateUpdate) {
   auto targetIP = IPAddressV6("2401:db00:2110:3004::1:0");
 
   std::optional<WaitForNdpEntryReachable> neighborReachable;
-  if (this->isIntfNbrTable()) {
-    neighborReachable.emplace(sw, targetIP, intfID);
-  } else {
-    neighborReachable.emplace(sw, targetIP, vlanID);
-  }
+  neighborReachable.emplace(sw, targetIP, intfID);
+
   sendNeighborAdvertisement(
       handle.get(),
       targetIP.str(),
