@@ -106,36 +106,27 @@ TEST(ThriftySwitchState, PortMap) {
 }
 
 TEST(ThriftySwitchState, VlanMap) {
-  auto verifyVlanMap = [](bool use_intf_nbr_tables) {
-    FLAGS_intf_nbr_tables = use_intf_nbr_tables;
+  // With intf_nbr_tables enabled (default), neighbor tables are on interfaces,
+  // not VLANs. Only test MAC table on VLAN.
+  auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
+  auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
+  vlan1->setInterfaceID(InterfaceID(1));
+  vlan1->setInterfaceID(InterfaceID(2));
 
-    auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
-    auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
-    vlan1->setInterfaceID(InterfaceID(1));
-    vlan1->setInterfaceID(InterfaceID(2));
+  auto macTable = std::make_shared<MacTable>();
+  auto macEntry = std::make_shared<MacEntry>(
+      MacAddress("02:00:00:00:00:08"),
+      PortDescriptor(PortID(4)),
+      std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
+  macTable->addEntry(macEntry);
 
-    if (!use_intf_nbr_tables) {
-      setNeighborTablesAndDHCPRelay(vlan1, vlan2);
-    }
+  auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
+  vlanMap->addNode(vlan1, scope());
+  vlanMap->addNode(vlan2, scope());
 
-    auto macTable = std::make_shared<MacTable>();
-    auto macEntry = std::make_shared<MacEntry>(
-        MacAddress("02:00:00:00:00:08"),
-        PortDescriptor(PortID(4)),
-        std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
-    macTable->addEntry(macEntry);
-
-    auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
-    vlanMap->addNode(vlan1, scope());
-    vlanMap->addNode(vlan2, scope());
-
-    auto state = SwitchState();
-    state.resetVlans(vlanMap);
-    verifySwitchStateSerialization(state);
-  };
-
-  verifyVlanMap(false /* VLAN neighbor table */);
-  verifyVlanMap(true /* Interface neighbor table */);
+  auto state = SwitchState();
+  state.resetVlans(vlanMap);
+  verifySwitchStateSerialization(state);
 }
 
 TEST(ThriftySwitchState, AclMap) {
@@ -321,8 +312,6 @@ TEST(ThriftySwitchState, InterfaceMap) {
 }
 
 TEST(ThriftySwitchState, InterfaceMapNbrTables) {
-  FLAGS_intf_nbr_tables = true;
-
   auto intf1 = make_shared<Interface>(
       InterfaceID(1),
       RouterID(0),
