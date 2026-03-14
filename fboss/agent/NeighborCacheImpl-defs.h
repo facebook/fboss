@@ -490,16 +490,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
 
     InterfaceID interfaceID;
     std::optional<SystemPortID> systemPortID;
-    std::optional<int64_t> encapIndex;
-
-    auto isAggregatePort = fields.port.isAggregatePort();
-    auto switchId = isAggregatePort
-        ? sw_->getScopeResolver()->scope(state, fields.port).switchId()
-        : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
-    auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
-    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
-    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!fields.port.isSystemPort());
@@ -535,9 +525,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
     nbrEntry.state() =
         static_cast<state::NeighborState>(state::NeighborState::Pending);
-    if (encapIndex.has_value()) {
-      nbrEntry.encapIndex() = encapIndex.value();
-    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       // TODO: Support aggregate ports for VOQ switches
@@ -547,7 +534,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
           PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
       nbrEntry.isLocal() = fields.isLocal;
     } else {
-      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
+      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(port);
     }
 
     if (fields.classID.has_value()) {
