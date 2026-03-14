@@ -167,23 +167,6 @@ class MirrorManagerTest : public ::testing::Test {
     return newState;
   }
 
-  std::shared_ptr<SwitchState> addNeighborToVlanTable(
-      const std::shared_ptr<SwitchState>& state,
-      InterfaceID interfaceId,
-      const AddrT& ip,
-      const MacAddress mac,
-      PortID port) {
-    auto newState = state->isPublished() ? state->clone() : state;
-    VlanID vlanId =
-        newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-    auto* neighborTable =
-        vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-            &vlan, &newState);
-    neighborTable->addEntry(ip, mac, PortDescriptor(port), interfaceId);
-    return newState;
-  }
-
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& state,
       InterfaceID interfaceId,
@@ -202,21 +185,6 @@ class MirrorManagerTest : public ::testing::Test {
     auto* neighborTable =
         intf->template getNeighborEntryTable<AddrT>().get()->modify(
             &intf, &newState);
-    neighborTable->removeEntry(ip);
-    return newState;
-  }
-
-  std::shared_ptr<SwitchState> delNeighborFromVlanTable(
-      const std::shared_ptr<SwitchState>& state,
-      InterfaceID interfaceId,
-      const AddrT& ip) {
-    auto newState = state->isPublished() ? state->clone() : state;
-    VlanID vlanId =
-        newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-    auto* neighborTable =
-        vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-            &vlan, &newState);
     neighborTable->removeEntry(ip);
     return newState;
   }
