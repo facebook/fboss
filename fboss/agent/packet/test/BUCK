@@ -11,6 +11,7 @@ cpp_unittest(
         "EthHdrTest.cpp",
         "ICMPHdrTest.cpp",
         "ICMPPacketTest.cpp",
+        "IPPacketTest.cpp",
         "IPv4HdrTest.cpp",
         "IPv6HdrTest.cpp",
         "LlcHdrTest.cpp",
