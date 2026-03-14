@@ -9,7 +9,6 @@
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
 
 namespace {
 
@@ -22,14 +21,10 @@ using NeighborEntryT =
 
 template <typename AddrT>
 auto getNeighborEntryTableHelper(
-    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<SwitchState>& /* state */,
     const std::shared_ptr<Interface>& interface) {
-  if (FLAGS_intf_nbr_tables) {
-    return interface->template getNeighborEntryTable<AddrT>();
-  } else {
-    auto vlan = state->getVlans()->getNode(interface->getVlanID());
-    return vlan->template getNeighborEntryTable<AddrT>();
-  }
+  // Neighbor tables are always on interfaces
+  return interface->template getNeighborEntryTable<AddrT>();
 }
 
 } // namespace
