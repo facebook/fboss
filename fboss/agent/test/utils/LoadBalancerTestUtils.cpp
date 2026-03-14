@@ -117,6 +117,11 @@ cfg::LoadBalancer getEcmpFullWithFlowLabelHashConfig(
   return getFullHashWithFlowLabelConfig(
       *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
 }
+cfg::LoadBalancer getTrunkFullWithFlowLabelHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return getFullHashWithFlowLabelConfig(
+      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
+}
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
@@ -153,6 +158,13 @@ std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return {getEcmpFullHashConfig(asics), getTrunkFullHashConfig(asics)};
+}
+std::vector<cfg::LoadBalancer>
+getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+    const std::vector<const HwAsic*>& asics) {
+  return {
+      getEcmpFullWithFlowLabelHashConfig(asics),
+      getTrunkFullWithFlowLabelHashConfig(asics)};
 }
 
 cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
