@@ -11,7 +11,7 @@ namespace facebook::fboss {
 //   2. Explicitly set low power mode and confirm the module remains not ready.
 //   3. Clear the low power bit and poll until the module reports READY,
 //      ensuring the full low-power-to-ready transition works end to end.
-TEST_F(HalTest, verifyModuleReachesReadyAfterLowPowerCleared) {
+TEST_F(T1HalTest, verifyModuleReachesReadyAfterLowPowerCleared) {
   for (auto tcvrId : getPresentTransceiverIds()) {
     auto* cmisModule = dynamic_cast<CmisModule*>(getModule(tcvrId));
     ASSERT_NE(cmisModule, nullptr)

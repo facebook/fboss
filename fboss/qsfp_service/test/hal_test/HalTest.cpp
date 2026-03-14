@@ -48,9 +48,11 @@ void HalTest::SetUp() {
     getModule(tcvrId)->detectPresence();
   }
 
-  int upgraded = hal_test::applyStartupFirmwareUpgrades(config_, modules_);
-  if (upgraded > 0) {
-    XLOG(INFO) << "Upgraded firmware on " << upgraded << " module(s)";
+  if (shouldApplyStartupFirmware()) {
+    int upgraded = hal_test::applyStartupFirmwareUpgrades(config_, modules_);
+    if (upgraded > 0) {
+      XLOG(INFO) << "Upgraded firmware on " << upgraded << " module(s)";
+    }
   }
 }
 

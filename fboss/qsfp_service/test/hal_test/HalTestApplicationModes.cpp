@@ -79,11 +79,11 @@ bool isModeSupported(
 // with a hard reset before each mode change. Each test skips transceivers that
 // don't support the mode and skips entirely if no transceiver supports it.
 
-class HalTestProgramMode
-    : public HalTest,
+class T1HalTestProgramMode
+    : public T1HalTest,
       public ::testing::WithParamInterface<TcvrOperationalMode> {};
 
-TEST_P(HalTestProgramMode, programMode) {
+TEST_P(T1HalTestProgramMode, programMode) {
   auto mode = GetParam();
   bool tested = false;
   for (auto tcvrId : getPresentTransceiverIds()) {
@@ -113,8 +113,8 @@ TEST_P(HalTestProgramMode, programMode) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    ProgramMode,
-    HalTestProgramMode,
+    T1ProgramMode,
+    T1HalTestProgramMode,
     testing::ValuesIn(apache::thrift::TEnumTraits<TcvrOperationalMode>::values),
     [](const testing::TestParamInfo<TcvrOperationalMode>& info) {
       return std::string(apache::thrift::util::enumNameSafe(info.param));
@@ -125,12 +125,12 @@ INSTANTIATE_TEST_SUITE_P(
 // we use DEFAULT_MEDIA_INTERFACE_CONFIGS; at runtime the test body checks
 // the actual config via isSpeedChangeSupportedForModule().
 
-class HalTestSpeedChange
-    : public HalTest,
+class T2HalTestSpeedChange
+    : public T2HalTest,
       public ::testing::WithParamInterface<
           std::pair<TcvrOperationalMode, TcvrOperationalMode>> {};
 
-TEST_P(HalTestSpeedChange, speedChange) {
+TEST_P(T2HalTestSpeedChange, speedChange) {
   auto [fromMode, toMode] = GetParam();
   bool tested = false;
   for (auto tcvrId : getPresentTransceiverIds()) {
@@ -164,8 +164,8 @@ TEST_P(HalTestSpeedChange, speedChange) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    SpeedChange,
-    HalTestSpeedChange,
+    T2SpeedChange,
+    T2HalTestSpeedChange,
     testing::ValuesIn(
         hal_test::getAllSpeedChangeTransitions(
             hal_test_config_constants::DEFAULT_MEDIA_INTERFACE_CONFIGS())),
