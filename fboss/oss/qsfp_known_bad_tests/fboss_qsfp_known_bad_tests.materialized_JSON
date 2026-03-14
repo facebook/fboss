@@ -225,7 +225,7 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest.*$"
+          "test_name_regex": "HwPortPrbsTest_.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
@@ -239,7 +239,7 @@
           "test_name_regex": "DummyTest.*$"
         },
         {
-          "test_name_regex": "HwPortPrbsTest.*$"
+          "test_name_regex": "HwPortPrbsTest_.*$"
         },
         {
           "test_name_regex": "HwTransceiverConfigValidationTest.validateAllActiveTransceivers$"
