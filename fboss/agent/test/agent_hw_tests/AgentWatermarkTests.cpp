@@ -40,12 +40,10 @@ class AgentWatermarkTest : public AgentHwTest {
 
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
-    if (FLAGS_intf_nbr_tables) {
-      FLAGS_disable_neighbor_updates = false;
-      // Disabling because neighbor solicitation packets will cause device
-      // watermarks to be non-zero
-      FLAGS_disable_neighbor_solicitation = true;
-    }
+    FLAGS_disable_neighbor_updates = false;
+    // Disabling because neighbor solicitation packets will cause device
+    // watermarks to be non-zero
+    FLAGS_disable_neighbor_solicitation = true;
   }
 
   folly::IPAddressV6 kDestIp2() const {
@@ -284,18 +282,15 @@ class AgentWatermarkTest : public AgentHwTest {
           getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
     }
 
-    if (FLAGS_intf_nbr_tables) {
-      auto interfaceId =
-          ecmpHelper6.getInterface(portDesc, getProgrammedState());
-      if (interfaceId) {
-        auto interface = getProgrammedState()->getInterfaces()->getNodeIf(
-            interfaceId.value());
-        populateNdpNeighborsToCache(interface);
-      } else {
-        XLOG(WARN)
-            << "Interface ID " << interfaceId.value()
-            << " not found in ECMP setup. Skipping resolution of NDP neighbor";
-      }
+    auto interfaceId = ecmpHelper6.getInterface(portDesc, getProgrammedState());
+    if (interfaceId) {
+      auto interface =
+          getProgrammedState()->getInterfaces()->getNodeIf(interfaceId.value());
+      populateNdpNeighborsToCache(interface);
+    } else {
+      XLOG(WARN) << "Interface ID not found in ECMP setup for port "
+                 << portDesc.phyPortID()
+                 << ". Skipping resolution of NDP neighbor";
     }
   }
 
