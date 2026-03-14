@@ -1463,20 +1463,14 @@ TEST_F(NdpTest, FlushOnAggPortTransition) {
 }
 
 TEST_F(NdpTest, PendingNdp) {
-  // Will be migrated and then enabled
-  GTEST_SKIP();
-
-  auto handle = this->setupTestHandle();
+  auto handle = this->setupTestHandleWithPortRif();
   auto sw = handle->getSw();
-
-  auto vlanID = VlanID(5);
-
+  auto intfID =
+      sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
-      // 802.1q, VLAN 5
-      "81 00 00 05"
+      "00 02 00 00 00 55  02 05 73 f9 46 fc"
       // IPv6
       "86 dd"
       // Version 6, traffic class, flow label
@@ -1501,54 +1495,47 @@ TEST_F(NdpTest, PendingNdp) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  // We should get a neighbor solicitation back and the state should change once
-  // to add the pending entry
-  WaitForNdpEntryCreation neighborEntryCreate(
-      sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
-  EXPECT_SWITCHED_PKT(
+  // We should get a neighbor solicitation back
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          MacAddress("00:02:00:00:00:55"),
+          MockPlatform::getLinkLocalIp6(MacAddress("00:02:00:00:00:55")),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           IPAddressV6("2401:db00:2110:3004::1:0"),
-          vlanID));
+          VlanID(1)),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
   // Send the packet to the SwSwitch
   handle->rxPacket(
-      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
-  EXPECT_TRUE(neighborEntryCreate.wait());
-
-  // Should see a pending entry now
-  auto entry =
-      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
-          IPAddressV6("2401:db00:2110:3004::1:0"));
-  EXPECT_NE(entry, nullptr);
-  EXPECT_EQ(entry->isPending(), true);
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
+  waitForStateUpdates(sw);
 
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.ndp.sum", 0);
 
+  // Resolve the pending entry by injecting a Neighbor Advertisement
   WaitForNdpEntryReachable neighborEntryReachable(
-      sw, IPAddressV6("2401:db00:2110:3004::1:0"), vlanID);
-
-  // Receive an ndp advertisement for our pending entry
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), intfID);
   sendNeighborAdvertisement(
       handle.get(),
       "2401:db00:2110:3004::1:0",
       "02:10:20:30:40:22",
       PortDescriptor(PortID(1)),
-      vlanID);
+      1);
 
   // The entry should now be valid instead of pending
   EXPECT_TRUE(neighborEntryReachable.wait());
   waitForStateUpdates(sw);
-  entry =
-      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
-          IPAddressV6("2401:db00:2110:3004::1:0"));
+  auto entry = sw->getState()
+                   ->getInterfaces()
+                   ->getNodeIf(intfID)
+                   ->getNdpTable()
+                   ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), false);
 
@@ -1558,11 +1545,13 @@ TEST_F(NdpTest, PendingNdp) {
 
   // Send the packet to the SwSwitch
   handle->rxPacket(
-      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
   waitForStateUpdates(sw);
-  entry =
-      sw->getState()->getVlans()->getNodeIf(vlanID)->getNdpTable()->getEntryIf(
-          IPAddressV6("2401:db00:2110:3004::1:0"));
+  entry = sw->getState()
+              ->getInterfaces()
+              ->getNodeIf(intfID)
+              ->getNdpTable()
+              ->getEntryIf(IPAddressV6("2401:db00:2110:3004::1:0"));
   EXPECT_NE(entry, nullptr);
   EXPECT_EQ(entry->isPending(), false);
 };
