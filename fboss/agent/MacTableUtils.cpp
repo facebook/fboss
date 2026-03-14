@@ -200,10 +200,8 @@ std::shared_ptr<SwitchState> MacTableUtils::updateOrAddStaticEntryIfNbrExists(
         });
   };
   auto vlan = state->getVlans()->getNode(vlanId).get();
-  const auto& arpTable =
-      *getNeighborTableForVlan<ArpTable>(state, vlanId, true);
-  const auto& ndpTable =
-      *getNeighborTableForVlan<NdpTable>(state, vlanId, true);
+  const auto& arpTable = *getNeighborTableForVlan<ArpTable>(state, vlanId);
+  const auto& ndpTable = *getNeighborTableForVlan<NdpTable>(state, vlanId);
   auto arpItr = findNeighbor(arpTable);
   auto ndpItr = findNeighbor(ndpTable);
   if (arpItr != arpTable.end() || ndpItr != ndpTable.end()) {

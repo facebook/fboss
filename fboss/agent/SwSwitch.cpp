@@ -3527,8 +3527,7 @@ void SwSwitch::sendL3Packet(
       } else {
         const auto dstAddrV6 = dstAddr.asV6();
         try {
-          auto entry =
-              getNeighborEntryForIP<NdpEntry>(state, intf, dstAddrV6, true);
+          auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, dstAddrV6);
           if (entry) {
             dstMac = entry->getMac();
           } else {
@@ -3805,7 +3804,7 @@ bool SwSwitch::sendArpRequestHelper(
     folly::IPAddressV4 source,
     folly::IPAddressV4 target) {
   bool sent = false;
-  auto entry = getNeighborEntryForIP<ArpEntry>(state, intf, target, true);
+  auto entry = getNeighborEntryForIP<ArpEntry>(state, intf, target);
   if (entry == nullptr) {
     // No entry in ARP table, send ARP request
     ArpHandler::sendArpRequest(
@@ -3828,7 +3827,7 @@ bool SwSwitch::sendNdpSolicitationHelper(
     std::shared_ptr<SwitchState> state,
     const folly::IPAddressV6& target) {
   bool sent = false;
-  auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target, true);
+  auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
   if (entry == nullptr) {
     // No entry in NDP table, create a neighbor solicitation packet
     IPv6Handler::sendMulticastNeighborSolicitation(

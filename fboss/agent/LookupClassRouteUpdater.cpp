@@ -84,14 +84,14 @@ void LookupClassRouteUpdater::removeNextHopsForSubnet(
     if (vlanID == vlan->getID() && nextHop.inSubnet(ipAddress, mask)) {
       if (nextHop.isV6()) {
         auto ndpEntry = getNeighborTableForVlan<NdpTable>(
-                            stateDelta.newState(), vlan->getID(), true)
+                            stateDelta.newState(), vlan->getID())
                             ->getEntryIf(nextHop.asV6());
         if (ndpEntry) {
           processNeighborRemoved(stateDelta, vlan->getID(), ndpEntry);
         }
       } else if (nextHop.isV4()) {
         auto arpEntry = getNeighborTableForVlan<ArpTable>(
-                            stateDelta.newState(), vlan->getID(), true)
+                            stateDelta.newState(), vlan->getID())
                             ->getEntryIf(nextHop.asV4());
         if (arpEntry) {
           processNeighborRemoved(stateDelta, vlan->getID(), arpEntry);
@@ -122,7 +122,7 @@ LookupClassRouteUpdater::getClassIDForLinkLocal(
    */
   auto mac = ipAddressV6.getMacAddressFromLinkLocal();
   if (!mac) {
-    auto ndpEntry = getNeighborTableForVlan<NdpTable>(switchState, vlanID, true)
+    auto ndpEntry = getNeighborTableForVlan<NdpTable>(switchState, vlanID)
                         ->getNodeIf(ipAddressV6.str());
     if (ndpEntry) {
       mac = ndpEntry->getMac();
@@ -150,11 +150,11 @@ LookupClassRouteUpdater::getClassIDForNeighbor(
   }
 
   if (ipAddress.isV6()) {
-    auto ndpEntry = getNeighborTableForVlan<NdpTable>(switchState, vlanID, true)
+    auto ndpEntry = getNeighborTableForVlan<NdpTable>(switchState, vlanID)
                         ->getEntryIf(ipAddress.asV6());
     return ndpEntry ? ndpEntry->getClassID() : std::nullopt;
   } else if (ipAddress.isV4()) {
-    auto arpEntry = getNeighborTableForVlan<ArpTable>(switchState, vlanID, true)
+    auto arpEntry = getNeighborTableForVlan<ArpTable>(switchState, vlanID)
                         ->getEntryIf(ipAddress.asV4());
     return arpEntry ? arpEntry->getClassID() : std::nullopt;
   }
@@ -1061,16 +1061,14 @@ void LookupClassRouteUpdater::processRouteRemoved(
       auto vlan = newState->getVlans()->getNodeIf(vlanID);
       if (vlan) {
         if (nextHop.addr().isV6()) {
-          auto ndpEntry =
-              getNeighborTableForVlan<NdpTable>(newState, vlanID, true)
-                  ->getEntryIf(nextHop.addr().asV6());
+          auto ndpEntry = getNeighborTableForVlan<NdpTable>(newState, vlanID)
+                              ->getEntryIf(nextHop.addr().asV6());
           if (!ndpEntry) {
             nextHopAndVlan2Prefixes_.erase(it);
           }
         } else if (nextHop.addr().isV4()) {
-          auto arpEntry =
-              getNeighborTableForVlan<ArpTable>(newState, vlanID, true)
-                  ->getEntryIf(nextHop.addr().asV4());
+          auto arpEntry = getNeighborTableForVlan<ArpTable>(newState, vlanID)
+                              ->getEntryIf(nextHop.addr().asV4());
           if (!arpEntry) {
             nextHopAndVlan2Prefixes_.erase(it);
           }
