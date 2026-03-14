@@ -17,7 +17,6 @@
 
 using facebook::network::toBinaryAddress;
 
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(classid_for_unresolved_routes);
 
 namespace facebook::fboss {
@@ -85,33 +84,18 @@ class HwRouteTest : public HwLinkStateDependentTest {
   }
 };
 
-template <typename AddrType, bool enableIntfNbrTable>
-struct IpAddrAndEnableIntfNbrTableT {
-  using AddrT = AddrType;
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
+template <typename AddrT>
+struct IpAddrT {
+  using AddrType = AddrT;
 };
 
-using NeighborTableTypes = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+using NeighborTableTypes =
+    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
 
-template <typename IpAddrAndEnableIntfNbrTableT>
-class HwRouteNeighborTest
-    : public HwRouteTest<typename IpAddrAndEnableIntfNbrTableT::AddrT> {
-  static auto constexpr intfNbrTable =
-      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
-
+template <typename IpAddrT>
+class HwRouteNeighborTest : public HwRouteTest<typename IpAddrT::AddrType> {
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
-  void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
-    HwLinkStateDependentTest::SetUp();
-  }
+  using Type = typename IpAddrT::AddrType;
 };
 
 TYPED_TEST_SUITE(HwRouteNeighborTest, NeighborTableTypes);
@@ -124,23 +108,11 @@ TYPED_TEST(HwRouteNeighborTest, AddHostRouteAndNeighbor) {
     auto port = this->getProgrammedState()->getPort(portId);
     auto state = this->getProgrammedState();
     auto getNeighborTable = [&]() {
-      auto switchType = this->getSwitchType();
-
-      if (this->isIntfNbrTable() || switchType == cfg::SwitchType::VOQ) {
-        auto intfId = port->getInterfaceID();
-        return state->getInterfaces()
-            ->getNode(intfId)
-            ->template getNeighborEntryTable<AddrT>()
-            ->modify(intfId, &state);
-      } else if (switchType == cfg::SwitchType::NPU) {
-        auto vlanId = port->getVlans().begin()->first;
-        return state->getVlans()
-            ->getNode(vlanId)
-            ->template getNeighborEntryTable<AddrT>()
-            ->modify(vlanId, &state);
-      }
-
-      XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
+      auto intfId = port->getInterfaceID();
+      return state->getInterfaces()
+          ->getNode(intfId)
+          ->template getNeighborEntryTable<AddrT>()
+          ->modify(intfId, &state);
     };
     // add neighbor
     auto nbrTable = getNeighborTable();
