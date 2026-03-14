@@ -51,23 +51,16 @@ class BspTestEnvironment : public ::testing::Environment {
   void printAllRecordedErrors() const;
 
   // Static accessor method for the singleton instance
-  static BspTestEnvironment* GetInstance(
-      const std::string& platform = "",
-      const std::string& bspTestsConfigJson = "",
-      const std::string& pmConfigJson = "") {
-    if (instance_ == nullptr && !platform.empty()) {
-      instance_ =
-          new BspTestEnvironment(platform, bspTestsConfigJson, pmConfigJson);
+  static BspTestEnvironment* GetInstance() {
+    if (!instance_) {
+      instance_ = new BspTestEnvironment();
     }
     return instance_;
   }
 
  private:
   // Private constructor to enforce singleton pattern
-  explicit BspTestEnvironment(
-      const std::string& platform,
-      const std::string& bspTestsConfigJson,
-      const std::string& pmConfigJson);
+  BspTestEnvironment() = default;
 
   platform_manager::PlatformConfig loadPlatformManagerConfig(
       const std::string& platform,
@@ -81,9 +74,9 @@ class BspTestEnvironment : public ::testing::Environment {
   static BspTestEnvironment* instance_;
 
   std::string platform_;
-  BspTestsConfig testConfig_;
-  platform_manager::PlatformConfig platformManagerConfig_;
-  RuntimeConfig runtimeConfig_;
+  std::optional<BspTestsConfig> testConfig_;
+  std::optional<platform_manager::PlatformConfig> platformManagerConfig_;
+  std::optional<RuntimeConfig> runtimeConfig_;
   platform_manager::BspKmodsFile kmods_;
   std::unique_ptr<platform_manager::PkgManager> pkgManager_;
   std::vector<RecordedError> recordedErrors_;

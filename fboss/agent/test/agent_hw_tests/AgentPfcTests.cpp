@@ -41,7 +41,10 @@ class AgentPfcTest : public AgentHwTest {
 
 TEST_F(AgentPfcTest, verifyPfcCounters) {
   std::vector<PortID> portIds = {
-      masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+      masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0],
+      masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[1]};
   std::vector<int> losslessPgIds = {2};
   std::vector<int> lossyPgIds = {0};
 
@@ -96,7 +99,8 @@ class AgentPfcWatchdogGranularityTest : public AgentPfcTest {
 };
 
 TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
-  auto portId = masterLogicalInterfacePortIds()[0];
+  auto portId = masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0];
 
   auto setup = [&]() {};
   auto verify = [&]() {
@@ -141,7 +145,8 @@ class AgentPfcCaptureTest : public AgentPfcTest {
 };
 
 TEST_F(AgentPfcCaptureTest, verifyPfcLoopback) {
-  std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
+  std::vector<PortID> portIds = {masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]};
   std::vector<int> losslessPgIds = {2};
   std::vector<int> lossyPgIds = {0};
 

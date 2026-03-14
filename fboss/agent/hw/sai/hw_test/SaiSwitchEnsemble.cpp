@@ -135,8 +135,7 @@ std::map<int64_t, cfg::DsfNode> SaiSwitchEnsemble::dsfNodesFromInputConfig()
   return *getAgentConfig()->thrift.sw()->dsfNodes();
 }
 
-void SaiSwitchEnsemble::init(
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
+void SaiSwitchEnsemble::init(const TestEnsembleInitInfo& info) {
   auto agentConfig = getAgentConfig();
   if (info.overrideDsfNodes.has_value()) {
     cfg::AgentConfig thrift = agentConfig->thrift;
@@ -148,10 +147,12 @@ void SaiSwitchEnsemble::init(
       initSaiPlatform(std::move(agentConfig), getHwSwitchFeatures(), 0);
   if (platform->getAsic()->getAsicVendor() ==
           HwAsic::AsicVendor::ASIC_VENDOR_TAJO ||
-      platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+      platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
     FLAGS_classid_for_unresolved_routes = true;
   }
-  if (platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+  if (platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      platform->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
     FLAGS_set_classid_for_my_subnet_and_ip_routes = true;
   }
   if (auto tcvr = info.overrideTransceiverInfo) {

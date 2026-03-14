@@ -234,19 +234,53 @@ void I2cLogBuffer::getOptional(std::stringstream& ss, T value) {
   ss << " ";
 }
 
-std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
-  // To avoid high latency for lock (during memory allocation), the thrift API
-  // call will run this function and the entriesOut will be initialized to the
-  // right size before the call to dump();
-  const size_t size = getSize();
-  std::vector<I2cLogEntry> entriesOut(size);
-  const auto headerInfo = dump(entriesOut);
+void I2cLogBuffer::dumpI2cTxnsFormat(
+    const std::vector<I2cLogEntry>& entriesOut,
+    size_t logCount) {
   std::stringstream ss;
 
+  TimePointSteady prev;
+  for (size_t i = 0; i < logCount; i++) {
+    auto& entry = entriesOut[i];
+    if (i != 0) {
+      std::chrono::duration<double> timeDiff =
+          std::chrono::duration_cast<std::chrono::duration<double>>(
+              entry.steadyTime - prev);
+      ss << fmt::format("sleep {:}", timeDiff.count());
+      ss << std::endl;
+    }
+    prev = entry.steadyTime;
+    auto& param = entry.param;
+    if (entry.op == Operation::Read) {
+      ss << fmt::format(
+          "i2ctransfer -y #i2cBus w1@0x50 {:d} r{:d}", param.offset, param.len);
+    } else if (entry.op == Operation::Write) {
+      ss << fmt::format(
+          "i2ctransfer -y #i2cBus w{:d}@0x50 {:d} ",
+          param.len + 1,
+          param.offset);
+      for (int l = 0; l < param.len; l++) {
+        ss << " 0x" << std::hex << std::setfill('0') << std::setw(2)
+           << (uint16_t)(entry.data[l]);
+      }
+    } else if (entry.op == Operation::Reset) {
+      ss << "echo ----------- trigger_hard_reset ----------- ";
+    } else if (entry.op == Operation::Presence) {
+      ss << "echo ----------- read_transceiver_presence ----------- ";
+    }
+    ss << std::endl;
+  }
+  auto i2cTxnFileName = logFile_ + "_replay.sh";
+  folly::writeFile(ss.str(), i2cTxnFileName.c_str());
+}
+
+std::pair<size_t, size_t> I2cLogBuffer::dumpTextFormat(
+    const I2cLogHeader& headerInfo,
+    const std::vector<I2cLogEntry>& entriesOut) {
+  std::stringstream ss;
+  TimePointSteady prev;
   auto logCount = headerInfo.bufferEntries;
   auto hdrSize = getHeader(ss, headerInfo);
-
-  TimePointSteady prev;
 
   for (size_t i = 0; i < logCount; i++) {
     auto& entry = entriesOut[i];
@@ -302,6 +336,19 @@ std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
   }
   folly::writeFile(ss.str(), logFile_.c_str());
   return std::make_pair(hdrSize, logCount);
+}
+
+std::pair<size_t, size_t> I2cLogBuffer::dumpToFile() {
+  // To avoid high latency for lock (during memory allocation), the thrift API
+  // call will run this function and the entriesOut will be initialized to the
+  // right size before the call to dump();
+  const size_t size = getSize();
+  std::vector<I2cLogEntry> entriesOut(size);
+  const auto headerInfo = dump(entriesOut);
+  auto headerAndLogCount = dumpTextFormat(headerInfo, entriesOut);
+  dumpI2cTxnsFormat(entriesOut, headerAndLogCount.second);
+
+  return headerAndLogCount;
 }
 
 TransceiverAccessParameter I2cLogBuffer::getParam(const std::string& str) {

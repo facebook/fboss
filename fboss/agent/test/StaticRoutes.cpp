@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/rib/ConfigApplier.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -101,7 +102,7 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
         RouterID(0), nw.toCidrNetwork(), this->sw_->getState());
   }
 
-  static ConfigApplier getConfigApplier(
+  ConfigApplier getConfigApplier(
       cfg::SwitchConfig& config,
       IPv4NetworkToRouteMap* v4Table,
       IPv6NetworkToRouteMap* v6Table,
@@ -132,12 +133,14 @@ class StaticRouteTest : public ::testing::TestWithParam<bool> {
             config.staticMplsRoutesToNull()->end()),
         folly::range(
             config.staticMplsRoutesToCPU()->begin(),
-            config.staticMplsRoutesToCPU()->end()));
+            config.staticMplsRoutesToCPU()->end()),
+        &nextHopIDManager_);
   }
 
  protected:
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
+  NextHopIDManager nextHopIDManager_;
 };
 
 TEST_F(StaticRouteTest, configureUnconfigure) {

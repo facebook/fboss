@@ -76,6 +76,17 @@ int getEepromOffset(
       }
     }
   }
+
+  for (const auto& [__, pmUnitConfig] : *platformConfig.pmUnitConfigs()) {
+    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+      if (*i2cDeviceConfig.pmUnitScopedName() == eepromName + "_EEPROM" &&
+          *i2cDeviceConfig.isEeprom() && i2cDeviceConfig.eepromOffset()) {
+        eepromOffset = *i2cDeviceConfig.eepromOffset();
+        break;
+      }
+    }
+  }
+
   return eepromOffset;
 }
 
@@ -143,7 +154,9 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
   // a regular file). So it is not present in `symbolicLinkToDevicePath`, and we
   // have to add it explicitly. ```
   if (config_.platformName().value() == "MERU800BFA" ||
-      config_.platformName().value() == "MERU800BIA") {
+      config_.platformName().value() == "MERU800BIA" ||
+      config_.platformName().value() == "ICECUBE800BANW" ||
+      config_.platformName().value() == "BLACKWOLF800BANW") {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";

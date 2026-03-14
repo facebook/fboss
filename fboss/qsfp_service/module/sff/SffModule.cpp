@@ -15,6 +15,7 @@
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/sff/SffFieldInfo.h"
 
+#include <folly/Format.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -1517,7 +1518,8 @@ bool SffModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
        (portState.startHostLane == 0) && portState.numHostLanes == 4);
 }
 
-void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+void SffModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   auto speed = portState.speed;
   QSFP_LOG(INFO, this) << folly::sformat(
       "customizeTransceiverLocked: PortName {}, Speed {}, StartHostLane {}, numHostLanes {}",
@@ -1558,7 +1560,8 @@ void SffModule::customizeTransceiverLocked(TransceiverPortState& portState) {
  * that (by configuring power mode register) otherwise return true when module
  * is in ready state otherwise return false.
  */
-bool SffModule::ensureTransceiverReadyLocked() {
+bool SffModule::ensureTransceiverReadyLocked(
+    bool /* hasTunableOpticsConfig */) {
   // If customization is not supported then the Power control bit can't be
   // touched. Return true as nothing needs to be done here
   if (!customizationSupported()) {

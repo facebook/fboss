@@ -7,9 +7,11 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/lib/CommonFileUtils.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 using namespace facebook::fboss::platform;
+using namespace facebook::fboss::platform::helpers;
 namespace {
 auto constexpr kFruPresence = "fru_presence_explorer.{}.presence";
 auto constexpr kSystem = "SYSTEM";
@@ -20,7 +22,7 @@ namespace facebook::fboss::platform::data_corral_service {
 FruPresenceExplorer::FruPresenceExplorer(
     const std::vector<FruConfig>& fruConfigs,
     std::shared_ptr<LedManager> ledManager)
-    : fruConfigs_(fruConfigs), ledManager_(ledManager) {}
+    : fruConfigs_(fruConfigs), ledManager_(std::move(ledManager)) {}
 
 void FruPresenceExplorer::detectFruPresence() {
   XLOG(INFO) << "Detecting presence of FRUs";
@@ -55,6 +57,11 @@ void FruPresenceExplorer::detectFruPresence() {
           "Fail to detect presence of {} because of {}",
           *fruConfig.fruName(),
           ex.what());
+      helpers::StructuredLogger logger("data_corral_service");
+      logger.logAlert(
+          "fru_presence_detection_failure",
+          ex.what(),
+          {{"fru_name", *fruConfig.fruName()}, {"fru_type", fruType}});
       fruTypePresence_[fruType] = false;
     }
   }

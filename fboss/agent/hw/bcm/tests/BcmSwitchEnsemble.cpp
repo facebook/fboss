@@ -208,8 +208,7 @@ void BcmSwitchEnsemble::runDiagCommand(
   getHwSwitch()->printDiagCmd(input);
 }
 
-void BcmSwitchEnsemble::init(
-    const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) {
+void BcmSwitchEnsemble::init(const TestEnsembleInitInfo& info) {
   CHECK(!info.overrideDsfNodes.has_value())
       << " Dsf nodes not supported in BCM tests";
   auto platform = createTestPlatform();

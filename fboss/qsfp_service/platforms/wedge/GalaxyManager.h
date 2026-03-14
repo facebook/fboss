@@ -22,8 +22,7 @@ class GalaxyManager : public WedgeManager {
   explicit GalaxyManager(
       PlatformType type,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   ~GalaxyManager() override {}
 
   // This is the front panel ports count

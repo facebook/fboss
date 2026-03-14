@@ -11,6 +11,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/lib/AlertLogger.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -22,12 +23,9 @@
 
 using namespace std::chrono;
 
-// allow us to configure the qsfp_service dir so that the qsfp cold boot test
-// can run concurrently with itself
-DEFINE_string(
-    qsfp_service_volatile_dir,
-    "/dev/shm/fboss/qsfp_service",
-    "Path to the directory in which we store the qsfp_service's cold boot flag");
+// @nolint(facebook-hte-PreventUseOfDeclareGflag) - Flag defined in
+// QsfpConfig.cpp
+DECLARE_string(qsfp_service_volatile_dir);
 
 DEFINE_bool(
     can_qsfp_service_warm_boot,
@@ -73,6 +71,11 @@ DEFINE_bool(
     port_manager_mode,
     false,
     "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
+
+DEFINE_bool(
+    override_program_iphy_ports_for_test,
+    false,
+    "Override wedge_agent programInternalPhyPorts(). For test only");
 
 namespace {
 constexpr auto kFbossPortNameRegex = "(eth|fab)(\\d+)/(\\d+)/(\\d+)";
@@ -147,11 +150,10 @@ namespace facebook::fboss {
 TransceiverManager::TransceiverManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
     : qsfpPlatApi_(std::move(api)),
       platformMapping_(platformMapping),
-      threads_(threads),
+      qsfpServiceThreads_(qsfpServiceThreads),
       tcvrToPortInfo_(setupTransceiverToPortInfo()),
       stateMachineControllers_(setupTransceiverToStateMachineControllerMap()) {
   // Cache the static mapping based on platformMapping_
@@ -290,7 +292,7 @@ void TransceiverManager::init() {
   startThreads();
 
   // Initialize the PhyManager all ExternalPhy for the system
-  initExternalPhyMap();
+  initExternalPhyMap(phyManager_.get());
   // Initialize the I2c bus
   initTransceiverMap();
 
@@ -547,9 +549,7 @@ TransceiverManager::getPortsRequiringOpticsFwUpgrade() const {
   return ports;
 }
 
-std::map<std::string, FirmwareUpgradeData>
-TransceiverManager::triggerAllOpticsFwUpgrade() {
-  std::map<std::string, FirmwareUpgradeData> ports;
+void TransceiverManager::ensureFwUpgradeAllowed() const {
   if (!isFullyInitialized()) {
     throw FbossError("Service is still initializing...");
   }
@@ -559,17 +559,47 @@ TransceiverManager::triggerAllOpticsFwUpgrade() {
   if (!FLAGS_firmware_upgrade_supported) {
     throw FbossError("Firmware upgrade is not supported...");
   }
+}
+
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerAllOpticsFwUpgrade() {
+  ensureFwUpgradeAllowed();
+  std::map<std::string, FirmwareUpgradeData> ports;
   auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+
+  std::vector<std::string> interfaces;
+  interfaces.reserve(portsForFwUpgrade.size());
+  for (const auto& [portName, _] : portsForFwUpgrade) {
+    interfaces.push_back(portName);
+  }
+  return triggerOpticsFwUpgrade(interfaces);
+}
+
+std::map<std::string, FirmwareUpgradeData>
+TransceiverManager::triggerOpticsFwUpgrade(
+    const std::vector<std::string>& interfaces) {
+  ensureFwUpgradeAllowed();
+  auto portsForFwUpgrade = getPortsRequiringOpticsFwUpgrade();
+  std::map<std::string, FirmwareUpgradeData> portsSelectedForUpgrade;
   auto tcvrsToUpgradeWLock = tcvrsForFwUpgrade.wlock();
 
-  for (const auto& [portName, _] : portsForFwUpgrade) {
+  for (const auto& portName : interfaces) {
+    if (portsForFwUpgrade.find(portName) == portsForFwUpgrade.end()) {
+      XLOG(ERR) << "Port " << portName << " does not require firmware upgrade";
+      continue;
+    }
     if (portNameToModule_.find(portName) != portNameToModule_.end()) {
       auto tcvrID = TransceiverID(portNameToModule_[portName]);
-      FW_LOG(INFO, tcvrID) << "Selected for FW upgrade";
+      XLOG(INFO)
+          << FirmwareUpgradeAlert()
+          << "Selected for firmware upgrade through triggerOpticsFwUpgrade function"
+          << TransceiverParam(tcvrID) << PortParam(portName);
       tcvrsToUpgradeWLock->insert(TransceiverID(portNameToModule_[portName]));
+
+      portsSelectedForUpgrade[portName] = portsForFwUpgrade[portName];
     }
   }
-  return portsForFwUpgrade;
+  return portsSelectedForUpgrade;
 }
 
 bool TransceiverManager::firmwareUpgradeRequired(TransceiverID id) {
@@ -817,9 +847,11 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
     return;
   }
   auto& tcvr = *tcvrIt->second;
-  FW_LOG(INFO, tcvrID)
-      << "Triggering Transceiver Firmware Upgrade for Part Number="
-      << tcvr.getPartNumber();
+  auto portName = getPortName(tcvrID);
+  XLOG(INFO) << FirmwareUpgradeAlert()
+             << "Starting firmware upgrade attempt for"
+             << TransceiverParam(tcvrID) << PortParam(portName)
+             << " Part Number=" << tcvr.getPartNumber();
 
   auto updateStateInFsdb = [&](bool status) {
     if (FLAGS_publish_stats_to_fsdb) {
@@ -831,8 +863,12 @@ void TransceiverManager::doTransceiverFirmwareUpgrade(TransceiverID tcvrID) {
   updateStateInFsdb(true);
   if (upgradeFirmware(*tcvrIt->second)) {
     bumpSuccessfulFwUpgrade();
+    XLOG(INFO) << FirmwareUpgradeAlert() << "Firmware upgrade SUCCESSFUL for"
+               << TransceiverParam(tcvrID) << PortParam(portName);
   } else {
     bumpFailedFwUpgrade();
+    XLOG(ERR) << FirmwareUpgradeAlert() << "Firmware upgrade FAILED for"
+              << TransceiverParam(tcvrID) << PortParam(portName);
   }
   // We will leave the fwUpgradeStatus as true for now because we still have a
   // lot to do after upgrading the firmware. The optic goes through reset, the
@@ -942,14 +978,14 @@ TransceiverManager::setupTransceiverToPortInfo() {
 
 void TransceiverManager::startThreads() {
   // Setup all TransceiverStateMachineHelper thread
-  if (!threads_) {
+  if (!qsfpServiceThreads_) {
     throw FbossError(
         "Attempting to initialize TransceiverManager without initializing thread object.");
   }
 
-  for (auto& threadHelper : *threads_) {
-    threadHelper.second.startThread();
-    heartbeats_.push_back(threadHelper.second.getThreadHeartbeat());
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    threadHelper.startThread();
+    heartbeats_.push_back(threadHelper.getThreadHeartbeat());
   }
 
   XLOG(DBG2) << "Started TransceiverStateMachineUpdateThread";
@@ -1011,8 +1047,8 @@ void TransceiverManager::stopThreads() {
   }
 
   // And finally stop all TransceiverStateMachineHelper thread
-  for (auto& threadHelper : *threads_) {
-    threadHelper.second.stopThread();
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    threadHelper.stopThread();
   }
 }
 
@@ -1088,9 +1124,8 @@ bool TransceiverManager::enqueueStateUpdate(
 
 void TransceiverManager::executeStateUpdates() {
   // Signal the update thread that updates are pending.
-  // We call runInEventBaseThread() with a static function pointer since this
-  // is more efficient than having to allocate a new bound function object.
-  updateEventBase_->runInEventBaseThread(handlePendingUpdatesHelper, this);
+  updateEventBase_->runInEventBaseThread(
+      [this] { this->handlePendingUpdates(); });
 }
 
 bool TransceiverManager::updateState(
@@ -1104,28 +1139,24 @@ bool TransceiverManager::updateState(
   return true;
 }
 
-void TransceiverManager::handlePendingUpdatesHelper(TransceiverManager* mgr) {
-  return mgr->handlePendingUpdates();
-}
 void TransceiverManager::handlePendingUpdates() {
   // Try to run one state machine updates on each transceiver.
   XLOG(DBG2) << "Trying to update all TransceiverStateMachines";
 
   // To expedite all these different transceivers state update, use Future
   std::vector<folly::Future<folly::Unit>> stateUpdateTasks;
-  for (auto& [tcvrID, threadHelper] : *threads_) {
-    auto stateMachineItr = stateMachineControllers_.find(tcvrID);
-    if (stateMachineItr == stateMachineControllers_.end()) {
+  for (auto& [tcvrID, stateMachineController] : stateMachineControllers_) {
+    auto* eventBase = getEventBaseForTcvr(qsfpServiceThreads_, tcvrID);
+    if (!eventBase) {
       XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
-                 << ", can't find ThreadHelper for it. Skip updating.";
+                 << ", can't find EventBase for it. Skip updating.";
       continue;
     }
 
     stateUpdateTasks.push_back(
-        folly::via(threadHelper.getEventBase())
-            .thenValue([stateMachineItr](auto&&) {
-              stateMachineItr->second->executeSingleUpdate();
-            }));
+        folly::via(eventBase).thenValue([&stateMachineController](auto&&) {
+          stateMachineController->executeSingleUpdate();
+        }));
   }
   folly::collectAll(stateUpdateTasks).wait();
 }
@@ -1391,7 +1422,19 @@ std::optional<TransceiverInfo> TransceiverManager::getTransceiverInfoOptional(
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt != lockedTransceivers->end()) {
-    return tcvrIt->second->getTransceiverInfo();
+    try {
+      return tcvrIt->second->getTransceiverInfo();
+    } catch (const std::exception&) {
+      // if the transceiver is present but we've never successfully collected
+      // tcvr info, return a dummy value (returning nullopt would be interpreted
+      // as the tcvr not being present)
+      // TODO(T247435135): Right now the handling of tcvrInfo error cases is
+      // very convoluted, we should simplify this
+      TransceiverInfo tcvrInfo;
+      tcvrInfo.tcvrState()->present() = true;
+      tcvrInfo.tcvrState()->eepromCsumValid() = true;
+      return tcvrInfo;
+    }
   }
   return std::nullopt;
 }
@@ -1426,8 +1469,13 @@ TransceiverInfo TransceiverManager::getTransceiverInfo(TransceiverID id) const {
   // TODO(T243916924): This is very hacky, in the future we should probably
   // refactor how we handle !present tcvrs/tcvrs with i2c errors
   auto erroredTransceivers = erroredTransceivers_.rlock();
-  tcvrInfo.tcvrState()->communicationError() =
-      erroredTransceivers->find(id) != erroredTransceivers->end();
+  if (erroredTransceivers->find(id) != erroredTransceivers->end()) {
+    tcvrInfo.tcvrState()->communicationError() = true;
+    // We need to overwrite timeCollected otherwise we'll keep reporting the
+    // timeCollected of the last successful refresh
+    tcvrInfo.tcvrState()->timeCollected() = std::time(nullptr);
+    tcvrInfo.tcvrStats()->timeCollected() = std::time(nullptr);
+  }
 
   return tcvrInfo;
 }
@@ -1525,6 +1573,63 @@ bool TransceiverManager::isTransceiverPortStateSupported(
   auto tcvrIt = lockedTransceivers->find(tcvrID);
   return tcvrIt != lockedTransceivers->end() &&
       tcvrIt->second->tcvrPortStateSupported(tcvrPortState);
+}
+
+/*
+ * Return the DriverPeaking values per lane for a given port in a transceiver,
+ * if the portConfigOverrides exist and matches the PortID, PortProfileID, and
+ * Transceiver Vendor.
+ */
+std::optional<std::map<uint8_t, uint8_t>>
+TransceiverManager::getDriverPeakingOverrides(
+    TransceiverID tcvrId,
+    cfg::PortProfileID profile,
+    size_t numberOfLanes) {
+  auto lockedTransceivers = transceivers_.rlock();
+  auto tcvrIt = lockedTransceivers->find(tcvrId);
+  if (tcvrIt == lockedTransceivers->end()) {
+    return std::nullopt;
+  }
+
+  const auto info = tcvrIt->second->getTransceiverInfo();
+  auto factor = buildPlatformPortConfigOverrideFactor(info);
+
+  // Get all the driver peaking for all the ports in the transceiver
+  // that match the profile. Add them to the TransceiverPortState.
+  // This is because in CmisModule we may program the AppSel at once
+  // for all the ports that match the profile, and we want the overrides
+  // then.
+  auto portIds = platformMapping_->getSwPortListFromTransceiverId(tcvrId);
+  bool overridesFound = false;
+  std::map<uint8_t, uint8_t> driverPeakings;
+  for (const auto& port : portIds) {
+    PlatformPortProfileConfigMatcher matcher(profile, port, factor);
+    auto driverPeakingOpt =
+        platformMapping_->getPortDriverPeakingOverrides(matcher);
+    if (!driverPeakingOpt) {
+      continue;
+    }
+    if (driverPeakingOpt->size() != numberOfLanes) {
+      XLOG(ERR)
+          << "Warning: Driver Peaking overrides do not match the number of lanes: transceiver "
+          << tcvrId << " port " << port << ". Not overriding";
+      continue;
+    }
+    overridesFound = true;
+    // Thrift does not support an array of uint8_t, so we need to convert to
+    // vector<uint8_t>. The value applied to CMIS per spec is 4 bits per lane.
+    for (const auto& [lane, driverPeakingValue] : *driverPeakingOpt) {
+      driverPeakings.insert(
+          std::make_pair(
+              static_cast<uint8_t>(lane),
+              static_cast<uint8_t>(driverPeakingValue)));
+    }
+  }
+
+  if (!overridesFound) {
+    return std::nullopt;
+  }
+  return driverPeakings;
 }
 
 /*
@@ -1645,6 +1750,8 @@ void TransceiverManager::programTransceiver(
     portState.speed = speed;
     portState.numHostLanes = tcvrHostLanes.size();
     portState.opticalChannelConfig = opticalChannelConfig;
+    portState.driverPeaking =
+        getDriverPeakingOverrides(id, portProfile, tcvrHostLanes.size());
     programTcvrState.ports.emplace(*portName, portState);
   }
 
@@ -1679,6 +1786,11 @@ void TransceiverManager::programTransceiver(
  * Calls the module type specific function to check their power control
  * configuration and if needed, corrects it. Returns if the module is in ready
  * state to proceed further with programming.
+ *
+ * For ZR module, this function checks if tunable optics config
+ * is present in qsfp_service_config and passes this information to the
+ * transceiver. If the config is not present for a ZR optic,
+ * the module will not be moved to high power mode.
  */
 bool TransceiverManager::readyTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
@@ -1689,13 +1801,26 @@ bool TransceiverManager::readyTransceiver(TransceiverID id) {
     return true;
   }
 
-  return tcvrIt->second->readyTransceiver();
+  // Check if tunable optics config is present for this transceiver
+  const auto opticalChannelConfig = getOpticalChannelConfig(id);
+  bool hasTunableOpticsConfig = opticalChannelConfig.has_value();
+
+  return tcvrIt->second->readyTransceiver(hasTunableOpticsConfig);
 }
 
 void TransceiverManager::resetPortState(const TransceiverID& id) {
   auto portNames = getPortNames(id);
   for (auto& portName : portNames) {
     publishPortStateToFsdb(std::string(portName), portstate::PortState());
+  }
+}
+
+void TransceiverManager::getPortTransceiverIDs(
+    std::map<std::string, std::vector<int32_t>>& portTransceiverIds) const {
+  for (const auto& [portName, tcvrId] : portNameToModule_) {
+    // TODO: Handle multi-transceiver ports. portNameToModule_ only includes one
+    // transceiver per port
+    portTransceiverIds[portName].push_back(tcvrId);
   }
 }
 
@@ -1871,6 +1996,11 @@ void TransceiverManager::updateTransceiverPortStatus() noexcept {
                     cachedPortInfoIt->second.status->operState &&
                     !portStatusIt->second.operState) {
                   tcvrsForFwUpgrade.insert(tcvrID);
+                  auto portName = getPortName(tcvrID);
+                  XLOG(INFO)
+                      << FirmwareUpgradeAlert()
+                      << "Selected for potential firmware upgrade due to link down event"
+                      << TransceiverParam(tcvrID) << PortParam(portName);
                 }
               }
               cachedPortInfoIt->second.status.emplace(portStatusIt->second);
@@ -1967,8 +2097,13 @@ void TransceiverManager::triggerFirmwareUpgradeEvents(
   for (auto tcvrID : tcvrs) {
     TransceiverStateMachineEvent event =
         TransceiverStateMachineEvent::TCVR_EV_UPGRADE_FIRMWARE;
-    heartbeatWatchdog_->pauseMonitoringHeartbeat(
-        threads_->find(tcvrID)->second.getThreadHeartbeat());
+    auto tcvrThreadIdIt = qsfpServiceThreads_->tcvrToThreadId.find(tcvrID);
+    if (tcvrThreadIdIt != qsfpServiceThreads_->tcvrToThreadId.end()) {
+      auto& threadHelper =
+          qsfpServiceThreads_->threadIdToThread.at(tcvrThreadIdIt->second);
+      heartbeatWatchdog_->pauseMonitoringHeartbeat(
+          threadHelper.getThreadHeartbeat());
+    }
     // Only enqueue updates for now, we'll execute them at once after this
     // loop
     if (auto result =
@@ -2255,31 +2390,23 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
         // First refresh after cold boot and module is still in
         // discovered state
-        XLOG(INFO)
-            << "Transceiver " << static_cast<int>(tcvrId)
-            << " just did a cold boot and is still in discovered state, adding it to list of potentialTcvrsForFwUpgrade";
+        auto portName = getPortName(tcvrId);
+        XLOG(INFO) << FirmwareUpgradeAlert()
+                   << "Selected for potential FW upgrade due to coldboot"
+                   << TransceiverParam(tcvrId) << PortParam(portName);
         potentialTcvrsForFwUpgrade.insert(tcvrId);
       } else if (FLAGS_firmware_upgrade_on_tcvr_insert) {
-        if (FLAGS_port_manager_mode) {
-          // In PortManager mode, a transceiver can be in DISCOVERED state while
-          // its PORT is up - this should only happen when we get i2c connection
-          // errors but transceiver is inserted and data is passing through.
-          auto [allPortsDown, downPorts] = areAllPortsDown(tcvrId);
-          if (!allPortsDown) {
-            // Some ports are still up.
-            continue;
-          }
-        }
-
         auto stateMachine = stateMachineControllers_.find(tcvrId);
         if (stateMachine != stateMachineControllers_.end() &&
             stateMachine->second->getStateMachine().rlock()->get_attribute(
                 newTransceiverInsertedAfterInit)) {
           // Not the first refresh but the module is in discovered state and
           // was just inserted
+          auto portName = getPortName(tcvrId);
           XLOG(INFO)
-              << "Transceiver " << static_cast<int>(tcvrId)
-              << " is in DISCOVERED state and was recently inserted, adding it to list of potentialTcvrsForFwUpgrade";
+              << FirmwareUpgradeAlert()
+              << "Selected for potential firmware upgrade due to optics insertion"
+              << TransceiverParam(tcvrId) << PortParam(portName);
           potentialTcvrsForFwUpgrade.insert(tcvrId);
         }
       }
@@ -2352,9 +2479,9 @@ void TransceiverManager::refreshStateMachines() {
 void TransceiverManager::completeRefresh() {
   // Resume heartbeats at the end of refresh loop in case they were paused by
   // any of the operations during the refresh cycle
-  for (auto& threadHelper : *threads_) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
     heartbeatWatchdog_->resumeMonitoringHeartbeat(
-        threadHelper.second.getThreadHeartbeat());
+        threadHelper.getThreadHeartbeat());
   }
   heartbeatWatchdog_->resumeMonitoringHeartbeat(updateThreadHeartbeat_);
   isUpgradingFirmware_ = false;
@@ -2554,9 +2681,10 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
   if (portToPortInfoWithLock->empty()) {
     XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
                << " in cached tcvrToPortInfo_";
-    //  In PortManager mode, we can interpret an empty map as indicative of no
-    //  ports being up. Otherwise, we should interpret this as ports being up.
-    return {FLAGS_port_manager_mode, {}};
+    //  If no port information for the transceiver is found, we must assume that
+    //  ports are up to ensure we don't accidentally remediate on warmboot. This
+    //  is consistent for Port Manager mode and non-Port Manager mode.
+    return {false, {}};
   }
   bool anyPortUp = false;
   std::vector<std::string> downPorts;
@@ -2673,6 +2801,44 @@ void TransceiverManager::markLastDownTime(TransceiverID id) noexcept {
   tcvrIt->second->markLastDownTime();
 }
 
+void TransceiverManager::updateLastDownTimeFromPortStatus(
+    const std::map<TransceiverID, bool>& tcvrPortStatusChanges) noexcept {
+  for (const auto& [tcvrId, portsNowActive] : tcvrPortStatusChanges) {
+    auto stateMachineItr = stateMachineControllers_.find(tcvrId);
+    if (stateMachineItr == stateMachineControllers_.end()) {
+      XLOG(DBG2) << "[Transceiver:" << tcvrId
+                 << "] Skip updateLastDownTimeFromPortStatus, "
+                 << "state machine not found";
+      continue;
+    }
+
+    auto lockedStateMachine =
+        stateMachineItr->second->getStateMachine().wlock();
+
+    if (portsNowActive) {
+      // Equivalent to activeStateEntry: enable marking for next DOWN transition
+      lockedStateMachine->get_attribute(needMarkLastDownTime) = true;
+      XLOG(DBG2) << "[Transceiver:" << tcvrId
+                 << "] Port Manager mode: Port(s) now active, "
+                 << "set needMarkLastDownTime=true";
+    } else {
+      // Equivalent to markLastDownTime (INACTIVE state entry):
+      // Only mark if needMarkLastDownTime is true, then clear it
+      if (lockedStateMachine->get_attribute(needMarkLastDownTime)) {
+        markLastDownTime(tcvrId);
+        lockedStateMachine->get_attribute(needMarkLastDownTime) = false;
+        XLOG(DBG2)
+            << "[Transceiver:" << tcvrId
+            << "] Port Manager mode: All ports down, marked lastDownTime";
+      } else {
+        XLOG(DBG3) << "[Transceiver:" << tcvrId
+                   << "] Port Manager mode: All ports down, "
+                   << "but needMarkLastDownTime=false, skipping";
+      }
+    }
+  }
+}
+
 time_t TransceiverManager::getLastDownTime(TransceiverID id) const {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
@@ -2726,10 +2892,11 @@ void TransceiverManager::publishLinkSnapshots(PortID portID) {
 
 void TransceiverManager::publishLinkSnapshotsTransceiver(PortID portID) {
   if (auto tcvrIDOpt = getTransceiverID(portID)) {
-    auto lockedTransceivers = transceivers_.rlock();
-    if (auto tcvrIt = lockedTransceivers->find(*tcvrIDOpt);
-        tcvrIt != lockedTransceivers->end()) {
-      tcvrIt->second->publishSnapshots();
+    const auto& snapshotManagersLocked = snapshotManagers_.wlock();
+    if (auto snapshotManagerIt = snapshotManagersLocked->find(*tcvrIDOpt);
+        snapshotManagerIt != snapshotManagersLocked->end()) {
+      snapshotManagerIt->second.publishAllSnapshots();
+      snapshotManagerIt->second.publishFutureSnapshots();
     }
   }
 }
@@ -2858,6 +3025,11 @@ void TransceiverManager::setCanWarmBoot() {
 }
 
 void TransceiverManager::restoreWarmBootPhyState() {
+  if (FLAGS_port_manager_mode) {
+    PORT_MGR_SKIP_LOG("restoreWarmbootPhyState");
+    return;
+  }
+
   // Only need to restore warm boot state if this is a warm boot
   if (!canWarmBoot_) {
     XLOG(INFO) << "[Cold Boot] No need to restore warm boot state";
@@ -3259,6 +3431,8 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
 
   publishTransceiversToFsdb();
 
+  updateSnapshots();
+
   return transceiverIds;
 }
 
@@ -3546,8 +3720,8 @@ void TransceiverManager::getSymbolErrorHistogram(
 std::map<uint32_t, phy::PhyIDInfo> TransceiverManager::getAllPortPhyInfo() {
   std::map<uint32_t, phy::PhyIDInfo> resultMap;
 
-  auto allPlatformPortsIt = platformMapping_->getPlatformPorts();
-  for (auto platformPortIt : allPlatformPortsIt) {
+  const auto& allPlatformPortsIt = platformMapping_->getPlatformPorts();
+  for (const auto& platformPortIt : allPlatformPortsIt) {
     auto portId = platformPortIt.first;
     GlobalXphyID xphyId;
     try {
@@ -3604,6 +3778,17 @@ void TransceiverManager::ensureTransceiversMapLocked(
 }
 
 void TransceiverManager::drainAllStateMachineUpdates() {
+  if (stateMachineControllers_.empty()) {
+    XLOG(INFO) << "No state machines created - returning early.";
+    return;
+  }
+
+  if (!updateEventBase_ || !qsfpServiceThreads_) {
+    XLOG(INFO)
+        << "updateEventBase_ or threads not initialized - returning early.";
+    return;
+  }
+
   // Enforce no updates can be added while draining.
   for (auto& [_, stateMachineController] : stateMachineControllers_) {
     stateMachineController->blockNewUpdates();
@@ -3611,8 +3796,8 @@ void TransceiverManager::drainAllStateMachineUpdates() {
 
   // Make sure threads are actually active before we start draining.
   bool allStateMachineThreadsActive{true};
-  for (auto& threadHelper : *threads_) {
-    if (!threadHelper.second.isThreadActive()) {
+  for (auto& [threadId, threadHelper] : qsfpServiceThreads_->threadIdToThread) {
+    if (!threadHelper.isThreadActive()) {
       allStateMachineThreadsActive = false;
       break;
     }
@@ -3693,5 +3878,31 @@ bool TransceiverManager::transceiverJustRemediated(
 std::unordered_set<TransceiverID>
 TransceiverManager::getTcvrsReadyForProgramming() const {
   return *tcvrsReadyForProgramming_.rlock();
+}
+
+void TransceiverManager::updateSnapshots() {
+  auto lockedSnapshotManagers = snapshotManagers_.wlock();
+  for (const auto& tcvrID :
+       utility::getTransceiverIds(platformMapping_->getChips())) {
+    auto tcvrInfo = getTransceiverInfo(tcvrID);
+
+    auto it = lockedSnapshotManagers->find(tcvrID);
+    if (it == lockedSnapshotManagers->end()) {
+      auto portNames = getPortNames(tcvrID);
+      it = lockedSnapshotManagers
+               ->emplace(
+                   std::piecewise_construct,
+                   std::forward_as_tuple(tcvrID),
+                   std::forward_as_tuple(
+                       portNames,
+                       SnapshotLogSource::QSFP_SERVICE,
+                       kSnapshotIntervalSeconds))
+               .first;
+    }
+
+    phy::LinkSnapshot snapshot;
+    snapshot.transceiverInfo() = tcvrInfo;
+    it->second.addSnapshot(snapshot);
+  }
 }
 } // namespace facebook::fboss

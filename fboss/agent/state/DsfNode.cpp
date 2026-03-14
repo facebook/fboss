@@ -11,8 +11,6 @@
 
 #include <folly/MacAddress.h>
 
-#include "fboss/agent/gen-cpp2/switch_config_fatal.h"
-
 namespace facebook::fboss {
 
 DsfNode::DsfNode(SwitchID switchId)
@@ -68,6 +66,11 @@ void DsfNode::setLoopbackIps(const std::vector<std::string>& loopbackIps) {
 
 cfg::SystemPortRanges DsfNode::getSystemPortRanges() const {
   auto ranges = get<switch_config_tags::systemPortRanges>()->toThrift();
+  return ranges;
+}
+
+cfg::SystemPortRanges DsfNode::getLocalSystemPortRanges() const {
+  auto ranges = get<switch_config_tags::localSystemPortRanges>()->toThrift();
   return ranges;
 }
 

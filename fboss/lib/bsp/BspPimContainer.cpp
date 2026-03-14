@@ -1,6 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspPimContainer.h"
+
+#include <folly/Format.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/lib/bsp/BspLedContainer.h"
 #include "fboss/lib/bsp/BspPhyContainer.h"
@@ -98,9 +100,11 @@ const BspPhyContainer* BspPimContainer::getPhyContainerFromMdioID(
           *bspPimMapping_.pimID()));
 }
 
-const std::map<uint32_t, const BspLedContainer*>
+// Here, we also need the ledcontainer and the lanes it controls.
+const std::map<uint32_t, std::pair<const BspLedContainer*, std::set<int>>>
 BspPimContainer::getLedContainer(int tcvrID) const {
-  std::map<uint32_t, const BspLedContainer*> ledContainers;
+  std::map<uint32_t, std::pair<const BspLedContainer*, std::set<int>>>
+      ledContainers;
 
   if (bspPimMapping_.tcvrMapping().value().find(tcvrID) ==
       bspPimMapping_.tcvrMapping().value().end()) {
@@ -115,7 +119,10 @@ BspPimContainer::getLedContainer(int tcvrID) const {
                                 .value()) {
     uint32_t ledId = tcvrLaneToLed.second;
     if (ledContainers.find(ledId) == ledContainers.end()) {
-      ledContainers[ledId] = ledContainers_.at(ledId).get();
+      ledContainers[ledId] = std::make_pair(
+          ledContainers_.at(ledId).get(), std::set<int>{tcvrLaneToLed.first});
+    } else {
+      ledContainers[ledId].second.insert(tcvrLaneToLed.first);
     }
   }
   return ledContainers;
@@ -147,6 +154,26 @@ void BspPimContainer::holdTransceiverReset(int tcvrID) const {
 
 void BspPimContainer::releaseTransceiverReset(int tcvrID) const {
   getTransceiverContainer(tcvrID)->releaseTransceiverReset();
+}
+
+void BspPimContainer::initAllPhyIOControllers() const {
+  XLOG(INFO) << fmt::format(
+      "BspPimContainerTrace: {} initializing all PHY IO controllers for PIM {:d}",
+      __func__,
+      *bspPimMapping_.pimID());
+  for (const auto& [controllerId, phyIO] : phyIOControllers_) {
+    phyIO->init(true);
+  }
+}
+
+void BspPimContainer::initAllPhys() const {
+  XLOG(INFO) << fmt::format(
+      "BspPimContainerTrace: {} initializing all PHYs for PIM {:d}",
+      __func__,
+      *bspPimMapping_.pimID());
+  for (const auto& [phyID, phyContainer] : phyContainers_) {
+    phyContainer->initPhy(true);
+  }
 }
 
 bool BspPimContainer::isTcvrPresent(int tcvrID) const {

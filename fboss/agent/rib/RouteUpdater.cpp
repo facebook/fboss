@@ -19,6 +19,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/NodeBase-defs.h"
 #include "fboss/agent/state/Route.h"
 
@@ -53,6 +54,25 @@ using folly::IPAddressV6;
 
 namespace facebook::fboss {
 
+namespace {
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> writableRoute(
+    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
+  if (value<AddressT>(ritr)->isPublished()) {
+    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
+  }
+  return value<AddressT>(ritr);
+}
+
+template <typename AddressT>
+std::shared_ptr<Route<AddressT>> writableRoute(
+    std::shared_ptr<Route<AddressT>> route) {
+  if (route->isPublished()) {
+    route = route->clone();
+  }
+  return route;
+}
+} // namespace
 static const RoutePrefixV6 kIPv6LinkLocalPrefix{
     folly::IPAddressV6("fe80::"),
     64};
@@ -62,9 +82,11 @@ static const auto kRemoteInterfaceRouteClientId =
 
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
-    IPv6NetworkToRouteMap* v6Routes)
+    IPv6NetworkToRouteMap* v6Routes,
+    NextHopIDManager* nextHopIDManager)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
+      nextHopIDManager_(nextHopIDManager),
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
           FLAGS_nsf_num_parallel_rack_links,
@@ -75,10 +97,12 @@ RibRouteUpdater::RibRouteUpdater(
 RibRouteUpdater::RibRouteUpdater(
     IPv4NetworkToRouteMap* v4Routes,
     IPv6NetworkToRouteMap* v6Routes,
-    LabelToRouteMap* mplsRoutes)
+    LabelToRouteMap* mplsRoutes,
+    NextHopIDManager* nextHopIDManager)
     : v4Routes_(v4Routes),
       v6Routes_(v6Routes),
       mplsRoutes_(mplsRoutes),
+      nextHopIDManager_(nextHopIDManager),
       weightNormalizer_(
           FLAGS_nsf_num_racks_per_pod,
           FLAGS_nsf_num_parallel_rack_links,
@@ -227,6 +251,16 @@ void RibRouteUpdater::delRouteImpl(
   if (route->numClientEntries() == 1) {
     // If this client's the only entry, simply erase
     XLOG(DBG3) << "Deleting route: " << route->str();
+    auto oldNextHopSetID = route->getForwardInfo().getResolvedNextHopSetID();
+    auto oldNormalizedNextHopSetID =
+        route->getForwardInfo().getNormalizedResolvedNextHopSetID();
+    if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+    }
+    if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
+      nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+          *oldNormalizedNextHopSetID);
+    }
     routes->erase(it);
   } else {
     route = writableRoute<AddressT>(it);
@@ -403,25 +437,42 @@ struct NextHopCombinedWeightsKey {
         intfId(nhop.intf()), // must be resolved next hop
         action(nhop.labelForwardingAction()),
         disableTTLDecrement(nhop.disableTTLDecrement()),
-        topologyInfo(nhop.topologyInfo()) {
+        topologyInfo(nhop.topologyInfo()),
+        srv6SegmentList(nhop.srv6SegmentList()),
+        tunnelType(nhop.tunnelType()),
+        tunnelId(nhop.tunnelId()) {
     /* "weightless" next hop, consider all attrs of L3 next hop except its
      * weight, this is used in computing number of required paths to next hop,
      * for correct programming of unequal cost multipath */
   }
   bool operator<(const NextHopCombinedWeightsKey& other) const {
-    return std::tie(ip, intfId, action, disableTTLDecrement, topologyInfo) <
+    return std::tie(
+               ip,
+               intfId,
+               action,
+               disableTTLDecrement,
+               topologyInfo,
+               srv6SegmentList,
+               tunnelType,
+               tunnelId) <
         std::tie(
                other.ip,
                other.intfId,
                other.action,
                other.disableTTLDecrement,
-               other.topologyInfo);
+               other.topologyInfo,
+               other.srv6SegmentList,
+               other.tunnelType,
+               other.tunnelId);
   }
   folly::IPAddress ip;
   InterfaceID intfId;
   std::optional<LabelForwardingAction> action;
   std::optional<bool> disableTTLDecrement;
   std::optional<NetworkTopologyInformation> topologyInfo;
+  std::vector<folly::IPAddressV6> srv6SegmentList;
+  std::optional<TunnelType> tunnelType;
+  std::optional<std::string> tunnelId;
 };
 using NextHopCombinedWeights =
     boost::container::flat_map<NextHopCombinedWeightsKey, NextHopWeight>;
@@ -476,7 +527,11 @@ RouteNextHopSet mergeForwardInfosEcmp(
           ECMP_WEIGHT,
           fnh.labelForwardingAction(),
           fnh.disableTTLDecrement(),
-          fnh.topologyInfo()));
+          fnh.topologyInfo(),
+          std::nullopt, /* adjustedWeight */
+          fnh.srv6SegmentList(),
+          fnh.tunnelType(),
+          fnh.tunnelId()));
     }
   }
   return fwd;
@@ -550,7 +605,16 @@ RouteNextHopSet optimizeWeights(const NextHopCombinedWeights& cws) {
     const auto& topologyInfo = cw.first.topologyInfo;
     NextHopWeight w = fwdWeightGcd ? cw.second / fwdWeightGcd : 0;
     fwd.emplace(ResolvedNextHop(
-        addr, intf, w, action, disableTTLDecrement, topologyInfo));
+        addr,
+        intf,
+        w,
+        action,
+        disableTTLDecrement,
+        topologyInfo,
+        std::nullopt, /* adjustedWeight */
+        cw.first.srv6SegmentList,
+        cw.first.tunnelType,
+        cw.first.tunnelId));
   }
   return fwd;
 }
@@ -628,6 +692,9 @@ void RibRouteUpdater::getFwdInfoFromNhop(
     bool* hasDrop,
     const std::optional<bool>& disableTTLDecrement,
     const std::optional<NetworkTopologyInformation>& topologyInfo,
+    const std::vector<folly::IPAddressV6>& srv6SegmentList,
+    const std::optional<TunnelType>& tunnelType,
+    const std::optional<std::string>& tunnelId,
     RouteNextHopSet& fwd) {
   auto it = routes->longestMatch(nh, nh.bitCount());
   if (it == routes->end()) {
@@ -666,13 +733,22 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                 labelAction, rtNh.labelForwardingAction()),
             disableTTLDecrement.has_value() ? disableTTLDecrement
                                             : rtNh.disableTTLDecrement(),
-            topologyInfo));
+            topologyInfo,
+            std::nullopt, /* adjustedWeight */
+            srv6SegmentList,
+            tunnelType,
+            tunnelId));
       } else {
         std::for_each(
             nhops.begin(),
             nhops.end(),
-            [&fwd, labelAction, disableTTLDecrement, topologyInfo](
-                const auto& nhop) {
+            [&fwd,
+             labelAction,
+             disableTTLDecrement,
+             topologyInfo,
+             &srv6SegmentList,
+             &tunnelType,
+             &tunnelId](const auto& nhop) {
               fwd.insert(ResolvedNextHop(
                   nhop.addr(),
                   nhop.intf(),
@@ -681,7 +757,11 @@ void RibRouteUpdater::getFwdInfoFromNhop(
                       labelAction, nhop.labelForwardingAction()),
                   disableTTLDecrement.has_value() ? disableTTLDecrement
                                                   : nhop.disableTTLDecrement(),
-                  topologyInfo));
+                  topologyInfo,
+                  std::nullopt, /* adjustedWeight */
+                  srv6SegmentList,
+                  tunnelType,
+                  tunnelId));
             });
       }
     }
@@ -706,6 +786,7 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
   const auto action = bestEntry->getAction();
   const auto counterID = bestEntry->getCounterID();
   const auto classID = bestEntry->getClassID();
+  bool labelPopandLookup = false;
   if (action == RouteForwardAction::DROP) {
     hasDrop = true;
   } else if (action == RouteForwardAction::TO_CPU) {
@@ -714,7 +795,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
     auto fwItr = unresolvedToResolvedNhops_.find(bestEntry->getNextHopSet());
     if (fwItr == unresolvedToResolvedNhops_.end()) {
       NextHopForwardInfos nhToFwds;
-      bool labelPopandLookup = false;
       // loop through all nexthops to find out the forward info
       for (const auto& nh : bestEntry->getNextHopSet()) {
         const auto& addr = nh.addr();
@@ -756,6 +836,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               &hasDrop,
               nh.disableTTLDecrement(),
               nh.topologyInfo(),
+              nh.srv6SegmentList(),
+              nh.tunnelType(),
+              nh.tunnelId(),
               nhToFwds[nh]);
         } else {
           CHECK(addr.isV6());
@@ -767,6 +850,9 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
               &hasDrop,
               nh.disableTTLDecrement(),
               nh.topologyInfo(),
+              nh.srv6SegmentList(),
+              nh.tunnelType(),
+              nh.tunnelId(),
               nhToFwds[nh]);
         }
       }
@@ -788,16 +874,77 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
       fwItr = unresolvedToResolvedNhops_
                   .insert({bestEntry->getNextHopSet(), std::move(nhSet)})
                   .first;
+    } else {
+      // This is done so that we dont miss updating label pop and lookup on
+      // cache hits.
+      const auto& nhSet = bestEntry->getNextHopSet();
+      if (nhSet.size() == 1) {
+        const auto& nh = *nhSet.begin();
+        if (nh.labelForwardingAction().has_value() &&
+            nh.labelForwardingAction().value().type() ==
+                MplsActionCode::POP_AND_LOOKUP) {
+          labelPopandLookup = true;
+        }
+      }
     }
     fwd = &(fwItr->second);
   }
 
   std::shared_ptr<Route<AddressT>> updatedRoute;
-  auto updateRoute = [this, clientId, &updatedRoute, classID, &route](
+  auto updateRoute = [this,
+                      clientId,
+                      &updatedRoute,
+                      classID,
+                      labelPopandLookup](
                          typename NetworkToRouteMap<AddressT>::Iterator ritr,
                          std::optional<RouteNextHopEntry> nhop) {
     updatedRoute = writableRoute<AddressT>(ritr);
+    auto oldNextHopSetID =
+        value<AddressT>(ritr)->getForwardInfo().getResolvedNextHopSetID();
+    auto oldNormalizedNextHopSetID = value<AddressT>(ritr)
+                                         ->getForwardInfo()
+                                         .getNormalizedResolvedNextHopSetID();
     if (nhop) {
+      std::optional<NextHopSetID> newResolvedNextHopSetId;
+      std::optional<NextHopSetID> newNormalizedResolvedNextHopSetId;
+      if (nextHopIDManager_) {
+        auto updateNextHopSetIDs =
+            [this](
+                const RouteNextHopSet& newNextHopSet,
+                const std::optional<NextHopSetID>& oldNextHopSetID)
+            -> std::optional<NextHopSetID> {
+          if (!newNextHopSet.empty()) {
+            if (oldNextHopSetID.has_value()) {
+              auto updateResult = nextHopIDManager_->updateRouteNextHopSetID(
+                  *oldNextHopSetID, newNextHopSet);
+              return updateResult.allocation.nextHopIdSetIter->second.id;
+            } else {
+              auto allocResult =
+                  nextHopIDManager_->getOrAllocRouteNextHopSetID(newNextHopSet);
+              return allocResult.nextHopIdSetIter->second.id;
+            }
+          } else if (oldNextHopSetID.has_value()) {
+            nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+          }
+          return std::nullopt;
+        };
+
+        newResolvedNextHopSetId =
+            updateNextHopSetIDs(nhop->getNextHopSet(), oldNextHopSetID);
+        // For label pop and lookup routes, skip normalized nexthops
+        // allocation but deallocate any existing old ID
+        if (!labelPopandLookup) {
+          newNormalizedResolvedNextHopSetId = updateNextHopSetIDs(
+              nhop->nonOverrideNormalizedNextHops(), oldNormalizedNextHopSetID);
+        } else if (oldNormalizedNextHopSetID.has_value()) {
+          // Route transitioned to POP_AND_LOOKUP - deallocate old normalized ID
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+              *oldNormalizedNextHopSetID);
+        }
+      }
+      nhop->setResolvedNextHopSetID(newResolvedNextHopSetId);
+      nhop->setNormalizedResolvedNextHopSetID(
+          newNormalizedResolvedNextHopSetId);
       updatedRoute->setResolved(*nhop);
       if ((clientId == kInterfaceRouteClientId ||
            clientId == kRemoteInterfaceRouteClientId) &&
@@ -805,6 +952,13 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
         updatedRoute->setConnected();
       }
     } else {
+      if (nextHopIDManager_ && oldNextHopSetID.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*oldNextHopSetID);
+      }
+      if (nextHopIDManager_ && oldNormalizedNextHopSetID.has_value()) {
+        nextHopIDManager_->decrOrDeallocRouteNextHopSetID(
+            *oldNormalizedNextHopSetID);
+      }
       updatedRoute->setUnresolvable();
     }
     updatedRoute->updateClassID(classID);
@@ -855,24 +1009,6 @@ std::shared_ptr<Route<AddressT>> RibRouteUpdater::resolveOne(
                << " route " << route->str();
   }
   return updatedRoute ? updatedRoute : route;
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    typename NetworkToRouteMap<AddressT>::Iterator ritr) {
-  if (value<AddressT>(ritr)->isPublished()) {
-    value<AddressT>(ritr) = value<AddressT>(ritr)->clone();
-  }
-  return value<AddressT>(ritr);
-}
-
-template <typename AddressT>
-std::shared_ptr<Route<AddressT>> RibRouteUpdater::writableRoute(
-    std::shared_ptr<Route<AddressT>> route) {
-  if (route->isPublished()) {
-    route = route->clone();
-  }
-  return route;
 }
 
 template <typename AddressT>

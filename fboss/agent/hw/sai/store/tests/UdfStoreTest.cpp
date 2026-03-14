@@ -190,6 +190,34 @@ TEST_F(UdfStoreTest, toStrUdfGroupStore) {
   verifyToStr<SaiUdfGroupTraits>();
 }
 
+TEST_F(UdfStoreTest, udfGroupAdapterHostKeyToAndFromDynamic) {
+  SaiUdfGroupTraits::AdapterHostKey k0{"udfGroup0"};
+  SaiUdfGroupTraits::AdapterHostKey k1{"udfGroup1"};
+
+  SaiStore s(0);
+  auto& store = s.get<SaiUdfGroupTraits>();
+  auto obj0 = store.setObject(
+      k0, createAttributes(SAI_UDF_GROUP_TYPE_HASH, kUdfGroupLength()));
+  auto obj1 = store.setObject(
+      k1, createAttributes(SAI_UDF_GROUP_TYPE_GENERIC, kUdfGroupLength() + 1));
+
+  auto json0 = obj0->adapterHostKeyToFollyDynamic();
+  auto recoveredK0 =
+      SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(json0);
+  EXPECT_EQ(recoveredK0, k0);
+
+  auto json1 = obj1->adapterHostKeyToFollyDynamic();
+  auto recoveredK1 =
+      SaiObject<SaiUdfGroupTraits>::follyDynamicToAdapterHostKey(json1);
+  EXPECT_EQ(recoveredK1, k1);
+
+  auto ak2AhkJson = s.adapterKeys2AdapterHostKeysFollyDynamic();
+  auto& udfGroupAk2AhkJson =
+      ak2AhkJson[saiObjectTypeToString(SAI_OBJECT_TYPE_UDF_GROUP)];
+  EXPECT_TRUE(!udfGroupAk2AhkJson.empty());
+  EXPECT_EQ(udfGroupAk2AhkJson.size(), 2);
+}
+
 TEST_F(UdfStoreTest, loadUdfMatch) {
   auto udfMatchId0 = createUdfMatch(kL2Type(), kL3Type(), kL4DstPort());
   auto udfMatchId1 = createUdfMatch(kL2Type2(), kL3Type2(), kL4DstPort2());

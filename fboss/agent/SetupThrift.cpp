@@ -18,6 +18,8 @@
 #include <thrift/lib/cpp2/async/MultiplexAsyncProcessor.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
+
 DEFINE_int32(thrift_idle_timeout, 60, "Thrift idle timeout in seconds.");
 // Programming 16K routes can take 20+ seconds
 DEFINE_int32(
@@ -59,6 +61,8 @@ std::unique_ptr<apache::thrift::ThriftServer> setupThriftServer(
     bool setupSSL) {
   // Start the thrift server
   auto server = std::make_unique<apache::thrift::ThriftServer>();
+  ThriftServiceUtils::setPreferredEventBaseBackend(*server);
+
   server->setTaskExpireTime(
       std::chrono::milliseconds(FLAGS_thrift_task_expire_timeout * 1000));
   server->getEventBaseManager()->setEventBase(&eventBase, false);

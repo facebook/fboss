@@ -1,6 +1,29 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+load("@fbcode_macros//build_defs:go_binary.bzl", "go_binary")
+load("@fbcode_macros//build_defs:go_package.bzl", "go_package")
+load("@fbcode_macros//build_defs:ligen_library.bzl", "ligen_library")
 
 oncall("fboss_agent_push")
+
+cpp_binary(
+    name = "stress_test_client",
+    srcs = ["stress_test_client.cpp"],
+    deps = [
+        "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
+        "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_common-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:string",
+        "//folly/init:init",
+        "//folly/synchronization:baton",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
 
 cpp_unittest(
     name = "fsdb_client_tests",
@@ -40,7 +63,85 @@ cpp_unittest(
         "//fboss/lib:common_utils",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly/logging:init",
-        "//folly/logging:log_level",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/op:get",
+    ],
+)
+
+cpp_library(
+    name = "test_cgo_client_lib",
+    srcs = ["test_cgo_client.cpp"],
+    headers = ["test_cgo_client.h"],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/tests/utils:fsdb_test_server",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:string",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+        "//folly/synchronization:baton",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+ligen_library(
+    name = "test_cgo_client",
+    src = "test_cgo_client.ligen",
+    languages = [
+        "cpp",
+        "go",
+    ],
+    lib_target = ":test_cgo_client_lib",
+)
+
+go_package(
+    name = "test_cgo_client",
+    labels = ["autodeps2_generated"],
+    test_go_external_deps = [
+        "github.com/stretchr/testify/assert",
+        "github.com/stretchr/testify/require",
+    ],
+    deps = [
+        ":test_cgo_client-go_serialized",
+    ],
+)
+
+# C++ library for the subscriber CGO wrapper
+cpp_library(
+    name = "cgo_subscriber_lib",
+    srcs = ["cgo_subscriber.cpp"],
+    headers = ["cgo_subscriber.h"],
+    exported_deps = [
+        "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
+        "//fboss/fsdb/client:fsdb_cow_stats_sub_manager",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:string",
+        "//folly:synchronized",
+        "//folly/logging:logging",
+        "//folly/synchronization:baton",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+# Ligen-generated CGO bindings
+ligen_library(
+    name = "cgo_subscriber",
+    src = "cgo_subscriber.ligen",
+    languages = [
+        "cpp",
+        "go",
+    ],
+    lib_target = ":cgo_subscriber_lib",
+)
+
+# Go binary
+go_binary(
+    name = "cgo_client",
+    srcs = ["cgo_client/cgo_client.go"],
+    deps = [
+        "//fboss/fsdb/client/test/fsdb_cgo_client:fsdb_cgo_client",
     ],
 )

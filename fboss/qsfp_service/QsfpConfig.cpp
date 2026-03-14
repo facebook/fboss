@@ -4,6 +4,7 @@
 #include "fboss/agent/FbossError.h"
 
 #include <folly/FileUtil.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
@@ -17,6 +18,13 @@ DEFINE_string(
     qsfp_config_current,
     "/etc/coop/qsfp/current",
     "[Deprecated] The path to the local JSON configuration file");
+
+// allow us to configure the qsfp_service dir so that the qsfp cold boot test
+// can run concurrently with itself
+DEFINE_string(
+    qsfp_service_volatile_dir,
+    "/dev/shm/fboss/qsfp_service",
+    "Path to the directory in which we store the qsfp_service's cold boot flag");
 
 namespace facebook::fboss {
 
@@ -52,6 +60,24 @@ std::unique_ptr<QsfpConfig> QsfpConfig::fromRawConfig(
 
 void QsfpConfig::dumpConfig(folly::StringPiece path) const {
   folly::writeFile(raw, path.data());
+}
+
+void QsfpConfig::writePhyConfigToFile() const {
+  if (!thrift.phyConfig().has_value() || thrift.phyConfig()->empty()) {
+    XLOG(DBG2) << "No phyConfig in qsfp config, skipping PHY config file "
+               << "creation";
+    return;
+  }
+
+  auto phyConfigPath = folly::to<std::string>(
+      FLAGS_qsfp_service_volatile_dir, "/", kPhyHwConfigFileName);
+  const auto& configContent = apache::thrift::can_throw(*thrift.phyConfig());
+  if (!folly::writeFile(configContent, phyConfigPath.c_str())) {
+    throw FbossError("Failed to write PHY config to ", phyConfigPath);
+  }
+
+  XLOG(INFO) << "Successfully wrote PHY config (" << configContent.size()
+             << " bytes) to " << phyConfigPath;
 }
 
 std::unique_ptr<facebook::fboss::QsfpConfig> createEmptyQsfpConfig() {

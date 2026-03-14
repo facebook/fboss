@@ -44,6 +44,8 @@ class MockPlatform : public Platform {
   HwAsic* getAsic() const override;
   static const folly::MacAddress& getMockLocalMac();
   static const folly::IPAddressV6& getMockLinkLocalIp6();
+  static folly::IPAddressV6 getLinkLocalIp6(folly::MacAddress mac);
+
   PlatformPort* getPlatformPort(PortID id) const override;
   HwSwitchWarmBootHelper* getWarmBootHelper() override;
   const AgentDirectoryUtil* getDirectoryUtil() const override {

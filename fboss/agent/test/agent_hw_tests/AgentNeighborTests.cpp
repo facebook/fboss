@@ -27,8 +27,6 @@
  */
 DEFINE_bool(disable_loopback, false, "Disable loopback on test ports");
 
-DECLARE_bool(intf_nbr_tables);
-
 using namespace ::testing;
 
 namespace {
@@ -36,10 +34,13 @@ facebook::fboss::utility::NeighborInfo getNeighborInfo(
     const facebook::fboss::InterfaceID& interfaceId,
     const folly::IPAddress& ip,
     facebook::fboss::AgentEnsemble& ensemble) {
-  auto switchId = ensemble.getSw()
-                      ->getScopeResolver()
-                      ->scope(ensemble.masterLogicalPortIds())
-                      .switchId();
+  auto state = ensemble.getProgrammedState();
+  auto intf = state->getInterfaces()->getNodeIf(interfaceId);
+  if (!intf) {
+    throw facebook::fboss::FbossError("no such interface ", interfaceId);
+  }
+  auto switchId =
+      ensemble.getSw()->getScopeResolver()->scope(intf, state).switchId();
   auto client = ensemble.getHwAgentTestClient(switchId);
   facebook::fboss::IfAndIP neighbor;
   neighbor.interfaceID() = interfaceId;
@@ -52,12 +53,10 @@ facebook::fboss::utility::NeighborInfo getNeighborInfo(
 
 namespace facebook::fboss {
 
-template <typename AddrType, bool trunk = false, bool intfNbrTable = false>
+template <typename AddrType, bool trunk = false>
 struct NeighborT {
   using IPAddrT = AddrType;
   static constexpr auto isTrunk = trunk;
-  static auto constexpr isIntfNbrTable = intfNbrTable;
-
   template <typename AddrT = IPAddrT>
   std::enable_if_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -85,34 +84,21 @@ struct NeighborT {
   }
 };
 
-using PortNeighborV4VlanNbrTable = NeighborT<folly::IPAddressV4, false, false>;
-using TrunkNeighborV4VlanNbrTable = NeighborT<folly::IPAddressV4, true, false>;
-using PortNeighborV6VlanNbrTable = NeighborT<folly::IPAddressV6, false, false>;
-using TrunkNeighborV6VlanNbrTable = NeighborT<folly::IPAddressV6, true, false>;
-
-using PortNeighborV4IntfNbrTable = NeighborT<folly::IPAddressV4, false, true>;
-using TrunkNeighborV4IntfNbrTable = NeighborT<folly::IPAddressV4, true, true>;
-using PortNeighborV6IntfNbrTable = NeighborT<folly::IPAddressV6, false, true>;
-using TrunkNeighborV6IntfNbrTable = NeighborT<folly::IPAddressV6, true, true>;
+using PortNeighborV4 = NeighborT<folly::IPAddressV4, false>;
+using TrunkNeighborV4 = NeighborT<folly::IPAddressV4, true>;
+using PortNeighborV6 = NeighborT<folly::IPAddressV6, false>;
+using TrunkNeighborV6 = NeighborT<folly::IPAddressV6, true>;
 
 const facebook::fboss::AggregatePortID kAggID{1};
 
-using NeighborTypes = ::testing::Types<
-    PortNeighborV4VlanNbrTable,
-    TrunkNeighborV4VlanNbrTable,
-    PortNeighborV6VlanNbrTable,
-    TrunkNeighborV6VlanNbrTable,
-    PortNeighborV4IntfNbrTable,
-    TrunkNeighborV4IntfNbrTable,
-    PortNeighborV6IntfNbrTable,
-    TrunkNeighborV6IntfNbrTable>;
+using NeighborTypes = ::testing::
+    Types<PortNeighborV4, TrunkNeighborV4, PortNeighborV6, TrunkNeighborV6>;
 
 template <typename NeighborT>
 class AgentNeighborTest : public AgentHwTest {
  protected:
   using IPAddrT = typename NeighborT::IPAddrT;
   static auto constexpr programToTrunk = NeighborT::isTrunk;
-  static auto constexpr isIntfNbrTable = NeighborT::isIntfNbrTable;
   using NTable = typename std::conditional_t<
       std::is_same<IPAddrT, folly::IPAddressV4>::value,
       ArpTable,
@@ -120,7 +106,6 @@ class AgentNeighborTest : public AgentHwTest {
 
  protected:
   void setCmdLineFlagOverrides() const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
@@ -128,11 +113,8 @@ class AgentNeighborTest : public AgentHwTest {
       const override {
     std::vector<ProductionFeature> features = {
         ProductionFeature::L3_FORWARDING};
-    if (isIntfNbrTable) {
-      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
-    } else {
-      features.push_back(ProductionFeature::VLAN);
-    }
+    features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+
     if (programToTrunk) {
       features.push_back(ProductionFeature::LAG);
     }
@@ -141,26 +123,36 @@ class AgentNeighborTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = programToTrunk
         ? utility::oneL3IntfTwoPortConfig(
-              ensemble.getSw(),
+              ensemble.getPlatformMapping(),
+              asic,
               ensemble.masterLogicalPortIds()[0],
-              ensemble.masterLogicalPortIds()[1])
+              ensemble.masterLogicalPortIds()[1],
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              asic->desiredLoopbackModes(),
+              ensemble.getSw()->getPlatformType())
         : utility::onePortPerInterfaceConfig(
-              ensemble.getSw(), ensemble.masterLogicalPortIds());
+              ensemble.getPlatformMapping(),
+              asic,
+              ensemble.masterLogicalPortIds(),
+              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+              asic->desiredLoopbackModes(),
+              ensemble.getSw()->getPlatformType());
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
-      // the two ports for testing.
-      std::set<int> portSet{
-          ensemble.masterLogicalPortIds()[0],
-          ensemble.masterLogicalPortIds()[1]};
+      // the two ports for testing. Only use ports from masterLogicalPortIds()
+      // which are scoped to the test switch ID, to avoid adding ports from
+      // other switches in multi-NPU setups.
+      auto masterPorts = ensemble.masterLogicalPortIds();
+      std::set<int> portSet{masterPorts[0], masterPorts[1]};
       int idx = 0;
-      while (
-          portSet.size() <
-          std::min(
-              checkSameAndGetAsic(ensemble.getL3Asics())->getMaxLagMemberSize(),
-              static_cast<uint32_t>((*cfg.ports()).size()))) {
-        portSet.insert(*cfg.ports()[idx].logicalID());
+      while (portSet.size() < std::min(
+                                  asic->getMaxLagMemberSize(),
+                                  static_cast<uint32_t>(masterPorts.size()))) {
+        portSet.insert(masterPorts[idx]);
         idx++;
       }
       std::vector<int> ports(portSet.begin(), portSet.end());
@@ -171,9 +163,11 @@ class AgentNeighborTest : public AgentHwTest {
   VlanID kVlanID() const {
     if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
-      auto vlanId = getVlanIDForTx();
-      CHECK(vlanId.has_value());
-      return *vlanId;
+      auto portId = portIdsForTest()[0];
+      return getProgrammedState()
+          ->getPorts()
+          ->getNodeIf(portId)
+          ->getIngressVlan();
     }
     XLOG(FATAL) << " No vlans on non-npu switches";
   }
@@ -181,11 +175,7 @@ class AgentNeighborTest : public AgentHwTest {
     auto switchType =
         checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
-      if (!isIntfNbrTable) {
-        return InterfaceID(static_cast<int>(kVlanID()));
-      } else {
-        return utility::firstInterfaceIDWithPorts(getProgrammedState());
-      }
+      return InterfaceID(static_cast<int>(kVlanID()));
     } else if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!programToTrunk) << " Trunks not supported yet on VOQ switches";
       auto portId = this->portDescriptor().phyPortID();
@@ -198,27 +188,30 @@ class AgentNeighborTest : public AgentHwTest {
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 
+  std::vector<PortID> portIdsForTest() const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   PortDescriptor portDescriptor() const {
     if (programToTrunk) {
       return PortDescriptor(kAggID);
     }
-    return PortDescriptor(masterLogicalInterfacePortIds()[0]);
+    return PortDescriptor(portIdsForTest()[0]);
   }
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
     auto switchType =
         checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
 
-    if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+    if (switchType == cfg::SwitchType::VOQ ||
+        switchType == cfg::SwitchType::NPU) {
       return state->getInterfaces()
           ->getNode(kIntfID())
           ->template getNeighborEntryTable<IPAddrT>()
           ->modify(kIntfID(), &state);
-    } else if (switchType == cfg::SwitchType::NPU) {
-      return state->getVlans()
-          ->getNode(kVlanID())
-          ->template getNeighborTable<NTable>()
-          ->modify(kVlanID(), &state);
     }
 
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
@@ -243,7 +236,6 @@ class AgentNeighborTest : public AgentHwTest {
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intf->getVlanIDIf().has_value());
       outState = utility::NeighborTestUtils::pruneMacEntryForDelNbrEntry(
           outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
     }
@@ -280,7 +272,6 @@ class AgentNeighborTest : public AgentHwTest {
     auto intf = outState->getInterfaces()->getNode(kIntfID());
     if (getSw()->needL2EntryForNeighbor() &&
         intf->getType() == cfg::InterfaceType::VLAN) {
-      CHECK(intf->getVlanIDIf().has_value());
       outState = utility::NeighborTestUtils::addMacEntryForNewNbrEntry(
           outState, intf->getVlanID(), neighborTable->getEntryIf(ip));
     }
@@ -337,14 +328,12 @@ template <typename NeighborT>
 class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
  protected:
   using IPAddrT = typename NeighborT::IPAddrT;
-  static auto constexpr isIntfNbrTable = NeighborT::isIntfNbrTable;
   using NTable = typename std::conditional_t<
       std::is_same<IPAddrT, folly::IPAddressV4>::value,
       ArpTable,
       NdpTable>;
 
   void setCmdLineFlagOverrides() const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     AgentHwTest::setCmdLineFlagOverrides();
     // Enable neighbor cache so that class id is set
     FLAGS_disable_neighbor_updates = false;
@@ -360,25 +349,23 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
             ->getSwitchType();
 
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
-      if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+      if (switchType == cfg::SwitchType::VOQ ||
+          switchType == cfg::SwitchType::NPU) {
         return this->getSw()
             ->getNeighborUpdater()
             ->getNdpCacheDataForIntf()
             .get();
-      } else if (switchType == cfg::SwitchType::NPU) {
-        return this->getSw()->getNeighborUpdater()->getNdpCacheData().get();
       } else {
         XLOG(FATAL) << "Unexpected switch type "
                     << static_cast<int>(switchType);
       }
     } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+      if (switchType == cfg::SwitchType::VOQ ||
+          switchType == cfg::SwitchType::NPU) {
         return this->getSw()
             ->getNeighborUpdater()
             ->getArpCacheDataForIntf()
             .get();
-      } else if (switchType == cfg::SwitchType::NPU) {
-        return this->getSw()->getNeighborUpdater()->getArpCacheData().get();
       } else {
         XLOG(FATAL) << "Unexpected switch type "
                     << static_cast<int>(switchType);
@@ -540,7 +527,7 @@ TYPED_TEST(AgentNeighborTest, LinkDownOnResolvedEntry) {
       auto state = this->addNeighbor(in);
       return this->resolveNeighbor(state);
     });
-    this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
+    this->bringDownPort(this->portIdsForTest()[0]);
   };
   auto verify = [this]() {
     // There is a behavior differnce b/w SAI and BcmSwitch on link down
@@ -562,8 +549,8 @@ TYPED_TEST(AgentNeighborTest, LinkDownAndUpOnResolvedEntry) {
       auto state = this->addNeighbor(in);
       return this->resolveNeighbor(state);
     });
-    this->bringDownPort(this->masterLogicalInterfacePortIds()[0]);
-    this->bringUpPort(this->masterLogicalInterfacePortIds()[0]);
+    this->bringDownPort(this->portIdsForTest()[0]);
+    this->bringUpPort(this->portIdsForTest()[0]);
   };
   auto verify = [this]() {
     // There is a behavior differnce b/w SAI and BcmSwitch on link down
@@ -600,21 +587,9 @@ TYPED_TEST(AgentNeighborResolutionTest, ResolveNeighborAndCheckCache) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using IntfNbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
-  static auto constexpr isIntfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  protected:
   void setCmdLineFlagOverrides() const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
@@ -622,23 +597,34 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
       const override {
     std::vector<ProductionFeature> features = {
         ProductionFeature::L3_FORWARDING};
-    if (isIntfNbrTable) {
-      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
-    } else {
-      features.push_back(ProductionFeature::VLAN);
-    }
+    features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+
     return features;
   }
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     return utility::onePortPerInterfaceConfig(
-        ensemble.getSw(), ensemble.masterLogicalPortIds());
+        ensemble.getPlatformMapping(),
+        asic,
+        ensemble.masterLogicalPortIds(),
+        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
   }
   folly::IPAddressV6 neighborIP(PortID port) const {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     return ecmpHelper6.ip(PortDescriptor(port));
+  }
+
+  std::vector<PortID> portIdsForTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
   }
 
   void oneNeighborPerPortSetup(const std::vector<PortID>& portIds) {
@@ -655,8 +641,9 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     }
 
     // Create adjacencies on all test ports
-    auto dstMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
+    auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+        this->getProgrammedState(), switchId);
     for (int idx = 0; idx < portIds.size(); idx++) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
@@ -670,8 +657,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     // Dump the local interface config
     XLOG(DBG0) << "Dumping port configurations:";
     for (int idx = 0; idx < portIds.size(); idx++) {
-      auto mac =
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      auto mac = utility::getMacForFirstInterfaceWithPorts(
+          getProgrammedState(), switchId);
       XLOG(DBG0) << "   Port " << portIds[idx]
                  << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
                  << ", Intf MAC: " << mac;
@@ -682,20 +669,13 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     auto switchType =
         checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
 
-    if (isIntfNbrTable || switchType == cfg::SwitchType::VOQ) {
+    if (switchType == cfg::SwitchType::VOQ ||
+        switchType == cfg::SwitchType::NPU) {
       return InterfaceID(*getProgrammedState()
                               ->getPorts()
                               ->getNodeIf(portId)
                               ->getInterfaceIDs()
                               .begin());
-    } else if (switchType == cfg::SwitchType::NPU) {
-      return InterfaceID(
-          static_cast<int>((*getProgrammedState()
-                                 ->getPorts()
-                                 ->getNodeIf(portId)
-                                 ->getVlans()
-                                 .begin())
-                               .first));
     }
 
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
@@ -708,21 +688,18 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
   }
 };
 
-TYPED_TEST_SUITE(AgentNeighborOnMultiplePortsTest, IntfNbrTableTypes);
-
-TYPED_TEST(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
+TEST_F(AgentNeighborOnMultiplePortsTest, ResolveOnTwoPorts) {
   auto setup = [&]() {
     this->oneNeighborPerPortSetup(
-        {this->masterLogicalInterfacePortIds()[0],
-         this->masterLogicalInterfacePortIds()[1]});
+        {this->portIdsForTest()[0], this->portIdsForTest()[1]});
   };
   auto verify = [&]() {
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[0],
-        this->neighborIP(this->masterLogicalInterfacePortIds()[0])));
+        this->portIdsForTest()[0],
+        this->neighborIP(this->portIdsForTest()[0])));
     EXPECT_FALSE(this->isProgrammedToCPU(
-        this->masterLogicalInterfacePortIds()[1],
-        this->neighborIP(this->masterLogicalInterfacePortIds()[1])));
+        this->portIdsForTest()[1],
+        this->neighborIP(this->portIdsForTest()[1])));
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -732,7 +709,6 @@ class AgentNeighborMetadataTest : public AgentNeighborTest<NeighborT> {
  protected:
   using IPAddrT = typename NeighborT::IPAddrT;
   static auto constexpr programToTrunk = NeighborT::isTrunk;
-  static auto constexpr isIntfNbrTable = NeighborT::isIntfNbrTable;
   using NTable = typename std::conditional_t<
       std::is_same<IPAddrT, folly::IPAddressV4>::value,
       ArpTable,
@@ -744,11 +720,8 @@ class AgentNeighborMetadataTest : public AgentNeighborTest<NeighborT> {
     std::vector<ProductionFeature> features = {
         ProductionFeature::L3_FORWARDING,
         ProductionFeature::CLASS_ID_FOR_NEIGHBOR};
-    if (isIntfNbrTable) {
-      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
-    } else {
-      features.push_back(ProductionFeature::VLAN);
-    }
+    features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
+
     if (programToTrunk) {
       features.push_back(ProductionFeature::LAG);
     }

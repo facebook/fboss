@@ -36,6 +36,11 @@ std::optional<sai_attr_id_t> SaiArsProfileTraits::Attributes::
     AttributeArsPrimaryMembersRouteMetaData::operator()() {
   return std::nullopt;
 }
+
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return std::nullopt;
+}
 #endif
 
 } // namespace facebook::fboss

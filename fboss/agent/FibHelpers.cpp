@@ -10,7 +10,10 @@
 
 #include "fboss/agent/FibHelpers.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 
@@ -43,7 +46,9 @@ std::shared_ptr<Route<AddrT>> findRouteInSwitchState(
   }
   CHECK(exactMatch)
       << "Switch state api should only be called for exact match lookups";
-  auto& fib = state->getFibs()->getNode(rid)->getFib<AddrT>();
+
+  auto& fib = state->getFibsInfoMap()->getFibContainer(rid)->getFib<AddrT>();
+
   return findInFib(prefix, fib);
 }
 } // namespace
@@ -68,7 +73,7 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
 std::pair<uint64_t, uint64_t> getRouteCount(
     const std::shared_ptr<SwitchState>& state) {
   uint64_t v6Count{0}, v4Count{0};
-  std::tie(v4Count, v6Count) = state->getFibs()->getRouteCount();
+  std::tie(v4Count, v6Count) = state->getFibsInfoMap()->getRouteCount();
   return std::make_pair(v4Count, v6Count);
 }
 
@@ -116,5 +121,74 @@ template std::shared_ptr<Route<folly::IPAddressV6>> findLongestMatchRoute(
 template bool isNoHostRoute(const std::shared_ptr<MacEntry>& entry);
 template bool isNoHostRoute(const std::shared_ptr<NdpEntry>& entry);
 template bool isNoHostRoute(const std::shared_ptr<ArpEntry>& entry);
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<FibInfo>& fibInfo,
+    NextHopSetId id) {
+  return fibInfo->resolveNextHopSetFromId(id);
+}
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    NextHopSetId id) {
+  auto fibsInfoMap = state->getFibsInfoMap();
+  if (!fibsInfoMap || fibsInfoMap->empty()) {
+    throw FbossError("FibsInfoMap is not initialized or empty");
+  }
+
+  // If there's only one FibInfo, use it directly without lookup
+  if (fibsInfoMap->size() == 1) {
+    return getNextHops(fibsInfoMap->cbegin()->second, id);
+  }
+
+  // Multiple FibInfo entries: search for the one containing this ID
+  for (const auto& [_, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto idToNextHopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
+    if (idToNextHopIdSetMap && idToNextHopIdSetMap->getNextHopIdSetIf(id)) {
+      return getNextHops(fibInfo, id);
+    }
+  }
+
+  throw FbossError("NextHopSetId ", id, " not found in any FibInfo");
+}
+
+RouteNextHopSet getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto resolvedSetId = entry.getResolvedNextHopSetID();
+    if (!resolvedSetId.has_value()) {
+      CHECK(entry.isDrop() || entry.isToCPU())
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action route "
+          << "has no resolvedNextHopSetID";
+      return {};
+    }
+    auto nhops = getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId));
+    return RouteNextHopSet(nhops.begin(), nhops.end());
+  }
+  return entry.getNextHopSet();
+}
+
+RouteNextHopSet getNonOverrideNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (FLAGS_resolve_nexthops_from_id) {
+    CHECK(FLAGS_enable_nexthop_id_manager)
+        << "FLAGS_resolve_nexthops_from_id requires FLAGS_enable_nexthop_id_manager";
+    auto normalizedSetId = entry.getNormalizedResolvedNextHopSetID();
+    if (!normalizedSetId.has_value()) {
+      CHECK(entry.isDrop() || entry.isToCPU())
+          << "FLAGS_resolve_nexthops_from_id is on but NEXTHOPS-action route "
+          << "has no normalizedResolvedNextHopSetID";
+      return {};
+    }
+    auto nhops =
+        getNextHops(state, static_cast<NextHopSetId>(*normalizedSetId));
+    return RouteNextHopSet(nhops.begin(), nhops.end());
+  }
+  return entry.nonOverrideNormalizedNextHops();
+}
 
 } // namespace facebook::fboss

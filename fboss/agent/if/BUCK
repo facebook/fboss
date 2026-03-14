@@ -24,7 +24,6 @@ thrift_library(
         "//thrift/annotation:java",
         "//thrift/annotation:python",
         "//thrift/annotation:thrift",
-        "//thrift/facebook/erlang:annotations",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.fboss.asyncio",
@@ -49,6 +48,7 @@ thrift_library(
         ":product_info",
         "//common/fb303/if:fb303",
         "//common/network/if:if",
+        "//configerator/structs/neteng/fboss/thrift:common",
         "//fboss/agent:agent_stats",
         "//fboss/agent:platform_config",
         "//fboss/agent:switch_config",
@@ -79,6 +79,9 @@ thrift_library(
     thrift_cpp2_options = "json,reflection",
     thrift_rust_options = "serde",
     thrift_srcs = {"product_info.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -110,6 +113,8 @@ thrift_library(
         ":mpls",
         "//common/network/if:if",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:scope",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -134,6 +139,7 @@ thrift_library(
     thrift_srcs = {"optic.thrift": []},
     deps = [
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -158,7 +164,6 @@ thrift_library(
         "//thrift/annotation:java",
         "//thrift/annotation:python",
         "//thrift/annotation:thrift",
-        "//thrift/facebook/erlang:annotations",
     ],
     py3_namespace = "neteng.fboss",
     py_asyncio_base_module = "neteng.asyncio",
@@ -180,6 +185,9 @@ thrift_library(
     py3_namespace = "neteng.fboss",
     py_base_module = "neteng.fboss",
     thrift_srcs = {"sflow.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -206,6 +214,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"mpls.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -219,6 +230,7 @@ thrift_library(
     thrift_srcs = {"packet_stream.thrift": ["PacketStream"]},
     deps = [
         "//common/fb303/if:fb303",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -246,6 +258,7 @@ thrift_library(
     thrift_srcs = {"highfreq.thrift": []},
     deps = [
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -285,6 +298,7 @@ thrift_library(
         "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
         "//fboss/lib/phy:prbs",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -309,7 +323,6 @@ thrift_library(
         "//thrift/annotation:java",
         "//thrift/annotation:python",
         "//thrift/annotation:thrift",
-        "//thrift/facebook/erlang:annotations",
     ],
     py3_namespace = "neteng.fboss.multiswitch",
     py_asyncio_base_module = "neteng.fboss.asyncio",
@@ -349,6 +362,7 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/agent:switch_state",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -375,6 +389,7 @@ thrift_library(
     thrift_srcs = {"asic_temp.thrift": ["AsicTempThrift"]},
     deps = [
         ":fboss",
+        "//thrift/annotation:thrift",
     ],
 )
 

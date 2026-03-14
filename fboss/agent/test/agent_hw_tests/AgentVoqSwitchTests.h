@@ -91,16 +91,18 @@ class AgentVoqSwitchTest : public AgentHwTest {
   void setForceTrafficOverFabric(bool force);
   void setupForDramErrorTestFromDiagShell(const SwitchID& switchId);
 
-  std::vector<PortDescriptor> getInterfacePortSysPortDesc() {
+  std::vector<PortDescriptor> getInterfacePortSysPortDesc(
+      const std::set<cfg::PortType>& portTypes = {
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT}) {
     auto ports = getProgrammedState()->getPorts()->getAllNodes();
     std::vector<PortDescriptor> portDescs;
     std::for_each(
         ports->begin(),
         ports->end(),
-        [this, &portDescs](const auto& idAndPort) {
+        [this, &portDescs, &portTypes](const auto& idAndPort) {
           const auto port = idAndPort.second;
-          if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
-              port->getPortType() == cfg::PortType::HYPER_PORT) {
+          if (portTypes.find(port->getPortType()) != portTypes.end()) {
             portDescs.push_back(PortDescriptor(getSystemPortID(
                 PortDescriptor(port->getID()), cfg::Scope::GLOBAL)));
           }
@@ -110,8 +112,12 @@ class AgentVoqSwitchTest : public AgentHwTest {
 
   // Resolve and return list of local nhops (only NIF ports)
   std::vector<PortDescriptor> resolveLocalNhops(
-      utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    std::vector<PortDescriptor> portDescs = getInterfacePortSysPortDesc();
+      utility::EcmpSetupTargetedPorts6& ecmpHelper,
+      const std::set<cfg::PortType>& portTypes = {
+          cfg::PortType::INTERFACE_PORT,
+          cfg::PortType::HYPER_PORT}) {
+    std::vector<PortDescriptor> portDescs =
+        getInterfacePortSysPortDesc(portTypes);
 
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       auto out = in->clone();

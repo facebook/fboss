@@ -13,12 +13,20 @@
 
 namespace facebook::fboss {
 
+enum class FakeTestPlatformMappingType {
+  STANDARD,
+  DUAL_TRANSCEIVER,
+  BACKPLANE,
+  XPHY_BACKPLANE,
+};
+
 class FakeTestPlatformMapping : public PlatformMapping {
  public:
   explicit FakeTestPlatformMapping(
       std::vector<int> controllingPortIds,
       int portsPerSlot = 4,
-      bool twoTransceiversPerPort = false);
+      FakeTestPlatformMappingType mappingType =
+          FakeTestPlatformMappingType::STANDARD);
   ~FakeTestPlatformMapping() = default;
 
  private:
@@ -42,6 +50,14 @@ class FakeTestPlatformMapping : public PlatformMapping {
   void createPlatformMapping(int portsPerSlot);
 
   void createDualTransceiverPlatformMapping(int portsPerSlot);
+
+  // Creates a platform mapping with direct NPU to Backplane connection
+  // (no transceivers, no XPHY) - similar to Ladakh eth1/3/1 port style
+  void createBackplanePlatformMapping();
+
+  // Creates a platform mapping with NPU to XPHY to Backplane connection
+  // (iphy + xphy + backplane) - similar to Ladakh eth1/43/1 port style
+  void createXphyBackplanePlatformMapping();
 
   static phy::TxSettings getFakeTxSetting();
   static phy::RxSettings getFakeRxSetting();

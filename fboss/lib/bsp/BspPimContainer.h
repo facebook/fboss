@@ -20,8 +20,8 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   const BspTransceiverContainer* getTransceiverContainer(int tcvrID) const;
   const BspPhyContainer* getPhyContainerFromPhyID(int phyID) const;
   const BspPhyContainer* getPhyContainerFromMdioID(int mdioControllerID) const;
-  const std::map<uint32_t, const BspLedContainer*> getLedContainer(
-      int tcvrID) const;
+  const std::map<uint32_t, std::pair<const BspLedContainer*, std::set<int>>>
+  getLedContainer(int tcvrID) const;
 
   bool isTcvrPresent(int tcvrID) const;
   void initAllTransceivers() const;
@@ -29,6 +29,11 @@ class BspPimContainer : public MultiPimPlatformPimContainer {
   void initTransceiver(int tcvrID) const;
   void holdTransceiverReset(int tcvrID) const;
   void releaseTransceiverReset(int tcvrID) const;
+
+  // PHY reset methods
+  void initAllPhyIOControllers() const;
+  void initAllPhys() const;
+
   void tcvrRead(
       unsigned int tcvrID,
       const TransceiverAccessParameter& param,

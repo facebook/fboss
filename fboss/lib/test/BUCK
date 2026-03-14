@@ -85,11 +85,11 @@ cpp_unittest(
         "PciDeviceTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/lib:pci_device",
         "//folly:singleton",
     ],
     external_deps = [
-        "glog",
         ("libpciaccess", None, "pciaccess"),
     ],
 )
@@ -101,6 +101,16 @@ cpp_unittest(
     ],
     deps = [
         "//fboss/lib:ref_map",
+    ],
+)
+
+cpp_unittest(
+    name = "unique_ref_map_test",
+    srcs = [
+        "UniqueRefMapTest.cpp",
+    ],
+    deps = [
+        "//fboss/lib:unique_ref_map",
     ],
 )
 
@@ -120,11 +130,11 @@ cpp_unittest(
         "ExponentialBackoffTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/lib:exponential_back_off",
     ],
     external_deps = [
         "gflags",
-        "glog",
     ],
 )
 
@@ -183,6 +193,7 @@ cpp_unittest(
         "CommonThriftUtilsTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/glog:glog",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:common_port_utils",
         "//fboss/lib:common_thrift_utils",
@@ -190,8 +201,5 @@ cpp_unittest(
         "//folly:singleton",
         "//folly/logging:logging",
         "//folly/testing:test_util",
-    ],
-    external_deps = [
-        "glog",
     ],
 )

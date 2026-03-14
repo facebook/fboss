@@ -43,6 +43,7 @@ class TopologyInfo {
   virtual const std::set<std::string>& getSdsws() const = 0;
   virtual const std::set<std::string>& getRdsws() const = 0;
   virtual const std::set<std::string>& getFdsws() const = 0;
+  virtual const std::set<std::string>& getEdsws() const = 0;
   virtual const std::map<SwitchID, std::string>& getSwitchIdToSwitchName()
       const = 0;
   virtual const std::map<std::string, std::set<SwitchID>>&

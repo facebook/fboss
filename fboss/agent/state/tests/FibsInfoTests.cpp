@@ -8,14 +8,19 @@
  *
  */
 
+#include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
+#include <folly/IPAddress.h>
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -33,7 +38,7 @@ std::shared_ptr<FibInfo> createFibInfo(RouterID vrf) {
   auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
   auto fibContainer = createFibContainer(vrf);
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+  fibInfo->resetFibsMap(fibsMap);
   return fibInfo;
 }
 
@@ -302,7 +307,7 @@ TEST_F(MultiSwitchFibInfoMapTest, GetRouteCount) {
   fibContainer->setFib(fibV6.clone());
 
   fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-  fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
+  fibInfo->resetFibsMap(fibsMap);
 
   // Add FibInfo to FibInfoMap
   auto matcher = createMatcher(10);
@@ -348,6 +353,197 @@ TEST_F(MultiSwitchFibInfoMapTest, GetAllFibNodes) {
 
   auto mergedContainer2 = mergedMap->getFibContainerIf(RouterID(2));
   EXPECT_EQ(mergedContainer2->getID(), RouterID(2));
+}
+
+TEST_F(MultiSwitchFibInfoMapTest, GetVrfCount) {
+  auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+
+  // Test empty map
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 0);
+
+  // Add FibInfo with null fibsMap (empty VRF)
+  auto emptyFibInfo = std::make_shared<FibInfo>();
+  auto matcher1 = createMatcher(10);
+  fibInfoMap->updateFibInfo(emptyFibInfo, matcher1);
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 0);
+
+  // Add FibInfo with 1 VRF
+  auto fibInfo1 = createFibInfo(RouterID(0));
+  auto matcher2 = createMatcher(20);
+  fibInfoMap->updateFibInfo(fibInfo1, matcher2);
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 1);
+
+  // Add FibInfo with 2 VRFs
+  auto fibInfo2 = std::make_shared<FibInfo>();
+  auto fibsMap2 = std::make_shared<ForwardingInformationBaseMap>();
+  fibsMap2->updateForwardingInformationBaseContainer(
+      createFibContainer(RouterID(1)));
+  fibsMap2->updateForwardingInformationBaseContainer(
+      createFibContainer(RouterID(2)));
+  fibInfo2->resetFibsMap(fibsMap2);
+  auto matcher3 = createMatcher(30);
+  fibInfoMap->updateFibInfo(fibInfo2, matcher3);
+  EXPECT_EQ(fibInfoMap->getVrfCount(), 3);
+}
+
+TEST_F(FibInfoTest, SetAndGetIdToNextHopMap) {
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Create and populate IdToNextHopMap
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  NextHopThrift nh1, nh2;
+  nh1.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
+  nh2.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.2"));
+  idToNextHopMap->addNextHop(100, nh1);
+  idToNextHopMap->addNextHop(200, nh2);
+
+  // Set and verify
+  fibInfo->setIdToNextHopMap(idToNextHopMap);
+  auto retrieved = fibInfo->getIdToNextHopMap();
+  EXPECT_NE(retrieved, nullptr);
+  EXPECT_EQ(retrieved->size(), 2);
+  EXPECT_NE(retrieved->getNextHopIf(100), nullptr);
+  EXPECT_NE(retrieved->getNextHopIf(200), nullptr);
+}
+
+TEST_F(FibInfoTest, SetAndGetIdToNextHopIdSetMap) {
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Create and populate IdToNextHopIdSetMap
+  // NextHopSetIds must be >= 2^63 per spec
+  constexpr NextHopSetId setId1 = (1ULL << 63) + 1;
+  constexpr NextHopSetId setId2 = (1ULL << 63) + 2;
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNextHopIdSetMap->addNextHopIdSet(setId1, {100, 200});
+  idToNextHopIdSetMap->addNextHopIdSet(setId2, {300});
+
+  // Set and verify
+  fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+  auto retrieved = fibInfo->getIdToNextHopIdSetMap();
+  EXPECT_NE(retrieved, nullptr);
+  EXPECT_EQ(retrieved->size(), 2);
+  EXPECT_NE(retrieved->getNextHopIdSetIf(setId1), nullptr);
+  EXPECT_NE(retrieved->getNextHopIdSetIf(setId2), nullptr);
+  EXPECT_EQ(
+      retrieved->getNextHopIdSet(setId1)->toThrift(),
+      (std::set<NextHopId>{100, 200}));
+  EXPECT_EQ(
+      retrieved->getNextHopIdSet(setId2)->toThrift(),
+      (std::set<NextHopId>{300}));
+}
+
+TEST_F(FibInfoTest, ResolveNextHopSetFromId) {
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Create IPv4 NextHops with interface names for resolution
+  NextHopThrift nhV4_1, nhV4_2, nhV4_3;
+  nhV4_1.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
+  nhV4_1.address()->ifName() = "fboss1";
+  *nhV4_1.weight() = UCMP_DEFAULT_WEIGHT;
+  nhV4_2.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.2"));
+  nhV4_2.address()->ifName() = "fboss2";
+  *nhV4_2.weight() = UCMP_DEFAULT_WEIGHT;
+  nhV4_3.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.3"));
+  nhV4_3.address()->ifName() = "fboss3";
+  *nhV4_3.weight() = UCMP_DEFAULT_WEIGHT;
+
+  // Create IPv6 NextHops with interface names for resolution
+  NextHopThrift nhV6_1, nhV6_2;
+  nhV6_1.address() = network::toBinaryAddress(folly::IPAddress("2001:db8::1"));
+  nhV6_1.address()->ifName() = "fboss4";
+  *nhV6_1.weight() = UCMP_DEFAULT_WEIGHT;
+  nhV6_2.address() = network::toBinaryAddress(folly::IPAddress("2001:db8::2"));
+  nhV6_2.address()->ifName() = "fboss5";
+  *nhV6_2.weight() = UCMP_DEFAULT_WEIGHT;
+
+  // Assign NextHopIds
+  NextHopId nhIdV4_1 = 1;
+  NextHopId nhIdV4_2 = 2;
+  NextHopId nhIdV4_3 = 3;
+  NextHopId nhIdV6_1 = 4;
+  NextHopId nhIdV6_2 = 5;
+
+  // Create and populate IdToNextHopMap with both IPv4 and IPv6 nexthops
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(nhIdV4_1, nhV4_1);
+  idToNextHopMap->addNextHop(nhIdV4_2, nhV4_2);
+  idToNextHopMap->addNextHop(nhIdV4_3, nhV4_3);
+  idToNextHopMap->addNextHop(nhIdV6_1, nhV6_1);
+  idToNextHopMap->addNextHop(nhIdV6_2, nhV6_2);
+
+  // Create and populate IdToNextHopIdSetMap
+  constexpr int64_t kSetIdOffset = 1LL << 62;
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+
+  // Set with IPv4 nexthops only
+  NextHopSetId setIdV4 = kSetIdOffset + 1;
+  idToNextHopIdSetMap->addNextHopIdSet(setIdV4, {nhIdV4_1, nhIdV4_2, nhIdV4_3});
+
+  // Set with IPv6 nexthops only
+  NextHopSetId setIdV6 = kSetIdOffset + 2;
+  idToNextHopIdSetMap->addNextHopIdSet(setIdV6, {nhIdV6_1, nhIdV6_2});
+
+  // Set the maps on FibInfo
+  fibInfo->setIdToNextHopMap(idToNextHopMap);
+  fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+
+  // Test resolveNextHopSetFromId with IPv4 set
+  auto resolvedV4 = fibInfo->resolveNextHopSetFromId(setIdV4);
+  EXPECT_EQ(resolvedV4.size(), 3);
+
+  // Verify the actual IPv4 nexthops by sorting and comparing vectors
+  std::sort(resolvedV4.begin(), resolvedV4.end());
+  std::vector<NextHop> expectedV4{
+      ResolvedNextHop(
+          folly::IPAddress("10.0.0.1"), InterfaceID(1), UCMP_DEFAULT_WEIGHT),
+      ResolvedNextHop(
+          folly::IPAddress("10.0.0.2"), InterfaceID(2), UCMP_DEFAULT_WEIGHT),
+      ResolvedNextHop(
+          folly::IPAddress("10.0.0.3"), InterfaceID(3), UCMP_DEFAULT_WEIGHT)};
+  std::sort(expectedV4.begin(), expectedV4.end());
+  EXPECT_EQ(resolvedV4, expectedV4);
+
+  // Test resolveNextHopSetFromId with IPv6 set
+  auto resolvedV6 = fibInfo->resolveNextHopSetFromId(setIdV6);
+  EXPECT_EQ(resolvedV6.size(), 2);
+
+  // Verify the actual IPv6 nexthops by sorting and comparing vectors
+  std::sort(resolvedV6.begin(), resolvedV6.end());
+  std::vector<NextHop> expectedV6{
+      ResolvedNextHop(
+          folly::IPAddress("2001:db8::1"), InterfaceID(4), UCMP_DEFAULT_WEIGHT),
+      ResolvedNextHop(
+          folly::IPAddress("2001:db8::2"),
+          InterfaceID(5),
+          UCMP_DEFAULT_WEIGHT)};
+  std::sort(expectedV6.begin(), expectedV6.end());
+  EXPECT_EQ(resolvedV6, expectedV6);
+}
+
+TEST_F(FibInfoTest, ResolveNextHopSetFromIdNonExistentId) {
+  constexpr int64_t kSetIdOffset = 1LL << 62;
+  auto fibInfo = std::make_shared<FibInfo>();
+
+  // Set up IdToNextHopIdSetMap with one valid set
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  NextHopSetId validSetId = kSetIdOffset + 1;
+  NextHopSetId nonExistentSetId = kSetIdOffset + 999;
+  idToNextHopIdSetMap->addNextHopIdSet(validSetId, {1, 2});
+  fibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+
+  // Set up IdToNextHopMap but only add NextHopId 1, not 2
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  NextHopThrift nh1;
+  nh1.address() = network::toBinaryAddress(folly::IPAddress("10.0.0.1"));
+  *nh1.weight() = UCMP_DEFAULT_WEIGHT;
+  idToNextHopMap->addNextHop(1, nh1);
+  fibInfo->setIdToNextHopMap(idToNextHopMap);
+
+  // Throws FbossError when NextHopSetId is not found
+  EXPECT_THROW(fibInfo->resolveNextHopSetFromId(nonExistentSetId), FbossError);
+
+  // Throws FbossError when NextHopId is not found in IdToNextHopMap
+  EXPECT_THROW(fibInfo->resolveNextHopSetFromId(validSetId), FbossError);
 }
 
 } // namespace facebook::fboss

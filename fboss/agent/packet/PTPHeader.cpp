@@ -70,15 +70,22 @@ void PTPHeader::write(folly::io::RWPrivateCursor* cursor) const {
     uint8_t miscPtpOptions[11] = {};
     cursor->template write<uint8_t>((ptpType_)); // 1 byte
     cursor->template write<uint8_t>((ptpVersion_)); // 2 bytes
-    cursor->template writeBE<uint16_t>(hdrLength); // 4 bytes
-    cursor->template writeBE<uint16_t>(0); // domain, reserved, 6 bytes
-    cursor->template writeBE<uint16_t>(ptpFlags); // 8 bytes
+    cursor->template writeBE<uint16_t>(
+        static_cast<uint16_t>(hdrLength)); // 4 bytes
+    cursor->template writeBE<uint16_t>(
+        static_cast<uint16_t>(0)); // domain, reserved, 6 bytes
+    cursor->template writeBE<uint16_t>(
+        static_cast<uint16_t>(ptpFlags)); // 8 bytes
     cursor->template writeBE<uint64_t>(
         ptpCorrectionField_); // correctionField , 16 bytes
-    cursor->template writeBE<uint32_t>(0); // messageType Specific, 20 bytes
-    cursor->template writeBE<uint64_t>(0x1234); // clock id, arbit, 28 bytes
-    cursor->template writeBE<uint16_t>(1); // src_port_id, arbit, 30 bytes
-    cursor->template writeBE<uint16_t>(10); // seq id, arbit, 32 bytes
+    cursor->template writeBE<uint32_t>(
+        static_cast<uint32_t>(0)); // messageType Specific, 20 bytes
+    cursor->template writeBE<uint64_t>(
+        static_cast<uint64_t>(0x1234)); // clock id, arbit, 28 bytes
+    cursor->template writeBE<uint16_t>(
+        static_cast<uint16_t>(1)); // src_port_id, arbit, 30 bytes
+    cursor->template writeBE<uint16_t>(
+        static_cast<uint16_t>(10)); // seq id, arbit, 32 bytes
     cursor->template write<uint8_t>(
         (ptpType_)); // controlField: same as ptp message type, 33 bytes
     cursor->push(miscPtpOptions, 11);

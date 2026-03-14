@@ -9,6 +9,7 @@
  */
 
 #include <utility>
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -58,10 +59,11 @@ class MultiNodeTest : public AgentTest {
 
   template <typename AddrT>
   void disableTTLDecrementsForRoute(RoutePrefix<AddrT> prefix) {
-    auto fibContainer = sw()->getState()->getFibs()->getNode(RouterID(0));
+    auto state = sw()->getState();
+    auto fibContainer = state->getFibsInfoMap()->getFibContainer(RouterID(0));
     auto fib = fibContainer->template getFib<AddrT>();
     auto defaultRoute = fib->getRouteIf(prefix);
-    auto nhSet = defaultRoute->getForwardInfo().getNextHopSet();
+    auto nhSet = getNextHops(state, defaultRoute->getForwardInfo());
 
     std::vector<utility::EcmpNextHop<AddrT>> ecmpNhops{};
     boost::container::flat_set<PortDescriptor> ports{};

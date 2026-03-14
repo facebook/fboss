@@ -44,13 +44,14 @@ std::pair<PortFields::MKASakKey, mka::MKASak> PortFields::rxSakFromThrift(
 state::VlanInfo PortFields::VlanInfo::toThrift() const {
   state::VlanInfo vlanThrift;
   *vlanThrift.tagged() = tagged;
+  *vlanThrift.priorityTagged() = priorityTagged;
   return vlanThrift;
 }
 
 // static
 PortFields::VlanInfo PortFields::VlanInfo::fromThrift(
     const state::VlanInfo& vlanThrift) {
-  return VlanInfo(*vlanThrift.tagged());
+  return VlanInfo(*vlanThrift.tagged(), *vlanThrift.priorityTagged());
 }
 
 Port* Port::modify(std::shared_ptr<SwitchState>* state) {
@@ -77,7 +78,7 @@ InterfaceID Port::getInterfaceID() const {
   // For non VOQ/Fabric switches, in practice, a port is always part of a
   // single VLAN (and thus single interface).
   auto intfs = getInterfaceIDs();
-  CHECK_EQ(intfs.size(), 1);
+  CHECK_EQ(intfs.size(), 1) << "Invalid interfaces for port " << getName();
   return InterfaceID(intfs.at(0));
 }
 

@@ -10,10 +10,10 @@
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/logging/Init.h>
-#include <folly/logging/LogLevel.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG5; default:async=true");
 
@@ -227,30 +227,34 @@ class FsdbSubManagerTest : public ::testing::Test,
 
   std::vector<ExtendedOperPath> extSubscriptionPaths() const {
     if constexpr (IsStats) {
-      using StatsRootMembers =
-          apache::thrift::reflect_struct<FsdbOperStatsRoot>::member;
-      using AgentStatsRootMembers =
-          apache::thrift::reflect_struct<AgentStats>::member;
-      using PhyStatsMembers =
-          apache::thrift::reflect_struct<phy::PhyStats>::member;
-      ExtendedOperPath path =
-          ext_path_builder::raw(StatsRootMembers::agent::id::value)
-              .raw(AgentStatsRootMembers::phyStats::id::value)
-              .any()
-              .raw(PhyStatsMembers::timeCollected::id::value)
-              .get();
+      ExtendedOperPath path = ext_path_builder::raw(
+                                  apache::thrift::op::get_field_id_v<
+                                      FsdbOperStatsRoot,
+                                      apache::thrift::ident::agent>)
+                                  .raw(
+                                      apache::thrift::op::get_field_id_v<
+                                          AgentStats,
+                                          apache::thrift::ident::phyStats>)
+                                  .any()
+                                  .raw(
+                                      apache::thrift::op::get_field_id_v<
+                                          phy::PhyStats,
+                                          apache::thrift::ident::timeCollected>)
+                                  .get();
       return {std::move(path)};
     } else {
-      using StateRootMembers =
-          apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
-      using AgentRootMembers =
-          apache::thrift::reflect_struct<AgentData>::member;
-      using AgentConfigRootMembers =
-          apache::thrift::reflect_struct<cfg::AgentConfig>::member;
       ExtendedOperPath path =
-          ext_path_builder::raw(StateRootMembers::agent::id::value)
-              .raw(AgentRootMembers::config::id::value)
-              .raw(AgentConfigRootMembers::defaultCommandLineArgs::id::value)
+          ext_path_builder::raw(
+              apache::thrift::op::get_field_id_v<
+                  FsdbOperStateRoot,
+                  apache::thrift::ident::agent>)
+              .raw(
+                  apache::thrift::op::
+                      get_field_id_v<AgentData, apache::thrift::ident::config>)
+              .raw(
+                  apache::thrift::op::get_field_id_v<
+                      cfg::AgentConfig,
+                      apache::thrift::ident::defaultCommandLineArgs>)
               .any()
               .get();
       return {std::move(path)};
@@ -504,6 +508,54 @@ TYPED_TEST(FsdbSubManagerTest, verifyGR) {
     ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_EQ(numUpdates, 2);
   });
+}
+
+template <typename SubscriberT>
+class FsdbSubManagerHbTest : public FsdbSubManagerTest<SubscriberT> {
+ public:
+  void SetUp() override {
+    FLAGS_serveHeartbeats = true;
+    FLAGS_statsSubscriptionHeartbeat_s = 1;
+    FLAGS_stateSubscriptionHeartbeat_s = 1;
+    FsdbSubManagerTest<SubscriberT>::SetUp();
+  }
+};
+
+TYPED_TEST_SUITE(FsdbSubManagerHbTest, SubscriberTypes);
+
+TYPED_TEST(FsdbSubManagerHbTest, verifyHeartbeatCb) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  std::optional<SubscriptionState> lastStateSeen;
+  std::optional<int64_t> lastPublishedAt;
+  int numHeartbeats{0};
+  auto subscriber = this->createSubscriber("test", this->root().agent());
+  subscriber->subscribe(
+      [&](auto update) {
+        if (update.lastPublishedAt.has_value()) {
+          lastPublishedAt = update.lastPublishedAt.value();
+        }
+      },
+      [&](auto, auto newState, std::optional<bool> initialSyncHasData) {
+        lastStateSeen = newState;
+      },
+      [&](std::optional<OperMetadata> md) { numHeartbeats++; });
+
+  WITH_RETRIES(
+      { ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED); });
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_TRUE(
+        lastPublishedAt.has_value() && lastPublishedAt.value() > 0);
+  });
+
+  // Verify heartbeat callback is called
+  WITH_RETRIES_N(100, { EXPECT_EVENTUALLY_GT(numHeartbeats, 0); });
+
+  // Verify heartbeat callback continues to be called
+  numHeartbeats = 0;
+  WITH_RETRIES_N(100, { EXPECT_EVENTUALLY_GT(numHeartbeats, 0); });
 }
 
 } // namespace facebook::fboss::fsdb::test

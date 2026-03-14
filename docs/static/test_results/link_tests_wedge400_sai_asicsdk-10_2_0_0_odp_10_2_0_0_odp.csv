@@ -1,0 +1,3 @@
+"Test Case","Platform","ASIC SDK","Status"
+"warm_boot.EmptyLinkTest.CheckInit","wedge400","10.2.0.0_odp","PASSED"
+"cold_boot.EmptyLinkTest.CheckInit","wedge400","10.2.0.0_odp","PASSED"

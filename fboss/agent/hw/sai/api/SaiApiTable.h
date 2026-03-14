@@ -34,6 +34,7 @@
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/api/SamplePacketApi.h"
 #include "fboss/agent/hw/sai/api/SchedulerApi.h"
+#include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/api/SwitchPipelineApi.h"
 #include "fboss/agent/hw/sai/api/SystemPortApi.h"
@@ -141,6 +142,10 @@ class SaiApiTable {
 
   const TunnelApi& tunnelApi() const;
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  const Srv6Api& srv6Api() const;
+#endif
+
   const LagApi& lagApi() const;
 
   const MacsecApi& macsecApi() const;
@@ -210,6 +215,9 @@ class SaiApiTable {
       std::unique_ptr<TamEventAgingGroupApi>,
 #endif
       std::unique_ptr<TunnelApi>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      std::unique_ptr<Srv6Api>,
+#endif
       std::unique_ptr<LagApi>,
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       std::unique_ptr<VendorSwitchApi>,

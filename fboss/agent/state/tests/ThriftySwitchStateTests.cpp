@@ -106,36 +106,27 @@ TEST(ThriftySwitchState, PortMap) {
 }
 
 TEST(ThriftySwitchState, VlanMap) {
-  auto verifyVlanMap = [](bool use_intf_nbr_tables) {
-    FLAGS_intf_nbr_tables = use_intf_nbr_tables;
+  // With intf_nbr_tables enabled (default), neighbor tables are on interfaces,
+  // not VLANs. Only test MAC table on VLAN.
+  auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
+  auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
+  vlan1->setInterfaceID(InterfaceID(1));
+  vlan1->setInterfaceID(InterfaceID(2));
 
-    auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
-    auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
-    vlan1->setInterfaceID(InterfaceID(1));
-    vlan1->setInterfaceID(InterfaceID(2));
+  auto macTable = std::make_shared<MacTable>();
+  auto macEntry = std::make_shared<MacEntry>(
+      MacAddress("02:00:00:00:00:08"),
+      PortDescriptor(PortID(4)),
+      std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
+  macTable->addEntry(macEntry);
 
-    if (!use_intf_nbr_tables) {
-      setNeighborTablesAndDHCPRelay(vlan1, vlan2);
-    }
+  auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
+  vlanMap->addNode(vlan1, scope());
+  vlanMap->addNode(vlan2, scope());
 
-    auto macTable = std::make_shared<MacTable>();
-    auto macEntry = std::make_shared<MacEntry>(
-        MacAddress("02:00:00:00:00:08"),
-        PortDescriptor(PortID(4)),
-        std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
-    macTable->addEntry(macEntry);
-
-    auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
-    vlanMap->addNode(vlan1, scope());
-    vlanMap->addNode(vlan2, scope());
-
-    auto state = SwitchState();
-    state.resetVlans(vlanMap);
-    verifySwitchStateSerialization(state);
-  };
-
-  verifyVlanMap(false /* VLAN neighbor table */);
-  verifyVlanMap(true /* Interface neighbor table */);
+  auto state = SwitchState();
+  state.resetVlans(vlanMap);
+  verifySwitchStateSerialization(state);
 }
 
 TEST(ThriftySwitchState, AclMap) {
@@ -321,8 +312,6 @@ TEST(ThriftySwitchState, InterfaceMap) {
 }
 
 TEST(ThriftySwitchState, InterfaceMapNbrTables) {
-  FLAGS_intf_nbr_tables = true;
-
   auto intf1 = make_shared<Interface>(
       InterfaceID(1),
       RouterID(0),
@@ -375,21 +364,54 @@ TEST(ThriftySwitchState, IpAddressConversion) {
   }
 }
 
-TEST(ThriftySwitchState, FibsInfoMapClearedOnDeserialize) {
+TEST(ThriftySwitchState, FromThriftFibsInfoMapMigration) {
+  // Test that fromThrift() correctly migrates fibsMap to fibsInfoMap
   auto state = SwitchState();
   auto stateThrift = state.toThrift();
+  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
 
-  state::FibInfoFields fibInfo;
-  std::map<std::string, state::FibInfoFields> fibInfoMap;
-  fibInfoMap[HwSwitchMatcher::defaultHwSwitchMatcherKey()] = fibInfo;
-  stateThrift.fibsInfoMap() = fibInfoMap;
+  // Create fibsMap with FibContainers for VRF 0 and VRF 1
+  std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
+  std::map<int16_t, state::FibContainerFields> vrfFibMap;
 
-  // Verify the thrift object has populated FibsInfoMap
-  EXPECT_TRUE(stateThrift.fibsInfoMap().has_value());
-  EXPECT_FALSE(stateThrift.fibsInfoMap()->empty());
+  // Create FibContainer fields for VRF 0
+  state::FibContainerFields fibContainer0;
+  fibContainer0.vrf() = 0;
+  vrfFibMap[0] = fibContainer0;
 
+  // Create FibContainer fields for VRF 1
+  state::FibContainerFields fibContainer1;
+  fibContainer1.vrf() = 1;
+  vrfFibMap[1] = fibContainer1;
+
+  fibsMap[matcherKey] = vrfFibMap;
+  stateThrift.fibsMap() = fibsMap;
+
+  // Ensure fibsInfoMap is empty in thrift
+  stateThrift.fibsInfoMap() = std::map<std::string, state::FibInfoFields>();
+
+  // Call fromThrift() and verify fibsInfoMap is populated
   auto deserializedState = SwitchState::fromThrift(stateThrift);
 
-  // Verify FibsInfoMap is cleared after deserialization
-  EXPECT_TRUE(deserializedState->getFibsInfoMap()->empty());
+  // Verify fibsInfoMap is populated
+  auto fibsInfoMap = deserializedState->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMap, nullptr);
+  EXPECT_FALSE(fibsInfoMap->empty());
+
+  // Verify the FibInfo exists for the default matcher
+  auto fibInfo = fibsInfoMap->getFibInfo(scope());
+  ASSERT_NE(fibInfo, nullptr);
+
+  // Verify the fibsMap within FibInfo contains both VRF 0 and VRF 1
+  auto internalFibsMap = fibInfo->getfibsMap();
+  ASSERT_NE(internalFibsMap, nullptr);
+
+  // Verify VRF IDs are correct
+  EXPECT_EQ(
+      internalFibsMap->getFibContainerIf(RouterID(0))->getID(), RouterID(0));
+  EXPECT_EQ(
+      internalFibsMap->getFibContainerIf(RouterID(1))->getID(), RouterID(1));
+
+  // Verify old fibsMap is cleared after migration
+  EXPECT_TRUE(deserializedState->getFibs()->empty());
 }

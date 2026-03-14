@@ -11,6 +11,8 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <optional>
+
 extern "C" {
 #include <sai.h>
 }
@@ -29,8 +31,8 @@ struct FakeArsProfile {
       sai_uint8_t port_load_past_weight,
       sai_uint32_t load_past_min_val,
       sai_uint32_t load_past_max_val,
-      bool port_load_future,
-      sai_uint8_t port_load_future_weight,
+      std::optional<bool> port_load_future,
+      std::optional<sai_uint8_t> port_load_future_weight,
       sai_uint32_t load_future_min_val,
       sai_uint32_t load_future_max_val,
       bool port_load_current,
@@ -44,7 +46,8 @@ struct FakeArsProfile {
       sai_uint32_t ars_base_index,
       sai_uint32_t ars_alternate_members_route_meta_data,
       sai_uint32_t ars_route_meta_data_mask,
-      sai_uint32_t ars_primary_members_route_meta_data)
+      sai_uint32_t ars_primary_members_route_meta_data,
+      sai_uint32_t ecmp_member_count)
       : algo(algo),
         sampling_interval(sampling_interval),
         random_seed(random_seed),
@@ -71,7 +74,8 @@ struct FakeArsProfile {
             ars_alternate_members_route_meta_data),
         ars_route_meta_data_mask(ars_route_meta_data_mask),
         ars_primary_members_route_meta_data(
-            ars_primary_members_route_meta_data) {}
+            ars_primary_members_route_meta_data),
+        ecmp_member_count(ecmp_member_count) {}
   sai_ars_profile_algo_t algo;
   sai_uint32_t sampling_interval;
   sai_uint32_t random_seed;
@@ -81,8 +85,8 @@ struct FakeArsProfile {
   sai_uint8_t port_load_past_weight;
   sai_uint32_t load_past_min_val;
   sai_uint32_t load_past_max_val;
-  bool port_load_future;
-  sai_uint8_t port_load_future_weight;
+  std::optional<bool> port_load_future;
+  std::optional<sai_uint8_t> port_load_future_weight;
   sai_uint32_t load_future_min_val;
   sai_uint32_t load_future_max_val;
   bool port_load_current;
@@ -98,6 +102,7 @@ struct FakeArsProfile {
   sai_uint32_t ars_alternate_members_route_meta_data;
   sai_uint32_t ars_route_meta_data_mask;
   sai_uint32_t ars_primary_members_route_meta_data;
+  sai_uint32_t ecmp_member_count;
   sai_object_id_t id;
 };
 

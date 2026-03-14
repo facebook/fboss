@@ -9,6 +9,10 @@ include "fboss/qsfp_service/if/port_state.thrift"
 include "fboss/qsfp_service/if/qsfp_service_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/lib/if/pim_state.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct QsfpState {
   1: map<string, phy.PhyState> phyStates;

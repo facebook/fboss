@@ -10,36 +10,8 @@ void fsdb_stats_storage(
     test_data::RoleSelector selector,
     bool enableHybridStorage) {
   auto factory = test_data::FsdbStatsDataFactory(selector);
-  std::vector<int64_t> memoryMeasurements;
-
-  for (unsigned i = 0; i < iters; i++) {
-    // Use memory-aware helper that reports via UserCounters
-    auto memoryUsage =
-        bm_storage_helper<test_data::FsdbStatsDataFactory::RootT>(
-            factory, enableHybridStorage);
-    if (memoryUsage > 0) {
-      memoryMeasurements.push_back(memoryUsage);
-    }
-  }
-
-  // Calculate and report metrics via UserCounters
-  if (!memoryMeasurements.empty()) {
-    int64_t sum = 0;
-    int64_t maxMem =
-        *std::max_element(memoryMeasurements.begin(), memoryMeasurements.end());
-
-    for (int64_t mem : memoryMeasurements) {
-      sum += mem;
-    }
-
-    int64_t avgMem = sum / static_cast<int64_t>(memoryMeasurements.size());
-
-    // Report metrics - these will appear as columns in benchmark output
-    counters["avg_memory_KB"] =
-        folly::UserMetric(static_cast<double>(avgMem) / 1024.0);
-    counters["max_memory_KB"] =
-        folly::UserMetric(static_cast<double>(maxMem) / 1024.0);
-  }
+  bm_storage_metrics_helper<test_data::FsdbStatsDataFactory::RootT>(
+      factory, counters, iters, selector, enableHybridStorage);
 }
 
 BENCHMARK_COUNTERS_NAME_PARAM(
@@ -59,6 +31,20 @@ BENCHMARK_COUNTERS_NAME_PARAM(
 BENCHMARK_COUNTERS_NAME_PARAM(
     fsdb_stats_storage,
     counters,
+    EDSW_ThriftCow,
+    test_data::RoleSelector::EDSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    EDSW_HybridCow,
+    test_data::RoleSelector::EDSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
     FDSW_ThriftCow,
     test_data::RoleSelector::FDSW,
     false);
@@ -68,6 +54,132 @@ BENCHMARK_COUNTERS_NAME_PARAM(
     counters,
     FDSW_HybridCow,
     test_data::RoleSelector::FDSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    SDSW_ThriftCow,
+    test_data::RoleSelector::SDSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    SDSW_HybridCow,
+    test_data::RoleSelector::SDSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    FA_ThriftCow,
+    test_data::RoleSelector::FA,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    FA_HybridCow,
+    test_data::RoleSelector::FA,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    RSW_ThriftCow,
+    test_data::RoleSelector::RSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    RSW_HybridCow,
+    test_data::RoleSelector::RSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    SSW_ThriftCow,
+    test_data::RoleSelector::SSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    SSW_HybridCow,
+    test_data::RoleSelector::SSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    RTSW_ThriftCow,
+    test_data::RoleSelector::RTSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    RTSW_HybridCow,
+    test_data::RoleSelector::RTSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    FTSW_ThriftCow,
+    test_data::RoleSelector::FTSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    FTSW_HybridCow,
+    test_data::RoleSelector::FTSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    STSW_ThriftCow,
+    test_data::RoleSelector::STSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    STSW_HybridCow,
+    test_data::RoleSelector::STSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    XSW_ThriftCow,
+    test_data::RoleSelector::XSW,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    XSW_HybridCow,
+    test_data::RoleSelector::XSW,
+    true);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    MA_ThriftCow,
+    test_data::RoleSelector::MA,
+    false);
+
+BENCHMARK_COUNTERS_NAME_PARAM(
+    fsdb_stats_storage,
+    counters,
+    MA_HybridCow,
+    test_data::RoleSelector::MA,
     true);
 
 } // namespace facebook::fboss::thrift_cow::test

@@ -3,12 +3,9 @@
 #include <folly/Benchmark.h>
 #include <folly/init/Init.h>
 #include <folly/json/dynamic.h>
-#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include "fboss/fsdb/common/Utils.h"
-
-DECLARE_int64(bm_max_iters);
 
 namespace facebook::fboss::fsdb::test {
 

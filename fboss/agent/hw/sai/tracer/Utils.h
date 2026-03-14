@@ -164,6 +164,13 @@ void u32ListAttr(
     std::vector<std::string>& attrLines,
     bool logEntry = true);
 
+void segmentListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
+
 void qosMapListAttr(
     const sai_attribute_t* attr_list,
     int i,
@@ -201,6 +208,15 @@ void portFrequencyOffsetPpmListAttr(
     bool logEntry = true);
 
 void portSnrListAttr(
+    const sai_attribute_t* attr_list,
+    int i,
+    uint32_t listIndex,
+    std::vector<std::string>& attrLines,
+    bool logEntry = true);
+#endif
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+void jsonAttr(
     const sai_attribute_t* attr_list,
     int i,
     uint32_t listIndex,

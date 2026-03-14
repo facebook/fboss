@@ -345,23 +345,16 @@ TEST(ConfigValidatorTest, ValidReadFlashrom) {
 TEST(ConfigValidatorTest, OobEepromSkipped) {
   auto config = FwUtilConfig();
 
-  // Create an oob_eeprom config that would normally fail validation
-  // but should be skipped
   FwConfig oobEepromConfig;
-
   VersionConfig versionConfig;
   versionConfig.versionType() = "sysfs";
   versionConfig.path() = "/sys/bus/i2c/devices/some_bus/eeprom";
   oobEepromConfig.version() = versionConfig;
-
   oobEepromConfig.priority() = 1;
 
-  // Add an upgrade config with unsupported ddDynamicBus command
-  // This would normally fail validation, but should be skipped for oob_eeprom
   std::vector<UpgradeConfig> upgradeConfigs;
   UpgradeConfig upgradeConfig;
-  upgradeConfig.commandType() =
-      "ddDynamicBus"; // This is not in kValidCommandTypes
+  upgradeConfig.commandType() = "ddDynamicBus";
   upgradeConfigs.push_back(upgradeConfig);
   oobEepromConfig.upgrade() = upgradeConfigs;
 
@@ -369,7 +362,433 @@ TEST(ConfigValidatorTest, OobEepromSkipped) {
   fwConfigs["oob_eeprom"] = oobEepromConfig;
   config.fwConfigs() = fwConfigs;
 
-  // This should pass despite the invalid ddDynamicBus command type
-  // because oob_eeprom validation is skipped
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+// ============================================================================
+// Missing Args Validation Tests (Parameterized)
+// ============================================================================
+// These parameterized tests validate that ConfigValidator correctly rejects
+// configs where a command type is specified but the required args are missing.
+
+struct PreUpgradeMissingArgsTestCase {
+  std::string commandType;
+  std::string testName;
+};
+
+class PreUpgradeMissingArgsTest
+    : public ::testing::TestWithParam<PreUpgradeMissingArgsTestCase> {};
+
+TEST_P(PreUpgradeMissingArgsTest, RejectsConfigWithMissingArgs) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfig;
+  preUpgradeConfig.commandType() = GetParam().commandType;
+  // No args set for the command type
+  preUpgrade.push_back(preUpgradeConfig);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ConfigValidatorTest,
+    PreUpgradeMissingArgsTest,
+    ::testing::Values(
+        PreUpgradeMissingArgsTestCase{"flashrom", "Flashrom"},
+        PreUpgradeMissingArgsTestCase{"jtag", "Jtag"},
+        PreUpgradeMissingArgsTestCase{"gpioset", "Gpioset"},
+        PreUpgradeMissingArgsTestCase{"writeToPort", "WriteToPort"}),
+    [](const ::testing::TestParamInfo<PreUpgradeMissingArgsTestCase>& info) {
+      return info.param.testName;
+    });
+
+struct UpgradeMissingArgsTestCase {
+  std::string commandType;
+  std::string testName;
+};
+
+class UpgradeMissingArgsTest
+    : public ::testing::TestWithParam<UpgradeMissingArgsTestCase> {};
+
+TEST_P(UpgradeMissingArgsTest, RejectsConfigWithMissingArgs) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<UpgradeConfig> upgrade;
+  UpgradeConfig upgradeConfig;
+  upgradeConfig.commandType() = GetParam().commandType;
+  // No args set for the command type
+  upgrade.push_back(upgradeConfig);
+  fwConfig.upgrade() = upgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ConfigValidatorTest,
+    UpgradeMissingArgsTest,
+    ::testing::Values(
+        UpgradeMissingArgsTestCase{"jam", "Jam"},
+        UpgradeMissingArgsTestCase{"xapp", "Xapp"},
+        UpgradeMissingArgsTestCase{"flashrom", "Flashrom"}),
+    [](const ::testing::TestParamInfo<UpgradeMissingArgsTestCase>& info) {
+      return info.param.testName;
+    });
+
+TEST(ConfigValidatorTest, ValidUpgradeJam) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<UpgradeConfig> upgrade;
+  UpgradeConfig upgradeConfigJam;
+  upgradeConfigJam.commandType() = "jam";
+
+  JamConfig jamConfig;
+  std::vector<std::string> extraArgs = {"-arg1", "-arg2"};
+  jamConfig.jamExtraArgs() = extraArgs;
+  upgradeConfigJam.jamArgs() = jamConfig;
+
+  upgrade.push_back(upgradeConfigJam);
+  fwConfig.upgrade() = upgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidUpgradeXapp) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<UpgradeConfig> upgrade;
+  UpgradeConfig upgradeConfigXapp;
+  upgradeConfigXapp.commandType() = "xapp";
+
+  XappConfig xappConfig;
+  std::vector<std::string> extraArgs = {"-arg1", "-arg2"};
+  xappConfig.xappExtraArgs() = extraArgs;
+  upgradeConfigXapp.xappArgs() = xappConfig;
+
+  upgrade.push_back(upgradeConfigXapp);
+  fwConfig.upgrade() = upgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+// PostUpgrade missing args tests (parameterized)
+struct PostUpgradeMissingArgsTestCase {
+  std::string commandType;
+  std::string testName;
+};
+
+class PostUpgradeMissingArgsTest
+    : public ::testing::TestWithParam<PostUpgradeMissingArgsTestCase> {};
+
+TEST_P(PostUpgradeMissingArgsTest, RejectsConfigWithMissingArgs) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PostFirmwareOperationConfig> postUpgrade;
+  PostFirmwareOperationConfig postUpgradeConfig;
+  postUpgradeConfig.commandType() = GetParam().commandType;
+  // No args set for the command type
+  postUpgrade.push_back(postUpgradeConfig);
+  fwConfig.postUpgrade() = postUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ConfigValidatorTest,
+    PostUpgradeMissingArgsTest,
+    ::testing::Values(
+        PostUpgradeMissingArgsTestCase{"gpioget", "Gpioget"},
+        PostUpgradeMissingArgsTestCase{"jtag", "Jtag"},
+        PostUpgradeMissingArgsTestCase{"writeToPort", "WriteToPort"}),
+    [](const ::testing::TestParamInfo<PostUpgradeMissingArgsTestCase>& info) {
+      return info.param.testName;
+    });
+
+// ============================================================================
+// Invalid Field Value Tests
+// ============================================================================
+// The following tests validate that ConfigValidator correctly rejects configs
+// where required fields have empty or invalid values. Each test covers a
+// different field type (programmer_type, path, chip, pin, file, hex values).
+// These tests ensure the validator catches malformed configurations that would
+// cause runtime failures if not caught during validation.
+
+TEST(ConfigValidatorTest, InvalidFlashromEmptyProgrammerType) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfigFlashrom;
+  preUpgradeConfigFlashrom.commandType() = "flashrom";
+
+  FlashromConfig flashromConfigEmpty;
+  flashromConfigEmpty.programmer_type() = ""; // Empty programmer type
+  preUpgradeConfigFlashrom.flashromArgs() = flashromConfigEmpty;
+
+  preUpgrade.push_back(preUpgradeConfigFlashrom);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidJtagEmptyPath) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfigJtag;
+  preUpgradeConfigJtag.commandType() = "jtag";
+
+  JtagConfig jtagConfigEmpty;
+  jtagConfigEmpty.path() = ""; // Empty path
+  jtagConfigEmpty.value() = 0;
+  preUpgradeConfigJtag.jtagArgs() = jtagConfigEmpty;
+
+  preUpgrade.push_back(preUpgradeConfigJtag);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidGpiosetEmptyChip) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfigGpioset;
+  preUpgradeConfigGpioset.commandType() = "gpioset";
+
+  GpiosetConfig gpiosetConfigEmpty;
+  gpiosetConfigEmpty.gpioChip() = ""; // Empty chip
+  gpiosetConfigEmpty.gpioChipPin() = "66";
+  gpiosetConfigEmpty.gpioChipValue() = "1";
+  preUpgradeConfigGpioset.gpiosetArgs() = gpiosetConfigEmpty;
+
+  preUpgrade.push_back(preUpgradeConfigGpioset);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidGpiogetEmptyPin) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PostFirmwareOperationConfig> postUpgrade;
+  PostFirmwareOperationConfig postUpgradeConfigGpioget;
+  postUpgradeConfigGpioget.commandType() = "gpioget";
+
+  GpiogetConfig gpiogetConfigEmpty;
+  gpiogetConfigEmpty.gpioChip() = "gpiochip0";
+  gpiogetConfigEmpty.gpioChipPin() = ""; // Empty pin
+  postUpgradeConfigGpioget.gpiogetArgs() = gpiogetConfigEmpty;
+
+  postUpgrade.push_back(postUpgradeConfigGpioget);
+  fwConfig.postUpgrade() = postUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidWriteToPortEmptyFile) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfigWriteToPort;
+  preUpgradeConfigWriteToPort.commandType() = "writeToPort";
+
+  WriteToPortConfig writeToPortConfigEmpty;
+  writeToPortConfigEmpty.portFile() = ""; // Empty port file
+  writeToPortConfigEmpty.hexByteValue() = "0x12";
+  writeToPortConfigEmpty.hexOffset() = "0x100";
+  preUpgradeConfigWriteToPort.writeToPortArgs() = writeToPortConfigEmpty;
+
+  preUpgrade.push_back(preUpgradeConfigWriteToPort);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidWriteToPortInvalidHexValue) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<PreFirmwareOperationConfig> preUpgrade;
+  PreFirmwareOperationConfig preUpgradeConfigWriteToPort;
+  preUpgradeConfigWriteToPort.commandType() = "writeToPort";
+
+  WriteToPortConfig writeToPortConfigInvalid;
+  writeToPortConfigInvalid.portFile() = "/sys/kernel/debug/test_port";
+  writeToPortConfigInvalid.hexByteValue() = "invalid"; // Invalid hex
+  writeToPortConfigInvalid.hexOffset() = "0x100";
+  preUpgradeConfigWriteToPort.writeToPortArgs() = writeToPortConfigInvalid;
+
+  preUpgrade.push_back(preUpgradeConfigWriteToPort);
+  fwConfig.preUpgrade() = preUpgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+// Note: InvalidUpgradeFlashromMissingArgs is covered by UpgradeMissingArgsTest
+
+TEST(ConfigValidatorTest, InvalidVerifyFlashromMissingArgs) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  VerifyFirmwareOperationConfig verifyConfigFlashrom;
+  verifyConfigFlashrom.commandType() = "flashrom";
+  // No flashromArgs set
+  fwConfig.verify() = verifyConfigFlashrom;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, InvalidReadFlashromMissingArgs) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  ReadFirmwareOperationConfig readConfigFlashrom;
+  readConfigFlashrom.commandType() = "flashrom";
+  // No flashromArgs set
+  fwConfig.read() = readConfigFlashrom;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+// Empty extra args tests (parameterized)
+struct EmptyExtraArgsTestCase {
+  std::string commandType;
+  std::string testName;
+};
+
+class EmptyExtraArgsTest
+    : public ::testing::TestWithParam<EmptyExtraArgsTestCase> {};
+
+TEST_P(EmptyExtraArgsTest, RejectsConfigWithEmptyExtraArgs) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  std::vector<UpgradeConfig> upgrade;
+  UpgradeConfig upgradeConfig;
+  upgradeConfig.commandType() = GetParam().commandType;
+
+  std::vector<std::string> emptyArgs;
+  if (GetParam().commandType == "jam") {
+    JamConfig jamConfigEmpty;
+    jamConfigEmpty.jamExtraArgs() = emptyArgs;
+    upgradeConfig.jamArgs() = jamConfigEmpty;
+  } else if (GetParam().commandType == "xapp") {
+    XappConfig xappConfigEmpty;
+    xappConfigEmpty.xappExtraArgs() = emptyArgs;
+    upgradeConfig.xappArgs() = xappConfigEmpty;
+  }
+
+  upgrade.push_back(upgradeConfig);
+  fwConfig.upgrade() = upgrade;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ConfigValidatorTest,
+    EmptyExtraArgsTest,
+    ::testing::Values(
+        EmptyExtraArgsTestCase{"jam", "Jam"},
+        EmptyExtraArgsTestCase{"xapp", "Xapp"}),
+    [](const ::testing::TestParamInfo<EmptyExtraArgsTestCase>& info) {
+      return info.param.testName;
+    });
+
+TEST(ConfigValidatorTest, InvalidVersionTypeFullCommandMissingCmd) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  auto versionConfigFullCmd = *fwConfig.version();
+  versionConfigFullCmd.versionType() = "full_command";
+  versionConfigFullCmd.getVersionCmd().reset(); // No getVersionCmd
+  fwConfig.version() = versionConfigFullCmd;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidVersionTypeNotApplicable) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+  auto fwConfig = createValidNewFwConfig();
+
+  auto versionConfigNotApplicable = *fwConfig.version();
+  versionConfigNotApplicable.versionType() = "Not Applicable";
+  versionConfigNotApplicable.path().reset(); // No path needed
+  fwConfig.version() = versionConfigNotApplicable;
+
+  fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }

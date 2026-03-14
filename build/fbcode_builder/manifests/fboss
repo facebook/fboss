@@ -20,6 +20,7 @@ folly
 fb303
 wangle
 fizz
+mvfst
 fmt
 libsodium
 googletest
@@ -49,11 +50,13 @@ python-pyyaml
 fbcode/fboss/github = .
 fbcode/fboss/common = common
 fbcode/fboss = fboss
+fbcode/configerator/structs/neteng/fboss/thrift/common.thrift = configerator/structs/neteng/fboss/thrift/common.thrift
 
 [shipit.strip]
 ^fbcode/fboss/github/docs/.*
 ^fbcode/fboss/oss/.*
 ^fbcode/fboss/github/.github/.*
+^fbcode/fboss/github/fboss-image/.*
 ^fbcode/fboss/github/.pre-commit-config.yaml
 ^fbcode/fboss/github/requirements-dev.txt
 

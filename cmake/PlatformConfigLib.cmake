@@ -38,6 +38,7 @@ add_library(cross_config_validator
 )
 
 target_link_libraries(cross_config_validator
+  fan_service_cpp2
   fan_service_config_types_cpp2
   platform_manager_config_cpp2
   sensor_config_cpp2

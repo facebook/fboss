@@ -4,20 +4,14 @@
 
 #include <fb303/ServiceData.h>
 #include <folly/logging/xlog.h>
-#include <re2/re2.h>
 
-#include "fboss/platform/platform_manager/ScubaLogger.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/platform_manager/Utils.h"
 
 namespace facebook::fboss::platform::platform_manager {
-namespace {
-const re2::RE2 kPsuSlotPath{R"(/PSU_SLOT@\d+$)"};
-} // namespace
 
-ExplorationSummary::ExplorationSummary(
-    const PlatformConfig& config,
-    const DataStore& dataStore)
-    : platformConfig_(config), dataStore_(dataStore) {}
+ExplorationSummary::ExplorationSummary(const PlatformConfig& config)
+    : platformConfig_(config) {}
 
 void ExplorationSummary::addError(
     ExplorationErrorType errorType,
@@ -26,15 +20,14 @@ void ExplorationSummary::addError(
   ExplorationError newError;
   newError.errorType() = toExplorationErrorTypeStr(errorType);
   newError.message() = message;
-  if ((errorType == ExplorationErrorType::SLOT_PM_UNIT_ABSENCE ||
-       errorType == ExplorationErrorType::RUN_DEVMAP_SYMLINK) &&
-      isSlotExpectedToBeEmpty(devicePath)) {
+
+  if (isExpectedError(platformConfig_, errorType, devicePath)) {
     devicePathToExpectedErrors_[devicePath].push_back(newError);
     nExpectedErrs_++;
-  } else {
-    devicePathToErrors_[devicePath].push_back(newError);
-    nErrs_++;
+    return;
   }
+  devicePathToErrors_[devicePath].push_back(newError);
+  nErrs_++;
 }
 
 void ExplorationSummary::addError(
@@ -77,6 +70,11 @@ void ExplorationSummary::publishCounters(ExplorationStatus finalStatus) {
       kExplorationFail,
       finalStatus != ExplorationStatus::SUCCEEDED &&
           finalStatus != ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
+  fb303::fbData->setCounter(
+      kExplorationSucceeded, finalStatus == ExplorationStatus::SUCCEEDED);
+  fb303::fbData->setCounter(
+      kExplorationSucceededWithExpectedErrors,
+      finalStatus == ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS);
   fb303::fbData->setCounter(kTotalFailures, nErrs_);
   fb303::fbData->setCounter(kTotalExpectedFailures, nExpectedErrs_);
 
@@ -93,26 +91,9 @@ void ExplorationSummary::publishCounters(ExplorationStatus finalStatus) {
   }
 }
 
-void ExplorationSummary::publishToScuba(ExplorationStatus finalStatus) {
-  // Log individual errors
-  for (const auto& [devicePath, explorationErrors] : devicePathToErrors_) {
-    for (const auto& error : explorationErrors) {
-      std::unordered_map<std::string, std::string> normals;
-
-      normals["platform"] = *platformConfig_.platformName();
-      normals["device_path"] = devicePath;
-      normals["event"] = *error.errorType();
-      normals["error_message"] = *error.message();
-      normals["exploration_status"] =
-          apache::thrift::util::enumNameSafe(finalStatus);
-
-      ScubaLogger::log(normals);
-      XLOG(INFO) << "Logged Platform Manager error to Scuba: " << devicePath;
-    }
-  }
-}
-
-ExplorationStatus ExplorationSummary::summarize() {
+ExplorationStatus ExplorationSummary::summarize(
+    const std::unordered_map<std::string, std::string>& firmwareVersions,
+    const std::unordered_map<std::string, std::string>& hardwareVersions) {
   ExplorationStatus finalStatus = ExplorationStatus::FAILED;
   if (devicePathToErrors_.empty() && devicePathToExpectedErrors_.empty()) {
     finalStatus = ExplorationStatus::SUCCEEDED;
@@ -122,17 +103,35 @@ ExplorationStatus ExplorationSummary::summarize() {
   // Exploration summary reporting.
   print(finalStatus);
   publishCounters(finalStatus);
-  publishToScuba(finalStatus);
-  return finalStatus;
-}
 
-bool ExplorationSummary::isSlotExpectedToBeEmpty(
-    const std::string& devicePath) {
-  auto [slotPath, _] = Utils().parseDevicePath(devicePath);
-  if (re2::RE2::PartialMatch(slotPath, kPsuSlotPath)) {
-    return true;
+  helpers::StructuredLogger structuredLogger("platform_manager");
+  structuredLogger.addFwTags(firmwareVersions);
+  structuredLogger.setTags(hardwareVersions);
+
+  // Log individual errors
+  for (const auto& [devicePath, explorationErrors] : devicePathToErrors_) {
+    for (const auto& error : explorationErrors) {
+      structuredLogger.logAlert(
+          *error.errorType(),
+          *error.message(),
+          {
+              {"device_path", devicePath},
+              {"exploration_status",
+               apache::thrift::util::enumNameSafe(finalStatus)},
+          });
+      XLOG(INFO) << "Logged Platform Manager error: " << devicePath;
+    }
   }
-  return false;
+
+  // Log exploration completion
+  structuredLogger.logEvent(
+      "exploration_complete",
+      {
+          {"exploration_status",
+           apache::thrift::util::enumNameSafe(finalStatus)},
+      });
+
+  return finalStatus;
 }
 
 std::map<std::string, std::vector<ExplorationError>>

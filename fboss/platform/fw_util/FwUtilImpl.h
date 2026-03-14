@@ -13,6 +13,7 @@
 #include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
 #include <folly/system/Shell.h>
+#include <gtest/gtest_prod.h>
 #include <algorithm>
 #include <filesystem>
 #include <string>
@@ -47,13 +48,63 @@ class FwUtilImpl {
   std::tuple<std::string, FwConfig> getFpd(const std::string&);
 
  private:
+  // Friend declarations for unit tests
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationValidPath);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationEmptyPath);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationVariousValues);
+  FRIEND_TEST(FwUtilOperationsTest, DoJtagOperationFileOverwrite);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyFlashromWithArgs);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyFlashromWithoutArgs);
+  FRIEND_TEST(FwUtilVerifyTest, PerformVerifyUnsupportedCommandType);
+  FRIEND_TEST(FwUtilUpgradeTest, DoUpgradeDryRunMode);
+  FRIEND_TEST(FwUtilUpgradeTest, DoUpgradeWithValidConfig);
+  FRIEND_TEST(FwUtilUpgradeTest, DoUpgradeNoUpgradeConfig);
+  FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationEmptyCommandType);
+  FRIEND_TEST(FwUtilPreUpgradeTest, DoPreUpgradeOperationJtagWithArgs);
+  FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationWithValidArgs);
+  FRIEND_TEST(FwUtilPostUpgradeTest, DoPostUpgradeOperationInvalidConfigs);
+  FRIEND_TEST(FwUtilReadTest, PerformReadFlashromWithArgs);
+  FRIEND_TEST(FwUtilReadTest, PerformReadUnsupportedCommandType);
+  FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipFound);
+  FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipNotFound);
+  FRIEND_TEST(FwUtilFlashromTest, DetectFlashromChipMultiple);
+  FRIEND_TEST(FwUtilFlashromTest, CreateCustomContentFileSuccess);
+  FRIEND_TEST(FwUtilFlashromTest, CreateCustomContentFileFailure);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipBoth);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipTypeOnly);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipDetected);
+  FRIEND_TEST(FwUtilFlashromTest, SetProgrammerAndChipNoProgrammerType);
+  FRIEND_TEST(FwUtilFlashromTest, AddLayoutFileValid);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithLayout);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithCustomContent);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithFileOption);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsWithImageOption);
+  FRIEND_TEST(FwUtilFlashromTest, AddCommonFlashromArgsMinimal);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeSuccess);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeDryRun);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilFlashromTest, PerformFlashromReadSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, PerformJamUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilOperationsTest, PerformXappUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationInvalidChip);
+  FRIEND_TEST(FwUtilOperationsTest, DoGpiogetOperationSuccess);
+  FRIEND_TEST(FwUtilOperationsTest, DoWriteToPortOperationSuccess);
+  FRIEND_TEST(FwUtilImplTest, GetFpdNameListReturnsAll);
+  FRIEND_TEST(FwUtilImplTest, GetFpdCaseInsensitive);
+  FRIEND_TEST(FwUtilImplTest, GetFpdReturnsAll);
+  FRIEND_TEST(FwUtilImplTest, GetFpdInvalidThrows);
+  FRIEND_TEST(FwUtilImplTest, DoVersionAuditVersionMismatch);
+  FRIEND_TEST(FwUtilImplTest, DoFirmwareActionInvalidAction);
+  FRIEND_TEST(FwUtilImplTest, PrintVersionInvalidFpd);
+  FRIEND_TEST(FwUtilImplTest, FpdListSortedByPriority);
+
   void doPreUpgrade(const std::string&);
 
   void doPreUpgradeOperation(
       const PreFirmwareOperationConfig&,
       const std::string&);
 
-  void storeFlashromConfig(const FlashromConfig&, const std::string&);
   void doJtagOperation(const JtagConfig&, const std::string&);
   void doGpiosetOperation(const GpiosetConfig&, const std::string&);
   void doUpgrade(const std::string&);
@@ -82,9 +133,6 @@ class FwUtilImpl {
       const std::string&);
   void doGpiogetOperation(const GpiogetConfig&, const std::string&);
   void performRead(const ReadFirmwareOperationConfig&, const std::string& fpd);
-  void performReadOperation(
-      const ReadFirmwareOperationConfig&,
-      const std::string&);
   void performFlashromRead(const FlashromConfig&, const std::string&);
   void addFileOption(
       const std::string&,
@@ -93,9 +141,6 @@ class FwUtilImpl {
   void performFlashromVerify(const FlashromConfig&, const std::string&);
   void performVerify(const VerifyFirmwareOperationConfig&, const std::string&);
   void doWriteToPortOperation(const WriteToPortConfig&, const std::string&);
-  // TODO: Remove those prototypes once we move darwin to PM and
-  //  have the latest drivers running
-  void performUpgradeOperation(const UpgradeConfig&, const std::string&);
   void doUpgradeOperation(const UpgradeConfig&, const std::string&);
 
   FwUtilConfig fwUtilConfig_{};

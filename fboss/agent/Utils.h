@@ -88,6 +88,7 @@ inline const int kUdfAclRethDmaLenFieldSizeInBytes(2);
 
 class SwitchState;
 class Interface;
+class Port;
 class SwitchSettings;
 class PlatformMapping;
 struct AgentConfig;
@@ -383,17 +384,14 @@ bool readThriftFromBinaryFile(
   return false;
 }
 /*
- * Helper function to get neighbor entry for specified IP.
- *
- * for VLAN based interface, look up the neighbor table for VLAN.
- * for Port based interface, look up the neighbor table for interface.
+ * Helper function to get neighbor entry for specified IP from interface's
+ * neighbor table.
  */
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables);
+    const folly::IPAddress& ipAddr);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
@@ -407,8 +405,7 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
 template <typename NTableT>
 std::shared_ptr<NTableT> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables);
+    VlanID vlanID);
 
 class OperDeltaFilter {
  public:
@@ -481,6 +478,9 @@ CpuCosQueueId hwQueueIdToCpuCosQueueId(
     HwSwitchFb303Stats* hwswitchStats);
 int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes);
 
+std::set<PortID> getL2ConnectedL1FabricPorts(
+    const std::shared_ptr<SwitchState>& state);
+
 const std::vector<cfg::AclLookupClass>& getToCpuClassIds();
 
 bool isStringInFile(
@@ -493,5 +493,20 @@ std::optional<VlanID> getDefaultTxVlanIdIf(
 
 std::optional<VlanID> getDefaultTxVlanId(
     const std::shared_ptr<SwitchSettings>& settings);
+
+/**
+ * Check if a port is drained.
+ * A port is considered drained if either the port itself is drained
+ * OR the switch is drained (logical OR).
+ *
+ * @param state The current switch state
+ * @param port The port to check
+ * @param portSwitchId The switch ID for the port
+ * @return true if the port or switch is drained, false otherwise
+ */
+bool isPortDrained(
+    const std::shared_ptr<SwitchState>& state,
+    const Port* port,
+    SwitchID portSwitchId);
 
 } // namespace facebook::fboss

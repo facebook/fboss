@@ -3,6 +3,7 @@
 #pragma once
 
 #include <re2/re2.h>
+#include <optional>
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
@@ -147,6 +148,11 @@ class PciExplorer {
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
 
+  std::string getMdioBusSysfsPath(
+      const PciDevice& pciDevice,
+      const FpgaIpBlockConfig& fpgaIpBlockConfig,
+      uint32_t instanceId);
+
  private:
   const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
 
@@ -158,6 +164,14 @@ class PciExplorer {
       std::string /* spiDeviceConfig's pmUnitScopedName */,
       std::string /* charDevPath */>
   getSpiDeviceCharDevPaths(
+      const PciDevice& pciDevice,
+      const SpiMasterConfig& spiMasterConfig,
+      uint32_t instanceId);
+  // Attempt a single pass of SPI device discovery. Returns std::nullopt
+  // if the sysfs tree is not yet ready (spi_master, bus nodes, or char
+  // devices missing), or the complete charDevPath map on success.
+  // Throws immediately on hard failures (config mismatch, driver bind).
+  std::optional<std::map<std::string, std::string>> tryDiscoverSpiDevices(
       const PciDevice& pciDevice,
       const SpiMasterConfig& spiMasterConfig,
       uint32_t instanceId);
@@ -176,7 +190,7 @@ class PciExplorer {
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);
-  std::string getMdioBusSysfsPath(
+  std::string getMdioBusCharDevPath(
       const PciDevice& pciDevice,
       const FpgaIpBlockConfig& fpgaIpBlockConfig,
       uint32_t instanceId);

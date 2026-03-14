@@ -22,6 +22,7 @@
 #include "fboss/platform/platform_checks/checks/MacAddressCheck.h"
 #include "fboss/platform/platform_checks/checks/PciDeviceCheck.h"
 #include "fboss/platform/platform_checks/checks/PowerResetCheck.h"
+#include "fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.h"
 
 using namespace facebook::fboss::platform;
 
@@ -37,6 +38,7 @@ std::vector<std::unique_ptr<platform_checks::PlatformCheck>> createAllChecks() {
   checks.push_back(std::make_unique<platform_checks::RecentKernelPanicCheck>());
   checks.push_back(
       std::make_unique<platform_checks::WatchdogDidNotStopCheck>());
+  checks.push_back(std::make_unique<platform_checks::i801SmbusTimeoutCheck>());
   return checks;
 }
 

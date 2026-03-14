@@ -34,7 +34,10 @@ SaiPortTraits::Attributes::AttributeDiagModeEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeFdrEnable::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+  // TODO (Q4D/J4/R4): Enable SAI_PORT_ATTR_FDR_ENABLE for 15.x after SDK
+  // support for Q4DL/J4
+#if (defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)) && \
+    !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   return SAI_PORT_ATTR_FDR_ENABLE;
 #else
   return std::nullopt;
@@ -54,6 +57,15 @@ std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RVG;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_SERDES_ATTR_REACH_MODE;
 #else
   return std::nullopt;
 #endif
@@ -90,6 +102,24 @@ std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_PF;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfLfqWrapper::operator()() {
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_LFQ_PF;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfHfqWrapper::operator()() {
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  return SAI_PORT_SERDES_ATTR_PHY_DIAG_RX_HFQ_PF;
 #else
   return std::nullopt;
 #endif
@@ -242,7 +272,8 @@ SaiPortTraits::Attributes::AttributeCrcErrorDetect::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeCablePropogationDelayNS::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)
+#if (defined(BRCM_SAI_SDK_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)) || \
+    (defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS))
   return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
 #else
   return std::nullopt;
@@ -290,10 +321,12 @@ SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeAmIdles::operator()() {
+  // TODO (Q4D/J4/R4): Enable SAI_PORT_ATTR_EXTENSION_AM_IDLES for 15.x after
+  // SDK support for Q4DL/J4
 #if (                                                                          \
     defined(SAI_VERSION_11_7_0_0_ODP) || defined(BRCM_SAI_SDK_XGS_GTE_13_0) || \
     defined(BRCM_SAI_SDK_DNX_GTE_12_0)) &&                                     \
-    !defined(SAI_VERSION_14_0_EA_ODP) && !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   return SAI_PORT_ATTR_EXTENSION_AM_IDLES;
 #else
   return std::nullopt;
@@ -529,8 +562,7 @@ SaiPortTraits::Attributes::AttributeShelEnable::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeArsLinkState::operator()() {
-#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
-    defined(BRCM_SAI_SDK_XGS)
+#if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
   return SAI_PORT_ATTR_ARS_LINK_STATE;
 #else
   return std::nullopt;
@@ -553,6 +585,20 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeCablePropagationDelayMediaType::operator()() {
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  return SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE;
+#else
+  return std::nullopt;
+#endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+  return std::nullopt;
 }
 
 const std::vector<sai_stat_id_t>&

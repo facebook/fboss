@@ -52,7 +52,6 @@ folly::coro::Task<void> FsdbPatchPublisher::serveStream(StreamT&& stream) {
             XLOG(ERR) << "Detected GR cancellation";
             throw FsdbClientGRDisconnectException(
                 "DeltaPublisher disconnectReason: GR");
-            break;
           }
           PublisherMessage message;
           if (!patch->metadata()->lastPublishedAt().has_value()) {

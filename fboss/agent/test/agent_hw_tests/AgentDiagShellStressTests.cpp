@@ -21,6 +21,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
     for (auto [switchId, asic] : getAsics()) {
       switch (asic->getAsicType()) {
         case cfg::AsicType::ASIC_TYPE_FAKE:
+        case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
         case cfg::AsicType::ASIC_TYPE_MOCK:
         case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
         case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
@@ -29,14 +30,18 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_RAMON3:
         case cfg::AsicType::ASIC_TYPE_CHENAB:
         case cfg::AsicType::ASIC_TYPE_AGERA3:
+        case cfg::AsicType::ASIC_TYPE_CHENAB2:
           // No diag shell to test for these ASICs
           break;
         case cfg::AsicType::ASIC_TYPE_JERICHO3:
+        case cfg::AsicType::ASIC_TYPE_JERICHO4:
+        case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
           runBcmDnxCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_EBRO:
         case cfg::AsicType::ASIC_TYPE_GARONNE:
         case cfg::AsicType::ASIC_TYPE_YUBA:
+        case cfg::AsicType::ASIC_TYPE_G202X:
           runLeabaDiagCmds(switchId);
           break;
         case cfg::AsicType::ASIC_TYPE_TRIDENT2:
@@ -45,6 +50,7 @@ class AgentDiagShellStressTest : public AgentHwTest {
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
           runBcmDiagCmds(switchId);
       }
     }

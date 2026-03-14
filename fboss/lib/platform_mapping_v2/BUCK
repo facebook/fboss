@@ -17,7 +17,9 @@ python_library(
         "//fboss/agent:platform_config-py-deprecated",
         "//fboss/agent:switch_config-py-deprecated",
         "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/lib/platform_mapping_v2:platform_mapping_config-python-types",
         "//fboss/qsfp_service/if:transceiver-py-deprecated",
+        "//thrift/lib/py/util:converter",
     ],
 )
 
@@ -63,6 +65,7 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -132,6 +135,8 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//thrift/lib/py/util:converter",
     ],
 )
 

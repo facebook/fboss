@@ -8,13 +8,13 @@
  *
  */
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
-#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/RouteTypes.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -131,6 +131,7 @@ cfg::SwitchConfig dualVrfConfig() {
 
 template <typename AddressT>
 void checkFibRoute(
+    const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<facebook::fboss::Route<AddressT>>& route,
     AddressT maskedNetworkAddress,
     uint8_t networkMaskLength,
@@ -144,9 +145,10 @@ void checkFibRoute(
   EXPECT_EQ(
       forwardInfo.getAction(),
       facebook::fboss::RouteNextHopEntry::Action::NEXTHOPS);
-  EXPECT_EQ(forwardInfo.getNextHopSet().size(), 1);
-  EXPECT_EQ(forwardInfo.getNextHopSet().begin()->addr(), nextHopAddress);
-  EXPECT_EQ(forwardInfo.getNextHopSet().begin()->intfID(), nextHopInterfaceID);
+  auto nhops = getNextHops(state, forwardInfo);
+  EXPECT_EQ(nhops.size(), 1);
+  EXPECT_EQ(nhops.begin()->addr(), nextHopAddress);
+  EXPECT_EQ(nhops.begin()->intfID(), nextHopInterfaceID);
 }
 
 template <typename AddressT>
@@ -177,10 +179,10 @@ TEST(ConfigApplication, InterfaceRoutes) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->numNodes(), 1);
+  auto fibsInfoMap = state->getFibsInfoMap();
+  EXPECT_EQ(fibsInfoMap->getVrfCount(), 1);
 
-  auto fibContainer = fibMap->getNode(RouterID(0));
+  auto fibContainer = fibsInfoMap->getFibContainer(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
@@ -189,6 +191,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
   auto v4DirectlyConnectedRoute = v4Fib->exactMatch(v4DirectlyConnectedPrefix);
   ASSERT_NE(nullptr, v4DirectlyConnectedRoute);
   checkFibRoute(
+      state,
       v4DirectlyConnectedRoute,
       folly::IPAddressV4("1.1.1.0"),
       24,
@@ -201,6 +204,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
   auto v6DirectlyConnectedRoute = v6Fib->exactMatch(v6DirectlyConnectedPrefix);
   ASSERT_NE(nullptr, v6DirectlyConnectedRoute);
   checkFibRoute(
+      state,
       v6DirectlyConnectedRoute,
       folly::IPAddressV6("1::"),
       48,
@@ -209,7 +213,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
 
   uint64_t v4RouteCount = 0;
   uint64_t v6RouteCount = 0;
-  std::tie(v4RouteCount, v6RouteCount) = fibMap->getRouteCount();
+  std::tie(v4RouteCount, v6RouteCount) = fibsInfoMap->getRouteCount();
   EXPECT_EQ(v4RouteCount, 1);
   EXPECT_EQ(v6RouteCount, 2);
 }
@@ -224,10 +228,10 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->numNodes(), 1);
+  auto fibsInfoMap = state->getFibsInfoMap();
+  EXPECT_EQ(fibsInfoMap->getVrfCount(), 1);
 
-  auto fibContainer = fibMap->getNode(RouterID(0));
+  auto fibContainer = fibsInfoMap->getFibContainer(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
@@ -236,6 +240,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   auto v4StaticRoute = v4Fib->exactMatch(v4Prefix);
   ASSERT_NE(nullptr, v4StaticRoute);
   checkFibRoute(
+      state,
       v4StaticRoute,
       folly::IPAddressV4("20.20.20.0"),
       24,
@@ -248,6 +253,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   auto v6StaticRoute = v6Fib->exactMatch(v6Prefix);
   ASSERT_NE(nullptr, v6StaticRoute);
   checkFibRoute(
+      state,
       v6StaticRoute,
       folly::IPAddressV6("2001::"),
       64,
@@ -256,7 +262,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
 
   uint64_t v4RouteCount = 0;
   uint64_t v6RouteCount = 0;
-  std::tie(v4RouteCount, v6RouteCount) = fibMap->getRouteCount();
+  std::tie(v4RouteCount, v6RouteCount) = fibsInfoMap->getRouteCount();
   EXPECT_EQ(v4RouteCount, 3);
   EXPECT_EQ(v6RouteCount, 4);
 }
@@ -271,10 +277,10 @@ TEST(ConfigApplication, StaticRoutesWithoutNextHops) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->numNodes(), 1);
+  auto fibsInfoMap = state->getFibsInfoMap();
+  EXPECT_EQ(fibsInfoMap->getVrfCount(), 1);
 
-  auto fibContainer = fibMap->getNode(RouterID(0));
+  auto fibContainer = fibsInfoMap->getFibContainer(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
   auto v4Fib = fibContainer->getFibV4();
@@ -330,14 +336,14 @@ TEST(ConfigApplication, MultiVrfColdBoot) {
   auto state = publishAndApplyConfig(emptyState, &config, platform.get(), &rib);
   ASSERT_NE(nullptr, state);
 
-  auto fibMap = state->getFibs();
-  EXPECT_EQ(fibMap->numNodes(), 2);
+  auto fibsInfoMap = state->getFibsInfoMap();
+  EXPECT_EQ(fibsInfoMap->getVrfCount(), 2);
 
   std::shared_ptr<ForwardingInformationBaseContainer> fibContainer{nullptr};
 
-  fibContainer = fibMap->getNode(RouterID(0));
+  fibContainer = fibsInfoMap->getFibContainer(RouterID(0));
   EXPECT_NE(nullptr, fibContainer);
 
-  fibContainer = fibMap->getNode(RouterID(1));
+  fibContainer = fibsInfoMap->getFibContainer(RouterID(1));
   EXPECT_NE(nullptr, fibContainer);
 }

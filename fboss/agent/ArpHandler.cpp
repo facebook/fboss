@@ -227,11 +227,11 @@ static void sendArp(
 
   pkt->writeEthHeader(
       &cursor, targetMac, senderMac, vlan, ArpHandler::ETHERTYPE_ARP);
-  cursor.writeBE<uint16_t>(ARP_HTYPE_ETHERNET);
-  cursor.writeBE<uint16_t>(ARP_PTYPE_IPV4);
-  cursor.writeBE<uint8_t>(ARP_HLEN_ETHERNET);
-  cursor.writeBE<uint8_t>(ARP_PLEN_IPV4);
-  cursor.writeBE<uint16_t>(op);
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(ARP_HTYPE_ETHERNET));
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(ARP_PTYPE_IPV4));
+  cursor.writeBE<uint8_t>(static_cast<uint8_t>(ARP_HLEN_ETHERNET));
+  cursor.writeBE<uint8_t>(static_cast<uint8_t>(ARP_PLEN_IPV4));
+  cursor.writeBE<uint16_t>(static_cast<uint16_t>(op));
   cursor.push(senderMac.bytes(), MacAddress::SIZE);
   cursor.write<uint32_t>(senderIP.toLong());
   cursor.push(
@@ -279,7 +279,7 @@ void ArpHandler::floodGratuituousArp() {
         // originator's address
         sendArp(
             sw_,
-            intf->getVlanIDIf(),
+            sw_->getVlanIDForTx(intf),
             ARP_OP_REQUEST,
             intf->getMac(),
             v4Addr,
@@ -349,6 +349,11 @@ void ArpHandler::sendArpRequest(
 void ArpHandler::sendArpRequest(
     SwSwitch* sw,
     const folly::IPAddressV4& targetIP) {
+  if (!sw->isFullyInitialized()) {
+    XLOG(DBG2) << "Dropping ARP request since device not ready";
+    return;
+  }
+
   auto intf =
       sw->getState()->getInterfaces()->getIntfToReach(RouterID(0), targetIP);
 
@@ -361,7 +366,7 @@ void ArpHandler::sendArpRequest(
 
   sendArpRequest(
       sw,
-      intf->getVlanIDIf(),
+      sw->getVlanIDForTx(intf),
       intf->getMac(),
       addrToReach->first.asV4(),
       targetIP);

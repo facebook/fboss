@@ -44,14 +44,8 @@
 #include "fboss/agent/hw/bcm/BcmTypes.h"
 #include "fboss/agent/hw/bcm/BcmUdfManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/state/ArpTable.h"
-#include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
-#include "fboss/agent/state/NdpTable.h"
-#include "fboss/agent/state/NeighborEntry.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/PortDescriptor.h"
-#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
 extern "C" {
@@ -81,13 +75,6 @@ using namespace facebook::fboss::utility;
 namespace {
 auto constexpr kEcmpObjects = "ecmpObjects";
 auto constexpr kTrunks = "trunks";
-
-struct AddrTables {
-  AddrTables()
-      : arpTable(make_shared<ArpTable>()), ndpTable(make_shared<NdpTable>()) {}
-  shared_ptr<facebook::fboss::ArpTable> arpTable;
-  shared_ptr<facebook::fboss::NdpTable> ndpTable;
-};
 
 folly::IPAddress getFullMaskIPv4Address() {
   return folly::IPAddress(
@@ -736,14 +723,20 @@ bool BcmWarmBootCache::fillVlanPortInfo(Vlan* vlan) {
     Vlan::MemberPorts memberPorts;
     bcm_port_t idx;
     BCM_PBMP_ITER(vlanItr->second.untagged, idx) {
-      memberPorts.insert(make_pair(PortID(idx), false));
+      state::VlanInfo vlanInfo;
+      *vlanInfo.tagged() = false;
+      *vlanInfo.priorityTagged() = false;
+      memberPorts.insert(make_pair(PortID(idx), vlanInfo));
     }
     BCM_PBMP_ITER(vlanItr->second.allPorts, idx) {
       if (memberPorts.find(PortID(idx)) == memberPorts.end()) {
-        memberPorts.insert(make_pair(PortID(idx), true));
+        state::VlanInfo vlanInfo;
+        *vlanInfo.tagged() = true;
+        *vlanInfo.priorityTagged() = false;
+        memberPorts.insert(make_pair(PortID(idx), vlanInfo));
       }
     }
-    vlan->setPorts(memberPorts);
+    vlan->setPortsInfo(memberPorts);
     return true;
   }
   return false;

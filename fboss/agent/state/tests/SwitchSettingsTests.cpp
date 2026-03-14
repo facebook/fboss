@@ -89,13 +89,31 @@ TEST(SwitchSettingsTest, applySwitchDrainState) {
 TEST(SwitchSettingsTest, applySwitchDrainOnNpuSwitch) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();
+  addSwitchInfo(stateV0, cfg::SwitchType::NPU, kNpuSwitchIdBegin /* switchId*/);
 
-  // NPU switch config
+  // NPU switch config with drain state
   cfg::SwitchConfig npuConfig;
   *npuConfig.switchSettings()->switchDrainState() =
       cfg::SwitchDrainState::DRAINED;
-  EXPECT_THROW(
-      publishAndApplyConfig(stateV0, &npuConfig, platform.get()), FbossError);
+
+  // Should now be allowed for NPU switches
+  auto stateV1 = publishAndApplyConfig(stateV0, &npuConfig, platform.get());
+  ASSERT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_EQ(
+      cfg::SwitchDrainState::DRAINED, switchSettingsV1->getSwitchDrainState());
+
+  // Change back to undrained
+  *npuConfig.switchSettings()->switchDrainState() =
+      cfg::SwitchDrainState::UNDRAINED;
+  auto stateV2 = publishAndApplyConfig(stateV1, &npuConfig, platform.get());
+  ASSERT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_EQ(
+      cfg::SwitchDrainState::UNDRAINED,
+      switchSettingsV2->getSwitchDrainState());
 }
 
 TEST(SwitchSettingsTest, applyQcmConfig) {
@@ -382,6 +400,8 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   sysPortRange.minimum() = 100;
   sysPortRange.maximum() = 200;
   switchInfo2.systemPortRanges()->systemPortRanges()->push_back(sysPortRange);
+  switchInfo2.localSystemPortRanges()->systemPortRanges()->push_back(
+      sysPortRange);
   switchInfo2.localSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.globalSystemPortOffset() = *sysPortRange.minimum();
   switchInfo2.inbandPortId() = kSingleStageInbandPortId;
@@ -412,6 +432,13 @@ TEST(SwitchSettingsTest, applyVoqSwitch) {
   EXPECT_EQ(
       switchInfo3.minLinksPerDeviceToJoinVOQDomain(),
       kMinLinksPerDeviceToJoinVOQDomain);
+  EXPECT_EQ(switchInfo3.localSystemPortRanges()->systemPortRanges()->size(), 1);
+  EXPECT_EQ(
+      switchInfo3.localSystemPortRanges()->systemPortRanges()->at(0).minimum(),
+      100);
+  EXPECT_EQ(
+      switchInfo3.localSystemPortRanges()->systemPortRanges()->at(0).maximum(),
+      200);
 
   validateNodeSerialization(*switchSettingsV1);
 }

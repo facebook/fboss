@@ -13,6 +13,7 @@
 
 #include <folly/IPAddress.h>
 #include <folly/SocketAddress.h>
+#include <folly/Utility.h>
 
 #include "fboss/agent/if/gen-cpp2/sflow_types.h"
 #include "fboss/agent/state/SflowCollector.h"
@@ -20,7 +21,7 @@
 
 namespace facebook::fboss {
 
-class BcmSflowExporter {
+class BcmSflowExporter : public folly::NonCopyableNonMovable {
  public:
   /*
    * Constructor for an sFlow collector.
@@ -36,15 +37,11 @@ class BcmSflowExporter {
   ssize_t sendUDPDatagram(iovec* vec, const size_t iovec_len);
 
  private:
-  // no copy or assignment
-  BcmSflowExporter(BcmSflowExporter const&) = delete;
-  BcmSflowExporter& operator=(BcmSflowExporter const&) = delete;
-
   const folly::SocketAddress address_;
   int socket_{-1};
 };
 
-class BcmSflowExporterTable {
+class BcmSflowExporterTable : public folly::NonCopyableNonMovable {
  public:
   BcmSflowExporterTable() = default;
   ~BcmSflowExporterTable() = default;
@@ -59,10 +56,6 @@ class BcmSflowExporterTable {
   void sendToAll(const SflowPacketInfo& info);
 
  private:
-  // no copy or assignment
-  BcmSflowExporterTable(BcmSflowExporterTable const&) = delete;
-  BcmSflowExporterTable& operator=(BcmSflowExporterTable const&) = delete;
-
   std::unordered_map<std::string, std::unique_ptr<BcmSflowExporter>> map_;
   std::unordered_map<
       PortID,

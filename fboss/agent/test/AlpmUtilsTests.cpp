@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/RouteTypes.h"
@@ -27,7 +28,7 @@ namespace {
 template <typename AddrType>
 std::shared_ptr<ForwardingInformationBase<AddrType>> getStandAloneFib(
     const std::shared_ptr<SwitchState>& state) {
-  auto fibContainer = state->getFibs()->getNode(RouterID(0));
+  auto fibContainer = state->getFibsInfoMap()->getFibContainer(RouterID(0));
   return fibContainer->template getFib<AddrType>();
 }
 
@@ -85,7 +86,7 @@ TEST(AlpmUtilsTest, DefaultNullRoutesAddedOnEmptyState) {
     EXPECT_TRUE(route->isDrop());
     const auto& fwd = route->getForwardInfo();
     EXPECT_EQ(AdminDistance::MAX_ADMIN_DISTANCE, fwd.getAdminDistance());
-    EXPECT_EQ(0, fwd.getNextHopSet().size());
+    EXPECT_EQ(0, getNextHops(alpmInitState, fwd).size());
   };
   assertNullRoute(v4Default);
   assertNullRoute(v6Default);

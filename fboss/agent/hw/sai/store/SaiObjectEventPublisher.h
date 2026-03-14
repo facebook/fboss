@@ -24,6 +24,12 @@ struct IsPublisherKeyAdapterHostKey<SaiIpNextHopTraits> : std::true_type {};
 template <>
 struct IsPublisherKeyAdapterHostKey<SaiMplsNextHopTraits> : std::true_type {};
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <>
+struct IsPublisherKeyAdapterHostKey<SaiSrv6SidlistNextHopTraits>
+    : std::true_type {};
+#endif
+
 template <>
 struct IsPublisherKeyAdapterHostKey<SaiNeighborTraits> : std::true_type {};
 
@@ -32,6 +38,11 @@ struct IsObjectPublisher<SaiIpNextHopTraits> : std::true_type {};
 
 template <>
 struct IsObjectPublisher<SaiMplsNextHopTraits> : std::true_type {};
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <>
+struct IsObjectPublisher<SaiSrv6SidlistNextHopTraits> : std::true_type {};
+#endif
 
 template <>
 struct IsObjectPublisher<SaiNeighborTraits> : std::true_type {};
@@ -231,6 +242,9 @@ class SaiObjectEventPublisher {
       detail::SaiObjectEventPublisher<SaiNeighborTraits>,
       detail::SaiObjectEventPublisher<SaiIpNextHopTraits>,
       detail::SaiObjectEventPublisher<SaiMplsNextHopTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      detail::SaiObjectEventPublisher<SaiSrv6SidlistNextHopTraits>,
+#endif
       detail::SaiObjectEventPublisher<SaiVlanRouterInterfaceTraits>>
       publishers_;
 };

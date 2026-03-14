@@ -72,6 +72,8 @@ class BcmTrunk {
   // Forbidden copy constructor and assignment operator
   BcmTrunk(const BcmTrunk&) = delete;
   BcmTrunk& operator=(const BcmTrunk&) = delete;
+  BcmTrunk(BcmTrunk&&) = delete;
+  BcmTrunk& operator=(BcmTrunk&&) = delete;
 
   bcm_trunk_t bcmTrunkID_{INVALID};
   const BcmSwitchIf* const hw_{nullptr};

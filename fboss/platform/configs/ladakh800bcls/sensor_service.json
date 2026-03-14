@@ -9,10 +9,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 33550,
-            "minAlarmVal": 2745,
-            "upperCriticalVal": 33550,
-            "lowerCriticalVal": 2745
+            "maxAlarmVal": 34100,
+            "minAlarmVal": 2790,
+            "upperCriticalVal": 34100,
+            "lowerCriticalVal": 2790
           }
         },
         {
@@ -20,10 +20,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 27060,
-            "minAlarmVal": 2214,
-            "upperCriticalVal": 27060,
-            "lowerCriticalVal": 2214
+            "maxAlarmVal": 30800,
+            "minAlarmVal": 2520,
+            "upperCriticalVal": 30800,
+            "lowerCriticalVal": 2520
           }
         },
         {
@@ -31,10 +31,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 33550,
-            "minAlarmVal": 2745,
-            "upperCriticalVal": 33550,
-            "lowerCriticalVal": 2745
+            "maxAlarmVal": 34100,
+            "minAlarmVal": 2790,
+            "upperCriticalVal": 34100,
+            "lowerCriticalVal": 2790
           }
         },
         {
@@ -42,10 +42,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 27060,
-            "minAlarmVal": 2214,
-            "upperCriticalVal": 27060,
-            "lowerCriticalVal": 2214
+            "maxAlarmVal": 30800,
+            "minAlarmVal": 2520,
+            "upperCriticalVal": 30800,
+            "lowerCriticalVal": 2520
           }
         },
         {
@@ -53,10 +53,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan5_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 33550,
-            "minAlarmVal": 2745,
-            "upperCriticalVal": 33550,
-            "lowerCriticalVal": 2745
+            "maxAlarmVal": 34100,
+            "minAlarmVal": 2790,
+            "upperCriticalVal": 34100,
+            "lowerCriticalVal": 2790
           }
         },
         {
@@ -64,10 +64,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan6_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 27060,
-            "minAlarmVal": 2214,
-            "upperCriticalVal": 27060,
-            "lowerCriticalVal": 2214
+            "maxAlarmVal": 30800,
+            "minAlarmVal": 2520,
+            "upperCriticalVal": 30800,
+            "lowerCriticalVal": 2520
           }
         },
         {
@@ -75,10 +75,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan7_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 33550,
-            "minAlarmVal": 2745,
-            "upperCriticalVal": 33550,
-            "lowerCriticalVal": 2745
+            "maxAlarmVal": 34100,
+            "minAlarmVal": 2790,
+            "upperCriticalVal": 34100,
+            "lowerCriticalVal": 2790
           }
         },
         {
@@ -86,10 +86,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan8_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 27060,
-            "minAlarmVal": 2214,
-            "upperCriticalVal": 27060,
-            "lowerCriticalVal": 2214
+            "maxAlarmVal": 30800,
+            "minAlarmVal": 2520,
+            "upperCriticalVal": 30800,
+            "lowerCriticalVal": 2520
           }
         },
         {
@@ -97,10 +97,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan9_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 33550,
-            "minAlarmVal": 2745,
-            "upperCriticalVal": 33550,
-            "lowerCriticalVal": 2745
+            "maxAlarmVal": 34100,
+            "minAlarmVal": 2790,
+            "upperCriticalVal": 34100,
+            "lowerCriticalVal": 2790
           }
         },
         {
@@ -108,10 +108,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan10_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 27060,
-            "minAlarmVal": 2214,
-            "upperCriticalVal": 27060,
-            "lowerCriticalVal": 2214
+            "maxAlarmVal": 30800,
+            "minAlarmVal": 2520,
+            "upperCriticalVal": 30800,
+            "lowerCriticalVal": 2520
           }
         },
         {
@@ -119,10 +119,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan11_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 33550,
-            "minAlarmVal": 2745,
-            "upperCriticalVal": 33550,
-            "lowerCriticalVal": 2745
+            "maxAlarmVal": 34100,
+            "minAlarmVal": 2790,
+            "upperCriticalVal": 34100,
+            "lowerCriticalVal": 2790
           }
         },
         {
@@ -130,10 +130,10 @@
           "sysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan12_input",
           "type": 4,
           "thresholds": {
-            "maxAlarmVal": 27060,
-            "minAlarmVal": 2214,
-            "upperCriticalVal": 27060,
-            "lowerCriticalVal": 2214
+            "maxAlarmVal": 30800,
+            "minAlarmVal": 2520,
+            "upperCriticalVal": 30800,
+            "lowerCriticalVal": 2520
           }
         },
         {
@@ -333,8 +333,8 @@
           "sysfsPath": "/run/devmap/sensors/MCB_COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -343,8 +343,8 @@
           "sysfsPath": "/run/devmap/sensors/MCB_COME_OUTLET_L_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -353,8 +353,8 @@
           "sysfsPath": "/run/devmap/sensors/MCB_COME_OUTLET_R_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -363,8 +363,8 @@
           "sysfsPath": "/run/devmap/sensors/PWR_BRICK_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 55,
-            "upperCriticalVal": 60
+            "maxAlarmVal": 75,
+            "upperCriticalVal": 80
           },
           "compute": "@/1000.0"
         },
@@ -689,9 +689,9 @@
           "sysfsPath": "/run/devmap/sensors/PMBUS_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 85,
+            "maxAlarmVal": 115,
             "minAlarmVal": -25,
-            "upperCriticalVal": 85,
+            "upperCriticalVal": 120,
             "lowerCriticalVal": -25
           },
           "compute": "@/1000.0"
@@ -735,9 +735,9 @@
           "sysfsPath": "/run/devmap/sensors/PMBUS_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 85,
+            "maxAlarmVal": 115,
             "minAlarmVal": -25,
-            "upperCriticalVal": 85,
+            "upperCriticalVal": 120,
             "lowerCriticalVal": -25
           },
           "compute": "@/1000.0"
@@ -781,9 +781,9 @@
           "sysfsPath": "/run/devmap/sensors/PMBUS_3/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 85,
+            "maxAlarmVal": 115,
             "minAlarmVal": -40,
-            "upperCriticalVal": 85,
+            "upperCriticalVal": 120,
             "lowerCriticalVal": -40
           },
           "compute": "@/1000.0"
@@ -889,8 +889,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -899,8 +899,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp2_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -909,8 +909,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp3_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -919,8 +919,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp4_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -929,8 +929,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp5_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -939,8 +939,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp6_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -949,8 +949,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp7_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -959,8 +959,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp8_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         },
@@ -969,8 +969,8 @@
           "sysfsPath": "/run/devmap/sensors/CPU_CORE_TEMP/temp9_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 90,
-            "upperCriticalVal": 100
+            "maxAlarmVal": 100,
+            "upperCriticalVal": 105
           },
           "compute": "@/1000.0"
         }
@@ -997,8 +997,8 @@
           "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 80,
+            "upperCriticalVal": 85
           },
           "compute": "@/1000.0"
         },
@@ -1007,374 +1007,721 @@
           "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
-            "maxAlarmVal": 60,
-            "upperCriticalVal": 65
+            "maxAlarmVal": 90,
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in1_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 14,
+                "minAlarmVal": 9,
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in2_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 14,
+                "minAlarmVal": 9,
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in3_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 2,
+                "upperCriticalVal": 2.2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 2,
+                "upperCriticalVal": 2.2,
+                "lowerCriticalVal": 1.4
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 100,
+                "upperCriticalVal": 115
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 100,
+                "upperCriticalVal": 115
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power1_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 225
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power2_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 52.5
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power3_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 318.5
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power4_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 15
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr1_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 12,
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 3,
+                "upperCriticalVal": 3.5
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr3_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 94,
+                "upperCriticalVal": 130
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_XDPE15284_P1V8_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr4_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 3,
+                "upperCriticalVal": 6
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.605,
+                "lowerCriticalVal": 0.805
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 100,
+                "upperCriticalVal": 115
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 26
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.4,
+                "lowerCriticalVal": 0.6
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 100,
+                "upperCriticalVal": 115
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_TDA38640_PVNN_PCH_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 13
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.4,
+                "lowerCriticalVal": 0.6
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 100,
+                "upperCriticalVal": 115
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 5
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.46,
+                "lowerCriticalVal": 0.66
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 100,
+                "upperCriticalVal": 115
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_TDA38640_P1V05_STBY_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 20
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 4,
+          "productVersion": 2,
+          "productSubVersion": 1
         },
         {
-          "name": "COME_PU4_XDPE15284_PVCCIN_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in1_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 14,
-            "minAlarmVal": 9,
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in2_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 14,
-            "minAlarmVal": 9,
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_PVCCIN_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in3_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 2,
-            "upperCriticalVal": 2.2,
-            "lowerCriticalVal": 1.4
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 2,
-            "upperCriticalVal": 2.2,
-            "lowerCriticalVal": 1.4
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_PVCCIN_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 115
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp2_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 115
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_PVCCIN_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power1_input",
-          "type": 0,
-          "thresholds": {
-            "maxAlarmVal": 225
-          },
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power2_input",
-          "type": 0,
-          "thresholds": {
-            "maxAlarmVal": 52.5
-          },
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_PVCCIN_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power3_input",
-          "type": 0,
-          "thresholds": {
-            "maxAlarmVal": 318.5
-          },
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power4_input",
-          "type": 0,
-          "thresholds": {
-            "maxAlarmVal": 15
-          },
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_PVCCIN_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr1_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 12,
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr2_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 3,
-            "upperCriticalVal": 3.5
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_PVCCIN_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr3_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 94,
-            "upperCriticalVal": 130
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU4_XDPE15284_P1V8_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr4_input",
-          "type": 2,
-          "thresholds": {
-            "maxAlarmVal": 3,
-            "upperCriticalVal": 6
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.605,
-            "lowerCriticalVal": 0.805
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 115
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU41_TDA38640_P1V2_PVDDQ_ABC_CPU_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr2_input",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 26
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.4,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 115
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power1_input",
-          "type": 0,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU31_TDA38640_PVNN_PCH_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr2_input",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 13
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.4,
-            "lowerCriticalVal": 0.6
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 115
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU42_TDA38640_PVCCANA_CPU_1V_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr2_input",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 5
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_VIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in1_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 15
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_VOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in2_input",
-          "type": 1,
-          "thresholds": {
-            "upperCriticalVal": 1.46,
-            "lowerCriticalVal": 0.66
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_TEMP",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/temp1_input",
-          "type": 3,
-          "thresholds": {
-            "maxAlarmVal": 100,
-            "upperCriticalVal": 115
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_PIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_POUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_IIN",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "COME_PU32_TDA38640_P1V05_STBY_IOUT",
-          "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr2_input",
-          "type": 2,
-          "thresholds": {
-            "upperCriticalVal": 20
-          },
-          "compute": "@/1000.0"
+          "sensors": [
+            {
+              "name": "COME_PU4_MP2993_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in1_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 14,
+                "minAlarmVal": 9.5,
+                "upperCriticalVal": 15,
+                "lowerCriticalVal": 8.5
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_PVCCIN_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in2_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 2,
+                "upperCriticalVal": 2.4,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_P1V8_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/in3_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 2,
+                "upperCriticalVal": 2.4,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_PVCCIN_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110,
+                "upperCriticalVal": 125
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_P1V8_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/temp2_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110,
+                "upperCriticalVal": 125
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power1_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 225
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_PVCCIN_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power2_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 318.5
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_P1V8_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/power3_input",
+              "type": 0,
+              "thresholds": {
+                "maxAlarmVal": 15
+              },
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_PVCCIN_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 117,
+                "upperCriticalVal": 130
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU4_MP2993_P1V8_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON5/curr3_input",
+              "type": 2,
+              "thresholds": {
+                "maxAlarmVal": 4,
+                "upperCriticalVal": 6
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.45,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 125,
+                "upperCriticalVal": 135
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU41_MP9941_P1V2_PVDDQ_ABC_CPU_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON3/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 26
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.6,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 125,
+                "upperCriticalVal": 135
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU31_MP9941_PVNN_PCH_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON1/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 13
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.15,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110,
+                "upperCriticalVal": 125
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU42_MP9941_PVCCANA_CPU_1V_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON4/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 5
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_VIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in1_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 15
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_VOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/in2_input",
+              "type": 1,
+              "thresholds": {
+                "upperCriticalVal": 1.61,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_TEMP",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/temp1_input",
+              "type": 3,
+              "thresholds": {
+                "maxAlarmVal": 110,
+                "upperCriticalVal": 125
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_PIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power1_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_POUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/power2_input",
+              "type": 0,
+              "compute": "@/1000000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_IIN",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr1_input",
+              "type": 2,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "COME_PU32_MP9941_P1V05_STBY_IOUT",
+              "sysfsPath": "/run/devmap/sensors/COME_HWMON2/curr2_input",
+              "type": 2,
+              "thresholds": {
+                "upperCriticalVal": 20
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 4,
+          "productVersion": 2,
+          "productSubVersion": 2
         }
       ]
     },
@@ -2162,6 +2509,33 @@
           "type": 3,
           "compute": "@/1000.0"
         }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "RTM_L_U10_TMP432_LOCAL_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR/temp1_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_L_U10_TMP432_REMOTE1_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR/temp2_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_L_U10_TMP432_REMOTE2_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_L_OUTLET_TSENSOR/temp3_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 2,
+          "productSubVersion": 11
+        }
       ]
     },
     {
@@ -2948,6 +3322,33 @@
           "type": 3,
           "compute": "@/1000.0"
         }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "RTM_R_U10_TMP432_LOCAL_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR/temp1_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_R_U10_TMP432_REMOTE1_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR/temp2_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "RTM_R_U10_TMP432_REMOTE2_TEMP",
+              "sysfsPath": "/run/devmap/sensors/RTM_R_OUTLET_TSENSOR/temp3_input",
+              "type": 3,
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 2,
+          "productSubVersion": 11
+        }
       ]
     },
     {
@@ -2967,18 +3368,6 @@
           "compute": "@/1000000.0"
         },
         {
-          "name": "SMB_L_PU2978_XP0R8V_TH6_VDDC_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2978_XP0R8V_TH6_VDDC_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU2978_XP0R8V_TH6_VDDC_VOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/in2_input",
           "type": 1,
@@ -2995,7 +3384,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/curr2_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 1100
+            "maxAlarmVal": 1300
           },
           "compute": "@/1000.0"
         },
@@ -3004,7 +3393,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_VDDCORE/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
         },
@@ -3012,12 +3402,10 @@
           "name": "SMB_L_U8_LM75B_TH6_INLET",
           "sysfsPath": "/run/devmap/sensors/SMB_L_INLET_TSHENSOR/temp1_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2203_XP0R8V_PT_VDDC_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/in1_input",
-          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 85,
+            "upperCriticalVal": 90
+          },
           "compute": "@/1000.0"
         },
         {
@@ -3033,17 +3421,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU2203_XP0R8V_PT_VDDC_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU2203_XP0R8V_PT_VDDC_0_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3052,15 +3434,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2203_XP0R8V_PT_VDDC_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU2203_XP0R8V_PT_VDDC_0_POUT",
@@ -3072,24 +3449,6 @@
           "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_VIN",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/in2_input",
           "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/curr2_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3106,27 +3465,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1502_XP0R75V_TH6_TRVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1502_XP0R75V_TH6_TRVDD_0_VOUT",
@@ -3138,12 +3486,6 @@
             "upperCriticalVal": 0.863,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1502_XP0R75V_TH6_TRVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3160,27 +3502,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1502_XP0R75V_TH6_TRVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1502_XP0R75V_TH6_TRVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1502_XP0R8V_PT_VDDC_2_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1502_XP0R8V_PT_VDDC_2_VOUT",
@@ -3195,17 +3526,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU1502_XP0R8V_PT_VDDC_2_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU1502_XP0R8V_PT_VDDC_2_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3214,15 +3539,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1502_XP0R8V_PT_VDDC_2_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_1/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1502_XP0R8V_PT_VDDC_2_POUT",
@@ -3234,24 +3554,27 @@
           "name": "SMB_L_U29_LEFT_TMP432_1_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_U29_LEFT_TMP432_1_TEMP2",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_U29_LEFT_TMP432_1_TEMP3",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_3_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/in1_input",
-          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
@@ -3267,17 +3590,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_3_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_3_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3286,27 +3603,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_3_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_3_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_4_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_4_VOUT",
@@ -3321,17 +3627,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_4_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_4_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3340,15 +3640,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_4_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_2/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU2056_XP0R8V_PT_VDDC_4_POUT",
@@ -3360,12 +3655,10 @@
           "name": "SMB_L_U7_LM75B_TH6_OUTLET",
           "sysfsPath": "/run/devmap/sensors/SMB_L_OUTLET_TH6_TSENSOR/temp1_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1745_XP0R8V_PT_VDDC_7_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/in1_input",
-          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 85,
+            "upperCriticalVal": 90
+          },
           "compute": "@/1000.0"
         },
         {
@@ -3381,17 +3674,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU1745_XP0R8V_PT_VDDC_7_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU1745_XP0R8V_PT_VDDC_7_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3400,45 +3687,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1745_XP0R8V_PT_VDDC_7_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1745_XP0R8V_PT_VDDC_7_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_IOUT",
@@ -3454,15 +3712,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_POUT",
@@ -3474,18 +3727,18 @@
           "name": "SMB_L_U30_RIGHT_TMP432_2_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_U30_RIGHT_TMP432_2_TEMP2",
           "sysfsPath": "/run/devmap/sensors/SMB_L_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1342_XP0R8V_PT_VDDC_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/in1_input",
-          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
@@ -3501,17 +3754,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU1342_XP0R8V_PT_VDDC_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU1342_XP0R8V_PT_VDDC_1_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3520,27 +3767,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1342_XP0R8V_PT_VDDC_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1342_XP0R8V_PT_VDDC_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1342_XP1R5V_TH6_RVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1342_XP1R5V_TH6_RVDD_0_VOUT",
@@ -3552,12 +3788,6 @@
             "upperCriticalVal": 1.725,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1342_XP1R5V_TH6_RVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/curr2_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3574,27 +3804,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1342_XP1R5V_TH6_RVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1342_XP1R5V_TH6_RVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_4/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU2052_XP0R8V_PT_VDDC_6_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU2052_XP0R8V_PT_VDDC_6_VOUT",
@@ -3609,17 +3828,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU2052_XP0R8V_PT_VDDC_6_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU2052_XP0R8V_PT_VDDC_6_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3628,27 +3841,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2052_XP0R8V_PT_VDDC_6_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU2052_XP0R8V_PT_VDDC_6_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU2052_XP1R5V_TH6_RVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU2052_XP1R5V_TH6_RVDD_1_VOUT",
@@ -3660,12 +3862,6 @@
             "upperCriticalVal": 1.725,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2052_XP1R5V_TH6_RVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/curr2_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3682,27 +3878,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU2052_XP1R5V_TH6_RVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU2052_XP1R5V_TH6_RVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_1/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1937_XP0R75V_TH6_TRVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1937_XP0R75V_TH6_TRVDD_1_VOUT",
@@ -3714,12 +3899,6 @@
             "upperCriticalVal": 0.863,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1937_XP0R75V_TH6_TRVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3736,27 +3915,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1937_XP0R75V_TH6_TRVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1937_XP0R75V_TH6_TRVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1937_XP0R8V_PT_VDDC_5_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1937_XP0R8V_PT_VDDC_5_VOUT",
@@ -3771,17 +3939,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_L_PU1937_XP0R8V_PT_VDDC_5_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_L_PU1937_XP0R8V_PT_VDDC_5_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -3790,27 +3952,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1937_XP0R8V_PT_VDDC_5_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1937_XP0R8V_PT_VDDC_5_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_5_2/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R9V_TH6_TRVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1497_XP0R9V_TH6_TRVDD_0_VOUT",
@@ -3822,12 +3973,6 @@
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R9V_TH6_TRVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3844,45 +3989,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R9V_TH6_TRVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1497_XP0R9V_TH6_TRVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_IOUT",
@@ -3898,27 +4014,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R9V_TH6_TRVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1746_XP0R9V_TH6_TRVDD_1_VOUT",
@@ -3930,12 +4035,6 @@
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R9V_TH6_TRVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -3952,45 +4051,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R9V_TH6_TRVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1746_XP0R9V_TH6_TRVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_IOUT",
@@ -4006,15 +4076,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_POUT",
@@ -4159,7 +4224,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ADC2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 0.936,
+            "maxAlarmVal": 0.95,
             "minAlarmVal": 0.864,
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
@@ -4171,7 +4236,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ADC2_SENSOR/in4_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 0.936,
+            "maxAlarmVal": 0.95,
             "minAlarmVal": 0.864,
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
@@ -4183,7 +4248,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ADC2_SENSOR/in5_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 0.936,
+            "maxAlarmVal": 0.95,
             "minAlarmVal": 0.864,
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
@@ -4195,10 +4260,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_L_ADC2_SENSOR/in6_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.908,
-            "minAlarmVal": 1.692,
-            "upperCriticalVal": 1.98,
-            "lowerCriticalVal": 1.62
+            "maxAlarmVal": 2,
+            "minAlarmVal": 1.81,
+            "upperCriticalVal": 2.1,
+            "lowerCriticalVal": 1.71
           },
           "compute": "@/1000.0"
         },
@@ -4213,6 +4278,118 @@
             "lowerCriticalVal": 0
           },
           "compute": "@/1000.0"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 1,
+          "productSubVersion": 10
+        },
+        {
+          "sensors": [
+            {
+              "name": "SMB_L_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_L_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_L_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_L_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 2,
+          "productSubVersion": 10
         }
       ]
     },
@@ -4261,7 +4438,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/curr2_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 1100
+            "maxAlarmVal": 1300
           },
           "compute": "@/1000.0"
         },
@@ -4270,7 +4447,8 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_VDDCORE/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
         },
@@ -4278,12 +4456,10 @@
           "name": "SMB_R_U8_LM75B_TH6_INLET",
           "sysfsPath": "/run/devmap/sensors/SMB_R_INLET_TSHENSOR/temp1_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2203_XP0R8V_PT_VDDC_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/in1_input",
-          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 85,
+            "upperCriticalVal": 90
+          },
           "compute": "@/1000.0"
         },
         {
@@ -4299,17 +4475,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU2203_XP0R8V_PT_VDDC_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU2203_XP0R8V_PT_VDDC_0_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4318,45 +4488,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2203_XP0R8V_PT_VDDC_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU2203_XP0R8V_PT_VDDC_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_IOUT",
@@ -4372,27 +4513,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1502_XP0R75V_TH6_TRVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1502_XP0R75V_TH6_TRVDD_0_VOUT",
@@ -4404,12 +4534,6 @@
             "upperCriticalVal": 0.863,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1502_XP0R75V_TH6_TRVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -4426,27 +4550,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1502_XP0R75V_TH6_TRVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1502_XP0R75V_TH6_TRVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1502_XP0R8V_PT_VDDC_2_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1502_XP0R8V_PT_VDDC_2_VOUT",
@@ -4461,17 +4574,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU1502_XP0R8V_PT_VDDC_2_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU1502_XP0R8V_PT_VDDC_2_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4480,15 +4587,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1502_XP0R8V_PT_VDDC_2_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1502_XP0R8V_PT_VDDC_2_POUT",
@@ -4500,24 +4602,27 @@
           "name": "SMB_R_U29_LEFT_TMP432_1_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_U29_LEFT_TMP432_1_TEMP2",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_U29_LEFT_TMP432_1_TEMP3",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_3_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/in1_input",
-          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
@@ -4533,17 +4638,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_3_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_3_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4552,27 +4651,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_3_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_3_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_4_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_4_VOUT",
@@ -4587,17 +4675,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_4_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_4_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4606,15 +4688,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_4_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_2/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU2056_XP0R8V_PT_VDDC_4_POUT",
@@ -4626,12 +4703,10 @@
           "name": "SMB_R_U7_LM75B_TH6_OUTLET",
           "sysfsPath": "/run/devmap/sensors/SMB_R_OUTLET_TH6_TSENSOR/temp1_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1745_XP0R8V_PT_VDDC_7_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/in1_input",
-          "type": 1,
+          "thresholds": {
+            "maxAlarmVal": 85,
+            "upperCriticalVal": 90
+          },
           "compute": "@/1000.0"
         },
         {
@@ -4647,17 +4722,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU1745_XP0R8V_PT_VDDC_7_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU1745_XP0R8V_PT_VDDC_7_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4666,45 +4735,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1745_XP0R8V_PT_VDDC_7_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1745_XP0R8V_PT_VDDC_7_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_IOUT",
@@ -4720,15 +4760,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_POUT",
@@ -4740,18 +4775,18 @@
           "name": "SMB_R_U30_RIGHT_TMP432_2_TEMP1",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_U30_RIGHT_TMP432_2_TEMP2",
           "sysfsPath": "/run/devmap/sensors/SMB_R_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1342_XP0R8V_PT_VDDC_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/in1_input",
-          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 100
+          },
           "compute": "@/1000.0"
         },
         {
@@ -4767,17 +4802,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU1342_XP0R8V_PT_VDDC_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU1342_XP0R8V_PT_VDDC_1_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4786,27 +4815,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1342_XP0R8V_PT_VDDC_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1342_XP0R8V_PT_VDDC_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1342_XP1R5V_TH6_RVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1342_XP1R5V_TH6_RVDD_0_VOUT",
@@ -4818,12 +4836,6 @@
             "upperCriticalVal": 1.725,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1342_XP1R5V_TH6_RVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/curr2_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -4840,27 +4852,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1342_XP1R5V_TH6_RVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1342_XP1R5V_TH6_RVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_4/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU2052_XP0R8V_PT_VDDC_6_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU2052_XP0R8V_PT_VDDC_6_VOUT",
@@ -4875,17 +4876,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU2052_XP0R8V_PT_VDDC_6_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/curr1_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU2052_XP0R8V_PT_VDDC_6_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -4894,27 +4889,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2052_XP0R8V_PT_VDDC_6_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU2052_XP0R8V_PT_VDDC_6_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU2052_XP1R5V_TH6_RVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU2052_XP1R5V_TH6_RVDD_1_VOUT",
@@ -4926,12 +4910,6 @@
             "upperCriticalVal": 1.725,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2052_XP1R5V_TH6_RVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/curr2_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -4948,27 +4926,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU2052_XP1R5V_TH6_RVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU2052_XP1R5V_TH6_RVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_1/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1937_XP0R75V_TH6_TRVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1937_XP0R75V_TH6_TRVDD_1_VOUT",
@@ -4980,12 +4947,6 @@
             "upperCriticalVal": 0.863,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1937_XP0R75V_TH6_TRVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -5002,27 +4963,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1937_XP0R75V_TH6_TRVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1937_XP0R75V_TH6_TRVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1937_XP0R8V_PT_VDDC_5_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1937_XP0R8V_PT_VDDC_5_VOUT",
@@ -5037,17 +4987,11 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "SMB_R_PU1937_XP0R8V_PT_VDDC_5_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
-        },
-        {
           "name": "SMB_R_PU1937_XP0R8V_PT_VDDC_5_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000.0"
         },
@@ -5056,27 +5000,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1937_XP0R8V_PT_VDDC_5_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1937_XP0R8V_PT_VDDC_5_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_5_2/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R9V_TH6_TRVDD_0_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1497_XP0R9V_TH6_TRVDD_0_VOUT",
@@ -5088,12 +5021,6 @@
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R9V_TH6_TRVDD_0_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -5110,45 +5037,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R9V_TH6_TRVDD_0_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1497_XP0R9V_TH6_TRVDD_0_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_IOUT",
@@ -5164,27 +5062,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/power4_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R9V_TH6_TRVDD_1_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/in1_input",
-          "type": 1,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1746_XP0R9V_TH6_TRVDD_1_VOUT",
@@ -5196,12 +5083,6 @@
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
           },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R9V_TH6_TRVDD_1_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/curr1_input",
-          "type": 2,
           "compute": "@/1000.0"
         },
         {
@@ -5218,45 +5099,16 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R9V_TH6_TRVDD_1_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/power1_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1746_XP0R9V_TH6_TRVDD_1_POUT",
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/power3_input",
           "type": 0,
           "compute": "@/1000000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_VIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/in2_input",
-          "type": 1,
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_IIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/curr2_input",
-          "type": 2,
-          "compute": "@/1000.0"
         },
         {
           "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_IOUT",
@@ -5272,15 +5124,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 150
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
           },
           "compute": "@/1000.0"
-        },
-        {
-          "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_PIN",
-          "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/power2_input",
-          "type": 0,
-          "compute": "@/1000000.0"
         },
         {
           "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_POUT",
@@ -5425,7 +5272,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ADC2_SENSOR/in3_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 0.936,
+            "maxAlarmVal": 0.95,
             "minAlarmVal": 0.864,
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
@@ -5437,7 +5284,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ADC2_SENSOR/in4_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 0.936,
+            "maxAlarmVal": 0.95,
             "minAlarmVal": 0.864,
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
@@ -5449,7 +5296,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ADC2_SENSOR/in5_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 0.936,
+            "maxAlarmVal": 0.95,
             "minAlarmVal": 0.864,
             "upperCriticalVal": 1.035,
             "lowerCriticalVal": 0
@@ -5461,10 +5308,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_R_ADC2_SENSOR/in6_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.908,
-            "minAlarmVal": 1.692,
-            "upperCriticalVal": 1.98,
-            "lowerCriticalVal": 1.62
+            "maxAlarmVal": 2,
+            "minAlarmVal": 1.81,
+            "upperCriticalVal": 2.1,
+            "lowerCriticalVal": 1.71
           },
           "compute": "@/1000.0"
         },
@@ -5479,6 +5326,118 @@
             "lowerCriticalVal": 0
           },
           "compute": "@/1000.0"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 1,
+          "productSubVersion": 10
+        },
+        {
+          "sensors": [
+            {
+              "name": "SMB_R_PU2203_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_R_PU1745_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_R_PU1497_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            },
+            {
+              "name": "SMB_R_PU1746_XP0R72V_TH6_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000.0"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 2,
+          "productSubVersion": 10
         }
       ]
     }

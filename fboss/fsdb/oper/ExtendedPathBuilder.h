@@ -10,7 +10,8 @@
 
 #pragma once
 
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/type/Id.h>
+#include <cstdint>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 namespace facebook::fboss::fsdb {
@@ -23,7 +24,8 @@ class ExtendedPathBuilder {
   ExtendedOperPath&& get() &&;
 
   ExtendedPathBuilder& raw(std::string token);
-  ExtendedPathBuilder& raw(apache::thrift::field_id_t id);
+  ExtendedPathBuilder& raw(apache::thrift::type::FieldId id);
+  ExtendedPathBuilder& raw(int16_t id);
   ExtendedPathBuilder& regex(std::string regexStr);
   ExtendedPathBuilder& any();
 
@@ -35,7 +37,8 @@ namespace ext_path_builder {
 
 // helpers to create a single element builder
 ExtendedPathBuilder raw(std::string token);
-ExtendedPathBuilder raw(apache::thrift::field_id_t id);
+ExtendedPathBuilder raw(apache::thrift::type::FieldId id);
+ExtendedPathBuilder raw(int16_t id);
 ExtendedPathBuilder regex(std::string regexStr);
 ExtendedPathBuilder any();
 

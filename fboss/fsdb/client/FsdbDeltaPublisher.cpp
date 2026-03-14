@@ -42,7 +42,6 @@ folly::coro::Task<void> FsdbDeltaPublisher::serveStream(StreamT&& stream) {
             XLOG(ERR) << "Detected GR cancellation";
             throw FsdbClientGRDisconnectException(
                 "DeltaPublisher disconnectReason: GR");
-            break;
           }
           if (!pubUnit->metadata().has_value()) {
             pubUnit->metadata() = OperMetadata();

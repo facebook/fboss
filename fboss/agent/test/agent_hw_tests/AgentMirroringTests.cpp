@@ -969,7 +969,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
         XLOG(INFO) << PktUtil::hexDump(buf.value().get());
         auto ensemble = this->getAgentEnsemble();
         auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+        if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
           folly::io::Cursor cursor(buf.value().get());
           cursor += 14; // skip ethernet header
           if (this->isV4()) {

@@ -230,7 +230,8 @@ cfg::FlowletSwitchingConfig getDefaultFlowletSwitchingConfig(
     bool isSai,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
     cfg::SwitchingMode backupSwitchingMode =
-        cfg::SwitchingMode::FIXED_ASSIGNMENT);
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+    bool supportsFuturePortLoad = true);
 void addFlowletAcl(
     cfg::SwitchConfig& cfg,
     bool isSai,
@@ -244,13 +245,16 @@ void addFlowletConfigs(
     bool isSai = false,
     cfg::SwitchingMode switchingMode = cfg::SwitchingMode::FLOWLET_QUALITY,
     cfg::SwitchingMode backupSwitchingMode =
-        cfg::SwitchingMode::FIXED_ASSIGNMENT);
+        cfg::SwitchingMode::FIXED_ASSIGNMENT,
+    bool supportsFuturePortLoad = true);
 
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics);
 cfg::LoadBalancer getEcmpHalfHashConfig(
     const std::vector<const HwAsic*>& asics);
 cfg::LoadBalancer getEcmpFullHashConfig(
+    const std::vector<const HwAsic*>& asics);
+cfg::LoadBalancer getEcmpFullWithFlowLabelHashConfig(
     const std::vector<const HwAsic*>& asics);
 cfg::LoadBalancer getEcmpFullUdfHashConfig(
     const std::vector<const HwAsic*>& asics);

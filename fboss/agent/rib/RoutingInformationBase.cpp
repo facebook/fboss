@@ -17,8 +17,9 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/ConfigApplier.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
-#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibDeltaHelpers.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
@@ -242,7 +243,8 @@ void RibRouteTables::reconfigure(
           folly::range(
               staticMplsRoutesToNull.cbegin(), staticMplsRoutesToNull.cend()),
           folly::range(
-              staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()));
+              staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()),
+          nextHopIDManager_);
       // Apply config
       configApplier.apply();
     });
@@ -313,7 +315,8 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
         RibRouteUpdater updater(
             &(routeTable.v4NetworkToRoute),
             &(routeTable.v6NetworkToRoute),
-            &(routeTable.labelToRoute));
+            &(routeTable.labelToRoute),
+            nextHopIDManager_);
         updater.update(
             {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
             {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
@@ -340,7 +343,8 @@ void RibRouteTables::update(
     RibRouteUpdater updater(
         &(routeTable.v4NetworkToRoute),
         &(routeTable.v6NetworkToRoute),
-        &(routeTable.labelToRoute));
+        &(routeTable.labelToRoute),
+        nextHopIDManager_);
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
   updateFib(resolver, routerID, fibUpdateCallback, cookie);
@@ -361,6 +365,7 @@ void RibRouteTables::updateFib(
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
+        nextHopIDManager_,
         cookie);
     std::optional<StateDelta> tmp(
         StateDelta(gotDelta.oldState(), gotDelta.newState()));
@@ -370,7 +375,8 @@ void RibRouteTables::updateFib(
       SCOPE_FAIL {
         XLOG(FATAL) << " RIB Rollback failed, aborting program";
       };
-      auto fib = hwUpdateError.appliedState->getFibs()->getNode(vrf);
+      auto fib =
+          hwUpdateError.appliedState->getFibsInfoMap()->getFibContainer(vrf);
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
       auto& routeTable = lockedRouteTables->find(vrf)->second;
       reconstructRibFromFib<
@@ -386,6 +392,15 @@ void RibRouteTables::updateFib(
             hwUpdateError.appliedState->getLabelForwardingInformationBase();
         reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
             std::move(labelFib), &routeTable.labelToRoute);
+      }
+
+      // Reconstruct NextHopIDManager from the applied state's FIB
+      // This consolidates ID maps from all switches and recalculates ref counts
+      if (nextHopIDManager_) {
+        auto fibsInfoMap = hwUpdateError.appliedState->getFibsInfoMap();
+        if (fibsInfoMap && !fibsInfoMap->empty()) {
+          nextHopIDManager_->reconstructFromFib(fibsInfoMap);
+        }
       }
     }
     throw;
@@ -553,7 +568,9 @@ void RibRouteTables::setOverrideEcmpMode(
           curForwardInfo.getCounterID(),
           curForwardInfo.getClassID(),
           overrideEcmpMode,
-          curForwardInfo.getOverrideNextHops());
+          curForwardInfo.getOverrideNextHops(),
+          curForwardInfo.getNormalizedResolvedNextHopSetID(),
+          curForwardInfo.getResolvedNextHopSetID());
       ritr->value()->setResolved(newForwardInfo);
       ritr->value()->publish();
     };
@@ -597,7 +614,9 @@ void RibRouteTables::setOverrideEcmpNhops(
           curForwardInfo.getCounterID(),
           curForwardInfo.getClassID(),
           curForwardInfo.getOverrideEcmpSwitchingMode(),
-          overrideNhops);
+          overrideNhops,
+          curForwardInfo.getNormalizedResolvedNextHopSetID(),
+          curForwardInfo.getResolvedNextHopSetID());
       ritr->value()->setResolved(newForwardInfo);
       ritr->value()->publish();
     };
@@ -658,7 +677,11 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
   return newRouteTables;
 }
 
-RoutingInformationBase::RoutingInformationBase() {
+RoutingInformationBase::RoutingInformationBase()
+    : nextHopIDManager_(
+          FLAGS_enable_nexthop_id_manager ? std::make_unique<NextHopIDManager>()
+                                          : nullptr),
+      ribTables_(nextHopIDManager_.get()) {
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
     initThread("ribUpdateThread");
     ribUpdateEventBase_.loopForever();
@@ -820,9 +843,10 @@ void RoutingInformationBase::updateEcmpOverrides(const StateDelta& delta) {
 
 RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
-    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
-  RibRouteTables rib;
+    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+    NextHopIDManager* nextHopIDManager) {
+  RibRouteTables rib(nextHopIDManager);
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
 
   for (const auto& [rid, table] : ribThrift) {
@@ -831,18 +855,26 @@ RibRouteTables RibRouteTables::fromThrift(
     lockedRouteTables->emplace(vrf, std::move(rtable));
   }
 
-  if (fibs) {
-    rib.importFibs(lockedRouteTables, fibs, labelFib);
+  if (fibsInfoMap) {
+    rib.importFibs(lockedRouteTables, fibsInfoMap, labelFib);
   }
   return rib;
 }
 
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
-    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
+    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromThrift(ribThrift, fibs, labelFib);
+  rib->ribTables_ = RibRouteTables::fromThrift(
+      ribThrift, fibsInfoMap, labelFib, rib->nextHopIDManager_.get());
+
+  // Reconstruct NextHopIDManager state from FIB during warm boot
+  // This consolidates ID maps from all switches and reconstructs ref counts
+  if (rib->nextHopIDManager_ && fibsInfoMap && !fibsInfoMap->empty()) {
+    rib->nextHopIDManager_->reconstructFromFib(fibsInfoMap);
+  }
+
   return rib;
 }
 
@@ -991,8 +1023,9 @@ std::map<int32_t, state::RouteTableFields> RibRouteTables::warmBootState()
 }
 
 RibRouteTables RibRouteTables::fromThrift(
-    const std::map<int32_t, state::RouteTableFields>& obj) {
-  RibRouteTables ribRouteTables;
+    const std::map<int32_t, state::RouteTableFields>& obj,
+    NextHopIDManager* nextHopIDManager) {
+  RibRouteTables ribRouteTables(nextHopIDManager);
   auto routeTables = ribRouteTables.synchronizedRouteTables_.wlock();
   for (const auto& [rid, routeTableFields] : obj) {
     // @lint-ignore CLANGTIDY
@@ -1010,14 +1043,14 @@ std::map<int32_t, state::RouteTableFields> RoutingInformationBase::toThrift()
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& obj) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromThrift(obj);
+  rib->ribTables_ =
+      RibRouteTables::fromThrift(obj, rib->nextHopIDManager_.get());
   return rib;
 }
 
 void RibRouteTables::importFibs(
     const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-    const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>&
-        multiSwitchfibs,
+    const std::shared_ptr<MultiSwitchFibInfoMap>& multiSwitchfibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs) {
   auto importRoutes = [](const auto& fib, auto* addrToRoute) {
     for (const auto& iter : std::as_const(*fib)) {
@@ -1037,12 +1070,21 @@ void RibRouteTables::importFibs(
           route);
     }
   };
-  for (const auto& [_, fibs] : std::as_const(*multiSwitchfibs)) {
-    for (const auto& iter : std::as_const(*fibs)) {
-      const auto& fib = iter.second;
-      auto& routeTables = (*lockedRouteTables)[fib->getID()];
-      importRoutes(fib->getFibV6(), &routeTables.v6NetworkToRoute);
-      importRoutes(fib->getFibV4(), &routeTables.v4NetworkToRoute);
+
+  // Iterate through all FibInfo objects in the map
+  for (const auto& [_, fibInfo] : std::as_const(*multiSwitchfibsInfoMap)) {
+    // Get the ForwardingInformationBaseMap for this switch
+    auto fibsMap = fibInfo->getfibsMap();
+    if (!fibsMap) {
+      continue;
+    }
+
+    // Import routes from each FIB container
+    for (const auto& iter : std::as_const(*fibsMap)) {
+      const auto& fibContainer = iter.second;
+      auto& routeTables = (*lockedRouteTables)[fibContainer->getID()];
+      importRoutes(fibContainer->getFibV6(), &routeTables.v6NetworkToRoute);
+      importRoutes(fibContainer->getFibV4(), &routeTables.v4NetworkToRoute);
       auto mplsTable = &routeTables.labelToRoute;
       if (FLAGS_mpls_rib && labelFibs) {
         for (const auto& [_, labelFib] : std::as_const(*labelFibs)) {

@@ -1,1 +1,64 @@
-{}
+{
+  "testData": {
+    "ICECUBE_MCB.SCM_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xde"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x04",
+            "value": "0xff"
+          }
+        ]
+      }
+    },
+    "ICECUBE_MCB.MCB_FAN_CPLD": {
+      "i2cTestData": {
+        "i2cDumpData": [],
+        "i2cGetData": [
+          {
+            "reg": "0x04",
+            "expected": "0xde"
+          }
+        ],
+        "i2cSetData": [
+          {
+            "reg": "0x04",
+            "value": "0xff"
+          }
+        ]
+      },
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "fan1",
+          "fan2",
+          "fan3",
+          "fan4",
+          "fan5",
+          "fan6",
+          "fan7",
+          "fan8"
+        ]
+      },
+      "watchdogTestData": {
+        "numWatchdogs": 1
+      }
+    },
+    "ICECUBE_MCB.48V_HSC_MONITOR": {
+      "hwmonTestData": {
+        "expectedFeatures": [
+          "vin",
+          "vout1",
+          "temp1",
+          "pin",
+          "iout1"
+        ]
+      }
+    }
+  }
+}

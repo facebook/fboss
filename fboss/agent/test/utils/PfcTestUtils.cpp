@@ -123,7 +123,8 @@ void setupPfc(
     cfg.cpuTrafficPolicy() = std::move(cpuPolicy);
     std::map<int, std::string> portIdToQosPolicy{};
     for (const auto& portId : ensemble->masterLogicalPortIds(
-             {cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
+             std::set<cfg::PortType>{
+                 cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
       portIdToQosPolicy[static_cast<int>(portId)] = kCpuQueueingPolicy;
     }
     if (portIdToQosPolicy.size()) {
@@ -141,7 +142,7 @@ void setupBufferPoolConfig(
   cfg::BufferPoolConfig poolConfig;
   // provide small shared buffer size
   // idea is to hit the limit and trigger XOFF (PFC)
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     // Round up the configured buffer size to the nearest multiple of unit size
     auto unit = asic->getPacketBufferUnitSize();
     auto roundUp = [unit](int size) {
@@ -149,6 +150,14 @@ void setupBufferPoolConfig(
     };
     poolConfig.sharedBytes() = roundUp(globalSharedBytes);
     poolConfig.headroomBytes() = roundUp(globalHeadroomBytes);
+  } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+    // TH6 XGS SDK subtracts an internal reserved size (~5.99MB) from the pool
+    // when computing the shared limit. Add reservedBytes to compensate, so the
+    // HW shared limit equals our intended sharedBytes. Using a larger reserved
+    // value to leave room for PG min limit allocation.
+    poolConfig.sharedBytes() = globalSharedBytes;
+    poolConfig.headroomBytes() = globalHeadroomBytes;
+    poolConfig.reservedBytes() = 4600000;
   } else {
     poolConfig.sharedBytes() = globalSharedBytes;
     poolConfig.headroomBytes() = globalHeadroomBytes;
@@ -231,7 +240,8 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
   buffer.globalShared = globalShared;
   buffer.globalHeadroom = globalHeadroom;
 
-  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asicType == cfg::AsicType::ASIC_TYPE_CHENAB ||
+      asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     // For CHENAB:
     // - XON represents the "min guarantee", must be at least 2xMTU (20480).
     // - RESERVED represents the total amount of buffer exclusively reserved
@@ -251,6 +261,13 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
       buffer.pgHeadroom = 8000;
       buffer.minLimit = *buffer.resumeThreshold + buffer.pgHeadroom;
     }
+  } else if (asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
+    // TH6 has 420-byte cells and limited shared space after SDK reserves
+    // ~5.99MB. Use small cell-aligned values that fit within available shared
+    // buffer.
+    buffer.minLimit = 4200; // 10 cells * 420 bytes
+    buffer.pgHeadroom = 4200;
+    buffer.resumeOffset = 2100; // 5 cells * 420 bytes
   } else {
     buffer.minLimit = 2200;
     buffer.pgHeadroom = 2200; // keep this lower than globalShared (why?)
@@ -260,6 +277,7 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       buffer.globalShared = kSmallGlobalSharedBytes;
       break;
     default:
@@ -270,6 +288,7 @@ PfcBufferParams PfcBufferParams::getPfcBufferParams(
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
       buffer.scalingFactor = cfg::MMUScalingFactor::ONE_HALF;
       break;
     default:

@@ -40,6 +40,9 @@ class HwTransceiverUtils {
   static void verifyTempAndVccFlags(
       std::map<std::string, TransceiverInfo>& portToTransceiverInfoMap);
 
+  static void verifyTcvrErrorStates(
+      std::map<std::string, TransceiverInfo>& portToTransceiverInfoMap);
+
   static void verifyDatapathResetTimestamp(
       const std::string& portName,
       const TcvrState& tcvrState,

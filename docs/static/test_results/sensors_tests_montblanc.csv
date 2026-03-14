@@ -1,0 +1,7 @@
+"Test Case","Platform","Status"
+"SensorServiceHwTest.SensorFetchODSCheck","montblanc","PASSED"
+"SensorServiceHwTest.GetSomeSensorsViaThrift","montblanc","PASSED"
+"SensorServiceHwTest.GetSomeSensors","montblanc","PASSED"
+"SensorServiceHwTest.GetBogusSensor","montblanc","PASSED"
+"SensorServiceHwTest.GetAllSensors","montblanc","PASSED"
+"SensorServiceHwTest.CheckAllSensors","montblanc","PASSED"

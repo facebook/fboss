@@ -44,6 +44,8 @@ class BcmQosMap {
   // Forbidden copy constructor and assignment operator
   BcmQosMap(const BcmQosMap&) = delete;
   BcmQosMap& operator=(const BcmQosMap&) = delete;
+  BcmQosMap(BcmQosMap&&) = delete;
+  BcmQosMap& operator=(BcmQosMap&&) = delete;
 
   const BcmSwitchIf* hw_;
   Type type_;

@@ -22,7 +22,6 @@
 #include <fboss/thrift_cow/visitors/PatchBuilder.h>
 #include <fboss/thrift_cow/visitors/PathVisitor.h>
 #include <fboss/thrift_cow/visitors/RecurseVisitor.h>
-#include "fboss/fsdb/if/gen-cpp2/fsdb_oper_fatal_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 
 #include <folly/Traits.h>

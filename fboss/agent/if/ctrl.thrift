@@ -10,6 +10,7 @@ include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/product_info.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
@@ -20,6 +21,9 @@ include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 typedef common.fbbinary fbbinary
 typedef common.fbstring fbstring
@@ -60,6 +64,7 @@ enum PortError {
   LANE_SWAP_DETECTED = 2,
   MISMATCHED_NEIGHBOR = 3,
   MISSING_EXPECTED_NEIGHBOR = 4,
+  LINK_DISABLED_BY_FIRMWARE = 5,
 }
 
 struct IpPrefix {
@@ -452,7 +457,7 @@ struct PortQueueFields {
   19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
+@fboss_common.AllowSkipThriftCow
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;
@@ -818,6 +823,11 @@ struct EcmpDetails {
   2: bool flowletEnabled;
   3: i16 flowletInterval;
   4: i32 flowletTableSize;
+}
+
+struct RouteCount {
+  1: i64 v4Count;
+  2: i64 v6Count;
 }
 
 enum FirmwareOpStatus {
@@ -1560,6 +1570,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   list<FabricMonitoringDetail> getFabricMonitoringDetails() throws (
     1: fboss.FbossBaseError error,
   );
+
+  /*
+   * Get total route count (v4 and v6) from the FIB
+   */
+  RouteCount getRouteTableSize() throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

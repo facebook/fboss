@@ -175,6 +175,7 @@ def _setup_hw_agent_service(
     hw_agent_service_bin_path: t.Optional[str] = None,
     platform_mapping_override_path: t.Optional[str] = None,
     sai_replayer_log_path: t.Optional[str] = None,
+    is_fsdb_disabled: bool = False,
 ) -> None:
     if not hw_agent_service_bin_path:
         hw_agent_service_bin_path = _DEFAULT_OSS_HW_AGENT_SERVICE_PATH
@@ -194,15 +195,19 @@ def _setup_hw_agent_service(
         print(f"Setting up FBOSS HW Agent Service for index={switch_index}...")
 
         # Prepare HW Agent Service unit file
-        extra_args = ""
+        extra_args = "--hw_agent_for_testing=true"
         if platform_mapping_override_path:
             if not os.path.exists(platform_mapping_override_path):
                 raise Exception(
                     f"Platform mapping override path {platform_mapping_override_path} does not exist"
                 )
-            extra_args += f"{_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
+            extra_args += f" {_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
         if sai_replayer_log_path:
-            extra_args += f"--sai_log {sai_replayer_log_path}"
+            extra_args += f" --sai_log {sai_replayer_log_path}"
+
+        if not is_fsdb_disabled:
+            extra_args += " --fsdb_client_ssl_preferred=false"
+
         hw_agent_service_cmd = f"{hw_agent_service_bin_path} --config {fboss_agent_config_path} --switchIndex {switch_index} {extra_args}"
         with open(
             _HW_AGENT_SERVICE_UNIT_FILE_PATH.format(switch_index=switch_index), "w"
@@ -238,6 +243,7 @@ def setup_and_start_hw_agent_service(
     hw_agent_service_bin_path: t.Optional[str] = None,
     platform_mapping_override_path: t.Optional[str] = None,
     sai_replayer_log_path: t.Optional[str] = None,
+    is_fsdb_disabled: bool = False,
     is_warm_boot: bool = False,
 ) -> None:
     # First setup hw agent service unit file for systemd and rsyslog config for logging
@@ -247,6 +253,7 @@ def setup_and_start_hw_agent_service(
         hw_agent_service_bin_path,
         platform_mapping_override_path,
         sai_replayer_log_path,
+        is_fsdb_disabled,
     )
 
     # Then start hw agent service

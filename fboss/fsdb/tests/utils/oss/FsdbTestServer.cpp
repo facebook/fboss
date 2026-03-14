@@ -24,7 +24,7 @@ class FsdbTestServerImplOss : public FsdbTestServerImpl {
           server_->serve();
         });
     serverStartedBaton.wait();
-    checkServerStart(server_, fsdbPort);
+    checkServerStart(fsdbPort);
   }
 
   void stopServer() override {
@@ -38,7 +38,6 @@ class FsdbTestServerImplOss : public FsdbTestServerImpl {
   }
 
  private:
-  std::shared_ptr<apache::thrift::ThriftServer> server_;
   std::unique_ptr<std::thread> thriftThread_;
 };
 

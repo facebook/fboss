@@ -3,11 +3,14 @@
 #include <gtest/gtest.h>
 
 #include <folly/IPAddressV4.h>
+#include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 #include <memory>
+
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/test/MockClients.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
+#include "fboss/lib/ThriftServiceUtils.h"
 
 #pragma once
 
@@ -23,28 +26,36 @@ class CmdHandlerTestBase : public ::testing::Test {
         "test.host", "test-oob.host", folly::IPAddressV6("::1"));
   }
 
+  // Helper to configure server with epoll backend to avoid libevent2
+  // performance issues in OSS builds that cause multi-second RPC latencies.
+  static auto createFastMockServerConfig() {
+    return ThriftServiceUtils::createThriftServerConfig();
+  }
+
   void setupMockedAgentServer() {
     mockedAgentServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedAgent_);
+            mockedAgent_, createFastMockServerConfig());
     // set global agent thrift port to the fake server created on localhost
     CmdGlobalOptions::getInstance()->setAgentThriftPort(
         mockedAgentServer_->getAddress().getPort());
 
     mockedQsfpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedQsfpService_);
+            mockedQsfpService_, createFastMockServerConfig());
     // set global agent thrift port to the fake server created on localhost
     CmdGlobalOptions::getInstance()->setQsfpThriftPort(
         mockedQsfpServer_->getAddress().getPort());
   }
 
   void setupMockedBgpServer() {
+#ifndef IS_OSS
     mockedBgpServer_ =
         std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
-            mockedBgpService_);
+            mockedBgpService_, createFastMockServerConfig());
     CmdGlobalOptions::getInstance()->setBgpThriftPort(
         mockedBgpServer_->getAddress().getPort());
+#endif
   }
 
   void TearDown() override {

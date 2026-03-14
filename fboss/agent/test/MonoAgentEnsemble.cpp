@@ -66,7 +66,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
     bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t featuresDesired,
-    bool failHwCallsOnWarmboot) {
+    const TestEnsembleInitInfo& initInfo) {
   std::unique_ptr<AgentEnsemble> ensemble =
       std::make_unique<MonoAgentEnsemble>();
   ensemble->setupEnsemble(
@@ -74,7 +74,7 @@ std::unique_ptr<AgentEnsemble> createAgentEnsemble(
       disableLinkStateToggler,
       platformConfigFn,
       featuresDesired,
-      failHwCallsOnWarmboot);
+      initInfo);
   return ensemble;
 }
 

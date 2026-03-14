@@ -60,9 +60,11 @@ add_library(fsdb_sub_mgr
 )
 
 target_link_libraries(fsdb_sub_mgr
+  fsdb_flags
   fsdb_pub_sub
   fsdb_model
   oper_path_helpers
+  thrift_service_client
 )
 
 add_library(fsdb_syncer

@@ -15,6 +15,7 @@
 
 #include <boost/assign.hpp>
 
+#include <folly/Format.h>
 #include <folly/io/IOBuf.h>
 #include <folly/io/async/EventBase.h>
 #include <folly/logging/xlog.h>
@@ -48,6 +49,10 @@ DEFINE_int32(
     60,
     "max time after firmware upgrade sequence when the the tcvr is expected to be ready for link up");
 DEFINE_bool(remediation_enabled, true, "Flag to disable/enable remediation.");
+DEFINE_int32(
+    refresh_all_pages_cycles,
+    100,
+    "Number of cycles to kick off a full refresh of all pages");
 
 using folly::IOBuf;
 using std::lock_guard;
@@ -55,9 +60,6 @@ using std::memcpy;
 using std::mutex;
 
 static constexpr int kAllowedFwUpgradeAttempts = 3;
-
-// Refresh all transceiver pages every 100 refresh cycles.
-static constexpr int kRefreshAllPagesCycles = 100;
 
 namespace facebook {
 namespace fboss {
@@ -104,10 +106,6 @@ QsfpModule::QsfpModule(
     std::string tcvrName)
     : Transceiver(),
       qsfpImpl_(qsfpImpl),
-      snapshots_(SnapshotManager(
-          portNames,
-          SnapshotLogSource::QSFP_SERVICE,
-          kSnapshotIntervalSeconds)),
       portNames_(portNames),
       tcvrName_(std::move(tcvrName)) {
   CHECK(!portNames.empty())
@@ -484,6 +482,18 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (!getSignalsPerHostLane(*tcvrState.hostLaneSignals())) {
       tcvrState.hostLaneSignals()->clear();
     }
+    if (auto hostLaneSignals = tcvrState.hostLaneSignals()) {
+      for (auto& hostLaneSignal : *hostLaneSignals) {
+        if (hostLaneSignal.cmisLaneState() &&
+            !apache::thrift::util::tryGetEnumName(
+                *hostLaneSignal.cmisLaneState())) {
+          tcvrState.errorStates()->insert(
+              TransceiverErrorState::INVALID_DATA_PATH_LANE_STATE);
+          QSFP_LOG(ERR, this) << "Invalid data path lane state";
+          break;
+        }
+      }
+    }
 
     if (auto transceiverStats = getTransceiverStats()) {
       tcvrStats.stats() = *transceiverStats;
@@ -498,6 +508,11 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     tcvrState.transceiverManagementInterface() = managementInterface();
 
     tcvrState.identifier() = getIdentifier();
+    if (!apache::thrift::util::tryGetEnumName(*tcvrState.identifier())) {
+      tcvrState.errorStates()->insert(
+          TransceiverErrorState::INVALID_IDENTIFIER);
+      QSFP_LOG(ERR, this) << "Invalid module identifier";
+    }
     auto currentStatus = getModuleStatus();
     // Use the input `moduleStatus` as the reference to update the
     // `cmisStateChanged` for currentStatus, which will be used in the
@@ -509,7 +524,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     // Tunable optics parameter
     auto tunableLaserstatus = getTunableLaserStatus();
     if (tunableLaserstatus) {
-      QSFP_LOG(INFO, this) << "Tunable laser status is not null";
       tcvrState.tunableLaserStatus() = tunableLaserstatus.value();
     }
 
@@ -580,7 +594,21 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
     if (diagCapability.has_value()) {
       tcvrState.diagCapability() = diagCapability.value();
     }
+    // lpoModule() Deprecated. Use ModuleTechnolgy instead.
     tcvrState.lpoModule() = isLpoModule();
+
+    if (isLpoModule()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::LPO;
+    } else if (isAecModule()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::AEC;
+    } else if (isTunableOptics()) {
+      tcvrState.moduleTechnology() = ModuleTechnology::TUNABLE;
+    } else {
+      tcvrState.moduleTechnology() = ModuleTechnology::GREY;
+    }
+
+    tcvrState.pagingSupport() =
+        flatMem_ ? PagingSupport::FLAT_MEM : PagingSupport::PAGED;
   }
 
   tcvrStats.lastFwUpgradeStartTime() = lastFwUpgradeStartTime_;
@@ -600,9 +628,6 @@ void QsfpModule::updateCachedTransceiverInfoLocked(ModuleStatus moduleStatus) {
   tcvrState.interfaces() = getInterfaces();
   tcvrStats.interfaces() = getInterfaces();
 
-  phy::LinkSnapshot snapshot;
-  snapshot.transceiverInfo() = info;
-  snapshots_.wlock()->addSnapshot(snapshot);
   *info_.wlock() = info;
 }
 
@@ -858,7 +883,7 @@ prbs::InterfacePrbsState QsfpModule::getPortPrbsState(
 void QsfpModule::periodicUpdateQsfpData() {
   bool updatedAllPages = false;
   refreshCycleCount_++;
-  if (refreshCycleCount_ >= kRefreshAllPagesCycles) {
+  if (refreshCycleCount_ >= FLAGS_refresh_all_pages_cycles) {
     updatedAllPages = true;
     // reset cycle count
     refreshCycleCount_ = 0;
@@ -886,7 +911,7 @@ folly::Future<bool> QsfpModule::futureRefresh() {
     }
   }
 
-  return via(i2cEvb).thenValue([&](auto&&) mutable {
+  return via(i2cEvb).thenValue([this](auto&&) mutable {
     try {
       this->refresh();
       return true;
@@ -1176,7 +1201,8 @@ void QsfpModule::customizeTransceiver(TransceiverPortState& portState) {
   }
 }
 
-void QsfpModule::customizeTransceiverLocked(TransceiverPortState& portState) {
+void QsfpModule::customizeTransceiverLocked(
+    const TransceiverPortState& portState) {
   auto& portName = portState.portName;
   auto speed = portState.speed;
   auto startHostLane = portState.startHostLane;
@@ -1223,8 +1249,8 @@ QsfpModule::futureReadTransceiver(TransceiverIOParameters param) {
     return std::make_pair(id, readTransceiver(param));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
-  return via(i2cEvb).thenValue([&, param, id](auto&&) mutable {
-    return std::make_pair(id, readTransceiver(param));
+  return via(i2cEvb).thenValue([this, param, id](auto&&) mutable {
+    return std::make_pair(id, this->readTransceiver(param));
   });
 }
 
@@ -1281,8 +1307,8 @@ folly::Future<std::pair<int32_t, bool>> QsfpModule::futureWriteTransceiver(
     return std::make_pair(id, writeTransceiver(param, data.data()));
   }
   // As with all the other i2c transactions, run in the i2c event base thread
-  return via(i2cEvb).thenValue([&, param, id, data](auto&&) mutable {
-    return std::make_pair(id, writeTransceiver(param, data.data()));
+  return via(i2cEvb).thenValue([this, param, id, data](auto&&) mutable {
+    return std::make_pair(id, this->writeTransceiver(param, data.data()));
   });
 }
 
@@ -1458,7 +1484,9 @@ void QsfpModule::programTransceiver(
       }
 
       if (needResetDataPath) {
-        resetDataPath();
+        XLOG(INFO) << fmt::format(
+            "Transceiver {:s}: Resetting data path", getNameString());
+        resetDataPath(getNameString());
       }
 
       // Since we're touching the transceiver, we need to update the cached
@@ -1527,10 +1555,14 @@ void QsfpModule::updateLaneToPortNameMapping(
  * same then return true or false based on whether module is in ready state or
  * not. If the power controll config value is not same as desired one then
  * configure it correctly and return false
+ *
+ * @param hasTunableOpticsConfig - indicates if tunable optics config is
+ *        present in qsfp_service_config. For tunable optics modules without
+ *        config, high power mode transition is skipped.
  */
-bool QsfpModule::readyTransceiver() {
+bool QsfpModule::readyTransceiver(bool hasTunableOpticsConfig) {
   // Always use i2cEvb to program transceivers if there's an i2cEvb
-  auto powerStateCheckFn = [this]() -> bool {
+  auto powerStateCheckFn = [this, hasTunableOpticsConfig]() -> bool {
     lock_guard<std::mutex> g(qsfpModuleMutex_);
     if (present_) {
       if (!cacheIsValid()) {
@@ -1542,7 +1574,7 @@ bool QsfpModule::readyTransceiver() {
       // Check the transceiver power configuration state and then return
       // accordingly. This function's implementation is dependent on optics
       // type (Cmis, Sff etc)
-      if (ensureTransceiverReadyLocked()) {
+      if (ensureTransceiverReadyLocked(hasTunableOpticsConfig)) {
         // After the transceiver is ready, update the cache with the latest
         // data. Some modules report inconsistent data while the module is not
         // ready, which fails the subsequent calls to program transceiver. Thus
@@ -1586,12 +1618,6 @@ void QsfpModule::setPortStateLocked(bool programEnd) {
   } else {
     portState_.tcvrProgrammingStartTs() = static_cast<int64_t>(ns);
   }
-}
-
-void QsfpModule::publishSnapshots() {
-  auto snapshotsLocked = snapshots_.wlock();
-  snapshotsLocked->publishAllSnapshots();
-  snapshotsLocked->publishFutureSnapshots();
 }
 
 bool QsfpModule::tryRemediate(

@@ -13,8 +13,11 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 
 #include "fboss/agent/AsicUtils.h"
+
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -115,10 +118,8 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          RouterID(0),
-          false,
-          {cfg::PortType::INTERFACE_PORT});
-      resolveNeighborAndProgramRoutes(ecmpHelper, kEcmpWidth);
+          RouterID(0));
+      resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
       // Add the DSCP remarking ACLs
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto l3Asics = getAgentEnsemble()->getL3Asics();
@@ -133,9 +134,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          RouterID(0),
-          false,
-          {cfg::PortType::INTERFACE_PORT});
+          RouterID(0));
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
 
@@ -242,10 +241,10 @@ class AgentDscpMarkingTest : public AgentHwTest {
           vlanId,
           srcMac, // src mac
           intfMac, // dst mac
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"), // src ip
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
-          l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
-          l4DstPort.has_value() ? l4DstPort.value() : 8001,
+          folly::IPAddressV6(kTestSrcIpV6), // src ip
+          folly::IPAddressV6(kTestDstIpV6), // dst ip
+          l4SrcPort.has_value() ? l4SrcPort.value() : kTestSrcPort,
+          l4DstPort.has_value() ? l4DstPort.value() : kTestDstPort,
           dscp << 2, // shifted by 2 bits for ECN
           255 // ttl
       );
@@ -255,10 +254,10 @@ class AgentDscpMarkingTest : public AgentHwTest {
           vlanId,
           srcMac, // src mac
           intfMac, // dst mac
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"), // src ip
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), // dst ip
-          l4SrcPort.has_value() ? l4SrcPort.value() : 8000,
-          l4DstPort.has_value() ? l4DstPort.value() : 8001,
+          folly::IPAddressV6(kTestSrcIpV6), // src ip
+          folly::IPAddressV6(kTestDstIpV6), // dst ip
+          l4SrcPort.has_value() ? l4SrcPort.value() : kTestSrcPort,
+          l4DstPort.has_value() ? l4DstPort.value() : kTestDstPort,
           dscp << 2, // shifted by 2 bits for ECN
           255 // ttl
       );
@@ -274,17 +273,14 @@ class AgentDscpMarkingTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-          RouterID(0),
-          false,
-          {cfg::PortType::INTERFACE_PORT});
-      auto outPort = ecmpHelper.ecmpPortDescriptorAt(kEcmpWidth).phyPortID();
+          RouterID(0));
+      auto outPort =
+          ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
-
-  static inline constexpr auto kEcmpWidth = 1;
 };
 
 // Verify that the DSCP unmarked traffic to specific L4 src/dst ports that

@@ -103,7 +103,7 @@ class PhyManager {
       cfg::PortProfileID portProfileId,
       std::optional<TransceiverInfo> transceiverInfo);
 
-  phy::PhyPortConfig getHwPhyPortConfig(PortID portId);
+  phy::PhyPortConfig getHwPhyPortConfig(PortID portId, bool readFromHw = false);
 
   virtual void programOnePort(
       PortID portId,
@@ -344,18 +344,19 @@ class PhyManager {
   template <typename LockedPtr>
   phy::PhyPortConfig getHwPhyPortConfigLocked(
       const LockedPtr& lockedCache,
-      PortID portID) {
+      PortID portID,
+      bool readFromHw = false) {
     if (lockedCache->systemLanes.empty() || lockedCache->lineLanes.empty()) {
       throw FbossError(
           "Port:", portID, " has not program yet. Can't find the cached info");
     }
     auto* xphy = getExternalPhyLocked(lockedCache);
     return xphy->getConfigOnePort(
-        lockedCache->systemLanes, lockedCache->lineLanes);
+        lockedCache->systemLanes, lockedCache->lineLanes, readFromHw);
   }
 
   // Number of slot in the platform
-  int numOfSlot_;
+  int numOfSlot_{0};
 
   // Since we're planning to allow PhyManager to use SW PortID to change
   // the xphy config for a FBOSS port, and current PlatformMapping has this
@@ -413,6 +414,7 @@ class PhyManager {
   void updatePortStats(
       PortID portID,
       const PimID& pimID,
+      const GlobalXphyID& xphyID,
       phy::ExternalPhy* xphy,
       const PortStatsWLockedPtr& wLockedStats,
       folly::EventBase* pimEvb);

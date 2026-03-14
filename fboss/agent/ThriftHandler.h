@@ -169,6 +169,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       int16_t clientId) override;
   void getRouteTableDetails(std::vector<RouteDetails>& routeTable) override;
 
+  void getRouteTableSize(RouteCount& routeCount) override;
+
   void getPortStatus(
       std::map<int32_t, PortStatus>& status,
       std::unique_ptr<std::vector<int32_t>> ports) override;

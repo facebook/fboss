@@ -137,7 +137,11 @@ void IPv6RAImpl::initPacket(const Interface* intf) {
   buf_.append(totalLength);
   RWPrivateCursor cursor(&buf_);
   IPv6RouteAdvertiser::createAdvertisementPacket(
-      intf, &cursor, MacAddress("33:33:00:00:00:01"), IPAddressV6("ff02::1"));
+      sw_,
+      intf,
+      &cursor,
+      MacAddress("33:33:00:00:00:01"),
+      IPAddressV6("ff02::1"));
 }
 
 void IPv6RAImpl::sendRouteAdvertisement() {
@@ -215,6 +219,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
 }
 
 /* static */ void IPv6RouteAdvertiser::createAdvertisementPacket(
+    SwSwitch* sw,
     const Interface* intf,
     folly::io::RWPrivateCursor* cursor,
     folly::MacAddress dstMac,
@@ -250,32 +255,34 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
   auto serializeBody = [&](RWPrivateCursor* cur) {
     cur->writeBE<uint8_t>(hopLimit);
     cur->writeBE<uint8_t>(flags);
-    cur->writeBE<uint16_t>(lifetime.count());
-    cur->writeBE<uint32_t>(reachableTimer.count());
-    cur->writeBE<uint32_t>(retransTimer.count());
+    cur->writeBE<uint16_t>(static_cast<uint16_t>(lifetime.count()));
+    cur->writeBE<uint32_t>(static_cast<uint32_t>(reachableTimer.count()));
+    cur->writeBE<uint32_t>(static_cast<uint32_t>(retransTimer.count()));
 
     // Source MAC option
-    cur->writeBE<uint8_t>(1); // Option type (src link-layer address)
-    cur->writeBE<uint8_t>(1); // Option length = 1 (x8)
+    cur->writeBE<uint8_t>(
+        static_cast<uint8_t>(1)); // Option type (src link-layer address)
+    cur->writeBE<uint8_t>(static_cast<uint8_t>(1)); // Option length = 1 (x8)
     cur->push(intf->getMac().bytes(), MacAddress::SIZE);
 
     // Prefix options
     for (const auto& prefix : prefixes) {
-      cur->writeBE<uint8_t>(3); // Option type (prefix information)
-      cur->writeBE<uint8_t>(4); // Option length = 4 (x8)
+      cur->writeBE<uint8_t>(
+          static_cast<uint8_t>(3)); // Option type (prefix information)
+      cur->writeBE<uint8_t>(static_cast<uint8_t>(4)); // Option length = 4 (x8)
       cur->writeBE<uint8_t>(prefix.second);
       uint8_t prefixFlags = 0xc0; // on link, autonomous address configuration
       cur->writeBE<uint8_t>(prefixFlags);
       cur->writeBE<uint32_t>(prefixValidLifetime);
       cur->writeBE<uint32_t>(prefixPreferredLifetime);
-      cur->writeBE<uint32_t>(0); // reserved
+      cur->writeBE<uint32_t>(static_cast<uint32_t>(0)); // reserved
       cur->push(prefix.first.bytes(), IPAddressV6::byteCount());
     }
 
     // MTU option
-    cur->writeBE<uint8_t>(5); // Option type (MTU)
-    cur->writeBE<uint8_t>(1); // Option length = 1 (x8)
-    cur->writeBE<uint16_t>(0); // Reserved
+    cur->writeBE<uint8_t>(static_cast<uint8_t>(5)); // Option type (MTU)
+    cur->writeBE<uint8_t>(static_cast<uint8_t>(1)); // Option length = 1 (x8)
+    cur->writeBE<uint16_t>(static_cast<uint16_t>(0)); // Reserved
     cur->writeBE<uint32_t>(mtu);
   };
 
@@ -300,7 +307,7 @@ IPv6RouteAdvertiser& IPv6RouteAdvertiser::operator=(
       cursor,
       dstMac,
       intf->getMac(),
-      intf->getVlanIDIf(),
+      sw->getVlanIDForTx(intf->getID()),
       ipv6,
       bodyLength,
       serializeBody);

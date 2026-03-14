@@ -1964,18 +1964,6 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_XP0R72V_PB_TRVDD_0_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_0/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000"
-        },
-        {
           "name": "SMB_XP0R72V_PB_TRVDD_1_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_6/curr4_input",
           "type": 2,
@@ -1994,18 +1982,6 @@
           "name": "SMB_XP0R72V_PB_TRVDD_1_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_6/temp2_input",
           "type": 3,
-          "compute": "@/1000"
-        },
-        {
-          "name": "SMB_XP0R72V_PB_TRVDD_1_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_6/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
           "compute": "@/1000"
         },
         {
@@ -2030,18 +2006,6 @@
           "compute": "@/1000"
         },
         {
-          "name": "SMB_XP0R72V_PB_TRVDD_2_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_3/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
-          "compute": "@/1000"
-        },
-        {
           "name": "SMB_XP0R72V_PB_TRVDD_3_IOUT",
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_7/curr4_input",
           "type": 2,
@@ -2060,18 +2024,6 @@
           "name": "SMB_XP0R72V_PB_TRVDD_3_TEMP",
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_7/temp2_input",
           "type": 3,
-          "compute": "@/1000"
-        },
-        {
-          "name": "SMB_XP0R72V_PB_TRVDD_3_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_7/in4_input",
-          "type": 1,
-          "thresholds": {
-            "maxAlarmVal": 0.816,
-            "minAlarmVal": 0.792,
-            "upperCriticalVal": 0.92,
-            "lowerCriticalVal": 0
-          },
           "compute": "@/1000"
         },
         {
@@ -2145,7 +2097,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_0/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2178,7 +2130,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_4/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2211,7 +2163,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_1/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2244,7 +2196,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_2/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2277,7 +2229,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_2/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2310,7 +2262,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_5_2/curr4_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2343,7 +2295,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_5_1/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2376,7 +2328,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_3/curr3_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 60
+            "maxAlarmVal": 70
           },
           "compute": "@/1000"
         },
@@ -2409,7 +2361,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_VDDCORE/curr2_input",
           "type": 2,
           "thresholds": {
-            "maxAlarmVal": 1100
+            "maxAlarmVal": 1300
           },
           "compute": "@/1000"
         },
@@ -2574,6 +2526,118 @@
             "lowerCriticalVal": 0
           },
           "compute": "@/1000"
+        }
+      ],
+      "versionedSensors": [
+        {
+          "sensors": [
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.816,
+                "minAlarmVal": 0.792,
+                "upperCriticalVal": 0.92,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 1,
+          "productSubVersion": 10
+        },
+        {
+          "sensors": [
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_0_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_0/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_1_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_6/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_2_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_3/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            },
+            {
+              "name": "SMB_XP0R72V_PB_TRVDD_3_VOUT",
+              "sysfsPath": "/run/devmap/sensors/SMB_ASIC_MONITOR_7/in4_input",
+              "type": 1,
+              "thresholds": {
+                "maxAlarmVal": 0.742,
+                "minAlarmVal": 0.698,
+                "upperCriticalVal": 0.828,
+                "lowerCriticalVal": 0
+              },
+              "compute": "@/1000"
+            }
+          ],
+          "productProductionState": 1,
+          "productVersion": 4,
+          "productSubVersion": 10
         }
       ]
     }

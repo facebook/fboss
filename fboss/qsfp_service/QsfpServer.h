@@ -29,4 +29,6 @@ int doServerLoop(
     std::shared_ptr<QsfpServiceHandler> handler);
 
 void initFlagDefaultsFromQsfpConfig();
+void stopQsfpServerGracefully(
+    std::shared_ptr<apache::thrift::ThriftServer> thriftServer);
 } // namespace facebook::fboss

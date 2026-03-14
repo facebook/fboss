@@ -246,6 +246,10 @@ class TestPublisher : public PublisherT {
     blockStream_.store(false);
   }
 
+  bool isInitialSyncComplete() const {
+    return PublisherT::initialSyncComplete_.load();
+  }
+
  private:
   folly::Baton<> generatorStart_;
   std::atomic<bool> blockStream_{false};
@@ -373,10 +377,20 @@ class DeltaPublisherTest : public ::testing::Test {
     FLAGS_publish_queue_full_min_updates =
         (TestPublisher<FsdbDeltaPublisher>::publishQueueSize - 4);
     FLAGS_publish_queue_memory_limit_mb = 1;
+    // Disable heartbeat to prevent it from adding items to the queue
+    // during the test.
+    FLAGS_fsdb_publisher_heartbeat_interval_secs = 0;
     streamEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
     connRetryEvbThread_ = std::make_unique<folly::ScopedEventBaseThread>();
     streamPublisher_ = std::make_unique<TestPublisher<FsdbDeltaPublisher>>(
         streamEvbThread_->getEventBase(), connRetryEvbThread_->getEventBase());
+
+    fb303::ThreadCachedServiceData::get()->publishStats();
+    initialChunksWritten_ =
+        fb303::ServiceData::get()
+            ->getCounterIfExists(
+                streamPublisher_->getCounterPrefix() + ".chunksWritten.sum")
+            .value_or(0);
   }
 
   void TearDown() override {
@@ -394,6 +408,7 @@ class DeltaPublisherTest : public ::testing::Test {
   std::unique_ptr<folly::ScopedEventBaseThread> streamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> connRetryEvbThread_;
   std::unique_ptr<TestPublisher<FsdbDeltaPublisher>> streamPublisher_;
+  int64_t initialChunksWritten_{0};
 };
 
 TEST_F(DeltaPublisherTest, publisherQueueMemoryLimit) {
@@ -412,15 +427,23 @@ TEST_F(DeltaPublisherTest, publisherQueueMemoryLimit) {
   // Start the generator so serveStream begins consuming
   streamPublisher_->startGenerator();
 
-  // verify initial update is written
+  // verify initial update is written (check delta from initial value)
   streamPublisher_->write(OperDelta{});
   WITH_RETRIES({
     fb303::ThreadCachedServiceData::get()->publishStats();
     EXPECT_EVENTUALLY_EQ(
         fb303::ServiceData::get()->getCounter(
-            counterPrefix + ".chunksWritten.sum"),
+            counterPrefix + ".chunksWritten.sum") -
+            initialChunksWritten_,
         1);
   });
+
+  // Wait for serveStream to consume the initial update before blocking.
+  // This ensures the queue is empty when we start the memory limit test.
+  // Without this, there's a race where the initial update may still be
+  // in the queue, causing the memory check to trigger prematurely.
+  WITH_RETRIES(
+      { EXPECT_EVENTUALLY_TRUE(streamPublisher_->isInitialSyncComplete()); });
 
   // Block serveStream after initial consumption to simulate stuck processing
   streamPublisher_->blockStream();

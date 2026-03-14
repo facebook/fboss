@@ -9,13 +9,12 @@ namespace facebook::fboss {
 GalaxyManager::GalaxyManager(
     PlatformType mode,
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
     : WedgeManager(
           std::make_unique<TransceiverPlatformI2cApi>(&i2cBus_),
           platformMapping,
           mode,
-          threads) {}
+          qsfpServiceThreads) {}
 // TODO: Will fully migrate I2CBusApi into TransceiverPlatformApi. Then we will
 // construct the bus pointer before construct WedgeManager and will get rid of
 // getI2CBus at that time.

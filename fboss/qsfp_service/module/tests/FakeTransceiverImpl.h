@@ -191,5 +191,12 @@ class CmisCredo800AEC : public FakeTransceiverImpl {
   explicit CmisCredo800AEC(int module, TransceiverManager* mgr);
 };
 
+class InvalidDatapathLaneStateTransceiver : public FakeTransceiverImpl {
+ public:
+  explicit InvalidDatapathLaneStateTransceiver(
+      int module,
+      TransceiverManager* mgr);
+};
+
 } // namespace fboss
 } // namespace facebook

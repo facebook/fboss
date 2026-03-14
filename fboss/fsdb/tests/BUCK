@@ -12,9 +12,10 @@ thrift_library(
     plugins = [
         thrift_plugin_thriftpath(),
     ],
-    thrift_cpp2_options = "json,reflection",
+    thrift_cpp2_options = "json",
     thrift_srcs = {"thriftpath_test.thrift": []},
     deps = [
+        "//configerator/structs/neteng/fboss/thrift:common",
         "//thrift/annotation:cpp",
         "//thrift/annotation:thrift",
     ],

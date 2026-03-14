@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/types.h"
@@ -67,6 +68,16 @@ class MultiSwitchFibInfoMap
     return nullptr;
   }
 
+  // Get FibContainer directly by RouterID - throws if not found
+  std::shared_ptr<ForwardingInformationBaseContainer> getFibContainer(
+      RouterID vrf) const {
+    auto container = getFibContainerIf(vrf);
+    if (!container) {
+      throw FbossError("FibContainer not found for VRF: ", vrf);
+    }
+    return container;
+  }
+
   // Get FibContainer from the specified switch in HwSwitchMatcher and RouterID
   // Returns ForwardingInformationBaseContainer
   std::shared_ptr<ForwardingInformationBaseContainer> getFibContainerIf(
@@ -89,8 +100,29 @@ class MultiSwitchFibInfoMap
   // MultiSwitchForwardingInformationBaseMap::getAllNodes() behavior
   std::shared_ptr<ForwardingInformationBaseMap> getAllFibNodes() const;
 
+  // Find which FibInfo contains a specific FibContainer
+  // Returns the FibInfo that contains the container, or nullptr if not found
+  std::shared_ptr<FibInfo> findFibInfoForContainer(
+      const ForwardingInformationBaseContainer* container) const {
+    for (const auto& [_, fibInfo] : std::as_const(*this)) {
+      auto fibsMap = fibInfo->getfibsMap();
+      if (!fibsMap) {
+        continue;
+      }
+      auto foundContainer = fibsMap->getNodeIf(container->getID());
+
+      if (foundContainer && foundContainer.get() == container) {
+        return fibInfo;
+      }
+    }
+    return nullptr;
+  }
+
   // Get total route count across all FibInfo objects (v4, v6)
   std::pair<uint64_t, uint64_t> getRouteCount() const;
+
+  // Get total number of VRFs across all FibInfo objects
+  size_t getVrfCount() const;
 
   MultiSwitchFibInfoMap* modify(std::shared_ptr<SwitchState>* state);
 

@@ -39,7 +39,7 @@ add_library(led_config
 )
 
 target_link_libraries(led_config
-  error
+  fboss_error
   led_config_cpp2
   Folly::folly
   FBThrift::thriftcpp2
@@ -62,21 +62,25 @@ add_library(led_manager_lib
   fboss/led_service/LedUtils.cpp
   fboss/led_service/MinipackBaseLedManager.cpp
   fboss/led_service/MontblancLedManager.cpp
+  fboss/led_service/Icecube800banwLedManager.cpp
   fboss/led_service/Icecube800bcLedManager.cpp
   fboss/led_service/Icetea800bcLedManager.cpp
   fboss/led_service/Meru800biaLedManager.cpp
   fboss/led_service/Meru800bfaLedManager.cpp
   fboss/led_service/Morgan800ccLedManager.cpp
+  fboss/led_service/Minipack3BTALedManager.cpp
   fboss/led_service/Minipack3NLedManager.cpp
   fboss/led_service/Janga800bicLedManager.cpp
   fboss/led_service/Tahan800bcLedManager.cpp
   fboss/led_service/Tahansb800bcLedManager.cpp
   fboss/led_service/Wedge800BACTLedManager.cpp
+  fboss/led_service/Wedge800CACTLedManager.cpp
   fboss/led_service/Ladakh800bclsLedManager.cpp
 )
 
 target_link_libraries(led_manager_lib
   bsp_platform_mapping_cpp2
+  common_port_utils
   qsfp_bsp_core
   ledIO
   led_config
@@ -84,6 +88,7 @@ target_link_libraries(led_manager_lib
   log_thrift_call
   led_utils
   montblanc_bsp
+  icecube800banw_bsp
   icecube800bc_bsp
   icetea800bc_bsp
   meru800bia_bsp
@@ -98,8 +103,10 @@ target_link_libraries(led_manager_lib
   fuji_platform_mapping
   janga800bic_platform_mapping
   minipack_platform_mapping
+  minipack3bta_platform_mapping
   minipack3n_platform_mapping
   montblanc_platform_mapping
+  icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   meru800bia_platform_mapping
@@ -108,8 +115,10 @@ target_link_libraries(led_manager_lib
   tahan800bc_platform_mapping
   tahansb800bc_platform_mapping
   ladakh800bcls_platform_mapping
+  wedge400_fpga
   wedge400_platform_mapping
   wedge800bact_platform_mapping
+  wedge800cact_platform_mapping
   yamp_platform_mapping
   product_info
   Folly::folly

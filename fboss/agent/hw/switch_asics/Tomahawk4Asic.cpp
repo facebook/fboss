@@ -59,6 +59,7 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::ROUTE_COUNTERS:
@@ -125,6 +126,8 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return true;
     // features not working well with bcmsim
     case HwAsic::Feature::MIRROR_PACKET_TRUNCATION:
@@ -180,11 +183,13 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
@@ -240,6 +245,10 @@ bool Tomahawk4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
+    case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
       return false;
   }
   return false;
@@ -280,11 +289,11 @@ int Tomahawk4Asic::getStationID(int intfId) const {
 
 int Tomahawk4Asic::getNumLanesPerPhysicalPort() const {
   /*
-    In each Blackhawk7 core, there are 4 phyiscal ports and (up to) 4 logical
-    ports but 8 physical lanes. Therefore, when calculating the physical_port of
-    bcm_port_resource_t when using flexing port logic, we need to use
-    numLanesPerPhysicalPort to divide physical lanes, which is learned from
-    PlatformMapping.
+    In each Blackhawk7 core, there are 4 phyiscal ports and (up to) 4
+    logical ports but 8 physical lanes. Therefore, when calculating the
+    physical_port of bcm_port_resource_t when using flexing port logic, we
+    need to use numLanesPerPhysicalPort to divide physical lanes, which is
+    learned from PlatformMapping.
   */
   return 2;
 }
@@ -324,6 +333,10 @@ std::optional<uint32_t> Tomahawk4Asic::getMaxArsGroups() const {
 
 std::optional<uint32_t> Tomahawk4Asic::getArsBaseIndex() const {
   return getMaxEcmpGroups().value() - getMaxArsGroups().value();
+}
+
+std::optional<uint32_t> Tomahawk4Asic::getMaxArsWidth() const {
+  return 64;
 }
 
 } // namespace facebook::fboss

@@ -30,6 +30,7 @@ thrift_library(
     deps = [
         "//fboss/mka_service/if:mka_structs",
         "//thrift/annotation:cpp",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -114,9 +115,9 @@ cpp_library(
     ],
     exported_deps = [
         "//fboss/agent:agent_dir_util",
+        "//fboss/agent:agent_features",
         "//fboss/agent:async_logger",
         "//fboss/agent:fboss-error",
-        "//fboss/agent:sw_switch_warmboot_helper",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent:utils",
         "//fboss/agent/state:state",

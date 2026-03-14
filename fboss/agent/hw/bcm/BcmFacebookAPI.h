@@ -10,6 +10,7 @@
 #pragma once
 
 #include <folly/String.h>
+#include <folly/Utility.h>
 #include <folly/container/F14Map.h>
 
 #include <map>
@@ -22,10 +23,10 @@ class BcmFacebookAPI {
   /*
    * A class for receiving log messages from the Broadcom SDK.
    */
-  class LogListener {
+  class LogListener : public folly::NonCopyableNonMovable {
    public:
-    LogListener() {}
-    virtual ~LogListener() {}
+    LogListener() = default;
+    virtual ~LogListener() = default;
 
     virtual void vprintf(const char* fmt, va_list varg) = 0;
   };

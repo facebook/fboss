@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/state/UdfConfig.h"
-#include "fboss/agent/gen-cpp2/switch_config_fatal.h"
 
 namespace facebook::fboss {
 

@@ -13,7 +13,7 @@
 
 namespace facebook::fboss {
 
-class YubaAsic;
+class G202xAsic;
 
 class SaiWedge800CACTPlatform : public SaiTajoPlatform {
  public:
@@ -35,7 +35,7 @@ class SaiWedge800CACTPlatform : public SaiTajoPlatform {
       std::optional<int64_t> switchId,
       const cfg::SwitchInfo& switchInfo,
       std::optional<HwAsic::FabricNodeRole> fabricNodeRole) override;
-  std::unique_ptr<YubaAsic> asic_;
+  std::unique_ptr<G202xAsic> asic_;
 };
 
 } // namespace facebook::fboss

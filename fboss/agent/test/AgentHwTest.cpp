@@ -3,6 +3,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/NeighborUpdater.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
@@ -64,6 +65,13 @@ void AgentHwTest::SetUp() {
           XLOG(FATAL) << "Failed to create initial config: " << e.what();
         }
       };
+
+  // Create init info with initial values - tests can override via
+  // overrideTestEnsembleInitInfo
+  TestEnsembleInitInfo initInfo;
+  initInfo.failHwCallsOnWarmboot = failHwCallsOnWarmboot();
+  overrideTestEnsembleInitInfo(initInfo);
+
   agentEnsemble_ = createAgentEnsemble(
       initialConfigFn,
       FLAGS_disable_link_toggler /*disableLinkStateToggler*/,
@@ -73,7 +81,7 @@ void AgentHwTest::SetUp() {
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED |
        HwSwitch::FeaturesDesired::TAM_EVENT_NOTIFY_DESIRED),
-      failHwCallsOnWarmboot());
+      initInfo);
 }
 
 void AgentHwTest::setCmdLineFlagOverrides() const {
@@ -81,6 +89,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_enable_snapshot_debugs = false;
   FLAGS_verify_apply_oper_delta = true;
   FLAGS_hide_fabric_ports = true;
+  // hide all interface ports to ensure hyper port is used in test run
+  FLAGS_hide_interface_ports = FLAGS_hyper_port;
   // Don't send/receive periodic lldp packets. They will
   // interfere with tests.
   FLAGS_enable_lldp = false;
@@ -111,6 +121,8 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
   FLAGS_update_stats_interval_s = 1;
+  FLAGS_enable_nexthop_id_manager = true;
+  FLAGS_verify_fib_nexthop_id_consistency = true;
 }
 
 void AgentHwTest::TearDown() {
@@ -156,6 +168,22 @@ SwSwitch* AgentHwTest::getSw() const {
   return agentEnsemble_->getSw();
 }
 
+SwitchID AgentHwTest::getCurrentSwitchIdForTesting() const {
+  return SwitchID(FLAGS_switch_id_for_testing);
+}
+
+SwitchID AgentHwTest::getSwitchIdUnderTest(const AgentEnsemble& ensemble) {
+  return ensemble.getSw()
+      ->getScopeResolver()
+      ->scope(ensemble.masterLogicalPortIds()[0])
+      .switchId();
+}
+
+bool AgentHwTest::sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) {
+  return getSw()->sendPacketSwitchedAsync(
+      std::move(pkt), {getSwitchIdUnderTest(*getAgentEnsemble())});
+}
+
 const std::map<SwitchID, const HwAsic*> AgentHwTest::getAsics() const {
   return agentEnsemble_->getSw()->getHwAsicTable()->getHwAsics();
 }
@@ -174,8 +202,13 @@ const std::shared_ptr<SwitchState> AgentHwTest::getProgrammedState() const {
   return getAgentEnsemble()->getProgrammedState();
 }
 
-std::vector<PortID> AgentHwTest::masterLogicalPortIds() const {
-  return getAgentEnsemble()->masterLogicalPortIds();
+std::vector<PortID> AgentHwTest::masterLogicalPortIds(
+    std::optional<SwitchID> switchId) const {
+  // If no switchIndex provided, return default filtered ports
+  if (!switchId.has_value()) {
+    return getAgentEnsemble()->masterLogicalPortIds();
+  }
+  return getAgentEnsemble()->masterLogicalPortIds(switchId.value());
 }
 
 std::vector<PortID> AgentHwTest::masterLogicalPortIds(
@@ -581,64 +614,28 @@ const HwAsic* AgentHwTest::hwAsicForSwitch(SwitchID switchID) const {
 
 void AgentHwTest::populateArpNeighborsToCache(
     const std::shared_ptr<Interface>& interface) {
-  if (FLAGS_intf_nbr_tables) {
-    auto arpCache = getAgentEnsemble()
-                        ->getSw()
-                        ->getNeighborUpdater()
-                        ->getArpCacheForIntf(interface->getID())
-                        .get();
-    getAgentEnsemble()
-        ->getSw()
-        ->getNeighborCacheEvb()
-        ->runInFbossEventBaseThread([interface, arpCache] {
-          arpCache->repopulate(interface->getArpTable());
-        });
-  } else {
-    auto vlan =
-        getProgrammedState()->getVlans()->getNodeIf(interface->getVlanID());
-
-    auto arpCache = getAgentEnsemble()
-                        ->getSw()
-                        ->getNeighborUpdater()
-                        ->getArpCacheFor(vlan->getID())
-                        .get();
-    getAgentEnsemble()
-        ->getSw()
-        ->getNeighborCacheEvb()
-        ->runInFbossEventBaseThread(
-            [vlan, arpCache] { arpCache->repopulate(vlan->getArpTable()); });
-  }
+  auto arpCache = getAgentEnsemble()
+                      ->getSw()
+                      ->getNeighborUpdater()
+                      ->getArpCacheForIntf(interface->getID())
+                      .get();
+  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInFbossEventBaseThread(
+      [interface, arpCache] {
+        arpCache->repopulate(interface->getArpTable());
+      });
 }
 
 void AgentHwTest::populateNdpNeighborsToCache(
     const std::shared_ptr<Interface>& interface) {
-  if (FLAGS_intf_nbr_tables) {
-    auto ndpCache = getAgentEnsemble()
-                        ->getSw()
-                        ->getNeighborUpdater()
-                        ->getNdpCacheForIntf(interface->getID())
-                        .get();
-    getAgentEnsemble()
-        ->getSw()
-        ->getNeighborCacheEvb()
-        ->runInFbossEventBaseThread([interface, ndpCache] {
-          ndpCache->repopulate(interface->getNdpTable());
-        });
-  } else {
-    auto vlan =
-        getProgrammedState()->getVlans()->getNodeIf(interface->getVlanID());
-
-    auto ndpCache = getAgentEnsemble()
-                        ->getSw()
-                        ->getNeighborUpdater()
-                        ->getNdpCacheFor(vlan->getID())
-                        .get();
-    getAgentEnsemble()
-        ->getSw()
-        ->getNeighborCacheEvb()
-        ->runInFbossEventBaseThread(
-            [vlan, ndpCache] { ndpCache->repopulate(vlan->getNdpTable()); });
-  }
+  auto ndpCache = getAgentEnsemble()
+                      ->getSw()
+                      ->getNeighborUpdater()
+                      ->getNdpCacheForIntf(interface->getID())
+                      .get();
+  getAgentEnsemble()->getSw()->getNeighborCacheEvb()->runInFbossEventBaseThread(
+      [interface, ndpCache] {
+        ndpCache->repopulate(interface->getNdpTable());
+      });
 }
 
 bool isWarmbootSetupRequested() {

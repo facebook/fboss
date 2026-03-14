@@ -31,11 +31,12 @@ bool recurseCheckPortOwnsChip(
       if (zJunction.system().value().chip().value() == chip.name().value()) {
         return true;
       }
-      for (const auto& connection : zJunction.line().value()) {
+      const auto& connections = zJunction.line().value();
+      if (!connections.empty()) {
         // Because one port can only use one iphy, one xphy, one transceiver,
         // and if one PinConnection can't find this chip, you won't find
         // this chip on another PinConnection of the same port
-        return recurseCheckPortOwnsChip(connection, chip);
+        return recurseCheckPortOwnsChip(connections.front(), chip);
       }
     }
   }
@@ -553,7 +554,6 @@ PortToTcvrMap getPortToTcvrMap(
     if (transceiverIds.empty()) {
       XLOG(INFO) << "Did not find corresponding TransceiverIDs for PortID: "
                  << portIdInt;
-      continue;
     }
 
     // Add all transceivers to the port-indexed transceiver group.
@@ -564,5 +564,35 @@ PortToTcvrMap getPortToTcvrMap(
   }
 
   return portToTcvrMap;
+}
+
+std::vector<PortID> getPortIdsWithTransceiverOrXphy(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+  std::vector<PortID> portIds;
+
+  for (const auto& [portId, portEntry] : platformPorts) {
+    auto tcvrs = utility::getDataPlanePhyChips(
+        portEntry, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
+    if (!tcvrs.empty()) {
+      portIds.emplace_back(portId);
+      continue;
+    }
+    auto xphys = utility::getDataPlanePhyChips(
+        portEntry, chipsMap, phy::DataPlanePhyChipType::XPHY);
+    if (!xphys.empty()) {
+      portIds.emplace_back(portId);
+    }
+  }
+
+  return portIds;
+}
+
+bool hasTransceiver(
+    const cfg::PlatformPortEntry& port,
+    const std::map<std::string, phy::DataPlanePhyChip>& chipsMap) {
+  auto transceiverChips = getDataPlanePhyChips(
+      port, chipsMap, phy::DataPlanePhyChipType::TRANSCEIVER);
+  return !transceiverChips.empty();
 }
 } // namespace facebook::fboss::utility

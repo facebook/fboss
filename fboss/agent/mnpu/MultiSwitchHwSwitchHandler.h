@@ -32,7 +32,7 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept override;
+      PacketType packetType) noexcept override;
 
   bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const override;
@@ -42,7 +42,9 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       bool transaction,
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) override;
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt) override;
 
   std::map<PortID, FabricEndpoint> getFabricConnectivity() const override;
 
@@ -64,11 +66,13 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       std::unique_ptr<TxPacket> pkt,
       std::optional<PortID> portID = std::nullopt,
       std::optional<uint8_t> queue = std::nullopt,
-      std::optional<TxPacketType> packetType = std::nullopt);
+      std::optional<PacketType> packetType = std::nullopt);
 
   SwitchRunState getHwSwitchRunState() override;
 
   state::SwitchState reconstructSwitchState() override;
+
+  bool isValidStateUpdate(const StateDelta& delta) const override;
 
  private:
   bool checkOperSyncStateLocked(
@@ -99,7 +103,9 @@ class MultiSwitchHwSwitchHandler : public HwSwitchHandler {
       const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
       int64_t lastSeqNum,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
   void operDeltaAckTimeout();
 
   SwSwitch* sw_;

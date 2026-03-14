@@ -47,11 +47,12 @@ class Sff8472Module : public QsfpModule {
   }
 
   void customizeTransceiverLocked(
-      TransceiverPortState& /* portState */) override {}
+      const TransceiverPortState& /* portState */) override {}
 
   bool tcvrPortStateSupported(TransceiverPortState& portState) const override;
 
-  virtual bool ensureTransceiverReadyLocked() override {
+  virtual bool ensureTransceiverReadyLocked(
+      bool /* hasTunableOpticsConfig */) override {
     return true;
   }
 
@@ -128,7 +129,7 @@ class Sff8472Module : public QsfpModule {
     return true;
   }
 
-  void resetDataPath() override {
+  void resetDataPath(const std::string& /* portName */) override {
     // no-op
   }
 

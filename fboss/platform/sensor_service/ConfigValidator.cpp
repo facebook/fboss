@@ -9,9 +9,6 @@
 
 namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
-namespace {
-const re2::RE2 kSensorSymlinkRegex{"(?P<Path>/run/devmap/sensors/.+)(/.+)+"};
-}; // namespace
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   XLOG(INFO) << "Validating sensor_service config";
@@ -190,6 +187,12 @@ bool ConfigValidator::isValidPowerConfig(
   }
 
   // Validate inputVoltageSensors
+  // inputVoltageSensors is mandatory and must not be empty
+  if (powerConfig.inputVoltageSensors()->empty()) {
+    XLOG(ERR) << "inputVoltageSensors must be defined and non-empty";
+    return false;
+  }
+
   for (const auto& sensorName : *powerConfig.inputVoltageSensors()) {
     if (universalSensorNames.count(sensorName) == 0) {
       XLOG(ERR) << fmt::format(

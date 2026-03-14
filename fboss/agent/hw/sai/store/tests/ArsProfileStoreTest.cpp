@@ -29,8 +29,10 @@ class ArsProfileStoreTest : public SaiStoreTest {
          60,
          600,
          6000,
-         true,
-         20,
+         std::optional<SaiArsProfileTraits::Attributes::PortLoadFuture>{
+             SaiArsProfileTraits::Attributes::PortLoadFuture{true}},
+         std::optional<SaiArsProfileTraits::Attributes::PortLoadFutureWeight>{
+             SaiArsProfileTraits::Attributes::PortLoadFutureWeight{20}},
          200,
          2000,
          true,
@@ -69,8 +71,10 @@ TEST_F(ArsProfileStoreTest, arsProfileCreateCtor) {
       60,
       600,
       6000,
-      true,
-      20,
+      std::optional<SaiArsProfileTraits::Attributes::PortLoadFuture>{
+          SaiArsProfileTraits::Attributes::PortLoadFuture{true}},
+      std::optional<SaiArsProfileTraits::Attributes::PortLoadFutureWeight>{
+          SaiArsProfileTraits::Attributes::PortLoadFutureWeight{20}},
       200,
       2000,
       true,

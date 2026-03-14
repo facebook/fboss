@@ -171,9 +171,16 @@ TEST_F(AgentVoqSwitchScaleTest, remoteAndLocalLoadBalance) {
           getSw()->clearPortStats(ports);
         },
         [&]() {
-          WITH_RETRIES(EXPECT_EVENTUALLY_TRUE(
-              utility::isLoadBalanced(
-                  sysPortDescs, {}, getSysPortStatsFn, kMaxDeviation, false)));
+          WITH_RETRIES_N_TIMED(
+              50,
+              std::chrono::milliseconds(2000),
+              EXPECT_EVENTUALLY_TRUE(
+                  utility::isLoadBalanced(
+                      sysPortDescs,
+                      {},
+                      getSysPortStatsFn,
+                      kMaxDeviation,
+                      false)));
           return true;
         });
   };

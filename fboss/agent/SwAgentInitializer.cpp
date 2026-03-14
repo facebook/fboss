@@ -23,6 +23,10 @@ DEFINE_bool(enable_lacp, false, "Run LACP in agent");
 DEFINE_bool(enable_lldp, true, "Run LLDP protocol in agent");
 DEFINE_bool(publish_boot_type, true, "Publish boot type on startup");
 DEFINE_bool(enable_macsec, false, "Enable Macsec functionality");
+DEFINE_bool(
+    enable_aifm_ctrl_handler,
+    false,
+    "Enable Aifm control packet handler");
 DEFINE_bool(enable_stats_update_thread, true, "Run stats update thread");
 
 DEFINE_int32(port, 5909, "The thrift server port");
@@ -285,6 +289,22 @@ int SwAgentInitializer::initAgent(
     std::unique_lock<std::mutex> lk(serverStopMutex_);
     serverStarted_ = true;
   }
+
+  // In BRCM DNX simulator mode, wait for HW switch initialization to complete
+  // before starting the ThriftServer event loop. The BRCM DNX adapter code
+  // uses select()/FD_SET which crashes if any FD >= FD_SETSIZE (1024).
+  // Deferring serve() prevents ThriftServer's IO worker threads from consuming
+  // FD numbers concurrently with the SDK's adapter socket creation.
+  //
+  // TODO: This change is a temporary workaround to unblock DNX simulator
+  // on-diff and NPI testing. BRCM is working on fixing this in SDK. This
+  // workaround will be reverted when proper fix is available in SDK.
+  if (std::getenv("ADAPTER_SERVER_MODE")) {
+    XLOG(DBG2) << "BRCM DNX SIM mode: waiting for init to complete before "
+               << "starting ThriftServer event loop";
+    initializer_->waitForInitDone();
+  }
+
   XLOG(DBG2) << "serving on localhost on port " << FLAGS_port << " and "
              << FLAGS_migrated_port;
   // @lint-ignore CLANGTIDY

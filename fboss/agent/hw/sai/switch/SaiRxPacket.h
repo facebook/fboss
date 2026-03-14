@@ -24,7 +24,8 @@ class SaiRxPacket : public RxPacket {
       PortID portID,
       std::optional<VlanID> vlanID,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId,
+      std::optional<PacketType> packetType = std::nullopt);
 
   SaiRxPacket(
       size_t buffer_size,
@@ -32,7 +33,8 @@ class SaiRxPacket : public RxPacket {
       AggregatePortID aggregatePortID,
       std::optional<VlanID> vlanID,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId,
+      std::optional<PacketType> packetType = std::nullopt);
   /*
    * Set the port on which this packet was received.
    */
@@ -52,6 +54,13 @@ class SaiRxPacket : public RxPacket {
   void setSrcAggregatePort(AggregatePortID srcAggregatePort) {
     isFromAggregatePort_ = true;
     srcAggregatePort_ = srcAggregatePort;
+  }
+
+  /*
+   * Set the packet type for this received packet.
+   */
+  void setPacketType(std::optional<PacketType> packetType) {
+    packetType_ = packetType;
   }
 
   std::string describeDetails() const override;

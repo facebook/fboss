@@ -1,11 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <chrono>
+
 #include <gtest/gtest.h>
 
 #include "fboss/platform/platform_manager/Utils.h"
 
-namespace fs = std::filesystem;
-using namespace ::testing;
 using namespace facebook::fboss::platform::platform_manager;
 
 namespace {
@@ -14,7 +14,7 @@ std::pair<std::string, std::string> makeDevicePathPair(
     std::string deviceName) {
   return std::make_pair(slotPath, deviceName);
 }
-}; // namespace
+} // namespace
 
 TEST(UtilsTest, ParseDevicePath) {
   EXPECT_EQ(
@@ -28,6 +28,16 @@ TEST(UtilsTest, ParseDevicePath) {
   EXPECT_NO_THROW(Utils().parseDevicePath("ABCDE/[abc]"));
   EXPECT_NO_THROW(Utils().parseDevicePath("/MCB_SLOT/[abc]"));
   EXPECT_NO_THROW(Utils().parseDevicePath("/MCB_SLOT@1/[]"));
+}
+
+TEST(UtilsTest, CreateDevicePath) {
+  Utils utils;
+  EXPECT_EQ("/[IDPROM]", utils.createDevicePath("/", "IDPROM"));
+  EXPECT_EQ(
+      "/MCB_SLOT@0/[sensor]", utils.createDevicePath("/MCB_SLOT@0", "sensor"));
+  EXPECT_EQ(
+      "/MCB_SLOT@0/SMB_SLOT@11/[SMB_IOB_I2C_1]",
+      utils.createDevicePath("/MCB_SLOT@0/SMB_SLOT@11", "SMB_IOB_I2C_1"));
 }
 
 TEST(UtilsTest, ComputeHexExpression) {
@@ -165,4 +175,128 @@ TEST(UtilsTest, ConvertHexLiteralsToDecimal) {
   EXPECT_EQ(
       "255 + @port * 16",
       utils.convertHexLiteralsToDecimal("0xff + @port * 0x10"));
+}
+
+TEST(UtilsTest, FormatExpression) {
+  Utils utils;
+  EXPECT_EQ(
+      "0x1000 + (1 - 1)*0x4",
+      utils.formatExpression(
+          "0x1000 + ({portNum} - {startPort})*0x4", 1, 1, std::nullopt));
+  EXPECT_EQ(
+      "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4",
+      utils.formatExpression(
+          "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+          2,
+          1,
+          2));
+  EXPECT_EQ("5", utils.formatExpression("{portNum}", 5, 0, std::nullopt));
+  EXPECT_EQ("3", utils.formatExpression("{ledNum}", 0, 0, 3));
+}
+
+TEST(UtilsTest, CheckDeviceReadiness) {
+  Utils utils;
+
+  EXPECT_TRUE(utils.checkDeviceReadiness(
+      []() { return true; }, "ready", std::chrono::seconds(1)));
+  EXPECT_FALSE(utils.checkDeviceReadiness(
+      []() { return false; }, "not ready", std::chrono::seconds(0)));
+
+  int callCount = 0;
+  EXPECT_TRUE(utils.checkDeviceReadiness(
+      [&callCount]() { return ++callCount >= 3; },
+      "waiting",
+      std::chrono::seconds(5)));
+  EXPECT_GE(callCount, 3);
+}
+
+TEST(UtilsTest, CreateXcvrCtrlConfigs) {
+  PciDeviceConfig pciDeviceConfig;
+  pciDeviceConfig.xcvrCtrlBlockConfigs() = {};
+  EXPECT_TRUE(Utils::createXcvrCtrlConfigs(pciDeviceConfig).empty());
+
+  XcvrCtrlBlockConfig xcvrBlock;
+  xcvrBlock.pmUnitScopedNamePrefix() = "SMB_XCVR";
+  xcvrBlock.deviceName() = "fbiob-xcvr";
+  xcvrBlock.csrOffsetCalc() = "0x1000 + ({portNum} - {startPort})*0x4";
+  xcvrBlock.numPorts() = 2;
+  xcvrBlock.startPort() = 1;
+  xcvrBlock.iobufOffsetCalc() = "0x2000 + ({portNum} - {startPort})*0x4";
+  pciDeviceConfig.xcvrCtrlBlockConfigs() = {xcvrBlock};
+
+  auto configs = Utils::createXcvrCtrlConfigs(pciDeviceConfig);
+  EXPECT_EQ(2, configs.size());
+  EXPECT_EQ(
+      "SMB_XCVR_XCVR_CTRL_PORT_1",
+      *configs[0].fpgaIpBlockConfig()->pmUnitScopedName());
+  EXPECT_EQ("0x1000", *configs[0].fpgaIpBlockConfig()->csrOffset());
+  EXPECT_EQ("0x2000", *configs[0].fpgaIpBlockConfig()->iobufOffset());
+  EXPECT_EQ(1, *configs[0].portNumber());
+  EXPECT_EQ("0x1004", *configs[1].fpgaIpBlockConfig()->csrOffset());
+  EXPECT_EQ(2, *configs[1].portNumber());
+
+  xcvrBlock.iobufOffsetCalc() = "";
+  pciDeviceConfig.xcvrCtrlBlockConfigs() = {xcvrBlock};
+  configs = Utils::createXcvrCtrlConfigs(pciDeviceConfig);
+  EXPECT_TRUE(configs[0].fpgaIpBlockConfig()->iobufOffset()->empty());
+}
+
+TEST(UtilsTest, CreateLedCtrlConfigs) {
+  PciDeviceConfig pciDeviceConfig;
+  pciDeviceConfig.ledCtrlBlockConfigs() = {};
+  EXPECT_TRUE(Utils::createLedCtrlConfigs(pciDeviceConfig).empty());
+
+  LedCtrlBlockConfig ledBlock;
+  ledBlock.pmUnitScopedNamePrefix() = "LED_CTRL";
+  ledBlock.deviceName() = "fbiob-led";
+  ledBlock.csrOffsetCalc() =
+      "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4";
+  ledBlock.numPorts() = 2;
+  ledBlock.ledPerPort() = 2;
+  ledBlock.startPort() = 1;
+  ledBlock.iobufOffsetCalc() =
+      "0x2000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4";
+  pciDeviceConfig.ledCtrlBlockConfigs() = {ledBlock};
+
+  auto configs = Utils::createLedCtrlConfigs(pciDeviceConfig);
+  EXPECT_EQ(4, configs.size());
+  EXPECT_EQ(
+      "LED_CTRL_PORT_1_LED_1",
+      *configs[0].fpgaIpBlockConfig()->pmUnitScopedName());
+  EXPECT_EQ("0x1000", *configs[0].fpgaIpBlockConfig()->csrOffset());
+  EXPECT_EQ("0x2000", *configs[0].fpgaIpBlockConfig()->iobufOffset());
+  EXPECT_EQ(1, *configs[0].portNumber());
+  EXPECT_EQ(1, *configs[0].ledId());
+  EXPECT_EQ("0x100c", *configs[3].fpgaIpBlockConfig()->csrOffset());
+  EXPECT_EQ(2, *configs[3].portNumber());
+  EXPECT_EQ(2, *configs[3].ledId());
+
+  ledBlock.iobufOffsetCalc() = "";
+  pciDeviceConfig.ledCtrlBlockConfigs() = {ledBlock};
+  configs = Utils::createLedCtrlConfigs(pciDeviceConfig);
+  EXPECT_TRUE(configs[0].fpgaIpBlockConfig()->iobufOffset()->empty());
+}
+
+TEST(UtilsTest, CreateMdioBusConfigs) {
+  PciDeviceConfig pciDeviceConfig;
+  pciDeviceConfig.mdioBusBlockConfigs() = {};
+  EXPECT_TRUE(Utils::createMdioBusConfigs(pciDeviceConfig).empty());
+
+  MdioBusBlockConfig mdioBlock;
+  mdioBlock.pmUnitScopedNamePrefix() = "MDIO_BUS";
+  mdioBlock.deviceName() = "fbiob-mdio";
+  mdioBlock.csrOffsetCalc() = "0x200 + {busIndex}*0x20";
+  mdioBlock.numBuses() = 2;
+  mdioBlock.iobufOffsetCalc() = "0x100 + {busIndex}*0x4";
+  pciDeviceConfig.mdioBusBlockConfigs() = {mdioBlock};
+
+  auto configs = Utils::createMdioBusConfigs(pciDeviceConfig);
+  EXPECT_EQ(2, configs.size());
+  EXPECT_EQ("MDIO_BUS_1", *configs[0].pmUnitScopedName());
+  EXPECT_EQ("fbiob-mdio", *configs[0].deviceName());
+  EXPECT_EQ("0x200", *configs[0].csrOffset());
+  EXPECT_EQ("0x100", *configs[0].iobufOffset());
+  EXPECT_EQ("MDIO_BUS_2", *configs[1].pmUnitScopedName());
+  EXPECT_EQ("0x220", *configs[1].csrOffset());
+  EXPECT_EQ("0x104", *configs[1].iobufOffset());
 }

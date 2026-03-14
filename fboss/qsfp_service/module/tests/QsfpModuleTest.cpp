@@ -394,26 +394,6 @@ TEST_F(QsfpModuleTest, writeTransceiver) {
   EXPECT_EQ(qsfp_->writeTransceiver(param, &data3), false);
 }
 
-TEST_F(QsfpModuleTest, populateSnapshots) {
-  auto snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
-  EXPECT_TRUE(snapshots.empty());
-  qsfp_->refresh();
-  snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
-  EXPECT_FALSE(snapshots.empty());
-
-  // fill the buffer
-  for (auto i = 1; i < snapshots.maxSize(); i++) {
-    qsfp_->refresh();
-  }
-  snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
-
-  // Verify that we stay at the max size
-  EXPECT_EQ(snapshots.size(), snapshots.maxSize());
-  qsfp_->refresh();
-  snapshots = qsfp_->getTransceiverSnapshots().getSnapshots();
-  EXPECT_EQ(snapshots.size(), snapshots.maxSize());
-}
-
 TEST_F(QsfpModuleTest, verifyLaneToPortMapping) {
   std::vector<uint8_t> lanes50GPort1 = {0, 1};
   std::vector<uint8_t> lanes50GPort3 = {2, 3};

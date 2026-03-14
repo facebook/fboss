@@ -22,6 +22,8 @@
 DECLARE_int32(statsSubscriptionServeQueueSize);
 DECLARE_int32(deltaSubscriptionQueueFullMinSize);
 DECLARE_int32(deltaSubscriptionQueueMemoryLimit_mb);
+DECLARE_int32(statsSubscriptionHeartbeat_s);
+DECLARE_int32(stateSubscriptionHeartbeat_s);
 
 DECLARE_bool(checkSubscriberConfig);
 DECLARE_bool(enforceSubscriberConfig);

@@ -141,6 +141,12 @@ class I2cLogBuffer {
   //         [data] steadyclock_ns
   // Returns a pair: header lines and number of log entries
   std::pair<size_t, size_t> dumpToFile();
+  std::pair<size_t, size_t> dumpTextFormat(
+      const I2cLogHeader& headerInfo,
+      const std::vector<I2cLogEntry>& entriesOut);
+  void dumpI2cTxnsFormat(
+      const std::vector<I2cLogEntry>& entriesOut,
+      size_t logCount);
 
   // Translate from a log file back to a vector of entries. Can be used
   // to replay the sequence of transactions or test the logging.

@@ -15,7 +15,7 @@
 
 DEFINE_string(
     phy_config_file,
-    "/lib/firmware/fboss/phy_config",
+    "/dev/shm/fboss/qsfp_service/phy_hw_config",
     "Path to the PHY configuration file");
 
 namespace facebook::fboss {
@@ -127,7 +127,8 @@ std::vector<FlexPortMode> SaiPhyPlatform::getSupportedFlexPortModes() const {
 std::optional<sai_port_interface_type_t> SaiPhyPlatform::getInterfaceType(
     TransmitterTechnology /* transmitterTech */,
     cfg::PortSpeed /* speed */) const {
-  throw FbossError("SaiPhyPlatform doesn't support getInterfaceType()");
+  // For AGERA3 PHY, always return KR interface type
+  return SAI_PORT_INTERFACE_TYPE_KR;
 }
 bool SaiPhyPlatform::isSerdesApiSupported() const {
   return true;
@@ -146,7 +147,11 @@ sai_service_method_table_t* SaiPhyPlatform::getServiceMethodTable() const {
 
 const std::set<sai_api_t>& SaiPhyPlatform::getSupportedApiList() const {
   XLOG(DBG5) << __func__ << ": Called for phyId=" << phyId_;
-  return getDefaultPhyAsicSupportedApis();
+  static const std::set<sai_api_t> kSupportedPhyApiList = {
+      facebook::fboss::PortApi::ApiType,
+      facebook::fboss::SwitchApi::ApiType,
+  };
+  return kSupportedPhyApiList;
 }
 
 void SaiPhyPlatform::initSaiProfileValues(bool warmboot) {

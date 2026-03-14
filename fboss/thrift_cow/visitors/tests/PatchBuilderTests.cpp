@@ -52,11 +52,11 @@ TEST(PatchBuilderTests, Simple) {
   EXPECT_EQ(patch.children()->size(), 2);
 
   auto val = deserializeInt(
-      std::move(patch.children()->at(TestStructMembers::inlineInt::id())));
+      std::move(patch.children()->at(fieldId<TestStruct, k::inlineInt>())));
   EXPECT_EQ(val, 123);
 
   auto s = deserializeString(
-      std::move(patch.children()->at(TestStructMembers::inlineString::id())));
+      std::move(patch.children()->at(fieldId<TestStruct, k::inlineString>())));
   EXPECT_EQ(s, "new value");
 }
 
@@ -70,15 +70,16 @@ TEST(PatchBuilderTests, NestedStructVals) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto inlineStruct = patch.children()
-                          ->at(TestStructMembers::inlineStruct::id())
+                          ->at(fieldId<TestStruct, k::inlineStruct>())
                           .get_struct_node();
 
   EXPECT_EQ(inlineStruct.children()->size(), 2);
   auto value = deserializeInt(
-      std::move(inlineStruct.children()->at(L4PortRangeMembers::min::id())));
+      std::move(
+          inlineStruct.children()->at(fieldId<cfg::L4PortRange, k::min>())));
   EXPECT_EQ(value, 12345);
 
-  auto maxId = reflect_struct<cfg::L4PortRange>::member::max::id();
+  auto maxId = fieldId<cfg::L4PortRange, k::max>();
   value = deserializeInt(std::move(inlineStruct.children()->at(maxId)));
   EXPECT_EQ(value, 54321);
 }
@@ -97,12 +98,12 @@ TEST(PatchBuilderTests, SetUnsetOptionals) {
   EXPECT_EQ(patch.children()->size(), 2);
 
   auto optionalString =
-      patch.children()->at(TestStructMembers::optionalString::id());
+      patch.children()->at(fieldId<TestStruct, k::optionalString>());
   auto value = deserializeString(std::move(optionalString));
   EXPECT_EQ(value, "new val");
 
   auto optionalStruct =
-      patch.children()->at(TestStructMembers::optionalStruct::id());
+      patch.children()->at(fieldId<TestStruct, k::optionalStruct>());
   auto prBack = deserializeStruct<cfg::L4PortRange>(std::move(optionalStruct));
   EXPECT_EQ(pr, prBack);
 
@@ -110,10 +111,10 @@ TEST(PatchBuilderTests, SetUnsetOptionals) {
   patch = patchRoot(structB, structA);
   EXPECT_EQ(patch.children()->size(), 2);
   EXPECT_EQ(
-      patch.children()->at(TestStructMembers::optionalString::id()).getType(),
+      patch.children()->at(fieldId<TestStruct, k::optionalString>()).getType(),
       PatchNode::Type::del);
   EXPECT_EQ(
-      patch.children()->at(TestStructMembers::optionalStruct::id()).getType(),
+      patch.children()->at(fieldId<TestStruct, k::optionalStruct>()).getType(),
       PatchNode::Type::del);
 }
 
@@ -130,12 +131,10 @@ TEST(PatchBuilderTests, ModifyVariant) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto inlineVariant = patch.children()
-                           ->at(TestStructMembers::inlineVariant::id())
+                           ->at(fieldId<TestStruct, k::inlineVariant>())
                            .get_variant_node();
 
-  EXPECT_EQ(
-      *inlineVariant.id(),
-      folly::to_underlying(TestUnionMembers::inlineInt::value));
+  EXPECT_EQ(*inlineVariant.id(), (fieldId<TestUnion, k::inlineInt>()));
   auto val = deserializeInt(std::move(*inlineVariant.child()));
   EXPECT_EQ(val, 321);
 }
@@ -155,11 +154,9 @@ TEST(PatchBuilderTests, ModifyVariantType) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto inlineVariant = patch.children()
-                           ->at(TestStructMembers::inlineVariant::id())
+                           ->at(fieldId<TestStruct, k::inlineVariant>())
                            .get_variant_node();
-  EXPECT_EQ(
-      *inlineVariant.id(),
-      folly::to_underlying(TestUnionMembers::inlineStruct::value));
+  EXPECT_EQ(*inlineVariant.id(), (fieldId<TestUnion, k::inlineStruct>()));
   auto pr =
       deserializeStruct<cfg::L4PortRange>(std::move(*inlineVariant.child()));
   EXPECT_EQ(pr, structB.inlineVariant()->get_inlineStruct());
@@ -169,11 +166,9 @@ TEST(PatchBuilderTests, ModifyVariantType) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   inlineVariant = patch.children()
-                      ->at(TestStructMembers::inlineVariant::id())
+                      ->at(fieldId<TestStruct, k::inlineVariant>())
                       .get_variant_node();
-  EXPECT_EQ(
-      *inlineVariant.id(),
-      folly::to_underlying(TestUnionMembers::inlineInt::value));
+  EXPECT_EQ(*inlineVariant.id(), (fieldId<TestUnion, k::inlineInt>()));
   auto val = deserializeInt(std::move(*inlineVariant.child()));
   EXPECT_EQ(val, 123);
 }
@@ -192,15 +187,14 @@ TEST(PatchBuilderTests, ModifyVariantStructVal) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto inlineVariant = patch.children()
-                           ->at(TestStructMembers::inlineVariant::id())
+                           ->at(fieldId<TestStruct, k::inlineVariant>())
                            .get_variant_node();
 
-  EXPECT_EQ(
-      *inlineVariant.id(),
-      folly::to_underlying(TestUnionMembers::inlineStruct::value));
+  EXPECT_EQ(*inlineVariant.id(), (fieldId<TestUnion, k::inlineStruct>()));
   auto inlineStruct = inlineVariant.child()->get_struct_node();
   EXPECT_EQ(inlineStruct.children()->size(), 1);
-  auto valuePatch = inlineStruct.children()->at(L4PortRangeMembers::min::id());
+  auto valuePatch =
+      inlineStruct.children()->at(fieldId<cfg::L4PortRange, k::min>());
   auto val = deserializeInt(std::move(valuePatch));
   EXPECT_EQ(val, 321);
 }
@@ -216,7 +210,7 @@ TEST(PatchBuilderTests, ListOfPrimitives) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto listOfPrimitives = patch.children()
-                              ->at(TestStructMembers::listOfPrimitives::id())
+                              ->at(fieldId<TestStruct, k::listOfPrimitives>())
                               .get_list_node();
   ASSERT_EQ(listOfPrimitives.children()->size(), 2);
   // modified
@@ -231,7 +225,7 @@ TEST(PatchBuilderTests, ListOfPrimitives) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   listOfPrimitives = patch.children()
-                         ->at(TestStructMembers::listOfPrimitives::id())
+                         ->at(fieldId<TestStruct, k::listOfPrimitives>())
                          .get_list_node();
 
   ASSERT_EQ(listOfPrimitives.children()->size(), 2);
@@ -258,7 +252,7 @@ TEST(PatchBuilderTests, ListOfStructs) {
 
   // listOfPrimitives
   auto listOfStructs = patch.children()
-                           ->at(TestStructMembers::listOfStructs::id())
+                           ->at(fieldId<TestStruct, k::listOfStructs>())
                            .get_list_node();
   ASSERT_EQ(listOfStructs.children()->size(), 2);
 
@@ -266,7 +260,8 @@ TEST(PatchBuilderTests, ListOfStructs) {
   // modified
   EXPECT_EQ(structPatch.children()->size(), 1);
   auto modifiedVal = deserializeInt(
-      std::move(structPatch.children()->at(L4PortRangeMembers::min::id())));
+      std::move(
+          structPatch.children()->at(fieldId<cfg::L4PortRange, k::min>())));
   EXPECT_EQ(modifiedVal, 211);
 
   // added
@@ -279,14 +274,15 @@ TEST(PatchBuilderTests, ListOfStructs) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   listOfStructs = patch.children()
-                      ->at(TestStructMembers::listOfStructs::id())
+                      ->at(fieldId<TestStruct, k::listOfStructs>())
                       .get_list_node();
 
   ASSERT_EQ(listOfStructs.children()->size(), 2);
   structPatch = listOfStructs.children()->at(1).get_struct_node();
   EXPECT_EQ(structPatch.children()->size(), 1);
   modifiedVal = deserializeInt(
-      std::move(structPatch.children()->at(L4PortRangeMembers::min::id())));
+      std::move(
+          structPatch.children()->at(fieldId<cfg::L4PortRange, k::min>())));
   EXPECT_EQ(modifiedVal, 21);
   EXPECT_EQ(listOfStructs.children()->at(2).getType(), PatchNode::Type::del);
 }
@@ -304,7 +300,7 @@ TEST(PatchBuilderTests, ListOfLists) {
 
   auto listOfListOfPrimitives =
       patch.children()
-          ->at(TestStructMembers::listOfListOfPrimitives::id())
+          ->at(fieldId<TestStruct, k::listOfListOfPrimitives>())
           .get_list_node();
   ASSERT_EQ(listOfListOfPrimitives.children()->size(), 2);
 
@@ -330,7 +326,7 @@ TEST(PatchBuilderTests, ListOfLists) {
 
   listOfListOfPrimitives =
       patch.children()
-          ->at(TestStructMembers::listOfListOfPrimitives::id())
+          ->at(fieldId<TestStruct, k::listOfListOfPrimitives>())
           .get_list_node();
 
   listPatch = listOfListOfPrimitives.children()->at(1).get_list_node();
@@ -355,7 +351,7 @@ TEST(PatchBuilderTests, MapOfEnumToI32) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto mapOfEnumToI32 = patch.children()
-                            ->at(TestStructMembers::mapOfEnumToI32::id())
+                            ->at(fieldId<TestStruct, k::mapOfEnumToI32>())
                             .get_map_node();
   ASSERT_EQ(mapOfEnumToI32.children()->size(), 2);
 
@@ -371,7 +367,7 @@ TEST(PatchBuilderTests, MapOfEnumToI32) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   mapOfEnumToI32 = patch.children()
-                       ->at(TestStructMembers::mapOfEnumToI32::id())
+                       ->at(fieldId<TestStruct, k::mapOfEnumToI32>())
                        .get_map_node();
 
   ASSERT_EQ(mapOfEnumToI32.children()->size(), 2);
@@ -397,7 +393,7 @@ TEST(PatchBuilderTests, MapOfI32ToStruct) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto mapOfI32ToStruct = patch.children()
-                              ->at(TestStructMembers::mapOfI32ToStruct::id())
+                              ->at(fieldId<TestStruct, k::mapOfI32ToStruct>())
                               .get_map_node();
   ASSERT_EQ(mapOfI32ToStruct.children()->size(), 2);
 
@@ -405,7 +401,8 @@ TEST(PatchBuilderTests, MapOfI32ToStruct) {
   // modified
   EXPECT_EQ(structPatch.children()->size(), 1);
   auto modifiedVal = deserializeInt(
-      std::move(structPatch.children()->at(L4PortRangeMembers::min::id())));
+      std::move(
+          structPatch.children()->at(fieldId<cfg::L4PortRange, k::min>())));
   EXPECT_EQ(modifiedVal, 211);
 
   // added
@@ -418,14 +415,15 @@ TEST(PatchBuilderTests, MapOfI32ToStruct) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   mapOfI32ToStruct = patch.children()
-                         ->at(TestStructMembers::mapOfI32ToStruct::id())
+                         ->at(fieldId<TestStruct, k::mapOfI32ToStruct>())
                          .get_map_node();
 
   ASSERT_EQ(mapOfI32ToStruct.children()->size(), 2);
   structPatch = mapOfI32ToStruct.children()->at("2").get_struct_node();
   EXPECT_EQ(structPatch.children()->size(), 1);
   modifiedVal = deserializeInt(
-      std::move(structPatch.children()->at(L4PortRangeMembers::min::id())));
+      std::move(
+          structPatch.children()->at(fieldId<cfg::L4PortRange, k::min>())));
   EXPECT_EQ(modifiedVal, 21);
   EXPECT_EQ(
       mapOfI32ToStruct.children()->at("3").getType(), PatchNode::Type::del);
@@ -442,7 +440,7 @@ TEST(PatchBuilderTests, SetOfI32) {
   EXPECT_EQ(patch.children()->size(), 1);
 
   auto setOfI32 =
-      patch.children()->at(TestStructMembers::setOfI32::id()).get_set_node();
+      patch.children()->at(fieldId<TestStruct, k::setOfI32>()).get_set_node();
   ASSERT_EQ(setOfI32.children()->size(), 2);
 
   // deleted
@@ -463,7 +461,7 @@ TEST(PatchBuilderTests, PatchNonStruct) {
   auto nodeB = std::make_shared<ThriftStructNode<TestStruct>>(structB);
 
   std::vector<std::string> path = {
-      folly::to<std::string>(TestStructMembers::listOfPrimitives::id::value)};
+      folly::to<std::string>(fieldId<TestStruct, k::listOfPrimitives>())};
   auto patch = PatchBuilder::build(
       nodeA->ref<k::listOfPrimitives>(),
       nodeB->ref<k::listOfPrimitives>(),

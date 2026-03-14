@@ -124,7 +124,7 @@ setupForWarmboot() {
   // Use cold boot to force download xphy
   auto [wedgeMgr, portMgr] = setupForColdboot();
   if (!FLAGS_port_manager_mode) {
-    wedgeMgr->initExternalPhyMap();
+    wedgeMgr->initExternalPhyMap(wedgeMgr->getPhyManager());
   } else {
     portMgr->initExternalPhyMap();
   }

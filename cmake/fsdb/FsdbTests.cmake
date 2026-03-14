@@ -9,6 +9,9 @@ add_fbthrift_cpp_library(
   OPTIONS
     json
     reflection
+  DEPENDS
+    cfgr_fboss_common_cpp2
+    common_cpp2
 )
 
 add_library(fsdb_test_server
@@ -22,6 +25,7 @@ target_link_libraries(fsdb_test_server
   fsdb_oper_cpp2
   Folly::folly
   FBThrift::thriftcpp2
+  thrift_service_utils
 )
 
 add_library(fsdb_test_subscriber
@@ -30,7 +34,7 @@ add_library(fsdb_test_subscriber
 
 target_link_libraries(fsdb_test_subscriber
   fsdb_pub_sub
-  fsdb_model_cpp2
+  fsdb_model
   Folly::folly
 )
 
@@ -59,7 +63,7 @@ add_library(fsdb_test_clients
 target_link_libraries(fsdb_test_clients
   fsdb_pub_sub
   fsdb_stream_client
-  fsdb_model_cpp2
+  fsdb_model
   common_utils
   Folly::folly
   FBThrift::thriftcpp2
@@ -69,7 +73,7 @@ target_link_libraries(fsdb_test_clients
 
 add_executable(fsdb_pub_sub_tests
   fboss/fsdb/tests/client/FsdbPubSubManagerTest.cpp
-  fboss/agent/test/oss/Main.cpp
+  fboss/util/oss/TestMain.cpp
 )
 
 target_link_libraries(fsdb_pub_sub_tests

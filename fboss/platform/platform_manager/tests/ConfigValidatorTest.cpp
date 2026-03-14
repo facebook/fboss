@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -63,6 +64,22 @@ PlatformConfig getBasicConfig() {
   config.chassisEepromDevicePath() = "/[CHASSIS_EEPROM]";
   return config;
 }
+
+I2cDeviceConfig createEepromConfig(
+    const std::string& name,
+    const std::string& bus,
+    const std::string& addr,
+    const std::string& kernelDevName,
+    int16_t offset) {
+  I2cDeviceConfig eeprom;
+  eeprom.pmUnitScopedName() = name;
+  eeprom.busName() = bus;
+  eeprom.address() = addr;
+  eeprom.kernelDeviceName() = kernelDevName;
+  eeprom.isEeprom() = true;
+  eeprom.eepromOffset() = offset;
+  return eeprom;
+}
 } // namespace
 
 TEST(ConfigValidatorTest, PlatformName) {
@@ -89,6 +106,34 @@ TEST(ConfigValidatorTest, InvalidRootSlotType) {
   auto config = getBasicConfig();
   config.rootSlotType() = "MCB_SLOT";
   EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
+  // CPU_BUS@0 — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0"}));
+
+  // CPU_BUS@1 — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@1"}));
+
+  // CPU_BUS@0 + CPU_BUS@1 — valid (two-bus config)
+  EXPECT_TRUE(
+      ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@1"}));
+
+  // Exact names only — valid
+  EXPECT_TRUE(
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"SMBus I801 adapter at 5000"}));
+
+  // CPU_BUS@2 — invalid (only @0 and @1 supported)
+  EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@2"}));
+
+  // Mixed styles — invalid
+  EXPECT_FALSE(
+      ConfigValidator().isValidI2cAdaptersFromCpu(
+          {"CPU_BUS@0", "SMBus I801 adapter at 5000"}));
+
+  // Empty list — valid
+  EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({}));
 }
 
 TEST(ConfigValidatorTest, ValidConfig) {
@@ -1355,4 +1400,376 @@ TEST(ConfigValidatorTest, ChassisEepromDevicePath) {
   config.platformName() = "NEW_PLATFORM";
   config.chassisEepromDevicePath() = "/[SOME_OTHER_EEPROM]";
   EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, I2cAdapterBlockConfig) {
+  ConfigValidator validator;
+  I2cAdapterBlockConfig config;
+
+  // Test case: Valid config
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+  config.deviceName() = "i2c_adapter";
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+  config.numAdapters() = 8;
+  config.numBusesPerAdapter() = 4;
+  config.iobufOffsetCalc() = "";
+  config.startAdapterIndex() = 1;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Valid config with iobufOffsetCalc
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+  config.deviceName() = "i2c_adapter";
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+  config.iobufOffsetCalc() = "0x2000 + {adapterIndex}*0x100";
+  config.numAdapters() = 8;
+  config.numBusesPerAdapter() = 4;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Invalid iobufOffsetCalc expression
+  config.iobufOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.iobufOffsetCalc() = "";
+
+  // Test case: Empty pmUnitScopedNamePrefix
+  config.pmUnitScopedNamePrefix() = "";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+
+  // Test case: pmUnitScopedNamePrefix ends with _
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER_";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+
+  // Test case: Empty deviceName
+  config.deviceName() = "";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.deviceName() = "i2c_adapter";
+
+  // Test case: Empty csrOffsetCalc
+  config.csrOffsetCalc() = "";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+
+  // Test case: Zero numAdapters
+  config.numAdapters() = 0;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numAdapters() = 8;
+
+  // Test case: Negative numAdapters
+  config.numAdapters() = -1;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numAdapters() = 8;
+
+  // Test case: Zero numBusesPerAdapter
+  config.numBusesPerAdapter() = 0;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numBusesPerAdapter() = 4;
+
+  // Test case: Negative numBusesPerAdapter
+  config.numBusesPerAdapter() = -1;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.numBusesPerAdapter() = 4;
+
+  // Test case: Invalid csrOffsetCalc expression
+  config.csrOffsetCalc() = "invalid_expression";
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+
+  // Test case: Large valid values
+  config.numAdapters() = 16;
+  config.numBusesPerAdapter() = 64;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Valid config with non-zero startAdapterIndex
+  config.numAdapters() = 8;
+  config.numBusesPerAdapter() = 4;
+  config.startAdapterIndex() = 5;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+
+  // Test case: Negative startAdapterIndex
+  config.startAdapterIndex() = -1;
+  EXPECT_FALSE(validator.isValidI2cAdapterBlockConfig(config));
+  config.startAdapterIndex() = 1;
+
+  // Test case: Large valid startAdapterIndex
+  config.startAdapterIndex() = 100;
+  EXPECT_TRUE(validator.isValidI2cAdapterBlockConfig(config));
+  config.startAdapterIndex() = 1;
+}
+
+TEST(ConfigValidatorTest, PciDeviceConfigWithI2cAdapterBlockConfigs) {
+  auto pciDevConfig = getValidPciDeviceConfig();
+
+  // Test case: Invalid I2cAdapterBlockConfig in PciDeviceConfig
+  I2cAdapterBlockConfig invalidConfig;
+  invalidConfig.pmUnitScopedNamePrefix() = ""; // This will make it invalid
+  invalidConfig.deviceName() = "i2c_adapter";
+  invalidConfig.csrOffsetCalc() = "0x1000";
+  invalidConfig.numAdapters() = 8;
+  invalidConfig.numBusesPerAdapter() = 1;
+  pciDevConfig.i2cAdapterBlockConfigs() = {invalidConfig};
+  EXPECT_FALSE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+
+  // Test case: Valid I2cAdapterBlockConfig in PciDeviceConfig
+  I2cAdapterBlockConfig validConfig;
+  validConfig.pmUnitScopedNamePrefix() = "SMB_I2C_ADAPTER";
+  validConfig.deviceName() = "i2c_adapter";
+  validConfig.csrOffsetCalc() = "0x1000 + {adapterIndex}*0x100";
+  validConfig.numAdapters() = 8;
+  validConfig.numBusesPerAdapter() = 4;
+  pciDevConfig.i2cAdapterBlockConfigs() = {validConfig};
+  EXPECT_TRUE(ConfigValidator().isValidPciDeviceConfig(pciDevConfig));
+}
+
+TEST(ConfigValidatorTest, LogicalEeproms) {
+  // Test 1: Empty result when no EEPROMs configured
+  std::map<std::string, SlotTypeConfig> slotTypeConfigs;
+  SlotTypeConfig slotTypeConfig;
+  slotTypeConfig.pmUnitName() = "SCM";
+  slotTypeConfigs["SCM_SLOT"] = slotTypeConfig;
+
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
+
+  auto result = ConfigValidator().getLogicalEeproms(
+      slotTypeConfigs, "SCM_SLOT", pmUnitConfig);
+  EXPECT_TRUE(result.empty());
+
+  // Test 2: Single EEPROM at a location doesn't count as logical
+  auto eeprom1 = createEepromConfig("EEPROM1", "INCOMING@0", "0x50", "at24", 0);
+  pmUnitConfig.i2cDeviceConfigs() = {eeprom1};
+
+  result = ConfigValidator().getLogicalEeproms(
+      slotTypeConfigs, "SCM_SLOT", pmUnitConfig);
+  EXPECT_TRUE(result.empty());
+
+  // Test 3: Multiple EEPROMs at same location are returned as logical EEPROMs
+  auto eeprom2 =
+      createEepromConfig("EEPROM2", "INCOMING@0", "0x50", "at24", 512);
+  pmUnitConfig.i2cDeviceConfigs() = {eeprom1, eeprom2};
+
+  result = ConfigValidator().getLogicalEeproms(
+      slotTypeConfigs, "SCM_SLOT", pmUnitConfig);
+  EXPECT_EQ(result.size(), 1);
+  auto location =
+      std::make_pair(std::string("INCOMING@0"), std::string("0x50"));
+  EXPECT_TRUE(result.contains(location));
+  EXPECT_EQ(result.at(location).size(), 2);
+  EXPECT_EQ(result.at(location)[0].pmUnitScopedName, "EEPROM1");
+  EXPECT_EQ(result.at(location)[0].offset, 0);
+  EXPECT_EQ(result.at(location)[1].pmUnitScopedName, "EEPROM2");
+  EXPECT_EQ(result.at(location)[1].offset, 512);
+
+  // Test 4: Validation fails for non-GLATH05A-64O platforms with logical
+  // EEPROMs
+  auto config = getBasicConfig();
+  config.platformName() = "MERU800BIA";
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 5: Validation passes for GLATH05A-64O platform with logical EEPROMs
+  config.platformName() = "GLATH05A-64O";
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  config.slotTypeConfigs() = slotTypeConfigs;
+
+  // Test 6: Valid - Non-overlapping regions (offset >= 512 apart)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at24", 512)};
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 7: Invalid - Overlapping regions (same offset)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at24", 0)};
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 8: Invalid - Partially overlapping regions
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at24", 256)};
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 9: Invalid - Different kernelDeviceNames for same physical device
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x50", "at25", 512)};
+  EXPECT_FALSE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 10: Valid - Different physical devices (different address)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@0", "0x51", "at24", 0)};
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+
+  // Test 11: Valid - Different physical devices (different bus)
+  pmUnitConfig.i2cDeviceConfigs() = {
+      createEepromConfig("IDPROM_EEPROM", "INCOMING@0", "0x50", "at24", 0),
+      createEepromConfig("CHASSIS_EEPROM", "INCOMING@1", "0x50", "at24", 0)};
+  EXPECT_TRUE(
+      ConfigValidator().isValidLogicalEeprom(config, "SCM", pmUnitConfig));
+}
+
+TEST(ConfigValidatorTest, NoOpticsConfigForDarwinPlatforms) {
+  PlatformConfig config;
+  config.platformName() = "DARWIN";
+  EXPECT_TRUE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+
+  config.numXcvrs() = 32;
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+  config.numXcvrs() = 0;
+
+  auto pciDev = getValidPciDeviceConfig();
+  pciDev.xcvrCtrlBlockConfigs() = {XcvrCtrlBlockConfig{}};
+  pciDev.ledCtrlBlockConfigs() = {LedCtrlBlockConfig{}};
+  PmUnitConfig pmUnitConfig;
+  pmUnitConfig.pciDeviceConfigs() = {pciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+
+  config.pmUnitConfigs() = {};
+  config.symbolicLinkToDevicePath() = {
+      {"/run/devmap/xcvrs/xcvr_1", "/[XCVR_1]"}};
+  EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+}
+
+namespace {
+CpldSysfsAttr getValidCpldSysfsAttr(const std::string& name) {
+  CpldSysfsAttr attr;
+  attr.name() = name;
+  attr.mode() = "ro";
+  attr.regAddr() = "0x10";
+  attr.bitOffset() = 0;
+  attr.numBits() = 1;
+  attr.flags() = {};
+  attr.description() = "test attribute";
+  return attr;
+}
+} // namespace
+
+TEST(ConfigValidatorTest, CpldSysfsAttrs) {
+  ConfigValidator validator;
+
+  // Valid: single attribute
+  EXPECT_TRUE(
+      validator.isValidCpldSysfsAttrs({getValidCpldSysfsAttr("board_id")}));
+
+  // Valid: multiple attributes
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs(
+      {getValidCpldSysfsAttr("board_id"), getValidCpldSysfsAttr("cpld_ver")}));
+
+  // Invalid: empty list
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({}));
+
+  // Invalid: empty name
+  auto attr = getValidCpldSysfsAttr("");
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: duplicate names
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs(
+      {getValidCpldSysfsAttr("board_id"), getValidCpldSysfsAttr("board_id")}));
+
+  // Invalid: bad mode
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.mode() = "wx";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: rw mode
+  attr.mode() = "rw";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: wo mode
+  attr.mode() = "wo";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: empty reg
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.regAddr() = "";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: non-hex reg
+  attr.regAddr() = "16";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: max reg value
+  attr.regAddr() = "0xFF";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: min reg value
+  attr.regAddr() = "0x0";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: reg value exceeds 0xFF
+  attr.regAddr() = "0x100";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: empty description
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.description() = "";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset negative
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.bitOffset() = -1;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset > 7
+  attr.bitOffset() = 8;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: numBits 0
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.numBits() = 0;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: numBits > 8
+  attr.numBits() = 9;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset + numBits > 8
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.bitOffset() = 5;
+  attr.numBits() = 4;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: bitOffset + numBits == 8
+  attr.bitOffset() = 4;
+  attr.numBits() = 4;
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: recognized flags
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.flags() = {"negate", "decimal"};
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: unrecognized flag
+  attr.flags() = {"negate", "negatte"};
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: unknown flag
+  attr.flags() = {"unknown_flag"};
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: all recognized flags
+  attr.flags() = {"log_write", "show_notes", "decimal", "negate"};
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: exceeds max attrs (64)
+  std::vector<CpldSysfsAttr> tooMany;
+  tooMany.reserve(65);
+  for (int i = 0; i < 65; ++i) {
+    tooMany.push_back(getValidCpldSysfsAttr(fmt::format("attr_{}", i)));
+  }
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs(tooMany));
+
+  // Valid: exactly 64 attrs
+  tooMany.pop_back();
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs(tooMany));
 }

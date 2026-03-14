@@ -15,6 +15,7 @@
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/fpga/MultiPimPlatformSystemContainer.h"
 #include "fboss/lib/link_snapshots/AsyncFileWriterFactory.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
@@ -68,6 +69,8 @@ cfg::PortProfileID getProfileIDBySpeed(
       apache::thrift::util::enumNameSafe(speed));
 }
 
+// TODO: Remove this fb303 counter after we confirm that the PIM state-based
+// remediation (XPHY_GET_PORT_INFO_FAILED in PimError) works as expected.
 void bumpXphyGetPortInfoFailed(const PimID& pimId) {
   auto stat = folly::to<std::string>(
       kPimPrefix, ".", pimId, ".", kXphyGetPortInfoFailed);
@@ -182,8 +185,10 @@ phy::PhyPortConfig PhyManager::getDesiredPhyPortConfig(
   return phyPortConfig;
 }
 
-phy::PhyPortConfig PhyManager::getHwPhyPortConfig(PortID portID) {
-  return getHwPhyPortConfigLocked(getRLockedCache(portID), portID);
+phy::PhyPortConfig PhyManager::getHwPhyPortConfig(
+    PortID portID,
+    bool readFromHw) {
+  return getHwPhyPortConfigLocked(getRLockedCache(portID), portID, readFromHw);
 }
 
 void PhyManager::programOnePort(
@@ -605,7 +610,8 @@ void PhyManager::updateAllXphyPortsStats() {
     auto evb = getXphyEventBase(xphyID);
     auto pimID = getPhyIDInfo(xphyID).pimID;
     if (supportPortStats) {
-      updatePortStats(portStatsInfo.first, pimID, xphy, wLockedStats, evb);
+      updatePortStats(
+          portStatsInfo.first, pimID, xphyID, xphy, wLockedStats, evb);
     }
     if (supportPrbsStats) {
       updatePrbsStats(portStatsInfo.first, xphy, wLockedStats, evb);
@@ -617,6 +623,7 @@ using namespace std::chrono;
 void PhyManager::updatePortStats(
     PortID portID,
     const PimID& pimID,
+    const GlobalXphyID& xphyID,
     phy::ExternalPhy* xphy,
     const PhyManager::PortStatsWLockedPtr& wLockedStats,
     folly::EventBase* evb) {
@@ -629,7 +636,7 @@ void PhyManager::updatePortStats(
 
   // Collect xphy port stats
   wLockedStats->ongoingStatCollection =
-      folly::via(evb).thenValue([this, pimID, portID, xphy](auto&&) {
+      folly::via(evb).thenValue([this, pimID, xphyID, portID, xphy](auto&&) {
         // Since this is future job, we need to fetch the cache with lock
         std::vector<LaneID> systemLanes, lineLanes;
         cfg::PortSpeed programmedSpeed;
@@ -658,13 +665,21 @@ void PhyManager::updatePortStats(
           currentPhyInfo.state() = phy::PhyState();
           currentPhyInfo.stats() = phy::PhyStats();
 
+          auto* systemContainer = getSystemContainer();
           try {
             currentPhyInfo =
                 xphy->getPortInfo(systemLanes, lineLanes, lastPhyInfo);
+            if (systemContainer) {
+              systemContainer->clearXphyGetPortInfoFailures(pimID, xphyID);
+            }
           } catch (const std::exception& ex) {
             XLOG(ERR) << getPortName(portID) << " getPortInfo failed with "
                       << ex.what();
             bumpXphyGetPortInfoFailed(pimID);
+            // Record the failure in SystemContainer for PIM state monitoring
+            if (systemContainer) {
+              systemContainer->recordXphyGetPortInfoFailure(pimID, xphyID);
+            }
           }
 
           currentPhyInfo.state()->name() = getPortName(portID);

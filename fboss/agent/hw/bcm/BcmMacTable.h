@@ -13,7 +13,6 @@ class BcmSwitch;
 class BcmMacTable {
  public:
   explicit BcmMacTable(BcmSwitch* hw) : hw_(hw) {}
-  ~BcmMacTable() {}
 
   void processMacAdded(const MacEntry* addedEntry, VlanID vlan);
   void processMacRemoved(const MacEntry* removedEntry, VlanID vlan);

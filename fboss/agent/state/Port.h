@@ -34,9 +34,10 @@ using PortFlowletCfgPtr = std::shared_ptr<PortFlowletCfg>;
 
 struct PortFields {
   struct VlanInfo {
-    explicit VlanInfo(bool emitTags) : tagged(emitTags) {}
+    explicit VlanInfo(bool emitTags, bool emitPriorityTags)
+        : tagged(emitTags), priorityTagged(emitPriorityTags) {}
     bool operator==(const VlanInfo& other) const {
-      return tagged == other.tagged;
+      return tagged == other.tagged && priorityTagged == other.priorityTagged;
     }
     bool operator!=(const VlanInfo& other) const {
       return !(*this == other);
@@ -44,6 +45,7 @@ struct PortFields {
     state::VlanInfo toThrift() const;
     static VlanInfo fromThrift(state::VlanInfo const&);
     bool tagged;
+    bool priorityTagged;
   };
 
   using VlanMembership = boost::container::flat_map<VlanID, VlanInfo>;
@@ -321,9 +323,10 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::vlanMemberShips>(vlanMembership);
   }
 
-  void addVlan(VlanID id, bool tagged) {
+  void addVlan(VlanID id, bool tagged, bool priorityTagged) {
     auto vlanMembership = getVlans();
-    vlanMembership.emplace(std::make_pair(id, VlanInfo(tagged)));
+    vlanMembership.emplace(
+        std::make_pair(id, VlanInfo(tagged, priorityTagged)));
     setVlans(vlanMembership);
   }
 
@@ -337,27 +340,6 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       queuesThrift.push_back(queue->toThrift());
     }
     set<switch_state_tags::queues>(std::move(queuesThrift));
-  }
-
-  bool hasValidPortQueues() const {
-    constexpr auto kDefaultProbability = 100;
-    for (const auto& portQueue : *getPortQueues()) {
-      const auto& aqms = portQueue->get<ctrl_if_tags::aqms>();
-      if (!aqms) {
-        continue;
-      }
-      for (const auto& entry : std::as_const(*aqms)) {
-        // THRIFT_COPY
-        auto behavior = entry->cref<switch_config_tags::behavior>()->toThrift();
-        auto detection =
-            entry->cref<switch_config_tags::detection>()->toThrift();
-        if (behavior == facebook::fboss::cfg::QueueCongestionBehavior::ECN &&
-            detection.linear()->probability() != kDefaultProbability) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 
   auto getPortPgConfigs() const {
@@ -677,6 +659,22 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     set<switch_state_tags::zeroPreemphasis>(zeroPreemphasis);
   }
 
+  std::optional<std::string> getSerdesCustomCollection() const {
+    if (auto value = cref<switch_state_tags::serdesCustomCollection>()) {
+      return value->cref();
+    }
+    return std::nullopt;
+  }
+
+  void setSerdesCustomCollection(
+      const std::optional<std::string>& serdesCustomCollection) {
+    if (serdesCustomCollection.has_value()) {
+      set<switch_state_tags::serdesCustomCollection>(*serdesCustomCollection);
+    } else {
+      ref<switch_state_tags::serdesCustomCollection>().reset();
+    }
+  }
+
   std::optional<bool> getTTLDisableDecrement() const {
     if (auto value = cref<switch_state_tags::disableTTLDecrement>()) {
       return value->toThrift();
@@ -848,6 +846,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
       ref<switch_state_tags::amIdles>().reset();
     } else {
       set<switch_state_tags::amIdles>(amIdles.value());
+    }
+  }
+
+  /** @brief Get Cable Length Measurement (CLM) enable state */
+  std::optional<bool> getClmEnable() const {
+    if (auto clmEnable = cref<switch_state_tags::clmEnable>()) {
+      return clmEnable->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set Cable Length Measurement (CLM) enable state */
+  void setClmEnable(std::optional<bool> clmEnable) {
+    if (!clmEnable.has_value()) {
+      ref<switch_state_tags::clmEnable>().reset();
+    } else {
+      set<switch_state_tags::clmEnable>(clmEnable.value());
     }
   }
 

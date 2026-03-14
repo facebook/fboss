@@ -48,7 +48,8 @@ class ArsStoreTest : public SaiStoreTest {
         SaiArsTraits::Attributes::PrimaryPathQualityThreshold{
             primaryPathQualityThreshold},
         SaiArsTraits::Attributes::AlternatePathCost{alternatePathCost},
-        SaiArsTraits::Attributes::AlternatePathBias{alternatePathBias}};
+        SaiArsTraits::Attributes::AlternatePathBias{alternatePathBias},
+        std::nullopt}; // NextHopGroupType
   }
 };
 
@@ -84,7 +85,8 @@ TEST_F(ArsStoreTest, arsCreateCtor) {
       SaiArsTraits::Attributes::MaxFlows{4000},
       SaiArsTraits::Attributes::PrimaryPathQualityThreshold{150},
       SaiArsTraits::Attributes::AlternatePathCost{300},
-      SaiArsTraits::Attributes::AlternatePathBias{75}};
+      SaiArsTraits::Attributes::AlternatePathBias{75},
+      std::nullopt}; // NextHopGroupType
   auto hostKey = getAdapterHostKey(c);
   auto obj = createObj<SaiArsTraits>(hostKey, c, 0);
   EXPECT_EQ(GET_OPT_ATTR(Ars, IdleTime, obj.attributes()), 40000);

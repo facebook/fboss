@@ -128,9 +128,8 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
    * 4. Set ASIC port status to true on A side
    * 5. Expect TX_LOS, TX_LOL, RX_LOL to be cleared on A and Z sides
    * 6. Repeat steps 2-5 by flipping A and Z sides
-   * Note: Bypass LPO Transceivers for this test since the LPO
-   *       transceivers don't have a DSP and there is no detection
-   *       for LOS/LOL
+   * Note: LPO Transceivers don't have a DSP and there is no detection
+   *       for LOL, so only bypass that.
    */
   auto opticalPortPairs = getConnectedOpticalPortPairs();
   EXPECT_FALSE(opticalPortPairs.empty())
@@ -148,7 +147,7 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
 
   auto allTcvrInfos = utility::waitForTransceiverInfo(
       std::vector<int32_t>(allTcvrIds.begin(), allTcvrIds.end()),
-      /*includeLpo*/ false);
+      /*includeLpo*/ true);
 
   // Cache the host and media lanes for each port because once the ports are
   // disabled, transceiver state machine moves to discovered state and we would
@@ -180,8 +179,8 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
           onlyTcvrIds.push_back(int32_t(tcvrId.first));
         }
         WITH_RETRIES_N_TIMED(10, std::chrono::seconds(10), {
-          auto transceiverInfos = utility::waitForTransceiverInfo(
-              onlyTcvrIds, /*includeLpo*/ false);
+          auto transceiverInfos =
+              utility::waitForTransceiverInfo(onlyTcvrIds, /*includeLpo*/ true);
           for (const auto& tcvrId : onlyTcvrIds) {
             auto& portName = transceiverIds[TransceiverID(tcvrId)];
             auto tcvrInfoInfoItr = transceiverInfos.find(tcvrId);
@@ -207,26 +206,33 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
             ASSERT_EVENTUALLY_GT(hostLaneSignals.size(), 0);
             ASSERT_EVENTUALLY_GT(mediaLaneSignals.size(), 0);
 
+            // LPO does not support TxLol
+            bool isLpo = *tcvrState.moduleTechnology() == ModuleTechnology::LPO;
+
             for (const auto& signal : hostLaneSignals) {
               if (std::find(
-                      hostLanes.begin(), hostLanes.end(), signal.get_lane()) !=
-                  hostLanes.end()) {
-                ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
+                      hostLanes.begin(),
+                      hostLanes.end(),
+                      signal.lane().value()) != hostLanes.end()) {
+                if (!isLpo) {
+                  ASSERT_EVENTUALLY_TRUE(signal.txLol().has_value());
+                }
                 ASSERT_EVENTUALLY_TRUE(signal.txLos().has_value());
                 // TX_LOL is not reliable right now on certain 100G
                 // CWDM4 optics like AOI and Miniphoton. So skip checking it
                 // on these optics for now
-                if (mediaInterface != MediaInterfaceCode::CWDM4_100G) {
+                if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
+                    isLpo == false) {
                   EXPECT_EVENTUALLY_EQ(signal.txLol().value(), txLatch)
-                      << portName << ", lane: " << signal.get_lane();
+                      << portName << ", lane: " << signal.lane().value();
                 }
                 // We see TX_LOS set only on the first lane of FR1_100G. This is
                 // a bug but we can't get the vendor to fix it now. Therefore,
                 // handle it separately in the test
                 if (mediaInterface != MediaInterfaceCode::FR1_100G ||
-                    signal.get_lane() == 0) {
+                    signal.lane().value() == 0) {
                   EXPECT_EVENTUALLY_EQ(signal.txLos().value(), txLatch)
-                      << portName << ", lane: " << signal.get_lane();
+                      << portName << ", lane: " << signal.lane().value();
                 }
               }
             }
@@ -235,18 +241,28 @@ TEST_F(OpticsTest, verifyTxRxLatches) {
               if (std::find(
                       mediaLanes.begin(),
                       mediaLanes.end(),
-                      signal.get_lane()) != mediaLanes.end()) {
-                // Unfortunately, can't rely on rxLos as it doesn't always get
-                // set. Some optics don't squelch their line side when the
-                // system side is down.
-                ASSERT_EVENTUALLY_TRUE(signal.rxLol().has_value());
+                      signal.lane().value()) != mediaLanes.end()) {
+                if (isLpo) {
+                  // LPO Supports RX LOS only.
+                  ASSERT_EVENTUALLY_TRUE(signal.rxLos().has_value());
+                  EXPECT_EVENTUALLY_EQ(signal.rxLos().value(), rxLatch)
+                      << portName << ", lane: " << signal.lane().value();
+                } else {
+                  // Unfortunately, can't rely on rxLos as it doesn't always get
+                  // set. Some optics don't squelch their line side when the
+                  // system side is down.
+                  ASSERT_EVENTUALLY_TRUE(signal.rxLol().has_value());
 
-                // RX_LOL is not reliable right now on certain 100G
-                // CWDM4 optics like AOI and Miniphoton. So skip checking it
-                // on these optics for now
-                if (mediaInterface != MediaInterfaceCode::CWDM4_100G) {
-                  EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
-                      << portName << ", lane: " << signal.get_lane();
+                  // RX_LOL is not reliable right now on certain 100G
+                  // CWDM4 optics like AOI and Miniphoton. So skip checking it
+                  // on these optics for now
+                  // RX_LOL is not raised for 800G ZR optics as squelching is
+                  // disable by default
+                  if (mediaInterface != MediaInterfaceCode::CWDM4_100G &&
+                      mediaInterface != MediaInterfaceCode::ZR_800G) {
+                    EXPECT_EVENTUALLY_EQ(signal.rxLol().value(), rxLatch)
+                        << portName << ", lane: " << signal.lane().value();
+                  }
                 }
               }
             }

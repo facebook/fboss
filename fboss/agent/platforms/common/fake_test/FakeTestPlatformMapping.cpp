@@ -226,7 +226,7 @@ namespace facebook::fboss {
 FakeTestPlatformMapping::FakeTestPlatformMapping(
     std::vector<int> controllingPortIds,
     int portsPerSlot,
-    bool twoTransceiversPerPort)
+    FakeTestPlatformMappingType mappingType)
     : PlatformMapping(), controllingPortIds_(std::move(controllingPortIds)) {
   for (auto itProfile : kProfiles) {
     phy::PortProfileConfig profile;
@@ -255,10 +255,25 @@ FakeTestPlatformMapping::FakeTestPlatformMapping(
     mergePlatformSupportedProfile(configEntry);
   }
 
-  if (twoTransceiversPerPort) {
-    createDualTransceiverPlatformMapping(portsPerSlot);
-  } else {
-    createPlatformMapping(portsPerSlot);
+  switch (mappingType) {
+    case FakeTestPlatformMappingType::STANDARD:
+      createPlatformMapping(portsPerSlot);
+      break;
+    case FakeTestPlatformMappingType::DUAL_TRANSCEIVER:
+      createDualTransceiverPlatformMapping(portsPerSlot);
+      break;
+    case FakeTestPlatformMappingType::BACKPLANE:
+      createBackplanePlatformMapping();
+      break;
+    case FakeTestPlatformMappingType::XPHY_BACKPLANE:
+      createXphyBackplanePlatformMapping();
+      break;
+  }
+
+  // Backplane mappings don't follow the portsPerSlot model
+  if (mappingType == FakeTestPlatformMappingType::BACKPLANE ||
+      mappingType == FakeTestPlatformMappingType::XPHY_BACKPLANE) {
+    return;
   }
 
   // Each group has portsPerSlot ports regardless of configuration
@@ -550,6 +565,178 @@ void FakeTestPlatformMapping::createDualTransceiverPlatformMapping(
     *tcvr.physicalID() = groupID;
     setChip(*tcvr.name(), tcvr);
   }
+}
+
+void FakeTestPlatformMapping::createBackplanePlatformMapping() {
+  // Creates a single port with direct NPU to Backplane connection
+  // Similar to Ladakh eth1/3/1: NPU-TH6_NIF -> BACKPLANE-EXAMAX (no XPHY)
+  constexpr int portId = 1;
+  constexpr int groupId = 0;
+
+  cfg::PlatformPortEntry port;
+  *port.mapping()->id() = PortID(portId);
+  *port.mapping()->name() = "eth1/1/1";
+  *port.mapping()->controllingPort() = portId;
+  *port.mapping()->portType() = cfg::PortType::INTERFACE_PORT;
+
+  // Pin connection: NPU core directly to Backplane (no XPHY junction)
+  phy::PinConnection pinConnection;
+  pinConnection.a()->chip() = "NPU-core0";
+  pinConnection.a()->lane() = 0;
+
+  // Direct end connection to backplane
+  phy::PinID backplanePin;
+  *backplanePin.chip() = "BACKPLANE-slot1/chip1";
+  *backplanePin.lane() = 0;
+
+  phy::Pin zPin;
+  zPin.end() = backplanePin;
+  pinConnection.z() = zPin;
+
+  port.mapping()->pins()->push_back(pinConnection);
+
+  // Add a supported profile (using profile 59-style like Ladakh)
+  cfg::PlatformPortConfig portConfig;
+  portConfig.subsumedPorts() = {};
+
+  // iphy pin config
+  phy::PinConfig iphyPin;
+  *iphyPin.id()->chip() = "NPU-core0";
+  *iphyPin.id()->lane() = 0;
+  iphyPin.tx() = getFakeTxSetting();
+  portConfig.pins()->iphy()->push_back(iphyPin);
+
+  // transceiver pin config (backplane acts as transceiver)
+  phy::PinConfig transceiverPin;
+  *transceiverPin.id()->chip() = "BACKPLANE-slot1/chip1";
+  *transceiverPin.id()->lane() = 0;
+  portConfig.pins()->transceiver() = {transceiverPin};
+
+  port.supportedProfiles()->emplace(
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL, portConfig);
+
+  setPlatformPort(portId, port);
+
+  // Add IPHY chip
+  phy::DataPlanePhyChip iphy;
+  *iphy.name() = "NPU-core0";
+  *iphy.type() = phy::DataPlanePhyChipType::IPHY;
+  *iphy.physicalID() = groupId;
+  setChip(*iphy.name(), iphy);
+
+  // Add Backplane chip
+  phy::DataPlanePhyChip backplane;
+  *backplane.name() = "BACKPLANE-slot1/chip1";
+  *backplane.type() = phy::DataPlanePhyChipType::BACKPLANE;
+  *backplane.physicalID() = 0;
+  setChip(*backplane.name(), backplane);
+}
+
+void FakeTestPlatformMapping::createXphyBackplanePlatformMapping() {
+  // Creates a single port with NPU to XPHY to Backplane connection
+  // Similar to Ladakh eth1/43/1: NPU -> XPHY_SYSTEM -> XPHY_LINE -> BACKPLANE
+  constexpr int portId = 1;
+  constexpr int groupId = 0;
+
+  cfg::PlatformPortEntry port;
+  *port.mapping()->id() = PortID(portId);
+  *port.mapping()->name() = "eth1/1/1";
+  *port.mapping()->controllingPort() = portId;
+  *port.mapping()->portType() = cfg::PortType::INTERFACE_PORT;
+
+  // Pin connection: NPU core to XPHY junction to Backplane
+  phy::PinConnection asicPinConnection;
+  asicPinConnection.a()->chip() = "NPU-core0";
+  asicPinConnection.a()->lane() = 0;
+
+  // XPHY line to Backplane connection
+  phy::PinConnection xphyLinePinConnection;
+  xphyLinePinConnection.a()->chip() = "XPHY-LINE-slot1/chip1/core0";
+  xphyLinePinConnection.a()->lane() = 0;
+
+  phy::PinID backplanePin;
+  *backplanePin.chip() = "BACKPLANE-slot1/chip1";
+  *backplanePin.lane() = 0;
+
+  phy::Pin backplaneZPin;
+  backplaneZPin.end() = backplanePin;
+  xphyLinePinConnection.z() = backplaneZPin;
+
+  // XPHY junction
+  phy::PinJunction xphyJunction;
+  xphyJunction.system()->chip() = "XPHY-SYSTEM-slot1/chip1/core0";
+  xphyJunction.system()->lane() = 0;
+  xphyJunction.line() = {xphyLinePinConnection};
+
+  phy::Pin xphyPin;
+  xphyPin.junction() = xphyJunction;
+  asicPinConnection.z() = xphyPin;
+
+  port.mapping()->pins()->push_back(asicPinConnection);
+
+  // Add a supported profile with iphy, xphySys, xphyLine, and transceiver
+  cfg::PlatformPortConfig portConfig;
+  portConfig.subsumedPorts() = {};
+
+  // iphy pin config
+  phy::PinConfig iphyPin;
+  *iphyPin.id()->chip() = "NPU-core0";
+  *iphyPin.id()->lane() = 0;
+  iphyPin.tx() = getFakeTxSetting();
+  portConfig.pins()->iphy()->push_back(iphyPin);
+
+  // xphySys pin config
+  phy::PinConfig xphySysPin;
+  *xphySysPin.id()->chip() = "XPHY-SYSTEM-slot1/chip1/core0";
+  *xphySysPin.id()->lane() = 0;
+  xphySysPin.tx() = getFakeTxSetting();
+  portConfig.pins()->xphySys() = {xphySysPin};
+
+  // xphyLine pin config
+  phy::PinConfig xphyLinePin;
+  *xphyLinePin.id()->chip() = "XPHY-LINE-slot1/chip1/core0";
+  *xphyLinePin.id()->lane() = 0;
+  xphyLinePin.tx() = getFakeTxSetting();
+  portConfig.pins()->xphyLine() = {xphyLinePin};
+
+  // transceiver pin config (backplane)
+  phy::PinConfig transceiverPin;
+  *transceiverPin.id()->chip() = "BACKPLANE-slot1/chip1";
+  *transceiverPin.id()->lane() = 0;
+  portConfig.pins()->transceiver() = {transceiverPin};
+
+  port.supportedProfiles()->emplace(
+      cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91_OPTICAL, portConfig);
+
+  setPlatformPort(portId, port);
+
+  // Add IPHY chip (NPU core)
+  phy::DataPlanePhyChip iphy;
+  *iphy.name() = "NPU-core0";
+  *iphy.type() = phy::DataPlanePhyChipType::IPHY;
+  *iphy.physicalID() = groupId;
+  setChip(*iphy.name(), iphy);
+
+  // Add XPHY System chip
+  phy::DataPlanePhyChip xphySys;
+  *xphySys.name() = "XPHY-SYSTEM-slot1/chip1/core0";
+  *xphySys.type() = phy::DataPlanePhyChipType::XPHY;
+  *xphySys.physicalID() = groupId;
+  setChip(*xphySys.name(), xphySys);
+
+  // Add XPHY Line chip
+  phy::DataPlanePhyChip xphyLine;
+  *xphyLine.name() = "XPHY-LINE-slot1/chip1/core0";
+  *xphyLine.type() = phy::DataPlanePhyChipType::XPHY;
+  *xphyLine.physicalID() = groupId;
+  setChip(*xphyLine.name(), xphyLine);
+
+  // Add Backplane chip
+  phy::DataPlanePhyChip backplane;
+  *backplane.name() = "BACKPLANE-slot1/chip1";
+  *backplane.type() = phy::DataPlanePhyChipType::BACKPLANE;
+  *backplane.physicalID() = 0;
+  setChip(*backplane.name(), backplane);
 }
 
 } // namespace facebook::fboss

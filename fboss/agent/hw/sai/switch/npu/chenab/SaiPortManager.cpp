@@ -54,6 +54,10 @@ void SaiPortManager::changePortFlowletConfig(
   }
 }
 
+void SaiPortManager::changeClm(
+    const std::shared_ptr<Port>& /* oldPort */,
+    const std::shared_ptr<Port>& /* newPort */) {}
+
 void SaiPortManager::clearPortFlowletConfig(const PortID& portID) {
   if (!FLAGS_flowletSwitchingEnable) {
     return;
@@ -75,10 +79,9 @@ void SaiPortManager::programPfcDurationCounterEnable(
     const std::optional<cfg::PortPfc>& /* newPfc */,
     const std::optional<cfg::PortPfc>& /* oldPfc */) {}
 
-const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
-    const PortID& /* portId */) {
-  static const std::vector<sai_stat_id_t> stats;
-  return stats;
+SaiPortSerdesTraits::Attributes::RxReach::ValueType
+SaiPortManager::getSaiRxReach(
+    const std::vector<phy::RxReach>& /* rxReaches */) const {
+  throw FbossError("RxReach is not supported on this platform");
 }
-
 } // namespace facebook::fboss

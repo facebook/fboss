@@ -169,9 +169,9 @@ class AgentEnsembleTest : public ::testing::Test {
  private:
   template <typename AddrT>
   void resolveNeighbor(
-      PortDescriptor port,
+      const PortDescriptor& port,
       const AddrT& ip,
-      VlanID vlan,
+      const VlanID& vlan,
       folly::MacAddress mac);
   /*
    * Derived classes have the option to not run verify no

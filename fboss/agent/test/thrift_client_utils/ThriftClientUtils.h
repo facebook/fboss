@@ -113,4 +113,8 @@ std::vector<RouteDetails> getAllRoutes(const std::string& switchName);
 std::map<std::string, int64_t> getCounterNameToCount(
     const std::string& switchName);
 
+fsdb::OperState getFsdbOperStats(
+    const std::string& switchName,
+    const std::vector<std::string>& fsdbPath);
+
 } // namespace facebook::fboss::utility

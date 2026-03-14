@@ -72,7 +72,6 @@ folly::coro::Task<void> FsdbStatePublisher::serveStream(StreamT&& stream) {
             XLOG(ERR) << "Detected GR cancellation";
             throw FsdbClientGRDisconnectException(
                 "StatePublisher disconnectReason: GR");
-            break;
           }
           if (pubUnit && !pubUnit->metadata().has_value()) {
             pubUnit->isHeartbeat() = true;

@@ -44,6 +44,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <thrift/lib/cpp/util/EnumUtils.h>
+#include <thrift/lib/cpp2/FieldRef.h>
 
 #include <re2/re2.h>
 #include <chrono>
@@ -553,7 +554,7 @@ std::vector<PortID> getPortsForInterface(
       auto vlanId = intf->getVlanID();
       auto vlan = state->getVlans()->getNodeIf(vlanId);
       if (vlan) {
-        for (const auto& memberPort : vlan->getPorts()) {
+        for (const auto& memberPort : vlan->getPortsInfo()) {
           ports.emplace_back(memberPort.first);
         }
       }
@@ -680,13 +681,11 @@ void enableExactMatch(std::string& yamlCfg) {
 template std::shared_ptr<ArpEntry> getNeighborEntryForIP<ArpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables);
+    const folly::IPAddress& ipAddr);
 template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables);
+    const folly::IPAddress& ipAddr);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
@@ -704,42 +703,12 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
   return entry;
 }
 
-// TODO(skhare) Replace all callsites for getNeighborEntryForIP with
-// getNeighborEntryForIPAndIntf as part of migrating to consuming neighbor
-// tables from interfaces
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
-    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<SwitchState>& /* state */,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables) {
-  std::shared_ptr<NeighborEntryT> entry{nullptr};
-
-  if (use_intf_nbr_tables) {
-    return getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
-  }
-
-  switch (intf->getType()) {
-    case cfg::InterfaceType::VLAN: {
-      auto vlanID = intf->getVlanID();
-      auto vlan = state->getVlans()->getNodeIf(vlanID);
-      if (vlan) {
-        if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
-          entry = vlan->getArpTable()->getEntryIf(ipAddr.asV4());
-        } else {
-          entry = vlan->getNdpTable()->getEntryIf(ipAddr.asV6());
-        }
-      }
-      break;
-    }
-    case cfg::InterfaceType::PORT:
-    case cfg::InterfaceType::SYSTEM_PORT: {
-      entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
-      break;
-    }
-  }
-
-  return entry;
+    const folly::IPAddress& ipAddr) {
+  return getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
 }
 
 template <typename VlanOrIntfT>
@@ -751,7 +720,13 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
     if constexpr (std::is_same_v<VlanOrIntfT, Vlan>) {
       vlanID = vlanOrIntf->getID();
     } else {
-      vlanID = vlanOrIntf->getVlanIDIf();
+      switch (vlanOrIntf->getType()) {
+        case cfg::InterfaceType::VLAN:
+          return vlanOrIntf->getVlanID();
+        case cfg::InterfaceType::PORT:
+        case cfg::InterfaceType::SYSTEM_PORT:
+          return std::nullopt;
+      }
     }
   }
 
@@ -769,22 +744,13 @@ template std::optional<VlanID> getVlanIDFromVlanOrIntf<Interface>(
 template <typename NTableT>
 std::shared_ptr<NTableT> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables) {
+    VlanID vlanID) {
   auto vlan = state->getVlans()->getNode(vlanID);
-  if (use_intf_nbr_tables) {
-    auto intf = state->getInterfaces()->getNode(vlan->getInterfaceID());
-    if constexpr (std::is_same_v<NTableT, ArpTable>) {
-      return intf->getArpTable();
-    } else {
-      return intf->getNdpTable();
-    }
+  auto intf = state->getInterfaces()->getNode(vlan->getInterfaceID());
+  if constexpr (std::is_same_v<NTableT, ArpTable>) {
+    return intf->getArpTable();
   } else {
-    if constexpr (std::is_same_v<NTableT, ArpTable>) {
-      return vlan->getArpTable();
-    } else {
-      return vlan->getNdpTable();
-    }
+    return intf->getNdpTable();
   }
 }
 
@@ -792,12 +758,10 @@ std::shared_ptr<NTableT> getNeighborTableForVlan(
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template std::shared_ptr<ArpTable> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables);
+    VlanID vlanID);
 template std::shared_ptr<NdpTable> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables);
+    VlanID vlanID);
 
 OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
 
@@ -1111,7 +1075,9 @@ getPlatformMappingForPlatformType(
           true /*multiNpuPlatformMapping*/};
       return &meru800bfa;
     }
-    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA: {
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIA:
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIAB:
+    case facebook::fboss::PlatformType::PLATFORM_MERU800BIAC: {
       static facebook::fboss::Meru800biaPlatformMapping meru800bia;
       return &meru800bia;
     }
@@ -1200,6 +1166,70 @@ int numFabricLevels(const std::map<int64_t, cfg::DsfNode>& dsfNodes) {
   return maxFabricLevel;
 }
 
+// Get set of L1 fabric ports that are connected to L2 switches by examining DSF
+// nodes in switch state. This function is only valid for L1 fabric nodes in a
+// dual stage topology. First identifies all L2 nodes (fabricLevel == 2),
+// then finds fabric ports whose expected neighbor matches an L2 node name.
+// Returns a set of PortIDs for efficient lookup. Returns empty set with error
+// log if called on non-L1 fabric node or in non-dual stage topology.
+std::set<PortID> getL2ConnectedL1FabricPorts(
+    const std::shared_ptr<SwitchState>& state) {
+  std::set<PortID> l2ConnectedPorts;
+  std::set<std::string> l2NodeNames;
+
+  // Find all DSF nodes with fabricLevel == 2 (L2 nodes)
+  bool isDualStage = false;
+  bool isL1FabricNode = false;
+  for (const auto& matcherAndNodes : std::as_const(*state->getDsfNodes())) {
+    for (const auto& [switchId, dsfNode] :
+         std::as_const(*matcherAndNodes.second)) {
+      if (dsfNode->getType() == cfg::DsfNodeType::FABRIC_NODE &&
+          dsfNode->getFabricLevel().has_value()) {
+        if (dsfNode->getFabricLevel().value() == 2) {
+          isDualStage = true;
+          l2NodeNames.insert(dsfNode->getName());
+        } else if (dsfNode->getFabricLevel().value() == 1) {
+          isL1FabricNode = true;
+        }
+      }
+    }
+  }
+
+  // Check if this is a dual stage topology and return early otherwise
+  if (!isDualStage) {
+    XLOG(DBG3) << "getL2ConnectedL1FabricPorts called on non-dual stage "
+               << "topology. No L2 fabric nodes found!";
+    return l2ConnectedPorts;
+  }
+
+  if (!isL1FabricNode) {
+    XLOG(ERR) << "getL2ConnectedL1FabricPorts called on non-L1 fabric node."
+              << " This function is only valid for L1 fabric nodes in dual "
+              << "stage topology.";
+    return l2ConnectedPorts;
+  }
+
+  // Find all fabric ports that have expected neighbor as L2 node
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& [portIdRaw, port] : std::as_const(*portMap.second)) {
+      PortID portId = PortID(portIdRaw);
+      if (port->getPortType() == cfg::PortType::FABRIC_PORT &&
+          !port->getExpectedNeighborValues()->empty()) {
+        const auto& expectedNeighbors =
+            port->getExpectedNeighborValues()->toThrift();
+        const auto& neighbor = expectedNeighbors.front();
+        if (apache::thrift::is_non_optional_field_set_manually_or_by_serializer(
+                neighbor.remoteSystem()) &&
+            l2NodeNames.find(*neighbor.remoteSystem()) != l2NodeNames.end()) {
+          l2ConnectedPorts.insert(portId);
+        }
+      }
+    }
+  }
+
+  return l2ConnectedPorts;
+}
+
 const std::vector<cfg::AclLookupClass>& getToCpuClassIds() {
   static const std::vector<cfg::AclLookupClass> toCpuClassIds = {
       cfg::AclLookupClass::DST_CLASS_L3_LOCAL_1,
@@ -1277,6 +1307,15 @@ InterfaceID getInterfaceIDForPort(
   }
 
   throw FbossError("Interface not found for port ", portID);
+}
+
+bool isPortDrained(
+    const std::shared_ptr<SwitchState>& state,
+    const Port* port,
+    SwitchID portSwitchId) {
+  const auto& switchSettings = state->getSwitchSettings()->getSwitchSettings(
+      HwSwitchMatcher(std::unordered_set<SwitchID>({portSwitchId})));
+  return switchSettings->isSwitchDrained() || port->isDrained();
 }
 
 } // namespace facebook::fboss

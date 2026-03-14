@@ -34,6 +34,8 @@
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h"
+#include "fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h"
 #include "fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h"
 #include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
@@ -141,6 +143,9 @@ template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
 template void
 CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits>::run();
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
+template void
+CmdHandler<CmdShowConfigRunningAgent, CmdShowConfigDynamicTraits>::run();
+template void CmdHandler<CmdShowConfigHistoryAgent, CmdShowConfigTraits>::run();
 template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
@@ -259,6 +264,9 @@ template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
+
+template const ValidAggMapType
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
 
 template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();

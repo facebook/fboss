@@ -80,12 +80,21 @@ class ManagedRouteNextHop
 
 using ManagedRouteIpNextHop = ManagedRouteNextHop<SaiIpNextHopTraits>;
 using ManagedRouteMplsNextHop = ManagedRouteNextHop<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+using ManagedRouteSrv6NextHop =
+    ManagedRouteNextHop<SaiSrv6SidlistNextHopTraits>;
+#endif
 
 struct SaiRouteHandle {
   using NextHopHandle = std::variant<
       std::shared_ptr<SaiNextHopGroupHandle>,
       std::shared_ptr<ManagedRouteIpNextHop>,
-      std::shared_ptr<ManagedRouteMplsNextHop>>;
+      std::shared_ptr<ManagedRouteMplsNextHop>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      ,
+      std::shared_ptr<ManagedRouteSrv6NextHop>
+#endif
+      >;
   NextHopHandle nexthopHandle_;
   std::shared_ptr<SaiCounterHandle> counterHandle_;
   std::shared_ptr<SaiRoute> route;

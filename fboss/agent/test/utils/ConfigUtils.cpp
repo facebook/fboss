@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
@@ -57,9 +58,16 @@ int getRdswSysPortBlockSize(
   // For dual stage 3/2q mode, sys ports are allocated in 2 blocks of 28 while
   // for single state we allocate a single block of 44
   // For PLATFORM_JANGA800BIC, use Prod range
-  if (platformType.has_value() &&
-      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
-    return 22;
+  if (platformType.has_value()) {
+    switch (platformType.value()) {
+      case PlatformType::PLATFORM_JANGA800BIC:
+        return 22;
+      case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      case PlatformType::PLATFORM_J4SIM:
+        return 1024;
+      default:
+        break;
+    }
   }
   return isDualStage3Q2QMode() ? 28 : 44;
 }
@@ -86,7 +94,10 @@ int getSysPortIdsAllocated(
     std::optional<PlatformType> platformType = std::nullopt) {
   auto portsConsumed = firstSwitchIdMin;
   auto deviceIndex = remoteSwitchId / asic.getNumCores();
-  CHECK(asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3);
+  CHECK(
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4 ||
+      asic.getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D);
   if (deviceIndex < getMaxRdsw(platformType)) {
     portsConsumed += deviceIndex * getRdswSysPortBlockSize(platformType) - 1;
   } else {
@@ -99,10 +110,42 @@ int getSysPortIdsAllocated(
 }
 
 cfg::InterfaceType getInterfaceType(const HwAsic& asic) {
-  if (asic.getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asic.getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     return cfg::InterfaceType::PORT;
   }
   return cfg::InterfaceType::VLAN;
+}
+
+void populateHyperPortAggregates(
+    const PlatformMapping* platformMapping,
+    cfg::SwitchConfig& config) {
+  const auto& platformPorts = platformMapping->getPlatformPorts();
+  for (const auto& [portID, portEntry] : platformPorts) {
+    if (*portEntry.mapping()->portType() != cfg::PortType::HYPER_PORT) {
+      continue;
+    }
+    const auto& supportedProfiles = *portEntry.supportedProfiles();
+    if (supportedProfiles.empty()) {
+      continue;
+    }
+    const auto& firstProfile = supportedProfiles.begin()->second;
+    auto subsumedPorts = firstProfile.subsumedPorts();
+    if (!subsumedPorts) {
+      continue;
+    }
+    std::vector<int32_t> memberPortIDs;
+    for (auto subsumedPort : *subsumedPorts) {
+      memberPortIDs.push_back(static_cast<int32_t>(subsumedPort));
+    }
+    addAggPort(
+        static_cast<int>(portID),
+        memberPortIDs,
+        &config,
+        cfg::LacpPortRate::FAST,
+        1.0,
+        cfg::AggregatePortType::HYPER_PORT,
+        *portEntry.mapping()->name());
+  }
 }
 } // namespace
 folly::MacAddress kLocalCpuMac() {
@@ -242,7 +285,8 @@ std::unordered_map<PortID, cfg::PortProfileID> getSafeProfileIDs(
 
     auto bestSpeed = cfg::PortSpeed::DEFAULT;
     auto bestProfile = cfg::PortProfileID::PROFILE_DEFAULT;
-    if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 &&
+    if ((asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+         asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) &&
         FLAGS_dual_stage_rdsw_3q_2q) {
       // When using dual_stage_rdsw_3q_2q mapping. Pick NIF port
       // speed to be 400G, since that's what we have in chip config
@@ -449,10 +493,14 @@ cfg::DsfNode dsfNodeConfig(
         return PlatformType::PLATFORM_MERU400BIU;
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return PlatformType::PLATFORM_MERU800BIA;
+      case cfg::AsicType::ASIC_TYPE_JERICHO4:
+        return PlatformType::PLATFORM_J4SIM;
       case cfg::AsicType::ASIC_TYPE_RAMON:
         return PlatformType::PLATFORM_MERU400BFU;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return PlatformType::PLATFORM_MERU800BFA;
+      case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+        return PlatformType::PLATFORM_BLACKWOLF800BANW;
       default:
         break;
     }
@@ -788,6 +836,11 @@ cfg::SwitchConfig multiplePortsPerIntfConfig(
           portScope);
     }
   }
+
+  if (FLAGS_hyper_port) {
+    populateHyperPortAggregates(platformMapping, config);
+  }
+
   return config;
 }
 
@@ -815,51 +868,65 @@ cfg::SwitchConfig genPortVlanCfg(
   } else {
     std::map<SwitchID, cfg::SwitchInfo> defaultSwitchIdToSwitchInfo;
     std::map<SwitchID, const HwAsic*> defaultHwAsicTable;
-    auto switchType = asic->getSwitchType();
     auto asicType = asic->getAsicType();
     int64_t switchId{0};
+    std::string connectionHandle;
     if (asic->getSwitchId().has_value()) {
       switchId = *asic->getSwitchId();
     }
-    defaultHwAsicTable.insert({SwitchID(switchId), asic});
-    cfg::SwitchInfo switchInfo;
     cfg::Range64 portIdRange;
     portIdRange.minimum() =
         cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN();
     portIdRange.maximum() = cfg::switch_config_constants::
         DEFAULT_DUAL_STAGE_3Q_2Q_PORT_ID_RANGE_MAX();
-    switchInfo.portIdRange() = portIdRange;
-    switchInfo.switchIndex() = 0;
-    switchInfo.switchType() = switchType;
-    switchInfo.asicType() = asicType;
+
     // TODO: Instead of using hard codings for connection handle and
     // src mac, get the configs from AgentConfig
     if (asicType == cfg::AsicType::ASIC_TYPE_RAMON) {
-      switchInfo.connectionHandle() = "0c:00";
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_RAMON3) {
-      switchInfo.connectionHandle() = "15:00";
+      connectionHandle = "0c:00";
+    } else if (
+        asicType == cfg::AsicType::ASIC_TYPE_RAMON3 ||
+        asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+        asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+      connectionHandle = "15:00";
     } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2) {
-      switchInfo.switchMac() = "02:00:00:00:00:01";
-      switchInfo.connectionHandle() = "68:00";
-    } else if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-      switchInfo.switchMac() = "02:00:00:00:00:01";
-      switchInfo.connectionHandle() = "15:00";
+      connectionHandle = "68:00";
     } else if (
         asicType == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
-      switchInfo.connectionHandle() = "/dev/uio0";
+        asicType == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asicType == cfg::AsicType::ASIC_TYPE_G202X) {
+      connectionHandle = "/dev/uio0";
     }
-    switchInfo.systemPortRanges() = asic->getSystemPortRanges();
-    if (asic->getLocalSystemPortOffset().has_value()) {
-      switchInfo.localSystemPortOffset() = *asic->getLocalSystemPortOffset();
+
+    if (platformType.has_value() &&
+        platformType.value() == PlatformType::PLATFORM_LADAKH800BCLS) {
+      portIdRange.maximum() =
+          cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX();
+      defaultSwitchIdToSwitchInfo.insert(
+          {SwitchID(0),
+           generateSwitchInfo((SwitchID)0, portIdRange, "0000:15:00=0", asic)});
+      defaultHwAsicTable.insert({SwitchID(0), asic});
+
+      // Add switch info for switch ID 1
+      auto numPorts =
+          (cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() -
+           cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MIN()) +
+          1;
+      portIdRange.minimum() =
+          cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + 1;
+      portIdRange.maximum() =
+          cfg::switch_config_constants::DEFAULT_PORT_ID_RANGE_MAX() + numPorts;
+
+      defaultSwitchIdToSwitchInfo.insert(
+          {SwitchID(1),
+           generateSwitchInfo((SwitchID)1, portIdRange, "0000:18:00=0", asic)});
+      defaultHwAsicTable.insert({SwitchID(1), asic});
+    } else {
+      cfg::SwitchInfo switchInfo = generateSwitchInfo(
+          (SwitchID)switchId, portIdRange, connectionHandle, asic);
+      defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
+      defaultHwAsicTable.insert({SwitchID(switchId), asic});
     }
-    if (asic->getGlobalSystemPortOffset().has_value()) {
-      switchInfo.globalSystemPortOffset() = *asic->getGlobalSystemPortOffset();
-    }
-    if (asic->getInbandPortId().has_value()) {
-      switchInfo.inbandPortId() = *asic->getInbandPortId();
-    }
-    defaultSwitchIdToSwitchInfo.insert({SwitchID(switchId), switchInfo});
     populateSwitchInfo(
         config, defaultSwitchIdToSwitchInfo, defaultHwAsicTable, platformType);
   }
@@ -893,13 +960,22 @@ cfg::SwitchConfig genPortVlanCfg(
   CHECK_GT(portToDefaultProfileID.size(), 0);
   const auto& platformPorts = platformMapping->getPlatformPorts();
   for (auto const& [portID, profileID] : portToDefaultProfileID) {
-    if (!FLAGS_hide_fabric_ports ||
-        *platformPorts.find(static_cast<int32_t>(portID))
-                ->second.mapping()
-                ->portType() != cfg::PortType::FABRIC_PORT) {
-      config.ports()->push_back(
-          createDefaultPortConfig(platformMapping, asic, portID, profileID));
+    if ((FLAGS_hide_fabric_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::FABRIC_PORT) ||
+        (FLAGS_hide_interface_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
+      continue;
     }
+    config.ports()->push_back(
+        createDefaultPortConfig(platformMapping, asic, portID, profileID));
   }
   auto const kFabricTxQueueConfig = "FabricTxQueueConfig";
   config.portQueueConfigs()[kFabricTxQueueConfig] = getFabTxQueueConfig();
@@ -957,7 +1033,7 @@ cfg::SwitchConfig genPortVlanCfg(
     }
 
     auto defaultVlanId =
-        (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_CHENAB)
+        (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
         ? kDefaultVlanId4094
         : kDefaultVlanId1;
     cfg::Vlan defaultVlan;
@@ -977,7 +1053,7 @@ cfg::SwitchConfig genPortVlanCfg(
       vlanPort.emitTags() = false;
       config.vlanPorts()->push_back(vlanPort);
     }
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       /*
        * TODO(pshaikh): Chenab-Hack pipeline lookup for traffic injected by cpu
        * requires vlan rif in default vlan.
@@ -1035,6 +1111,39 @@ void populateSwitchInfo(
   config.dsfNodes() = newDsfNodes;
 }
 
+cfg::SwitchInfo generateSwitchInfo(
+    SwitchID switchId,
+    const cfg::Range64& portIdRange,
+    const std::string& connectionHandle,
+    const HwAsic* asic) {
+  cfg::SwitchInfo switchInfo;
+  auto asicType = asic->getAsicType();
+  switchInfo.portIdRange() = portIdRange;
+  switchInfo.switchIndex() = switchId;
+  switchInfo.switchType() = asic->getSwitchType();
+  switchInfo.asicType() = asicType;
+
+  if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    switchInfo.switchMac() = "02:00:00:00:00:01";
+  }
+  switchInfo.systemPortRanges() = asic->getSystemPortRanges();
+  if (asic->getLocalSystemPortOffset().has_value()) {
+    switchInfo.localSystemPortOffset() = *asic->getLocalSystemPortOffset();
+  }
+  if (asic->getGlobalSystemPortOffset().has_value()) {
+    switchInfo.globalSystemPortOffset() = *asic->getGlobalSystemPortOffset();
+  }
+  if (asic->getInbandPortId().has_value()) {
+    switchInfo.inbandPortId() = *asic->getInbandPortId();
+  }
+  if (!connectionHandle.empty()) {
+    switchInfo.connectionHandle() = connectionHandle;
+  }
+  return switchInfo;
+}
+
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2) {
   std::vector<PortID> ports{port1, port2};
@@ -1054,10 +1163,20 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     PortID port1,
     PortID port2,
     bool supportsAddRemovePort,
-    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap) {
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    const std::optional<PlatformType> platformType) {
   std::vector<PortID> ports{port1, port2};
   return oneL3IntfNPortConfig(
-      platformMapping, asic, ports, supportsAddRemovePort, lbModeMap);
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      true /*interfaceHasSubnet*/,
+      kBaseVlanId,
+      true /*optimizePortProfile*/,
+      true /*setInterfaceMac*/,
+      platformType);
 }
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
@@ -1069,7 +1188,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     bool interfaceHasSubnet,
     int baseVlanId,
     bool optimizePortProfile,
-    bool setInterfaceMac) {
+    bool setInterfaceMac,
+    const std::optional<PlatformType> platformType) {
   std::map<PortID, VlanID> port2vlan;
   std::vector<VlanID> vlans{VlanID(baseVlanId)};
   std::vector<PortID> vlanPorts;
@@ -1086,7 +1206,11 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
       vlans,
       lbModeMap,
       supportsAddRemovePort,
-      optimizePortProfile);
+      optimizePortProfile,
+      false /*enableFabricPorts*/,
+      std::nullopt /*switchIdToSwitchInfo*/,
+      std::nullopt /*hwAsicTable*/,
+      platformType);
 
   config.interfaces()->resize(1);
   config.interfaces()[0].intfID() = baseVlanId;
@@ -1635,6 +1759,30 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
       setInterfaceMac,
       baseIntfId,
       enableFabricPorts,
+      intfTypeVal);
+}
+
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    PlatformType platformType) {
+  cfg::InterfaceType intfTypeVal = getInterfaceType(*asic);
+  return onePortPerInterfaceConfigImpl(
+      platformMapping,
+      asic,
+      ports,
+      supportsAddRemovePort,
+      lbModeMap,
+      true /*interfaceHasSubnet*/,
+      true /*setInterfaceMac*/,
+      kBaseVlanId,
+      false /*enableFabricPorts*/,
+      std::nullopt /*switchIdToSwitchInfo*/,
+      std::nullopt /*hwAsicTable*/,
+      platformType,
       intfTypeVal);
 }
 

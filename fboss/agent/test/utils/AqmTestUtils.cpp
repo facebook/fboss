@@ -117,7 +117,9 @@ int getRoundedBufferThreshold(
         FbossError("Invalid threshold for ASIC, ", expectedThreshold);
       }
     }
-  } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+  } else if (
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+      asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
     threshold = (applyYubaFloatingPointRounding(expectedThreshold) /
                  asic->getPacketBufferUnitSize()) *
         asic->getPacketBufferUnitSize();

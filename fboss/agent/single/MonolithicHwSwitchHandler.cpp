@@ -47,7 +47,7 @@ bool MonolithicHwSwitchHandler::sendPacketSwitchedAsync(
 bool MonolithicHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const PortID& portID,
-    TxPacketType packetType) noexcept {
+    PacketType packetType) noexcept {
   return hw_->sendPacketOutOfPortSyncForPktType(
       std::move(pkt), portID, packetType);
 }
@@ -225,10 +225,13 @@ MonolithicHwSwitchHandler::stateChanged(
     bool transaction,
     const std::shared_ptr<SwitchState>& /*oldState*/,
     const std::shared_ptr<SwitchState>& /*newState*/,
-    const HwWriteBehavior& hwWriteBehavior) {
+    const HwWriteBehavior& hwWriteBehavior,
+    const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   auto operResult = transaction
       ? hw_->stateChangedTransaction(
-            deltas, HwWriteBehaviorRAII(hwWriteBehavior))
+            deltas,
+            HwWriteBehaviorRAII(hwWriteBehavior),
+            deltaApplicationBehavior)
       : hw_->stateChanged(deltas, HwWriteBehaviorRAII(hwWriteBehavior));
   /*
    * For monolithic, return success for update since SwSwitch should not

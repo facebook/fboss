@@ -9,9 +9,23 @@
  */
 #include "fboss/lib/fpga/MultiPimPlatformPimContainer.h"
 
+#include <fb303/ThreadCachedServiceData.h>
+#include <folly/Conv.h>
 #include "fboss/agent/FbossError.h"
 
 namespace facebook::fboss {
+
+namespace {
+constexpr auto kPimPrefix = "qsfp.pim";
+constexpr auto kXphyGetPortInfoFailed = "xphy_get_port_info_failed";
+} // namespace
+
+void initPerPimFb303Stats(const PimID& pimID) {
+  fb303::ThreadCachedServiceData::get()->addStatExportType(
+      folly::to<std::string>(
+          kPimPrefix, ".", pimID, ".", kXphyGetPortInfoFailed),
+      facebook::fb303::SUM);
+}
 
 std::string MultiPimPlatformPimContainer::getPimTypeStr(
     MultiPimPlatformPimContainer::PimType pimType) {

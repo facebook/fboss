@@ -20,9 +20,11 @@
 #include <optional>
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/HwSwitchThriftClientTable.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/StateObserver.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/hw/mock/MockHwSwitch.h"
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -52,14 +54,15 @@ class MockMultiSwitchHwSwitchHandler : public MultiSwitchHwSwitchHandler {
   MOCK_METHOD2(
       stateChanged,
       std::shared_ptr<SwitchState>(const StateDelta&, bool));
-  MOCK_METHOD5(
+  MOCK_METHOD6(
       stateChanged,
       std::pair<fsdb::OperDelta, HwSwitchStateUpdateStatus>(
           const std::vector<fsdb::OperDelta>&,
           bool,
           const std::shared_ptr<SwitchState>&,
           const std::shared_ptr<SwitchState>&,
-          const HwWriteBehavior&));
+          const HwWriteBehavior&,
+          const std::optional<StateDeltaApplication>&));
 };
 
 template <cfg::SwitchType type, bool enableIntfNbrTable, int count = 1>
@@ -363,6 +366,20 @@ ResolvedNextHop makeResolvedNextHop(
     uint32_t weight = 1,
     std::optional<NetworkTopologyInformation> topologyInfo = std::nullopt);
 
+/**
+ * Create an expected RouteNextHopEntry with the correct IDs (ResolvedNextHopID
+ * and NormalizedResolvedNextHopID) by looking up the ID from the
+ * NextHopIDManager in the RIB.
+ *
+ * This is useful in tests where we need to compare actual route forward info
+ * with expected values, and the expected RouteNextHopEntry needs to have the
+ * correct resolvedNextHopSetID populated.
+ */
+RouteNextHopEntry makeExpectedRouteNextHopEntry(
+    const SwSwitch* sw,
+    RouteNextHopSet nhops,
+    AdminDistance distance);
+
 /*
  * Generate UCMP next hop groups with weighted next hops.
  *
@@ -429,13 +446,13 @@ RoutePrefixV6 makePrefixV6(std::string str);
  * usage:
  *  EXPECT_STATE_UPDATE(sw)
  */
-#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_));
+#define EXPECT_STATE_UPDATE(sw) EXPECT_HW_CALL(sw, stateChangedImpl(_, _));
 
 #define EXPECT_STATE_UPDATE_TIMES(sw, times) \
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(times);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(times);
 
 #define EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, times) \
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(::testing::AtLeast(times));
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(::testing::AtLeast(times));
 
 /**
  * Templatized version of Matching function for Tx/Rx packet.
@@ -689,5 +706,54 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
     const AgentConfig* config,
     const AgentDirectoryUtil* dirUtil,
     HwSwitchHandlerInitFn initFunc = nullptr);
+
+/**
+ * A test implementation of HwSwitchThriftClientTable that allows controlling
+ * the behavior of getProgrammedState and getHwSwitchRunState for testing.
+ */
+class HwSwitchThriftClientTableForTesting : public HwSwitchThriftClientTable {
+ public:
+  HwSwitchThriftClientTableForTesting(
+      int16_t basePort,
+      const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo)
+      : HwSwitchThriftClientTable(basePort, switchIdToSwitchInfo) {}
+
+  state::SwitchState getProgrammedState(
+      const SwitchID& /* switchId */) override {
+    if (shouldThrowOnGetProgrammedState_) {
+      throw std::runtime_error("Failed to get programmed state");
+    }
+    return programmedState_;
+  }
+
+  SwitchRunState getHwSwitchRunState(const SwitchID& /* switchId */) override {
+    if (shouldThrowOnGetRunState_) {
+      throw std::runtime_error("Failed to get run state");
+    }
+    return runState_;
+  }
+
+  void setRunState(SwitchRunState state) {
+    runState_ = state;
+  }
+
+  void setShouldThrowOnGetProgrammedState(bool shouldThrow) {
+    shouldThrowOnGetProgrammedState_ = shouldThrow;
+  }
+
+  void setShouldThrowOnGetRunState(bool shouldThrow) {
+    shouldThrowOnGetRunState_ = shouldThrow;
+  }
+
+  void setProgrammedState(const state::SwitchState& state) {
+    programmedState_ = state;
+  }
+
+ private:
+  state::SwitchState programmedState_;
+  SwitchRunState runState_{SwitchRunState::INITIALIZED};
+  bool shouldThrowOnGetProgrammedState_{false};
+  bool shouldThrowOnGetRunState_{false};
+};
 
 } // namespace facebook::fboss

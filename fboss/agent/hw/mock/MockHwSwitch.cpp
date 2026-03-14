@@ -58,18 +58,23 @@ MockHwSwitch::MockHwSwitch(MockPlatform* platform) : platform_(platform) {
       .WillByDefault(
           [=](TxPacket* pkt,
               const PortID& /*port*/,
-              TxPacketType /*packetType*/) -> bool {
+              PacketType /*packetType*/) -> bool {
             delete pkt;
             return true;
           });
-  ON_CALL(*this, stateChangedImpl(_))
-      .WillByDefault(Invoke([](const std::vector<StateDelta>& deltas) {
-        return deltas.back().newState();
-      }));
-  ON_CALL(*this, stateChangedTransaction(_, _))
+  ON_CALL(*this, stateChangedImpl(_, _))
       .WillByDefault(Invoke(
           [](const std::vector<StateDelta>& deltas,
-             const HwWriteBehaviorRAII&) { return deltas.back().newState(); }));
+             const std::optional<StateDeltaApplication>& /* deltaApp */) {
+            return deltas.back().newState();
+          }));
+  ON_CALL(*this, stateChangedTransaction(_, _, _))
+      .WillByDefault(Invoke(
+          [](const std::vector<StateDelta>& deltas,
+             const HwWriteBehaviorRAII& /* behavior */,
+             const std::optional<StateDeltaApplication>& /* deltaApp */) {
+            return deltas.back().newState();
+          }));
   if (FLAGS_enable_hw_update_protection) {
     ON_CALL(*this, transactionsSupported()).WillByDefault(Return(true));
   } else {
@@ -121,7 +126,7 @@ bool MockHwSwitch::sendPacketOutOfPortSync(
 bool MockHwSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> pkt,
     const facebook::fboss::PortID& portID,
-    facebook::fboss::TxPacketType packetType) noexcept {
+    facebook::fboss::PacketType packetType) noexcept {
   TxPacket* raw(pkt.release());
   sendPacketOutOfPortSyncForPktType_(raw, portID, packetType);
   return true;

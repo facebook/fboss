@@ -98,6 +98,9 @@ class PlatformMapping {
       PlatformPortProfileConfigMatcher matcher,
       phy::Side side) const;
 
+  // Get the DriverPeaking overrides for a port if it exists
+  std::optional<std::map<int32_t, int32_t>> getPortDriverPeakingOverrides(
+      PlatformPortProfileConfigMatcher matcher) const;
   // Match the PinConfig for a PlatformPortProfileConfigMatcher
   std::vector<phy::PinConfig> getPortIphyPinConfigs(
       PlatformPortProfileConfigMatcher matcher) const;
@@ -106,6 +109,10 @@ class PlatformMapping {
       PlatformPortProfileConfigMatcher matcher) const;
 
   std::optional<std::vector<phy::PinConfig>> getPortTransceiverPinConfigs(
+      PlatformPortProfileConfigMatcher matcher) const;
+
+  // Get the serdesCustomCollection from PortPinConfig for a port
+  std::optional<std::string> getPortSerdesCustomCollection(
       PlatformPortProfileConfigMatcher matcher) const;
 
   std::set<uint8_t> getTransceiverHostLanes(
@@ -215,5 +222,7 @@ class PlatformMapping {
   // Forbidden copy constructor and assignment operator
   PlatformMapping(PlatformMapping const&) = delete;
   PlatformMapping& operator=(PlatformMapping const&) = delete;
+  PlatformMapping(PlatformMapping&&) = delete;
+  PlatformMapping& operator=(PlatformMapping&&) = delete;
 };
 } // namespace facebook::fboss

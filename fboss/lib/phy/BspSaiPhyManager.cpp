@@ -12,6 +12,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiApiLock.h"
 #include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/lib/phy/SaiPhyRetimer.h"
@@ -92,6 +93,21 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
   XLOG(DBG5) << __func__ << ": Starting with warmboot=" << warmboot;
   std::optional<GlobalXphyID> firstXphy;
 
+  // Reset all PHY IO controllers and PHYs during coldboot only
+  if (!warmboot) {
+    XLOG(INFO) << "Coldboot: Resetting all PHY IO controllers and PHYs";
+    for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
+      auto pimContainer = systemContainer_->getPimContainerFromPimID(pimID);
+
+      // 1. Reset MDIO bus controllers first
+      pimContainer->initAllPhyIOControllers();
+
+      // 2. Then reset individual PHY retimers
+      pimContainer->initAllPhys();
+    }
+    XLOG(INFO) << "Coldboot: All PHY resets complete";
+  }
+
   // Iterate through all PIMs in the BSP mapping
   for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
     XLOG(INFO) << "Initializing XPHYs for PIM " << pimID;
@@ -130,6 +146,12 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
                << ": Calling preHwInitialized for firstXphy=" << *firstXphy;
     // Initialize SAI APIs once
     getSaiPlatform(*firstXphy)->preHwInitialized(warmboot);
+
+    // Mark the SAI adaptor as thread-safe to enable parallel XPHY
+    // initialization.
+    SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
+    XLOG(INFO) << "Enabled parallel XPHY initialization by marking SAI adaptor "
+               << "as thread-safe";
   }
 
   return true;

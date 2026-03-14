@@ -292,7 +292,7 @@ bool RouteNextHopEntry::isValid(bool forMplsRoute) const {
 
       if (nexthop->safe_cref<common_if_tags::mplsAction>() &&
           *(nexthop->safe_cref<common_if_tags::mplsAction>()
-                ->safe_cref<mpls_tags::strings::action>()) !=
+                ->safe_cref<switch_state_tags::action>()) !=
               LabelForwardingAction::LabelForwardingType::PUSH) {
         return !valid;
       }
@@ -438,7 +438,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
         nhop.labelForwardingAction(),
         nhop.disableTTLDecrement(),
         std::nullopt,
-        nhop.adjustedWeight()));
+        nhop.adjustedWeight(),
+        nhop.srv6SegmentList(),
+        nhop.tunnelType(),
+        nhop.tunnelId()));
   }
   // 2)
   // Calculate the totalWeight. If that exceeds the max ecmp width, we use the
@@ -485,7 +488,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
               nhop.labelForwardingAction(),
               nhop.disableTTLDecrement(),
               nhop.topologyInfo(),
-              nhop.adjustedWeight()));
+              nhop.adjustedWeight(),
+              nhop.srv6SegmentList(),
+              nhop.tunnelType(),
+              nhop.tunnelId()));
           scaledTotalWeight += weight;
         }
         index++;
@@ -505,7 +511,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
             nhop.labelForwardingAction(),
             nhop.disableTTLDecrement(),
             nhop.topologyInfo(),
-            nhop.adjustedWeight()));
+            nhop.adjustedWeight(),
+            nhop.srv6SegmentList(),
+            nhop.tunnelType(),
+            nhop.tunnelId()));
         scaledTotalWeight += w;
       }
       // 2c)
@@ -532,7 +541,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
               maxItr->labelForwardingAction(),
               maxItr->disableTTLDecrement(),
               maxItr->topologyInfo(),
-              maxItr->adjustedWeight());
+              maxItr->adjustedWeight(),
+              maxItr->srv6SegmentList(),
+              maxItr->tunnelType(),
+              maxItr->tunnelId());
           // remove the max weight next hop and replace with the
           // decremented version, if the decremented version would
           // not have weight 0. If it would have weight 0, that means
@@ -569,7 +581,10 @@ RouteNextHopEntry::NextHopSet RouteNextHopEntry::normalizedNextHopsImpl(
           nhop.labelForwardingAction(),
           nhop.disableTTLDecrement(),
           nhop.topologyInfo(),
-          nhop.adjustedWeight()));
+          nhop.adjustedWeight(),
+          nhop.srv6SegmentList(),
+          nhop.tunnelType(),
+          nhop.tunnelId()));
     }
     XLOG(DBG3) << "Scaled next hops from " << getNextHopSet() << " to "
                << normalizedToMaxPathNextHops;

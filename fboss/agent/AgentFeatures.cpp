@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/VoqConstants.h"
 
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
@@ -28,6 +29,8 @@ DEFINE_bool(
 DEFINE_bool(hide_fabric_ports, false, "Elide ports of type fabric");
 
 DEFINE_bool(hide_management_ports, false, "Elide ports of type management");
+
+DEFINE_bool(hide_interface_ports, false, "Elide ports of type interface");
 
 // DSF Subscriber flags
 DEFINE_bool(
@@ -274,6 +277,11 @@ DEFINE_int32(
     0,
     "switch index under test. Used for testing NPU specific features.");
 
+DEFINE_int32(
+    switch_id_for_testing,
+    0,
+    "switch ID under test. Used for testing NPU specific features.");
+
 DEFINE_uint32(
     counter_refresh_interval,
     1,
@@ -306,6 +314,16 @@ DEFINE_bool(
     enable_ecmp_resource_manager,
     false,
     "This flag is used to enable ecmp resource manager feature");
+
+DEFINE_bool(
+    enable_nexthop_id_manager,
+    false,
+    "Enable NextHop ID allocation and management for routes");
+
+DEFINE_bool(
+    resolve_nexthops_from_id,
+    false,
+    "Resolve nexthops from NextHopSetID in FibInfo maps instead of inline nexthops");
 
 DEFINE_int32(
     ecmp_resource_manager_make_before_break_buffer,
@@ -384,6 +402,8 @@ DEFINE_bool(
     false,
     "Enable sending and receiving port drain state in LLDP packets");
 
+DEFINE_bool(enable_agent_drain, false, "Enable drain in wedge agent");
+
 DEFINE_bool(
     enable_state_delta_logging,
     false,
@@ -421,3 +441,35 @@ DEFINE_bool(
     "On SW agent only crash, it can collect the switch state from hw"
     " switches and recover from it. This enables hitless restarts"
     " on SW agent. This is only used for Sw Switch.");
+
+DEFINE_int32(
+    fabric_link_monitoring_max_l1_l2_switch_ids,
+    facebook::fboss::kDualStageMaxL1L2FabricLinkMonitoringSwitchIds,
+    "Max number of L1-L2 fabric link monitoring switch IDs to allocate");
+
+DEFINE_bool(
+    montblanc_odd_ports_8x100G,
+    false,
+    "Enables platform mapping with 8x100G on odd ports");
+
+DEFINE_bool(can_warm_boot, true, "Enable/disable warm boot functionality");
+
+DEFINE_string(
+    thrift_switch_state_file,
+    "thrift_switch_state",
+    "File for dumping switch state in serialized thrift format on exit");
+
+DEFINE_bool(
+    qsfp_port_manager_mode,
+    false,
+    "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
+
+DEFINE_bool(
+    verify_fib_nexthop_id_consistency,
+    false,
+    "Verify FIB route NextHop IDs are consistent with inline nexthops.");
+
+DEFINE_bool(
+    enforce_single_nbr_mac_per_intf,
+    false,
+    "Enforce that each RIF has at most one neighbor MAC address");

@@ -171,7 +171,7 @@ class BgpIntegrationTest : public AgentIntegrationTest {
   void checkRoute(TIpAddress prefix, uint8_t length, bool exists) {
     WITH_RETRIES({
       const auto& fibContainer =
-          getSw()->getState()->getFibs()->getNode(RouterID(0));
+          getSw()->getState()->getFibsInfoMap()->getFibContainer(RouterID(0));
       auto fib = fibContainer->template getFib<TIpAddress>();
       auto testRoute = fib->getRouteIf({prefix, length});
       if (exists) {

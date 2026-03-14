@@ -262,6 +262,8 @@ std::string CmdShowHwAgentStatus::getRunStateStr(
       return "FIB_SYNCED";
     case SwitchRunState::EXITING:
       return "EXITING";
+    case SwitchRunState::ROLLBACK:
+      return "ROLLBACK";
   }
   throw std::invalid_argument("Invalid Run State");
 }

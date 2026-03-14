@@ -20,11 +20,14 @@ class Meru800bfaPlatformMapping : public PlatformMapping {
   explicit Meru800bfaPlatformMapping(
       bool multiNpuPlatformMapping,
       std::optional<int> version = std::nullopt);
+  ~Meru800bfaPlatformMapping() override = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   Meru800bfaPlatformMapping(Meru800bfaPlatformMapping const&) = delete;
   Meru800bfaPlatformMapping& operator=(Meru800bfaPlatformMapping const&) =
       delete;
+  Meru800bfaPlatformMapping(Meru800bfaPlatformMapping&&) = delete;
+  Meru800bfaPlatformMapping& operator=(Meru800bfaPlatformMapping&&) = delete;
 };
 } // namespace facebook::fboss

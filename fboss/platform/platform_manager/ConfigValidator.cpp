@@ -13,9 +13,11 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/op/Get.h>
 
+#include "fboss/platform/platform_manager/CpldManager.h"
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_validators_constants.h"
+#include "fboss/platform/platform_manager/uapi/fbcpld-ioctl.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -98,63 +100,6 @@ std::optional<SlotType> resolveSlotType(
   return extractSlotType(lastSlotName);
 }
 
-template <typename T>
-  requires requires(T t) {
-    { *t.pmUnitScopedName() } -> std::convertible_to<std::string>;
-  }
-bool hasDeviceName(const T& deviceConfig, const std::string& deviceName) {
-  return *deviceConfig.pmUnitScopedName() == deviceName;
-}
-
-template <typename T>
-  requires requires(T t) {
-    { *t.fpgaIpBlockConfig() } -> std::convertible_to<FpgaIpBlockConfig>;
-  }
-bool hasDeviceName(const T& deviceConfig, const std::string& deviceName) {
-  return hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), deviceName);
-}
-
-bool hasDeviceName(
-    const I2cAdapterConfig& deviceConfig,
-    const std::string& deviceName) {
-  std::string pmUnitScopedName, adapterNum;
-  if (!re2::RE2::FullMatch(
-          deviceName, kI2cAdapterNameRegex, &pmUnitScopedName, &adapterNum)) {
-    return hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), deviceName);
-  }
-  return hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), pmUnitScopedName) &&
-      0 <= stoi(adapterNum) &&
-      stoi(adapterNum) < *deviceConfig.numberOfAdapters();
-}
-
-template <typename T>
-bool hasDeviceName(
-    const std::vector<T>& deviceConfigs,
-    const std::string& deviceName) {
-  for (const auto& deviceConfig : deviceConfigs) {
-    if (hasDeviceName(deviceConfig, deviceName)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasDeviceName(
-    const std::vector<SpiMasterConfig>& deviceConfigs,
-    const std::string& deviceName) {
-  for (const auto& deviceConfig : deviceConfigs) {
-    if (hasDeviceName(*deviceConfig.fpgaIpBlockConfig(), deviceName) ||
-        hasDeviceName(*deviceConfig.spiDeviceConfigs(), deviceName)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-template <typename... Ts>
-bool isDeviceMatch(const std::string& deviceName, Ts&&... deviceConfigs) {
-  return (hasDeviceName(deviceConfigs, deviceName) || ...);
-}
 } // namespace
 
 bool ConfigValidator::isValidSlotTypeConfig(
@@ -196,6 +141,10 @@ bool ConfigValidator::isValidFpgaIpBlockConfig(
         ERR,
         "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
         *fpgaIpBlockConfig.pmUnitScopedName());
+    return false;
+  }
+  if (fpgaIpBlockConfig.pmUnitScopedName()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
   if (!fpgaIpBlockConfig.csrOffset()->empty() &&
@@ -359,6 +308,106 @@ bool ConfigValidator::isValidXcvrCtrlBlockConfig(
   return true;
 }
 
+bool ConfigValidator::isValidI2cAdaptersFromCpu(
+    const std::vector<std::string>& i2cAdaptersFromCpu) {
+  static const re2::RE2 kCpuBusNameRegex{"CPU_BUS@\\d+"};
+  bool hasVirtual = false;
+  bool hasExact = false;
+  for (const auto& name : i2cAdaptersFromCpu) {
+    if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
+      if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
+        XLOG(ERR) << fmt::format(
+            "Invalid virtual bus name '{}'. "
+            "Only CPU_BUS@0 and CPU_BUS@1 are supported",
+            name);
+        return false;
+      }
+      hasVirtual = true;
+    } else {
+      hasExact = true;
+    }
+  }
+  if (hasVirtual && hasExact) {
+    XLOG(ERR)
+        << "i2cAdaptersFromCpu must not mix CPU_BUS@N virtual names with exact adapter names";
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidI2cAdapterBlockConfig(
+    const I2cAdapterBlockConfig& i2cAdapterBlockConfig) {
+  if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->empty()) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must be a non-empty string";
+    return false;
+  }
+  if (i2cAdapterBlockConfig.pmUnitScopedNamePrefix()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedNamePrefix must not end with '_'";
+    return false;
+  }
+  if (i2cAdapterBlockConfig.deviceName()->empty()) {
+    XLOG(ERR) << "deviceName must be a non-empty string";
+    return false;
+  }
+  if (i2cAdapterBlockConfig.csrOffsetCalc()->empty()) {
+    XLOG(ERR) << "csrOffsetCalc must be a non-empty string";
+    return false;
+  }
+  if (*i2cAdapterBlockConfig.startAdapterIndex() < 0) {
+    XLOG(ERR) << "startAdapterIndex must be a value greater than or equal to 0";
+    return false;
+  }
+  if (*i2cAdapterBlockConfig.numAdapters() <= 0) {
+    XLOG(ERR) << "numAdapters must be a value greater than 0";
+    return false;
+  }
+  if (*i2cAdapterBlockConfig.numBusesPerAdapter() <= 0) {
+    XLOG(ERR) << "numBusesPerAdapter must be a value greater than 0";
+    return false;
+  }
+
+  for (int32_t adapterIndex = *i2cAdapterBlockConfig.startAdapterIndex();
+       adapterIndex < *i2cAdapterBlockConfig.startAdapterIndex() +
+           *i2cAdapterBlockConfig.numAdapters();
+       adapterIndex++) {
+    std::string csrExpression = fmt::format(
+        fmt::runtime(*i2cAdapterBlockConfig.csrOffsetCalc()),
+        fmt::arg("adapterIndex", adapterIndex),
+        fmt::arg(
+            "startAdapterIndex", *i2cAdapterBlockConfig.startAdapterIndex()));
+    try {
+      Utils().evaluateExpression(csrExpression);
+    } catch (const std::exception& e) {
+      XLOG(ERR) << fmt::format(
+          "Invalid csrOffsetCalc expression: {} with adapterIndex={}: {}",
+          *i2cAdapterBlockConfig.csrOffsetCalc(),
+          adapterIndex,
+          e.what());
+      return false;
+    }
+
+    if (!i2cAdapterBlockConfig.iobufOffsetCalc()->empty()) {
+      std::string iobufExpression = fmt::format(
+          fmt::runtime(*i2cAdapterBlockConfig.iobufOffsetCalc()),
+          fmt::arg("adapterIndex", adapterIndex),
+          fmt::arg(
+              "startAdapterIndex", *i2cAdapterBlockConfig.startAdapterIndex()));
+      try {
+        Utils().evaluateExpression(iobufExpression);
+      } catch (const std::exception& e) {
+        XLOG(ERR) << fmt::format(
+            "Invalid iobufOffsetCalc expression: {} with adapterIndex={}: {}",
+            *i2cAdapterBlockConfig.iobufOffsetCalc(),
+            adapterIndex,
+            e.what());
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool ConfigValidator::isValidPciDeviceConfig(
     const PciDeviceConfig& pciDeviceConfig) {
   if (pciDeviceConfig.pmUnitScopedName()->empty()) {
@@ -370,6 +419,10 @@ bool ConfigValidator::isValidPciDeviceConfig(
         ERR,
         "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
         *pciDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (pciDeviceConfig.pmUnitScopedName()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
     return false;
   }
   if (!re2::RE2::FullMatch(*pciDeviceConfig.vendorId(), kPciIdRegex)) {
@@ -484,6 +537,12 @@ bool ConfigValidator::isValidPciDeviceConfig(
     return false;
   }
 
+  for (const auto& config : *pciDeviceConfig.i2cAdapterBlockConfigs()) {
+    if (!isValidI2cAdapterBlockConfig(config)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -505,6 +564,120 @@ bool ConfigValidator::isValidI2cDeviceConfig(
         "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
         *i2cDeviceConfig.pmUnitScopedName());
     return false;
+  }
+  if (i2cDeviceConfig.pmUnitScopedName()->ends_with('_')) {
+    XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
+    return false;
+  }
+  if (*i2cDeviceConfig.isEeprom() &&
+      !i2cDeviceConfig.pmUnitScopedName()->ends_with("_EEPROM")) {
+    XLOGF(
+        ERR,
+        "isEeprom is true but pmUnitScopedName '{}' does not end with '_EEPROM'",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (i2cDeviceConfig.eepromOffset() && !*i2cDeviceConfig.isEeprom()) {
+    XLOGF(
+        ERR,
+        "eepromOffset defined while isEeprom is not true for {}",
+        *i2cDeviceConfig.pmUnitScopedName());
+    return false;
+  }
+  if (i2cDeviceConfig.cpldSysfsAttrs() &&
+      !isValidCpldSysfsAttrs(*i2cDeviceConfig.cpldSysfsAttrs())) {
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidCpldSysfsAttrs(
+    const std::vector<CpldSysfsAttr>& cpldSysfsAttrs) {
+  static const re2::RE2 kHexRegex{"0x[0-9a-fA-F]+"};
+
+  if (cpldSysfsAttrs.empty()) {
+    XLOG(ERR) << "cpldSysfsAttrs must not be empty";
+    return false;
+  }
+  if (cpldSysfsAttrs.size() > FBCPLD_MAX_ATTRS) {
+    XLOG(ERR) << fmt::format(
+        "cpldSysfsAttrs has {} entries, exceeds max {}",
+        cpldSysfsAttrs.size(),
+        FBCPLD_MAX_ATTRS);
+    return false;
+  }
+
+  std::set<std::string> seenNames;
+  for (const auto& attr : cpldSysfsAttrs) {
+    if (attr.name()->empty()) {
+      XLOG(ERR) << "CpldSysfsAttr name must not be empty";
+      return false;
+    }
+    auto [it, inserted] = seenNames.insert(*attr.name());
+    if (!inserted) {
+      XLOG(ERR) << fmt::format(
+          "Duplicate CpldSysfsAttr name: {}", *attr.name());
+      return false;
+    }
+    if (*attr.mode() != "ro" && *attr.mode() != "rw" && *attr.mode() != "wo") {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid mode '{}'. Must be 'ro', 'rw', or 'wo'",
+          *attr.name(),
+          *attr.mode());
+      return false;
+    }
+    if (attr.regAddr()->empty() ||
+        !re2::RE2::FullMatch(*attr.regAddr(), kHexRegex)) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid regAddr '{}'. Must be hex (e.g. 0x10)",
+          *attr.name(),
+          *attr.regAddr());
+      return false;
+    }
+    auto regValue = std::stoul(*attr.regAddr(), nullptr, 16);
+    if (regValue > 0xFF) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has regAddr '{}' out of range. Must be 0x0-0xFF",
+          *attr.name(),
+          *attr.regAddr());
+      return false;
+    }
+    if (attr.description()->empty()) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has empty description", *attr.name());
+      return false;
+    }
+    if (*attr.bitOffset() < 0 || *attr.bitOffset() > 7) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid bitOffset {}. Must be 0-7",
+          *attr.name(),
+          *attr.bitOffset());
+      return false;
+    }
+    if (*attr.numBits() < 1 || *attr.numBits() > 8) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid numBits {}. Must be 1-8",
+          *attr.name(),
+          *attr.numBits());
+      return false;
+    }
+    if (*attr.bitOffset() + *attr.numBits() > 8) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' bitOffset ({}) + numBits ({}) exceeds 8",
+          *attr.name(),
+          *attr.bitOffset(),
+          *attr.numBits());
+      return false;
+    }
+    for (const auto& flag : *attr.flags()) {
+      if (!getCpldFlagMap().contains(flag)) {
+        XLOG(ERR) << fmt::format(
+            "CpldSysfsAttr '{}' has unrecognized flag '{}'",
+            *attr.name(),
+            flag);
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -598,6 +771,7 @@ bool ConfigValidator::isValidDeviceName(
     const std::string& deviceName) {
   auto slotType = resolveSlotType(platformConfig, slotPath);
   CHECK(slotType) << "SlotType must be nonnull";
+
   // If the device is IDPROM, search from the SlotTypeConfigs.
   if (deviceName == "IDPROM") {
     if (!platformConfig.slotTypeConfigs()->contains(*slotType)) {
@@ -616,43 +790,48 @@ bool ConfigValidator::isValidDeviceName(
     }
     return true;
   }
-  // Otherwise, find all plugable PmUnitConfigs to the last Slot of the
-  // SlotPath. eagerly check if any has the given deviceName in its device
-  // configurations.
-  for (const auto& pmUnitConfig :
-       getPmUnitConfigsBySlotType(platformConfig, *slotType)) {
-    if (isDeviceMatch(
-            deviceName,
-            *pmUnitConfig.pciDeviceConfigs(),
-            *pmUnitConfig.i2cDeviceConfigs(),
-            *pmUnitConfig.embeddedSensorConfigs())) {
-      return true;
-    }
-    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
-      if (isDeviceMatch(
-              deviceName,
-              *pciDeviceConfig.i2cAdapterConfigs(),
-              *pciDeviceConfig.spiMasterConfigs(),
-              *pciDeviceConfig.fanTachoPwmConfigs(),
-              *pciDeviceConfig.ledCtrlConfigs(),
-              *pciDeviceConfig.sysLedCtrlConfigs(),
-              Utils::createLedCtrlConfigs(pciDeviceConfig),
-              Utils::createXcvrCtrlConfigs(pciDeviceConfig),
-              *pciDeviceConfig.xcvrCtrlConfigs(),
-              *pciDeviceConfig.spiMasterConfigs(),
-              *pciDeviceConfig.gpioChipConfigs(),
-              *pciDeviceConfig.watchdogConfigs(),
-              *pciDeviceConfig.infoRomConfigs(),
-              *pciDeviceConfig.miscCtrlConfigs(),
-              *pciDeviceConfig.mdioBusConfigs())) {
-        return true;
-      }
-    }
+
+  // Lazy-load the cache on first use
+  buildDeviceNameCache(platformConfig);
+  auto it = deviceNamesBySlotType_->find(*slotType);
+  if (it != deviceNamesBySlotType_->end() && it->second.contains(deviceName)) {
+    return true;
   }
-  // Couldn't find the matching deviceName.
+
   XLOG(ERR) << fmt::format(
       "Invalid DeviceName {} at SlotPath {}", deviceName, slotPath);
   return false;
+}
+
+bool ConfigValidator::isValidPlatformWithoutPmOptics(
+    const PlatformConfig& config) {
+  const auto& platforms =
+      platform_manager_validators_constants::PLATFORMS_WITHOUT_PM_OPTICS();
+  if (std::find(platforms.begin(), platforms.end(), *config.platformName()) ==
+      platforms.end()) {
+    return true;
+  }
+  auto fail = [&](std::string_view reason) {
+    XLOGF(ERR, "Platform {}: {}", *config.platformName(), reason);
+    return false;
+  };
+  if (*config.numXcvrs() != 0) {
+    return fail("must not have numXcvrs set");
+  }
+  for (const auto& [_, pmUnitCfg] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitCfg.pciDeviceConfigs()) {
+      if (!pciDev.xcvrCtrlBlockConfigs()->empty() ||
+          !pciDev.ledCtrlBlockConfigs()->empty()) {
+        return fail("must not have xcvr/led block configs");
+      }
+    }
+  }
+  for (const auto& [symlink, _] : *config.symbolicLinkToDevicePath()) {
+    if (symlink.starts_with("/run/devmap/xcvrs/")) {
+      return fail("must not have xcvr symlinks");
+    }
+  }
+  return true;
 }
 
 bool ConfigValidator::isValid(const PlatformConfig& config) {
@@ -676,6 +855,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  if (!isValidPlatformWithoutPmOptics(config)) {
+    return false;
+  }
+
   if (config.rootSlotType()->empty()) {
     XLOG(ERR) << "Platform rootSlotType cannot be empty";
     return false;
@@ -686,6 +869,12 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     XLOG(ERR) << fmt::format(
         "Invalid rootSlotType {}. Not found in slotTypeConfigs",
         *config.rootSlotType());
+    return false;
+  }
+
+  // Validate i2cAdaptersFromCpu entries: must all be either CPU_BUS@N
+  // virtual names or exact adapter names, not a mix.
+  if (!isValidI2cAdaptersFromCpu(*config.i2cAdaptersFromCpu())) {
     return false;
   }
 
@@ -735,6 +924,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     if (!isValidPmUnitConfig(*config.slotTypeConfigs(), pmUnitConfig)) {
       return false;
     }
+
+    if (!isValidLogicalEeprom(config, pmUnitName, pmUnitConfig)) {
+      return false;
+    }
   }
 
   for (const auto& [pmUnitName, versionedPmUnitConfigs] :
@@ -763,7 +956,10 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
 
   XLOG(INFO) << "Validating Symbolic links...";
   for (const auto& [symlink, devicePath] : *config.symbolicLinkToDevicePath()) {
-    if (!isValidSymlink(symlink) || !isValidDevicePath(config, devicePath)) {
+    if (!isValidSymlink(symlink)) {
+      return false;
+    }
+    if (!isValidDevicePath(config, devicePath)) {
       return false;
     }
   }
@@ -893,6 +1089,10 @@ bool ConfigValidator::isValidSpiDeviceConfigs(
           ERR,
           "PmUnitScopedName must be in uppercase; {} contains lowercase characters",
           *spiDeviceConfig.pmUnitScopedName());
+      return false;
+    }
+    if (spiDeviceConfig.pmUnitScopedName()->ends_with('_')) {
+      XLOG(ERR) << "PmUnitScopedName must not end with an underscore";
       return false;
     }
     if (spiDeviceConfig.modalias()->length() >= NAME_MAX) {
@@ -1238,6 +1438,233 @@ bool ConfigValidator::isValidChassisEepromDevicePath(
   }
 
   return true;
+}
+
+void ConfigValidator::buildDeviceNameCache(
+    const PlatformConfig& platformConfig) {
+  if (deviceNamesBySlotType_.has_value()) {
+    return;
+  }
+
+  std::unordered_map<std::string, std::unordered_set<std::string>> cache;
+
+  // Helper lambda to add device name from fpgaIpBlockConfig
+  auto addFromFpgaIpBlock = [&](const std::string& slotType,
+                                const FpgaIpBlockConfig& fpgaConfig) {
+    cache[slotType].insert(*fpgaConfig.pmUnitScopedName());
+  };
+
+  // Helper lambda to add I2C adapter names with @N suffix
+  auto addI2cAdapterNames = [&](const std::string& slotType,
+                                const I2cAdapterConfig& adapterConfig) {
+    const auto& baseName =
+        *adapterConfig.fpgaIpBlockConfig()->pmUnitScopedName();
+    cache[slotType].insert(baseName);
+    for (int i = 0; i < *adapterConfig.numberOfAdapters(); ++i) {
+      cache[slotType].insert(fmt::format("{}@{}", baseName, i));
+    }
+  };
+
+  for (const auto& [pmUnitName, pmUnitConfig] :
+       *platformConfig.pmUnitConfigs()) {
+    const auto& slotType = *pmUnitConfig.pluggedInSlotType();
+
+    // Add device names from i2cDeviceConfigs
+    for (const auto& i2cConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+      cache[slotType].insert(*i2cConfig.pmUnitScopedName());
+    }
+
+    // Add device names from embeddedSensorConfigs
+    for (const auto& sensorConfig : *pmUnitConfig.embeddedSensorConfigs()) {
+      cache[slotType].insert(*sensorConfig.pmUnitScopedName());
+    }
+
+    // Add device names from pciDeviceConfigs
+    for (const auto& pciConfig : *pmUnitConfig.pciDeviceConfigs()) {
+      cache[slotType].insert(*pciConfig.pmUnitScopedName());
+
+      // Add names from nested configs within PCI device
+      for (const auto& adapterConfig : *pciConfig.i2cAdapterConfigs()) {
+        addI2cAdapterNames(slotType, adapterConfig);
+      }
+
+      for (const auto& spiMaster : *pciConfig.spiMasterConfigs()) {
+        addFromFpgaIpBlock(slotType, *spiMaster.fpgaIpBlockConfig());
+        for (const auto& spiDevice : *spiMaster.spiDeviceConfigs()) {
+          cache[slotType].insert(*spiDevice.pmUnitScopedName());
+        }
+      }
+
+      for (const auto& fanConfig : *pciConfig.fanTachoPwmConfigs()) {
+        addFromFpgaIpBlock(slotType, *fanConfig.fpgaIpBlockConfig());
+      }
+
+      for (const auto& ledConfig : *pciConfig.ledCtrlConfigs()) {
+        addFromFpgaIpBlock(slotType, *ledConfig.fpgaIpBlockConfig());
+      }
+
+      for (const auto& xcvrConfig : *pciConfig.xcvrCtrlConfigs()) {
+        addFromFpgaIpBlock(slotType, *xcvrConfig.fpgaIpBlockConfig());
+      }
+
+      // gpioChipConfigs, watchdogConfigs, infoRomConfigs, miscCtrlConfigs,
+      // sysLedCtrlConfigs are directly FpgaIpBlockConfig (no wrapper)
+      for (const auto& gpioConfig : *pciConfig.gpioChipConfigs()) {
+        cache[slotType].insert(*gpioConfig.pmUnitScopedName());
+      }
+
+      for (const auto& watchdogConfig : *pciConfig.watchdogConfigs()) {
+        cache[slotType].insert(*watchdogConfig.pmUnitScopedName());
+      }
+
+      for (const auto& infoRomConfig : *pciConfig.infoRomConfigs()) {
+        cache[slotType].insert(*infoRomConfig.pmUnitScopedName());
+      }
+
+      for (const auto& miscConfig : *pciConfig.miscCtrlConfigs()) {
+        cache[slotType].insert(*miscConfig.pmUnitScopedName());
+      }
+
+      for (const auto& sysLedConfig : *pciConfig.sysLedCtrlConfigs()) {
+        cache[slotType].insert(*sysLedConfig.pmUnitScopedName());
+      }
+
+      // Block configs
+      for (const auto& ledCtrlConfig : Utils::createLedCtrlConfigs(pciConfig)) {
+        addFromFpgaIpBlock(slotType, *ledCtrlConfig.fpgaIpBlockConfig());
+      }
+
+      for (const auto& xcvrCtrlConfig :
+           Utils::createXcvrCtrlConfigs(pciConfig)) {
+        addFromFpgaIpBlock(slotType, *xcvrCtrlConfig.fpgaIpBlockConfig());
+      }
+
+      for (const auto& i2cAdapterConfig :
+           Utils::createI2cAdapterConfigs(pciConfig)) {
+        addI2cAdapterNames(slotType, i2cAdapterConfig);
+      }
+
+      for (const auto& mdioBusConfig : Utils::createMdioBusConfigs(pciConfig)) {
+        cache[slotType].insert(*mdioBusConfig.pmUnitScopedName());
+      }
+    }
+  }
+
+  deviceNamesBySlotType_ = std::move(cache);
+}
+
+bool ConfigValidator::isValidLogicalEeprom(
+    const PlatformConfig& config,
+    const std::string& pmUnitName,
+    const PmUnitConfig& pmUnitConfig) {
+  auto logicalEeproms = getLogicalEeproms(
+      *config.slotTypeConfigs(),
+      *pmUnitConfig.pluggedInSlotType(),
+      pmUnitConfig);
+  if (!logicalEeproms.empty()) {
+    const auto& allowedPlatforms =
+        platform_manager_validators_constants::PLATFORMS_WITH_LOGICAL_EEPROMS();
+    if (std::find(
+            allowedPlatforms.begin(),
+            allowedPlatforms.end(),
+            *config.platformName()) == allowedPlatforms.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform has logical EEPROMs in PmUnit {}.  This is not allowed. ",
+          pmUnitName);
+      return false;
+    }
+  }
+
+  constexpr int16_t kEepromSize = 512;
+
+  for (const auto& [location, eeproms] : logicalEeproms) {
+    const auto& [bus, addr] = location;
+
+    // Validate same kernelDeviceName for all EEPROMs at this location
+    for (size_t i = 1; i < eeproms.size(); ++i) {
+      if (eeproms[i].kernelDeviceName != eeproms[0].kernelDeviceName) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have different "
+            "kernelDeviceNames: {} vs {}",
+            eeproms[0].pmUnitScopedName,
+            eeproms[i].pmUnitScopedName,
+            bus,
+            addr,
+            eeproms[0].kernelDeviceName,
+            eeproms[i].kernelDeviceName);
+        return false;
+      }
+    }
+
+    // Validate no overlapping regions (sort by offset, check adjacent pairs)
+    auto sortedEeproms = eeproms;
+    std::sort(
+        sortedEeproms.begin(),
+        sortedEeproms.end(),
+        [](const auto& a, const auto& b) { return a.offset < b.offset; });
+
+    for (size_t i = 0; i + 1 < sortedEeproms.size(); ++i) {
+      const auto& curr = sortedEeproms[i];
+      const auto& next = sortedEeproms[i + 1];
+      if (curr.offset + kEepromSize > next.offset) {
+        XLOG(ERR) << fmt::format(
+            "Logical eeproms {} and {} at (bus: {}, addr: {}) have "
+            "overlapping regions: [{}, {}) and [{}, {})",
+            curr.pmUnitScopedName,
+            next.pmUnitScopedName,
+            bus,
+            addr,
+            curr.offset,
+            curr.offset + kEepromSize,
+            next.offset,
+            next.offset + kEepromSize);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
+ConfigValidator::getLogicalEeproms(
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+    const std::string& slotType,
+    const PmUnitConfig& pmUnitConfig) {
+  using EepromLoc = std::pair<std::string, std::string>;
+  std::map<EepromLoc, std::vector<LogicalEeprom>> eepromsByLocation;
+
+  // Add IDPROM if present
+  if (slotTypeConfigs.contains(slotType)) {
+    const auto& slotTypeConfig = slotTypeConfigs.at(slotType);
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& idprom = *slotTypeConfig.idpromConfig();
+      eepromsByLocation[{*idprom.busName(), *idprom.address()}].push_back(
+          LogicalEeprom{
+              "IDPROM", *idprom.offset(), *idprom.kernelDeviceName()});
+    }
+  }
+
+  // Add I2C EEPROM devices
+  for (const auto& i2cDevice : *pmUnitConfig.i2cDeviceConfigs()) {
+    if (!*i2cDevice.isEeprom()) {
+      continue;
+    }
+    int16_t offset = i2cDevice.eepromOffset() ? *i2cDevice.eepromOffset() : 0;
+    eepromsByLocation[{*i2cDevice.busName(), *i2cDevice.address()}].push_back(
+        LogicalEeprom{
+            *i2cDevice.pmUnitScopedName(),
+            offset,
+            *i2cDevice.kernelDeviceName()});
+  }
+
+  // Return only locations with more than one EEPROM (logical EEPROMs)
+  std::map<EepromLoc, std::vector<LogicalEeprom>> result;
+  for (auto& [location, eeproms] : eepromsByLocation) {
+    if (eeproms.size() > 1) {
+      result[location] = std::move(eeproms);
+    }
+  }
+  return result;
 }
 
 } // namespace facebook::fboss::platform::platform_manager

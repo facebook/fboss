@@ -10,7 +10,6 @@
 
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 
-#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 namespace facebook::fboss {
@@ -22,7 +21,6 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
   auto samplingInterval = flowletSwitchConfig->getDynamicSampleRate();
   sai_uint32_t randomSeed = kArsRandomSeed;
   auto portLoadPastWeight = flowletSwitchConfig->getDynamicEgressLoadExponent();
-  auto portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
   auto portLoadExponent =
       flowletSwitchConfig->getDynamicPhysicalQueueExponent();
   auto loadPastMinVal =
@@ -40,17 +38,34 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
   auto loadCurrentMaxVal =
       flowletSwitchConfig->getDynamicQueueMaxThresholdBytes() >> 1;
 
+  std::optional<SaiArsProfileTraits::Attributes::PortLoadFuture> portLoadFuture{
+      std::nullopt};
+  std::optional<SaiArsProfileTraits::Attributes::PortLoadFutureWeight>
+      portLoadFutureWeight{std::nullopt};
+
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+    portLoadFuture = true;
+    portLoadFutureWeight = flowletSwitchConfig->getDynamicQueueExponent();
+  }
+
   // Workarounds until 11.7 completely goes away and 13.0 is rolled out
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS)
   if (samplingInterval < kArsMinSamplingRateNs) {
     // convert microsec to nanosec
     samplingInterval = samplingInterval * 1000;
   }
-  std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups> arsMaxGroups =
-      FLAGS_enable_th5_ars_scale_mode
-      ? std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
-            platform_->getAsic()->getMaxArsGroups())
-      : std::nullopt;
+  std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups> arsMaxGroups{
+      std::nullopt};
+
+  if (FLAGS_enable_th5_ars_scale_mode) {
+    arsMaxGroups = std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
+        platform_->getAsic()->getMaxArsGroups());
+  }
+  if (flowletSwitchConfig->getMaxArsVirtualGroups().has_value()) {
+    arsMaxGroups = std::optional<SaiArsProfileTraits::Attributes::ArsMaxGroups>(
+        flowletSwitchConfig->getMaxArsVirtualGroups().value());
+  }
 
   std::optional<SaiArsProfileTraits::Attributes::ArsBaseIndex> arsBaseIndex =
       platform_->getAsic()->getArsBaseIndex()
@@ -69,6 +84,14 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
 
   std::optional<SaiArsProfileTraits::Attributes::ArsPrimaryMembersRouteMetaData>
       arsPrimaryMembersRouteMetaData = 0;
+
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+  std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>
+      ecmpMemberCount = flowletSwitchConfig->getMaxArsVirtualGroupWidth()
+      ? std::optional<SaiArsProfileTraits::Attributes::EcmpMemberCount>(
+            flowletSwitchConfig->getMaxArsVirtualGroupWidth().value())
+      : std::nullopt;
+#endif
 #else
   if (samplingInterval >= kArsMinSamplingRateNs) {
     // convert nanosec to microsec
@@ -86,7 +109,7 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       portLoadPastWeight,
       loadPastMinVal,
       loadPastMaxVal,
-      true,
+      portLoadFuture,
       portLoadFutureWeight,
       loadFutureMinVal,
       loadFutureMaxVal,
@@ -100,7 +123,12 @@ SaiArsProfileTraits::CreateAttributes SaiArsProfileManager::createAttributes(
       arsBaseIndex,
       arsAlternateMembersRouteMetaData,
       arsRouteMetaDataMask,
-      arsPrimaryMembersRouteMetaData};
+      arsPrimaryMembersRouteMetaData
+#if defined(BRCM_SAI_SDK_GTE_14_0)
+      ,
+      ecmpMemberCount
+#endif
+  };
 #else
   };
 #endif

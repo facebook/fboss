@@ -141,16 +141,16 @@ class CmdShowInterfaceCountersFecBer
     std::vector<facebook::fboss::utils::Table::RowData> header = {
         "Interface Name"};
     if (model.direction() == phy::Direction::RECEIVE) {
-      header.push_back("ASIC");
+      header.emplace_back("ASIC");
       if (hasXphy) {
-        header.push_back("XPHY_LINE");
+        header.emplace_back("XPHY_LINE");
       }
-      header.push_back("TRANSCEIVER_LINE");
+      header.emplace_back("TRANSCEIVER_LINE");
     } else {
       if (hasXphy) {
-        header.push_back("XPHY_SYSTEM");
+        header.emplace_back("XPHY_SYSTEM");
       }
-      header.push_back("TRANSCEIVER_SYSTEM");
+      header.emplace_back("TRANSCEIVER_SYSTEM");
     }
     table.setHeader(header);
     for (const auto& [interfaceName, fecBer] : *model.fecBer()) {
@@ -174,28 +174,27 @@ class CmdShowInterfaceCountersFecBer
       std::vector<facebook::fboss::utils::Table::RowData> rowData = {
           interfaceName};
       if (model.direction() == phy::Direction::RECEIVE) {
-        rowData.push_back({
+        rowData.emplace_back(
             iphyBer.has_value() ? utils::styledBer(*iphyBer)
-                                : Table::StyledCell("-", Table::Style::NONE),
-        });
+                                : Table::StyledCell("-", Table::Style::NONE));
         if (hasXphy) {
-          rowData.push_back(
+          rowData.emplace_back(
               xphyLineBer.has_value()
                   ? utils::styledBer(*xphyLineBer)
                   : Table::StyledCell("-", Table::Style::NONE));
         }
-        rowData.push_back(
+        rowData.emplace_back(
             tcvrLineBer.has_value()
                 ? utils::styledBer(*tcvrLineBer)
                 : Table::StyledCell("-", Table::Style::NONE));
       } else {
         if (hasXphy) {
-          rowData.push_back(
+          rowData.emplace_back(
               xphySystemBer.has_value()
                   ? utils::styledBer(*xphySystemBer)
                   : Table::StyledCell("-", Table::Style::NONE));
         }
-        rowData.push_back(
+        rowData.emplace_back(
             tcvrSystemBer.has_value()
                 ? utils::styledBer(*tcvrSystemBer)
                 : Table::StyledCell("-", Table::Style::NONE));

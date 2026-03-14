@@ -35,6 +35,10 @@ class BcmCinter : public BcmSdkInterface, public BcmInterface {
  public:
   explicit BcmCinter();
   ~BcmCinter() override;
+  BcmCinter(const BcmCinter&) = delete;
+  BcmCinter& operator=(const BcmCinter&) = delete;
+  BcmCinter(BcmCinter&&) = delete;
+  BcmCinter& operator=(BcmCinter&&) = delete;
   static std::shared_ptr<BcmCinter> getInstance();
 
   /*

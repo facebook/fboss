@@ -40,7 +40,7 @@ namespace facebook::fboss {
 
 struct ConcurrentIndices;
 class SaiStore;
-
+class FineGrainedLockPolicy;
 /*
  * This is equivalent to sai_fdb_event_notification_data_t. Copy only the
  * necessary FDB event attributes from sai_fdb_event_notification_data_t.
@@ -89,14 +89,17 @@ class SaiSwitch : public HwSwitch {
    * port RIF is enough to get the egress port.
    */
   bool needL2EntryForNeighbor() const override {
-    if (asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        asicType_ == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       return false;
     }
     return getSwitchType() == cfg::SwitchType::NPU;
   }
 
   std::shared_ptr<SwitchState> stateChangedImpl(
-      const std::vector<StateDelta>& deltas) override;
+      const std::vector<StateDelta>& deltas,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior)
+      override;
 
   bool isValidStateUpdate(const StateDelta& delta) const override;
 
@@ -119,7 +122,7 @@ class SaiSwitch : public HwSwitch {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) override;
+      PacketType packetType) override;
 
   bool sendPacketOutOfPortSyncCommon(
       std::unique_ptr<TxPacket> pkt,
@@ -182,9 +185,13 @@ class SaiSwitch : public HwSwitch {
       sai_size_t buffer_size,
       const void* buffer,
       uint32_t event_type);
-  void pfcDeadlockNotificationCallback(
+  void pfcDeadlockNotificationCallbackTopHalf(
       uint32_t count,
       const sai_queue_deadlock_notification_data_t* data);
+  void pfcDeadlockNotificationCallbackBottomHalf(
+      uint32_t count,
+      const sai_queue_deadlock_notification_data_t* data);
+
   void vendorSwitchEventNotificationCallback(
       sai_size_t bufferSize,
       const void* buffer,
@@ -219,7 +226,7 @@ class SaiSwitch : public HwSwitch {
   SaiManagerTable* managerTable();
 
   bool getRollbackInProgress_() {
-    return rollbackInProgress_;
+    return getSwitchRunState() == SwitchRunState::ROLLBACK;
   }
 
   /*
@@ -304,14 +311,19 @@ class SaiSwitch : public HwSwitch {
       const StateDelta& delta,
       const LockPolicyT& lk);
   void preRollback(const StateDelta& delta) noexcept override;
+  void rollbackPartialRoutes(const StateDelta& delta) noexcept override;
   void rollback(const std::vector<StateDelta>& deltas) noexcept override;
   std::string listObjectsLocked(
       const std::vector<sai_object_type_t>& objects,
       bool cached,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
+  std::string listCachedObjectsLocked(
+      const std::vector<sai_object_type_t>& objects,
+      const SaiStore* store,
+      const FineGrainedLockPolicy& policy) const;
   void listManagedObjectsLocked(
       std::string& output,
-      const std::lock_guard<std::mutex>& lock) const;
+      const FineGrainedLockPolicy& policy) const;
   void switchRunStateChangedImpl(SwitchRunState newState) override;
 
   TeFlowStats getTeFlowStats() const override;
@@ -471,6 +483,8 @@ class SaiSwitch : public HwSwitch {
       bool fwIsolated = false,
       const std::optional<uint32_t>& numActiveFabricPortsAtFwIsolate =
           std::nullopt);
+  void fwDisabledLinksCallbackBottomHalf(
+      const std::vector<int32_t>& fwDisabledPortIds);
 
   void setSwitchReachabilityChangePending();
   std::map<SwitchID, std::set<PortID>> getSwitchReachabilityChange();
@@ -595,6 +609,24 @@ class SaiSwitch : public HwSwitch {
       RemovedFunc removedFunc,
       Args... args);
 
+  template <typename LockPolicyT, typename AddrT>
+  void processRemovedRoutesDeltaInReverse(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processChangedRoutesDeltaInReverse(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processAddedRoutesDeltaInReverse(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
   template <typename LockPolicyT>
   void processSwitchSettingsChangeSansDrained(
       const StateDelta& delta,
@@ -619,7 +651,8 @@ class SaiSwitch : public HwSwitch {
       PortSaiId inPort,
       bool allowMissingSrcPort,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId,
+      std::optional<PacketType> packetType);
 
   void packetRxCallbackLag(
       sai_size_t buffer_size,
@@ -628,7 +661,8 @@ class SaiSwitch : public HwSwitch {
       PortSaiId inPort,
       bool allowMissingSrcPort,
       cfg::PacketRxReason rxReason,
-      uint8_t queueId);
+      std::optional<uint8_t> queueId,
+      std::optional<PacketType> packetType);
 
   std::shared_ptr<SwitchState> getColdBootSwitchState();
 
@@ -672,7 +706,19 @@ class SaiSwitch : public HwSwitch {
       std::optional<cfg::PfcWatchdogRecoveryAction> newRecoveryAction);
   void processPfcDeadlockRecoveryAction(
       std::optional<cfg::PfcWatchdogRecoveryAction> recoveryAction);
-  void setFabricPortOwnershipToAdapter();
+  void setPortOwnershipToAdapter();
+
+  template <typename LockPolicyT, typename AddrT>
+  void processRemovedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
+
+  template <typename LockPolicyT, typename AddrT>
+  void processChangedAndAddedRoutesDelta(
+      const RouterID& routerID,
+      const auto& routesDelta,
+      const LockPolicyT& lockPolicy);
 
   bool processVlanUntaggedPackets() const;
 
@@ -681,6 +727,8 @@ class SaiSwitch : public HwSwitch {
   reconstructMultiSwitchAclTableGroupMap() const;
   std::shared_ptr<MultiSwitchAclMap> reconstructMultiSwitchAclMap() const;
 
+  void startThreads();
+  void stopThreads();
   /*
    * SaiSwitch must support a few varieties of concurrent access:
    * 1. state updates on the SwSwitch update thread calling stateChanged
@@ -713,7 +761,6 @@ class SaiSwitch : public HwSwitch {
   std::unique_ptr<SaiStore> saiStore_;
   std::unique_ptr<SaiManagerTable> managerTable_;
   std::atomic<BootType> bootType_{BootType::UNINITIALIZED};
-  bool rollbackInProgress_{false};
   Callback* callback_{nullptr};
 
   SwitchSaiId saiSwitchId_;
@@ -736,6 +783,9 @@ class SaiSwitch : public HwSwitch {
   FbossEventBase switchAsicSdkHealthNotificationBHEventBase_{
       "SwitchAsicSdkHealthNotificationEventBase"};
 #endif
+  std::unique_ptr<std::thread> pfcDeadlockNotificationBottomHalfThread_;
+  FbossEventBase pfcDeadlockNotificationBottomHalfEventBase_{
+      "PfcDeadlockNotificationBottomHalfEventBase"};
 
   HwResourceStats hwResourceStats_;
   std::atomic<SwitchRunState> runState_{SwitchRunState::UNINITIALIZED};
@@ -754,5 +804,8 @@ class SaiSwitch : public HwSwitch {
   std::optional<uint32_t> asicRevision_;
   std::atomic<int16_t> hardResetNotificationReceived_{0};
 };
+
+// Get the PacketType enum corresponding to SAI packet type
+PacketType getReceivedPacketType(int32_t packetType);
 
 } // namespace facebook::fboss

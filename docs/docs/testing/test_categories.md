@@ -51,6 +51,11 @@ feel free to run all tests and work through them however you please.
 - all tests in `sensor_service_hw_test`
 - all tests in `weutil_hw_test`
 
+`run_test.py`:
+```bash
+./bin/run_test.py platform
+```
+
 ### Agent HW Tests
 
 `run_test.py`:
@@ -175,17 +180,44 @@ feel free to run all tests and work through them however you please.
 ```bash file=../fboss/oss/hw_sanity_tests/t1_agent_hw_tests.conf
 ```
 
+### QSFP HW Tests
+
+:::note
+T1 QSFP HW tests scope is controlled by the known-bad and unsupported test files, so do not need a dedicated test list via `--filter_file`.
+:::
+
+`run_test.py`:
+```bash
+./bin/run_test.py qsfp \
+--qsfp-config ./share/qsfp_test_configs/$CONFIG \
+--known-bad-tests-file ./share/qsfp_known_bad_tests/fboss_qsfp_known_bad_tests.materialized_JSON \
+--unsupported-tests-file ./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON \
+--skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+```
+
+### Link Tests
+
+:::note
+T1 Link tests scope is controlled by the known-bad and unsupported test files, so do not need a dedicated test list via `--filter_file`.
+:::
+
+`run_test.py`:
+```bash
+./bin/run_test.py link \
+--agent-run-mode mono \
+--config ./share/link_test_configs/$CONFIG \
+--qsfp-config /opt/fboss/share/qsfp_test_configs/$QSFP_CONFIG \
+--known-bad-tests-file ./share/link_known_bad_tests/agent_ensemble_link_known_bad_tests.materialized_JSON \
+--skip-known-bad-tests $KEY # $KEY can be found in known bad test file
+```
+
 ### Agent Benchmark Tests
 
 - `sai_tx_slow_path_rate-sai_impl` binary
 - `sai_rx_slow_path_rate-sai_impl` binary
 - `sai_ecmp_shrink_speed-sai_impl` binary
 - `sai_rib_resolution_speed-sai_impl` binary
-- `sai_ecmp_shrink_with_competing_route_updates_speed-sai_impl` binary
-- `sai_fsw_scale_route_add_speed-sai_impl` binary
 - `sai_stats_collection_speed-sai_impl` binary
-- `sai_init_and_exit_100Gx100G-sai_impl` binary
-- `sai_switch_reachability_change_speed-sai_impl` binary
 
 ### SAI Tests
 
@@ -258,3 +290,25 @@ feel free to run all tests and work through them however you please.
 
 ```bash file=../fboss/oss/hw_sanity_tests/t2_sai_tests.conf
 ```
+
+## Scale-Up Tests
+
+Scale-up specific tests belonging to each T0/T1/T2 tier can be run by
+adding `--profile=s` to the standard `run_test.py` command.
+
+### Agent HW Tests
+
+```bash
+./bin/run_test.py sai_agent \
+--filter_file=./share/hw_sanity_tests/t0_agent_hw_tests.conf \
+--profile=s \
+--config ./share/hw_test_configs/$CONFIG \
+--enable-production-features \
+--production-features ./share/production_features/asic_production_features.materialized_JSON \
+--known-bad-tests-file ./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON \
+--unsupported-tests-file $UNSUPPORTED_TESTS \
+--asic $ASIC \
+--skip-known-bad-tests $KEY
+```
+
+Replace `t0` with `t1` or `t2` to run the corresponding tier.

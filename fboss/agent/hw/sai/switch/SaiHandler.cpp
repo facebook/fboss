@@ -47,8 +47,6 @@ void SaiHandler::getCurrentHwStateJSONForPaths(
 SaiHandler::SaiHandler(SaiSwitch* hw)
     : hw_(hw), diagShell_(hw), diagCmdServer_(hw, &diagShell_) {}
 
-SaiHandler::~SaiHandler() {}
-
 apache::thrift::ResponseAndServerStream<std::string, std::string>
 SaiHandler::startDiagShell() {
   XLOG(DBG2) << "New diag shell session connecting";
@@ -233,7 +231,8 @@ void SaiHandler::getInterfacePrbsState(
   auto port = swState->getPorts()->getPort(*interface);
   if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
       port->getPortType() == cfg::PortType::FABRIC_PORT ||
-      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+      port->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
     prbsState = hw_->getPortPrbsState(port->getID());
   } else {
     throw FbossError(
@@ -256,7 +255,8 @@ void SaiHandler::getAllInterfacePrbsStates(
     for (const auto& port : std::as_const(*portMap.second)) {
       if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
           port.second->getPortType() == cfg::PortType::FABRIC_PORT ||
-          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+          port.second->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
         prbsStates[port.second->getName()] =
             hw_->getPortPrbsState(port.second->getID());
       }
@@ -277,7 +277,8 @@ void SaiHandler::getInterfacePrbsStats(
   auto port = swState->getPorts()->getPort(*interface);
   if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
       port->getPortType() == cfg::PortType::FABRIC_PORT ||
-      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+      port->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
     auto prbsState = hw_->getPortPrbsState(port->getID());
     auto generatorEnabled = prbsState.generatorEnabled();
     auto checkerEnabled = prbsState.checkerEnabled();
@@ -326,7 +327,8 @@ void SaiHandler::getAllInterfacePrbsStats(
     for (const auto& port : std::as_const(*portMap.second)) {
       if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
           port.second->getPortType() == cfg::PortType::FABRIC_PORT ||
-          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+          port.second->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+          port.second->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) {
         auto prbsState = hw_->getPortPrbsState(port.second->getID());
         auto generatorEnabled = prbsState.generatorEnabled();
         auto checkerEnabled = prbsState.checkerEnabled();

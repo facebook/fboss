@@ -1,9 +1,7 @@
 # pyre-strict
 import os
 import re
-
 from datetime import datetime, timedelta
-
 from pathlib import Path
 
 from fboss.util.fixmyfboss.check import check

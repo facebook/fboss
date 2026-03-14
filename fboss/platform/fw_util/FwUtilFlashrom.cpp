@@ -103,13 +103,13 @@ void FwUtilImpl::setProgrammerAndChip(
     // If no programmer is set, use internal programmer
     programmerIdentifier = "internal";
   }
-  flashromCmd.push_back("-p");
+  flashromCmd.emplace_back("-p");
   flashromCmd.push_back(programmerIdentifier);
 
   if (flashromConfig.chip().has_value()) {
     spiChip_[fpd] = *flashromConfig.chip();
     std::string chip = detectFlashromChip(flashromConfig, fpd);
-    flashromCmd.push_back("-c");
+    flashromCmd.emplace_back("-c");
     flashromCmd.push_back(chip);
   }
 }
@@ -127,7 +127,7 @@ void FwUtilImpl::addLayoutFile(
     XLOG(INFO, "Created temporary file for SPI layout");
 
     // Add the layout file to the command
-    flashromCmd.push_back("-l");
+    flashromCmd.emplace_back("-l");
     flashromCmd.push_back(tmpFile);
   }
 }
@@ -160,16 +160,16 @@ void FwUtilImpl::addFileOption(
     std::vector<std::string>& flashromCmd,
     std::optional<std::string>& customContent) {
   if (operation == "read") {
-    flashromCmd.push_back("-r");
+    flashromCmd.emplace_back("-r");
   } else if (operation == "write" || operation == "verify") {
     if (!std::filesystem::exists(fwBinaryFile_)) {
       throw std::runtime_error(
           "Firmware binary file not found: " + fwBinaryFile_);
     }
     if (operation == "write") {
-      flashromCmd.push_back("-w");
+      flashromCmd.emplace_back("-w");
     } else {
-      flashromCmd.push_back("-v");
+      flashromCmd.emplace_back("-v");
     }
   } else {
     XLOG(ERR) << "Unsupported operation: " << operation;

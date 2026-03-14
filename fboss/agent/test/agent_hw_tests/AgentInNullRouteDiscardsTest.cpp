@@ -43,7 +43,7 @@ class AgentInNullRouteDiscardsCounterTest : public AgentHwTest {
     auto pkt = utility::makeUDPTxPacket(
         getSw(), vlanId, intfMac, intfMac, srcIp, dstIp, 10000, 10001);
     getSw()->sendPacketOutOfPortAsync(
-        std::move(pkt), PortID(masterLogicalInterfacePortIds()[0]));
+        std::move(pkt), PortID(masterLogicalInterfaceOrHyperPortIds()[0]));
   }
 };
 
@@ -52,7 +52,7 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
     if (isSupportedOnAllAsics(HwAsic::Feature::PFC)) {
       // Setup buffer configurations only if PFC is supported
       cfg::SwitchConfig cfg = initialConfig(*getAgentEnsemble());
-      std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
+      std::vector<PortID> portIds = {masterLogicalInterfaceOrHyperPortIds()[0]};
       std::vector<int> losslessPgIds = {2};
       std::vector<int> lossyPgIds = {0};
       // Make sure default traffic goes to PG2, which is lossless
@@ -67,7 +67,7 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
       applyNewConfig(cfg);
     }
   };
-  PortID portId = masterLogicalInterfacePortIds()[0];
+  PortID portId = masterLogicalInterfaceOrHyperPortIds()[0];
   auto verify = [=, this]() {
     auto isVoqSwitch = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
                            ->getSwitchType() == cfg::SwitchType::VOQ;
@@ -134,7 +134,8 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
     }
     // Assert that other ports did not see any in discard
     // counter increment
-    auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
+    auto allPortStats =
+        getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
     for (const auto& [port, otherPortStats] : allPortStats) {
       if (port == portId) {
         continue;

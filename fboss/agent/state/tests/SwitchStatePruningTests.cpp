@@ -360,11 +360,6 @@ void verifyAddNeighborEntry(
 // Test that we can add Arp and Ndp entries to a state and revert them from the
 // published state.
 TEST(SwitchStatePruningTests, AddNeighborEntry) {
-  FLAGS_intf_nbr_tables = false;
-  verifyAddNeighborEntry(
-      VlanID(21) /* host1 */, VlanID(21) /* host2 */, VlanID(21) /* host3 */);
-
-  FLAGS_intf_nbr_tables = true;
   verifyAddNeighborEntry(
       InterfaceID(21) /* host1 */,
       InterfaceID(21) /* host2 */,
@@ -506,11 +501,6 @@ void verifyChangeNeighborEntry(
 // Test that we can update pending entries to resolved ones, and revert them
 // back to pending.
 TEST(SwitchStatePruningTests, ChangeNeighborEntry) {
-  FLAGS_intf_nbr_tables = false;
-  verifyChangeNeighborEntry<VlanID>(
-      VlanID(21) /* host1 */, VlanID(21) /* host2 */, VlanID(22) /* host3 */);
-
-  FLAGS_intf_nbr_tables = true;
   verifyChangeNeighborEntry<InterfaceID>(
       InterfaceID(21) /* host1 */,
       InterfaceID(21) /* host2 */,
@@ -571,10 +561,6 @@ void verifyModifyState(VlanOrIntfT host1VlanOrIntf) {
 }
 
 TEST(SwitchStatePruningTests, ModifyState) {
-  FLAGS_intf_nbr_tables = false;
-  verifyModifyState(VlanID(21));
-
-  FLAGS_intf_nbr_tables = true;
   verifyModifyState(InterfaceID(21));
 }
 
@@ -635,10 +621,6 @@ void verifyModifyEmptyArpTable(VlanOrIntfT host1VlanOrIntf) {
 // Test we can modify empty arp table without resetting the arp table to a new
 // one created outside.
 TEST(SwitchStatePruningTests, ModifyEmptyArpTable) {
-  FLAGS_intf_nbr_tables = false;
-  verifyModifyEmptyArpTable(VlanID(21));
-
-  FLAGS_intf_nbr_tables = true;
   verifyModifyEmptyArpTable(InterfaceID(21));
 }
 
@@ -747,10 +729,6 @@ void verifyModifyArpTableMultipleTimes(
  * This code tests that the modify function of NeighborTable works as expected.
  */
 TEST(SwitchStatePruningTests, ModifyArpTableMultipleTimes) {
-  FLAGS_intf_nbr_tables = false;
-  verifyModifyArpTableMultipleTimes(VlanID(21), VlanID(22));
-
-  FLAGS_intf_nbr_tables = true;
   verifyModifyArpTableMultipleTimes(InterfaceID(21), InterfaceID(22));
 }
 
@@ -844,40 +822,7 @@ void verifyNbrTablesNonEmpty(const shared_ptr<MultiMapT> multiMap) {
   }
 }
 
-TEST(SwitchStatePruningTests, VlanNbrTablesWbToVlanNbrTables) {
-  FLAGS_intf_nbr_tables = false;
-  auto state = addNeighbors(createSwitch(), true /* vlan neighbors */);
-  auto thrifty = state->toThrift();
-
-  auto thriftStateBack = SwitchState::fromThrift(thrifty);
-  verifyNbrTablesNonEmpty(thriftStateBack->getVlans());
-  verifyNbrTablesEmpty(thriftStateBack->getInterfaces());
-}
-
-TEST(SwitchStatePruningTests, VlanNbrTablesWbToIntfNbrTables) {
-  FLAGS_intf_nbr_tables = false;
-  auto state = addNeighbors(createSwitch(), true /* vlan neighbors */);
-  auto thrifty = state->toThrift();
-
-  FLAGS_intf_nbr_tables = true;
-  auto thriftStateBack = SwitchState::fromThrift(thrifty);
-  verifyNbrTablesEmpty(thriftStateBack->getVlans());
-  verifyNbrTablesNonEmpty(thriftStateBack->getInterfaces());
-}
-
-TEST(SwitchStatePruningTests, IntfNbrTablesWbVlanNbrTables) {
-  FLAGS_intf_nbr_tables = true;
-  auto state = addNeighbors(createSwitch(), false /* intf neighbors */);
-  auto thrifty = state->toThrift();
-
-  FLAGS_intf_nbr_tables = false;
-  auto thriftStateBack = SwitchState::fromThrift(thrifty);
-  verifyNbrTablesNonEmpty(thriftStateBack->getVlans());
-  verifyNbrTablesEmpty(thriftStateBack->getInterfaces());
-}
-
 TEST(SwitchStatePruningTests, IntfNbrTablesWbToIntfNbrTables) {
-  FLAGS_intf_nbr_tables = true;
   auto state = addNeighbors(createSwitch(), false /* intf neighbors */);
   auto thrifty = state->toThrift();
 

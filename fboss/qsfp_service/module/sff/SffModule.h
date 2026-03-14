@@ -88,13 +88,17 @@ class SffModule : public QsfpModule {
   uint8_t page0_[MAX_QSFP_PAGE_SIZE] = {0};
   uint8_t page3_[MAX_QSFP_PAGE_SIZE] = {0};
 
-  void customizeTransceiverLocked(TransceiverPortState& portState) override;
+  void customizeTransceiverLocked(
+      const TransceiverPortState& portState) override;
 
   /*
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
+   * @param hasTunableOpticsConfig - ignored for SFF modules as they don't
+   *        support tunable optics
    */
-  virtual bool ensureTransceiverReadyLocked() override;
+  virtual bool ensureTransceiverReadyLocked(
+      bool hasTunableOpticsConfig) override;
 
   /*
    * This function returns a pointer to the value in the static cached
@@ -253,7 +257,7 @@ class SffModule : public QsfpModule {
    */
   void updateQsfpData(bool allPages = true) override;
 
-  void resetDataPath() override {
+  void resetDataPath(const std::string& /* portName */) override {
     // no-op
   }
 

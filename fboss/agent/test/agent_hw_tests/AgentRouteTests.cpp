@@ -16,6 +16,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -32,7 +33,6 @@
 
 using facebook::network::toBinaryAddress;
 
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(classid_for_unresolved_routes);
 
 namespace {
@@ -179,15 +179,14 @@ class AgentRouteTest : public AgentHwTest {
   std::shared_ptr<SwitchState> addRoutes(
       const std::shared_ptr<SwitchState>& inState,
       const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
-    auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         inState, getSw()->needL2EntryForNeighbor(), kRouterID());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.resolveNextHops(in, kEcmpWidth);
+      auto newState = ecmpHelper.resolveNextHops(in, kDefaultEcmpWidth);
       return newState;
     });
     auto wrapper = this->getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, kEcmpWidth, routePrefixes);
+    ecmpHelper.programRoutes(&wrapper, kDefaultEcmpWidth, routePrefixes);
     return getProgrammedState();
   }
 
@@ -288,7 +287,6 @@ TYPED_TEST(AgentRouteTest, VerifyClassIdWithNhopResolutionFlap) {
 
     // verify classID programming
     this->verifyClassIDHelper(this->kGetRoutePrefix0(), this->kLookupClass());
-    auto kEcmpWidth = 1;
     using AddrT = typename TestFixture::Type;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         this->getProgrammedState(),
@@ -296,12 +294,12 @@ TYPED_TEST(AgentRouteTest, VerifyClassIdWithNhopResolutionFlap) {
         this->kRouterID());
     // Unresolve nhop
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.unresolveNextHops(in, kEcmpWidth);
+      auto newState = ecmpHelper.unresolveNextHops(in, kDefaultEcmpWidth);
       return newState;
     });
     // Resolve nhop
     this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
-      auto newState = ecmpHelper.resolveNextHops(in, kEcmpWidth);
+      auto newState = ecmpHelper.resolveNextHops(in, kDefaultEcmpWidth);
       return newState;
     });
   };
@@ -493,7 +491,7 @@ TYPED_TEST(AgentRouteTest, ResolvedMultiNexthopToUnresolvedSingleNexthop) {
     ecmpHelper.programRoutes(
         &wrapper, {this->portDescs()[0]}, {this->kGetRoutePrefix0()});
   };
-  this->verifyAcrossWarmBoots([] {}, verify);
+  this->verifyAcrossWarmBoots(verify);
 }
 
 TYPED_TEST(AgentRouteTest, VerifyRouting) {
@@ -527,8 +525,8 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
         vlanId,
         intfMac,
         intfMac,
-        folly::IPAddressV4("101.0.0.1"),
-        folly::IPAddressV4("201.0.0.1"),
+        folly::IPAddressV4("101.101.0.1"),
+        folly::IPAddressV4("201.101.0.1"),
         1234,
         4321);
 
@@ -537,8 +535,8 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
         vlanId,
         intfMac,
         intfMac,
-        folly::IPAddressV6("101::1"),
-        folly::IPAddressV6("201::1"),
+        folly::IPAddressV6("1001::1"),
+        folly::IPAddressV6("2001::1"),
         1234,
         4321);
 
@@ -748,7 +746,7 @@ TYPED_TEST(AgentRouteTest, VerifyDefaultRoute) {
         folly::IPAddress("0.0.0.0"), 0, *this->getAgentEnsemble());
     EXPECT_TRUE(*routeInfo1.exists());
   };
-  this->verifyAcrossWarmBoots([] {}, verify);
+  this->verifyAcrossWarmBoots(verify);
 }
 
 TYPED_TEST(AgentClassIDRouteTest, VerifyClassIDForConnectedRoute) {
@@ -767,7 +765,7 @@ TYPED_TEST(AgentClassIDRouteTest, VerifyClassIDForConnectedRoute) {
     }
   };
 
-  this->verifyAcrossWarmBoots([] {}, verify);
+  this->verifyAcrossWarmBoots(verify);
 }
 
 TYPED_TEST(AgentMplsRouteTest, StaticIp2MplsRoutes) {

@@ -22,9 +22,15 @@ StateDelta ribToSwitchStateUpdate(
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
     void* cookie) {
   ForwardingInformationBaseUpdater fibUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nextHopIDManager);
 
   auto switchState =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
@@ -36,11 +42,12 @@ StateDelta ribToSwitchStateUpdate(
 }
 
 StateDelta noopFibUpdate(
-    const SwitchIdScopeResolver* resolver,
+    const SwitchIdScopeResolver* /*resolver*/,
     facebook::fboss::RouterID /*vrf*/,
     const IPv4NetworkToRouteMap& /*v4NetworkToRoute*/,
     const IPv6NetworkToRouteMap& /*v6NetworkToRoute*/,
     const LabelToRouteMap& /*labelToRoute*/,
+    const NextHopIDManager* /*nextHopIDManager*/,
     void* /*cookie*/) {
   return StateDelta(nullptr, nullptr);
 }

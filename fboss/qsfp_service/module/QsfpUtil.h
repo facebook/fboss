@@ -59,6 +59,9 @@ class QsfpUtil {
   // Forbidden copy constructor and assignment operator
   QsfpUtil(QsfpUtil const&) = delete;
   QsfpUtil& operator=(QsfpUtil const&) = delete;
+  ~QsfpUtil() = default;
+  QsfpUtil(QsfpUtil&&) = delete;
+  QsfpUtil& operator=(QsfpUtil&&) = delete;
 
  private:
   void setChannelStateBitmask(uint8_t& data, uint32_t channel, bool disable);

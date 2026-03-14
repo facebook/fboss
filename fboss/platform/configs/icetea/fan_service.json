@@ -3,8 +3,8 @@
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 0,
   "pwmBoostValue": 100,
-  "pwmTransitionValue": 70,
-  "pwmLowerThreshold": 60,
+  "pwmTransitionValue": 50,
+  "pwmLowerThreshold": 50,
   "pwmUpperThreshold": 100,
   "watchdog": {
     "sysfsPath": "/run/devmap/watchdogs/FAN_WATCHDOG",
@@ -25,9 +25,9 @@
         "kp": 2,
         "ki": 0.6,
         "kd": 0,
-        "setPoint": 95.0,
-        "posHysteresis": 2,
-        "negHysteresis": 0
+        "setPoint": 90.0,
+        "posHysteresis": 3,
+        "negHysteresis": 3
       }
     },
     {
@@ -37,28 +37,28 @@
       },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "30": 60,
-        "35": 70,
-        "37": 80,
-        "42": 90
+        "39": 50,
+        "41": 60,
+        "44": 70,
+        "49": 80
       },
       "normalDownTable": {
-        "28": 60,
-        "33": 70,
-        "35": 80,
-        "40": 90
+        "37": 50,
+        "39": 60,
+        "42": 70,
+        "47": 80
       },
       "failUpTable": {
-        "30": 70,
-        "35": 80,
-        "37": 90,
-        "42": 100
+        "39": 85,
+        "41": 90,
+        "44": 95,
+        "49": 100
       },
       "failDownTable": {
-        "28": 70,
-        "33": 80,
-        "35": 90,
-        "40": 100
+        "37": 85,
+        "39": 90,
+        "42": 95,
+        "47": 100
       }
     },
     {

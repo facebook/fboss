@@ -5,7 +5,7 @@
 
 if(BUILD_SAI_FAKE)
 add_executable(api_test
-    fboss/agent/test/oss/Main.cpp
+    fboss/util/oss/TestMain.cpp
     fboss/agent/hw/sai/api/tests/AclApiTest.cpp
     fboss/agent/hw/sai/api/tests/AdapterKeySerializerTest.cpp
     fboss/agent/hw/sai/api/tests/AddressUtilTest.cpp
@@ -36,6 +36,7 @@ add_executable(api_test
     fboss/agent/hw/sai/api/tests/SwitchApiTest.cpp
     fboss/agent/hw/sai/api/tests/SystemPortApiTest.cpp
     fboss/agent/hw/sai/api/tests/TamApiTest.cpp
+    fboss/agent/hw/sai/api/tests/Srv6ApiTest.cpp
     fboss/agent/hw/sai/api/tests/TunnelApiTest.cpp
     fboss/agent/hw/sai/api/tests/UdfApiTest.cpp
     fboss/agent/hw/sai/api/tests/VirtualRouterApiTest.cpp

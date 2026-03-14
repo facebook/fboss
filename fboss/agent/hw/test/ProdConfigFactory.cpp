@@ -110,9 +110,13 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_DARWIN:
     case PM::PLATFORM_DARWIN48V:
     case PM::PLATFORM_TAHAN800BC:
+    case PM::PLATFORM_ICECUBE800BC:
+    case PM::PLATFORM_ICETEA800BC:
     case PM::PLATFORM_MONTBLANC:
       return 4;
     case PM::PLATFORM_MINIPACK3N:
+    case PM::PLATFORM_YANGRA:
+    case PM::PLATFORM_YANGRA2:
       return 64;
     default:
       throw FbossError(

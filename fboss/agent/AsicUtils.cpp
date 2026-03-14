@@ -8,8 +8,11 @@
  *
  */
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/switch_asics/Jericho2Asic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
+#include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
 #include "fboss/agent/hw/switch_asics/Ramon3Asic.h"
 #include "fboss/agent/hw/switch_asics/RamonAsic.h"
 
@@ -39,6 +42,16 @@ const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
       static Jericho3Asic jericho3Asic{switchId, switchInfo};
       return jericho3Asic;
     }
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D: {
+      switchInfo.switchType() = cfg::SwitchType::VOQ;
+      static Qumran4DAsic qumran4dAsic{switchId, switchInfo};
+      return qumran4dAsic;
+    }
+    case cfg::AsicType::ASIC_TYPE_JERICHO4: {
+      switchInfo.switchType() = cfg::SwitchType::VOQ;
+      static Jericho4Asic jericho4Asic{switchId, switchInfo};
+      return jericho4Asic;
+    }
     case cfg::AsicType::ASIC_TYPE_RAMON: {
       switchInfo.switchType() = cfg::SwitchType::FABRIC;
       static RamonAsic ramonAsic{switchId, switchInfo};
@@ -50,6 +63,7 @@ const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
       return ramon3Asic;
     }
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -62,8 +76,11 @@ const HwAsic& getHwAsicForAsicType(const cfg::AsicType& asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       break;
   }
 
@@ -79,9 +96,14 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
       return 192;
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
       return 160;
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+      return 160;
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      return 160;
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       return 256;
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -94,8 +116,11 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       throw FbossError(
           "Fabric ports are not applicable for: ",
           apache::thrift::util::enumNameSafe(asicType));
@@ -121,6 +146,20 @@ void checkSameAsicType(const std::vector<const HwAsic*>& asics) {
 const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics) {
   CHECK(!asics.empty()) << " Expect at least one asic to be passed in ";
   checkSameAsicType(asics);
+  // In multi-NPU setups, return the ASIC for the switch under test
+  // so that callers get switch-scoped properties (e.g. switchType,
+  // maxLagMemberSize) for the correct NPU.
+  if (FLAGS_switch_id_for_testing) {
+    auto targetSwitchId = SwitchID(FLAGS_switch_id_for_testing);
+    for (const auto& asic : asics) {
+      if (asic->getSwitchId() &&
+          SwitchID(*asic->getSwitchId()) == targetSwitchId) {
+        return asic;
+      }
+    }
+    throw FbossError(
+        "No asic found with switchId: ", FLAGS_switch_id_for_testing);
+  }
   return *asics.begin();
 }
 

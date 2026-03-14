@@ -39,11 +39,22 @@ class BspLedManager : public LedManager {
         BspGenericSystemContainer<ContainerType>::getInstance().get();
     bspSystemContainer_->createBspLedContainers();
     platformMapping_ = std::make_unique<MappingType>();
+
+    // Subscribe to FSDB after initializing the platform mapping.
+    subscribeToFsdb();
   }
 
   bool blinkingSupported() const override {
     return true;
   }
+
+  BspSystemContainer* getBspSystemContainer() const {
+    return bspSystemContainer_;
+  }
+
+  std::set<int> getLedIdFromSwPort(
+      uint32_t portId,
+      cfg::PortProfileID portProfile) const;
 
   // Forbidden copy constructor and assignment operator
   BspLedManager(BspLedManager const&) = delete;
@@ -62,13 +73,18 @@ class BspLedManager : public LedManager {
       cfg::PortProfileID portProfile,
       led::LedState ledState) override;
 
-  std::set<int> getLedIdFromSwPort(
-      uint32_t portId,
-      cfg::PortProfileID portProfile) const;
+  std::set<led::LedState> getLedStateFromHW(uint32_t portId) const override;
 
   std::vector<uint32_t> getCommonLedSwPorts(
       uint32_t portId,
       cfg::PortProfileID portProfile) const;
+
+ private:
+  void setLedBasedOnLOS(
+      const uint32_t portId,
+      const std::set<int>& ledIds,
+      const std::map<uint32_t, std::pair<LedIO*, std::set<int>>>& controllers,
+      led::LedState ledState);
 };
 
 } // namespace facebook::fboss

@@ -13,11 +13,11 @@
 #include <ostream>
 #include "fboss/agent/EcmpResourceManagerConfig.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
-class StateDelta;
 class SwitchState;
 class SwitchStats;
 class NextHopGroupInfo;
@@ -52,9 +52,19 @@ class EcmpResourceManager {
   explicit EcmpResourceManager(
       uint32_t maxHwEcmpGroups,
       std::optional<cfg::SwitchingMode> backupEcmpGroupType = std::nullopt,
+      std::optional<uint32_t> maxVirtualEcmpGroups = std::nullopt,
+      std::optional<int32_t> minWidthForVirtualGroup = std::nullopt,
+      std::optional<int32_t> maxVirtualGroupWidth = std::nullopt,
+      std::optional<int32_t> maxEcmpWidth = std::nullopt,
       SwitchStatsGetter statsGetter = []() { return nullptr; })
       : EcmpResourceManager(
-            EcmpResourceManagerConfig(maxHwEcmpGroups, backupEcmpGroupType),
+            EcmpResourceManagerConfig(
+                maxHwEcmpGroups,
+                backupEcmpGroupType,
+                maxVirtualEcmpGroups,
+                minWidthForVirtualGroup,
+                maxVirtualGroupWidth,
+                maxEcmpWidth),
             statsGetter) {}
   using NextHopGroupId = uint64_t;
   using NextHopGroupIds = std::set<NextHopGroupId>;
@@ -110,7 +120,9 @@ class EcmpResourceManager {
   NextHopGroupIds getUnMergedGids() const;
   NextHopGroupIds getMergedGids() const;
   std::vector<NextHopGroupIds> getMergedGroups() const;
-  std::pair<uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts() const;
+  // <ecmp_count, virtual_ecmp_count, member_count>
+  std::tuple<uint32_t, uint32_t, uint32_t> getPrimaryEcmpAndMemberCounts()
+      const;
   NextHopGroupIdToPrefixes getGidToPrefixes() const;
   /*
    * Test helper APIs. Used mainly in UTs. Not neccessarily opimized for
@@ -135,6 +147,7 @@ class EcmpResourceManager {
   struct InputOutputState {
     InputOutputState(
         uint32_t _primaryEcmpGroupsCnt,
+        uint32_t _virtualEcmpGroupsCnt,
         uint32_t ecmpMemberCnt,
         const StateDelta& _in,
         bool rollingBack = false);
@@ -228,6 +241,7 @@ class EcmpResourceManager {
      * by combining 2 or more groups.
      */
     uint32_t primaryEcmpGroupsCnt{0};
+    uint32_t virtualEcmpGroupsCnt{0};
     uint32_t ecmpMemberCnt{0};
     bool updated{false};
 
@@ -407,10 +421,11 @@ class EcmpResourceManager {
       const std::shared_ptr<Route<AddrT>>& removed,
       bool isUpdate,
       InputOutputState* inOutState);
-  static uint32_t constexpr kMinNextHopGroupId = 1;
+  static uint64_t constexpr kMinNextHopGroupId = 1;
   NextHopGroupId findCachedOrNewIdForNhops(
       const RouteNextHopSet& nhops,
       const InputOutputState& inOutState) const;
+  bool isVirtualArsGroup(const RouteNextHopSet& nhops) const;
   void validateCfgUpdate(
       uint32_t compressionPenaltyThresholdPct,
       const std::optional<cfg::SwitchingMode>& backupEcmpGroupType) const;

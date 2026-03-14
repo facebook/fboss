@@ -33,6 +33,10 @@ class BcmUdfManager {
  public:
   explicit BcmUdfManager(BcmSwitch* hw) : hw_(hw) {}
   ~BcmUdfManager();
+  BcmUdfManager(const BcmUdfManager&) = delete;
+  BcmUdfManager& operator=(const BcmUdfManager&) = delete;
+  BcmUdfManager(BcmUdfManager&&) = delete;
+  BcmUdfManager& operator=(BcmUdfManager&&) = delete;
   void addUdfConfig(
       const std::shared_ptr<UdfPacketMatcherMap>& udfPacketMatcherMap,
       const std::shared_ptr<UdfGroupMap>& udfGroupMap);

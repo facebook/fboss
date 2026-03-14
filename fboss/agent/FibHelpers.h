@@ -18,11 +18,15 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <folly/IPAddress.h>
 
 #include <memory>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -48,10 +52,39 @@ std::shared_ptr<Route<AddrT>> findLongestMatchRoute(
 std::pair<uint64_t, uint64_t> getRouteCount(
     const std::shared_ptr<SwitchState>& state);
 
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<FibInfo>& fibInfo,
+    NextHopSetId id);
+
+std::vector<NextHop> getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    NextHopSetId id);
+
+// Resolve nexthops from RouteNextHopEntry.
+// When FLAGS_resolve_nexthops_from_id is on, resolves via resolvedNextHopSetID.
+// When off, falls back to entry.getNextHopSet().
+RouteNextHopSet getNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
+
+// Resolve non-override normalized nexthops from RouteNextHopEntry.
+// When FLAGS_resolve_nexthops_from_id is on, resolves via
+// normalizedResolvedNextHopSetID.
+// When off, falls back to entry.nonOverrideNormalizedNextHops().
+RouteNextHopSet getNonOverrideNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
+
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
-  for (const auto& [_, fibs] : std::as_const(*state->getFibs())) {
-    for (const auto& iter : std::as_const(*fibs)) {
+  for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {
+    auto fibsMap = fibInfo->getfibsMap();
+    if (!fibsMap) {
+      continue;
+    }
+
+    // Iterate through all FIB containers
+    for (const auto& iter : std::as_const(*fibsMap)) {
       const auto& fibContainer = iter.second;
       auto rid = fibContainer->getID();
       for (const auto& route : std::as_const(*(fibContainer->getFibV6()))) {

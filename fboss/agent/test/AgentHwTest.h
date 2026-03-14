@@ -18,7 +18,6 @@ DECLARE_int32(update_voq_stats_interval_s);
 DECLARE_int32(update_cable_length_stats_s);
 DECLARE_bool(publish_state_to_fsdb);
 DECLARE_bool(publish_stats_to_fsdb);
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(classid_for_unresolved_routes);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_icmp_error_response);
@@ -108,8 +107,9 @@ class AgentHwTest : public ::testing::Test {
       const std::string& name = "agent-test-transaction") {
     applyNewStateImpl(std::move(fn), name, true);
   }
-
   SwSwitch* getSw() const;
+  SwitchID getCurrentSwitchIdForTesting() const;
+  static SwitchID getSwitchIdUnderTest(const AgentEnsemble& ensemble);
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
     return getAgentEnsemble()->getL3Asics();
@@ -123,7 +123,8 @@ class AgentHwTest : public ::testing::Test {
   bool isSupportedOnAllAsics(HwAsic::Feature feature) const;
   AgentEnsemble* getAgentEnsemble() const;
   const std::shared_ptr<SwitchState> getProgrammedState() const;
-  std::vector<PortID> masterLogicalPortIds() const;
+  std::vector<PortID> masterLogicalPortIds(
+      std::optional<SwitchID> switchId = std::nullopt) const;
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const;
   std::vector<PortID> masterLogicalPortIds(
@@ -140,6 +141,21 @@ class AgentHwTest : public ::testing::Test {
   }
   std::vector<PortID> masterLogicalHyperPortIds() const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds() const {
+    return masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+  }
+  std::vector<PortID> masterLogicalInterfacePortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalHyperPortIds(SwitchID switchId) const {
+    return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchId);
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      SwitchID switchId) const {
+    return masterLogicalPortIds(
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}, switchId);
   }
   void setSwitchDrainState(
       const cfg::SwitchConfig& curConfig,
@@ -194,7 +210,12 @@ class AgentHwTest : public ::testing::Test {
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.programRoutes(&wrapper, width);
   }
-
+  template <typename EcmpHelperT>
+  void resolveNeighbors(const EcmpHelperT& ecmp, int width) {
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.resolveNextHops(in, width);
+    });
+  }
   template <typename EcmpHelperT>
   void unprogramRoutes(const EcmpHelperT& ecmp) {
     auto wrapper = getSw()->getRouteUpdater();
@@ -254,6 +275,8 @@ class AgentHwTest : public ::testing::Test {
   void populateArpNeighborsToCache(const std::shared_ptr<Interface>& interface);
   void populateNdpNeighborsToCache(const std::shared_ptr<Interface>& interface);
 
+  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt);
+
   std::optional<VlanID> getVlanIDForTx() const {
     return agentEnsemble_->getVlanIDForTx();
   }
@@ -275,10 +298,26 @@ class AgentHwTest : public ::testing::Test {
   virtual std::vector<ProductionFeature> getProductionFeaturesVerified()
       const = 0;
   void printProductionFeatures() const;
+
+ protected:
   virtual bool failHwCallsOnWarmboot() const {
     return true;
   }
 
+  /*
+   * Override this function to provide custom initialization info for the
+   * test ensemble. This follows the same pattern as HwTest::overrideDsfNodes(),
+   * HwTest::overrideTransceiverInfo(), and HwTest::failHwCallsOnWarmboot().
+   * Tests can override to modify DSF configuration (e.g., L2 fabric level),
+   * transceiver info, or warmboot behavior before HwSwitch is created.
+   * The initInfo is pre-populated with:
+   *   - failHwCallsOnWarmboot: from the test's failHwCallsOnWarmboot() method
+   * Tests can modify these values as needed.
+   */
+  virtual void overrideTestEnsembleInitInfo(
+      TestEnsembleInitInfo& /*initInfo*/) const {}
+
+ private:
   std::unique_ptr<AgentEnsemble> agentEnsemble_;
 };
 

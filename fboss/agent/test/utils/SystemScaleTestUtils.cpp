@@ -19,19 +19,29 @@
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "folly/Benchmark.h"
 
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(json);
 DECLARE_int32(max_l2_entries);
 DECLARE_int32(max_ndp_entries);
 DECLARE_int32(max_arp_entries);
 
+// the number of rounds to add/churn fboss routes and neighbors is limited by
+// the time to run the test. The default number of rounds is chosen to finish
+// the test in 15mins
+DEFINE_int32(ndp_churn_rounds, 1, "Number of rounds to churn NDP entries");
+DEFINE_int32(route_churn_rounds, 3, "Number of rounds to churn routes");
+
+// optional flags for use in manual stress tests
+DEFINE_int32(
+    delay_churn_start_ms,
+    0,
+    "After initial programming, delay churn (in msec, default 0)");
+DEFINE_int32(
+    delay_exit_ms,
+    0,
+    "At the end of test, delay exit (in msec, default 0)");
+
 namespace {
 constexpr uint64_t kBaseMac = 0xFEEEC2000010;
-// the number of rounds to add/churn fboss routes and neighbors is limited by
-// the time to run the test. The number of rounds is chosen to finish in test in
-// 15mins
-constexpr int kNumChurn = 1;
-constexpr int kNumChurnRoute = 3;
 constexpr int kMaxScaleMacTxPortIdx = 1;
 constexpr int kMaxScaleMacRxPortIdx = 0;
 constexpr int kMacChurnTxPortIdx = 2;
@@ -48,38 +58,21 @@ void removeNeighbor(AgentEnsemble* ensemble) {
   ensemble->applyNewState(
       [&](const std::shared_ptr<SwitchState>& in) {
         auto newState = in->clone();
-        if (FLAGS_intf_nbr_tables) {
-          auto intfID =
-              ensemble->getProgrammedState()
-                  ->getPorts()
-                  ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
-                  ->getInterfaceID();
-          Interface* interface =
-              newState->getInterfaces()->getNode(intfID).get();
-          interface = interface->modify(&newState);
-          if (std::is_same<AddrT, folly::IPAddressV4>::value) {
-            XLOG(DBG2) << "# arp entries" << interface->getArpTable()->size();
-            interface->setArpTable(std::make_shared<ArpTable>());
-          } else {
-            XLOG(DBG2) << "# ndp entries" << interface->getNdpTable()->size();
-            interface->setNdpTable(std::make_shared<NdpTable>());
-          }
+        auto intfID =
+            ensemble->getProgrammedState()
+                ->getPorts()
+                ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
+                ->getInterfaceID();
+        Interface* interface = newState->getInterfaces()->getNode(intfID).get();
+        interface = interface->modify(&newState);
+        if (std::is_same<AddrT, folly::IPAddressV4>::value) {
+          XLOG(DBG2) << "# arp entries" << interface->getArpTable()->size();
+          interface->setArpTable(std::make_shared<ArpTable>());
         } else {
-          auto vlanID =
-              ensemble->getProgrammedState()
-                  ->getPorts()
-                  ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
-                  ->getIngressVlan();
-          Vlan* vlan = newState->getVlans()->getNode(vlanID).get();
-          vlan = vlan->modify(&newState);
-          if (std::is_same<AddrT, folly::IPAddressV4>::value) {
-            XLOG(DBG2) << "# arp entries" << vlan->getArpTable()->size();
-            vlan->setArpTable(std::make_shared<ArpTable>());
-          } else {
-            XLOG(DBG2) << "# ndp entries" << vlan->getNdpTable()->size();
-            vlan->setNdpTable(std::make_shared<NdpTable>());
-          }
+          XLOG(DBG2) << "# ndp entries" << interface->getNdpTable()->size();
+          interface->setNdpTable(std::make_shared<NdpTable>());
         }
+
         return newState;
       },
       "remove neighbor",
@@ -119,7 +112,6 @@ std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntry(
     const PortDescriptor& port,
     const AddrT& addr,
     const folly::MacAddress& mac,
-    const bool isIntfNbrTable,
     std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -132,21 +124,10 @@ std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntry(
                     ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
                     ->getInterfaceID();
 
-  if (isIntfNbrTable) {
-    neighborTable = state->getInterfaces()
-                        ->getNode(intfID)
-                        ->template getNeighborEntryTable<AddrT>()
-                        ->modify(intfID, &state);
-  } else {
-    auto vlanID = ensemble->getProgrammedState()
-                      ->getPorts()
-                      ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
-                      ->getIngressVlan();
-    neighborTable = state->getVlans()
-                        ->getNode(vlanID)
-                        ->template getNeighborEntryTable<AddrT>()
-                        ->modify(vlanID, &state);
-  }
+  neighborTable = state->getInterfaces()
+                      ->getNode(intfID)
+                      ->template getNeighborEntryTable<AddrT>()
+                      ->modify(intfID, &state);
 
   if (neighborTable->getEntryIf(addr)) {
     neighborTable->updateEntry(
@@ -170,13 +151,7 @@ void programNeighbor(
   ensemble->applyNewState(
       [&](const std::shared_ptr<SwitchState>& in) {
         return updateNeighborEntry(
-            ensemble,
-            in,
-            port,
-            addr,
-            neighborMac,
-            FLAGS_intf_nbr_tables,
-            lookupClass);
+            ensemble, in, port, addr, neighborMac, lookupClass);
       },
       "program neighbor",
       false);
@@ -310,7 +285,7 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
 }
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
   auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
-  if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     return;
   }
   // TH3 had existing slowness of l2 callbacks. To exercise the callback path,
@@ -777,6 +752,10 @@ void initSystemScaleTest(
   } else {
     XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
   }
+
+  if (FLAGS_delay_exit_ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(FLAGS_delay_exit_ms));
+  }
 }
 
 void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
@@ -810,7 +789,11 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
       ensemble->getSw()->getState(),
       ensemble->getSw()->needL2EntryForNeighbor());
   configureMaxRouteEntries(ensemble, generator);
-  for (auto i = 0; i < kNumChurnRoute; i++) {
+  if ((FLAGS_delay_churn_start_ms > 0) && (FLAGS_route_churn_rounds > 0)) {
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(FLAGS_delay_churn_start_ms));
+  }
+  for (auto i = 0; i < FLAGS_route_churn_rounds; i++) {
     removeAllRouteEntries(ensemble);
     configureMaxRouteEntries(ensemble, generator);
   }
@@ -818,7 +801,11 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   auto [rxPktsBefore, rxBytesBefore] = startRxMeasure(ensemble);
   XLOG(INFO) << "churn neighbor entries";
   configureMaxNeighborEntries(ensemble);
-  for (auto i = 0; i < kNumChurn; i++) {
+  if ((FLAGS_delay_churn_start_ms > 0) && (FLAGS_ndp_churn_rounds > 0)) {
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(FLAGS_delay_churn_start_ms));
+  }
+  for (auto i = 0; i < FLAGS_ndp_churn_rounds; i++) {
     removeAllNeighbors(ensemble);
     configureMaxNeighborEntries(ensemble);
   }
@@ -859,6 +846,11 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   } else {
     XLOG(DBG2) << " rx_pps: " << rxPPS << " rx_bps: " << rxBPS;
   }
+
+  if (FLAGS_delay_exit_ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(FLAGS_delay_exit_ms));
+  }
+
   if (FLAGS_setup_for_warmboot) {
     ScopedCallTimer timeIt;
     // Static such that the object destructor runs as late as possible. In

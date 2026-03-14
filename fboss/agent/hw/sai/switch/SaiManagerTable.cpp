@@ -39,6 +39,8 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSamplePacketManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTamManager.h"
@@ -115,6 +117,9 @@ void SaiManagerTable::createSaiTableManagers(
   wredManager_ = std::make_unique<SaiWredManager>(saiStore, this, platform);
   tamManager_ = std::make_unique<SaiTamManager>(saiStore, this, platform);
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
+  srv6TunnelManager_ =
+      std::make_unique<SaiSrv6TunnelManager>(saiStore, this, platform);
+  srv6Manager_ = std::make_unique<SaiSrv6Manager>(saiStore, this, platform);
   teFlowEntryManager_ =
       std::make_unique<UnsupportedFeatureManager>("EM entries");
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -207,13 +212,17 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   hostifManager_.reset();
   wredManager_.reset();
 
-#if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
+#if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
   // Must unbind Tam objects before resetting Tam manager.
   // Note that we can't use SaiTamManager::removeMirrorOnDropReport(), because
   // it relies on SaiManagerTable, which is undergoing destruction.
-  switchManager_->resetTamObject();
-  for (auto portId : tamManager_->getAllMirrorOnDropPortIds()) {
-    portManager_->resetTamObject(portId);
+  auto modPortIds = tamManager_->getAllMirrorOnDropPortIds();
+  if (!modPortIds.empty()) {
+    // Only reset TAM objects if MOD was configured
+    switchManager_->resetTamObject();
+    for (auto portId : modPortIds) {
+      portManager_->resetTamObject(portId);
+    }
   }
 #endif
   tamManager_.reset();
@@ -227,6 +236,8 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   bufferManager_.reset();
 
   tunnelManager_.reset();
+  srv6Manager_.reset();
+  srv6TunnelManager_.reset();
   queueManager_.reset();
   routeManager_.reset();
   schedulerManager_.reset();
@@ -480,6 +491,22 @@ SaiTunnelManager& SaiManagerTable::tunnelManager() {
 
 const SaiTunnelManager& SaiManagerTable::tunnelManager() const {
   return *tunnelManager_;
+}
+
+SaiSrv6Manager& SaiManagerTable::srv6Manager() {
+  return *srv6Manager_;
+}
+
+const SaiSrv6Manager& SaiManagerTable::srv6Manager() const {
+  return *srv6Manager_;
+}
+
+SaiSrv6TunnelManager& SaiManagerTable::srv6TunnelManager() {
+  return *srv6TunnelManager_;
+}
+
+const SaiSrv6TunnelManager& SaiManagerTable::srv6TunnelManager() const {
+  return *srv6TunnelManager_;
 }
 
 SaiUdfManager& SaiManagerTable::udfManager() {

@@ -7,6 +7,7 @@
 #include "fboss/agent/state/StateUpdateHelpers.h"
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 #include <set>
 #include <vector>
@@ -18,6 +19,17 @@ class SwitchIdScopeResolver;
 class RouteUpdateWrapper;
 class LinkStateToggler;
 
+/*
+ * TestEnsembleInitInfo - Common structure for HwTest and AgentHwTest.
+ * This struct is used to pass initialization parameters to the test ensemble.
+ * Tests can override getTestEnsembleInitInfo() to provide custom values.
+ */
+struct TestEnsembleInitInfo {
+  std::optional<TransceiverInfo> overrideTransceiverInfo;
+  std::optional<std::map<int64_t, cfg::DsfNode>> overrideDsfNodes;
+  bool failHwCallsOnWarmboot{false};
+};
+
 class TestEnsembleIf : public HwSwitchCallback {
  public:
   using StateUpdateFn = FunctionStateUpdate::StateUpdateFn;
@@ -25,7 +37,12 @@ class TestEnsembleIf : public HwSwitchCallback {
   virtual std::vector<PortID> masterLogicalPortIds() const = 0;
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes) const {
-    return masterLogicalPortIdsImpl(portTypes, {});
+    return masterLogicalPortIdsImpl(
+        portTypes, {SwitchID(FLAGS_switch_id_for_testing)});
+  }
+  std::vector<PortID> masterLogicalPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIdsImpl({}, switchIds);
   }
   std::vector<PortID> masterLogicalInterfacePortIds() const {
     return masterLogicalPortIds({cfg::PortType::INTERFACE_PORT});
@@ -35,6 +52,11 @@ class TestEnsembleIf : public HwSwitchCallback {
   }
   std::vector<PortID> masterLogicalHyperPortIds() const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds() const {
+    return masterLogicalPortIds(
+        std::set<cfg::PortType>{
+            cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
   }
 
   std::vector<PortID> masterLogicalPortIds(
@@ -54,6 +76,13 @@ class TestEnsembleIf : public HwSwitchCallback {
       const std::set<SwitchID>& switchIds) const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, switchIds);
   }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      const std::set<SwitchID>& switchIds) const {
+    return masterLogicalPortIds(
+        std::set<cfg::PortType>{
+            cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT},
+        switchIds);
+  }
   std::vector<PortID> masterLogicalPortIds(
       const std::set<cfg::PortType>& portTypes,
       SwitchID switchId) const {
@@ -68,6 +97,13 @@ class TestEnsembleIf : public HwSwitchCallback {
   std::vector<PortID> masterLogicalHyperPortIds(
       const SwitchID& switchId) const {
     return masterLogicalPortIds({cfg::PortType::HYPER_PORT}, {switchId});
+  }
+  std::vector<PortID> masterLogicalInterfaceOrHyperPortIds(
+      SwitchID switchId) const {
+    return masterLogicalPortIds(
+        std::set<cfg::PortType>{
+            cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT},
+        {switchId});
   }
 
   size_t getMinPktsForLineRate(const PortID& port) {

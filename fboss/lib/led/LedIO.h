@@ -22,8 +22,9 @@ constexpr auto kLedTriggerPath = "/trigger";
 constexpr auto kLedDelayOnPath = "/delay_on";
 constexpr auto kLedDelayOffPath = "/delay_off";
 constexpr auto kLedTimerTrigger = "timer";
+constexpr auto kLedTimerTriggerOff = "none";
 constexpr auto kLedBlinkOff = "0";
-constexpr auto kLedBlinkSlow = "1000";
+constexpr auto kLedBlinkSlow = "2000";
 constexpr auto kLedBlinkFast = "500";
 constexpr auto kMinBrightness = 1;
 constexpr auto kMaxBrightness = 255;
@@ -58,7 +59,7 @@ class LedIO {
   void turnOffAllLeds();
   void setLed(const std::string& ledPath, const std::string& ledOp);
   void setBlink(const std::string& ledPath, led::Blink blink);
-
+  void setDelay(const std::string& ledBasePath, const std::string& delay);
   // Max brightness for the LED is determined by /max_brightness
   // per LED.
   void initMaxBrightness(const std::string& path, std::string& maxBrightness);

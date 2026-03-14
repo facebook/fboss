@@ -29,6 +29,10 @@ class BcmMirrorDestination {
   BcmMirrorDestination(int unit, BcmMirrorHandle handle, int flags)
       : unit_(unit), handle_(handle), flags_(flags) {}
   ~BcmMirrorDestination();
+  BcmMirrorDestination(const BcmMirrorDestination&) = delete;
+  BcmMirrorDestination& operator=(const BcmMirrorDestination&) = delete;
+  BcmMirrorDestination(BcmMirrorDestination&&) = delete;
+  BcmMirrorDestination& operator=(BcmMirrorDestination&&) = delete;
   BcmMirrorHandle getHandle();
 
   int getFlags() const {
@@ -45,6 +49,10 @@ class BcmMirror {
  public:
   BcmMirror(BcmSwitch* hw, const std::shared_ptr<Mirror>& mirror);
   ~BcmMirror();
+  BcmMirror(const BcmMirror&) = delete;
+  BcmMirror& operator=(const BcmMirror&) = delete;
+  BcmMirror(BcmMirror&&) = delete;
+  BcmMirror& operator=(BcmMirror&&) = delete;
   void applyPortMirrorAction(
       PortID port,
       MirrorAction action,

@@ -50,6 +50,13 @@ class QsfpServiceHandler
       std::unique_ptr<std::vector<int32_t>> ids) override;
 
   /*
+   * Returns all qsfp information for the transceiver
+   */
+  void getPortStateMachineStateFromPortNames(
+      std::map<std::string, PortStateMachineState>& info,
+      std::unique_ptr<std::vector<std::string>> portNames) override;
+
+  /*
    * Returns portName to configured media interface
    */
   void getPortMediaInterface(
@@ -124,6 +131,9 @@ class QsfpServiceHandler
   void writeTransceiverRegister(
       std::map<int32_t, WriteResponse>& response,
       std::unique_ptr<WriteRequest> request) override;
+
+  void getPortTransceiverIDs(
+      std::map<std::string, std::vector<int32_t>>& portTransceiverIds) override;
 
   /*
    * Thrift call servicing routine for programming one PHY port
@@ -208,6 +218,10 @@ class QsfpServiceHandler
 
   void triggerAllOpticsFwUpgrade(
       std::map<std::string, FirmwareUpgradeData>& ports) override;
+
+  void triggerOpticsFwUpgrade(
+      std::map<std::string, FirmwareUpgradeData>& ports,
+      std::unique_ptr<std::vector<std::string>> interfaces) override;
 
   /*
    * Get the list of supported PRBS polynomials for the given port and

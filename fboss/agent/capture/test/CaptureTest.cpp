@@ -82,31 +82,9 @@ unique_ptr<HwTestHandle> setupTestHandle() {
 
 } // unnamed namespace
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
+class CaptureTest : public ::testing::Test {};
 
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
-class CaptureTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
-  void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
-  }
-
- public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-};
-
-TYPED_TEST_SUITE(CaptureTest, NbrTableTypes);
-
-TYPED_TEST(CaptureTest, FullCapture) {
+TEST_F(CaptureTest, FullCapture) {
   auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
@@ -225,7 +203,7 @@ TYPED_TEST(CaptureTest, FullCapture) {
   // and set a pending entry.
   EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(1);
   // pending entry is not created for intf neighbors
-  EXPECT_STATE_UPDATE_TIMES(sw, this->isIntfNbrTable() ? 0 : 1);
+  EXPECT_STATE_UPDATE_TIMES(sw, 0);
   sw->packetReceived(ipPkt.clone());
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);

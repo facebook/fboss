@@ -8,6 +8,7 @@
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -39,24 +40,20 @@ class AgentWatermarkTest : public AgentHwTest {
 
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
-    if (FLAGS_intf_nbr_tables) {
-      FLAGS_disable_neighbor_updates = false;
-      // Disabling because neighbor solicitation packets will cause device
-      // watermarks to be non-zero
-      FLAGS_disable_neighbor_solicitation = true;
-    }
+    FLAGS_disable_neighbor_updates = false;
+    // Disabling because neighbor solicitation packets will cause device
+    // watermarks to be non-zero
+    FLAGS_disable_neighbor_solicitation = true;
   }
 
-  folly::IPAddressV6 kDestIp1() const {
-    return folly::IPAddressV6("2620:0:1cfe:face:b00c::4");
-  }
   folly::IPAddressV6 kDestIp2() const {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::5");
   }
 
   std::map<PortID, folly::IPAddressV6> getPort2DstIp() const {
     return {
-        {getAgentEnsemble()->masterLogicalInterfacePortIds()[0], kDestIp1()},
+        {getAgentEnsemble()->masterLogicalInterfacePortIds()[0],
+         folly::IPAddressV6(kTestDstIpV6)},
         {getAgentEnsemble()->masterLogicalInterfacePortIds()[1], kDestIp2()},
     };
   }
@@ -84,10 +81,10 @@ class AgentWatermarkTest : public AgentHwTest {
         vlanId,
         srcMac,
         intfMac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+        folly::IPAddressV6(kTestSrcIpV6),
         dst,
-        8000,
-        8001,
+        kTestSrcPort,
+        kTestDstPort,
         // Trailing 2 bits are for ECN, we do not want drops in
         // these queues due to any configured thresholds!
         static_cast<uint8_t>(dscpVal << 2 | kECT1),
@@ -285,18 +282,15 @@ class AgentWatermarkTest : public AgentHwTest {
           getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
     }
 
-    if (FLAGS_intf_nbr_tables) {
-      auto interfaceId =
-          ecmpHelper6.getInterface(portDesc, getProgrammedState());
-      if (interfaceId) {
-        auto interface = getProgrammedState()->getInterfaces()->getNodeIf(
-            interfaceId.value());
-        populateNdpNeighborsToCache(interface);
-      } else {
-        XLOG(WARN)
-            << "Interface ID " << interfaceId.value()
-            << " not found in ECMP setup. Skipping resolution of NDP neighbor";
-      }
+    auto interfaceId = ecmpHelper6.getInterface(portDesc, getProgrammedState());
+    if (interfaceId) {
+      auto interface =
+          getProgrammedState()->getInterfaces()->getNodeIf(interfaceId.value());
+      populateNdpNeighborsToCache(interface);
+    } else {
+      XLOG(WARN) << "Interface ID not found in ECMP setup for port "
+                 << portDesc.phyPortID()
+                 << ". Skipping resolution of NDP neighbor";
     }
   }
 
@@ -370,7 +364,7 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermark) {
           getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0];
       auto minPktsForLineRate =
           getAgentEnsemble()->getMinPktsForLineRate(portToSendTraffic);
-      sendUdpPkts(0, kDestIp1(), minPktsForLineRate);
+      sendUdpPkts(0, folly::IPAddressV6(kTestDstIpV6), minPktsForLineRate);
       getAgentEnsemble()->waitForLineRateOnPort(portToSendTraffic);
       // Assert non zero watermark
       EXPECT_TRUE(gotExpectedDeviceWatermark(false, switchId));
@@ -398,13 +392,13 @@ TEST_F(AgentWatermarkTest, VerifyDeviceWatermarkHigherThanQueueWatermark) {
           utility::kOlympicQueueToDscp()
               .at(utility::getOlympicQueueId(utility::OlympicQueueType::SILVER))
               .front(),
-          kDestIp1(),
+          folly::IPAddressV6(kTestDstIpV6),
           minPktsForLineRate / 2);
       sendUdpPkts(
           utility::kOlympicQueueToDscp()
               .at(utility::getOlympicQueueId(utility::OlympicQueueType::GOLD))
               .front(),
-          kDestIp1(),
+          folly::IPAddressV6(kTestDstIpV6),
           minPktsForLineRate / 2);
       getAgentEnsemble()->waitForLineRateOnPort(
           getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[0]);
@@ -505,7 +499,7 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
         // will be validated.
         sendUdpPkts(
             utility::kOlympicQueueToDscp().at(kQueueId).front(),
-            kDestIp1(),
+            folly::IPAddressV6(kTestDstIpV6),
             numPacketsToSend,
             kTxPacketPayloadLen,
             getAgentEnsemble()->masterLogicalInterfacePortIds(switchId)[1]);
@@ -527,7 +521,9 @@ TEST_F(AgentWatermarkTest, VerifyQueueWatermarkAccuracy) {
             (kNumberOfPacketsToSend - 1);
         // Watermarks read in are accurate, no rounding needed
         roundedWatermarkBytes = expectedWatermarkBytes;
-      } else if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+      } else if (
+          asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+          asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
         // For Yuba, watermark counter is accurate to the number of buffers
         expectedWatermarkBytes =
             utility::getEffectiveBytesPerPacket(asic, txPacketLen) *

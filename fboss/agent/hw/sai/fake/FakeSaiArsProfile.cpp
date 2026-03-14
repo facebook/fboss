@@ -26,8 +26,8 @@ sai_status_t create_ars_profile_fn(
   sai_uint8_t port_load_past_weight = 16;
   sai_uint32_t load_past_min_val = 1000;
   sai_uint32_t load_past_max_val = 10000;
-  bool port_load_future = true;
-  sai_uint8_t port_load_future_weight = 16;
+  std::optional<bool> port_load_future = std::nullopt;
+  std::optional<sai_uint8_t> port_load_future_weight = std::nullopt;
   sai_uint32_t load_future_min_val = 60000;
   sai_uint32_t load_future_max_val = 3000000;
   bool port_load_current = true;
@@ -42,6 +42,7 @@ sai_status_t create_ars_profile_fn(
   sai_uint32_t ars_alternate_members_route_meta_data = 0;
   sai_uint32_t ars_route_meta_data_mask = 0;
   sai_uint32_t ars_primary_members_route_meta_data = 0;
+  sai_uint32_t ecmp_member_count = 0;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_ARS_PROFILE_ATTR_ALGO:
@@ -119,6 +120,9 @@ sai_status_t create_ars_profile_fn(
       case SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA:
         ars_primary_members_route_meta_data = attr_list[i].value.u32;
         break;
+      case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT:
+        ecmp_member_count = attr_list[i].value.u32;
+        break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
     }
@@ -148,7 +152,8 @@ sai_status_t create_ars_profile_fn(
       ars_base_index,
       ars_alternate_members_route_meta_data,
       ars_route_meta_data_mask,
-      ars_primary_members_route_meta_data);
+      ars_primary_members_route_meta_data,
+      ecmp_member_count);
 
   return SAI_STATUS_SUCCESS;
 }
@@ -240,6 +245,9 @@ sai_status_t set_ars_profile_attribute_fn(
     case SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA:
       arsProfile.ars_primary_members_route_meta_data = attr->value.u32;
       break;
+    case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT:
+      arsProfile.ecmp_member_count = attr->value.u32;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -282,10 +290,10 @@ sai_status_t get_ars_profile_attribute_fn(
         attr[i].value.u32 = arsProfile.load_past_max_val;
         break;
       case SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE:
-        attr[i].value.booldata = arsProfile.port_load_future;
+        attr[i].value.booldata = arsProfile.port_load_future.value_or(true);
         break;
       case SAI_ARS_PROFILE_ATTR_PORT_LOAD_FUTURE_WEIGHT:
-        attr[i].value.u8 = arsProfile.port_load_future_weight;
+        attr[i].value.u8 = arsProfile.port_load_future_weight.value_or(16);
         break;
       case SAI_ARS_PROFILE_ATTR_LOAD_FUTURE_MIN_VAL:
         attr[i].value.u32 = arsProfile.load_future_min_val;
@@ -331,6 +339,9 @@ sai_status_t get_ars_profile_attribute_fn(
         break;
       case SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA:
         attr[i].value.u32 = arsProfile.ars_primary_members_route_meta_data;
+        break;
+      case SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT:
+        attr[i].value.u32 = arsProfile.ecmp_member_count;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

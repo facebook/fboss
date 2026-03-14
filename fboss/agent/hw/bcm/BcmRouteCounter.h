@@ -32,7 +32,6 @@ class BcmRouteCounterID {
  public:
   BcmRouteCounterID() : id_(0), offset_(0) {}
   BcmRouteCounterID(uint32_t id, uint32_t offset) : id_(id), offset_(offset) {}
-  ~BcmRouteCounterID() {}
   folly::dynamic toFollyDynamic() const;
   static BcmRouteCounterID fromFollyDynamic(const folly::dynamic& json);
   uint32_t getHwId() const {
@@ -70,7 +69,11 @@ class BcmRouteCounterID {
 class BcmRouteCounterBase {
  public:
   BcmRouteCounterBase(BcmSwitch* hw, RouteCounterID id, int modeId);
-  virtual ~BcmRouteCounterBase() {}
+  virtual ~BcmRouteCounterBase() = default;
+  BcmRouteCounterBase(const BcmRouteCounterBase&) = delete;
+  BcmRouteCounterBase& operator=(const BcmRouteCounterBase&) = delete;
+  BcmRouteCounterBase(BcmRouteCounterBase&&) = default;
+  BcmRouteCounterBase& operator=(BcmRouteCounterBase&&) = default;
   virtual BcmRouteCounterID getHwCounterID() const = 0;
 
  protected:
@@ -126,7 +129,11 @@ class BcmRouteFlexCounter : public folly::MoveOnly, public BcmRouteCounterBase {
 class BcmRouteCounterTableBase {
  public:
   explicit BcmRouteCounterTableBase(BcmSwitch* hw) : hw_(hw) {}
-  virtual ~BcmRouteCounterTableBase() {}
+  virtual ~BcmRouteCounterTableBase() = default;
+  BcmRouteCounterTableBase(const BcmRouteCounterTableBase&) = delete;
+  BcmRouteCounterTableBase& operator=(const BcmRouteCounterTableBase&) = delete;
+  BcmRouteCounterTableBase(BcmRouteCounterTableBase&&) = default;
+  BcmRouteCounterTableBase& operator=(BcmRouteCounterTableBase&&) = default;
   void setMaxRouteCounterIDs(uint32_t count) {
     maxRouteCounterIDs_ = count;
   }
@@ -149,7 +156,9 @@ class BcmRouteFlexCounterTable : public folly::MoveOnly,
                                  public BcmRouteCounterTableBase {
  public:
   explicit BcmRouteFlexCounterTable(BcmSwitch* hw);
-  ~BcmRouteFlexCounterTable() override {}
+  ~BcmRouteFlexCounterTable() override = default;
+  BcmRouteFlexCounterTable(BcmRouteFlexCounterTable&&) = delete;
+  BcmRouteFlexCounterTable& operator=(BcmRouteFlexCounterTable&&) = delete;
   std::optional<BcmRouteCounterID> getHwCounterID(
       std::optional<RouteCounterID> counterID) const override;
   std::shared_ptr<BcmRouteCounterBase> referenceOrEmplaceCounterID(

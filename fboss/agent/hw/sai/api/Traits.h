@@ -14,6 +14,7 @@
 #include <folly/IPAddressV6.h>
 #include <folly/MacAddress.h>
 
+#include <fmt/core.h>
 #include <type_traits>
 #include <variant>
 
@@ -161,6 +162,47 @@ struct WrappedSaiType<std::vector<sai_port_snr_values_t>> {
 };
 #endif
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+struct SaiJsonString {
+  std::string value;
+
+  SaiJsonString() = default;
+  SaiJsonString(std::string s) : value(std::move(s)) {}
+  SaiJsonString(const char* s) : value(s) {}
+
+  bool operator==(const SaiJsonString& other) const {
+    return value == other.value;
+  }
+  bool operator!=(const SaiJsonString& other) const {
+    return !(*this == other);
+  }
+
+  // Returns true if the JSON string is empty
+  // or contains only empty attributes (Cisco SDK for SerDes Custom Collection)
+  // This is used to treat SDK-returned empty JSON as nullopt to avoid
+  // warmboot state mismatch.
+  bool empty() const {
+    std::string_view effective = value;
+    if (!effective.empty() && effective.back() == '\0') {
+      effective.remove_suffix(1);
+    }
+    // Todo: Cisco returns "{\"attributes\":[]} by default, will ask to change
+    // to general "{}"
+    return effective.empty() || effective == "{}" ||
+        effective == "{\"attributes\":[]}";
+  }
+
+  std::string str() const {
+    return value;
+  }
+};
+
+template <>
+struct WrappedSaiType<SaiJsonString> {
+  using value = sai_json_t;
+};
+#endif
+
 template <>
 struct WrappedSaiType<std::array<char, 32>> {
   using value = char[32];
@@ -176,6 +218,11 @@ struct WrappedSaiType<std::vector<sai_system_port_config_t>> {
   using value = sai_system_port_config_list_t;
 };
 
+template <>
+struct WrappedSaiType<std::vector<folly::IPAddressV6>> {
+  using value = sai_segment_list_t;
+};
+
 template <typename T>
 class AclEntryField {
  public:
@@ -186,7 +233,7 @@ class AclEntryField {
   }
 
   void setDataAndMask(T dataAndMask) {
-    dataAndMask_ = dataAndMask;
+    dataAndMask_ = std::move(dataAndMask);
   }
 
   std::string str() const {
@@ -284,7 +331,7 @@ class AclEntryAction {
   }
 
   void setData(T data) {
-    data_ = data;
+    data_ = std::move(data);
   }
 
   std::string str() const {

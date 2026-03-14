@@ -28,6 +28,21 @@ class NextHopStoreTest : public SaiStoreTest {
     return saiApiTable->nextHopApi().create<SaiMplsNextHopTraits>(
         {SAI_NEXT_HOP_TYPE_MPLS, 42, ip, std::move(stack), std::nullopt}, 0);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  NextHopSaiId createSrv6SidlistNextHop(
+      const folly::IPAddress& ip,
+      sai_object_id_t tunnelId,
+      sai_object_id_t srv6SidlistId) {
+    return saiApiTable->nextHopApi().create<SaiSrv6SidlistNextHopTraits>(
+        {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST,
+         42,
+         ip,
+         tunnelId,
+         srv6SidlistId,
+         std::nullopt},
+        0);
+  }
+#endif
 };
 
 TEST_F(NextHopStoreTest, loadNextHops) {
@@ -104,3 +119,53 @@ TEST_F(NextHopStoreTest, mplsNextHopToStr) {
       folly::IPAddress{"4200::41"}, std::vector<sai_uint32_t>{1001, 1002});
   verifyToStr<SaiMplsNextHopTraits>();
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+TEST_F(NextHopStoreTest, loadSrv6SidlistNextHops) {
+  folly::IPAddress ip1{"4200::41"};
+  folly::IPAddress ip2{"4200::42"};
+  auto nextHopSaiId1 = createSrv6SidlistNextHop(ip1, 10, 20);
+  auto nextHopSaiId2 = createSrv6SidlistNextHop(ip2, 30, 40);
+
+  SaiStore s(0);
+  s.reload();
+  auto& store = s.get<SaiSrv6SidlistNextHopTraits>();
+
+  SaiSrv6SidlistNextHopTraits::AdapterHostKey k1{42, ip1, 10, 20};
+  SaiSrv6SidlistNextHopTraits::AdapterHostKey k2{42, ip2, 30, 40};
+  auto got = store.get(k1);
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), nextHopSaiId1);
+  got = store.get(k2);
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->adapterKey(), nextHopSaiId2);
+}
+
+TEST_F(NextHopStoreTest, srv6SidlistNextHopLoadCtor) {
+  auto ip = folly::IPAddress("::");
+  auto nextHopSaiId = createSrv6SidlistNextHop(ip, 10, 20);
+  auto obj = createObj<SaiSrv6SidlistNextHopTraits>(nextHopSaiId);
+  EXPECT_EQ(obj.adapterKey(), nextHopSaiId);
+  EXPECT_EQ(GET_ATTR(Srv6SidlistNextHop, Ip, obj.attributes()), ip);
+}
+
+TEST_F(NextHopStoreTest, srv6SidlistNextHopCreateCtor) {
+  auto ip = folly::IPAddress("::");
+  SaiSrv6SidlistNextHopTraits::CreateAttributes c{
+      SAI_NEXT_HOP_TYPE_SRV6_SIDLIST, 42, ip, 10, 20, std::nullopt};
+  SaiSrv6SidlistNextHopTraits::AdapterHostKey k{42, ip, 10, 20};
+  auto obj = createObj<SaiSrv6SidlistNextHopTraits>(k, c, 0);
+  EXPECT_EQ(GET_ATTR(Srv6SidlistNextHop, Ip, obj.attributes()), ip);
+}
+
+TEST_F(NextHopStoreTest, srv6SidlistNextHopSerDeser) {
+  auto nextHopSaiId =
+      createSrv6SidlistNextHop(folly::IPAddress{"4200::41"}, 10, 20);
+  verifyAdapterKeySerDeser<SaiSrv6SidlistNextHopTraits>({nextHopSaiId});
+}
+
+TEST_F(NextHopStoreTest, srv6SidlistNextHopToStr) {
+  std::ignore = createSrv6SidlistNextHop(folly::IPAddress{"4200::41"}, 10, 20);
+  verifyToStr<SaiSrv6SidlistNextHopTraits>();
+}
+#endif

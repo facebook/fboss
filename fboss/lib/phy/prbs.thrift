@@ -1,6 +1,11 @@
 #
 # Copyright 2004-present Facebook. All Rights Reserved.
 #
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py neteng.fboss.prbs
 namespace py3 neteng.fboss.prbs
 namespace py.asyncio neteng.fboss.asyncio.prbs

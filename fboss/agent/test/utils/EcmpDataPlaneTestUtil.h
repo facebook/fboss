@@ -150,6 +150,17 @@ class HwMplsEcmpDataPlaneTestUtil
   MPLSHdr::Label label_;
 };
 
+class HwSrv6EcmpDataPlaneTestUtil
+    : public HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6> {
+ public:
+  using BaseT = HwIpEcmpDataPlaneTestUtil<folly::IPAddressV6>;
+
+  HwSrv6EcmpDataPlaneTestUtil(TestEnsembleIf* ensemble, RouterID vrf);
+
+  void programRoutes(int ecmpWidth, const std::vector<NextHopWeight>& weights)
+      override;
+};
+
 using HwIpV4EcmpDataPlaneTestUtil =
     HwIpEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 using HwIpV6EcmpDataPlaneTestUtil =

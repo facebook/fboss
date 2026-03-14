@@ -343,7 +343,8 @@ void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
         continue;
       }
 
-      pkt = sw_->allocateL3TxPacket(mtu_, (type_ == cfg::InterfaceType::VLAN));
+      auto txVlan = sw_->getVlanIDForTx(ifID_);
+      pkt = sw_->allocateL3TxPacket(mtu_, txVlan.has_value());
       auto buf = pkt->buf();
       int ret = 0;
       do {

@@ -51,6 +51,8 @@ class BcmQosMapEntry {
   // Forbidden copy constructor and assignment operator
   BcmQosMapEntry(const BcmQosMapEntry&) = delete;
   BcmQosMapEntry& operator=(const BcmQosMapEntry&) = delete;
+  BcmQosMapEntry(BcmQosMapEntry&&) = delete;
+  BcmQosMapEntry& operator=(BcmQosMapEntry&&) = delete;
 
   const BcmQosMap& map_;
   Type type_;

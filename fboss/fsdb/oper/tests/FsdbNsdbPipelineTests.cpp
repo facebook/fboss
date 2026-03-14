@@ -8,7 +8,6 @@
 
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
 #include <fboss/lib/CommonUtils.h>
-#include <folly/Random.h>
 #include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Collect.h>

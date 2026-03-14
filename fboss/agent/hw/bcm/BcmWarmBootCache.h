@@ -21,6 +21,7 @@ extern "C" {
 #include <folly/Conv.h>
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
+#include <folly/Utility.h>
 #include <folly/container/F14Map.h>
 #include <folly/json/dynamic.h>
 #include <folly/logging/xlog.h>
@@ -59,9 +60,10 @@ class VlanMap;
 class MirrorMap;
 class PortMap;
 
-class BcmWarmBootCache {
+class BcmWarmBootCache : public folly::NonCopyableNonMovable {
  public:
   explicit BcmWarmBootCache(const BcmSwitchIf* hw);
+  ~BcmWarmBootCache() = default;
   folly::dynamic getWarmBootStateFollyDynamic() const;
   void populate(const folly::dynamic& warmBootState);
   struct VlanInfo {
@@ -827,9 +829,6 @@ class BcmWarmBootCache {
       const folly::dynamic& udfPacketMatcher);
   void populateL2LearningModeFromDumpedSwSwitchState();
 
-  // No copy or assignment.
-  BcmWarmBootCache(const BcmWarmBootCache&) = delete;
-  BcmWarmBootCache& operator=(const BcmWarmBootCache&) = delete;
   const BcmSwitchIf* hw_;
   Vlan2VlanInfo vlan2VlanInfo_;
   Vlan2Station vlan2Station_;

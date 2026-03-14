@@ -17,7 +17,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-
 from typing import List, Tuple
 
 
@@ -52,7 +51,7 @@ Current run path: {run_path}"""
 
     get_deps_paths = [
         expected_path + "/opensource/fbcode_builder/getdeps.py",
-        expected_path + "/build/fbcode_builder/getdeps.py",
+        expected_path + "/fboss/oss/scripts/run-getdeps.py",
     ]
     print(get_deps_paths)
     get_deps_path = None

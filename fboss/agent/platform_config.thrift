@@ -14,6 +14,10 @@ include "fboss/agent/hw/config/asic_config_v2.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 enum PlatformAttributes {
   CONNECTION_HANDLE = 1,
@@ -103,6 +107,7 @@ struct PlatformPortConfigOverride {
   1: PlatformPortConfigOverrideFactor factor;
   2: optional phy.PortPinConfig pins;
   3: optional phy.PortProfileConfig portProfileConfig;
+  4: optional map<i32, i32> driverPeaking;
 }
 
 /*

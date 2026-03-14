@@ -18,8 +18,8 @@ DECLARE_bool(agent_fsdb_sync);
 
 namespace facebook::fboss {
 
-using fsdb_model_tags = fsdb::fsdb_model_tags::strings;
-using agent_config_tags = cfg::agent_config_tags::strings;
+namespace fsdb_model_tags = apache::thrift::ident;
+namespace agent_config_tags = apache::thrift::ident;
 #ifndef IS_OSS
 namespace cfgr_bitsflow = ::configerator::structs::neteng::fboss::bitsflow;
 #endif
@@ -36,14 +36,14 @@ class AgentFsdbSyncManager
           FsdbSyncManager<fsdb::AgentData, true /* EnablePatchAPIs */> {
   /* list of maps which are subscribed to by external consumers */
   using SubscribedMaps = std::tuple<
-      switch_state_tags::portMaps,
-      switch_state_tags::transceiverMaps,
-      switch_state_tags::qosPolicyMaps,
-      switch_state_tags::sflowCollectorMaps,
-      switch_state_tags::aggregatePortMaps,
-      switch_state_tags::systemPortMaps,
-      switch_state_tags::vlanMaps,
-      switch_state_tags::interfaceMaps>;
+      std::type_identity<switch_state_tags::portMaps>,
+      std::type_identity<switch_state_tags::transceiverMaps>,
+      std::type_identity<switch_state_tags::qosPolicyMaps>,
+      std::type_identity<switch_state_tags::sflowCollectorMaps>,
+      std::type_identity<switch_state_tags::aggregatePortMaps>,
+      std::type_identity<switch_state_tags::systemPortMaps>,
+      std::type_identity<switch_state_tags::vlanMaps>,
+      std::type_identity<switch_state_tags::interfaceMaps>>;
 
  public:
   using Base = fsdb::FsdbSyncManager<fsdb::AgentData>;

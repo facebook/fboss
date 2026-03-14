@@ -31,7 +31,8 @@ struct SaiTamCollectorTraits {
     using TruncateSize = SaiAttribute<
         EnumType,
         SAI_TAM_COLLECTOR_ATTR_TRUNCATE_SIZE,
-        sai_uint16_t>;
+        sai_uint16_t,
+        StdNullOptDefault<sai_uint32_t>>;
     using Transport = SaiAttribute<
         EnumType,
         SAI_TAM_COLLECTOR_ATTR_TRANSPORT,
@@ -173,6 +174,12 @@ struct SaiTamEventTraits {
     using PacketDropTypeMmu = SaiExtensionAttribute<
         std::vector<sai_int32_t>,
         AttributePacketDropTypeMmu>;
+    struct AttributePacketDropTypeIngress {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PacketDropTypeIngress = SaiExtensionAttribute<
+        std::vector<sai_int32_t>,
+        AttributePacketDropTypeIngress>;
     struct AttributeAgingGroup {
       std::optional<sai_attr_id_t> operator()();
     };
@@ -189,6 +196,7 @@ struct SaiTamEventTraits {
       std::optional<Attributes::SwitchEventId>,
       std::optional<Attributes::ExtensionsCollectorList>,
       std::optional<Attributes::PacketDropTypeMmu>,
+      std::optional<Attributes::PacketDropTypeIngress>,
       std::optional<Attributes::AgingGroup>>;
   using CreateAttributes = AdapterHostKey;
 };
@@ -201,6 +209,7 @@ SAI_ATTRIBUTE_NAME(TamEvent, DeviceId)
 SAI_ATTRIBUTE_NAME(TamEvent, SwitchEventId)
 SAI_ATTRIBUTE_NAME(TamEvent, ExtensionsCollectorList)
 SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeMmu)
+SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeIngress)
 SAI_ATTRIBUTE_NAME(TamEvent, AgingGroup)
 
 struct SaiTamTraits {

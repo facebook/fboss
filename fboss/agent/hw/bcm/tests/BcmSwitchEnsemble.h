@@ -59,7 +59,7 @@ class BcmSwitchEnsemble : public HwSwitchEnsemble {
       std::string& output,
       std::optional<SwitchID> switchId = std::nullopt) override;
 
-  void init(const HwSwitchEnsemble::HwSwitchEnsembleInitInfo& info) override;
+  void init(const TestEnsembleInitInfo& info) override;
 
   void createEqualDistributedUplinkDownlinks(
       const std::vector<PortID>& ports,

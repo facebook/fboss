@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/api/AclApi.h"
+#include "fboss/agent/hw/sai/api/ArsApi.h"
 #include "fboss/agent/hw/sai/api/ArsProfileApi.h"
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 #include "fboss/agent/hw/sai/api/DebugCounterApi.h"
@@ -80,6 +81,11 @@ SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeIngress::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
 }
@@ -130,6 +136,11 @@ SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
   return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+  return SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH;
 }
 
 std::optional<sai_attr_id_t> SaiPortSerdesTraits::Attributes::
@@ -199,6 +210,16 @@ SaiPortSerdesTraits::Attributes::AttributeFltSWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfLfqWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfHfqWrapper::operator()() {
   return std::nullopt;
 }
 
@@ -280,6 +301,16 @@ SaiPortTraits::Attributes::AttributeFecErrorDetectEnable::operator()() {
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributePfcMonitorDirection::operator()() {
   return SAI_PORT_ATTR_PFC_MONITOR_DIRECTION;
+}
+
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeCablePropagationDelayMediaType::operator()() {
+  return SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+  return SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE;
 }
 
 std::optional<sai_attr_id_t>
@@ -428,6 +459,11 @@ std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
 }
 
 std::optional<sai_attr_id_t>
+SaiBufferPoolTraits::Attributes::AttributeReservedBytes::operator()() {
+  return SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE;
+}
+
+std::optional<sai_attr_id_t>
 SaiSflowMirrorTraits::Attributes::AttributeTcBufferLimit::operator()() {
   return std::nullopt;
 }
@@ -449,7 +485,12 @@ SaiSwitchTraits::Attributes::AttributeNoAclsForTrapsWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiTxPacketTraits::Attributes::AttributePacketType::operator()() {
-  return std::nullopt;
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
+}
+
+std::optional<sai_attr_id_t>
+SaiRxPacketTraits::Attributes::AttributePacketType::operator()() {
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
 }
 
 const std::vector<sai_stat_id_t>& SaiSwitchTraits::dramStats() {
@@ -998,6 +1039,11 @@ SaiArsProfileTraits::Attributes::AttributeArsBaseIndex::operator()() {
   return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_ARS_BASE_INDEX;
 }
 
+std::optional<sai_attr_id_t>
+SaiArsProfileTraits::Attributes::AttributeEcmpMemberCount::operator()() {
+  return SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT;
+}
+
 std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
     AttributeArsNextHopGroupMetaData::operator()() {
   return SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA;
@@ -1006,6 +1052,11 @@ std::optional<sai_attr_id_t> SaiNextHopGroupTraits::Attributes::
 std::optional<sai_attr_id_t>
 SaiAclEntryTraits::Attributes::AttributeActionL3SwitchCancel::operator()() {
   return SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL;
+}
+
+std::optional<sai_attr_id_t>
+SaiArsTraits::Attributes::AttributeNextHopGroupType::operator()() {
+  return SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE;
 }
 #endif
 

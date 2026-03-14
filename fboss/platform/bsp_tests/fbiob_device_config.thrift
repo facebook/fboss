@@ -1,5 +1,10 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss.platform.bsp_tests.fbiob
 
 /*
@@ -31,6 +36,7 @@ enum AuxDeviceType {
   LED = 3,
   XCVR = 4,
   GPIO = 5,
+  SYSLED = 6,
 }
 
 struct I2cData {

@@ -6,7 +6,6 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SiSettingPinConnection,
     SiSettingRow,
 )
-
 from neteng.fboss.switch_config.ttypes import PortSpeed
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology
 
@@ -21,7 +20,7 @@ class SiSettings:
                 self._si_settings[pin_connection_str] = []
             self._si_settings[pin_connection_str].append(setting)
 
-    # Here is where we can return miultiple pairs, since there could be
+    # Here is where we can return multiple pairs, since there could be
     # connections sharing same pin connections but with different SI settings.
     # Given some factors, return the matching setting from the SI Settings CSV
     def get_factor_and_setting(
@@ -41,11 +40,19 @@ class SiSettings:
             ):
                 if setting.factor.cable_length or setting.factor.tcvr_override_setting:
                     # There is an extra factor specified other than lane speed and media
+                    driver_peaking: Dict[int, int] = {}
+                    if setting.driver_peaking is not None:
+                        driver_peaking[setting.pin_connection.logical_lane_id] = (
+                            setting.driver_peaking
+                        )
                     si_factor_and_settings.append(
                         SiFactorAndSetting(
                             factor=setting.factor,
                             tx_setting=setting.tx_setting,
                             rx_setting=setting.rx_setting,
+                            custom_tx_collection=setting.custom_tx_collection,
+                            custom_rx_collection=setting.custom_rx_collection,
+                            driver_peaking=driver_peaking,
                         )
                     )
                 else:
@@ -54,6 +61,9 @@ class SiSettings:
                             factor=None,
                             tx_setting=setting.tx_setting,
                             rx_setting=setting.rx_setting,
+                            custom_tx_collection=setting.custom_tx_collection,
+                            custom_rx_collection=setting.custom_rx_collection,
+                            driver_peaking=None,
                         )
                     )
         return si_factor_and_settings

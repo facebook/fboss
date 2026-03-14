@@ -7,8 +7,6 @@ namespace {
 const int kNumOfMacsFlooding = 128;
 } // namespace
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss::utility {
 class MacLearningFloodHelper {
  public:

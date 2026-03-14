@@ -50,6 +50,7 @@ cpp_library(
         "Init.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         "//common/base:build_info",
         "//common/init:init",
         "//common/services/cpp:acl_checker_module",
@@ -58,6 +59,7 @@ cpp_library(
         "//common/services/cpp:proc_module",
         "//common/services/cpp:proc_standalone",
         "//common/services/cpp:thrift_acl_checker_module_config",
+        "//folly:function",
         "//folly/io/async:async_signal_handler",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/async:async_processor",
@@ -103,5 +105,20 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_fs_utils",
+    ],
+)
+
+cpp_library(
+    name = "structured_logger",
+    srcs = [
+        "StructuredLogger.cpp",
+    ],
+    headers = [
+        "StructuredLogger.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":platform_name_lib",
+        "//folly/logging:logging",
     ],
 )

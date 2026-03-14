@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -40,7 +41,13 @@ SaiHashTraits::Attributes::NativeHashFieldList toNativeHashFieldList(
         nativeHashFields.emplace_back(SAI_NATIVE_HASH_FIELD_DST_IP);
         break;
       case cfg::IPv6Field::FLOW_LABEL:
-        throw FbossError("Hashing on Flow labels is not supported");
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        nativeHashFields.emplace_back(SAI_NATIVE_HASH_FIELD_IPV6_FLOW_LABEL);
+#else
+        throw FbossError(
+            "Hashing on IPv6 Flow Label requires SAI version >= 1.12.0");
+#endif
+        break;
     }
   }
   for (auto field : *hashFields.transportFields()) {

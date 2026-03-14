@@ -56,7 +56,8 @@ typedef enum _sai_port_serdes_extensions_attr_t {
   SAI_PORT_SERDES_ATTR_EXT_TX_LDO_BYPASS,
   SAI_PORT_SERDES_ATTR_EXT_RX_LDO_BYPASS,
   SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LENGTH_BITMAP,
-  SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN
+  SAI_PORT_SERDES_ATTR_EXT_RX_FFE_LMS_DYNAMIC_GATING_EN,
+  SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH
 } sai_port_serdes_extensions_attr_t;
 
 typedef enum _sai_switch_extensions_attr_t {
@@ -121,10 +122,21 @@ typedef enum _sai_tam_event_extensions_attr_t {
   SAI_TAM_EVENT_ATTR_FAKE_SWITCH_EVENT_ID,
   SAI_TAM_EVENT_ATTR_FAKE_EXTENSIONS_COLLECTOR_LIST,
   SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_MMU,
+  SAI_TAM_EVENT_ATTR_FAKE_PACKET_DROP_TYPE_INGRESS,
   SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP,
   SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS = SAI_TAM_TRANSPORT_ATTR_END,
   SAI_TAM_TRANSPORT_ATTR_FAKE_DST_MAC_ADDRESS,
 } sai_tam_event_extensions_attr_t;
+
+typedef enum _sai_hostif_packet_extensions_attr_t {
+  SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE =
+      SAI_HOSTIF_PACKET_ATTR_CUSTOM_RANGE_START,
+} sai_hostif_packet_extensions_attr_t;
+
+typedef enum _sai_hostif_packet_type_t {
+  SAI_HOSTIF_PACKET_TYPE_DEFAULT = 0,
+  SAI_HOSTIF_PACKET_TYPE_LINK_MONITORING = 1,
+} sai_hostif_packet_type_t;
 
 typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_EXT_FAKE_SYSTEM_PORT_ID = SAI_PORT_ATTR_CUSTOM_RANGE_START,
@@ -138,12 +150,19 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_FABRIC_SYSTEM_PORT,
   SAI_PORT_ATTR_RESET_QUEUE_CREDIT_BALANCE,
   SAI_PORT_ATTR_PFC_MONITOR_DIRECTION,
+  SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE,
+  SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {
   SAI_INGRESS_PRIORITY_GROUP_ATTR_LOSSLESS_ENABLE =
       SAI_INGRESS_PRIORITY_GROUP_ATTR_CUSTOM_RANGE_START,
 } sai_ingress_priority_group_extensions_attr_t;
+
+typedef enum _sai_buffer_pool_extensions_attr_t {
+  SAI_BUFFER_POOL_ATTR_RESERVED_BUFFER_SIZE =
+      SAI_BUFFER_POOL_ATTR_CUSTOM_RANGE_START,
+} sai_buffer_pool_extensions_attr_t;
 
 typedef enum _sai_next_hop_group_extensions_attr_t {
   SAI_NEXT_HOP_GROUP_ATTR_ARS_NEXT_HOP_GROUP_META_DATA =
@@ -157,7 +176,17 @@ typedef enum _sai_ars_profile_extensions_attr_t {
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_ALTERNATE_MEMBERS_META_DATA,
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_META_DATA_MASK,
   SAI_ARS_PROFILE_ATTR_ROUTE_ARS_PRIMARY_MEMBERS_META_DATA,
+  SAI_ARS_PROFILE_ATTR_EXTENSION_ECMP_MEMBER_COUNT,
 } sai_ars_profile_extensions_attr_t;
+
+typedef enum _sai_ars_extensions_attr_t {
+  SAI_ARS_ATTR_EXTENSION_NEXT_HOP_GROUP_TYPE = SAI_ARS_ATTR_CUSTOM_RANGE_START,
+} sai_ars_extensions_attr_t;
+
+typedef enum _sai_ars_next_hop_group_type_t {
+  SAI_ARS_NEXT_HOP_GROUP_TYPE_REGULAR,
+  SAI_ARS_NEXT_HOP_GROUP_TYPE_VIRTUAL
+} sai_ars_next_hop_group_type_t;
 
 typedef enum _sai_acl_entry_extensions_attr_t {
   SAI_ACL_ENTRY_ATTR_ACTION_L3_SWITCH_CANCEL =

@@ -1,6 +1,7 @@
 // Copyright (c) 2004-present, Meta Platforms, Inc. and affiliates.
 // All Rights Reserved.
 
+#include <chrono>
 #include <cstdlib>
 #include <stdexcept>
 
@@ -9,14 +10,16 @@
 #include <systemd/sd-daemon.h>
 
 #include "fboss/platform/helpers/Init.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
-#include "fboss/platform/platform_manager/ScubaLogger.h"
 
 using namespace facebook;
 using namespace facebook::fboss::platform;
 using namespace facebook::fboss::platform::platform_manager;
+using namespace std::chrono_literals;
 
 DEFINE_int32(thrift_port, 5975, "Port for the thrift service");
 
@@ -47,16 +50,54 @@ void sdNotifyReady() {
 }
 
 int main(int argc, char** argv) {
+  auto startTime = std::chrono::steady_clock::now();
   fb303::registerFollyLoggingOptionHandlers();
   helpers::init(&argc, &argv);
 
+  std::optional<DataStore> dataStore;
   try {
-    auto config = ConfigUtils().getConfig();
+    ConfigUtils configUtils;
+    bool configChanged = configUtils.hasConfigChanged();
+    PlatformConfig config = configUtils.getConfig();
 
+    dataStore.emplace(config);
+
+    if (configChanged) {
+      XLOG(INFO) << "Config changed since last run, reloading kmods";
+    }
+    bool reloadKmods = FLAGS_reload_kmods || configChanged;
     PkgManager pkgManager(config);
-    pkgManager.processAll();
-    PlatformExplorer platformExplorer(config);
+    pkgManager.processAll(FLAGS_enable_pkg_mgmnt, reloadKmods);
+    PlatformExplorer platformExplorer(config, dataStore.value());
     platformExplorer.explore();
+
+    // Store config hash after successful exploration
+    configUtils.storeConfigHash();
+
+    auto duration = std::chrono::steady_clock::now() - startTime;
+    auto elapsedSeconds = duration_cast<std::chrono::seconds>(duration).count();
+
+    // Publish exploration time counters
+    if (pkgManager.wereKmodsUnloaded()) {
+      fb303::fbData->setCounter(
+          "package_manager.exploration_time.with_kmod_unload", elapsedSeconds);
+    } else {
+      fb303::fbData->setCounter(
+          "package_manager.exploration_time.without_kmod_unload",
+          elapsedSeconds);
+    }
+    XLOG(INFO) << fmt::format(
+        "Exploration complete in {} seconds. Kmods were {}reloaded.",
+        elapsedSeconds,
+        pkgManager.wereKmodsUnloaded() ? "" : "NOT ");
+
+    if (duration > PlatformExplorer::kMaxSetupTime) {
+      XLOG(ERR) << fmt::format(
+          "Setup time {}s exceeded maximum allowed {}s",
+          elapsedSeconds,
+          PlatformExplorer::kMaxSetupTime.count());
+    }
+
     if (FLAGS_run_once) {
       XLOG(INFO) << fmt::format(
           "Ran with --run_once={}. Skipping running as a daemon...",
@@ -77,7 +118,6 @@ int main(int argc, char** argv) {
             notifySocketEnv);
       }
     }
-
     std::optional<DataStore> ds = platformExplorer.getDataStore();
     if (!ds.has_value()) {
       XLOG(ERR)
@@ -89,12 +129,6 @@ int main(int argc, char** argv) {
     auto server = std::make_shared<apache::thrift::ThriftServer>();
     auto handler = std::make_shared<PlatformManagerHandler>(
         platformExplorer, ds.value(), config);
-    server->setPort(FLAGS_thrift_port);
-    server->setInterface(handler);
-    server->setAllowPlaintextOnLoopback(true);
-
-    auto evb = server->getEventBaseManager()->getEventBase();
-    helpers::SignalHandler signalHandler(evb, server);
 
     helpers::runThriftService(
         server, handler, "PlatformManagerService", FLAGS_thrift_port);
@@ -102,13 +136,12 @@ int main(int argc, char** argv) {
     XLOG(INFO) << "================ STOPPED PLATFORM BINARY ================";
     return 0;
   } catch (const std::exception& ex) {
-    // Log unexpected crash to Scuba
-    std::unordered_map<std::string, std::string> normals;
-
-    normals["event"] = "unexpected_crash";
-    normals["error_message"] = ex.what();
-
-    ScubaLogger::log(normals);
+    helpers::StructuredLogger structuredLogger("platform_manager");
+    if (dataStore.has_value()) {
+      structuredLogger.addFwTags(dataStore->getFirmwareVersions());
+      structuredLogger.setTags(dataStore->getHardwareVersions());
+    }
+    structuredLogger.logAlert("unexpected_crash", ex.what());
     XLOG(FATAL) << "Platform Manager crashed with unexpected exception: "
                 << ex.what();
     return 1;

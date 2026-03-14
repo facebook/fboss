@@ -46,6 +46,7 @@ class PkgManager {
       "package_manager.unload_kmods_failure";
   constexpr static auto kProcessRpmFailure =
       "package_manager.process_rpm_failure";
+  constexpr static auto kProcessAllTime = "package_manager.process_all_time";
 
   explicit PkgManager(
       const PlatformConfig& config,
@@ -54,7 +55,7 @@ class PkgManager {
       const std::shared_ptr<PlatformFsUtils>& platformFsUtils =
           std::make_shared<PlatformFsUtils>());
   virtual ~PkgManager() = default;
-  virtual void processAll() const;
+  virtual void processAll(bool enablePkgMgmnt, bool reloadKmods) const;
   virtual bool isValidRpm() const;
   virtual void processRpms() const;
   void processLocalRpms() const;
@@ -62,6 +63,7 @@ class PkgManager {
   virtual void loadRequiredKmods() const;
   void removeInstalledRpms() const;
   BspKmodsFile readKmodsFile() const;
+  bool wereKmodsUnloaded() const;
 
  private:
   std::string getKmodsRpmName() const;
@@ -71,6 +73,7 @@ class PkgManager {
   const PlatformConfig& platformConfig_;
   const std::shared_ptr<package_manager::SystemInterface> systemInterface_;
   const std::shared_ptr<PlatformFsUtils> platformFsUtils_;
+  mutable bool kmodsUnloaded_{false};
 };
 
 } // namespace facebook::fboss::platform::platform_manager

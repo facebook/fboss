@@ -110,8 +110,6 @@ DEFINE_bool(
     false, // false => Prevents such mutations in prod
     "Allow mutations of running switch state by external thrift calls");
 
-DECLARE_bool(intf_nbr_tables);
-
 DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss {
@@ -871,11 +869,44 @@ void ThriftHandler::updateUnicastRoutesImpl(
   auto updater = sw_->getRouteUpdater();
   auto routerID = RouterID(vrf);
   auto clientID = ClientID(client);
-  for (const auto& route : *routes) {
+  // Pre-compute the first SRV6_ENCAP tunnel name from config for defaulting
+  // tunnelId on next hops with non-empty srv6SegmentList
+  std::optional<std::string> defaultSrv6TunnelId;
+  auto config = sw_->getConfig();
+  if (config.srv6Tunnels().has_value()) {
+    for (const auto& tunnel : config.srv6Tunnels().value()) {
+      if (*tunnel.tunnelType() == TunnelType::SRV6_ENCAP) {
+        defaultSrv6TunnelId = *tunnel.srv6TunnelId();
+        break;
+      }
+    }
+  }
+  for (auto& route : *routes) {
     if (route.overrideEcmpSwitchingMode().has_value() ||
         route.overrideNextHops().has_value()) {
       throw FbossError(
           "Override nhops or switching mode cannot be set by clients");
+    }
+    for (auto& nhop : *route.nextHops()) {
+      if (nhop.mplsAction().has_value() && !nhop.srv6SegmentList()->empty()) {
+        throw FbossError(
+            "Next hop cannot have both mplsAction (label stack) and srv6SegmentList");
+      }
+      if (!nhop.srv6SegmentList()->empty()) {
+        if (!nhop.tunnelType().has_value()) {
+          nhop.tunnelType() = TunnelType::SRV6_ENCAP;
+        } else if (*nhop.tunnelType() != TunnelType::SRV6_ENCAP) {
+          throw FbossError(
+              "Next hop with srv6SegmentList must have tunnelType SRV6_ENCAP");
+        }
+        if (!nhop.tunnelId().has_value()) {
+          if (!defaultSrv6TunnelId.has_value()) {
+            throw FbossError(
+                "Next hop with srv6SegmentList requires a tunnelId, but no SRV6_ENCAP tunnel found in config");
+          }
+          nhop.tunnelId() = defaultSrv6TunnelId.value();
+        }
+      }
     }
     updater.addRoute(routerID, clientID, route);
   }
@@ -902,18 +933,16 @@ static void populateInterfaceDetail(
     const std::shared_ptr<SwitchState> state) {
   *interfaceDetail.interfaceName() = intf->getName();
   *interfaceDetail.interfaceId() = intf->getID();
-  if (intf->getVlanIDIf().has_value()) {
-    *interfaceDetail.vlanId() = intf->getVlanID();
-  }
   switch (intf->getType()) {
     case cfg::InterfaceType::PORT: {
       auto port = state->getPorts()->getNode(intf->getPortID());
       interfaceDetail.portNames()->emplace_back(port->getName());
     } break;
     case cfg::InterfaceType::VLAN: {
+      *interfaceDetail.vlanId() = intf->getVlanID();
       auto vlan = state->getVlans()->getNodeIf(intf->getVlanID());
       if (!intf->isVirtual() && vlan != nullptr) {
-        auto members = vlan->getPorts();
+        auto members = vlan->getPortsInfo();
         for (auto member : members) {
           auto port = state->getPorts()->getNode(PortID(member.first));
           interfaceDetail.portNames()->emplace_back(port->getName());
@@ -1096,11 +1125,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
 
   // Look up neighbor table entries
   std::list<facebook::fboss::NdpEntryThrift> entries;
-  if (FLAGS_intf_nbr_tables) {
-    entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-  } else {
-    entries = sw_->getNeighborUpdater()->getNdpCacheData().get();
-  }
+  entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
 
   ndpTable.reserve(entries.size());
   ndpTable.insert(
@@ -1117,11 +1142,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 
   // Look up neighbor table entries
   std::list<facebook::fboss::ArpEntryThrift> entries;
-  if (FLAGS_intf_nbr_tables) {
-    entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
-  } else {
-    entries = sw_->getNeighborUpdater()->getArpCacheData().get();
-  }
+  entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
 
   arpTable.reserve(entries.size());
   arpTable.insert(
@@ -1849,6 +1870,8 @@ void ThriftHandler::programInternalPhyPorts(
         auto newPort = oldPort->modify(&newState);
         newPort->setProfileConfig(*newProfileConfigRef);
         newPort->resetPinConfigs(newPinConfigs);
+        newPort->setSerdesCustomCollection(
+            sw_->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
       }
 
       return newState;
@@ -1872,36 +1895,39 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
   auto state = sw_->getState();
-  forAllRoutes(state, [&routes](const RouterID& /*rid*/, const auto& route) {
-    UnicastRoute tempRoute;
-    if (!route->isResolved()) {
-      XLOG(DBG2) << "Skipping unresolved route: " << route->toFollyDynamic();
-      return;
-    }
-    const auto& fwdInfo = route->getForwardInfo();
-    tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
-    tempRoute.dest()->prefixLength() = route->prefix().mask();
-    tempRoute.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
-    // If there are no overrides, nonOverrideNormalizedNextHops ==
-    // normalizedNextHops
-    tempRoute.nextHops() =
-        util::fromRouteNextHopSet(fwdInfo.nonOverrideNormalizedNextHops());
-    if (fwdInfo.getCounterID().has_value()) {
-      tempRoute.counterID() = *fwdInfo.getCounterID();
-    }
-    if (fwdInfo.getClassID().has_value()) {
-      tempRoute.classID() = *fwdInfo.getClassID();
-    }
-    if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
-      tempRoute.overrideEcmpSwitchingMode() =
-          *fwdInfo.getOverrideEcmpSwitchingMode();
-    }
-    if (fwdInfo.getOverrideNextHops().has_value()) {
-      tempRoute.overrideNextHops() =
-          util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
-    }
-    routes.emplace_back(std::move(tempRoute));
-  });
+  forAllRoutes(
+      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+        UnicastRoute tempRoute;
+        if (!route->isResolved()) {
+          XLOG(DBG2) << "Skipping unresolved route: "
+                     << route->toFollyDynamic();
+          return;
+        }
+        const auto& fwdInfo = route->getForwardInfo();
+        tempRoute.dest()->ip() = toBinaryAddress(route->prefix().network());
+        tempRoute.dest()->prefixLength() = route->prefix().mask();
+        tempRoute.nextHopAddrs() =
+            util::fromFwdNextHops(getNextHops(state, fwdInfo));
+        // If there are no overrides, nonOverrideNormalizedNextHops ==
+        // normalizedNextHops
+        tempRoute.nextHops() = util::fromRouteNextHopSet(
+            getNonOverrideNormalizedNextHops(state, fwdInfo));
+        if (fwdInfo.getCounterID().has_value()) {
+          tempRoute.counterID() = *fwdInfo.getCounterID();
+        }
+        if (fwdInfo.getClassID().has_value()) {
+          tempRoute.classID() = *fwdInfo.getClassID();
+        }
+        if (fwdInfo.getOverrideEcmpSwitchingMode().has_value()) {
+          tempRoute.overrideEcmpSwitchingMode() =
+              *fwdInfo.getOverrideEcmpSwitchingMode();
+        }
+        if (fwdInfo.getOverrideNextHops().has_value()) {
+          tempRoute.overrideNextHops() =
+              util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+        }
+        routes.emplace_back(std::move(tempRoute));
+      });
 }
 
 void ThriftHandler::getRouteTableByClient(
@@ -1947,6 +1973,15 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
       });
 }
 
+void ThriftHandler::getRouteTableSize(RouteCount& routeCount) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto state = sw_->getState();
+  auto [v4Count, v6Count] = state->getFibsInfoMap()->getRouteCount();
+  *routeCount.v4Count() = v4Count;
+  *routeCount.v6Count() = v6Count;
+}
+
 void ThriftHandler::getIpRoute(
     UnicastRoute& route,
     std::unique_ptr<Address> addr,
@@ -1966,7 +2001,7 @@ void ThriftHandler::getIpRoute(
     const auto& fwdInfo = match->getForwardInfo();
     *route.dest()->ip() = toBinaryAddress(match->prefix().network());
     *route.dest()->prefixLength() = match->prefix().mask();
-    *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    *route.nextHopAddrs() = util::fromFwdNextHops(getNextHops(state, fwdInfo));
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
       route.counterID() = *counterID;
@@ -1989,7 +2024,7 @@ void ThriftHandler::getIpRoute(
     const auto& fwdInfo = match->getForwardInfo();
     *route.dest()->ip() = toBinaryAddress(match->prefix().network());
     *route.dest()->prefixLength() = match->prefix().mask();
-    *route.nextHopAddrs() = util::fromFwdNextHops(fwdInfo.getNextHopSet());
+    *route.nextHopAddrs() = util::fromFwdNextHops(getNextHops(state, fwdInfo));
     auto counterID = fwdInfo.getCounterID();
     if (counterID.has_value()) {
       route.counterID() = *counterID;
@@ -2305,17 +2340,12 @@ int32_t ThriftHandler::flushNeighborEntry(
 
   try {
     int32_t result;
-    if (FLAGS_intf_nbr_tables) {
-      // VOQ switches don't support VLANs. The thrift client will pass
-      // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
-      // identical to interfaceID.
-      InterfaceID intfID = InterfaceID(vlan);
-      result =
-          sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
-    } else {
-      VlanID vlanID(vlan);
-      result = sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
-    }
+    // VOQ switches don't support VLANs. The thrift client will pass
+    // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
+    // identical to interfaceID.
+    InterfaceID intfID = InterfaceID(vlan);
+    result =
+        sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
 
     // Check if NDP static neighbor is enabled
     if (FLAGS_ndp_static_neighbor) {
@@ -2551,7 +2581,7 @@ void ThriftHandler::addMplsRoutes(
     auto newState = state->clone();
 
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState), sw_->stats())) {
       throw FbossError("Invalid MPLS routes");
     }
     return newState;
@@ -2576,6 +2606,11 @@ void ThriftHandler::addMplsRoutesImpl(
     auto topLabel = *mplsRoute.topLabel();
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
+    }
+    for (const auto& nhop : *mplsRoute.nextHops()) {
+      if (!nhop.srv6SegmentList()->empty()) {
+        throw FbossError("MPLS route next hop cannot have srv6SegmentList");
+      }
     }
     auto adminDistance = mplsRoute.adminDistance().has_value()
         ? mplsRoute.adminDistance().value()
@@ -2663,6 +2698,11 @@ void ThriftHandler::addMplsRibRoutes(
     if (topLabel > mpls_constants::MAX_MPLS_LABEL_) {
       throw FbossError("invalid value for label ", topLabel);
     }
+    for (const auto& nhop : *route.nextHops()) {
+      if (!nhop.srv6SegmentList()->empty()) {
+        throw FbossError("MPLS route next hop cannot have srv6SegmentList");
+      }
+    }
     updater.addRoute(clientID, route);
   }
   RouteUpdateWrapper::SyncFibFor syncFibs;
@@ -2741,7 +2781,7 @@ void ThriftHandler::syncMplsFib(
     auto newState = purgeEntriesForClient(
         *(sw_->getScopeResolver()), state, ClientID(clientId));
     addMplsRoutesImpl(&newState, ClientID(clientId), routes);
-    if (!sw_->isValidStateUpdate(StateDelta(state, newState))) {
+    if (!sw_->isValidStateUpdate(StateDelta(state, newState), sw_->stats())) {
       throw FbossError("Invalid MPLS routes");
     }
     return newState;
@@ -2835,7 +2875,7 @@ void ThriftHandler::listHwObjects(
     out = sw_->getMonolithicHwSwitchHandler()->listObjects(*hwObjects, cached);
   } else {
     throw FbossError(
-        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent insted");
+        "listHwObjects() is not supported for fboss_sw_agent. Clients should query hw agent instead");
   }
 }
 

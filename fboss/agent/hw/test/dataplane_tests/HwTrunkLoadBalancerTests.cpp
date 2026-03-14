@@ -402,36 +402,6 @@ class HwTrunkLoadBalancerTest : public HwLinkStateDependentTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  void runMpls2MplsLoadBalanceTest(
-      bool isV6,
-      const std::vector<cfg::LoadBalancer>& loadBalancers,
-      LabelForwardingAction::LabelForwardingType type,
-      AggPortInfo aggInfo,
-      bool loopThroughFrontPanel) {
-    uint32_t labelV4 =
-        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV4TopSwap
-                                                                  : kV4TopPhp);
-    uint32_t labelV6 =
-        (type == LabelForwardingAction::LabelForwardingType::SWAP ? kV6TopSwap
-                                                                  : kV6TopPhp);
-    auto setup = [=, this]() {
-      auto config = configureAggregatePorts(aggInfo);
-      applyNewConfig(config);
-      setupMPLSECMP(aggInfo);
-      applyNewState(
-          utility::addLoadBalancers(
-              getHwSwitchEnsemble(),
-              getProgrammedState(),
-              loadBalancers,
-              scopeResolver()));
-    };
-    auto verify = [=, this]() {
-      pumpMPLSTrafficAndVerifyLoadBalanced(
-          isV6, labelV4, labelV6, loopThroughFrontPanel, aggInfo, 25);
-    };
-    verifyAcrossWarmBoots(setup, verify);
-  }
-
   void runLoadBalanceTest(
       TrafficType traffic,
       const std::vector<cfg::LoadBalancer>& loadBalancers,

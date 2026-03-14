@@ -47,6 +47,10 @@ std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRVgaWrapper::operator()() {
   return std::nullopt;
 }
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxReachWrapper::operator()() {
+  return std::nullopt;
+}
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeDcoWrapper::operator()() {
@@ -65,6 +69,16 @@ SaiPortSerdesTraits::Attributes::AttributeFltSWrapper::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortSerdesTraits::Attributes::AttributeRxPfWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfLfqWrapper::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortSerdesTraits::Attributes::AttributeRxPfHfqWrapper::operator()() {
   return std::nullopt;
 }
 
@@ -396,6 +410,16 @@ SaiPortTraits::Attributes::AttributeIsHyperPortMember::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
+    AttributeCablePropagationDelayMediaType::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
   return std::nullopt;
 }
 

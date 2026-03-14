@@ -24,7 +24,9 @@
 #include "fboss/agent/hw/switch_asics/Tomahawk3Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk4Asic.h"
 #include "fboss/agent/hw/switch_asics/Tomahawk5Asic.h"
+#include "fboss/agent/hw/switch_asics/Tomahawk6Asic.h"
 #include "fboss/agent/hw/switch_asics/TomahawkAsic.h"
+#include "fboss/agent/hw/switch_asics/TomahawkUltra1Asic.h"
 #include "fboss/agent/hw/switch_asics/Trident2Asic.h"
 #include "fboss/agent/platforms/sai/SaiBcmPlatform.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -95,9 +97,12 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_G202X:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       XLOG(FATAL) << " Not supported";
       break;
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
       break;
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
@@ -106,6 +111,8 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
       break;
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
       CHECK_EQ(maxEgressPoolSize, availableBuffer);
       break;
@@ -113,6 +120,7 @@ void assertMaxBufferPoolSize(const SaiPlatform* platform) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
       // TODO(maxgg): The maxEgressPoolSize == availableBuffer check fails when
       // a LOSSY_AND_LOSSLESS/mmu_lossless=0x2 config is used. Disabling it
       // while we investigate a related CSP CS00012382848.
@@ -143,11 +151,14 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
   auto asic = platform->getAsic();
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_G202X:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       /* TODO(pshaikh): Chenab, define pool size */
       return asic->getMMUSizeBytes();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK: {
@@ -185,10 +196,18 @@ uint64_t SaiBufferManager::getMaxEgressPoolBytes(const SaiPlatform* platform) {
       auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
       auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
       return kCellsAvailable *
-          static_cast<const Tomahawk5Asic*>(asic)->getMMUCellSize();
+          static_cast<const Tomahawk6Asic*>(asic)->getMMUCellSize();
+    }
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1: {
+      auto saiBcmPlatform = static_cast<const SaiBcmPlatform*>(platform);
+      auto kCellsAvailable = saiBcmPlatform->numCellsAvailable();
+      return kCellsAvailable *
+          static_cast<const TomahawkUltra1Asic*>(asic)->getMMUCellSize();
     }
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
       /*
        * XXX: TODO: Need to check if there is a way to compute the
        * buffers available for use in Jericho2 without using the
@@ -223,17 +242,29 @@ void SaiBufferManager::setupEgressBufferPool(
   assertMaxBufferPoolSize(platform_);
   uint64_t poolSize;
   std::optional<SaiBufferPoolTraits::Attributes::XoffSize> xoffSize;
+  std::optional<SaiBufferPoolTraits::Attributes::ReservedBytes> reservedBytes;
   if (bufferPoolCfg.has_value() && *bufferPoolCfg->sharedBytes()) {
-    // TODO: Account for reserved once available
     poolSize = *bufferPoolCfg->sharedBytes();
+#if defined(TAJO_SDK_GTE_25_5)
+    // For SDK 25.5 and above, set pool-level reserve so SDK computes
+    // shared_size as (poolSize - reservedBytes) constantly, avoiding O(n^2)
+    // threshold recalculation on each port queue attach/detach. poolSize =
+    // sharedBytes + reservedBytes.
+    if (auto cfgReservedBytes = bufferPoolCfg->reservedBytes()) {
+      poolSize += *cfgReservedBytes;
+      reservedBytes = *cfgReservedBytes;
+      XLOG(DBG2) << "setupEgressBufferPool: poolSize=" << poolSize
+                 << " reservedBytes=" << *cfgReservedBytes;
+    }
+#endif
   } else {
     poolSize = getMaxEgressPoolBytes(platform_);
   }
   if (FLAGS_egress_buffer_pool_size > 0) {
     uint64_t newSize = FLAGS_egress_buffer_pool_size *
         platform_->getAsic()->getNumMemoryBuffers();
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       newSize =
           roundup(newSize, platform_->getAsic()->getPacketBufferUnitSize());
     }
@@ -246,7 +277,8 @@ void SaiBufferManager::setupEgressBufferPool(
       SAI_BUFFER_POOL_TYPE_EGRESS,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC,
-      xoffSize};
+      xoffSize,
+      reservedBytes};
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -310,11 +342,16 @@ void SaiBufferManager::setupIngressBufferPool(
         platform_->getAsic()->getNumMemoryBuffers();
   }
   SaiBufferPoolTraits::Attributes::ThresholdMode thresholdMode =
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB
+      platform_->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB
       ? SAI_BUFFER_POOL_THRESHOLD_MODE_DYNAMIC
       : SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC;
   SaiBufferPoolTraits::CreateAttributes attributes{
-      SAI_BUFFER_POOL_TYPE_INGRESS, poolSize, thresholdMode, xoffSize};
+      SAI_BUFFER_POOL_TYPE_INGRESS,
+      poolSize,
+      thresholdMode,
+      xoffSize,
+      std::nullopt};
   SaiBufferPoolTraits::AdapterHostKey k = tupleProjection<
       SaiBufferPoolTraits::CreateAttributes,
       SaiBufferPoolTraits::AdapterHostKey>(attributes);
@@ -335,7 +372,8 @@ void SaiBufferManager::createOrUpdateIngressEgressBufferPool(
       SAI_BUFFER_POOL_TYPE_BOTH,
       poolSize,
       SAI_BUFFER_POOL_THRESHOLD_MODE_STATIC,
-      xoffSize};
+      xoffSize,
+      std::nullopt};
 
   auto& store = saiStore_->get<SaiBufferPoolTraits>();
   if (!ingressEgressBufferPoolHandle_) {
@@ -355,8 +393,8 @@ void SaiBufferManager::setupIngressEgressBufferPool(
     // An option for test to override the buffer pool size to be used.
     poolSize = FLAGS_ingress_egress_buffer_pool_size *
         platform_->getAsic()->getNumCores();
-    if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       poolSize =
           roundup(poolSize, platform_->getAsic()->getPacketBufferUnitSize());
     }
@@ -1043,5 +1081,78 @@ void SaiBufferManager::publishPgWatermarks(
       pgHeadroomBytes, portName, folly::to<std::string>("pg", pg));
   STATS_buffer_watermark_pg_shared.addValue(
       pgSharedBytes, portName, folly::to<std::string>("pg", pg));
+}
+
+std::shared_ptr<SaiBufferProfileHandle>
+SaiBufferManager::getOrCreatePortProfile(
+    SaiDynamicBufferProfileTraits::Attributes::PoolId pool,
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  // Create a PortQueue with the params of interest
+  PortQueue portProfileParams;
+  portProfileParams.setReservedBytes(reservedSizeBytes);
+  portProfileParams.setScalingFactor(scalingFactor);
+
+  // The buffer profile to apply on port is a base profile with just
+  // the scaling factor, reserved size and pool ID specified. Using
+  // the existing profile creation flow for egress queues to create
+  // this profile.
+  auto attributes = profileCreateAttrs<SaiDynamicBufferProfileTraits>(
+      pool, portProfileParams, cfg::PortType::INTERFACE_PORT);
+  SaiDynamicBufferProfileTraits::AdapterHostKey k = tupleProjection<
+      SaiDynamicBufferProfileTraits::CreateAttributes,
+      SaiDynamicBufferProfileTraits::AdapterHostKey>(attributes);
+
+  auto& store = saiStore_->get<SaiDynamicBufferProfileTraits>();
+  return std::make_shared<SaiBufferProfileHandle>(
+      store.setObject(k, attributes));
+}
+
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getIngressPortBufferProfiles(
+    cfg::MMUScalingFactor scalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    auto ingressBufferPoolHandle = getIngressBufferPoolHandle();
+    if (ingressBufferPoolHandle) {
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          ingressBufferPoolHandle->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
+}
+std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+SaiBufferManager::getEgressPortBufferProfiles(
+    cfg::MMUScalingFactor losslessScalingFactor,
+    cfg::MMUScalingFactor lossyScalingFactor,
+    int reservedSizeBytes) {
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> profileHandles;
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    for (const auto& egressPoolHdl : egressBufferPoolHandle_) {
+      // TODO(nivinl): Look for a better way to identify lossy and lossless
+      // egress pools
+      cfg::MMUScalingFactor scalingFactor;
+      if (egressPoolHdl.first == "egress_lossless_pool") {
+        scalingFactor = losslessScalingFactor;
+      } else if (
+          egressPoolHdl.first == "egress_lossy_pool" ||
+          egressPoolHdl.first == "default") {
+        scalingFactor = lossyScalingFactor;
+      } else {
+        throw FbossError(
+            "Pool name handling is not in place for ", egressPoolHdl.first);
+      }
+      SaiDynamicBufferProfileTraits::Attributes::PoolId pool{
+          egressPoolHdl.second->bufferPool->adapterKey()};
+      profileHandles.emplace_back(
+          getOrCreatePortProfile(pool, scalingFactor, reservedSizeBytes));
+    }
+  }
+  return profileHandles;
 }
 } // namespace facebook::fboss

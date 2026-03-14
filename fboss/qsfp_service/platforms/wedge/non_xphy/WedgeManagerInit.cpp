@@ -9,35 +9,33 @@
  */
 #include "fboss/qsfp_service/platforms/wedge/WedgeManagerInit.h"
 
+#include "fboss/qsfp_service/PortManager.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook::fboss {
 std::unique_ptr<WedgeManager> createFBWedgeManager(
     std::unique_ptr<PlatformProductInfo> /*productInfo*/,
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<
-        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */
+    std::shared_ptr<QsfpServiceThreads> /* qsfpServiceThreads */
 ) {
   return nullptr;
 }
 std::unique_ptr<WedgeManager> createYampWedgeManager(
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<
-        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
+    std::shared_ptr<QsfpServiceThreads> /* qsfpServiceThreads */) {
   return nullptr;
 }
 
 std::unique_ptr<WedgeManager> createDarwinWedgeManager(
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<
-        std::unordered_map<TransceiverID, SlotThreadHelper>> /* threads */) {
+    std::shared_ptr<QsfpServiceThreads> /* qsfpServiceThreads */) {
   return nullptr;
 }
 
 std::unique_ptr<WedgeManager> createElbertWedgeManager(
     const std::shared_ptr<const PlatformMapping> /* platformMapping */,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-    /* threads */) {
+    std::shared_ptr<QsfpServiceThreads>
+    /* qsfpServiceThreads */) {
   // non_xphy build should not be used for Elbert
   return nullptr;
 }
@@ -48,6 +46,7 @@ bool isElbert8DD() {
 }
 
 std::shared_ptr<FbossMacsecHandler> createFbossMacsecHandler(
+    PortManager* /* portMgr */,
     WedgeManager* wedgeMgr) {
   // No need macsec for non_xphy platforms
   return nullptr;
@@ -59,6 +58,20 @@ std::unique_ptr<PhyManager> createPhyManager(
     const WedgeManager* /* wedgeManager */) {
   // No need PhyManager for non_xphy platforms
   return nullptr;
+}
+
+std::unique_ptr<PortManager> createPortManager(
+    PlatformType platformType,
+    WedgeManager* wedgeManager,
+    std::unique_ptr<PhyManager> /* phyManager */,
+    const std::shared_ptr<const PlatformMapping> platformMapping,
+    std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads) {
+  return std::make_unique<PortManager>(
+      wedgeManager,
+      nullptr,
+      platformMapping,
+      qsfpServiceThreads,
+      wedgeManager->getFsdbSyncManager());
 }
 
 } // namespace facebook::fboss

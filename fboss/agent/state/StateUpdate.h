@@ -10,9 +10,11 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include <folly/FBString.h>
 #include <folly/IntrusiveList.h>
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 
 namespace facebook::fboss {
 
@@ -39,9 +41,15 @@ class StateUpdate {
   };
   static constexpr int kDefaultBehaviorFlags =
       static_cast<int>(BehaviorFlags::NONE);
-  explicit StateUpdate(folly::StringPiece name, int behaviorFlags)
-      : name_(name.str()), behaviorFlags_(behaviorFlags) {}
-  virtual ~StateUpdate() {}
+  StateUpdate(
+      folly::StringPiece name,
+      int behaviorFlags,
+      std::optional<StateDeltaApplication> deltaApplicationBehavior =
+          std::nullopt)
+      : name_(name.str()),
+        behaviorFlags_(behaviorFlags),
+        deltaApplicationBehavior_(std::move(deltaApplicationBehavior)) {}
+  virtual ~StateUpdate() = default;
 
   const std::string& getName() const {
     return name_;
@@ -56,6 +64,11 @@ class StateUpdate {
   bool hwFailureProtected() const {
     return behaviorFlags_ &
         static_cast<int>(BehaviorFlags::HW_FAILURE_PROTECTION);
+  }
+
+  const std::optional<StateDeltaApplication>& getDeltaApplicationBehavior()
+      const {
+    return deltaApplicationBehavior_;
   }
 
   /*
@@ -95,9 +108,12 @@ class StateUpdate {
   // Forbidden copy constructor and assignment operator
   StateUpdate(StateUpdate const&) = delete;
   StateUpdate& operator=(StateUpdate const&) = delete;
+  StateUpdate(StateUpdate&&) = delete;
+  StateUpdate& operator=(StateUpdate&&) = delete;
 
   std::string name_;
   int behaviorFlags_{static_cast<int>(BehaviorFlags::NONE)};
+  std::optional<StateDeltaApplication> deltaApplicationBehavior_;
 
   // An intrusive list hook for maintaining the list of pending updates.
   folly::IntrusiveListHook listHook_;

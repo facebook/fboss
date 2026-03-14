@@ -7,8 +7,9 @@
 #include <fboss/thrift_cow/visitors/PatchHelpers.h>
 #include <fboss/thrift_cow/visitors/gen-cpp2/results_types.h>
 
+#include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include <optional>
 
 #pragma once
@@ -418,25 +419,27 @@ struct PatchApplier<apache::thrift::type_class::variant> {
     requires(is_cow_type_v<Node>)
   {
     using Fields = typename Node::Fields;
-    using Members = typename Fields::MemberTypes;
+    using TType = typename Fields::ThriftType;
     auto key = *childPatch.id();
     PatchApplyResult result = PatchApplyResult::INVALID_VARIANT_MEMBER;
-    fatal::scalar_search<Members, fatal::get_type::id>(key, [&](auto tag) {
-      using descriptor = typename decltype(fatal::tag_type(tag))::member;
-      using name = typename descriptor::metadata::name;
-      using tc = typename descriptor::metadata::type_class;
+    apache::thrift::op::invoke_by_field_id<TType>(
+        apache::thrift::FieldId(key),
+        [&]<class Id>(Id) {
+          using Traits = typename Fields::template FieldTraits<Id>;
+          using TC_ = typename Traits::TC;
 
-      node.template modify<name>();
-      auto& child = node.template ref<name>();
+          node.template modify<Id>();
+          auto& child = node.template ref<Id>();
 
-      if (!child) {
-        // child is unset, cannot traverse through missing optional child
-        result = PatchApplyResult::NON_EXISTENT_NODE;
-        return;
-      }
-      result = PatchApplier<tc>::apply(
-          *child, std::move(*childPatch.child()), protocol);
-    });
+          if (!child) {
+            // child is unset, cannot traverse through missing optional child
+            result = PatchApplyResult::NON_EXISTENT_NODE;
+            return;
+          }
+          result = PatchApplier<TC_>::apply(
+              *child, std::move(*childPatch.child()), protocol);
+        },
+        [&]() { /* not found - result stays INVALID_VARIANT_MEMBER */ });
     return result;
   }
 
@@ -449,23 +452,23 @@ struct PatchApplier<apache::thrift::type_class::variant> {
   {
     PatchApplyResult result = PatchApplyResult::INVALID_VARIANT_MEMBER;
     auto key = *childPatch.id();
-    using descriptors = typename apache::thrift::reflect_variant<
-        folly::remove_cvref_t<Node>>::traits::descriptors;
-    fatal::foreach<descriptors>([&](auto tag) {
-      using descriptor = decltype(fatal::tag_type(tag));
+    using T = folly::remove_cvref_t<Node>;
+    apache::thrift::op::for_each_field_id<T>([&]<class Id>(Id) {
+      constexpr auto fid = apache::thrift::op::get_field_id_v<T, Id>;
+      using TC_ = typename TypeTagToTypeClass<
+          apache::thrift::op::get_type_tag<T, Id>>::type;
 
-      if (folly::to_underlying(descriptor::id::value) != key) {
+      if (folly::to_underlying(fid) != key) {
         return;
       }
 
       // switch union value to point at new path.
-      if (folly::to_underlying(node.getType()) !=
-          descriptor::metadata::id::value) {
-        descriptor::set(node);
+      if (folly::to_underlying(node.getType()) != folly::to_underlying(fid)) {
+        apache::thrift::op::get<Id>(node).ensure();
       }
 
-      result = PatchApplier<typename descriptor::metadata::type_class>::apply(
-          typename descriptor::getter()(node),
+      result = PatchApplier<TC_>::apply(
+          *apache::thrift::op::get<Id>(node),
           std::move(*childPatch.child()),
           protocol);
     });
@@ -541,32 +544,33 @@ struct PatchApplier<apache::thrift::type_class::structure> {
     requires(is_cow_type_v<Node>)
   {
     using Fields = typename Node::Fields;
+    using TType = typename Fields::ThriftType;
     PatchApplyResult result = PatchApplyResult::INVALID_STRUCT_MEMBER;
-    fatal::scalar_search<typename Fields::Members, fatal::get_type::id>(
-        childKey,
-        [&, childPatch = std::move(childPatch)](auto indexed) mutable {
-          using member = decltype(fatal::tag_type(indexed));
-          using name = typename member::name;
-          using tc = typename member::type_class;
+    apache::thrift::op::invoke_by_field_id<TType>(
+        apache::thrift::FieldId(childKey),
+        [&, childPatch = std::move(childPatch)]<class Id>(Id) mutable {
+          using Traits = typename Fields::template FieldTraits<Id>;
+          using TC_ = typename Traits::TC;
 
           if (childPatch.getType() == PatchNode::Type::del) {
-            node.template remove<name>();
+            node.template remove<Id>();
             result = PatchApplyResult::OK;
             return;
           }
 
-          auto& child = node.template modify<name>();
+          auto& child = node.template modify<Id>();
 
-          if constexpr (Fields::template HasSkipThriftCow<name>::value) {
+          if constexpr (Fields::template HasSkipThriftCow<Id>) {
             auto& underlying = child->ref();
-            result = PatchApplier<tc>::apply(
+            result = PatchApplier<TC_>::apply(
                 underlying, std::move(childPatch), protocol);
             return;
           } else {
-            result = PatchApplier<tc>::apply(
+            result = PatchApplier<TC_>::apply(
                 *child, std::move(childPatch), protocol);
           }
-        });
+        },
+        [&]() { /* not found - result stays INVALID_STRUCT_MEMBER */ });
     return result;
   }
 
@@ -580,36 +584,38 @@ struct PatchApplier<apache::thrift::type_class::structure> {
   {
     PatchApplyResult result = PatchApplyResult::INVALID_STRUCT_MEMBER;
 
+    using T = folly::remove_cvref_t<Node>;
     // Perform linear search over all members for key
-    fatal::foreach<typename apache::thrift::reflect_struct<
-        folly::remove_cvref_t<Node>>::members>([&](auto indexed) mutable {
-      using member = decltype(fatal::tag_type(indexed));
-      if (member::id::value != childKey) {
-        return;
-      }
+    apache::thrift::op::invoke_by_field_id<T>(
+        apache::thrift::FieldId(childKey),
+        [&]<class Id>(Id) mutable {
+          constexpr bool isOptional =
+              apache::thrift::type::is_optional_or_union_field_v<T, Id>;
+          using TC_ = typename TypeTagToTypeClass<
+              apache::thrift::op::get_type_tag<T, Id>>::type;
 
-      constexpr bool isOptional =
-          member::optional::value == apache::thrift::optionality::optional;
+          if (childPatch.getType() == PatchNode::Type::del) {
+            if constexpr (isOptional) {
+              apache::thrift::op::get<Id>(node).reset();
+              result = PatchApplyResult::OK;
+            } else {
+              result = PatchApplyResult::INVALID_PATCH_TYPE;
+            }
+            return;
+          }
 
-      if (childPatch.getType() == PatchNode::Type::del) {
-        if constexpr (isOptional) {
-          typename member::field_ref_getter{}(node).reset();
-          result = PatchApplyResult::OK;
-        } else {
-          result = PatchApplyResult::INVALID_PATCH_TYPE;
-        }
-        return;
-      }
+          // If optional and not set, create it first
+          if constexpr (isOptional) {
+            apache::thrift::op::get<Id>(node).ensure();
+          }
 
-      // If optional and not set, create it first
-      if constexpr (isOptional) {
-        typename member::field_ref_getter{}(node).ensure();
-      }
-
-      // Recurse further
-      result = PatchApplier<typename member::type_class>::apply(
-          typename member::getter{}(node), std::move(childPatch), protocol);
-    });
+          // Recurse further
+          result = PatchApplier<TC_>::apply(
+              *apache::thrift::op::get<Id>(node),
+              std::move(childPatch),
+              protocol);
+        },
+        [&]() { /* not found - result stays INVALID_STRUCT_MEMBER */ });
     return result;
   }
 };

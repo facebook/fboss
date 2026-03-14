@@ -6,6 +6,8 @@
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Sleep.h>
 #include <optional>
+#include <utility>
+#include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 
 DEFINE_bool(
     forceCloseSlowSubscriber,
@@ -43,7 +45,15 @@ BaseSubscription::BaseSubscription(
       publisherTreeRoot_(std::move(publisherRoot)),
       heartbeatEvb_(heartbeatEvb),
       heartbeatInterval_(heartbeatInterval),
-      streamInfo_(std::make_shared<SubscriptionStreamInfo>()) {
+      streamInfo_(std::make_shared<SubscriptionStreamInfo>()),
+      numSubscriptionServesCoalescedCounter_(
+          fb303::ThreadCachedServiceData::get()->getThreadStats(),
+          folly::to<std::string>(
+              fsdb_common_constants::kFsdbServiceHandlerNativeStatsPrefix(),
+              subId_.subscriberId(),
+              ".",
+              kNumSubscriptionServesCoalesced),
+          fb303::SUM) {
   if (heartbeatEvb_) {
     backgroundScope_.add(co_withExecutor(heartbeatEvb_, heartbeatLoop()));
   }

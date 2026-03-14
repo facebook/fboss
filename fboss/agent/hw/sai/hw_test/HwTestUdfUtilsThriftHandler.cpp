@@ -54,8 +54,8 @@ bool HwTestThriftHandler::validateUdfConfig(
 
       auto offsetInBytes = utility::kUdfHashDstQueuePairStartOffsetInBytes;
       auto fieldSizeInBytes = utility::kUdfHashDstQueuePairFieldSizeInBytes;
-      if (hwSwitch_->getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (hwSwitch_->getPlatform()->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         offsetInBytes = utility::kChenabUdfHashDstQueuePairStartOffsetInBytes;
         fieldSizeInBytes = utility::kChenabUdfHashDstQueuePairFieldSizeInBytes;
       }
@@ -206,7 +206,6 @@ bool HwTestThriftHandler::validateRemoveUdfGroup(
   } catch (const SaiApiError&) {
     return true;
   }
-  return true;
 }
 
 bool HwTestThriftHandler::validateRemoveUdfPacketMatcher(
@@ -231,7 +230,6 @@ bool HwTestThriftHandler::validateRemoveUdfPacketMatcher(
   } catch (const SaiApiError&) {
     return true;
   }
-  return false;
 }
 
 int32_t HwTestThriftHandler::getHwUdfGroupId(

@@ -7,9 +7,12 @@
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/util/ScopedServerInterfaceThread.h>
 
+#include "fboss/lib/ThriftServiceUtils.h"
 #include "fboss/platform/helpers/Init.h"
 #include "fboss/platform/platform_manager/ConfigUtils.h"
+#include "fboss/platform/platform_manager/ExplorationErrors.h"
 #include "fboss/platform/platform_manager/PkgManager.h"
+#include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 
 namespace facebook::fboss::platform::platform_manager {
@@ -62,8 +65,10 @@ namespace fs = std::filesystem;
 
 class PlatformExplorerWrapper : public PlatformExplorer {
  public:
-  explicit PlatformExplorerWrapper(const PlatformConfig& config)
-      : PlatformExplorer(config) {
+  explicit PlatformExplorerWrapper(
+      const PlatformConfig& config,
+      DataStore& dataStore)
+      : PlatformExplorer(config, dataStore) {
     // Store the initial PlatformManagerStatus defined in PlatformExplorer.
     updatedPmStatuses_.push_back(getPMStatus());
   }
@@ -77,6 +82,16 @@ class PlatformExplorerWrapper : public PlatformExplorer {
 };
 class PlatformManagerHwTest : public ::testing::Test {
  public:
+  void SetUp() override {
+    thriftHandler_ = std::make_shared<PlatformManagerHandler>(
+        platformExplorer_, ds.value(), platformConfig_);
+    server_ = std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+        thriftHandler_,
+        facebook::fboss::ThriftServiceUtils::createThriftServerConfig());
+    pmClient_ =
+        server_->newClient<apache::thrift::Client<PlatformManagerService>>();
+  }
+
   PlatformManagerStatus getPmStatus() {
     PlatformManagerStatus pmStatus;
     pmClient_->sync_getLastPMStatus(pmStatus);
@@ -86,11 +101,22 @@ class PlatformManagerHwTest : public ::testing::Test {
     return platformExplorer_.updatedPmStatuses_;
   }
   void explorationOk() {
-    auto now = std::chrono::duration_cast<std::chrono::seconds>(
-                   std::chrono::system_clock::now().time_since_epoch())
-                   .count();
-    pkgManager_.processAll();
+    auto startTime = std::chrono::system_clock::now();
+    pkgManager_.processAll(FLAGS_enable_pkg_mgmnt, FLAGS_reload_kmods);
     platformExplorer_.explore();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now() - startTime);
+    auto platformName = platformConfig_.platformName().value();
+    auto maxSetupTime = PlatformExplorer::kMaxSetupTime;
+    if (platformName == "MORGAN800CC") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMorgan800CC;
+    } else if (platformName == "MERU800BFA" || platformName == "MERU800BIA") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeMeru800;
+    }
+    EXPECT_LE(duration, maxSetupTime) << fmt::format(
+        "Exploration time {}s exceeded maximum allowed {}s",
+        duration.count(),
+        maxSetupTime.count());
     auto pmStatus = getPmStatus();
     EXPECT_TRUE(
         *pmStatus.explorationStatus() == ExplorationStatus::SUCCEEDED ||
@@ -100,21 +126,24 @@ class PlatformManagerHwTest : public ::testing::Test {
                "Ended with unexpected exploration status {}",
                apache::thrift::util::enumNameSafe(
                    *pmStatus.explorationStatus()));
-    EXPECT_GT(*pmStatus.lastExplorationTime(), now);
+    EXPECT_GE(
+        *pmStatus.lastExplorationTime(),
+        std::chrono::duration_cast<std::chrono::seconds>(
+            startTime.time_since_epoch())
+            .count());
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
-  PlatformExplorerWrapper platformExplorer_{platformConfig_};
+  DataStore dataStore_{platformConfig_};
+  PlatformExplorerWrapper platformExplorer_{platformConfig_, dataStore_};
   PkgManager pkgManager_{platformConfig_};
   std::optional<DataStore> ds =
       platformExplorer_.getDataStore().value_or(DataStore(platformConfig_));
-  std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_{
-      apache::thrift::makeTestClient<
-          apache::thrift::Client<PlatformManagerService>>(
-          std::make_unique<PlatformManagerHandler>(
-              platformExplorer_,
-              ds.value(),
-              platformConfig_))};
+
+  // Test Thrift Service related members
+  std::shared_ptr<PlatformManagerHandler> thriftHandler_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> server_;
+  std::unique_ptr<apache::thrift::Client<PlatformManagerService>> pmClient_;
 };
 
 TEST_F(PlatformManagerHwTest, ExploreAsDeployed) {
@@ -170,6 +199,12 @@ TEST_F(PlatformManagerHwTest, Symlinks) {
   explorationOk();
   for (const auto& [symlink, devicePath] :
        *platformConfig_.symbolicLinkToDevicePath()) {
+    if (isExpectedError(
+            platformConfig_,
+            ExplorationErrorType::RUN_DEVMAP_SYMLINK,
+            devicePath)) {
+      continue;
+    }
     EXPECT_TRUE(fs::exists(symlink))
         << fmt::format("{} doesn't exist", symlink);
     EXPECT_TRUE(fs::is_symlink(symlink))
@@ -228,24 +263,37 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
+
+  bool isDarwin = platformConfig_.platformName().value() == "DARWIN" ||
+      platformConfig_.platformName().value() == "DARWIN48V";
+
+  std::string firstColorName = isDarwin ? "green" : "blue";
+  std::string secondColorName = "amber";
   for (auto xcvrNum = 1; xcvrNum <= *platformConfig_.numXcvrs(); xcvrNum++) {
     auto numLeds = getNumLedsForXcvr(xcvrNum, platformConfig_);
     for (auto ledNum = 1; ledNum <= numLeds; ledNum++) {
-      auto blueLedDir = fs::path(
+      auto firstLedDir = fs::path(
           fmt::format(
-              "/sys/class/leds/port{}_led{}:blue:status", xcvrNum, ledNum));
-      auto amberLedDir = fs::path(
+              "/sys/class/leds/port{}_led{}:{}:status",
+              xcvrNum,
+              ledNum,
+              firstColorName));
+      auto secondLedDir = fs::path(
           fmt::format(
-              "/sys/class/leds/port{}_led{}:amber:status", xcvrNum, ledNum));
+              "/sys/class/leds/port{}_led{}:{}:status",
+              xcvrNum,
+              ledNum,
+              secondColorName));
+
       XLOG(DBG2) << fmt::format(
-          "Checking {} and {}", blueLedDir.string(), amberLedDir.string());
+          "Checking {} and {}", firstLedDir.string(), secondLedDir.string());
       for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
-        auto blueLedFullPath = blueLedDir / fs::path(ledFile);
-        auto amberLedFullPath = amberLedDir / fs::path(ledFile);
-        EXPECT_TRUE(fs::exists(blueLedFullPath))
-            << fmt::format("{} doesn't exist", blueLedFullPath.string());
-        EXPECT_TRUE(fs::exists(amberLedFullPath))
-            << fmt::format("{} doesn't exist", amberLedFullPath.string());
+        auto firstLedFullPath = firstLedDir / fs::path(ledFile);
+        auto secondLedFullPath = secondLedDir / fs::path(ledFile);
+        EXPECT_TRUE(fs::exists(firstLedFullPath))
+            << fmt::format("{} doesn't exist", firstLedFullPath.string());
+        EXPECT_TRUE(fs::exists(secondLedFullPath))
+            << fmt::format("{} doesn't exist", secondLedFullPath.string());
       }
     }
   }

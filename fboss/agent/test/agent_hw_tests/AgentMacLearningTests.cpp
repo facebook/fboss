@@ -96,10 +96,7 @@ class AgentMacLearningTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds())
-                        .switchId();
+    auto switchId = getCurrentSwitchIdForTesting();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
@@ -107,7 +104,8 @@ class AgentMacLearningTest : public AgentHwTest {
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     return cfg;
   }
 
@@ -127,7 +125,7 @@ class AgentMacLearningTest : public AgentHwTest {
         MacAddress::BROADCAST,
         ETHERTYPE::ETHERTYPE_LLDP);
     getSw()->sendPacketOutOfPortAsync(
-        std::move(txPacket), PortID(masterLogicalPortIds()[0]));
+        std::move(txPacket), PortID((masterLogicalPortIds())[0]));
   }
 
   bool wasMacLearnt(
@@ -425,10 +423,7 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds()[0])
-                        .switchId();
+    auto switchId = getCurrentSwitchIdForTesting();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
@@ -436,7 +431,8 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     return cfg;
   }
@@ -611,17 +607,15 @@ class AgentMacLearningAndMyStationInteractionTest
  public:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds()[0])
-                        .switchId();
+    auto switchId = getCurrentSwitchIdForTesting();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
         ensemble.masterLogicalPortIds(),
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     return cfg;
   }
   /*
@@ -994,10 +988,7 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds()[0])
-                        .switchId();
+    auto switchId = getCurrentSwitchIdForTesting();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
@@ -1005,7 +996,8 @@ class AgentMacLearningMacMoveTest : public AgentMacLearningTest {
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     cfg.switchSettings()->l2LearningMode() = cfg::L2LearningMode::SOFTWARE;
     return cfg;
   }

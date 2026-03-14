@@ -5,7 +5,7 @@
 
 if(BUILD_SAI_FAKE)
 add_executable(switch_test
-    fboss/agent/test/oss/Main.cpp
+    fboss/util/oss/TestMain.cpp
     fboss/agent/hw/sai/switch/tests/AclTableGroupManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/AclTableManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/ArsManagerTest.cpp
@@ -31,6 +31,8 @@ add_executable(switch_test
     fboss/agent/hw/sai/switch/tests/VirtualRouterManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/VlanManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/TunnelManagerTest.cpp
+    fboss/agent/hw/sai/switch/tests/Srv6TunnelManagerTest.cpp
+    fboss/agent/hw/sai/switch/tests/Srv6ManagerTest.cpp
 )
 
 target_link_libraries(switch_test

@@ -41,6 +41,14 @@ fbiob::AuxData RuntimeConfigBuilder::createLedAuxData(
   return auxData;
 }
 
+fbiob::AuxData RuntimeConfigBuilder::createSysLedAuxData(
+    const FpgaIpBlockConfig& sysLedCtrlConf) {
+  auto auxData =
+      createBaseAuxData(sysLedCtrlConf, fbiob::AuxDeviceType::SYSLED);
+
+  return auxData;
+}
+
 fbiob::AuxData RuntimeConfigBuilder::createGpioAuxData(
     const FpgaIpBlockConfig& gpioChipConf) {
   auto auxData = createBaseAuxData(gpioChipConf, fbiob::AuxDeviceType::GPIO);
@@ -187,6 +195,13 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       kmodsList.erase(it);
     }
   }
+  // Blackwolf is the only arista platform that uses aadm1266
+  if (*config.platform() != "BLACKWOLF800BANW") {
+    auto it = std::find(kmodsList.begin(), kmodsList.end(), "aadm1266");
+    if (it != kmodsList.end()) {
+      kmodsList.erase(it);
+    }
+  }
   config.kmods() = kmodsToUse;
 
   std::vector<PciDevice> devices;
@@ -209,7 +224,15 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       // Initialize the auxDevices field to ensure it's marked as having a value
       pciDevice.auxDevices() = std::vector<fbiob::AuxData>();
 
-      for (const auto& adapter : *dev.i2cAdapterConfigs()) {
+      // Add both i2cAdapterConfigs and i2cAdapterBlockConfigs to i2cAdapters
+      auto allI2cAdapters = *dev.i2cAdapterConfigs();
+      auto i2cAdapterConfigs = Utils::createI2cAdapterConfigs(dev);
+      allI2cAdapters.insert(
+          allI2cAdapters.end(),
+          i2cAdapterConfigs.begin(),
+          i2cAdapterConfigs.end());
+
+      for (const auto& adapter : allI2cAdapters) {
         const auto& auxDev = adapter.fpgaIpBlockConfig();
 
         fbiob::AuxData auxData;
@@ -246,6 +269,9 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
 
       for (const auto& ledCtrl : Utils::createLedCtrlConfigs(dev)) {
         pciDevice.auxDevices()->push_back(createLedAuxData(ledCtrl));
+      }
+      for (const auto& sysLedCtrl : *dev.sysLedCtrlConfigs()) {
+        pciDevice.auxDevices()->push_back(createSysLedAuxData(sysLedCtrl));
       }
       for (const auto& xcvrCtrl : Utils::createXcvrCtrlConfigs(dev)) {
         pciDevice.auxDevices()->push_back(createXcvrAuxData(xcvrCtrl));

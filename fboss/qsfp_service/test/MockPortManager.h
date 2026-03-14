@@ -24,28 +24,33 @@ class MockPortManager : public PortManager {
       TransceiverManager* transceiverManager,
       std::unique_ptr<PhyManager> phyManager,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads)
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
       : PortManager(
             transceiverManager,
             std::move(phyManager),
             platformMapping,
-            threads) {
+            qsfpServiceThreads) {
     // By default, delegate to the real implementation
     // Tests can override with EXPECT_CALL if they need custom behavior
     ON_CALL(*this, programInternalPhyPorts(::testing::_))
         .WillByDefault([this](TransceiverID tcvrId) {
           PortManager::programInternalPhyPorts(tcvrId);
         });
-    ON_CALL(*this, programExternalPhyPorts(::testing::_, ::testing::_))
-        .WillByDefault([this](TransceiverID tcvrId, bool resetDataPath) {
-          PortManager::programExternalPhyPorts(tcvrId, resetDataPath);
+    ON_CALL(
+        *this, programExternalPhyPort(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault([this](
+                           PortID portId,
+                           std::optional<TransceiverID> tcvrIdOpt,
+                           bool resetDataPath) {
+          PortManager::programExternalPhyPort(portId, tcvrIdOpt, resetDataPath);
         });
   }
 
   MOCK_METHOD1(getXphyInfo, phy::PhyInfo(PortID));
   MOCK_METHOD1(programInternalPhyPorts, void(TransceiverID));
-  MOCK_METHOD2(programExternalPhyPorts, void(TransceiverID, bool));
+  MOCK_METHOD3(
+      programExternalPhyPort,
+      void(PortID, std::optional<TransceiverID>, bool));
 
   // Wrapper functions for protected methods to enable direct testing
   std::unordered_set<TransceiverID> getTransceiversWithAllPortsInSet(

@@ -8,13 +8,12 @@ namespace facebook::fboss {
 
 Wedge400Manager::Wedge400Manager(
     const std::shared_ptr<const PlatformMapping> platformMapping,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
     : WedgeManager(
           std::make_unique<Wedge400TransceiverApi>(),
           platformMapping,
           PlatformType::PLATFORM_WEDGE400,
-          threads) {}
+          qsfpServiceThreads) {}
 
 std::unique_ptr<TransceiverI2CApi> Wedge400Manager::getI2CBus() {
   return std::make_unique<Wedge400I2CBus>();

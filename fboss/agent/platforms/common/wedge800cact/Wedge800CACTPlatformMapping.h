@@ -17,11 +17,15 @@ class Wedge800CACTPlatformMapping : public PlatformMapping {
  public:
   Wedge800CACTPlatformMapping();
   explicit Wedge800CACTPlatformMapping(const std::string& platformMappingStr);
+  ~Wedge800CACTPlatformMapping() = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   Wedge800CACTPlatformMapping(Wedge800CACTPlatformMapping const&) = delete;
   Wedge800CACTPlatformMapping& operator=(Wedge800CACTPlatformMapping const&) =
+      delete;
+  Wedge800CACTPlatformMapping(Wedge800CACTPlatformMapping&&) = delete;
+  Wedge800CACTPlatformMapping& operator=(Wedge800CACTPlatformMapping&&) =
       delete;
 };
 } // namespace facebook::fboss

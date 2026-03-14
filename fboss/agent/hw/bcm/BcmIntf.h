@@ -42,6 +42,8 @@ class BcmStation {
   // no copy or assignment
   BcmStation(BcmStation const&) = delete;
   BcmStation& operator=(BcmStation const&) = delete;
+  BcmStation(BcmStation&&) = delete;
+  BcmStation& operator=(BcmStation&&) = delete;
   enum : int {
     INVALID = -1,
   };
@@ -83,6 +85,8 @@ class BcmIntf {
   // no copy or assignment
   BcmIntf(BcmIntf const&) = delete;
   BcmIntf& operator=(BcmIntf const&) = delete;
+  BcmIntf(BcmIntf&&) = delete;
+  BcmIntf& operator=(BcmIntf&&) = delete;
   void programIngressIfNeeded(
       const std::shared_ptr<Interface>& intf,
       bool replace = false);

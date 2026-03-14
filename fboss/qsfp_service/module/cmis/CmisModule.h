@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
+#include <chrono>
 #include <optional>
 
 namespace facebook {
@@ -31,11 +32,15 @@ enum class CmisPages : int {
   PAGE20 = 0x20,
   PAGE21 = 0x21,
   PAGE22 = 0x22,
+  PAGE23 = 0x23,
   PAGE24 = 0x24,
   PAGE25 = 0x25,
   PAGE26 = 0x26,
+  PAGE27 = 0x27,
   PAGE2C = 0x2C,
-  PAGE2F = 0x2F
+  PAGE2F = 0x2F,
+  PAGE34 = 0x34,
+  PAGE35 = 0x35
 };
 
 enum VdmConfigType {
@@ -68,6 +73,32 @@ enum VdmConfigType {
   FEC_TAIL_MEDIA_IN_CURR = 107,
   FEC_TAIL_HOST_IN_MAX = 108,
   FEC_TAIL_HOST_IN_CURR = 109,
+  // Coherent 800G ZR VDM parameters (C-CMIS-01.3, Table 8)
+  MODULATOR_BIAS_XI = 128,
+  MODULATOR_BIAS_XQ = 129,
+  MODULATOR_BIAS_YI = 130,
+  MODULATOR_BIAS_YQ = 131,
+  MODULATOR_BIAS_X_PHASE = 132,
+  MODULATOR_BIAS_Y_PHASE = 133,
+  CD_LOW_GRANULARITY = 135,
+  CD_HIGH_GRANULARITY = 134,
+  DGD = 136,
+  SOPMD_HIGH_GRANULARITY = 137,
+  PDL = 138,
+  OSNR = 139,
+  ESNR = 140,
+  CFO = 141,
+  EVM = 142,
+  TX_POWER = 143,
+  RX_TOTAL_POWER = 144,
+  RX_SIGNAL_POWER = 145,
+  SOP_ROC = 146,
+  MER = 147,
+  CLOCK_RECOVERY_LOOP = 148,
+  SOPMD_LOW_GRANULARITY = 149,
+  SNR_MARGIN = 150,
+  Q_FACTOR = 151,
+  Q_MARGIN = 152,
 };
 
 class CmisModule : public QsfpModule {
@@ -176,6 +207,21 @@ class CmisModule : public QsfpModule {
     return ((1 << numLanes) - 1) << startLane;
   }
 
+  // Set the module to low power mode (writes SQUELCH_CONTROL | LOW_PWR_BIT)
+  void setModuleLowPowerModeLocked();
+
+  // Release low power mode (clears LOW_PWR_BIT, writes SQUELCH_CONTROL only)
+  void releaseModuleLowPowerModeLocked();
+
+  // Check if the module is in READY state
+  bool isModuleInReadyState();
+
+  // Poll until the module reaches READY state (up to 5s)
+  bool moduleReadyStatePoll();
+
+  // Read the datapath init max delay time from the module spec (in usec)
+  std::optional<uint64_t> getDatapathMaxDelayFromModuleSpec(bool init);
+
  protected:
   // QSFP+ requires a bottom 128 byte page describing important monitoring
   // information, and then an upper 128 byte page with less frequently
@@ -195,12 +241,60 @@ class CmisModule : public QsfpModule {
   uint8_t page20_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page21_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page22_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page23_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page24_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page25_[MAX_QSFP_PAGE_SIZE]{};
   uint8_t page26_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page27_[MAX_QSFP_PAGE_SIZE]{};
+  // C-CMIS Performance Monitoring pages (coherent optics)
+  uint8_t page34_[MAX_QSFP_PAGE_SIZE]{};
+  uint8_t page35_[MAX_QSFP_PAGE_SIZE]{};
 
   // Some of the pages are static and they need not be read every refresh cycle
   bool staticPagesCached_{false};
+
+  // Cached firmware build number from CDB Get Firmware Info command
+  std::optional<uint16_t> cachedFwBuildNumber_;
+
+  /*
+   * Structure to hold datapath init/deinit state per port using timers
+   * progStartTimer: Time point when datapath programming started.
+   * progDoneTimer: Time point when datapath programming finished.
+   * elapsedTime: Elapsed time for datapath programming (in milliseconds).
+   */
+  struct PortTimer {
+    std::chrono::steady_clock::time_point progStartTimer;
+    std::chrono::steady_clock::time_point progDoneTimer;
+    std::chrono::milliseconds elapsedTime{0};
+  };
+
+  /*
+   * Structure to track datapath initialization and de-initialization state
+   * per port.
+   *
+   * deInitTimers: Timers tracking datapath de-initialization
+   *               (start, done, and elapsed time)
+   * initTimers: Timers tracking datapath initialization
+   *             (start, done, and elapsed time)
+   * dpDeinitFailureCounter: Counter tracking the number of times spec violation
+   *                         for dp-deinit duration module advertisement.
+   * dpInitFailureCounter: Counter tracking the number of times spec violation
+   *                       for dp-init duration module advertisement.
+   */
+  struct DatapathState {
+    PortTimer deInitTimers;
+    PortTimer initTimers;
+    bool dpDeinitDone{false};
+    bool dpInitDone{false};
+    uint64_t dpDeinitFailureCounter{0};
+    uint64_t dpInitFailureCounter{0};
+  };
+
+  /*
+   * Map to track datapath init/deinit state per port ID
+   * Key: Port ID (string), Value: DatapathState structure
+   */
+  std::map<std::string, DatapathState> portDatapathStates_;
 
   /*
    * This function returns a pointer to the value in the static cached
@@ -213,7 +307,8 @@ class CmisModule : public QsfpModule {
    * Perform transceiver customization
    * This must be called with a lock held on qsfpModuleMutex_
    */
-  void customizeTransceiverLocked(TransceiverPortState& portState) override;
+  void customizeTransceiverLocked(
+      const TransceiverPortState& portState) override;
 
   /*
    * Returns whether customization is supported at all.
@@ -230,12 +325,16 @@ class CmisModule : public QsfpModule {
   /*
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
+   * @param hasTunableOpticsConfig - indicates if tunable optics config is
+   *        present. For tunable optics modules without config, an exception
+   *        is thrown to prevent high power mode transition.
    */
-  virtual bool ensureTransceiverReadyLocked() override;
+  virtual bool ensureTransceiverReadyLocked(
+      bool hasTunableOpticsConfig) override;
 
   /*
-   * Based on identifier, sets whether the upper memory of the module is flat or
-   * paged.
+   * Based on identifier, sets whether the upper memory of the module is flat
+   * or paged.
    */
   void setQsfpFlatMem() override;
   /*
@@ -262,9 +361,7 @@ class CmisModule : public QsfpModule {
    * if newAppSelCode is provided, use that directly instead of deriving
    */
   void setApplicationCodeLocked(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
-      uint8_t numHostLanesForPort,
+      const TransceiverPortState& portState,
       uint8_t newAppSelCode);
 
   /*
@@ -275,6 +372,7 @@ class CmisModule : public QsfpModule {
    * config already matches.
    */
   std::optional<ApplicationAdvertisingField> getAppSelCodeForSpeed(
+      const std::string& portName,
       cfg::PortSpeed speed,
       uint8_t startHostLane,
       uint8_t numHostLanesForPort);
@@ -290,7 +388,7 @@ class CmisModule : public QsfpModule {
   void programApplicationSelectCode(
       uint8_t appSelCode,
       uint8_t moduleMediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       std::optional<std::function<void()>> appSelectFunc = std::nullopt);
 
@@ -432,10 +530,9 @@ class CmisModule : public QsfpModule {
   /*
    * Get the curent application set for the lane (i.e. programmed in the
    * transceiver). Based on Interface codes from SFF-8024.
-   * For Optical SMF transceivers, the application is the media interface code,
-   * so the offset is 1.
-   * For Active Cables, the application is the host interface code, so the
-   * offset is 0.
+   * For Optical SMF transceivers, the application is the media interface
+   * code, so the offset is 1. For Active Cables, the application is the host
+   * interface code, so the offset is 0.
    */
   uint8_t getCurrentApplication(uint8_t lane, int offset) const;
 
@@ -469,13 +566,19 @@ class CmisModule : public QsfpModule {
   FirmwareStatus getFwStatus();
 
   /*
+   * Fetches the firmware build number from CDB Get Firmware Info command.
+   * Returns the build number if successful, or std::nullopt on failure.
+   */
+  std::optional<uint16_t> fetchFwBuildNumberFromCdb();
+
+  /*
    * Gather host side per lane configuration settings and return false when it
    * fails
    */
   bool getHostLaneSettings(std::vector<HostLaneSettings>& laneSettings);
   /*
-   * Gather media side per lane configuration settings and return false when it
-   * fails
+   * Gather media side per lane configuration settings and return false when
+   * it fails
    */
   bool getMediaLaneSettings(std::vector<MediaLaneSettings>& laneSettings);
   /*
@@ -521,20 +624,32 @@ class CmisModule : public QsfpModule {
 
   bool supportRemediate() override;
 
-  void resetDataPath() override;
+  void resetDataPath(const std::string& portName) override;
+
+  /*
+   * Returns true if the current module is LPO
+   */
+  bool isLpoModule() const override;
+
+  /*
+   * Return if module is AEC cable.
+   */
+  bool isAecModule() const override {
+    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
+  }
 
   /*
    * returns whether optics frequency is tunable or not
    */
-  bool isTunableOptics() const;
+  bool isTunableOptics() const override;
 
   /*
    * returns the tunable optics laser status and laser frequency
    */
   std::optional<TunableLaserStatus> getTunableLaserStatus() override;
   /*
-   * Returns the ApplicationAdvertisingField corresponding to the application or
-   * nullopt if it doesn't exist
+   * Returns the ApplicationAdvertisingField corresponding to the application
+   * or nullopt if it doesn't exist
    */
   std::optional<ApplicationAdvertisingField> getApplicationField(
       uint8_t application,
@@ -584,10 +699,10 @@ class CmisModule : public QsfpModule {
   std::map<VdmConfigType, VdmDiagsLocationStatus> vdmConfigDataLocations_;
 
   /* Helper function to read/write a CmisField. The function will extract the
-   * page number, offset and length information from the CmisField and then make
-   * the corresponding qsfpImpl->readTransceiver and qsfpImpl->writeTransceiver
-   * calls. The user should avoid making direct calls to
-   * qsfpImpl->read/writeTransceiver and instead do register IO using
+   * page number, offset and length information from the CmisField and then
+   * make the corresponding qsfpImpl->readTransceiver and
+   * qsfpImpl->writeTransceiver calls. The user should avoid making direct
+   * calls to qsfpImpl->read/writeTransceiver and instead do register IO using
    * readCmisField/writeCmisField helper functions. The helper function will
    * also change the page when it's supported by the transceiver and when not
    * specifically asked to skip page change (for batch operations). */
@@ -628,7 +743,8 @@ class CmisModule : public QsfpModule {
   bool checkLaneConfigError(uint8_t startHostLane, uint8_t hostLaneCount);
 
   /*
-   * This function veifies the Module eeprom register checksum for a given page
+   * This function veifies the Module eeprom register checksum for a given
+   * page
    */
   bool verifyEepromChecksum(CmisPages pageId);
 
@@ -653,7 +769,28 @@ class CmisModule : public QsfpModule {
    */
   MediaInterfaceCode getModuleMediaInterface() const override;
 
+  uint64_t getExpectedDatapathDelayUsec(bool /*init*/);
   uint64_t maxRetriesWith500msDelay(bool /*init*/);
+
+  /*
+   * Program the datapath for the specified port. When isInit is true, releases
+   * lanes from DEACTIVATED state to ACTIVATED state. When isInit is false, sets
+   * lanes to DEACTIVATED state. This function:
+   * - Writes to DATA_PATH_DEINIT register (set bits for deinit, clear for init)
+   * - Polls the datapath state machine until lanes reach target state
+   * - Tracks timing and failure counters
+   * - Returns true if operation succeeds, false on timeout or failure
+   *
+   * @param portName The name of the port being programmed
+   * @param hostLaneMask Bitmask of host lanes to program
+   * @param isInit If true, initialize (activate); if false, deinitialize
+   * (deactivate)
+   * @return true if datapath operation completed successfully, false otherwise
+   */
+  bool dataPathProgram(
+      const std::string& portName,
+      uint8_t hostLaneMask,
+      bool isInit);
 
   /*
    * Check if the datapath for the specified lanes has been updated to one of
@@ -664,9 +801,19 @@ class CmisModule : public QsfpModule {
       const std::vector<CmisLaneState>& states);
 
   void resetDataPathWithFunc(
+      const std::string& portName,
       std::optional<std::function<void()>> afterDataPathDeinitFunc =
           std::nullopt,
       uint8_t hostLaneMask = 0xFF);
+
+  /*
+   * Helper function to reset data path for tunable optics (ZR modules)
+   * using dataPathProgram for deinit/init operations
+   */
+  void resetDataPathForTunableOptics(
+      const std::string& portName,
+      std::optional<std::function<void()>> afterDataPathDeinitFunc,
+      uint8_t hostLaneMask);
 
   /*
    * Set the PRBS Generator and Checker on a module for the desired side (Line
@@ -711,14 +858,20 @@ class CmisModule : public QsfpModule {
   std::pair<std::optional<const uint8_t*>, int> getVdmDataValPtr(
       VdmConfigType vdmConf);
 
+  // VDM value reading helper methods - read 2 bytes from VDM data
+  std::optional<double> readU16VdmValue(VdmConfigType vdmConf, double lsb);
+  std::optional<double> readS16VdmValue(VdmConfigType vdmConf, double lsb);
+
+  // Read U16/S16 from raw byte data at given offset
+  static double readU16(const uint8_t* p, int off);
+  static double readS16(const uint8_t* p, int off);
+
   bool isMultiPortOptics() {
     return getIdentifier() == TransceiverModuleIdentifier::OSFP;
   }
 
   // Utility functions for power state management
   PowerControlState getCurrentPowerControlState();
-  bool isModuleInReadyState();
-  bool moduleReadyStatePoll();
 
   // Check if module should be kept in low power mode for AppSel programming.
   bool programAppSelInLowPowerMode() const;
@@ -734,16 +887,32 @@ class CmisModule : public QsfpModule {
   bool fillVdmPerfMonitorLtp(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4Data(VdmPerfMonitorStats& vdmStats);
   bool fillVdmPerfMonitorPam4AlarmData(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats);
+  bool fillVdmPerfMonitorLinkPm(VdmPerfMonitorStats& vdmStats);
+
+  // Link PM helper methods: read avg/min/max from page 35h + current from VDM
+  link::LinkPerfMonitorParamEachSideVal
+  readLinkPmMetricS32(int startByte, double lsb, VdmConfigType vdmConf);
+  link::LinkPerfMonitorParamEachSideVal
+  readLinkPmMetricU16(int startByte, double lsb, VdmConfigType vdmConf);
+  link::LinkPerfMonitorParamEachSideVal
+  readLinkPmMetricS16(int startByte, double lsb, VdmConfigType vdmConf);
+
+  void applyHostControlledInputEquilizerTx(uint8_t lane, uint8_t value);
+
+  uint8_t setExplicitControl(
+      const TransceiverPortState& state,
+      const uint8_t laneMask);
 
   void setApplicationSelectCode(
       uint8_t apSelCode,
       uint8_t mediaInterfaceCode,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
   void setApplicationSelectCodeAllPorts(
-      cfg::PortSpeed speed,
-      uint8_t startHostLane,
+      const TransceiverPortState& state,
       uint8_t numHostLanes,
       uint8_t hostLaneMask);
 
@@ -760,18 +929,6 @@ class CmisModule : public QsfpModule {
 
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
-
-  /*
-   * Returns true if the current module is LPO
-   */
-  bool isLpoModule() const override;
-
-  /*
-   * Return if module is AEC cable.
-   */
-  bool isAecModule() const {
-    return getMediaTypeEncoding() == MediaTypeEncodings::ACTIVE_CABLES;
-  }
 
   std::time_t vdmIntervalStartTime_{0};
 };

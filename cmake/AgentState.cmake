@@ -92,6 +92,8 @@ add_library(state
   fboss/agent/state/RouteTypes.cpp
   fboss/agent/state/SflowCollector.cpp
   fboss/agent/state/SflowCollectorMap.cpp
+  fboss/agent/state/Srv6Tunnel.cpp
+  fboss/agent/state/Srv6TunnelMap.cpp
   fboss/agent/state/StateDelta.cpp
   fboss/agent/state/StateDelta-computeOperDelta.cpp
   fboss/agent/state/StateUtils.cpp
@@ -117,7 +119,9 @@ add_library(state
 )
 
 target_link_libraries(state
-  error
+  address_utils
+  agent_features
+  fboss_error
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
@@ -142,8 +146,10 @@ add_library(state_utils
 )
 
 target_link_libraries(state_utils
-  error
+  fboss_error
   fboss_types
+  hwswitch_matcher
+  state
   switch_state_cpp2
   thrift_cow_serializer
 )
@@ -153,7 +159,8 @@ add_library(label_forwarding_action
 )
 
 target_link_libraries(label_forwarding_action
-  error
+  ctrl_cpp2
+  fboss_error
   fboss_cpp2
   Folly::folly
 )

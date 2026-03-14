@@ -49,6 +49,7 @@ class IPv6RouteAdvertiser {
 
   static uint32_t getPacketSize(const Interface* intf);
   static void createAdvertisementPacket(
+      SwSwitch* sw,
       const Interface* intf,
       folly::io::RWPrivateCursor* cursor,
       folly::MacAddress dstMac,

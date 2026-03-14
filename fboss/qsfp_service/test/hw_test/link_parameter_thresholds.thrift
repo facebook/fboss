@@ -5,6 +5,10 @@ namespace py neteng.fboss.link_parameter_thresholds
 namespace py.asyncio neteng.fboss.asyncio.link_parameter_thresholds
 
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 enum ModuleConnection {
   PLUGGABLE = 1,

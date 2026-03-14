@@ -9,12 +9,14 @@
  */
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include "folly/Conv.h"
-
+#include <fboss/fsdb/oper/instantiations/FsdbPathConverter.h>
 #include <folly/logging/LogConfig.h>
+#include "folly/Conv.h"
+#ifndef IS_OSS
+#include "neteng/netwhoami/lib/cpp/Recover.h"
+#endif
 
 #include <re2/re2.h>
-#include <chrono>
 #include <string>
 
 using namespace std::chrono;
@@ -122,6 +124,18 @@ std::string getl2EntryTypeStr(L2EntryType l2EntryType) {
     default:
       return "Unknown";
   }
+}
+
+bool isRunningOnSwitch() {
+#ifndef IS_OSS
+  try {
+    return netwhoami::tryRecoverWhoAmI().has_value();
+  } catch (const std::exception&) {
+    return false;
+  }
+#else
+  return false;
+#endif
 }
 
 bool comparePortName(
@@ -284,18 +298,30 @@ std::string runCmd(const std::string& cmd) {
 }
 
 std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
+  // Handle subscriber.path() - already uses names, no conversion needed
   if (apache::thrift::get_pointer(subscriber.path())) {
     return folly::join(
         "/", apache::thrift::get_pointer(subscriber.path())->raw().value());
   }
+
   std::vector<std::string> extPaths;
+  bool isStats = *subscriber.isStats();
+
+  // Handle extendedPaths - may contain IDs that need conversion
   if (auto subExtPaths =
           apache::thrift::get_pointer(subscriber.extendedPaths())) {
     for (const auto& extPath : *subExtPaths) {
+      // Convert path IDs to names for display using appropriate root type
+      auto nameTokens = isStats
+          ? fsdb::PathConverter<fsdb::FsdbOperStatsRoot>::extPathToNameTokens(
+                *extPath.path())
+          : fsdb::PathConverter<fsdb::FsdbOperStateRoot>::extPathToNameTokens(
+                *extPath.path());
+
       std::vector<std::string> pathElements;
-      for (const auto& pathElm : *extPath.path()) {
+      for (const auto& pathElm : nameTokens) {
         if (pathElm.any().has_value()) {
-          pathElements.push_back("*");
+          pathElements.emplace_back("*");
         } else if (pathElm.regex().has_value()) {
           pathElements.push_back(*pathElm.regex());
         } else {
@@ -305,12 +331,19 @@ std::string getSubscriptionPathStr(const fsdb::OperSubscriberInfo& subscriber) {
       extPaths.push_back(folly::join("/", pathElements));
     }
   }
-  auto paths = apache::thrift::get_pointer(subscriber.paths());
-  if (paths) {
+
+  // Handle paths (PATCH API) - convert ID tokens to name tokens
+  if (auto paths = apache::thrift::get_pointer(subscriber.paths())) {
     for (const auto& path : *paths) {
-      extPaths.push_back(folly::join("/", path.second.path().value()));
+      auto nameTokens = isStats
+          ? fsdb::PathConverter<fsdb::FsdbOperStatsRoot>::pathToNameTokens(
+                *path.second.path())
+          : fsdb::PathConverter<fsdb::FsdbOperStateRoot>::pathToNameTokens(
+                *path.second.path());
+      extPaths.push_back(folly::join("/", nameTokens));
     }
   }
+
   return folly::join(";", extPaths);
 }
 
@@ -471,6 +504,39 @@ getUncachedSwitchReachabilityInfo(
     std::cerr << e.what();
   }
   return reachabilityMatrix;
+}
+
+RevisionList::RevisionList(std::vector<std::string> v) {
+  // Validate each revision specifier
+  for (const auto& revision : v) {
+    if (revision == "current") {
+      // "current" is always valid
+      data_.push_back(revision);
+      continue;
+    }
+
+    // Accept Git commit SHAs (7-40 hex characters) or short refs
+    // Git SHAs are hexadecimal strings, typically 7-40 characters
+    bool isValidHex = !revision.empty() && revision.length() >= 7;
+    if (isValidHex) {
+      for (char c : revision) {
+        if (!std::isxdigit(c)) {
+          isValidHex = false;
+          break;
+        }
+      }
+    }
+
+    if (isValidHex) {
+      data_.push_back(revision);
+      continue;
+    }
+
+    // If not a valid hex SHA, reject it
+    throw std::invalid_argument(
+        "Invalid revision specifier: '" + revision +
+        "'. Expected a Git commit SHA (7+ hex characters) or 'current'");
+  }
 }
 
 } // namespace facebook::fboss::utils

@@ -3,13 +3,43 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 oncall("fboss_platform")
 
 cpp_unittest(
+    name = "cpld_manager_test",
+    srcs = [
+        "CpldManagerTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/platform_manager:cpld_manager",
+        "//fboss/platform/platform_manager:fbcpld_ioctl_h",
+    ],
+)
+
+cpp_unittest(
     name = "config_validator_test",
     srcs = [
         "ConfigValidatorTest.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "//fboss/platform/platform_manager:config_validator",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "config_utils_test",
+    srcs = [
+        "ConfigUtilsTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:mock_config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/helpers:platform_name_lib",
+        "//fboss/platform/platform_manager:config_utils",
+        "//folly/hash:hash",
+        "//folly/testing:test_util",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
@@ -84,6 +114,16 @@ cpp_unittest(
 )
 
 cpp_unittest(
+    name = "exploration_errors_test",
+    srcs = [
+        "ExplorationErrorsTest.cpp",
+    ],
+    deps = [
+        "//fboss/platform/platform_manager:exploration_errors",
+    ],
+)
+
+cpp_unittest(
     name = "exploration_summary_test",
     srcs = [
         "ExplorationSummaryTest.cpp",
@@ -108,5 +148,30 @@ cpp_unittest(
         "//fb303:service_data",
         "//fboss/platform/platform_manager:pkg_manager",
         "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)
+
+cpp_unittest(
+    name = "pci_explorer_test",
+    srcs = [
+        "PciExplorerTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/platform_manager:pci_explorer",
+    ],
+)
+
+cpp_unittest(
+    name = "platform_manager_handler_test",
+    srcs = [
+        "PlatformManagerHandlerTest.cpp",
+    ],
+    supports_static_listing = False,
+    deps = [
+        "//fboss/platform/platform_manager:platform_manager_handler",
+        "//folly:file_util",
+        "//folly/testing:test_util",
     ],
 )

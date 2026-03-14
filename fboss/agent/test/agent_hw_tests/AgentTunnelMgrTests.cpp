@@ -15,15 +15,14 @@
   FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup); \
   FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown);
 
-#include <sstream>
 #include <string>
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/TunManager.h"
-#include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/TunnelMgrTestUtils.h"
 
 namespace facebook::fboss {
 
@@ -52,549 +51,13 @@ class AgentTunnelMgrTest : public AgentHwTest {
     if (isWarmbootSetup) {
       XLOG(INFO)
           << "Coldboot detected: clearing all kernel entries before agent initialization";
-      clearAllKernelEntries();
+      utility::clearAllKernelEntries();
     } else {
       XLOG(INFO) << "Warmboot detected: skipping kernel entries cleanup";
     }
 
     // Now call parent SetUp to initialize the agent
     AgentHwTest::SetUp();
-  }
-
-  // Clear any stale kernel entries
-  void clearKernelEntries(const std::string& intfIp, bool isIPv4 = true) {
-    std::string cmd;
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep -w ", intfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", intfIp);
-    }
-
-    auto output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
-
-    // There could be duplicate source route rule entries in the kernel. Clear
-    // all of them.
-    while (output.find(folly::to<std::string>(intfIp)) != std::string::npos) {
-      // Break the output string into words
-      std::istringstream iss(output);
-      std::string word;
-      std::string lastWord;
-
-      while (iss >> word) {
-        lastWord = folly::copy(word);
-      }
-
-      XLOG(DBG2) << "tableId: " << lastWord;
-
-      // Delete the source route rule entries from the kernel
-      if (isIPv4) {
-        cmd = folly::to<std::string>("ip rule delete table ", lastWord);
-      } else {
-        cmd = folly::to<std::string>("ip -6 rule delete table ", lastWord);
-      }
-
-      runShellCmd(cmd);
-
-      if (isIPv4) {
-        // Get the source route rule entries again
-        cmd = folly::to<std::string>("ip rule list | grep -w ", intfIp);
-      } else {
-        cmd = folly::to<std::string>("ip -6 rule list | grep -w ", intfIp);
-      }
-
-      output = runShellCmd(cmd);
-
-      XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-      XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
-    }
-
-    // Get the String
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip route list | grep -w ", intfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 route list | grep -w ", intfIp);
-    }
-
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
-
-    // Break the output string into words
-    std::istringstream iss(output);
-    do {
-      std::string subs;
-      // Get the word from the istringstream
-      iss >> subs;
-      // Delete the matching fboss interface from the kernel
-      if (subs.find("fboss") != std::string::npos) {
-        if (subs.find(':') != std::string::npos) {
-          subs = subs.substr(0, subs.find(':'));
-        }
-        cmd = folly::to<std::string>("ip link delete ", subs);
-        runShellCmd(cmd);
-        XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-        break;
-      }
-    } while (iss);
-
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip addr list | grep -w ", intfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 addr list | grep -w ", intfIp);
-    }
-
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearKernelEntries Output: \n" << output;
-
-    // Break the output string into words
-    std::istringstream iss2(output);
-    do {
-      std::string subs;
-      // Get the word from the istringstream
-      iss2 >> subs;
-      // Delete the matching fboss interface from the kernel
-      if (subs.find("fboss") != std::string::npos) {
-        if (subs.find(':') != std::string::npos) {
-          subs = subs.substr(0, subs.find(':'));
-        }
-        cmd = folly::to<std::string>("ip link delete ", subs);
-        runShellCmd(cmd);
-        XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-        break;
-      }
-    } while (iss2);
-  }
-
-  // Clear all stale kernel entries
-  void clearAllKernelEntries() {
-    std::string cmd;
-    cmd = folly::to<std::string>("ip rule list");
-    auto output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
-
-    std::istringstream iss(output);
-    for (std::string line; std::getline(iss, line);) {
-      std::stringstream ss(line);
-      std::string word;
-      std::string lastWord;
-
-      while (ss >> word) {
-        lastWord = folly::copy(word);
-      }
-
-      if (lastWord != "local" && lastWord != "main" && lastWord != "default") {
-        XLOG(DBG2) << "tableId: " << lastWord;
-        cmd = folly::to<std::string>("ip rule delete table ", lastWord);
-        runShellCmd(cmd);
-      }
-    }
-
-    cmd = folly::to<std::string>("ip -6 rule list");
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
-
-    std::istringstream iss2(output);
-    for (std::string line; std::getline(iss2, line);) {
-      std::stringstream ss(line);
-      std::string word;
-      std::string lastWord;
-
-      while (ss >> word) {
-        lastWord = folly::copy(word);
-      }
-
-      if (lastWord != "local" && lastWord != "main" && lastWord != "default") {
-        XLOG(DBG2) << "tableId: " << lastWord;
-        cmd = folly::to<std::string>("ip -6 rule delete table ", lastWord);
-        runShellCmd(cmd);
-      }
-    }
-
-    // Get the String
-    cmd = folly::to<std::string>("ip route list | grep fboss");
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
-
-    while (output.find(folly::to<std::string>("fboss")) != std::string::npos) {
-      // Break the output string into words
-      std::istringstream iss3(output);
-      do {
-        std::string subs;
-        // Get the word from the istringstream
-        iss3 >> subs;
-        // Delete the matching fboss interface from the kernel
-        if (subs.find("fboss") != std::string::npos) {
-          if (subs.find(':') != std::string::npos) {
-            subs = subs.substr(0, subs.find(':'));
-          }
-          cmd = folly::to<std::string>("ip link delete ", subs);
-          runShellCmd(cmd);
-          XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-          break;
-        }
-      } while (iss3);
-
-      cmd = folly::to<std::string>("ip route list | grep fboss");
-      output = runShellCmd(cmd);
-    }
-
-    cmd = folly::to<std::string>("ip -6 route list | grep fboss");
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
-
-    while (output.find(folly::to<std::string>("fboss")) != std::string::npos) {
-      // Break the output string into words
-      std::istringstream iss4(output);
-      do {
-        std::string subs;
-        // Get the word from the istringstream
-        iss4 >> subs;
-        // Delete the matching fboss interface from the kernel
-        if (subs.find("fboss") != std::string::npos) {
-          if (subs.find(':') != std::string::npos) {
-            subs = subs.substr(0, subs.find(':'));
-          }
-          cmd = folly::to<std::string>("ip link delete ", subs);
-          runShellCmd(cmd);
-          XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-          break;
-        }
-      } while (iss4);
-
-      cmd = folly::to<std::string>("ip -6 route list | grep fboss");
-      output = runShellCmd(cmd);
-    }
-
-    // Get the String
-    cmd = folly::to<std::string>("ip addr list | grep fboss");
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
-
-    while (output.find(folly::to<std::string>("fboss")) != std::string::npos) {
-      // Break the output string into words
-      std::istringstream iss5(output);
-      do {
-        std::string subs;
-        // Get the word from the istringstream
-        iss5 >> subs;
-        // Delete the matching fboss interface from the kernel
-        if (subs.find("fboss") != std::string::npos) {
-          if (subs.find(':') != std::string::npos) {
-            subs = subs.substr(0, subs.find(':'));
-          }
-          cmd = folly::to<std::string>("ip link delete ", subs);
-          runShellCmd(cmd);
-          XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-          break;
-        }
-      } while (iss5);
-
-      cmd = folly::to<std::string>("ip addr list | grep fboss");
-      output = runShellCmd(cmd);
-    }
-
-    cmd = folly::to<std::string>("ip -6 addr list | grep fboss");
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "clearAllKernelEntries Cmd: " << cmd;
-    XLOG(DBG2) << "clearAllKernelEntries Output: \n" << output;
-
-    while (output.find(folly::to<std::string>("fboss")) != std::string::npos) {
-      // Break the output string into words
-      std::istringstream iss6(output);
-      do {
-        std::string subs;
-        // Get the word from the istringstream
-        iss6 >> subs;
-        // Delete the matching fboss interface from the kernel
-        if (subs.find("fboss") != std::string::npos) {
-          if (subs.find(':') != std::string::npos) {
-            subs = subs.substr(0, subs.find(':'));
-          }
-          cmd = folly::to<std::string>("ip link delete ", subs);
-          runShellCmd(cmd);
-          XLOG(DBG2) << "clearKernelEntries Cmd: " << cmd;
-          break;
-        }
-      } while (iss6);
-      cmd = folly::to<std::string>("ip -6 addr list | grep fboss");
-      output = runShellCmd(cmd);
-    }
-  }
-
-  bool checkIpRuleEntriesRemoved(
-      const std::string& intfIp,
-      bool isIPv4 = true) {
-    // Check that the source route rule entries are not present in the kernel
-    std::string cmd;
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep -w ", intfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", intfIp);
-    }
-
-    auto output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkIpRuleEntriesRemoved Cmd: " << cmd;
-    XLOG(DBG2) << "checkIpRuleEntriesRemoved Output: \n" << output;
-
-    if (output.find(folly::to<std::string>(intfIp)) != std::string::npos) {
-      return false;
-    }
-
-    return true;
-  }
-
-  void checkIpKernelEntriesRemoved(
-      const std::string& intfIp,
-      bool isIPv4 = true) {
-    // Check that the source route rule entries are not present in the kernel
-    std::string cmd;
-    std::string searchIntfIp = intfIp;
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep -w ", searchIntfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", searchIntfIp);
-    }
-
-    auto output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesRemoved Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
-
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
-
-    // Check that the tunnel address entries are not present in the kernel
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip addr list | grep -w ", searchIntfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 addr list | grep -w ", searchIntfIp);
-    }
-
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesRemoved Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
-
-    // TODO: This is to stabilize the test. Remove this and use EXPECT_TRUE once
-    // the tunnelMgr fixes are in.
-    if (output.find(folly::to<std::string>(searchIntfIp)) !=
-        std::string::npos) {
-      XLOG(DBG2)
-          << "checkKernelEntriesRemoved: Tunnel address entry not  removed for "
-          << searchIntfIp;
-    }
-
-    // Check that the route entries are not present in the kernel
-    if (isIPv4) {
-      cmd = folly::to<std::string>(
-          "ip route list | grep -w ", searchIntfIp, " | grep fboss");
-    } else {
-      cmd = folly::to<std::string>(
-          "ip -6 route list | grep -w ", searchIntfIp, " | grep fboss");
-    }
-
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesRemoved Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesRemoved Output: \n" << output;
-
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
-  }
-
-  // Check that the kernel entries are present in the kernel
-  void checkKernelEntriesNotExist(
-      const std::string& intfIp,
-      bool isIPv4 = true,
-      bool checkRouteEntry = true) {
-    // Check that the source route rule entries are present in the kernel
-
-    std::string cmd;
-    std::string searchIntfIp = intfIp;
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep -w ", searchIntfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", searchIntfIp);
-    }
-
-    auto output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesNotExist Output: \n" << output;
-
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
-
-    if (isIPv4) {
-      // Check that the tunnel address entries are present in the kernel
-      cmd = folly::to<std::string>("ip addr list | grep -w ", searchIntfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 addr list | grep -w ", searchIntfIp);
-    }
-
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesNotExist Output: \n" << output;
-
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos);
-
-    if (checkRouteEntry) {
-      // Check that the route entries are present in the kernel
-      if (isIPv4) {
-        cmd = folly::to<std::string>(
-            "ip route list | grep -w ", searchIntfIp, " | grep fboss");
-      } else {
-        cmd = folly::to<std::string>(
-            "ip -6 route list | grep -w ", searchIntfIp, " | grep fboss");
-      }
-
-      output = runShellCmd(cmd);
-
-      XLOG(DBG2) << "checkKernelEntriesNotExist Cmd: " << cmd;
-      XLOG(DBG2) << "checkKernelEntriesNotExist Output:" << output;
-
-      EXPECT_TRUE(
-          output.find(folly::to<std::string>(searchIntfIp)) ==
-          std::string::npos);
-
-      // Additional check for fboss routes in all tables
-      if (isIPv4) {
-        cmd = folly::to<std::string>("ip route list table all | grep fboss");
-      } else {
-        cmd = folly::to<std::string>("ip -6 route list table all | grep fboss");
-      }
-
-      output = runShellCmd(cmd);
-
-      XLOG(DBG2) << "checkKernelEntriesExist Additional Cmd: " << cmd;
-      XLOG(DBG2) << "checkKernelEntriesExist Additional Output: " << output;
-
-      EXPECT_TRUE(
-          output.find(folly::to<std::string>("fboss")) == std::string::npos);
-    }
-  }
-
-  // Check that the kernel entries are present in the kernel
-  void checkKernelEntriesExist(
-      const std::string& intfIp,
-      bool isIPv4 = true,
-      bool checkRouteEntry = true) {
-    // Check that the source route rule entries are present in the kernel
-
-    std::string cmd;
-    std::string searchIntfIp = intfIp;
-    if (isIPv4) {
-      cmd = folly::to<std::string>("ip rule list | grep -w ", searchIntfIp);
-    } else {
-      cmd = folly::to<std::string>("ip -6 rule list | grep -w ", searchIntfIp);
-    }
-
-    auto output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesExist Output: " << std::endl
-               << output << std::endl;
-
-    // TODO: This is to stabilize the test. Remove this and use EXPECT_TRUE once
-    // the tunnelMgr fixes are in.
-    if (output.find(folly::to<std::string>(searchIntfIp)) ==
-        std::string::npos) {
-      XLOG(DBG2) << "checkKernelEntriesExist: Source route rule entry not "
-                 << "present in the kernel for " << searchIntfIp;
-    }
-
-    if (isIPv4) {
-      // Check that the tunnel address entries are present in the kernel
-      cmd =
-          folly::to<std::string>("ip addr list | grep -B 1 -w ", searchIntfIp);
-    } else {
-      cmd = folly::to<std::string>(
-          "ip -6 addr list | grep -B 1 -w ", searchIntfIp);
-    }
-
-    output = runShellCmd(cmd);
-
-    XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesExist Output: " << std::endl
-               << output << std::endl;
-
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
-
-    if (checkRouteEntry) {
-      // Check that the route entries are present in the kernel
-      if (isIPv4) {
-        cmd = folly::to<std::string>(
-            "ip route list table all | grep -w ",
-            searchIntfIp,
-            " | grep fboss");
-      } else {
-        cmd = folly::to<std::string>(
-            "ip -6 route list table all | grep -w ",
-            searchIntfIp,
-            " | grep fboss");
-      }
-
-      output = runShellCmd(cmd);
-
-      XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-      XLOG(DBG2) << "checkKernelEntriesExist Output:" << std::endl
-                 << output << std::endl;
-
-      EXPECT_TRUE(
-          output.find(folly::to<std::string>(searchIntfIp)) !=
-          std::string::npos);
-
-      // Additional check for fboss routes in all tables
-      if (isIPv4) {
-        cmd = folly::to<std::string>("ip route list table all | grep fboss");
-      } else {
-        cmd = folly::to<std::string>("ip -6 route list table all | grep fboss");
-      }
-
-      output = runShellCmd(cmd);
-
-      XLOG(DBG2) << "checkKernelEntriesExist Additional Cmd: " << cmd;
-      XLOG(DBG2) << "checkKernelEntriesExist Additional Output: \n"
-                 << output << "\n";
-
-      EXPECT_TRUE(
-          output.find(folly::to<std::string>("fboss")) != std::string::npos);
-    }
-  }
-
-  void clearKernelEntries(
-      const std::string& intfIPv4,
-      const std::string& intfIPv6) {
-    clearKernelEntries(intfIPv4, true);
-    clearKernelEntries(intfIPv6, false);
-  }
-
-  void checkKernelEntriesRemoved(
-      const std::string& intfIPv4,
-      const std::string& intfIPv6) {
-    checkIpKernelEntriesRemoved(intfIPv4, true);
-    checkIpKernelEntriesRemoved(intfIPv6, false);
   }
 
   cfg::SwitchConfig initialConfig(
@@ -604,60 +67,6 @@ class AgentTunnelMgrTest : public AgentHwTest {
     auto cfg = utility::onePortPerInterfaceConfig(
         ensemble.getSw(), ports, true /*interfaceHasSubnet*/);
     return cfg;
-  }
-
-  std::vector<std::string> getInterfaceIpAddress(
-      cfg::SwitchConfig& config,
-      bool isIPv4) {
-    std::string intfIP;
-    std::string intfIPv4;
-    std::string intfIPv6;
-    std::vector<std::string> intfIPList;
-
-    for (int i = 0; i < config.interfaces()->size(); i++) {
-      if (config.interfaces()[i].scope() == cfg::Scope::GLOBAL) {
-        continue;
-      }
-      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
-        intfIP = folly::to<std::string>(
-            folly::IPAddress::createNetwork(
-                config.interfaces()[i].ipAddresses()[j], -1, false)
-                .first);
-        if (isIPv4) {
-          if (intfIP.find("::") == std::string::npos) {
-            intfIPv4 = std::move(intfIP);
-            intfIPList.push_back(intfIPv4);
-          }
-        } else {
-          if (intfIP.find("::") != std::string::npos) {
-            intfIPv6 = std::move(intfIP);
-            intfIPList.push_back(intfIPv6);
-          }
-        }
-      }
-    }
-
-    return intfIPList;
-  }
-
-  void checkKernelIpEntriesExist(
-      const InterfaceID& ifid,
-      const std::string& intfIP,
-      bool isIPv4) {
-    // Get TunManager pointer
-    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
-    auto status = tunMgr_->getIntfStatus(getProgrammedState(), ifid);
-
-    // There is a known limitation in the kernel that the source route rule
-    // entries are not created if the interface is not up. So, checking for
-    // the kernel entries if the interface is  up
-    if (status) {
-      if (isIPv4) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIP), true, false);
-      } else {
-        checkKernelEntriesExist(folly::to<std::string>(intfIP), false, false);
-      }
-    }
   }
 
   std::vector<std::string> changeKernelIPAddress(
@@ -857,45 +266,6 @@ class AgentTunnelMgrTest : public AgentHwTest {
 
     XLOG(INFO) << "=== End Kernel Network Information ===";
   }
-
-  void checkKernelIpEntriesRemoved(
-      const InterfaceID& ifId,
-      const std::string& intfIP,
-      bool isIPv4) {
-    // Get TunManager pointer
-    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
-    auto status = tunMgr_->getIntfStatus(getProgrammedState(), ifId);
-
-    // There is a known limitation in the kernel that the source route rule
-    // entries are not created if the interface is not up. So, checking for
-    // the kernel entries if the interface is  up
-    if (status) {
-      if (isIPv4) {
-        checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
-      } else {
-        checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
-      }
-    }
-  }
-
-  /**
-   * Check kernel entries are removed, irrespective of interace status.
-   *
-   * @param ifId Interface ID to check
-   * @param intfIP Interface IP address to check
-   * @param isIPv4 True for IPv4, false for IPv6
-   */
-  void checkKernelIpEntriesRemovedStrict(
-      const InterfaceID& ifId,
-      const std::string& intfIP,
-      bool isIPv4) {
-    // Check kernel entries regardless of interface status
-    if (isIPv4) {
-      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), true, true);
-    } else {
-      checkKernelEntriesNotExist(folly::to<std::string>(intfIP), false, true);
-    }
-  }
 };
 
 // Test that the tunnel manager is able to create the source route rule
@@ -938,19 +308,19 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4Entries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+        utility::checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -996,19 +366,20 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1068,7 +439,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
     }
 
@@ -1129,11 +501,13 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
 
         // Get IPv4 address for this interface
         auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemoved(intfID, ipv4Addr.str(), true);
+        utility::checkKernelIpEntriesRemoved(
+            tunMgr_, getProgrammedState(), intfID, ipv4Addr.str(), true);
 
         // Get IPv6 address for this interface
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemoved(intfID, ipv6Addr.str(), false);
+        utility::checkKernelIpEntriesRemoved(
+            tunMgr_, getProgrammedState(), intfID, ipv6Addr.str(), false);
       }
 
       // Re-register TunManager for state observation after test verification
@@ -1218,7 +592,8 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
     }
 
@@ -1291,11 +666,13 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
 
         // Get IPv4 address for this interface
         auto ipv4Addr = getSwitchIntfIP(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemovedStrict(intfID, ipv4Addr.str(), true);
+        utility::checkKernelIpEntriesRemovedStrict(
+            intfID, ipv4Addr.str(), true);
 
         // Get IPv6 address for this interface
         auto ipv6Addr = getSwitchIntfIPv6(getProgrammedState(), intfID);
-        checkKernelIpEntriesRemovedStrict(intfID, ipv6Addr.str(), false);
+        utility::checkKernelIpEntriesRemovedStrict(
+            intfID, ipv6Addr.str(), false);
       }
 
       // Re-register TunManager for cleanup
@@ -1371,7 +748,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv4), true, true);
       }
 
       // change ipv4 address of the interface
@@ -1391,20 +769,26 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
 
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4), true, false));
+        });
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1453,7 +837,8 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // rule entries are not created if the interface is not up. So,
       // checking for the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false);
       }
 
       // change ipv6 address of the interface
@@ -1473,20 +858,26 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
 
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, false));
+        });
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1537,7 +928,8 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false);
       }
 
       // Applying the same config again
@@ -1581,26 +973,26 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       if (status) {
         // If source route rule is added again for the same IP address, it
         // would create duplicate entries.
-        checkKernelEntriesRemoved(
+        utility::checkKernelEntriesRemoved(
             folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
-        checkKernelEntriesExist(
+        utility::checkKernelEntriesExist(
             folly::to<std::string>(intfIPv4New), true, false);
-        checkKernelEntriesExist(
+        utility::checkKernelEntriesExist(
             folly::to<std::string>(intfIPv6New), false, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4New),
           folly::to<std::string>(intfIPv6New));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1647,19 +1039,20 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDown) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4), true, false);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv4), true, false);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1717,19 +1110,19 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDownUp) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+        utility::checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1787,19 +1180,20 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6EntriesPortsDownUp) {
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
       if (status && socketExists) {
-        checkKernelEntriesExist(folly::to<std::string>(intfIPv6), false, true);
+        utility::checkKernelEntriesExist(
+            folly::to<std::string>(intfIPv6), false, true);
       }
 
       // Clear kernel entries
-      clearKernelEntries(
+      utility::clearKernelEntries(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
 
       // Check that the kernel entries are removed
-      checkKernelEntriesRemoved(
+      utility::checkKernelEntriesRemoved(
           folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
     }
 
-    clearAllKernelEntries();
+    utility::clearAllKernelEntries();
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -1816,9 +1210,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     InterfaceID intfID = getInterfaceIDForPort(
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
 
-    intfOldIPv4s = getInterfaceIpAddress(config, true);
-    checkKernelIpEntriesExist(intfID, intfOldIPv4s[0], true);
+    intfOldIPv4s = utility::getInterfaceIpAddress(config, true);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv4s[0], true);
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::DISABLED;
     }
@@ -1833,9 +1229,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
     // Bring up one port
     bringUpPort(getAgentEnsemble()->masterLogicalPortIds()[0]);
 
-    checkKernelIpEntriesExist(intfID, intfNewIPv4s[0], true);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfNewIPv4s[0], true);
 
-    checkKernelIpEntriesRemoved(intfID, intfOldIPv4s[0], true);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv4s[0], true);
 
     config.ports()[0].state() = cfg::PortState::ENABLED;
     auto portType = config.ports()[0].portType().value();
@@ -1852,12 +1250,15 @@ TEST_F(AgentTunnelMgrTest, changeIpv4AddressPortDownUp) {
   auto verifyPostWarmboot = [=, this]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     std::vector<std::string> intfIPv6s;
-    intfIPv6s = getInterfaceIpAddress(config, true);
-    checkKernelIpEntriesExist(intfID, intfIPv6s[0], true);
-    clearAllKernelEntries();
+    intfIPv6s = utility::getInterfaceIpAddress(config, true);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], true);
+    utility::clearAllKernelEntries();
 
-    checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], true);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], true);
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
@@ -1874,9 +1275,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     InterfaceID intfID = getInterfaceIDForPort(
         getAgentEnsemble()->masterLogicalPortIds()[0],
         getAgentEnsemble()->getSw()->getState());
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
 
-    intfOldIPv6s = getInterfaceIpAddress(config, false);
-    checkKernelIpEntriesExist(intfID, intfOldIPv6s[0], false);
+    intfOldIPv6s = utility::getInterfaceIpAddress(config, false);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv6s[0], false);
 
     for (int i = 0; i < config.ports()->size(); i++) {
       config.ports()[i].state() = cfg::PortState::DISABLED;
@@ -1892,9 +1295,11 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
     // Bring up one port
     bringUpPort(getAgentEnsemble()->masterLogicalPortIds()[0]);
 
-    checkKernelIpEntriesExist(intfID, intfNewIPv6s[0], false);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfNewIPv6s[0], false);
 
-    checkKernelIpEntriesRemoved(intfID, intfOldIPv6s[0], false);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfOldIPv6s[0], false);
 
     config.ports()[0].state() = cfg::PortState::ENABLED;
     auto portType = config.ports()[0].portType().value();
@@ -1911,12 +1316,15 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
   auto verifyPostWarmboot = [=, this]() {
     auto config = getAgentEnsemble()->getCurrentConfig();
     InterfaceID intfID = (InterfaceID)config.interfaces()[0].intfID().value();
+    auto tunMgr_ = getAgentEnsemble()->getSw()->getTunManager();
     std::vector<std::string> intfIPv6s;
-    intfIPv6s = getInterfaceIpAddress(config, false);
-    checkKernelIpEntriesExist(intfID, intfIPv6s[0], false);
-    clearAllKernelEntries();
+    intfIPv6s = utility::getInterfaceIpAddress(config, false);
+    utility::checkKernelIpEntriesExist(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], false);
+    utility::clearAllKernelEntries();
 
-    checkKernelIpEntriesRemoved(intfID, intfIPv6s[0], false);
+    utility::checkKernelIpEntriesRemoved(
+        tunMgr_, getProgrammedState(), intfID, intfIPv6s[0], false);
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);

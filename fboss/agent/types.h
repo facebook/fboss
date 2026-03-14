@@ -104,12 +104,12 @@ FBOSS_STRONG_TYPE(uint64_t, NodeID)
 /*
  * Unique ID for a NextHop
  */
-FBOSS_STRONG_TYPE(uint64_t, NextHopID)
+FBOSS_STRONG_TYPE(int64_t, NextHopID)
 
 /*
  * Unique ID for a set of NextHopIDs
  */
-FBOSS_STRONG_TYPE(uint64_t, NextHopSetID)
+FBOSS_STRONG_TYPE(int64_t, NextHopSetID)
 
 /*
  * Timestamp of a stat

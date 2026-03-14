@@ -47,6 +47,7 @@ target_link_libraries(data_corral_service_lib
   weutil_lib
   platform_utils
   platform_name_lib
+  structured_logger
   data_corral_service_cpp2
   led_manager_config_types_cpp2
   Folly::folly
@@ -70,6 +71,7 @@ add_executable(data_corral_service_hw_test
 
 target_link_libraries(data_corral_service_hw_test
   data_corral_service_lib
+  thrift_service_utils
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

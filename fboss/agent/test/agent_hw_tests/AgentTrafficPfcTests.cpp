@@ -7,6 +7,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -101,12 +102,13 @@ void waitPfcCounterIncrease(
     // necessarily equal to inDiscardsRaw after warmboot. Just check for <=.
     EXPECT_EVENTUALLY_LE(*portStats.inDiscards_(), *portStats.inDiscardsRaw_());
 
-    // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5
+    // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5/TH6
     // However we know PFC is working as long as TX PFC is being generated, so
     // skip validating RX PFC counters on TH5 for now.
     auto asicType = facebook::fboss::checkSameAndGetAsic(ensemble->getL3Asics())
                         ->getAsicType();
-    if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+    if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+        asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
       EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
       if (ensemble->getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
               facebook::fboss::HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER)) {
@@ -278,7 +280,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void TearDown() override {
     if (!FLAGS_list_production_feature) {
       auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-      if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         auto ports = masterLogicalInterfacePortIds();
         getAgentEnsemble()->bringDownPorts(ports);
       }
@@ -304,7 +306,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void applyPlatformConfigOverrides(
       const cfg::SwitchConfig& sw,
       cfg::PlatformConfig& config) const override {
-    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        checkSameAndGetAsicType(sw) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       return;
     }
 
@@ -326,7 +329,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
         true /*interfaceHasSubnet*/);
     utility::setTTLZeroCpuConfig(ensemble.getL3Asics(), config);
 
-    if (checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB ||
+        checkSameAndGetAsicType(config) == cfg::AsicType::ASIC_TYPE_CHENAB2) {
       FLAGS_num_packets_to_trigger_pfc = 2000;
       FLAGS_setup_for_warmboot = false;
     }
@@ -403,9 +407,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
   void setupPfcDurationCounters(
       cfg::SwitchConfig& cfg,
       const std::vector<PortID>& portIds,
-      bool rxPfcDurationEnabled) {
-    // Either RX or TX direction is enabled based on production feature to
-    // ensure we can test these separately.
+      bool rxPfcDurationEnabled,
+      bool txPfcDurationEnabled) {
     auto getPfcEnabledPortCfg = [&](const PortID& portId) {
       auto portCfg = std::find_if(
           cfg.ports()->begin(), cfg.ports()->end(), [&portId](auto& port) {
@@ -420,7 +423,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
       if (rxPfcDurationEnabled) {
         portCfg->pfc()->rxPfcDurationEnable() = true;
         XLOG(DBG0) << "Enabled PFC RX duration counter for port ID " << portId;
-      } else {
+      }
+      if (txPfcDurationEnabled) {
         portCfg->pfc()->txPfcDurationEnable() = true;
         XLOG(DBG0) << "Enabled PFC TX duration counter for port ID " << portId;
       }
@@ -474,9 +478,11 @@ class AgentTrafficPfcTest : public AgentHwTest {
         if (isIngressCongestionDiscardsSupported) {
           EXPECT_EVENTUALLY_GT(ingressCongestionDiscards, 0);
 
-          // In packet counters not supported in EDB loopback on TH5.
-          if (checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig()) !=
-              facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5) {
+          // In packet counters not supported in EDB loopback on TH5 and TH6.
+          auto asicType =
+              checkSameAndGetAsicType(getAgentEnsemble()->getCurrentConfig());
+          if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+              asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
             // Ingress congestion discards should be less than
             // the total packets received on this port.
             uint64_t inPackets = *portStats.inUnicastPkts_() +
@@ -535,10 +541,10 @@ class AgentTrafficPfcTest : public AgentHwTest {
             vlan,
             srcMac,
             intfMac,
-            folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
+            folly::IPAddressV6(kTestSrcIpV6),
             ips[j],
-            8000,
-            8001,
+            kTestSrcPort,
+            kTestDstPort,
             dscp << 2, // dscp is last 6 bits in TC
             255,
             std::vector<uint8_t>(2000, 0xff));
@@ -547,7 +553,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
         // set to losslessPriority (2).
 
         auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB &&
+        if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB &&
             vlan.has_value()) {
           // If we want to use a provided vlan ID, we need to send packets out
           // switched, so that they egress out of the correct traffic class.
@@ -610,7 +616,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
       utility::setupMultipleEgressPoolAndQueueConfigs(
           cfg, kLosslessPgIds, asic->getMMUSizeBytes());
     }
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       // For YUBA, lossless queues needs to be configured with static
       // queue limit equal to the MMU size to ensure its lossless.
       for (auto& queueConfigs : *cfg.portQueueConfigs()) {
@@ -818,7 +825,38 @@ TEST_F(AgentTrafficPfcTxDurationTest, verifyPfcTxDuration) {
   auto cfg =
       getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
   std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
-  setupPfcDurationCounters(cfg, portIds, false /*rxPfcDurationEnabled*/);
+  setupPfcDurationCounters(
+      cfg,
+      portIds,
+      false /*rxPfcDurationEnabled*/,
+      true /*txPfcDurationEnabled*/);
+  runPfcTestWithCfg(
+      cfg,
+      kLosslessTrafficClass,
+      kLosslessPriority,
+      param,
+      validatePfcDurationCounters);
+}
+
+class AgentTrafficPfcRxTxDurationTest : public AgentTrafficPfcTest {
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {ProductionFeature::PFC_RX_TX_DURATION};
+  }
+};
+
+TEST_F(AgentTrafficPfcRxTxDurationTest, verifyPfcRxTxDuration) {
+  TrafficTestParams param{
+      .buffer = defaultPfcBufferParams(),
+  };
+  auto cfg =
+      getPfcTestConfig(kLosslessTrafficClass, kLosslessPriority, {}, param);
+  std::vector<PortID> portIds = portIdsForTest(false /*scale*/);
+  setupPfcDurationCounters(
+      cfg,
+      portIds,
+      true /*rxPfcDurationEnabled*/,
+      true /*txPfcDurationEnabled*/);
   runPfcTestWithCfg(
       cfg,
       kLosslessTrafficClass,
@@ -855,7 +893,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       cfg::SwitchConfig& cfg,
       const PortID& portId,
       const VlanID& vlanId) {
-    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB2) {
       return;
     }
     // For Chenab, we need to create a VLAN so that packets that are switched
@@ -931,18 +970,23 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
           pfcWatchdog.recoveryTimeMsecs() = 1000;
           pfcWatchdog.detectionTimeMsecs() = 198;
           break;
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
         case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+        case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
           pfcWatchdog.recoveryTimeMsecs() = 100;
           pfcWatchdog.detectionTimeMsecs() = 10;
           break;
         case cfg::AsicType::ASIC_TYPE_CHENAB:
+        case cfg::AsicType::ASIC_TYPE_CHENAB2:
           // The Chenab ASIC requires recovery time>=200 and detection
           // time>=200.
           pfcWatchdog.recoveryTimeMsecs() = 1000;
           pfcWatchdog.detectionTimeMsecs() = 200;
           break;
         case cfg::AsicType::ASIC_TYPE_YUBA:
+        case cfg::AsicType::ASIC_TYPE_G202X:
           pfcWatchdog.recoveryTimeMsecs() = 100;
           pfcWatchdog.detectionTimeMsecs() = 25;
           break;
@@ -997,7 +1041,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
       auto txPfcCtrOld = folly::get_default(
           *getLatestPortStats(port).outPfc_(), kLosslessPriority, 0);
       // pass vlan id for chenab to trigger deadlock detection
-      auto vlanId = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB
+      auto vlanId =
+          asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB
           ? std::make_optional<VlanID>(kTxForVlanForChenab)
           : getVlanIDForTx();
       pumpTraffic(
@@ -1205,9 +1250,9 @@ TEST_F(AgentTrafficPfcWatchdogTest, PfcWatchdogReset) {
         portId, deadlockCtrBefore, recoveryCtrBefore);
     // Stop PFC trigger
     cleanupPfcDeadlockDetectionTrigger(txOffPortId);
+    waitForPfcDeadlocksToSettle(portId);
     // Reset watchdog
     setupWatchdog({portId}, false /* disable */);
-    waitForPfcDeadlocksToSettle(portId);
   };
 
   auto verify = [&]() {

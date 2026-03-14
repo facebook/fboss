@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/hw/switch_asics/Chenab2Asic.h"
 #include "fboss/agent/hw/switch_asics/ChenabAsic.h"
 #include "fboss/agent/hw/switch_asics/EbroAsic.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -29,6 +30,7 @@
 #include <vector>
 
 DECLARE_bool(nodeZ);
+DECLARE_bool(hyper_port);
 
 namespace facebook::fboss {
 class PortMap;
@@ -155,6 +157,15 @@ cfg::SwitchConfig onePortPerInterfaceConfig(
     const std::optional<PlatformType> platformType = std::nullopt,
     const std::optional<cfg::InterfaceType>& intfType = std::nullopt);
 
+// Simplified overload with platformType in a convenient position
+cfg::SwitchConfig onePortPerInterfaceConfig(
+    const PlatformMapping* platformMapping,
+    const HwAsic* asic,
+    const std::vector<PortID>& ports,
+    bool supportsAddRemovePort,
+    const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
+    PlatformType platformType);
+
 cfg::SwitchConfig onePortPerInterfaceConfig(
     const TestEnsembleIf* ensemble,
     const std::vector<PortID>& ports,
@@ -174,7 +185,8 @@ cfg::SwitchConfig oneL3IntfTwoPortConfig(
     PortID port2,
     bool supportsAddRemovePort,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap =
-        kDefaultLoopbackMap());
+        kDefaultLoopbackMap(),
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig oneL3IntfNPortConfig(
     const PlatformMapping* platformMapping,
@@ -186,7 +198,8 @@ cfg::SwitchConfig oneL3IntfNPortConfig(
     bool interfaceHasSubnet = true,
     int baseVlanId = kBaseVlanId,
     bool optimizePortProfile = true,
-    bool setInterfaceMac = true);
+    bool setInterfaceMac = true,
+    const std::optional<PlatformType> platformType = std::nullopt);
 
 cfg::SwitchConfig multiplePortsPerIntfConfig(
     const PlatformMapping* platformMapping,
@@ -228,6 +241,12 @@ void populateSwitchInfo(
     const std::map<SwitchID, cfg::SwitchInfo>& switchIdToSwitchInfo,
     const std::map<SwitchID, const HwAsic*>& hwAsicTable,
     const std::optional<PlatformType> platformType = std::nullopt);
+
+cfg::SwitchInfo generateSwitchInfo(
+    SwitchID switchId,
+    const cfg::Range64& portIdRange,
+    const std::string& connectionHandle,
+    const HwAsic* asic);
 
 cfg::SwitchConfig twoL3IntfConfig(
     SwSwitch* swSwitch,

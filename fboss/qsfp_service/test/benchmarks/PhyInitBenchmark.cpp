@@ -25,7 +25,7 @@ BENCHMARK(PhyInitAllColdBoot) {
   if (FLAGS_port_manager_mode) {
     portMgr->initExternalPhyMap();
   } else {
-    wedgeMgr->initExternalPhyMap();
+    wedgeMgr->initExternalPhyMap(wedgeMgr->getPhyManager());
   }
 }
 
@@ -39,7 +39,7 @@ BENCHMARK(PhyInitAllWarmBoot) {
   if (FLAGS_port_manager_mode) {
     portMgr->initExternalPhyMap();
   } else {
-    wedgeMgr->initExternalPhyMap();
+    wedgeMgr->initExternalPhyMap(wedgeMgr->getPhyManager());
   }
 }
 

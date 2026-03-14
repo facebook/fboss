@@ -32,6 +32,9 @@ TEST(PlatformNameLibTest, NameFromBios) {
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
       .WillOnce(Return(std::pair{0, "MINIPACK3_MCB"}));
   EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MONTBLANC");
+  EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
+      .WillOnce(Return(std::pair{0, "MINIPACK3BTA"}));
+  EXPECT_EQ(platformNameLib.getPlatformNameFromBios(), "MINIPACK3BA");
   // MERU variants
   EXPECT_CALL(*platformUtils, execCommand(PlatformNameLib::dmidecodeCommand))
       .WillOnce(Return(std::pair{0, "MERU800BIAB"}));

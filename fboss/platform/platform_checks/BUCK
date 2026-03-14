@@ -37,12 +37,14 @@ cpp_library(
         "checks/MacAddressCheck.cpp",
         "checks/PciDeviceCheck.cpp",
         "checks/PowerResetCheck.cpp",
+        "checks/i801SmbusTimeoutCheck.cpp",
     ],
     headers = [
         "checks/KernelVersionCheck.h",
         "checks/MacAddressCheck.h",
         "checks/PciDeviceCheck.h",
         "checks/PowerResetCheck.h",
+        "checks/i801SmbusTimeoutCheck.h",
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
@@ -103,5 +105,18 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":platform_checks",
+    ],
+)
+
+cpp_unittest(
+    name = "i801_smbus_timeout_check_test",
+    srcs = [
+        "tests/i801SmbusTimeoutCheckTest.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/googletest:gmock",
+        ":platform_checks",
+        "//fboss/platform/helpers:mock_platform_fs_utils",
+        "//fboss/platform/helpers:mock_platform_utils",
     ],
 )

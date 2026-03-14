@@ -6,6 +6,10 @@ namespace py3 neteng.fboss.platform.sensor_config
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_config
 
 include "thrift/annotation/hack.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // `SensorType` :  SensorType represents the type of sensor being measured.
 //  For Power, should be Watt (W)
@@ -14,6 +18,7 @@ include "thrift/annotation/hack.thrift"
 //  For Temperature, should be celsius (C)
 //  For Fan, should be RPM
 //  For PWM, should be Percent(%)
+//  For Status, should be Boolean
 @hack.Attributes{
   attributes = [
     "Oncalls('fboss_platform')",
@@ -27,9 +32,10 @@ enum SensorType {
   POWER = 0,
   VOLTAGE = 1,
   CURRENT = 2,
-  TEMPERTURE = 3,
+  TEMPERATURE = 3,
   FAN = 4,
   PWM = 5,
+  STATUS = 6,
 }
 
 // `Threshold`: defined the various threshold below for various sensors

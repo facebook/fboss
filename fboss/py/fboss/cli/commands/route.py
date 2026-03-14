@@ -14,12 +14,12 @@ import ipaddress
 import typing as t
 from contextlib import ExitStack
 
-from facebook.network.Address.ttypes import Address, AddressType, BinaryAddress
+from facebook.network.Address.thrift_types import Address, AddressType, BinaryAddress
 from fboss.cli.commands import commands as cmds
 from fboss.cli.utils import utils
-from neteng.fboss.common.ttypes import NextHopThrift
-from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
-from thrift.transport.TTransport import TTransportException
+from neteng.fboss.common.thrift_types import NextHopThrift
+from neteng.fboss.ctrl.thrift_types import IpPrefix, UnicastRoute
+from thrift.python.exceptions import TransportError
 
 
 def printRouteDetailEntry(entry, vlan_aggregate_port_map, vlan_port_map):
@@ -159,7 +159,7 @@ class RouteIpCmd(cmds.FbossCmd):
             client = stack.enter_context(self._create_agent_client())
             try:
                 qsfp_client = stack.enter_context(self._create_qsfp_client())
-            except TTransportException:
+            except TransportError:
                 qsfp_client = None
             # Getting the port/agg to VLAN map in order to display them
             vlan_port_map = utils.get_vlan_port_map(
@@ -177,7 +177,7 @@ class RouteTableCmd(cmds.FbossCmd):
             agent_client = stack.enter_context(self._create_agent_client())
             try:
                 qsfp_client = stack.enter_context(self._create_qsfp_client())
-            except TTransportException:
+            except TransportError:
                 qsfp_client = None
             if client_id is None:
                 resp = agent_client.getRouteTable()
@@ -274,7 +274,7 @@ class RouteTableDetailsCmd(cmds.FbossCmd):
             client = stack.enter_context(self._create_agent_client())
             try:
                 qsfp_client = stack.enter_context(self._create_qsfp_client())
-            except TTransportException:
+            except TransportError:
                 qsfp_client = None
             vlan_port_map = utils.get_vlan_port_map(
                 client, qsfp_client, colors=False, details=False

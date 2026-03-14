@@ -23,4 +23,13 @@ SaiTxPacketTraits::Attributes::AttributePacketType::operator()() {
 #endif
 }
 
+std::optional<sai_attr_id_t>
+SaiRxPacketTraits::Attributes::AttributePacketType::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  return SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE;
+#else
+  return std::nullopt;
+#endif
+}
+
 } // namespace facebook::fboss

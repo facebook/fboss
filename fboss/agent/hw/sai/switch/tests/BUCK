@@ -55,6 +55,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "hash_manager_test",
+    srcs = [
+        "HashManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "hostif_manager_test",
     srcs = [
         "HostifManagerTest.cpp",
@@ -170,6 +177,20 @@ switch_manager_unittest(
     name = "tunnel_manager_test",
     srcs = [
         "TunnelManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "srv6_tunnel_manager_test",
+    srcs = [
+        "Srv6TunnelManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "srv6_manager_test",
+    srcs = [
+        "Srv6ManagerTest.cpp",
     ],
 )
 

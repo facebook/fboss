@@ -115,7 +115,7 @@ void HwTest::SetUp() {
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-  HwSwitchEnsemble::HwSwitchEnsembleInitInfo initInfo;
+  TestEnsembleInitInfo initInfo;
   initInfo.overrideTransceiverInfo = overrideTransceiverInfo();
   // Set watermark stats update interval to 0 so we always refresh BST stats
   // in each updateStats call

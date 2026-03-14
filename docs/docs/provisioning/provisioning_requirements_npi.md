@@ -2,9 +2,9 @@
 
 ## PE Network Provisioning
 
-### Version 0.4.0
+### Version 0.4.1
 
-### October 2025
+### December 2025
 
 4-5 Grand Canal Quay
 
@@ -28,10 +28,10 @@ document are Must-Have (MH) and essential to the provisioning process.
 ## Goals
 
 1. **Define required features**: These features are supported by the device but
-    can often come disabled or misconfigured.
+   can often come disabled or misconfigured.
 
 2. **Define acceptance tests**: Specify a set of tests and features that should
-    work out-of-the-box for all devices.
+   work out-of-the-box for all devices.
 
 ### Table of Contents
 
@@ -42,18 +42,17 @@ document are Must-Have (MH) and essential to the provisioning process.
     - [Table of Contents](#table-of-contents)
   - [Required features](#required-features)
     - [1. DHCP Options](#1-dhcp-options)
-    - [2.  IPv6 Stateless Address Autoconfiguration Support](#2--ipv6-stateless-address-autoconfiguration-support)
+    - [2. IPv6 Stateless Address Autoconfiguration Support](#2--ipv6-stateless-address-autoconfiguration-support)
     - [3. SSH access capability](#3-ssh-access-capability)
     - [4. Console Auto Discovery](#4-console-auto-discovery)
     - [5. Bootloader](#5-bootloader)
     - [6. Boot sequence behavior](#6-boot-sequence-behavior)
     - [7. Weutil support](#7-weutil-support)
-    - [Output format](#output-format)
     - [8. Layer 2 Packet Forwarding](#8-layer-2-packet-forwarding)
-    - [9. wedge\_us\_mac.sh](#9-wedge_us_macsh)
-    - [10. wedge\_power.sh script](#10-wedge_powersh-script)
+    - [9. wedge_us_mac.sh](#9-wedge_us_macsh)
+    - [10. wedge_power.sh script](#10-wedge_powersh-script)
     - [11. Firmware upgrade support](#11-firmware-upgrade-support)
-    - [12.  Serial console speed](#12--serial-console-speed)
+    - [12. Serial console speed](#12--serial-console-speed)
   - [Provisioning Requirements Verification Delivery](#provisioning-requirements-verification-delivery)
 
 ## Required features
@@ -126,9 +125,9 @@ send dhcp6.linuxboot-id 40981 1 44 "OpenBMC:model=MINIPACK-SMB=serial=1234";
 ```
 
 ![DHCPv6 Option 17 Encoding Example](/img/provisioning/provisioning_requirements_npi/dhcp_v6.png)
-*DHCPv6 Option 17 Encoding Example*
+_DHCPv6 Option 17 Encoding Example_
 
-### 2.  IPv6 Stateless Address Autoconfiguration Support
+### 2. IPv6 Stateless Address Autoconfiguration Support
 
 #### Applies to: BMC
 
@@ -152,7 +151,8 @@ OpenBMC default credentials.
 
 ### 4. Console Auto Discovery
 
-> **Note:** Console Auto Discovery is handled by Meta internal service currently. No need to test at vendor site for now.
+> **Note:** Console Auto Discovery is handled by Meta internal service
+> currently. No need to test at vendor site for now.
 
 **Applies to: BMC**
 
@@ -230,10 +230,9 @@ Bootloader should have a networking stack with IPv6 support and should be able
 to support netboot from such a network. To netboot, devices should support TFTP
 and HTTP/HTTPS. Also, it’s important to implement DNS resolving support, so if a
 hostname is provided in the bootfile URL, the name servers returned by the DHCP
-request should be used to resolve this hostname into an IP.
-DHCPv6 implementation used to netboot should rely on DUID-LLT instead of
-DUID-EN, since we rely on the client's link-layer address present within the
-packet.
+request should be used to resolve this hostname into an IP. DHCPv6
+implementation used to netboot should rely on DUID-LLT instead of DUID-EN, since
+we rely on the client's link-layer address present within the packet.
 
 ### 6. Boot sequence behavior
 
@@ -312,8 +311,8 @@ Weutil **mandatory** fields:
 As an optional argument, the tool should be able to take a path (eeprom readout
 binary file) and parse/display the data as if it were reading the eeprom itself.
 
-JSON output support - provide `weutil --json` to produce both machine and
-human parsable output, like:
+JSON output support - provide `weutil --json` to produce both machine and human
+parsable output, like:
 
 ```json
 {
@@ -338,7 +337,7 @@ product’s life cycle.
 
 The device must support the link-layer discovery protocol (LLDP). Therefore, it
 needs to forward packets with a destination physical address of
-01:80:c2:00:00:0e  to all other ports instead of dropping them.
+01:80:c2:00:00:0e to all other ports instead of dropping them.
 
 Internal switch usually consists of an Ethernet IC like the BCM5389, which loads
 its configuration through an externally connected EEPROM. Option to support MAC
@@ -382,11 +381,12 @@ no arguments will retain the existing behavior and when invoked with
 **Applies to: BMC**
 
 One of the most important features the BMC is required to have on delivery is
-the correct power control script behavior which is defined in FBOSS [Meta Switch Architecture](/docs/architecture/meta_switch_architecture)
+the correct power control script behavior which is defined in FBOSS
+[Meta Switch Architecture](/docs/architecture/meta_switch_architecture)
 document, section I-3 System Control, subsection Power.
 
 It is expected that the wedge_power.sh off command takes no more than 30
-seconds, and wedge_power.sh on and reset take no more than 10.
+seconds, and wedge_power.sh on and reset take no more than 15 seconds.
 
 ### 11. Firmware upgrade support
 
@@ -428,7 +428,7 @@ failing a staged future write.
 We **require** the **ability to downgrade** the firmware versions, so a rollback
 is possible in case of a bad/buggy firmware release.
 
-### 12.  Serial console speed
+### 12. Serial console speed
 
 BMC serial console is always 9600 bps, 8-N-1 as this is a fleetwide standard.
 
@@ -436,28 +436,34 @@ For compatibility reasons, serial output for both BIOS and OS on the x86 must
 match the same speed - 57600 bps 8-N-1 (therefore, terminal implementation on
 the BMC must support this).
 
-For further information, please refer to [Meta Switch Architecture](/docs/architecture/meta_switch_architecture)
-document section I-5 Console Connection.
+For further information, please refer to
+[Meta Switch Architecture](/docs/architecture/meta_switch_architecture) document
+section I-5 Console Connection.
 
 ## Provisioning Requirements Verification Delivery
 
-All the features in this requirement must be tested by ODM/JDM vendors either manually or with automated tests, before exit each development phase, e.g. EVT, DVT, PVT and any related BOM changes.
+All the features in this requirement must be tested by ODM/JDM vendors either
+manually or with automated tests, before exit each development phase, e.g. EVT,
+DVT, PVT and any related BOM changes.
 
-As a mandatory deliverable, vendors should provide the google sheet formatted as below, either as a standalone sheet or a tab of the test verification sheet. Each test result checked as “Done” should have proof with either links of screenshot, automated testing output, log file, or video clip. The format example of the sheet:
+As a mandatory deliverable, vendors should provide the google sheet formatted as
+below, either as a standalone sheet or a tab of the test verification sheet.
+Each test result checked as “Done” should have proof with either links of
+screenshot, automated testing output, log file, or video clip. The format
+example of the sheet:
 
-
-|            |              |                                                  |             |                                                                                                                                         |                                                                                                                                                                 |                                           |       |                          |               |            |
-| :--------: | :----------: | :----------------------------------------------: | :---------: | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------: | :---: | :----------------------: | :-----------: | :--------: |
-| Feature ID |     Owner    |                   Feature Name                   | SW Platform |                                                               Description (Link)                                                        |                                                                            Test Cases                                                                           | link of screen capture, log or video |  Done | Vendor POC - Approval-by | Approval Date | DEPENDENCY |
-|     PF1    | Provisioning |                   DHCP Options                   |     BMC     |                    <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#1-dhcp-options>                   |                                          Check DHCP packets and make sure the all the required options are implemented                                          |                                      | []    |                          |               |   |
-|     PF2    | Provisioning | IPv6 Stateless Address Autoconfiguration Support |     BMC     | <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#2--ipv6-stateless-address-autoconfiguration-support> |                                                Check stateless address autoconfiguration compliance with RFC 4862                                               |                                      | []    |                          |               |   |
-|     PF3    | Provisioning |               SSH access capability              |     BMC     |               <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#3-ssh-access-capability>               |                                                        SSH daemon listen on port 22 and accept SSH login                                                        |                                      | []    |                          |               |   |
-|     ~~PF4~~    | ~~Provisioning~~ |              ~~Console Auto Discovery~~              |    ~~BMC~~     |               <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#4-console-auto-discovery>              |                                               Verify special "serfmon" string with options print to serial console. Note: Console Auto Discovery is handled by Meta internal service currently. Skip this test at vendor site until futher notice                                              |                                      | []    |                          |               |   |
-|     PF5    | Provisioning |                    Bootloader                    | x86 and BMC |                     <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#5-bootloader>                    |    BMC: check serial console speed as 9600bps, 8-N-1 and no flow control x86: verify IPv6 based TFTP and HTTP/HTTPS support. verify netboot rely on DUID-LLT    |                                      | []    |                          |               |   |
-|     PF6    | Provisioning |              Boot sequence behavior              |     x86     |               <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#6-boot-sequence-behavior>              |                                                   Verify boot sequence order as PXE -> SSD/Flash -> USB drive                                                   |                                      | []    |                          |               |   |
-|     PF7    | Provisioning |                  Weutil support                  | x86 and BMC |                   <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#7-weutil-support>                  | BMC: verify weutil read and print chassis EEPROM in required format x86: verify weutil read and print all FRU EEPROM info in required format, including chassis |                                      | []    |                          |               |   |
-|     PF8    | Provisioning |             Layer 2 Packet Forwarding            | x86 and BMC |             <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#8-layer-2-packet-forwarding>             |                                                                 Verify LLDP and lldp-util works                                                                 |                                      | []    |                          |               |   |
-|     PF9    | Provisioning |              wedge\_us\_mac.sh ready             |     BMC     |                   <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#9-wedge_us_macsh>                  |                                                          Run commands on BMC, and print the MAC of x86                                                          |                                      | []    |                          |               |   |
-|    PF10    | Provisioning |           wedge\_power.sh script ready           |     BMC     |               <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#10-wedge_powersh-script>               |            Verify the wedge_power.sh works as required, no more than 30s for "off", no more than 10s for "on" and "reset"                                       |                                      | []    |                          |               |   |
-|    PF11    | Provisioning |             Firmware upgrade support             |     x86     |             <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#11-firmware-upgrade-support>             |                                                      For all firmwares, verify upgrade and downgrade works                                                      |                                      | []    |                          |               |   |
-|    PF12    | Provisioning |               Serial console speed               | x86 and BMC |             <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#11-firmware-upgrade-support>             |                                                   x86: verify serial for both BIOS and OS is 57600bps, 8-N-1                                                    |                                      | []    |                          |               |   |
+|            |                  |                                                  |             |                                                                                                                                         |                                                                                                                                                                                                     |                                      |      |                          |               |            |
+| :--------: | :--------------: | :----------------------------------------------: | :---------: | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------: | :--: | :----------------------: | :-----------: | :--------: |
+| Feature ID |      Owner       |                   Feature Name                   | SW Platform |                                                           Description (Link)                                                            |                                                                                             Test Cases                                                                                              | link of screen capture, log or video | Done | Vendor POC - Approval-by | Approval Date | DEPENDENCY |
+|    PF1     |   Provisioning   |                   DHCP Options                   |     BMC     |                   <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#1-dhcp-options>                    |                                                            Check DHCP packets and make sure the all the required options are implemented                                                            |                                      |  []  |                          |               |            |
+|    PF2     |   Provisioning   | IPv6 Stateless Address Autoconfiguration Support |     BMC     | <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#2--ipv6-stateless-address-autoconfiguration-support> |                                                                 Check stateless address autoconfiguration compliance with RFC 4862                                                                  |                                      |  []  |                          |               |            |
+|    PF3     |   Provisioning   |              SSH access capability               |     BMC     |               <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#3-ssh-access-capability>               |                                                                          SSH daemon listen on port 22 and accept SSH login                                                                          |                                      |  []  |                          |               |            |
+|  ~~PF4~~   | ~~Provisioning~~ |            ~~Console Auto Discovery~~            |   ~~BMC~~   |              <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#4-console-auto-discovery>               | Verify special "serfmon" string with options print to serial console. Note: Console Auto Discovery is handled by Meta internal service currently. Skip this test at vendor site until futher notice |                                      |  []  |                          |               |            |
+|    PF5     |   Provisioning   |                    Bootloader                    | x86 and BMC |                    <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#5-bootloader>                     |                      BMC: check serial console speed as 9600bps, 8-N-1 and no flow control x86: verify IPv6 based TFTP and HTTP/HTTPS support. verify netboot rely on DUID-LLT                      |                                      |  []  |                          |               |            |
+|    PF6     |   Provisioning   |              Boot sequence behavior              |     x86     |              <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#6-boot-sequence-behavior>               |                                                                     Verify boot sequence order as PXE -> SSD/Flash -> USB drive                                                                     |                                      |  []  |                          |               |            |
+|    PF7     |   Provisioning   |                  Weutil support                  | x86 and BMC |                  <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#7-weutil-support>                   |                   BMC: verify weutil read and print chassis EEPROM in required format x86: verify weutil read and print all FRU EEPROM info in required format, including chassis                   |                                      |  []  |                          |               |            |
+|    PF8     |   Provisioning   |            Layer 2 Packet Forwarding             | x86 and BMC |             <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#8-layer-2-packet-forwarding>             |                                                                                  Verify LLDP and lldp-util works                                                                                    |                                      |  []  |                          |               |            |
+|    PF9     |   Provisioning   |              wedge_us_mac.sh ready               |     BMC     |                  <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#9-wedge_us_macsh>                   |                                                                            Run commands on BMC, and print the MAC of x86                                                                            |                                      |  []  |                          |               |            |
+|    PF10    |   Provisioning   |           wedge_power.sh script ready            |     BMC     |               <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#10-wedge_powersh-script>               |                                           Verify the wedge_power.sh works as required, no more than 30s for "off", no more than 15s for "on" and "reset"                                            |                                      |  []  |                          |               |            |
+|    PF11    |   Provisioning   |             Firmware upgrade support             |     x86     |             <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#11-firmware-upgrade-support>             |                                                                        For all firmwares, verify upgrade and downgrade works                                                                        |                                      |  []  |                          |               |            |
+|    PF12    |   Provisioning   |               Serial console speed               | x86 and BMC |             <https://facebook.github.io/fboss/docs/provisioning/provisioning_requirements_npi/#11-firmware-upgrade-support>             |                                                                     x86: verify serial for both BIOS and OS is 57600bps, 8-N-1                                                                      |                                      |  []  |                          |               |            |

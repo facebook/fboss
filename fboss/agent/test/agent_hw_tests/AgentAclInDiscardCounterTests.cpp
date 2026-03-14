@@ -43,7 +43,7 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
     });
   };
   auto verify = [=, this]() {
-    auto port = masterLogicalInterfacePortIds()[1];
+    auto port = masterLogicalInterfaceOrHyperPortIds()[1];
     auto portStatsBefore = getLatestPortStats(port);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
@@ -85,9 +85,10 @@ TEST_F(AgentAclInDiscardsCounterTest, aclInDiscards) {
         *portStatsBefore.inAclDiscards_() + 1);
     // Assert that other ports did not see any in discard
     // counter increment
-    auto allPortStats = getLatestPortStats(masterLogicalInterfacePortIds());
+    auto allPortStats =
+        getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
     for (const auto& [otherPort, otherPortStats] : allPortStats) {
-      if (otherPort == masterLogicalInterfacePortIds()[1]) {
+      if (otherPort == masterLogicalInterfaceOrHyperPortIds()[1]) {
         continue;
       }
       EXPECT_EQ(*otherPortStats.inDiscards_(), 0);

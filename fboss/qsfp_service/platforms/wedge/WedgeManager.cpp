@@ -4,7 +4,9 @@
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/fsdb/common/Flags.h"
+#include "fboss/lib/CommonFileUtils.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"
@@ -24,14 +26,13 @@
 #include <chrono>
 
 DEFINE_bool(
-    override_program_iphy_ports_for_test,
-    false,
-    "Override wedge_agent programInternalPhyPorts(). For test only");
-
-DEFINE_bool(
     optics_data_post_to_rest,
     false,
     "Enable qsfp_service to post optics thermal data to BMC");
+
+// @nolint(facebook-hte-PreventUseOfDeclareGflag) - Flag defined in
+// QsfpConfig.cpp
+DECLARE_string(qsfp_service_volatile_dir);
 
 namespace facebook {
 namespace fboss {
@@ -59,9 +60,8 @@ WedgeManager::WedgeManager(
     std::unique_ptr<TransceiverPlatformApi> api,
     const std::shared_ptr<const PlatformMapping> platformMapping,
     PlatformType type,
-    const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-        threads)
-    : TransceiverManager(std::move(api), platformMapping, threads),
+    const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads)
+    : TransceiverManager(std::move(api), platformMapping, qsfpServiceThreads),
       platformType_(type) {
   /* Constructor for WedgeManager class:
    * Get the TransceiverPlatformApi object from the creator of this object,
@@ -90,6 +90,8 @@ void WedgeManager::loadConfig() {
   const auto& qsfpCfg = qsfpConfig_->thrift;
   tcvrConfig_ = std::make_shared<TransceiverConfig>(
       *qsfpCfg.transceiverConfigOverrides());
+
+  qsfpConfig_->writePhyConfigToFile();
 
   if (FLAGS_publish_state_to_fsdb) {
     fsdbSyncManager_->updateConfig(qsfpCfg);
@@ -748,19 +750,19 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
                 getPortNames(tcvrID), qsfpImpls_[idx].get(), tcvrName));
         retVal.emplace_back(idx);
       } else {
-        XLOG(ERR) << "Unknown Transceiver interface: "
-                  << static_cast<int>(futInterfaces[idx].value())
-                  << " for TransceiverID=" << idx;
-
         try {
           if (!qsfpImpls_[idx]->detectTransceiver()) {
-            XLOG(DBG3) << "Transceiver is not present. TransceiverID=" << idx;
+            XLOG(INFO) << "Transceiver is not present. TransceiverID=" << idx;
             continue;
           } else {
             // If we fail to read the management interface, but the module is
             // detected, mark it as errored
             auto erroredTransceivers = erroredTransceivers_.wlock();
             erroredTransceivers->insert(TransceiverID(idx));
+            XLOG(ERR)
+                << "Transceiver " << idx
+                << " is detected but has an unknown Transceiver interface: "
+                << static_cast<int>(futInterfaces[idx].value());
           }
         } catch (const std::exception& ex) {
           XLOG(ERR) << "Failed to detect transceiver. TransceiverID=" << idx
@@ -1005,15 +1007,24 @@ void WedgeManager::programXphyPort(
       portId, portProfileId, itTcvr, false /* needResetDataPath */);
 }
 
-bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
-  if (FLAGS_port_manager_mode) {
-    PORT_MGR_SKIP_LOG("initExternalPhyMap");
+bool WedgeManager::initExternalPhyMap(
+    PhyManager* phyManager,
+    bool forceWarmboot) {
+  if (!phyManager) {
+    // If there's no PhyManager for such platform, skip init xphy map
     return true;
   }
 
-  if (!phyManager_) {
-    // If there's no PhyManager for such platform, skip init xphy map
-    return true;
+  // For platforms that require PHY config, fail hard if the phy config file doesn't exist.
+  if (requiresPhyConfig()) {
+    auto phyConfigPath = folly::to<std::string>(
+        FLAGS_qsfp_service_volatile_dir, "/", kPhyHwConfigFileName);
+    if (!checkFileExists(phyConfigPath)) {
+      throw FbossError(
+          "Platform requires PHY config but phy config file does not exist: ",
+          phyConfigPath,
+          ". Ensure 'phyConfig' is present in qsfp_service_config.");
+    }
   }
 
   // forceWarmboot is only used to skip checking the warmboot file
@@ -1021,7 +1032,7 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
   bool warmboot = forceWarmboot || canWarmBoot();
 
   // First call PhyManager::initExternalPhyMap() to create xphy map
-  auto rb = phyManager_->initExternalPhyMap(warmboot);
+  auto rb = phyManager->initExternalPhyMap(warmboot);
   // TODO(ccpowers): We could probably clean this up a bit to separate out the
   // warmboot file logic and the phy init logic, to make it easier to
   // init phys from external CLIs
@@ -1033,12 +1044,12 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
 
   // Check if using XPHY_LEVEL threading model
   bool useXphyLevelThreading =
-      (phyManager_->getXphyThreadingModel() ==
+      (phyManager->getXphyThreadingModel() ==
        PhyManager::XphyThreadingModel::XPHY_LEVEL);
 
-  for (int pimIndex = 0; pimIndex < phyManager_->getNumOfSlot(); ++pimIndex) {
-    auto pimID = PimID(pimIndex + phyManager_->getPimStartNum());
-    if (!phyManager_->shouldInitializePimXphy(pimID)) {
+  for (int pimIndex = 0; pimIndex < phyManager->getNumOfSlot(); ++pimIndex) {
+    auto pimID = PimID(pimIndex + phyManager->getPimStartNum());
+    if (!phyManager->shouldInitializePimXphy(pimID)) {
       XLOG(WARN) << "Skip intializing pim xphy for pim="
                  << static_cast<int>(pimID);
       continue;
@@ -1051,13 +1062,13 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
                  << " with per-xphy threading";
 
       // Get all xphys for this PIM and initialize each on its own thread
-      auto xphyIDs = phyManager_->getXphyIDsForPim(pimID);
+      auto xphyIDs = phyManager->getXphyIDsForPim(pimID);
       for (auto xphyID : xphyIDs) {
-        auto* xphyEventBase = phyManager_->getXphyEventBase(xphyID);
+        auto* xphyEventBase = phyManager->getXphyEventBase(xphyID);
         initPimTasks.push_back(
             folly::via(xphyEventBase)
-                .thenValue([&, xphyID, warmboot](auto&&) {
-                  phyManager_->initializeXphy(xphyID, warmboot);
+                .thenValue([phyManager, xphyID, warmboot](auto&&) {
+                  phyManager->initializeXphy(xphyID, warmboot);
                 })
                 .thenError(
                     folly::tag_t<std::exception>{},
@@ -1071,11 +1082,11 @@ bool WedgeManager::initExternalPhyMap(bool forceWarmboot) {
       // PIM-level initialization (legacy behavior)
       XLOG(DBG1) << "[" << (warmboot ? "WARM" : "COLD")
                  << " Boot] Initializing PIM " << static_cast<int>(pimID);
-      auto* pimEventBase = phyManager_->getPimEventBase(pimID);
+      auto* pimEventBase = phyManager->getPimEventBase(pimID);
       initPimTasks.push_back(
           folly::via(pimEventBase)
-              .thenValue([&, pimID, warmboot](auto&&) {
-                phyManager_->initializeSlotPhys(pimID, warmboot);
+              .thenValue([phyManager, pimID, warmboot](auto&&) {
+                phyManager->initializeSlotPhys(pimID, warmboot);
               })
               .thenError(
                   folly::tag_t<std::exception>{},
@@ -1221,7 +1232,7 @@ void WedgeManager::publishPortStatToFsdb(
 void WedgeManager::publishPortStateToFsdb(
     std::string&& portName,
     portstate::PortState&& state) const {
-  if (FLAGS_publish_stats_to_fsdb) {
+  if (FLAGS_publish_state_to_fsdb) {
     fsdbSyncManager_->updatePortState(std::move(portName), std::move(state));
   }
 }

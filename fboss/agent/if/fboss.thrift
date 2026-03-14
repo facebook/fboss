@@ -8,6 +8,9 @@ namespace py.asyncio neteng.asyncio.fboss
 
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @thrift.DeprecatedUnvalidatedAnnotations{items = {"cpp.virtual": "1"}}
 exception FbossBaseError {
   @thrift.ExceptionMessage

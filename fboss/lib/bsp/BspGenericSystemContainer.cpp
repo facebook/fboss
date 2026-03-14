@@ -3,6 +3,7 @@
 #include "fboss/lib/bsp/BspGenericSystemContainer.h"
 #include <folly/FileUtil.h>
 #include <folly/Singleton.h>
+#include "fboss/lib/bsp/icecube800banw/Icecube800banwBspPlatformMapping.h"
 #include "fboss/lib/bsp/icecube800bc/Icecube800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
@@ -12,12 +13,14 @@
 #include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
+#include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3n/Minipack3NBspPlatformMapping.h"
 #include "fboss/lib/bsp/montblanc/MontblancBspPlatformMapping.h"
 #include "fboss/lib/bsp/morgan800cc/Morgan800ccBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahan800bc/Tahan800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/tahansb800bc/Tahansb800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/wedge800bact/Wedge800BACTBspPlatformMapping.h"
+#include "fboss/lib/bsp/wedge800cact/Wedge800CACTBspPlatformMapping.h"
 
 DEFINE_string(
     bsp_platform_mapping_override_path,
@@ -103,6 +106,15 @@ MontblancSystemContainer::getInstance() {
   return _montblancSystemContainer.try_get();
 }
 
+using Minipack3BTASystemContainer =
+    BspGenericSystemContainer<Minipack3BTABspPlatformMapping>;
+folly::Singleton<Minipack3BTASystemContainer> _minipack3btaSystemContainer;
+template <>
+std::shared_ptr<Minipack3BTASystemContainer>
+Minipack3BTASystemContainer::getInstance() {
+  return _minipack3btaSystemContainer.try_get();
+}
+
 using Minipack3NSystemContainer =
     BspGenericSystemContainer<Minipack3NBspPlatformMapping>;
 folly::Singleton<Minipack3NSystemContainer> _minipack3NSystemContainer;
@@ -175,6 +187,15 @@ Wedge800BACTSystemContainer::getInstance() {
   return _wedge800bactSystemContainer.try_get();
 }
 
+using Wedge800CACTSystemContainer =
+    BspGenericSystemContainer<Wedge800CACTBspPlatformMapping>;
+folly::Singleton<Wedge800CACTSystemContainer> _wedge800cactSystemContainer;
+template <>
+std::shared_ptr<Wedge800CACTSystemContainer>
+Wedge800CACTSystemContainer::getInstance() {
+  return _wedge800cactSystemContainer.try_get();
+}
+
 using Ladakh800bclsSystemContainer =
     BspGenericSystemContainer<Ladakh800bclsBspPlatformMapping>;
 folly::Singleton<Ladakh800bclsSystemContainer> _Ladakh800bclsSystemContainer;
@@ -182,6 +203,15 @@ template <>
 std::shared_ptr<Ladakh800bclsSystemContainer>
 Ladakh800bclsSystemContainer::getInstance() {
   return _Ladakh800bclsSystemContainer.try_get();
+}
+
+using Icecube800banwSystemContainer =
+    BspGenericSystemContainer<Icecube800banwBspPlatformMapping>;
+folly::Singleton<Icecube800banwSystemContainer> _icecube800banwSystemContainer;
+template <>
+std::shared_ptr<Icecube800banwSystemContainer>
+Icecube800banwSystemContainer::getInstance() {
+  return _icecube800banwSystemContainer.try_get();
 }
 
 } // namespace fboss

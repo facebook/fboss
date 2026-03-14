@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/sai/api/PortApi.h"
+#include "fboss/agent/hw/sai/api/SaiApiError.h"
 #include "fboss/agent/hw/sai/api/SaiObjectApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
@@ -92,6 +93,10 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -157,6 +162,9 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // RxInstgEnableScan
         std::nullopt, // RxFfeLengthBitmap
         std::nullopt, // RxFfeLmsDynamicGatingEn
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+        std::nullopt, // CustomCollection
+#endif
     };
     return portApi->create<SaiPortSerdesTraits>(a, 0 /*switch id*/);
   }
@@ -559,4 +567,128 @@ TEST_F(PortApiTest, getFabricReachability) {
       id, SaiPortTraits::Attributes::FabricReachability{reachability});
   EXPECT_EQ(reachabilityGot.switch_id, switchId);
   EXPECT_TRUE(reachabilityGot.reachable);
+}
+
+TEST_F(PortApiTest, getQosEgressBufferProfileListPresized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  std::vector<sai_object_id_t> tempProfileList;
+  tempProfileList.resize(4);
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr{
+      tempProfileList};
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosEgressBufferProfileListUnsized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, setQosEgressBufferProfileList) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+
+  // Set a list of buffer profile IDs
+  std::vector<sai_object_id_t> profileIds{10, 20, 30};
+  SaiPortTraits::Attributes::QosEgressBufferProfileList profileListAttr{
+      profileIds};
+  portApi->setAttribute(portId, profileListAttr);
+
+  // Get the list back and verify
+  SaiPortTraits::Attributes::QosEgressBufferProfileList getProfileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 3);
+  EXPECT_EQ(gotProfiles, profileIds);
+
+  // Clear the list
+  std::vector<sai_object_id_t> emptyList;
+  SaiPortTraits::Attributes::QosEgressBufferProfileList emptyListAttr{
+      emptyList};
+  portApi->setAttribute(portId, emptyListAttr);
+
+  // Verify it's empty
+  auto gotEmptyProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotEmptyProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosIngressBufferProfileListPresized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  std::vector<sai_object_id_t> tempProfileList;
+  tempProfileList.resize(4);
+  SaiPortTraits::Attributes::QosIngressBufferProfileList profileListAttr{
+      tempProfileList};
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getQosIngressBufferProfileListUnsized) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+  SaiPortTraits::Attributes::QosIngressBufferProfileList profileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, profileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, setQosIngressBufferProfileList) {
+  auto portId = createPort(100000, {0, 1, 2, 3}, true);
+
+  // Set a list of buffer profile IDs
+  std::vector<sai_object_id_t> profileIds{40, 50, 60};
+  SaiPortTraits::Attributes::QosIngressBufferProfileList profileListAttr{
+      profileIds};
+  portApi->setAttribute(portId, profileListAttr);
+
+  // Get the list back and verify
+  SaiPortTraits::Attributes::QosIngressBufferProfileList getProfileListAttr;
+  auto gotProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotProfiles.size(), 3);
+  EXPECT_EQ(gotProfiles, profileIds);
+
+  // Clear the list
+  std::vector<sai_object_id_t> emptyList;
+  SaiPortTraits::Attributes::QosIngressBufferProfileList emptyListAttr{
+      emptyList};
+  portApi->setAttribute(portId, emptyListAttr);
+
+  // Verify it's empty
+  auto gotEmptyProfiles = portApi->getAttribute(portId, getProfileListAttr);
+  EXPECT_EQ(gotEmptyProfiles.size(), 0);
+}
+
+TEST_F(PortApiTest, getPortErrStatusToctouRetrySucceeds) {
+  auto portId = createPort(100000, {0, 1}, true);
+  auto& port = fs->portManager.get(portId);
+  port.portErrStatusList = {SAI_PORT_ERR_STATUS_DATA_UNIT_CRC_ERROR};
+
+  // Simulate TOCTOU: grow error list on the first 2 getAttribute calls,
+  // then stop growing so the retry eventually succeeds.
+  int callCount = 0;
+  port.onGetAttribute = [&]() {
+    if (callCount < 2) {
+      port.portErrStatusList.push_back(SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR);
+    }
+    ++callCount;
+  };
+
+  SaiPortTraits::Attributes::PortErrStatus errStatusAttr;
+  auto gotStatus = portApi->getAttribute(portId, errStatusAttr);
+  EXPECT_EQ(gotStatus, port.portErrStatusList);
+}
+
+TEST_F(PortApiTest, getPortErrStatusToctouExhaustsRetries) {
+  auto portId = createPort(100000, {0, 1}, true);
+  auto& port = fs->portManager.get(portId);
+  port.portErrStatusList = {SAI_PORT_ERR_STATUS_DATA_UNIT_CRC_ERROR};
+
+  // Simulate TOCTOU: grow error list on every getAttribute call so
+  // the buffer never catches up and retries are exhausted.
+  port.onGetAttribute = [&]() {
+    port.portErrStatusList.push_back(SAI_PORT_ERR_STATUS_SIGNAL_LOCAL_ERROR);
+  };
+
+  // EXPECT_DEATH handles both UBSan-enabled builds (abort on invalid
+  // enum from reading past the buffer) and non-UBSan builds (uncaught
+  // SaiApiError → std::terminate).
+  SaiPortTraits::Attributes::PortErrStatus errStatusAttr;
+  EXPECT_DEATH(portApi->getAttribute(portId, errStatusAttr), ".*");
 }

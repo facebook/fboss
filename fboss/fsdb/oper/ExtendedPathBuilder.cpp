@@ -28,7 +28,12 @@ ExtendedPathBuilder& ExtendedPathBuilder::raw(std::string token) {
   return *this;
 }
 
-ExtendedPathBuilder& ExtendedPathBuilder::raw(apache::thrift::field_id_t id) {
+ExtendedPathBuilder& ExtendedPathBuilder::raw(
+    apache::thrift::type::FieldId id) {
+  return raw(folly::to<std::string>(static_cast<int16_t>(id)));
+}
+
+ExtendedPathBuilder& ExtendedPathBuilder::raw(int16_t id) {
   return raw(folly::to<std::string>(id));
 }
 
@@ -53,7 +58,11 @@ ExtendedPathBuilder raw(std::string token) {
   return ExtendedPathBuilder().raw(token);
 }
 
-ExtendedPathBuilder raw(apache::thrift::field_id_t id) {
+ExtendedPathBuilder raw(apache::thrift::type::FieldId id) {
+  return raw(folly::to<std::string>(static_cast<int16_t>(id)));
+}
+
+ExtendedPathBuilder raw(int16_t id) {
   return raw(folly::to<std::string>(id));
 }
 

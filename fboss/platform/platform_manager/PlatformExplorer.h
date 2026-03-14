@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -17,8 +18,16 @@
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_service_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
+
 class PlatformExplorer {
  public:
+  // Maximum allowed setup time for platform exploration.
+  // Platform-specific thresholds are used for platforms with longer exploration
+  // times; kMaxSetupTime is the default for all other platforms.
+  static constexpr std::chrono::seconds kMaxSetupTime{40};
+  static constexpr std::chrono::seconds kMaxSetupTimeMeru800{50};
+  static constexpr std::chrono::seconds kMaxSetupTimeMorgan800CC{75};
+
   // Regex patterns for matching fw_ver format.
   auto static constexpr kFwVerXYPatternStr = R"((\d{1,3})\.(\d{1,3}))";
   auto static constexpr kFwVerXYZPatternStr =
@@ -27,13 +36,20 @@ class PlatformExplorer {
 
   auto static constexpr kGroupedFirmwareVersion = "{}.firmware_version.{}";
 
-  auto static constexpr kChassisEepromVersion =
+  auto static constexpr kExplorePmUnitTime =
+      "platform_explorer.explore_pm_unit_time.{}";
+
+  auto static constexpr kChassisEepromVersion = "chassis_eeprom_version";
+  auto static constexpr kChassisEepromVersionODS =
       "platform_explorer.chassis_eeprom_version.{}";
-  auto static constexpr kProductionState =
+  auto static constexpr kProductionState = "production_state";
+  auto static constexpr kProductionStateODS =
       "platform_explorer.production_state.{}";
-  auto static constexpr kProductionSubState =
+  auto static constexpr kProductionSubState = "production_sub_state";
+  auto static constexpr kProductionSubStateODS =
       "platform_explorer.production_sub_state.{}";
-  auto static constexpr kVariantVersion =
+  auto static constexpr kVariantVersion = "variant_version";
+  auto static constexpr kVariantVersionODS =
       "platform_explorer.variant_version.{}";
 
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
@@ -42,6 +58,7 @@ class PlatformExplorer {
 
   explicit PlatformExplorer(
       const PlatformConfig& config,
+      DataStore& dataStore,
       std::shared_ptr<PlatformFsUtils> platformFsUtils =
           std::make_shared<PlatformFsUtils>());
 
@@ -85,6 +102,12 @@ class PlatformExplorer {
       const std::string& slotPath,
       const std::string& pm);
 
+  // update datastore with firmware versions
+  void updateFirmwareVersions();
+
+  // Update datastore with hardware versions
+  void updateHardwareVersions(const FbossEepromInterface& chassisEepromContent);
+
   // Publish firmware versions read from /run/devmap files to ODS.
   void publishFirmwareVersions();
 
@@ -106,6 +129,10 @@ class PlatformExplorer {
   // This member is thread safe since callers could be on different threads
   // E.g thrift API call on `getLastPmStatus`.
   folly::Synchronized<PlatformManagerStatus> platformManagerStatus_;
+
+  PlatformConfig platformConfig_{};
+  DataStore& dataStore_;
+
   ExplorationSummary explorationSummary_;
 
  private:
@@ -117,6 +144,11 @@ class PlatformExplorer {
       uint16_t busNum,
       const I2cAddr& addr,
       const std::vector<I2cRegData>& initRegSettings);
+  void setupCpldSysfsAttrs(
+      const std::string& devicePath,
+      uint16_t busNum,
+      const I2cAddr& addr,
+      const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
   void createI2cDevice(
       const std::string& devicePath,
       const std::string& deviceName,
@@ -130,10 +162,8 @@ class PlatformExplorer {
       auto&& deviceCreationLambda);
   void genHumanReadableEeproms();
 
-  PlatformConfig platformConfig_{};
   I2cExplorer i2cExplorer_{};
   PciExplorer pciExplorer_;
-  DataStore dataStore_;
   DevicePathResolver devicePathResolver_;
   PresenceChecker presenceChecker_;
   std::shared_ptr<PlatformFsUtils> platformFsUtils_;

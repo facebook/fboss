@@ -5,7 +5,6 @@ import filecmp
 import os
 import sys
 import unittest
-
 from typing import Dict, List
 
 from fboss.lib.platform_mapping_v2.gen import (
@@ -26,7 +25,9 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
     _OSS_MULTI_NPU_SUPPORTED_PLATFORMS: Dict[bool, List[str]] = {
         False: [
             "montblanc",
+            "montblanc_odd_ports_8x100G",
             "minipack3n",
+            "minipack3bta",
             "meru800bia",
             "meru800bia_dual_stage_rdsw",
             "meru800bia_dual_stage_edsw",
@@ -45,6 +46,10 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "icetea800bc",
             "tahansb800bc",
             "wedge800bact",
+            "wedge800cact",
+            "blackwolf800banw",
+            "j4sim",
+            "icecube800banw",
         ],
         True: [
             "meru800bfa",

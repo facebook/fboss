@@ -63,11 +63,63 @@ void listCommands() {
       std::ostream_iterator<FlagCommand>(std::cerr, "\n"));
 }
 
+int32_t getTransceiverIdForPort(
+    std::string& portNameStr,
+    std::map<std::string, std::vector<int32_t>>& portNameToTransceiverIds) {
+  if (portNameToTransceiverIds.find(portNameStr) ==
+      portNameToTransceiverIds.end()) {
+    throw FbossError(
+        "Couldn't find a transceiverID for portName:", portNameStr);
+  }
+  return portNameToTransceiverIds.at(portNameStr)[0];
+}
+
+std::set<std::string> getPortNames(
+    int32_t tcvrId,
+    std::map<int32_t, std::set<std::string>>& tcvrIdToPortNames) {
+  if (tcvrIdToPortNames.find(tcvrId) == tcvrIdToPortNames.end()) {
+    throw FbossError("Couldn't find a portName for transceiverID:", tcvrId);
+  }
+  return tcvrIdToPortNames.at(tcvrId);
+}
+
+std::map<std::string, std::vector<int32_t>> getPortNameToTransceiverIds(
+    WedgeManager* wedgeManager,
+    folly::EventBase& evb) {
+  std::map<std::string, std::vector<int32_t>> result;
+  if (FLAGS_direct_i2c) {
+    for (auto& portMap : wedgeManager->getPortNameToModuleMap()) {
+      result[portMap.first].push_back(portMap.second);
+    }
+  } else {
+    for (auto& portMap : getPortTransceiverIDs(evb)) {
+      result[portMap.first] = portMap.second;
+    }
+  }
+  return result;
+}
+
+std::map<int32_t, std::set<std::string>> getTransceiverIdToPortNames(
+    std::map<std::string, std::vector<int32_t>> portNameToTransceiverIds) {
+  std::map<int32_t, std::set<std::string>> result;
+  for (auto& portNameToTransceiverId : portNameToTransceiverIds) {
+    for (auto& tcvrId : portNameToTransceiverId.second) {
+      result[tcvrId].insert(portNameToTransceiverId.first);
+    }
+  }
+  return result;
+}
+
+int getNumQsfpModules(
+    std::map<int32_t, std::set<std::string>> tcvrIdsToPortNames) {
+  return tcvrIdsToPortNames.size();
+}
+
 int main(int argc, char* argv[]) {
   const folly::Init init(&argc, &argv, true);
   gflags::SetCommandLineOptionWithMode(
       "minloglevel", "0", gflags::SET_FLAGS_DEFAULT);
-  folly::EventBase& evb = QsfpUtilContainer::getInstance()->getEventBase();
+  folly::EventBase evb;
 
   if (FLAGS_list_commands) {
     listCommands();
@@ -96,24 +148,32 @@ int main(int argc, char* argv[]) {
   std::vector<unsigned int> ports;
   std::vector<std::string> portNames;
   bool good = true;
-  auto [wedgeManager, _] = createQsfpManagers();
+  std::unique_ptr<facebook::fboss::WedgeManager> wedgeManager;
+  if (FLAGS_direct_i2c) {
+    wedgeManager = createQsfpManagers().first;
+  }
+  std::map<std::string, std::vector<int32_t>> portNameToTransceiverIds =
+      getPortNameToTransceiverIds(wedgeManager.get(), evb);
+  std::map<int32_t, std::set<std::string>> transceiverIdToPortNames =
+      getTransceiverIdToPortNames(portNameToTransceiverIds);
+  int numQsfpModules = getNumQsfpModules(transceiverIdToPortNames);
   if (argc == 1) {
-    folly::gen::range(1, wedgeManager->getNumQsfpModules() + 1) |
-        folly::gen::appendTo(ports);
+    folly::gen::range(1, numQsfpModules + 1) | folly::gen::appendTo(ports);
   } else {
     for (int n = 1; n < argc; ++n) {
       unsigned int portNum;
-      auto& portStr = argv[n];
+      std::string portStr = argv[n];
       try {
         if (argv[n][0] == 'x' && argv[n][1] == 'e') {
           portNum = 1 + folly::to<unsigned int>(argv[n] + 2);
         } else if (isalpha(portStr[0])) {
-          portNum = wedgeManager->getPortNameToModuleMap().at(portStr) + 1;
+          portNum =
+              getTransceiverIdForPort(portStr, portNameToTransceiverIds) + 1;
           portNames.emplace_back(portStr);
         } else {
           portNum = folly::to<unsigned int>(argv[n]);
           auto portNameList =
-              wedgeManager->getPortNames(TransceiverID(portNum - 1));
+              getPortNames(portNum - 1, transceiverIdToPortNames);
           if (portNameList.empty()) {
             throw FbossError(
                 "Couldn't find a portName for transceiverID (1-indexed):",
@@ -162,8 +222,12 @@ int main(int argc, char* argv[]) {
     return EX_OK;
   }
 
-  auto bus = QsfpUtilContainer::getInstance()->getTransceiverBus();
-  auto i2cInfo = DirectI2cInfo{bus, wedgeManager.get()};
+  TransceiverI2CApi* bus = nullptr;
+  DirectI2cInfo i2cInfo;
+  if (FLAGS_direct_i2c) {
+    bus = QsfpUtilContainer::getInstance()->getTransceiverBus();
+    i2cInfo = DirectI2cInfo{bus, wedgeManager.get()};
+  }
 
   bool printInfo =
       !(FLAGS_clear_low_power || FLAGS_tx_disable || FLAGS_tx_enable ||
@@ -179,7 +243,9 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_direct_i2c || !printInfo) {
     try {
-      tryOpenBus(bus);
+      if (FLAGS_direct_i2c) {
+        tryOpenBus(bus);
+      }
     } catch (const std::exception& ex) {
       fprintf(stderr, "error: unable to open device: %s\n", ex.what());
       return EX_IOERR;
@@ -195,7 +261,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Port %d is not present.\n", tcvrId + 1);
           } else {
             auto logicalPorts = folly::join(
-                ", ", wedgeManager->getPortNames(TransceiverID(tcvrId)));
+                ", ", getPortNames(tcvrId, transceiverIdToPortNames));
             printPortDetail(iter->second, iter->first + 1, logicalPorts);
           }
         }
@@ -208,7 +274,7 @@ int main(int argc, char* argv[]) {
                 stderr, "qsfp_service didn't return data for Port %d\n", i + 1);
           } else {
             auto logicalPorts =
-                folly::join(", ", wedgeManager->getPortNames(TransceiverID(i)));
+                folly::join(", ", getPortNames(i, transceiverIdToPortNames));
             printPortDetailService(
                 iter->second, iter->first + 1, FLAGS_verbose, logicalPorts);
           }
@@ -255,7 +321,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (FLAGS_tx_disable || FLAGS_tx_enable) {
-    QsfpUtilTx txCtrl(i2cInfo, portNames, evb);
+    QsfpUtilTx txCtrl(i2cInfo, portNames, portNameToTransceiverIds, evb);
     return txCtrl.setTxDisable();
   }
 
@@ -311,7 +377,7 @@ int main(int argc, char* argv[]) {
         lbModeStr = "electricalLoopback";
       }
 
-      if (setTransceiverLoopback(i2cInfo, portNames, loopback)) {
+      if (setTransceiverLoopback(i2cInfo, portNames, loopback, evb)) {
         printf(
             "QSFP %d: done setting module loopback mode %s\n",
             portNum,
@@ -324,7 +390,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (FLAGS_vdm_info && printVdmInfo(i2cInfo, portNum)) {
+    if (FLAGS_vdm_info && printVdmInfo(i2cInfo, portNum, evb)) {
       printf("QSFP %d: printed module vdm info\n", portNum);
       return EX_OK;
     }
@@ -334,7 +400,7 @@ int main(int argc, char* argv[]) {
         // Get the port details from the direct i2c read and then print out
         // the i2c info from module
         auto logicalPorts = folly::join(
-            ", ", wedgeManager->getPortNames(TransceiverID(portNum - 1)));
+            ", ", getPortNames(portNum - 1, transceiverIdToPortNames));
         DOMDataUnion dataUnion;
         fetchDataFromLocalI2CBus(i2cInfo, portNum, dataUnion);
         printPortDetail(dataUnion, portNum, logicalPorts);
@@ -370,6 +436,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (FLAGS_prbs_start || FLAGS_prbs_stop || FLAGS_prbs_stats) {
+      if (!FLAGS_direct_i2c) {
+        throw FbossError("Prbs commands are only supported in direct i2c mode");
+      }
       std::vector<PortID> swPortList;
       std::vector<std::string> swPortNames;
       if (wedgeManager.get()) {

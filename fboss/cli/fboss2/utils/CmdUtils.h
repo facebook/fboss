@@ -33,6 +33,12 @@
 
 namespace facebook::fboss::utils {
 
+// Returns true if the CLI is running locally on an FBOSS switch,
+// false if running on a dev server.
+// This is determined by checking for the presence of /etc/netwhoami,
+// which is only present on FBOSS switches.
+bool isRunningOnSwitch();
+
 class CommunityList : public BaseObjectArgType<std::string> {
  public:
   /* implicit */ CommunityList(std::vector<std::string> v)
@@ -144,9 +150,44 @@ class Message : public BaseObjectArgType<std::string> {
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
 };
 
+// Custom type for VLAN ID argument with validation
+class VlanIdValue : public BaseObjectArgType<int32_t> {
+ public:
+  /* implicit */ VlanIdValue( // NOLINT(google-explicit-constructor)
+      std::vector<std::string> v) {
+    if (v.empty()) {
+      throw std::invalid_argument("VLAN ID is required");
+    }
+    if (v.size() != 1) {
+      throw std::invalid_argument(
+          "Expected single VLAN ID, got: " + folly::join(", ", v));
+    }
+
+    try {
+      int32_t vlanId = folly::to<int32_t>(v[0]);
+      // VLAN IDs are typically 1-4094 (0 and 4095 are reserved)
+      if (vlanId < 1 || vlanId > 4094) {
+        throw std::invalid_argument(
+            "VLAN ID must be between 1 and 4094 inclusive, got: " +
+            std::to_string(vlanId));
+      }
+      data_.push_back(vlanId);
+    } catch (const folly::ConversionError&) {
+      throw std::invalid_argument("Invalid VLAN ID: " + v[0]);
+    }
+  }
+
+  int32_t getVlanId() const {
+    return data_[0];
+  }
+
+  const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID;
+};
+
 class VipInjectorID : public BaseObjectArgType<std::string> {
  public:
-  /* implicit */ VipInjectorID(std::vector<std::string> v)
+  /* implicit */ VipInjectorID( // NOLINT(google-explicit-constructor)
+      std::vector<std::string> v)
       : BaseObjectArgType(v) {}
 
   const static ObjectArgTypeId id =
@@ -415,6 +456,15 @@ class MirrorList : public BaseObjectArgType<std::string> {
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MIRROR_LIST;
+};
+
+class RevisionList : public BaseObjectArgType<std::string> {
+ public:
+  /* implicit */ RevisionList() : BaseObjectArgType() {}
+  /* implicit */ RevisionList(std::vector<std::string> v);
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST;
 };
 
 // Called after CLI11 is initlized but before parsing, for any final

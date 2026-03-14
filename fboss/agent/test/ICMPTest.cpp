@@ -27,8 +27,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
+
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -52,8 +51,6 @@ using std::unique_ptr;
 
 using ::testing::_;
 using testing::Return;
-
-DECLARE_bool(intf_nbr_tables);
 
 namespace {
 
@@ -90,11 +87,7 @@ unique_ptr<HwTestHandle> setupTestHandle(
   respTable1->setEntry(
       kVlanInterfaceIP, MockPlatform::getMockLocalMac(), intfId);
 
-  if (FLAGS_intf_nbr_tables) {
-    state->getInterfaces()->getNode(intfId)->setArpResponseTable(respTable1);
-  } else {
-    state->getVlans()->getNode(VlanID(1))->setArpResponseTable(respTable1);
-  }
+  state->getInterfaces()->getNode(intfId)->setArpResponseTable(respTable1);
 
   addSwitchInfo(
       state,
@@ -448,7 +441,7 @@ TEST(ICMPTest, TTLExceededV4) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -555,7 +548,7 @@ TEST(ICMPTest, TTLExceededV4IPExtraOptions) {
       // icmp padding for unused field
       "00 20 00 00" + ipHdr + udpHdr + payload + padding + extHeader);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -707,7 +700,7 @@ TEST(ICMPTest, TTLExceededV4WithoutV4Interface) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back with src IP set to
   // VLAN55 IPv4 addres. Because VLAN 1 does not have an IPv4 address.
@@ -817,7 +810,7 @@ TEST(ICMPTest, TTLExceededV4WithoutAnyV4Interface) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   // We should get a ICMPv4 TTL exceeded back with src IP set to
   // VLAN55 IPv4 addres. Because VLAN 1 does not have an IPv4 address.
@@ -871,7 +864,7 @@ void runTTLExceededV6Test(size_t requestedPayloadSize) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   // We should get a ICMPv6 TTL exceeded back
   EXPECT_SWITCHED_PKT(
@@ -919,7 +912,7 @@ TEST(ICMPTest, TTL1Ping6) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
 
   handle->rxPacket(
       std::make_unique<folly::IOBuf>(pkt), PortDescriptor(portID), vlanID);
@@ -1039,7 +1032,7 @@ TEST(ICMPTest, PacketTooBigV6) {
   // Cache the current stats
   CounterCache counters(sw);
 
-  EXPECT_HW_CALL(sw, stateChangedImpl(_)).Times(0);
+  EXPECT_HW_CALL(sw, stateChangedImpl(_, _)).Times(0);
   EXPECT_SWITCHED_PKT(
       sw,
       "ICMPv6 Packet Too Big",

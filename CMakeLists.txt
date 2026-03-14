@@ -132,9 +132,21 @@ if (SAI_BRCM_IMPL)
   # TODO (skhare) IS_OSS_BRCM_SAI is only a short-term change to unblock.
   # Refactor/fix the code and then remove this flag.
   add_definitions (-DIS_OSS_BRCM_SAI=true)
-  # Build for BCM DNX by default. For XGS, set the ENV variable SAI_SDK_VERSION
-  # to build for BCM XGS.
-  set(SAI_SDK_VERSION "SAI_VERSION_11_0_EA_DNX_ODP")
+
+  # Enforce SAI_SDK_VERSION environment variable when building with SAI_BRCM_IMPL
+  if ("$ENV{SAI_SDK_VERSION}" STREQUAL "")
+    message(FATAL_ERROR
+      "SAI_SDK_VERSION environment variable is required when SAI_BRCM_IMPL is enabled.\n"
+      "Please set SAI_SDK_VERSION to the appropriate SDK version, for example:\n"
+      "  export SAI_SDK_VERSION=SAI_VERSION_13_3_0_0_ODP  # For BCM XGS\n"
+      "  export SAI_SDK_VERSION=SAI_VERSION_14_0_EA_DNX_ODP  # For BCM DNX")
+  endif()
+
+  set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
+  message(STATUS "Building for SAI_SDK_VERSION: ${SAI_SDK_VERSION}")
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${SAI_SDK_VERSION}")
+  message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
 # SAI version is set. Extract MAJOR, MINOR, RELEASE ver
@@ -142,25 +154,12 @@ strtok(${SAI_VERSION} "." tokens)
 set(listLength 0)
 list(LENGTH tokens listLength)
 if(NOT ${listLength} EQUAL 3)
-  message(Invalid SAI_VERSION in env variable $ENV{SAI_VERSION})
+  message(FATAL_ERROR "Invalid SAI_VERSION in env variable $ENV{SAI_VERSION}")
 else()
   list(GET tokens 0 SAI_VER_MAJOR)
   list(GET tokens 1 SAI_VER_MINOR)
   list(GET tokens 2 SAI_VER_RELEASE)
 endif()
-#endif
-
-if (NOT "$ENV{SAI_SDK_VERSION}" STREQUAL "")
-  message(STATUS "ENV SAI_SDK_VERSION is set to $ENV{SAI_SDK_VERSION}")
-  set(SAI_SDK_VERSION "$ENV{SAI_SDK_VERSION}")
-endif()
-message(STATUS "Building for SAI_SDK_VERSION: ${SAI_SDK_VERSION}")
-
-if (NOT "${SAI_SDK_VERSION}" STREQUAL "")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D${SAI_SDK_VERSION}")
-endif()
-message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-
 message(STATUS "Building for SAI Spec ${SAI_VER_MAJOR}.${SAI_VER_MINOR}.${SAI_VER_RELEASE}")
 
 set(CMAKE_MODULE_PATH
@@ -182,8 +181,29 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-variable")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
+endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+# Clang-specific warning suppressions and fixes
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-literal-operator")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-lambda-capture")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla-cxx-extension")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-const-variable")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-character-conversion")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-template-arg-list-after-template-kw")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-tautological-constant-out-of-range-compare")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-constexpr")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unneeded-internal-declaration")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
+  # Use lld linker and disable PIE
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -no-pie")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
+endif()
 if (WITH_ASAN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -static-libasan")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize-recover=all")
@@ -340,6 +360,13 @@ add_fbthrift_py_library(
     json
 )
 add_fbthrift_cpp_library(
+  cfgr_fboss_common_cpp2
+  configerator/structs/neteng/fboss/thrift/common.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   fboss_common_cpp2
   fboss/lib/if/fboss_common.thrift
   OPTIONS
@@ -430,6 +457,7 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
+    cfgr_fboss_common_cpp2
     switch_config_cpp2
     phy_cpp2
     ctrl_cpp2
@@ -677,6 +705,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     agent_stats_cpp2
+    cfgr_fboss_common_cpp2
     fboss_cpp2
     fb303_cpp2
     mpls_cpp2
@@ -944,6 +973,15 @@ add_fbthrift_py_library(
     json
 )
 
+add_fbthrift_cpp_library(
+  hal_test_config_cpp2
+  fboss/qsfp_service/test/hal_test/hal_test_config.thrift
+  OPTIONS
+    json
+  DEPENDS
+    transceiver_cpp2
+)
+
 find_library(USB usb-1.0)
 find_path(USB_INCLUDE_DIR NAMES libusb-1.0/libusb.h)
 include_directories(${USB_INCLUDE_DIR})
@@ -1010,6 +1048,7 @@ add_dependencies(fboss_platform_services
   data_corral_service
   # Utilities
   sensor_service_client
+  fixmyfboss
   # Unit Tests
   platform_config_lib_config_lib_test
   platform_manager_device_path_resolver_test
@@ -1023,6 +1062,7 @@ add_dependencies(fboss_platform_services
   platform_manager_config_validator_test
   platform_manager_presence_checker_test
   platform_manager_i2c_explorer_test
+  platform_manager_handler_test
   weutil_crc16_ccitt_test
   weutil_fboss_eeprom_interface_test
   sensor_service_sw_test
@@ -1052,11 +1092,45 @@ add_dependencies(led_targets
   led_service_hw_test
 )
 
+add_custom_target(fboss2_targets)
+add_dependencies(fboss2_targets
+  fboss2
+  fboss2_cmd_test
+  fboss2_cmd_config_test
+  fboss2_framework_test
+  fboss2-dev
+)
+
+if (SAI_IMPL OR BUILD_SAI_FAKE)
+  add_custom_target(fboss_forwarding_stack)
+  # Common forwarding services
+  add_dependencies(fboss_forwarding_stack
+    diag_shell_client
+    fboss2
+    fboss2-dev
+    fsdb
+    qsfp_service
+    wedge_qsfp_util
+  )
+
+  if (BUILD_SAI_FAKE)
+    add_dependencies(fboss_forwarding_stack
+      fboss_fake_agent_targets
+    )
+  else()
+    add_dependencies(fboss_forwarding_stack
+      fboss_hw_agent-sai_impl
+      fboss_sw_agent
+      wedge_agent-sai_impl
+    )
+  endif()
+endif()
+
 add_custom_target(fboss_other_services)
 add_dependencies(fboss_other_services
   qsfp_targets
   led_targets
-  fboss2
+  fboss2_targets
   fsdb_all_services
 )
 
@@ -1145,3 +1219,6 @@ if (GITHUB_ACTIONS_BUILD)
     fsdb_all_services
   )
 endif()
+
+# FBOSS Image Builder distro_cli tests
+include(cmake/FbossImageDistroCliTests.cmake)

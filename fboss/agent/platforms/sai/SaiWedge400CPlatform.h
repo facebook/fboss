@@ -22,6 +22,10 @@ class SaiWedge400CPlatform : public SaiTajoPlatform {
       folly::MacAddress localMac,
       const std::string& platformMappingStr);
   ~SaiWedge400CPlatform() override;
+  SaiWedge400CPlatform(const SaiWedge400CPlatform&) = delete;
+  SaiWedge400CPlatform& operator=(const SaiWedge400CPlatform&) = delete;
+  SaiWedge400CPlatform(SaiWedge400CPlatform&&) = delete;
+  SaiWedge400CPlatform& operator=(SaiWedge400CPlatform&&) = delete;
   HwAsic* getAsic() const override;
   std::vector<sai_system_port_config_t> getInternalSystemPortConfig()
       const override;

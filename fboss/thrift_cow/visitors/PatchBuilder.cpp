@@ -92,8 +92,7 @@ void PatchNodeBuilder::onPathPop(std::string&& tok, ThriftTCType /* tc */) {
                 throw std::runtime_error("del nodes should never be a parent");
               },
               [&](StructPatch& patch) {
-                patch.children()->erase(
-                    folly::to<apache::thrift::field_id_t>(std::move(tok)));
+                patch.children()->erase(folly::to<int16_t>(std::move(tok)));
               },
               [&](ListPatch& patch) {
                 patch.children()->erase(folly::to<std::size_t>(std::move(tok)));
@@ -127,9 +126,7 @@ void PatchNodeBuilder::insertChild(
             },
             [&](StructPatch& patch) -> PatchNode& {
               return patch.children()
-                  ->try_emplace(
-                      folly::to<apache::thrift::field_id_t>(key),
-                      std::move(childPatch))
+                  ->try_emplace(folly::to<int16_t>(key), std::move(childPatch))
                   .first->second;
             },
             [&](ListPatch& patch) -> PatchNode& {
@@ -149,7 +146,7 @@ void PatchNodeBuilder::insertChild(
                   .first->second;
             },
             [&](VariantPatch& patch) -> PatchNode& {
-              patch.id() = folly::to<apache::thrift::field_id_t>(key);
+              patch.id() = folly::to<int16_t>(key);
               patch.child() = std::move(childPatch);
               return *patch.child();
             });

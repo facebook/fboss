@@ -2,12 +2,8 @@
 load("//fboss/agent/fbpkg:agent.bzl", "get_all_wedge_agent_nvda_path_actions")
 load(
     "//fboss/agent/fbpkg:test_artifacts.bzl",
+    "build_hw_agent_artifacts_fbpkgs",
     "build_test_artifacts_fbpkgs",
-    "get_all_agent_test_path_actions",
-    "get_all_fsdb_integration_test_path_actions",
-    "get_all_hw_test_path_actions",
-    "get_all_invariant_test_path_actions",
-    "get_all_link_test_path_actions",
 )
 load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
 load("//fboss/build:sdk.thrift.bzl", "ProductLine")
@@ -51,91 +47,6 @@ oncall("fboss_agent_push")
 # )
 
 fboss_fbpkg_builder(
-    name = "neteng.fboss.wedge_agent.test_artifacts.hw_test",
-    buck_modes = [
-        "opt-asan",
-    ],
-    buck_opts = fbpkg.buck_opts(
-        config = {
-            "fbcode.split-dwarf": "true",
-            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
-            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
-        },
-        num_threads = 20,  # reduce compile parallelism
-    ),
-    override_log_paths = ["fboss/agent"],
-    path_actions = get_all_hw_test_path_actions(),
-)
-
-fboss_fbpkg_builder(
-    name = "neteng.fboss.wedge_agent.test_artifacts.agent_test",
-    buck_modes = [
-        "opt-asan",
-    ],
-    buck_opts = fbpkg.buck_opts(
-        config = {
-            "fbcode.split-dwarf": "true",
-            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
-            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
-        },
-        num_threads = 20,  # reduce compile parallelism
-    ),
-    override_log_paths = ["fboss/agent"],
-    path_actions = get_all_agent_test_path_actions(),
-)
-
-fboss_fbpkg_builder(
-    name = "neteng.fboss.wedge_agent.test_artifacts.link_test",
-    buck_modes = [
-        "opt-asan",
-    ],
-    buck_opts = fbpkg.buck_opts(
-        config = {
-            "fbcode.split-dwarf": "true",
-            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow issues
-            "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
-        },
-        num_threads = 20,  # reduce compile parallelism
-    ),
-    override_log_paths = ["fboss/agent"],
-    path_actions = get_all_link_test_path_actions(),
-)
-
-fboss_fbpkg_builder(
-    name = "neteng.fboss.wedge_agent.test_artifacts.fsdb_integration_test",
-    buck_modes = [
-        "opt-asan",
-    ],
-    buck_opts = fbpkg.buck_opts(
-        config = {
-            "fbcode.split-dwarf": "true",
-            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
-            "fbcode//cxx.link_weight": "6",  # reduce concurrency to avoid OOM
-        },
-        num_threads = 20,  # reduce compile parallelism
-    ),
-    override_log_paths = ["fboss/agent"],
-    path_actions = get_all_fsdb_integration_test_path_actions(),
-)
-
-fboss_fbpkg_builder(
-    name = "neteng.fboss.wedge_agent.test_artifacts.invariant_test",
-    buck_modes = [
-        "opt-asan",
-    ],
-    buck_opts = fbpkg.buck_opts(
-        config = {
-            "fbcode.split-dwarf": "true",
-            "fbcode.use_link_groups": "true",  # Enable link groups to fix relocation overflow
-            "fbcode//cxx.link_weight": "12",  # reduce concurrency to avoid OOM
-        },
-        num_threads = 20,  # reduce compile parallelism
-    ),
-    override_log_paths = ["fboss/agent"],
-    path_actions = get_all_invariant_test_path_actions(),
-)
-
-fboss_fbpkg_builder(
     name = "neteng.fboss.wedge_agent_nvda",
     buck_opts = fbpkg.buck_opts(
         config = {
@@ -166,3 +77,14 @@ build_test_artifacts_fbpkgs(product_lines = [
 
 #Build BCM_native_sdk test artifacts fbpkg (native_bcm)
 build_test_artifacts_fbpkgs(product_lines = [ProductLine.BCM_NATIVE_SDK])
+
+build_hw_agent_artifacts_fbpkgs(product_lines = [ProductLine.NVIDIA_SAI_SDK])
+
+#Build LEABA test artifacts fbpkg
+build_hw_agent_artifacts_fbpkgs(product_lines = [ProductLine.LEABA])
+
+#Build BCM test artifacts fbpkg (All three product lines use the same product name (brcm))
+build_hw_agent_artifacts_fbpkgs(product_lines = [
+    ProductLine.SAI_SDK_BCM,
+    ProductLine.BCM_DSF_SDK,
+])

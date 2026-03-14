@@ -13,12 +13,13 @@ add_library(wedge_led_utils
 )
 
 target_link_libraries(wedge_led_utils
-  error
+  fboss_error
   ctrl_cpp2
   fboss_types
   transceiver_cpp2
   facebook_fpga
   wedge_i2c
+  wedge_transceiver
   transceiver_cpp2
   Folly::folly
 )

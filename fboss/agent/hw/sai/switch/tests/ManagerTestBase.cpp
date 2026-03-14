@@ -245,7 +245,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   VlanID vlan(testPort.id / 10);
   swPort->setIngressVlan(vlan);
   PortFields::VlanMembership vlanMemberShip{
-      {vlan, PortFields::VlanInfo{false}}};
+      {vlan, PortFields::VlanInfo{false, false}}};
   swPort->setVlans(vlanMemberShip);
   swPort->setSpeed(expectedSpeed ? *expectedSpeed : testPort.portSpeed);
   switch (swPort->getSpeed()) {
@@ -253,9 +253,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
       break;
     case cfg::PortSpeed::GIGE:
+    case cfg::PortSpeed::ONEPOINTSIXT:
     case cfg::PortSpeed::THREEPOINTTWOT:
-      throw FbossError("profile gig and 3.2T ethernet is not available");
-      break;
+      throw FbossError("profile gig, 1.6T and 3.2T ethernet is not available");
     case cfg::PortSpeed::XG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL);
       break;
@@ -320,6 +320,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->setProfileConfig(*profileConfig->iphy());
     swPort->resetPinConfigs(
         saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+    swPort->setSerdesCustomCollection(
+        saiPlatform->getPlatformMapping()->getPortSerdesCustomCollection(
+            matcher));
   }
   phy::PortPrbsState prbsState;
   prbsState.enabled() = true;
@@ -335,10 +338,12 @@ std::shared_ptr<Vlan> ManagerTestBase::makeVlan(
   Vlan::MemberPorts mps;
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
-    bool portInfo(false);
+    state::VlanInfo portInfo;
+    *portInfo.tagged() = false;
+    *portInfo.priorityTagged() = false;
     mps.insert(std::make_pair(portId, portInfo));
   }
-  swVlan->setPorts(mps);
+  swVlan->setPortsInfo(mps);
   return swVlan;
 }
 
@@ -381,7 +386,6 @@ InterfaceID ManagerTestBase::getIntfID(int id, cfg::InterfaceType type) const {
       return InterfaceID(getSysPortId(id));
     case cfg::InterfaceType::PORT:
       return InterfaceID(id);
-      break;
   }
   XLOG(FATAL) << "Unhandled interface type";
 }
