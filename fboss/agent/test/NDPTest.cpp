@@ -789,20 +789,16 @@ TEST_F(NdpTest, NeighborSoliciationNotMinePortRif) {
 }
 
 TEST_F(NdpTest, TriggerSolicitation) {
-  // Will be migrated and then enabled
-  GTEST_SKIP();
-
-  auto handle = this->setupTestHandle();
+  auto handle = this->setupTestHandleWithPortRif();
   auto sw = handle->getSw();
-
+  auto intfID =
+      sw->getState()->getInterfaceIDForPort(PortDescriptor(PortID(1)));
   this->addRoutes();
 
   // Create a packet to a node in the attached IPv6 subnet
   auto pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
-      // 802.1q, VLAN 5
-      "81 00 00 05"
+      "00 02 00 00 00 55  02 05 73 f9 46 fc"
       // IPv6
       "86 dd"
       // Version 6, traffic class, flow label
@@ -828,36 +824,47 @@ TEST_F(NdpTest, TriggerSolicitation) {
   CounterCache counters(sw);
 
   // We should get a neighbor solicitation back
-  EXPECT_SWITCHED_PKT(
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          MacAddress("00:02:00:00:00:55"),
+          MockPlatform::getLinkLocalIp6(MacAddress("00:02:00:00:00:55")),
           MacAddress("33:33:ff:01:00:00"),
           IPAddressV6("ff02::1:ff01:0"),
           IPAddressV6("2401:db00:2110:3004::1:0"),
-          VlanID(5)));
+          VlanID(1)),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
-  WaitForNdpEntryCreation neighborEntryCreate(
-      sw, IPAddressV6("2401:db00:2110:3004::1:0"), VlanID(5));
   // Send the packet to the SwSwitch
   handle->rxPacket(
-      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
-
-  // expect neighbor solicitation to neighbor in the subnet & entry in NDP table
-  EXPECT_TRUE(neighborEntryCreate.wait());
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
+  waitForStateUpdates(sw);
 
   // Check the new stats
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 
+  // Resolve the pending entry by injecting a Neighbor Advertisement
+  WaitForNdpEntryReachable neighborEntryReachable(
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), intfID);
+  sendNeighborAdvertisement(
+      handle.get(),
+      "2401:db00:2110:3004::1:0",
+      "02:10:20:30:40:22",
+      PortDescriptor(PortID(1)),
+      1);
+  EXPECT_TRUE(neighborEntryReachable.wait());
+
+  // Reset counter baseline after NA injection (sendNeighborAdvertisement
+  // internally calls rxPacket which increments the trapped counter)
+  counters.update();
+
   // Create a packet to a node not in attached subnet, but in route table
   pkt = PktUtil::parseHexData(
       // dst mac, src mac
-      "00 02 00 ab cd ef  02 05 73 f9 46 fc"
-      // 802.1q, VLAN 5
-      "81 00 00 05"
+      "00 02 00 00 00 55  02 05 73 f9 46 fc"
       // IPv6
       "86 dd"
       // Version 6, traffic class, flow label
@@ -880,53 +887,70 @@ TEST_F(NdpTest, TriggerSolicitation) {
       "2a 7e");
 
   // We should get a neighbor solicitation back
-  EXPECT_SWITCHED_PKT(
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          MacAddress("00:02:00:00:00:55"),
+          MockPlatform::getLinkLocalIp6(MacAddress("00:02:00:00:00:55")),
           MacAddress("33:33:ff:00:00:01"),
           IPAddressV6("ff02::1:ff00:1"),
           IPAddressV6("2401:db00:2110:3004::1"),
-          VlanID(5)));
+          VlanID(1)),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
-  EXPECT_SWITCHED_PKT(
+  EXPECT_OUT_OF_PORT_PKT(
       sw,
       "neighbor solicitation",
       checkNeighborSolicitation(
-          MockPlatform::getMockLocalMac(),
-          MockPlatform::getMockLinkLocalIp6(),
+          MacAddress("00:02:00:00:00:55"),
+          MockPlatform::getLinkLocalIp6(MacAddress("00:02:00:00:00:55")),
           MacAddress("33:33:ff:00:00:02"),
           IPAddressV6("ff02::1:ff00:2"),
           IPAddressV6("2401:db00:2110:3004::2"),
-          VlanID(5)));
+          VlanID(1)),
+      PortID(1),
+      std::optional<uint8_t>(kNCStrictPriorityQueue));
 
-  /* expect neighbor solicitations to nexthops and their entries in NDP table */
-  WaitForNdpEntryCreation nextHop1Create(
-      sw, IPAddressV6("2401:db00:2110:3004::1"), VlanID(5));
-  WaitForNdpEntryCreation nextHop2Create(
-      sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
-
+  /* expect neighbor solicitations to nexthops */
   // Send the packet to the SwSwitch
   handle->rxPacket(
-      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), VlanID(5));
-
-  EXPECT_TRUE(nextHop1Create.wait());
-  EXPECT_TRUE(nextHop2Create.wait());
+      make_unique<IOBuf>(pkt), PortDescriptor(PortID(1)), std::nullopt);
+  waitForStateUpdates(sw);
 
   // Check the new stats
   counters.update();
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 
+  // Resolve nexthop entries by injecting Neighbor Advertisements
+  WaitForNdpEntryReachable nextHop1Reachable(
+      sw, IPAddressV6("2401:db00:2110:3004::1"), intfID);
+  WaitForNdpEntryReachable nextHop2Reachable(
+      sw, IPAddressV6("2401:db00:2110:3004::2"), intfID);
+  sendNeighborAdvertisement(
+      handle.get(),
+      "2401:db00:2110:3004::1",
+      "02:10:20:30:40:23",
+      PortDescriptor(PortID(1)),
+      1);
+  sendNeighborAdvertisement(
+      handle.get(),
+      "2401:db00:2110:3004::2",
+      "02:10:20:30:40:24",
+      PortDescriptor(PortID(1)),
+      1);
+  EXPECT_TRUE(nextHop1Reachable.wait());
+  EXPECT_TRUE(nextHop2Reachable.wait());
+
   // Wait for entries to expire so we don't trigger updates
   // while the test is exiting
   WaitForNdpEntryExpiration neighborEntryExpire(
-      sw, IPAddressV6("2401:db00:2110:3004::1:0"), VlanID(5));
+      sw, IPAddressV6("2401:db00:2110:3004::1:0"), intfID);
   WaitForNdpEntryExpiration nextHop1Expire(
-      sw, IPAddressV6("2401:db00:2110:3004::1"), VlanID(5));
+      sw, IPAddressV6("2401:db00:2110:3004::1"), intfID);
   WaitForNdpEntryExpiration nextHop2Expire(
-      sw, IPAddressV6("2401:db00:2110:3004::2"), VlanID(5));
+      sw, IPAddressV6("2401:db00:2110:3004::2"), intfID);
 }
 
 void NdpTest::validateRouterAdv(std::optional<std::string> configuredRouterIp) {
