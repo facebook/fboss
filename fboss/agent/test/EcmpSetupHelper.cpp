@@ -27,8 +27,6 @@
 
 #include <folly/IPAddress.h>
 
-DECLARE_bool(intf_nbr_tables);
-
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::IPAddress;
@@ -228,14 +226,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto existingEntry = nbrTable->getEntryIf(nhopIp);
@@ -311,14 +303,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto entry = nbrTable->getEntryIf(nhopIp);
