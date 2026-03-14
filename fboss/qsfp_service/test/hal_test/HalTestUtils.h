@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/test/hal_test/BspTransceiverImpl.h"
@@ -63,5 +64,15 @@ bool isSpeedChangeSupportedForModule(
     const HalTestConfig& config,
     TcvrOperationalMode from,
     TcvrOperationalMode to);
+
+// Upgrade firmware on a module to the specified versions.
+// Returns true if an upgrade was performed.
+bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw);
+
+// Apply firmware upgrades specified in startup configs.
+// Returns the number of modules that were upgraded.
+int applyStartupFirmwareUpgrades(
+    const HalTestConfig& config,
+    std::map<int, HalTestModule>& modules);
 
 } // namespace facebook::fboss::hal_test

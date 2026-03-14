@@ -1,10 +1,15 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+include "fboss/qsfp_service/if/qsfp_service_config.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 
 package "facebook.com/fboss/qsfp_service/test/hal_test"
 
 namespace cpp2 facebook.fboss
+
+struct HalTestStartupConfig {
+  1: optional qsfp_service_config.Firmware firmware;
+}
 
 struct HalTestTransceiverEntry {
   1: i32 id;
@@ -13,6 +18,7 @@ struct HalTestTransceiverEntry {
   3: optional string i2cDevicePath;
   4: optional string presentPath;
   5: optional string resetPath;
+  6: optional HalTestStartupConfig startupConfig;
 }
 
 struct HalTestMediaInterfaceConfig {

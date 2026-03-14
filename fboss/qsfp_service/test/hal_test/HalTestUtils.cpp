@@ -5,10 +5,13 @@
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Format.h>
+#include <folly/logging/xlog.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/lib/firmware_storage/FbossFwStorage.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/test/hal_test/gen-cpp2/hal_test_config_constants.h"
 
@@ -271,6 +274,148 @@ bool isSpeedChangeSupportedForModule(
     }
   }
   return false;
+}
+
+namespace {
+
+// Extract APP and DSP firmware version strings from a module's transceiver
+// info.
+std::pair<std::string, std::string> readFirmwareVersions(QsfpModule* module) {
+  auto info = module->getTransceiverInfo();
+  const auto& tcvrState = *info.tcvrState();
+
+  std::string appVer;
+  std::string dspVer;
+  if (tcvrState.status().has_value()) {
+    const auto& status = *tcvrState.status();
+    if (status.fwStatus().has_value()) {
+      const auto& fwStatus = *status.fwStatus();
+      if (fwStatus.version().has_value()) {
+        appVer = *fwStatus.version();
+      }
+      if (fwStatus.dspFwVer().has_value()) {
+        dspVer = *fwStatus.dspFwVer();
+      }
+    }
+  }
+  return {appVer, dspVer};
+}
+
+} // namespace
+
+bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
+  auto tcvrId = module->getID();
+
+  module->detectPresence();
+  module->refresh();
+
+  auto [currentAppVer, currentDspVer] = readFirmwareVersions(module);
+
+  // Check if upgrade is needed by comparing current vs desired versions
+  bool needsUpgrade = false;
+  for (const auto& fwVersion : *desiredFw.versions()) {
+    auto desiredVer = *fwVersion.version();
+    if (*fwVersion.fwType() == cfg::FirmwareType::APPLICATION) {
+      if (currentAppVer != desiredVer) {
+        needsUpgrade = true;
+        XLOG(INFO) << "Transceiver " << tcvrId << " APP firmware mismatch: "
+                   << "current=" << currentAppVer << " desired=" << desiredVer;
+      }
+    } else if (*fwVersion.fwType() == cfg::FirmwareType::DSP) {
+      if (currentDspVer != desiredVer) {
+        needsUpgrade = true;
+        XLOG(INFO) << "Transceiver " << tcvrId << " DSP firmware mismatch: "
+                   << "current=" << currentDspVer << " desired=" << desiredVer;
+      }
+    }
+  }
+
+  if (!needsUpgrade) {
+    XLOG(INFO) << "Transceiver " << tcvrId
+               << " firmware already at desired version";
+    return false;
+  }
+
+  // Resolve firmware images and perform upgrade
+  auto fwStorage = FbossFwStorage::initStorage();
+  auto fwStorageHandle = module->getFwStorageHandle();
+
+  std::vector<std::unique_ptr<FbossFirmware>> fwList;
+  for (const auto& fwVersion : *desiredFw.versions()) {
+    fwList.push_back(
+        fwStorage.getFirmware(fwStorageHandle, *fwVersion.version()));
+  }
+
+  XLOG(INFO) << "Upgrading firmware on transceiver " << tcvrId;
+  module->upgradeFirmware(fwList);
+
+  // Re-detect and refresh after upgrade
+  module->detectPresence();
+  module->refresh();
+
+  // Verify post-upgrade firmware versions match desired versions
+  auto [postAppVer, postDspVer] = readFirmwareVersions(module);
+  for (const auto& fwVersion : *desiredFw.versions()) {
+    auto desiredVer = *fwVersion.version();
+    if (*fwVersion.fwType() == cfg::FirmwareType::APPLICATION &&
+        postAppVer != desiredVer) {
+      throw FbossError(
+          "Transceiver ",
+          tcvrId,
+          " APP firmware version mismatch after upgrade: expected=",
+          desiredVer,
+          " actual=",
+          postAppVer);
+    }
+    if (*fwVersion.fwType() == cfg::FirmwareType::DSP &&
+        postDspVer != desiredVer) {
+      throw FbossError(
+          "Transceiver ",
+          tcvrId,
+          " DSP firmware version mismatch after upgrade: expected=",
+          desiredVer,
+          " actual=",
+          postDspVer);
+    }
+  }
+
+  XLOG(INFO) << "Firmware upgrade complete for transceiver " << tcvrId;
+  return true;
+}
+
+int applyStartupFirmwareUpgrades(
+    const HalTestConfig& config,
+    std::map<int, HalTestModule>& modules) {
+  int upgraded = 0;
+
+  for (const auto& entry : *config.transceivers()) {
+    if (!entry.startupConfig().has_value() ||
+        !entry.startupConfig()->firmware().has_value()) {
+      continue;
+    }
+
+    int id = *entry.id();
+    auto it = modules.find(id);
+    if (it == modules.end()) {
+      XLOG(WARNING) << "Transceiver " << id
+                    << " has startup config but no module";
+      continue;
+    }
+
+    auto& halModule = it->second;
+    if (!halModule.impl->detectTransceiver()) {
+      XLOG(WARNING) << "Transceiver " << id
+                    << " has startup config but is not present";
+      continue;
+    }
+
+    if (upgradeFirmware(
+            halModule.module.get(), *entry.startupConfig()->firmware())) {
+      ++upgraded;
+    }
+  }
+
+  return upgraded;
 }
 
 } // namespace facebook::fboss::hal_test

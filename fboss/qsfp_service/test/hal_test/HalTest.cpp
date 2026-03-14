@@ -47,6 +47,11 @@ void HalTest::SetUp() {
     XLOG(INFO) << "Detecting transceiver " << tcvrId;
     getModule(tcvrId)->detectPresence();
   }
+
+  int upgraded = hal_test::applyStartupFirmwareUpgrades(config_, modules_);
+  if (upgraded > 0) {
+    XLOG(INFO) << "Upgraded firmware on " << upgraded << " module(s)";
+  }
 }
 
 QsfpModule* HalTest::getModule(int tcvrId) const {
