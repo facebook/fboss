@@ -90,6 +90,7 @@
         <package name="parted"/>
         <package name="passwd"/>
         <package name="policycoreutils"/>
+        <package name="policycoreutils-python-utils"/>
         <package name="rootfiles"/>
         <package name="rsyslog"/>
         <package name="selinux-policy-targeted"/>

@@ -357,6 +357,11 @@ systemctl enable fsdb.service
 systemctl enable qsfp_service.service
 systemctl enable wedge_agent.service
 
+echo "Creating FBOSS log directories..."
+mkdir -p /var/facebook/logs/fboss/sdk
+semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
+restorecon -Rv /var/facebook/logs/fboss
+
 # 8. Done! Cleanup and install additional packages
 echo "Cleaning up /repos directory..."
 rm -rf /repos
