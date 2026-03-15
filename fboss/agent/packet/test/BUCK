@@ -9,6 +9,7 @@ cpp_unittest(
         "DHCPv4PacketTest.cpp",
         "EthFrameTest.cpp",
         "EthHdrTest.cpp",
+        "ICMPExtHdrTest.cpp",
         "ICMPHdrTest.cpp",
         "ICMPPacketTest.cpp",
         "IPPacketTest.cpp",
