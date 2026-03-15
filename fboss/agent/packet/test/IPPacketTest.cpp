@@ -267,8 +267,8 @@ TEST(IPPacketTest, copyConstructorWithInnerPayload) {
   folly::io::Cursor cursor(&buf);
   IPPacket<folly::IPAddressV6> pkt(cursor);
 
-  // Copy
-  auto pktCopy = pkt;
+  // Intentionally copy to test copy constructor with unique_ptr members
+  auto pktCopy = pkt; // NOLINT(performance-unnecessary-copy-initialization)
   EXPECT_EQ(pkt, pktCopy);
   EXPECT_NE(pktCopy.v6PayLoad(), nullptr);
   EXPECT_EQ(
@@ -355,4 +355,144 @@ TEST(IPPacketTest, noInnerPayloadWhenTCP) {
   EXPECT_FALSE(pkt.udpPayload().has_value());
   EXPECT_EQ(pkt.v4PayLoad(), nullptr);
   EXPECT_EQ(pkt.v6PayLoad(), nullptr);
+}
+
+TEST(IPPacketTest, serializeRoundTripV6WithInnerV6) {
+  auto buf = PktUtil::parseHexData(
+      // Outer IPv6 header
+      "60 00 00 00"
+      "00 28"
+      "29"
+      "40"
+      "20 01 0d b8 00 00 00 00"
+      "00 00 00 00 00 00 00 01"
+      "20 01 0d b8 00 00 00 00"
+      "00 00 00 00 00 00 00 02"
+      // Inner IPv6 header
+      "60 00 00 00"
+      "00 00"
+      "3B"
+      "3F"
+      "fd 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 01"
+      "fd 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 02");
+
+  folly::io::Cursor cursor(&buf);
+  IPPacket<folly::IPAddressV6> pkt(cursor);
+
+  auto buf2 = folly::IOBuf::create(pkt.length());
+  buf2->append(pkt.length());
+  folly::io::RWPrivateCursor writeCursor(buf2.get());
+  pkt.serialize(writeCursor);
+
+  folly::io::Cursor cursor2(buf2.get());
+  IPPacket<folly::IPAddressV6> pkt2(cursor2);
+  EXPECT_EQ(pkt, pkt2);
+}
+
+TEST(IPPacketTest, serializeRoundTripV6WithInnerV4) {
+  auto buf = PktUtil::parseHexData(
+      // Outer IPv6 header
+      "60 00 00 00"
+      "00 14"
+      "04"
+      "40"
+      "20 01 0d b8 00 00 00 00"
+      "00 00 00 00 00 00 00 01"
+      "20 01 0d b8 00 00 00 00"
+      "00 00 00 00 00 00 00 02"
+      // Inner IPv4 header
+      "45 00"
+      "00 14"
+      "00 00"
+      "40 00"
+      "40"
+      "00"
+      "00 00"
+      "0a 00 00 01"
+      "0a 00 00 02");
+
+  folly::io::Cursor cursor(&buf);
+  IPPacket<folly::IPAddressV6> pkt(cursor);
+
+  auto buf2 = folly::IOBuf::create(pkt.length());
+  buf2->append(pkt.length());
+  folly::io::RWPrivateCursor writeCursor(buf2.get());
+  pkt.serialize(writeCursor);
+
+  folly::io::Cursor cursor2(buf2.get());
+  IPPacket<folly::IPAddressV6> pkt2(cursor2);
+  EXPECT_EQ(pkt, pkt2);
+}
+
+TEST(IPPacketTest, serializeRoundTripV4WithInnerV4) {
+  auto buf = PktUtil::parseHexData(
+      // Outer IPv4 header
+      "45 00"
+      "00 28"
+      "00 00"
+      "40 00"
+      "40"
+      "04"
+      "00 00"
+      "c0 a8 01 01"
+      "c0 a8 01 02"
+      // Inner IPv4 header
+      "45 00"
+      "00 14"
+      "00 00"
+      "40 00"
+      "3F"
+      "00"
+      "00 00"
+      "0a 00 00 01"
+      "0a 00 00 02");
+
+  folly::io::Cursor cursor(&buf);
+  IPPacket<folly::IPAddressV4> pkt(cursor);
+
+  auto buf2 = folly::IOBuf::create(pkt.length());
+  buf2->append(pkt.length());
+  folly::io::RWPrivateCursor writeCursor(buf2.get());
+  pkt.serialize(writeCursor);
+
+  folly::io::Cursor cursor2(buf2.get());
+  IPPacket<folly::IPAddressV4> pkt2(cursor2);
+  EXPECT_EQ(pkt, pkt2);
+}
+
+TEST(IPPacketTest, serializeRoundTripV4WithInnerV6) {
+  auto buf = PktUtil::parseHexData(
+      // Outer IPv4 header
+      "45 00"
+      "00 3c"
+      "00 00"
+      "40 00"
+      "40"
+      "29"
+      "00 00"
+      "c0 a8 01 01"
+      "c0 a8 01 02"
+      // Inner IPv6 header
+      "60 00 00 00"
+      "00 00"
+      "3B"
+      "3F"
+      "fd 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 01"
+      "fd 00 00 00 00 00 00 00"
+      "00 00 00 00 00 00 00 02");
+
+  folly::io::Cursor cursor(&buf);
+  IPPacket<folly::IPAddressV4> pkt(cursor);
+
+  auto buf2 = folly::IOBuf::create(pkt.length());
+  buf2->append(pkt.length());
+  folly::io::RWPrivateCursor writeCursor(buf2.get());
+  pkt.serialize(writeCursor);
+
+  folly::io::Cursor cursor2(buf2.get());
+  IPPacket<folly::IPAddressV4> pkt2(cursor2);
+  EXPECT_EQ(pkt, pkt2);
 }
