@@ -29,9 +29,9 @@
             primary="true"
             installiso="true"
             bootpartition="false"
-            kernelcmdline="nomodeset console=ttyS4,57600n8 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
+            kernelcmdline="nomodeset console=ttyS0,57600n8 8250.nr_uarts=1 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
 
-            <bootloader name="grub2" console="serial" serial_line="ttyS4,57600n8"/>
+            <bootloader name="grub2" console="serial" serial_line="ttyS0,57600n8"/>
             <size unit="G">16</size>
             <oemconfig>
                 <!-- The oem-resize element should be false for a fixed-size disk -->
