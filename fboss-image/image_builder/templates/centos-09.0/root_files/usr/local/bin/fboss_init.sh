@@ -76,6 +76,30 @@ setup_coop_configs() {
   copy_config "${platform_dir}/qsfp.conf" "${COOP_DIR}/qsfp.conf" "qsfp.conf"
 }
 
+create_distro_base_snapshot() {
+  local base_snapshot="/distro-base"
+
+  if [[ -e $base_snapshot ]]; then
+    log "Base snapshot already exists at $base_snapshot (skipping)"
+    return
+  fi
+
+  log "Creating base snapshot for service updates..."
+  if btrfs subvolume snapshot / "$base_snapshot"; then
+    log "Created $base_snapshot snapshot successfully"
+    # Make it read-only to prevent accidental modifications
+    if btrfs property set -ts "$base_snapshot" ro true; then
+      log "Set $base_snapshot to read-only"
+    else
+      error "Failed to set $base_snapshot to read-only"
+      return 1
+    fi
+  else
+    error "Failed to create $base_snapshot snapshot"
+    return 1
+  fi
+}
+
 main() {
   log "Starting FBOSS initialization"
 
@@ -84,6 +108,7 @@ main() {
     exit 1
   fi
 
+  create_distro_base_snapshot
   setup_coop_configs "$platform_dir"
   generate_fruid
 
