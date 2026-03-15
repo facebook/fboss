@@ -1227,7 +1227,7 @@
           "busName": "INCOMING@4",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_L_INLET_TSHENSOR"
+          "pmUnitScopedName": "SMB_L_INLET_TSENSOR"
         },
         {
           "busName": "INCOMING@4",
@@ -1244,7 +1244,7 @@
           "busName": "INCOMING@0",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_R_INLET_TSHENSOR"
+          "pmUnitScopedName": "SMB_R_INLET_TSENSOR"
         },
         {
           "busName": "INCOMING@0",
@@ -1637,7 +1637,7 @@
     "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7": "/SMB_L_SLOT@0/[SMB_L_ASIC_VOLTAGE_7]",
     "/run/devmap/sensors/SMB_L_ADC1_SENSOR": "/SMB_L_SLOT@0/[SMB_L_ADC1_SENSOR]",
     "/run/devmap/sensors/SMB_L_ADC2_SENSOR": "/SMB_L_SLOT@0/[SMB_L_ADC2_SENSOR]",
-    "/run/devmap/sensors/SMB_L_INLET_TSHENSOR": "/SMB_L_SLOT@0/[SMB_L_INLET_TSHENSOR]",
+    "/run/devmap/sensors/SMB_L_INLET_TSENSOR": "/SMB_L_SLOT@0/[SMB_L_INLET_TSENSOR]",
     "/run/devmap/sensors/SMB_L_VDDCORE": "/SMB_L_SLOT@0/[SMB_L_VDDCORE]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_0]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_1]",
@@ -1653,7 +1653,7 @@
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_7]",
     "/run/devmap/sensors/SMB_R_ADC1_SENSOR": "/SMB_R_SLOT@0/[SMB_R_ADC1_SENSOR]",
     "/run/devmap/sensors/SMB_R_ADC2_SENSOR": "/SMB_R_SLOT@0/[SMB_R_ADC2_SENSOR]",
-    "/run/devmap/sensors/SMB_R_INLET_TSHENSOR": "/SMB_R_SLOT@0/[SMB_R_INLET_TSHENSOR]",
+    "/run/devmap/sensors/SMB_R_INLET_TSENSOR": "/SMB_R_SLOT@0/[SMB_R_INLET_TSENSOR]",
     "/run/devmap/sensors/SMB_R_VDDCORE": "/SMB_R_SLOT@0/[SMB_R_VDDCORE]"
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
