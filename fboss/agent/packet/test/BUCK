@@ -17,6 +17,7 @@ cpp_unittest(
         "IPv6HdrTest.cpp",
         "LlcHdrTest.cpp",
         "MPLSHdrTest.cpp",
+        "MPLSPacketTest.cpp",
         "NDPOptionTest.cpp",
         "NDPRouterAdvertisementTest.cpp",
         "PTPHdrTest.cpp",
