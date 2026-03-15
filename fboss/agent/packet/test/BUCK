@@ -23,6 +23,7 @@ cpp_unittest(
         "PktFactoryTest.cpp",
         "PktUtilTest.cpp",
         "TCPHeaderTest.cpp",
+        "TCPPacketTest.cpp",
         "UDPHdrTest.cpp",
     ],
     deps = [
