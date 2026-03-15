@@ -2,6 +2,7 @@
 
 #include <folly/MacAddress.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/Utils.h"
@@ -1703,7 +1704,71 @@ class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
         ProductionFeature::MIRROR_ON_DROP,
         ProductionFeature::MIRROR_ON_DROP_XGS};
   }
+
+ protected:
+  void configureErspanMirror(
+      cfg::SwitchConfig& config,
+      const std::string& mirrorName,
+      const folly::IPAddressV6& tunnelDstIp,
+      const folly::IPAddressV6& tunnelSrcIp,
+      const PortID& srcPortId) {
+    cfg::Mirror mirror;
+    mirror.name() = mirrorName;
+    mirror.destination().ensure().tunnel().ensure().greTunnel().ensure().ip() =
+        tunnelDstIp.str();
+    mirror.destination()->tunnel()->srcIp() = tunnelSrcIp.str();
+    mirror.truncate() = true;
+    config.mirrors()->push_back(mirror);
+    utility::findCfgPort(config, srcPortId)->ingressMirror() = mirrorName;
+  }
+
+  void waitForStatsToStabilize(const std::vector<PortID>& ports) {
+    // Verify stats stay constant across 3 consecutive iterations
+    // (4 stats calls total) to avoid flakiness from a single match.
+    // WITH_RETRIES sleeps ~1s between iterations, providing the time gap.
+    constexpr int kStableIterations = 3;
+    int stableCount = 0;
+    auto prevStats = getLatestPortStats(ports);
+    WITH_RETRIES({
+      auto curStats = getLatestPortStats(ports);
+      if (std::all_of(ports.begin(), ports.end(), [&](auto portId) {
+            return *curStats[portId].outUnicastPkts_() ==
+                *prevStats[portId].outUnicastPkts_();
+          })) {
+        ++stableCount;
+      } else {
+        stableCount = 0;
+      }
+      prevStats = curStats;
+      EXPECT_EVENTUALLY_GE(stableCount, kStableIterations);
+    });
+  }
 };
+
+cfg::MirrorOnDropReport makeXgsModReport(
+    const std::string& name,
+    int16_t srcPort,
+    const folly::IPAddressV6& collectorIp,
+    int16_t dstPort,
+    const folly::IPAddressV6& switchIp,
+    std::optional<int32_t> samplingRate = std::nullopt) {
+  cfg::MirrorOnDropReport report;
+  report.name() = name;
+  report.localSrcPort() = srcPort;
+  report.collectorIp() = collectorIp.str();
+  report.collectorPort() = dstPort;
+  report.mtu() = 1500;
+  report.dscp() = 0;
+  if (samplingRate.has_value()) {
+    report.samplingRate() = samplingRate.value();
+  }
+  cfg::MirrorTunnel tunnel;
+  tunnel.srcIp() = switchIp.str();
+  cfg::MirrorDestination mirrorDest;
+  mirrorDest.tunnel() = tunnel;
+  report.mirrorPort() = mirrorDest;
+  return report;
+}
 
 // Basic verification test for Tomahawk5 (XGS platform) used in NSF clusters.
 TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
@@ -1717,20 +1782,12 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
   auto setup = [&]() {
     cfg::SwitchConfig config = getAgentEnsemble()->getCurrentConfig();
 
-    cfg::MirrorOnDropReport report;
-    report.name() = "xgs-mod-test";
-    report.localSrcPort() = kMirrorSrcPort;
-    report.collectorIp() = kCollectorIp_.str();
-    report.collectorPort() = kMirrorDstPort;
-    report.mtu() = 1500;
-    report.dscp() = 0;
-    cfg::MirrorTunnel tunnel;
-    tunnel.srcIp() = kSwitchIp_.str();
-    cfg::MirrorDestination mirrorDest;
-    mirrorDest.tunnel() = tunnel;
-    report.mirrorPort() = mirrorDest;
-    // Skip aging group interval configuration
-    config.mirrorOnDropReports()->push_back(report);
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-test",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_));
 
     utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
     applyNewConfig(config);
