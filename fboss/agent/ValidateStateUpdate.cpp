@@ -305,15 +305,9 @@ bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) {
   if (!isStateUpdateValidCommon(delta, asicTable_)) {
     return false;
   }
-  if (FLAGS_enforce_single_nbr_mac_per_intf && !hasSingleNbrMacPerIntf(delta)) {
+  if (!intfDeltaValidator_.isValidDelta(delta)) {
     return false;
   }
-  return true;
-}
-
-bool StateUpdateValidator::hasSingleNbrMacPerIntf(
-    const StateDelta& /* delta */) {
-  // TODO: Implement single neighbor MAC per interface validation
   return true;
 }
 
@@ -333,6 +327,8 @@ void StateUpdateValidator::updateRejected(const StateDelta& delta) {
   resourceAccountant_ =
       std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
   resourceAccountant_->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
+  intfDeltaValidator_.updateRejected(
       StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
 }
 

@@ -1167,6 +1167,9 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiFdbManager::removeMac);
   }
 
+  // NOTE: Neighbor removals must be processed before changes/adds.
+  // IntfDeltaValidator depends on this ordering to detect transient
+  // multi-MAC states on PORT interfaces. See ValidateInterfaceDelta.cpp.
   auto processRemovedNeighborDeltaForIntfs =
       [this, &lockPolicy](const auto& intfsDelta) {
         for (const auto& intfDelta : intfsDelta) {
@@ -1368,8 +1371,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiRouterInterfaceManager::addRemoteRouterInterface);
 
-  // For VOQ switches, neighbor tables live on port based
-  // RIFs
+  // For VOQ switches, neighbor tables live on port based RIFs.
+  // NOTE: Per interface, the order is: change ARP, add ARP, change NDP,
+  // add NDP. IntfDeltaValidator depends on this ordering (removals before
+  // changes before adds) to detect transient multi-MAC states on PORT
+  // interfaces. See ValidateInterfaceDelta.cpp.
   auto processNeighborChangedAndAddedDeltaForIntfs =
       [this, &lockPolicy](const auto& intfsDelta) {
         for (const auto& intfDelta : intfsDelta) {

@@ -29,6 +29,7 @@ cpp_unittest(
         "FileBasedWarmbootUtilsTest.cpp",
         "ICMPTest.cpp",
         "IPv4Test.cpp",
+        "IntfDeltaValidatorTest.cpp",
         "LabelForwardingTests.cpp",
         "LinkConnectivityProcessorTest.cpp",
         "LldpManagerTest.cpp",

@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <map>
+
+#include "fboss/agent/ValidateInterfaceDelta.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/types.h"
 
@@ -14,7 +17,6 @@ class HwSwitchHandler;
 class SwitchStats;
 class Port;
 class ResourceAccountant;
-class SwitchState;
 
 bool hasValidPortQueues(
     const std::shared_ptr<Port>& port,
@@ -53,13 +55,13 @@ class StateUpdateValidator {
  private:
   bool isValidUpdateCommon(const StateDelta& delta);
   bool isValidUpdateMultiSwitch(const StateDelta& delta) const;
-  bool hasSingleNbrMacPerIntf(const StateDelta& delta);
 
   cfg::AgentRunMode runMode_;
   const HwSwitchHandler* hwSwitchHandler_;
   const HwAsicTable* asicTable_;
   const SwitchIdScopeResolver* scopeResolver_;
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
+  IntfDeltaValidator intfDeltaValidator_;
 };
 
 } // namespace facebook::fboss

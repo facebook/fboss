@@ -2178,6 +2178,7 @@ cpp_library(
     name = "validate_state_update",
     srcs = [
         "ResourceAccountant.cpp",
+        "ValidateInterfaceDelta.cpp",
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
@@ -2194,6 +2195,8 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//fboss/lib:unique_ref_map",
+        "//folly:network_address",
     ],
 )
 
