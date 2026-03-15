@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/lib/TupleUtils.h"
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
 extern "C" {
@@ -380,7 +381,10 @@ void SaiTamManager::addDnxMirrorOnDropReport(
     std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(
         eventTraits) = agingGroupKey;
     auto& eventStore = saiStore_->get<SaiTamEventTraits>();
-    auto event = eventStore.setObject(eventTraits, eventTraits);
+    auto eventAdapterHostKey = tupleProjection<
+        SaiTamEventTraits::CreateAttributes,
+        SaiTamEventTraits::AdapterHostKey>(eventTraits);
+    auto event = eventStore.setObject(eventAdapterHostKey, eventTraits);
     events.push_back(event);
     eventIds.push_back(event->adapterKey());
     XLOG(INFO) << "Created event ID " << eventId << " with tam event "
@@ -461,7 +465,10 @@ void SaiTamManager::addXgsMirrorOnDropReport(
       eventTraits) = collectors;
 
   auto& eventStore = saiStore_->get<SaiTamEventTraits>();
-  auto event = eventStore.setObject(eventTraits, eventTraits);
+  auto eventAdapterHostKey = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventTraits);
+  auto event = eventStore.setObject(eventAdapterHostKey, eventTraits);
   events.push_back(event);
   eventIds.push_back(event->adapterKey());
   XLOG(INFO) << "Created event ID " << tam::kModSwitchEventId

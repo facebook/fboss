@@ -60,6 +60,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(TamEvent, PacketDropTypeMmu)
   SAI_EXT_ATTR_MAP(TamEvent, PacketDropTypeIngress)
   SAI_EXT_ATTR_MAP(TamEvent, AgingGroup)
+  SAI_EXT_ATTR_MAP(TamEvent, IngressSamplepacketEnable)
   SAI_EXT_ATTR_MAP(TamTransport, SrcMacAddress)
   SAI_EXT_ATTR_MAP(TamTransport, DstMacAddress)
 }

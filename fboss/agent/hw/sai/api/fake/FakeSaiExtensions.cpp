@@ -90,6 +90,10 @@ SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP;
 }
 
+std::optional<sai_attr_id_t> SaiTamEventTraits::Attributes::
+    AttributeIngressSamplepacketEnable::operator()() {
+  return SAI_TAM_EVENT_ATTR_FAKE_INGRESS_SAMPLEPACKET_ENABLE;
+}
 std::optional<sai_attr_id_t>
 SaiTamTransportTraits::Attributes::AttributeSrcMacAddress::operator()() {
   return SAI_TAM_TRANSPORT_ATTR_FAKE_SRC_MAC_ADDRESS;
