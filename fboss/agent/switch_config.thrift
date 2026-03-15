@@ -459,6 +459,12 @@ struct MirrorOnDropReport {
    * If neither mirrorPortId or mirrorPort is specified, agent will attempt to pick the first local scoped recycle port.
    */
   13: optional MirrorDestination mirrorPort;
+  /*
+   * Optional sampling rate for MOD packets. When set, only 1 in samplingRate
+   * MOD packets will be sent to the collector. If not set, all MOD packets
+   * are sent (no sampling).
+   */
+  14: optional i32 samplingRate;
 }
 
 /**

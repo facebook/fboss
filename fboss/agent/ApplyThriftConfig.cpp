@@ -6165,7 +6165,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       getLocalMacAddress().toString(),
       utility::getMacForFirstInterfaceWithPorts(new_).toString(),
       *config->modEventToConfigMap(),
-      *config->agingGroupAgingIntervalUsecs());
+      *config->agingGroupAgingIntervalUsecs(),
+      config->samplingRate().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>

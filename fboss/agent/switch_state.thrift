@@ -388,6 +388,8 @@ struct MirrorOnDropReportFields {
   16: bool isResolved = false;
   17: optional string resolvedCollectorMac;
   18: optional switch_config.PortDescriptor resolvedEgressPort;
+  // Optional sampling rate for MOD packets
+  19: optional i32 samplingRate;
 }
 
 struct ControlPlaneFields {
