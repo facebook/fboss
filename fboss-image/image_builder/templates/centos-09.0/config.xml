@@ -44,7 +44,8 @@
         </type>
     </preferences>
     <users>
-        <user name="root" password="$1$wYJUgpM5$YNklayYndL8.nnIpR/Fze0" groups="root" home="/root"/>
+        <user name="root" password="root" pwdformat="plain" groups="root" home="/root"/>
+        <user name="netops" password="netops" pwdformat="plain" groups="netops,wheel" home="/home/netops"/>
     </users>
 
     <repository type="rpm-md" alias="CentOS9-ExtrasCommon" sourcetype="metalink">
