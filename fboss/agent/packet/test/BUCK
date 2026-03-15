@@ -57,6 +57,7 @@ cpp_unittest(
 cpp_unittest(
     name = "sflow_structs_test",
     srcs = [
+        "SflowStructsExtTest.cpp",
         "SflowStructsTest.cpp",
     ],
     deps = [
