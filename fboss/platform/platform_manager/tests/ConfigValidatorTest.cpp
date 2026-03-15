@@ -109,13 +109,13 @@ TEST(ConfigValidatorTest, InvalidRootSlotType) {
 }
 
 TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
-  // CPU_BUS@0 — valid
+  // CPU_BUS@0 — valid (Intel single-bus or AMD first bus)
   EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0"}));
 
-  // CPU_BUS@1 — valid
+  // CPU_BUS@1 — valid (AMD second bus)
   EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@1"}));
 
-  // CPU_BUS@0 + CPU_BUS@1 — valid (two-bus config)
+  // CPU_BUS@0 + CPU_BUS@1 — valid (AMD two-bus config)
   EXPECT_TRUE(
       ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@1"}));
 
@@ -126,6 +126,10 @@ TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
 
   // CPU_BUS@2 — invalid (only @0 and @1 supported)
   EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@2"}));
+
+  // Duplicate CPU_BUS@0 — invalid
+  EXPECT_FALSE(
+      ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@0"}));
 
   // Mixed styles — invalid
   EXPECT_FALSE(
