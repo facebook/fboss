@@ -53,42 +53,35 @@ std::vector<uint8_t> ParserUtils::loadEeprom(
     const std::string& eeprom,
     int offset) {
   // Declare buffer, and fill it up with 0s
-  long fileSize = 0;
-  long bytesToRead = 0;
   std::ifstream file(eeprom, std::ios::binary);
-  std::vector<uint8_t> result;
-  // First, detect EEPROM size
-  try {
-    file.seekg(0, std::ios::end);
-    fileSize = file.tellg();
-    if (fileSize < 0) {
-      throw std::runtime_error(
-          fmt::format("EEPROM {} does not exist, or is empty!", eeprom));
-    }
+  std::vector<uint8_t> result(kMaxEepromDataRegionSize);
 
-    // bytesToRead cannot be bigger than the remaining bytes of the file from
-    // the offset. That is, we cannot read beyond the end of the file.
-    // If the remaining bytes are smaller than max, then we only read up to
-    // the end of the file.
-    bytesToRead = fileSize - offset;
-    if (bytesToRead < 0) {
-      throw std::runtime_error("Offset greater than file size");
+  // First, validate file can be opened
+  try {
+    if (!file) {
+      throw std::runtime_error(fmt::format("Unable to open EEPROM {}", eeprom));
     }
-    result.resize(bytesToRead);
   } catch (std::exception& ex) {
-    std::cout << "Failed to detect EEPROM size (" << eeprom
-              << "): " << ex.what() << std::endl;
-    throw std::runtime_error("Unable to detect EEPROM size.");
+    std::cout << "Failed to open EEPROM (" << eeprom << "): " << ex.what()
+              << std::endl;
+    throw std::runtime_error("Failed to open EEPROM.");
   }
 
   // Now, read the eeprom
   try {
     file.seekg(offset, std::ios::beg);
-    file.read((char*)result.data(), bytesToRead);
+    file.read((char*)result.data(), kMaxEepromDataRegionSize);
     file.close();
   } catch (std::exception& ex) {
     std::cout << "Failed to read EEPROM contents " << ex.what() << std::endl;
+    return result;
   }
+
+  // Validate we read some data
+  if (file.gcount() == 0) {
+    throw std::runtime_error("Offset greater than file size");
+  }
+
   return result;
 }
 

@@ -7,6 +7,9 @@
 
 namespace facebook::fboss::platform {
 
+// Maximum size of the EEPROM data region to read.
+constexpr long kMaxEepromDataRegionSize = 512;
+
 class ParserUtils {
  public:
   static std::vector<uint8_t> loadEeprom(const std::string& eeprom, int offset);
