@@ -24,6 +24,7 @@ cpp_unittest(
         "PTPHdrTest.cpp",
         "PktFactoryTest.cpp",
         "PktUtilTest.cpp",
+        "TCPHeaderExtTest.cpp",
         "TCPHeaderTest.cpp",
         "TCPPacketTest.cpp",
         "UDPDatagramTest.cpp",
