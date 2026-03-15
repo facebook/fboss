@@ -55,3 +55,14 @@ class ComponentError(FbossImageError):
     - Component configuration invalid
     - Component builder not implemented
     """
+
+
+class DistroInfraError(FbossImageError):
+    """Distro Infrastructure operation failed.
+
+    Raised when:
+    - Container operations fail
+    - PXE boot configuration fails
+    - Device IP retrieval fails
+    - MAC address validation fails
+    """
