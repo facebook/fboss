@@ -11,8 +11,10 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 
 from distro_cli.lib.cli import validate_path
+from distro_cli.lib.device_update import DeviceUpdateError, DeviceUpdater
 from distro_cli.lib.distro_infra import (
     DISTRO_INFRA_CONTAINER,
     GETIP_SCRIPT_CONTAINER_PATH,
@@ -21,8 +23,9 @@ from distro_cli.lib.distro_infra import (
 )
 from distro_cli.lib.docker import container
 from distro_cli.lib.exceptions import DistroInfraError
+from distro_cli.lib.manifest import ImageManifest
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("fboss-image")
 
 
 def print_to_console(message: str) -> None:
@@ -95,7 +98,28 @@ def update_command(args):
     logger.info(f"Updating device {args.mac}")
     logger.info(f"Manifest: {args.manifest}")
     logger.info(f"Components: {' '.join(args.components)}")
-    logger.info("Device update command (stub)")
+
+    manifest = ImageManifest(Path(args.manifest))
+
+    # Get device IP once for all components
+    device_ip = get_device_ip(args.mac)
+    if not device_ip:
+        logger.error("Cannot update: device IP not found")
+        sys.exit(1)
+
+    for component in args.components:
+        try:
+            updater = DeviceUpdater(
+                mac=args.mac,
+                manifest=manifest,
+                component=component,
+                device_ip=device_ip,
+            )
+            updater.update()
+            logger.info(f"Successfully updated {component}")
+        except DeviceUpdateError as e:
+            logger.error(f"Failed to update {component}: {e}")
+            sys.exit(1)
 
 
 def get_device_ip(mac: str) -> str | None:

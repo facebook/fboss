@@ -87,13 +87,6 @@ def download_artifact(
         copied_path = temp_download_dir / source_path.name
         metadata = {"mtime": current_mtime}
         try:
-            # Copy the source file into the temp directory
-            temp_data_path = temp_download_dir / source_path.name
-            shutil.copy2(str(source_path), str(temp_data_path))
-
-            # Save metadata with mtime
-            metadata_path = temp_download_dir / HTTP_METADATA_FILENAME
-            metadata = {"mtime": current_mtime}
             with metadata_path.open("w") as f:
                 json.dump(metadata, f, indent=2)
             # Copy the source file into the temp directory instead of using it

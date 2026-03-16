@@ -24,12 +24,8 @@ class ElapsedTimeFormatter(logging.Formatter):
 
 
 def setup_logging(verbose=False):
-    """Setup logging with elapsed time formatter.
-
-    Configures the 'distro_cli' logger, which is the parent of all module
-    loggers created via logging.getLogger(__name__) throughout the package.
-    """
-    logger = logging.getLogger("distro_cli")
+    """Setup logging with elapsed time formatter."""
+    logger = logging.getLogger("fboss-image")
     logger.setLevel(logging.DEBUG if verbose else logging.INFO)
     logger.handlers = []
 

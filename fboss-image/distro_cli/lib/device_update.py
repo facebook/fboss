@@ -8,8 +8,11 @@
 """Device update logic for updating FBOSS services on devices."""
 
 import logging
+import subprocess
+import uuid
 from pathlib import Path
 
+from distro_cli.builder.image_builder import ImageBuilder
 from distro_cli.lib.exceptions import DistroInfraError
 from distro_cli.lib.manifest import ImageManifest
 
@@ -24,7 +27,11 @@ COMPONENT_SERVICES: dict[str, list[str]] = {
         "fan_service",
         "data_corral_service",
     ],
+    "other_dependencies": [],
 }
+
+# Path to the update script that runs on the device
+UPDATE_SCRIPT_PATH = Path(__file__).parent.parent / "scripts" / "update_service.sh"
 
 
 class DeviceUpdateError(DistroInfraError):
@@ -37,10 +44,8 @@ class DeviceUpdater:
     Workflow:
     1. Validate component is supported for update
     2. Acquire artifacts (build OR download)
-    3. Create update package (artifacts + service_update.sh) to scp to the device
-    4. Get device IP
-    5. SCP update package to device
-    6. SSH: extract and run service_update.sh
+    3. SCP artifact and update_service.sh to device
+    4. SSH: run update_service.sh
     """
 
     def __init__(
@@ -84,6 +89,10 @@ class DeviceUpdater:
                 f"Component '{self.component}' not found in manifest"
             )
 
+        if self.component == "other_dependencies":
+            # other_dependencies are validated by ImageBuilder
+            return
+
         services = self._get_services()
         if not services:
             raise DeviceUpdateError(
@@ -102,39 +111,121 @@ class DeviceUpdater:
     def _acquire_artifacts(self) -> Path:
         """Acquire component artifacts via build or download.
 
+        Uses ImageBuilder to handle both execute (build) and download modes.
+        Dependencies are automatically built if needed.
+
         Returns:
             Path to the component artifact (tarball)
 
         Raises:
             DeviceUpdateError: If artifact acquisition fails
         """
-        raise NotImplementedError("Stub")
+        logger.info(f"Acquiring artifacts for {self.component}")
 
-    def _create_update_package(self, artifact_path: Path) -> Path:
-        """Create update package with artifacts and update_service.sh script.
+        builder = ImageBuilder(self.manifest)
+        builder.build_components([self.component])
+
+        artifact_path = builder.component_artifacts.get(self.component)
+        if not artifact_path:
+            raise DeviceUpdateError(
+                f"No artifact produced for component '{self.component}'"
+            )
+
+        logger.info(f"Artifact acquired: {artifact_path}")
+        return artifact_path
+
+    def _transfer_and_execute(self, artifact_path: Path, services: list[str]) -> None:
+        """Transfer artifact and update script to device and execute.
 
         Args:
             artifact_path: Path to the component artifact tarball
-
-        Returns:
-            Path to the created update package
-
-        Raises:
-            DeviceUpdateError: If package creation fails
-        """
-        raise NotImplementedError("Stub")
-
-    def _transfer_and_execute(self, package_path: Path, services: list[str]) -> None:
-        """Transfer update package to device and execute update_service.sh.
-
-        Args:
-            package_path: Path to the update package tarball
             services: List of services to update
 
         Raises:
             DeviceUpdateError: If transfer or execution fails
         """
-        raise NotImplementedError("Stub")
+        if not self.device_ip:
+            raise DeviceUpdateError("Device IP not set")
+
+        if not UPDATE_SCRIPT_PATH.exists():
+            raise DeviceUpdateError(f"Update script not found: {UPDATE_SCRIPT_PATH}")
+
+        device_user = "root"
+        remote_dir = f"/tmp/fboss-update-{uuid.uuid4().hex[:8]}"
+        ssh_opts = [
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+        ]
+
+        logger.info(f"Transferring files to {self.device_ip}:{remote_dir}")
+
+        try:
+            # Create remote directory
+            result = subprocess.run(
+                [
+                    "ssh",
+                    *ssh_opts,
+                    f"{device_user}@{self.device_ip}",
+                    f"mkdir -p {remote_dir}",
+                ],
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                raise DeviceUpdateError(
+                    f"Failed to create remote directory: {result.stderr.decode()}"
+                )
+
+            # SCP artifact and update script to device
+            result = subprocess.run(
+                [
+                    "scp",
+                    *ssh_opts,
+                    str(artifact_path),
+                    str(UPDATE_SCRIPT_PATH),
+                    f"{device_user}@{self.device_ip}:{remote_dir}/",
+                ],
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                raise DeviceUpdateError(
+                    f"Failed to transfer files: {result.stderr.decode()}"
+                )
+
+            services_arg = " ".join(services)
+            remote_cmd = (
+                f"cd {remote_dir} && "
+                f"chmod +x update_service.sh && "
+                f"sudo ./update_service.sh {self.component} {services_arg}"
+            )
+
+            logger.info("Executing update on device...")
+            result = subprocess.run(
+                ["ssh", *ssh_opts, f"{device_user}@{self.device_ip}", remote_cmd],
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                raise DeviceUpdateError(
+                    f"Failed to execute update: {result.stderr.decode()}"
+                )
+
+            logger.info(f"Update output:\n{result.stdout.decode()}")
+        finally:
+            # Cleanup remote directory if present
+            subprocess.run(
+                [
+                    "ssh",
+                    *ssh_opts,
+                    f"{device_user}@{self.device_ip}",
+                    f"rm -rf {remote_dir}",
+                ],
+                capture_output=True,
+                check=False,
+            )
 
     def update(self) -> bool:
         """Execute the update workflow.
@@ -145,4 +236,17 @@ class DeviceUpdater:
         Raises:
             DeviceUpdateError: If update fails
         """
-        raise NotImplementedError("Stub")
+        if not self.device_ip:
+            raise DeviceUpdateError("Device IP not set")
+
+        self.validate()
+
+        services = self._get_services()
+        logger.info(f"Updating {self.component} on device {self.mac}")
+        logger.info(f"Services to restart: {', '.join(services)}")
+
+        artifact_path = self._acquire_artifacts()
+        self._transfer_and_execute(artifact_path, services)
+
+        logger.info(f"Successfully updated {self.component} on device {self.mac}")
+        return True

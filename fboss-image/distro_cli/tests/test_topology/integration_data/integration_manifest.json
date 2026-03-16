@@ -1,0 +1,25 @@
+{
+  "distribution_formats": {
+    "onie": "FBOSS-integration-test.bin"
+  },
+  "kernel": {
+    "download": "file:kernel.rpms.tar"
+  },
+  "other_dependencies": [
+    {
+      "execute": ["build_test_rpm.sh"],
+      "artifact": "test-tool-2.0.0-1.noarch.rpm"
+    }
+  ],
+  "fboss-platform-stack": {
+    "execute": ["build_stack.sh", "platform-stack"],
+    "artifact": "platform-stack.tar"
+  },
+  "hw_agent_sai": {
+    "download": "file:sai-devel.tar"
+  },
+  "fboss-forwarding-stack": {
+    "execute": ["build_stack.sh", "forwarding-stack"],
+    "artifact": "forwarding-stack.tar"
+  }
+}
