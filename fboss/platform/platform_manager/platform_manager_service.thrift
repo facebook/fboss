@@ -92,6 +92,11 @@ struct EepromContentResponse {
   1: eeprom_contents.EepromContents eepromContents;
 }
 
+struct FirmwareVersionsResponse {
+  // Map from device name (e.g. "SMB_CPLD") to firmware version string.
+  1: map<string, string> firmwareVersions;
+}
+
 service PlatformManagerService {
   platform_manager_snapshot.PlatformSnapshot getPlatformSnapshot();
   PlatformManagerStatus getLastPMStatus();
@@ -104,4 +109,5 @@ service PlatformManagerService {
   EepromContentResponse getEepromContents(1: PmUnitInfoRequest req) throws (
     1: PlatformManagerError pmError,
   );
+  FirmwareVersionsResponse getFirmwareVersions();
 }

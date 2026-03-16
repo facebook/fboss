@@ -5,6 +5,11 @@
 #include <thrift/lib/cpp2/async/RocketClientChannel.h>
 #include "folly/CancellationToken.h"
 
+#if FOLLY_HAS_COROUTINES
+#include <folly/coro/AsyncGenerator.h>
+#include <folly/coro/WithCancellation.h>
+#endif
+
 namespace facebook {
 namespace fboss {
 
@@ -27,6 +32,27 @@ PacketStreamClient::~PacketStreamClient() {
 
 bool PacketStreamClient::isConnectedToServer() {
   return (state_.load() == State::CONNECTED && client_);
+}
+
+bool PacketStreamClient::send(TPacket&& packet) {
+#if FOLLY_HAS_COROUTINES
+  if (!sinkRunning_.load()) {
+    XLOG(ERR) << clientId_ << " sink not ready, dropping packet";
+    return false;
+  }
+  sinkQueue_.enqueue(std::move(packet));
+  return true;
+#else
+  throw std::runtime_error("Coroutine support is needed for PacketStream");
+#endif
+}
+
+bool PacketStreamClient::isSinkReady() {
+#if FOLLY_HAS_COROUTINES
+  return sinkRunning_.load();
+#else
+  return false;
+#endif
 }
 
 void PacketStreamClient::createClient(const std::string& ip, uint16_t port) {
@@ -100,7 +126,67 @@ folly::coro::Task<void> PacketStreamClient::connect() {
   XLOG(DBG2) << "Client Cancellation Completed";
   co_return;
 }
+
+folly::coro::Task<void> PacketStreamClient::sinkLoop(
+    apache::thrift::ClientSink<TPacket, bool> sink) {
+  try {
+    sinkRunning_.store(true);
+    XLOG(DBG2) << clientId_ << " sink loop started";
+
+    co_await sink.sink([this]() -> folly::coro::AsyncGenerator<TPacket&&> {
+      while (true) {
+        auto packet = co_await sinkQueue_.dequeue();
+        if (isConnectCancelled()) {
+          XLOG(DBG2) << clientId_ << " sink loop cancelled via queue";
+          co_return;
+        }
+        co_yield std::move(packet);
+      }
+    }());
+
+    XLOG(DBG2) << clientId_ << " sink loop completed normally";
+  } catch (const folly::OperationCancelled&) {
+    XLOG(DBG2) << clientId_ << " sink loop cancelled";
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << clientId_ << " sink loop error: " << ex.what();
+  }
+  sinkRunning_.store(false);
+}
 #endif
+
+void PacketStreamClient::createSink() {
+#if FOLLY_HAS_COROUTINES
+  if (!isConnectedToServer()) {
+    throw std::runtime_error("Client not connected");
+  }
+
+  auto getToken = [this]() {
+    return cancelSource_.withWLock(
+        [](auto& cancelSource) { return cancelSource->getToken(); });
+  };
+
+  // Create the sink on clientEvbThread_ (where the Thrift client lives).
+  // This is a blocking call — if co_packetSink fails, the exception
+  // propagates to the caller.
+  auto sink = folly::coro::blockingWait(
+      folly::coro::co_withExecutor(
+          clientEvbThread_->getEventBase(),
+          folly::coro::co_invoke(
+              [this]() -> folly::coro::Task<
+                           apache::thrift::ClientSink<TPacket, bool>> {
+                co_return co_await client_->co_packetSink(clientId_);
+              })));
+
+  // Launch the drain loop as a managed coroutine on clientEvbThread_.
+  // CancellableAsyncScope ensures cancel() waits for it to complete.
+  sinkLoopScope_.add(
+      folly::coro::co_withExecutor(
+          clientEvbThread_->getEventBase(), sinkLoop(std::move(sink))),
+      getToken());
+#else
+  throw std::runtime_error("Coroutine support is needed for PacketStream");
+#endif
+}
 
 void PacketStreamClient::registerPortToServer(const std::string& port) {
 #if FOLLY_HAS_COROUTINES
@@ -128,6 +214,12 @@ void PacketStreamClient::clearPortFromServer(const std::string& l2port) {
 
 void PacketStreamClient::cancel() {
 #if FOLLY_HAS_COROUTINES
+  // already disconnected;
+  if (state_.load() == State::DISCONNECTED) {
+    XLOG(WARNING) << clientId_ << " already disconnected";
+    return;
+  }
+
   XLOG(DBG2) << "Cancel PacketStreamClient";
   cancelSource_.withWLock([](auto& cancelSource) {
     if (cancelSource) {
@@ -136,11 +228,12 @@ void PacketStreamClient::cancel() {
     }
   });
 
-  // already disconnected;
-  if (state_.load() == State::DISCONNECTED) {
-    XLOG(WARNING) << clientId_ << " already disconnected";
-    return;
-  }
+  // Unblock sink queue with dummy packet so sinkLoop() can exit
+  sinkQueue_.enqueue(TPacket{});
+
+  // Wait for sinkLoop() coroutine to fully complete before destroying
+  // any members it references (client_, sinkQueue_, etc.).
+  folly::coro::blockingWait(sinkLoopScope_.cancelAndJoinAsync());
 
   evb_->runImmediatelyOrRunInEventBaseThreadAndWait([this]() {
     try {

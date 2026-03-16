@@ -174,6 +174,7 @@ class ImageBuilder:
             component_name="Base image",
         )
         image = Path(dist_formats[format_name])
+        logger.info(f"Moving {format_name} artifact: {output} -> {image.resolve()}")
         shutil.move(str(output), str(image))
 
     def _stage_component_artifacts(self) -> Path:

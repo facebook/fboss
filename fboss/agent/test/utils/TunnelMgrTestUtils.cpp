@@ -412,12 +412,14 @@ void checkKernelEntriesNotExist(
   }
 }
 
-void checkKernelEntriesExist(
+bool checkKernelEntriesExistBool(
     const std::string& intfIp,
     bool isIPv4,
     bool checkRouteEntry) {
   std::string cmd;
   std::string searchIntfIp = intfIp;
+
+  // Check source route rule entry
   if (isIPv4) {
     cmd = folly::to<std::string>("ip rule list | grep -w ", searchIntfIp);
   } else {
@@ -426,15 +428,16 @@ void checkKernelEntriesExist(
 
   auto output = runShellCmd(cmd);
 
-  XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-  XLOG(DBG2) << "checkKernelEntriesExist Output: " << std::endl
+  XLOG(DBG2) << "checkKernelEntriesExistBool Cmd: " << cmd;
+  XLOG(DBG2) << "checkKernelEntriesExistBool Output: " << std::endl
              << output << std::endl;
 
   if (output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos) {
-    XLOG(DBG2) << "checkKernelEntriesExist: Source route rule entry not "
+    XLOG(DBG2) << "checkKernelEntriesExistBool: Source route rule entry not "
                << "present in the kernel for " << searchIntfIp;
   }
 
+  // Check tunnel address entry
   if (isIPv4) {
     cmd = folly::to<std::string>("ip addr list | grep -B 1 -w ", searchIntfIp);
   } else {
@@ -444,12 +447,13 @@ void checkKernelEntriesExist(
 
   output = runShellCmd(cmd);
 
-  XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-  XLOG(DBG2) << "checkKernelEntriesExist Output: " << std::endl
+  XLOG(DBG2) << "checkKernelEntriesExistBool Cmd: " << cmd;
+  XLOG(DBG2) << "checkKernelEntriesExistBool Output: " << std::endl
              << output << std::endl;
 
-  EXPECT_TRUE(
-      output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
+  if (output.find(folly::to<std::string>(searchIntfIp)) == std::string::npos) {
+    return false;
+  }
 
   if (checkRouteEntry) {
     if (isIPv4) {
@@ -464,13 +468,16 @@ void checkKernelEntriesExist(
 
     output = runShellCmd(cmd);
 
-    XLOG(DBG2) << "checkKernelEntriesExist Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesExist Output:" << std::endl
+    XLOG(DBG2) << "checkKernelEntriesExistBool Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesExistBool Output:" << std::endl
                << output << std::endl;
 
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>(searchIntfIp)) != std::string::npos);
+    if (output.find(folly::to<std::string>(searchIntfIp)) ==
+        std::string::npos) {
+      return false;
+    }
 
+    // Additional check for fboss route presence
     if (isIPv4) {
       cmd = folly::to<std::string>("ip route list table all | grep fboss");
     } else {
@@ -479,13 +486,23 @@ void checkKernelEntriesExist(
 
     output = runShellCmd(cmd);
 
-    XLOG(DBG2) << "checkKernelEntriesExist Additional Cmd: " << cmd;
-    XLOG(DBG2) << "checkKernelEntriesExist Additional Output: \n"
+    XLOG(DBG2) << "checkKernelEntriesExistBool Additional Cmd: " << cmd;
+    XLOG(DBG2) << "checkKernelEntriesExistBool Additional Output: \n"
                << output << "\n";
 
-    EXPECT_TRUE(
-        output.find(folly::to<std::string>("fboss")) != std::string::npos);
+    if (output.find(folly::to<std::string>("fboss")) == std::string::npos) {
+      return false;
+    }
   }
+
+  return true;
+}
+
+void checkKernelEntriesExist(
+    const std::string& intfIp,
+    bool isIPv4,
+    bool checkRouteEntry) {
+  EXPECT_TRUE(checkKernelEntriesExistBool(intfIp, isIPv4, checkRouteEntry));
 }
 
 void checkKernelEntriesRemoved(

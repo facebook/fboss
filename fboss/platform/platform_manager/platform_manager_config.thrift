@@ -153,6 +153,38 @@ struct I2cRegData {
   2: list<byte> ioBuf;
 }
 
+// Defines a sysfs attribute to create on a CPLD device via the
+// fbcpld_generic kernel driver.
+//
+// `name`: Name of the sysfs file to create.
+//
+// `mode`: Access mode - "ro" (read-only, 0444), "rw" (read-write, 0644),
+// or "wo" (write-only, 0200). Defaults to "ro".
+//
+// `regAddr`: Register address as hex string (e.g., "0x10").
+//
+// `bitOffset`: Starting bit position in the register (0-7). Defaults to 0.
+//
+// `numBits`: Number of bits (1-8). E.g., bitOffset=4 numBits=4 selects
+// bits [7:4]. Defaults to 1.
+//
+// `flags`: Optional list of behavior flags:
+//   "negate"     - Invert value (active-low signals)
+//   "decimal"    - Show as decimal (default is hex)
+//   "show_notes" - Include register info in output
+//   "log_write"  - Log writes to kernel log
+//
+// `description`: Help text for the attribute.
+struct CpldSysfsAttr {
+  1: string name;
+  2: string mode = "ro";
+  3: string regAddr;
+  4: i32 bitOffset = 0;
+  5: i32 numBits = 1;
+  6: list<string> flags;
+  7: string description;
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -226,6 +258,7 @@ struct I2cDeviceConfig {
   12: bool isWatchdog;
   13: bool isEeprom;
   14: optional i16 eepromOffset;
+  15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
 }
 
 // Configs for sensors which are embedded (eg within CPU).

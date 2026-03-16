@@ -20,6 +20,7 @@ from fboss_agent_utils import (
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
 )
+from fsdb_service_utils import cleanup_fsdb_service, setup_and_start_fsdb_service
 from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
 
 # Helper to run HwTests
@@ -161,6 +162,7 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
 OPT_ARG_FILTER_FILE = "--filter_file"
+OPT_ARG_PROFILE = "--profile"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
@@ -185,6 +187,9 @@ OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
 OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
+OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
+OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
+OPT_ARG_FSDB_BIN_PATH = "--fsdb-bin-path"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -513,11 +518,22 @@ class TestRunner(abc.ABC):
         if args.filter or args.filter_file:
             if args.filter_file:
                 with open(args.filter_file) as file:
-                    gtest_regexes = [
-                        line.strip()
-                        for line in file
-                        if line.strip() and not line.strip().startswith("#")
-                    ]
+                    gtest_regexes = []
+                    for line in file:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        parts = line.split()
+                        pattern = parts[0]
+                        tags = parts[1:] if len(parts) > 1 else []
+                        if args.profile:
+                            if args.profile not in tags:
+                                continue
+                        else:
+                            # no --profile: include untagged lines and t-tagged lines
+                            if tags and "t" not in tags:
+                                continue
+                        gtest_regexes.append(pattern)
                     test_names = self._list_tests_to_run(":".join(gtest_regexes), False)
             elif args.filter:
                 test_names = self._list_tests_to_run(args.filter, False)
@@ -1115,13 +1131,25 @@ class LinkTestRunner(TestRunner):
                     args.platform_mapping_override_path,
                 ]
             )
+
+        arg_list.extend(["--fsdb_client_ssl_preferred=false"])
+
         return arg_list
 
     def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        # Start FSDB service if not disabled
+        if not args.disable_fsdb:
+            setup_and_start_fsdb_service(
+                fsdb_service_bin_path=args.fsdb_bin_path,
+                fsdb_service_config_path=args.fsdb_config,
+                is_warm_boot=False,
+            )
+
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_fsdb_disabled=args.disable_fsdb,
             is_warm_boot=False,
         )
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1131,14 +1159,23 @@ class LinkTestRunner(TestRunner):
                 hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=False,
             )
 
     def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+        # Start FSDB service if not disabled
+        if not args.disable_fsdb:
+            setup_and_start_fsdb_service(
+                fsdb_service_bin_path=args.fsdb_bin_path,
+                fsdb_service_config_path=args.fsdb_config,
+                is_warm_boot=True,
+            )
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_fsdb_disabled=args.disable_fsdb,
             is_warm_boot=True,
         )
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1148,11 +1185,14 @@ class LinkTestRunner(TestRunner):
                 hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=True,
             )
 
     def _end_run(self):
         cleanup_qsfp_service()
+        if not args.disable_fsdb:
+            cleanup_fsdb_service()
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
@@ -1659,6 +1699,15 @@ if __name__ == "__main__":
         ),
     )
     ap.add_argument(
+        OPT_ARG_PROFILE,
+        type=str,
+        help=(
+            "when used with "
+            + OPT_ARG_FILTER_FILE
+            + ", only include patterns tagged with this profile (e.g. t for traditional, s for scale-up). Without this flag, all patterns are included."
+        ),
+    )
+    ap.add_argument(
         OPT_ARG_LIST_TESTS,
         action="store_true",
         default=False,
@@ -1789,6 +1838,30 @@ if __name__ == "__main__":
         default=False,
     )
 
+    ap.add_argument(
+        OPT_ARG_DISABLE_FSDB,
+        action="store_true",
+        help="Disable FSDB service for link tests",
+        default=False,
+    )
+    ap.add_argument(
+        OPT_ARG_FSDB_CONFIG_FILE,
+        type=str,
+        help=(
+            "run tests with specified fsdb config with the absolute path e.g. "
+            + OPT_ARG_FSDB_CONFIG_FILE
+            + "=/opt/fboss/share/fsdb_test_configs/meru400bfu.materialized_JSON"
+        ),
+        default=None,
+    )
+    ap.add_argument(
+        OPT_ARG_FSDB_BIN_PATH,
+        nargs="?",
+        type=str,
+        help="FBOSS FSDB binary path(absolute path).",
+        default=None,
+    )
+
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
 
@@ -1851,6 +1924,11 @@ if __name__ == "__main__":
     if args.filter and args.filter_file:
         raise ValueError(
             f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
+        )
+
+    if args.profile and not args.filter_file:
+        raise ValueError(
+            f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
     try:

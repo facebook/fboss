@@ -681,13 +681,11 @@ void enableExactMatch(std::string& yamlCfg) {
 template std::shared_ptr<ArpEntry> getNeighborEntryForIP<ArpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables);
+    const folly::IPAddress& ipAddr);
 template std::shared_ptr<NdpEntry> getNeighborEntryForIP<NdpEntry>(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables);
+    const folly::IPAddress& ipAddr);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
@@ -705,42 +703,12 @@ std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
   return entry;
 }
 
-// TODO(skhare) Replace all callsites for getNeighborEntryForIP with
-// getNeighborEntryForIPAndIntf as part of migrating to consuming neighbor
-// tables from interfaces
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
-    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<SwitchState>& /* state */,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables) {
-  std::shared_ptr<NeighborEntryT> entry{nullptr};
-
-  if (use_intf_nbr_tables) {
-    return getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
-  }
-
-  switch (intf->getType()) {
-    case cfg::InterfaceType::VLAN: {
-      auto vlanID = intf->getVlanID();
-      auto vlan = state->getVlans()->getNodeIf(vlanID);
-      if (vlan) {
-        if constexpr (std::is_same_v<NeighborEntryT, ArpEntry>) {
-          entry = vlan->getArpTable()->getEntryIf(ipAddr.asV4());
-        } else {
-          entry = vlan->getNdpTable()->getEntryIf(ipAddr.asV6());
-        }
-      }
-      break;
-    }
-    case cfg::InterfaceType::PORT:
-    case cfg::InterfaceType::SYSTEM_PORT: {
-      entry = getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
-      break;
-    }
-  }
-
-  return entry;
+    const folly::IPAddress& ipAddr) {
+  return getNeighborEntryForIPAndIntf<NeighborEntryT>(intf, ipAddr);
 }
 
 template <typename VlanOrIntfT>
@@ -776,22 +744,13 @@ template std::optional<VlanID> getVlanIDFromVlanOrIntf<Interface>(
 template <typename NTableT>
 std::shared_ptr<NTableT> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables) {
+    VlanID vlanID) {
   auto vlan = state->getVlans()->getNode(vlanID);
-  if (use_intf_nbr_tables) {
-    auto intf = state->getInterfaces()->getNode(vlan->getInterfaceID());
-    if constexpr (std::is_same_v<NTableT, ArpTable>) {
-      return intf->getArpTable();
-    } else {
-      return intf->getNdpTable();
-    }
+  auto intf = state->getInterfaces()->getNode(vlan->getInterfaceID());
+  if constexpr (std::is_same_v<NTableT, ArpTable>) {
+    return intf->getArpTable();
   } else {
-    if constexpr (std::is_same_v<NTableT, ArpTable>) {
-      return vlan->getArpTable();
-    } else {
-      return vlan->getNdpTable();
-    }
+    return intf->getNdpTable();
   }
 }
 
@@ -799,12 +758,10 @@ std::shared_ptr<NTableT> getNeighborTableForVlan(
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
 template std::shared_ptr<ArpTable> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables);
+    VlanID vlanID);
 template std::shared_ptr<NdpTable> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables);
+    VlanID vlanID);
 
 OperDeltaFilter::OperDeltaFilter(SwitchID switchId) : switchId_(switchId) {}
 

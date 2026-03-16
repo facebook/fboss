@@ -406,6 +406,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
     // Page 34h - Lane FEC Performance Monitoring (C-CMIS)
     {CmisField::PAGE_UPPER34H, {CmisPages::PAGE34, 128, 128}},
+    // Page 35h - Lane Link Performance Monitoring (C-CMIS)
+    {CmisField::PAGE_UPPER35H, {CmisPages::PAGE35, 128, 128}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -608,7 +610,22 @@ bool isValidVdmConfigType(int vdmConf) {
       vdmConf == static_cast<int>(MODULATOR_BIAS_X_PHASE) ||
       vdmConf == static_cast<int>(MODULATOR_BIAS_Y_PHASE) ||
       vdmConf == static_cast<int>(CD_LOW_GRANULARITY) ||
-      vdmConf == static_cast<int>(SOPMD_LOW_GRANULARITY)) {
+      vdmConf == static_cast<int>(SOPMD_LOW_GRANULARITY) ||
+      vdmConf == static_cast<int>(CD_HIGH_GRANULARITY) ||
+      vdmConf == static_cast<int>(DGD) ||
+      vdmConf == static_cast<int>(SOPMD_HIGH_GRANULARITY) ||
+      vdmConf == static_cast<int>(PDL) || vdmConf == static_cast<int>(OSNR) ||
+      vdmConf == static_cast<int>(ESNR) || vdmConf == static_cast<int>(CFO) ||
+      vdmConf == static_cast<int>(EVM) ||
+      vdmConf == static_cast<int>(TX_POWER) ||
+      vdmConf == static_cast<int>(RX_TOTAL_POWER) ||
+      vdmConf == static_cast<int>(RX_SIGNAL_POWER) ||
+      vdmConf == static_cast<int>(SOP_ROC) ||
+      vdmConf == static_cast<int>(MER) ||
+      vdmConf == static_cast<int>(CLOCK_RECOVERY_LOOP) ||
+      vdmConf == static_cast<int>(SNR_MARGIN) ||
+      vdmConf == static_cast<int>(Q_FACTOR) ||
+      vdmConf == static_cast<int>(Q_MARGIN)) {
     return true;
   }
   return false;
@@ -2045,6 +2062,9 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
   if (!fillVdmPerfMonitorFecPm(vdmStats)) {
     QSFP_LOG(DBG2, this) << "FEC PM stats not available";
   }
+  if (!fillVdmPerfMonitorLinkPm(vdmStats)) {
+    QSFP_LOG(DBG2, this) << "Link PM stats not available";
+  }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
   QSFP_LOG(DBG5, this) << "Stats Collection Time: "
@@ -2312,6 +2332,9 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE34:
         CHECK_LE(offset + length, sizeof(page34_));
         return (page34_ + offset);
+      case CmisPages::PAGE35:
+        CHECK_LE(offset + length, sizeof(page35_));
+        return (page35_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -4946,6 +4969,7 @@ void CmisModule::updateVdmCacheLocked() {
   // Read C-CMIS PM pages for coherent optics
   if (isTunableOptics()) {
     readCmisField(CmisField::PAGE_UPPER34H, page34_);
+    readCmisField(CmisField::PAGE_UPPER35H, page35_);
   }
 }
 
@@ -5123,6 +5147,38 @@ std::pair<std::optional<const uint8_t*>, int> CmisModule::getVdmDataValPtr(
     return std::make_pair(data, length);
   }
   return std::make_pair(std::nullopt, 0);
+}
+
+/*
+ * readU16VdmValue
+ *
+ * Read a single U16 (unsigned 16-bit) VDM value and convert to double.
+ * Returns std::nullopt if the VDM data is not available.
+ */
+std::optional<double> CmisModule::readU16VdmValue(
+    VdmConfigType vdmConf,
+    double lsb) {
+  auto [data, length] = getVdmDataValPtr(vdmConf);
+  if (data && length >= 2) {
+    return readU16(data.value(), 0) * lsb;
+  }
+  return std::nullopt;
+}
+
+/*
+ * readS16VdmValue
+ *
+ * Read a single S16 (signed 16-bit) VDM value and convert to double.
+ * Returns std::nullopt if the VDM data is not available.
+ */
+std::optional<double> CmisModule::readS16VdmValue(
+    VdmConfigType vdmConf,
+    double lsb) {
+  auto [data, length] = getVdmDataValPtr(vdmConf);
+  if (data && length >= 2) {
+    return readS16(data.value(), 0) * lsb;
+  }
+  return std::nullopt;
 }
 
 /*
@@ -5609,30 +5665,6 @@ bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
   // SOPMD low granularity uses U16 format with LSB = 1
   constexpr double kSopmdLowGranLsb = 1.0;
 
-  // Lambda to read a single U16 VDM value and convert to double
-  auto readU16VdmValue = [&](VdmConfigType vdmConf,
-                             double lsb) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConf);
-    if (data && length >= 2) {
-      uint16_t rawVal =
-          (static_cast<uint16_t>(data.value()[0]) << 8) | data.value()[1];
-      return rawVal * lsb;
-    }
-    return std::nullopt;
-  };
-
-  // Lambda to read a single S16 VDM value (signed) and convert to double
-  auto readS16VdmValue = [&](VdmConfigType vdmConf,
-                             double lsb) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConf);
-    if (data && length >= 2) {
-      int16_t rawVal = static_cast<int16_t>(
-          (static_cast<uint16_t>(data.value()[0]) << 8) | data.value()[1]);
-      return rawVal * lsb;
-    }
-    return std::nullopt;
-  };
-
   bool foundAny = false;
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
 
@@ -5755,6 +5787,143 @@ bool CmisModule::fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats) {
 
     vdmStats.mediaPortVdmStats()[portName].coherentVdmStats().ensure().fecPm() =
         fecPm;
+  }
+  return true;
+}
+
+/*
+ * readLinkPmMetricS32
+ *
+ * Read a Link PM metric with S32 avg/min/max from page 35h (4 bytes each)
+ * and S16 current value from VDM pages.
+ */
+link::LinkPerfMonitorParamEachSideVal CmisModule::readLinkPmMetricS32(
+    int startByte,
+    double lsb,
+    VdmConfigType vdmConf) {
+  const uint8_t* buf = page35_;
+  int idx = startByte - 128;
+
+  auto readS32 = [buf](int off) -> double {
+    int32_t raw = static_cast<int32_t>(
+        (static_cast<uint32_t>(buf[off]) << 24) |
+        (static_cast<uint32_t>(buf[off + 1]) << 16) |
+        (static_cast<uint32_t>(buf[off + 2]) << 8) | buf[off + 3]);
+    return static_cast<double>(raw);
+  };
+
+  link::LinkPerfMonitorParamEachSideVal val;
+  val.avg() = readS32(idx) * lsb;
+  val.min() = readS32(idx + 4) * lsb;
+  val.max() = readS32(idx + 8) * lsb;
+  val.cur() = readS16VdmValue(vdmConf, lsb).value_or(0);
+  return val;
+}
+
+/*
+ * readU16
+ *
+ * Read an unsigned 16-bit value from a byte buffer at the given offset.
+ */
+double CmisModule::readU16(const uint8_t* p, int off) {
+  return static_cast<double>((static_cast<uint16_t>(p[off]) << 8) | p[off + 1]);
+}
+
+/*
+ * readS16
+ *
+ * Read a signed 16-bit value from a byte buffer at the given offset.
+ */
+double CmisModule::readS16(const uint8_t* p, int off) {
+  return static_cast<double>(
+      static_cast<int16_t>((static_cast<uint16_t>(p[off]) << 8) | p[off + 1]));
+}
+
+/*
+ * readLinkPmMetricU16
+ *
+ * Read a Link PM metric with U16 avg/min/max from page 35h (2 bytes each)
+ * and U16 current value from VDM pages.
+ */
+link::LinkPerfMonitorParamEachSideVal CmisModule::readLinkPmMetricU16(
+    int startByte,
+    double lsb,
+    VdmConfigType vdmConf) {
+  const uint8_t* buf = page35_;
+  int idx = startByte - 128;
+
+  link::LinkPerfMonitorParamEachSideVal val;
+  val.avg() = readU16(buf, idx) * lsb;
+  val.min() = readU16(buf, idx + 2) * lsb;
+  val.max() = readU16(buf, idx + 4) * lsb;
+  val.cur() = readU16VdmValue(vdmConf, lsb).value_or(0);
+  return val;
+}
+
+/*
+ * readLinkPmMetricS16
+ *
+ * Read a Link PM metric with S16 avg/min/max from page 35h (2 bytes each)
+ * and S16 current value from VDM pages.
+ */
+link::LinkPerfMonitorParamEachSideVal CmisModule::readLinkPmMetricS16(
+    int startByte,
+    double lsb,
+    VdmConfigType vdmConf) {
+  const uint8_t* buf = page35_;
+  int idx = startByte - 128;
+
+  link::LinkPerfMonitorParamEachSideVal val;
+  val.avg() = readS16(buf, idx) * lsb;
+  val.min() = readS16(buf, idx + 2) * lsb;
+  val.max() = readS16(buf, idx + 4) * lsb;
+  val.cur() = readS16VdmValue(vdmConf, lsb).value_or(0);
+  return val;
+}
+
+/*
+ * fillVdmPerfMonitorLinkPm
+ *
+ * Fill in Link Performance Monitoring stats from C-CMIS Page 35h
+ * (Section 7.4.8, Table 15) and VDM pages (20h-23h).
+ *
+ * Page 35h provides avg/min/max values over the prior PM interval.
+ * Current (real-time) values come from VDM pages using identifiers 134-152.
+ * Only available on coherent (tunable) optics modules.
+ */
+bool CmisModule::fillVdmPerfMonitorLinkPm(VdmPerfMonitorStats& vdmStats) {
+  if (!isTunableOptics() || !cacheIsValid()) {
+    return false;
+  }
+
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    LinkPm linkPm;
+
+    linkPm.cd() = readLinkPmMetricS32(128, 1.0, CD_HIGH_GRANULARITY);
+    linkPm.dgd() = readLinkPmMetricU16(140, 0.01, DGD);
+    linkPm.sopmd() = readLinkPmMetricU16(146, 0.01, SOPMD_HIGH_GRANULARITY);
+    linkPm.pdl() = readLinkPmMetricU16(152, 0.1, PDL);
+    linkPm.osnr() = readLinkPmMetricU16(158, 0.1, OSNR);
+    linkPm.esnr() = readLinkPmMetricU16(164, 0.1, ESNR);
+    linkPm.cfo() = readLinkPmMetricS16(170, 1.0, CFO);
+    linkPm.evmModem() = readLinkPmMetricU16(176, 100.0 / 65535.0, EVM);
+    linkPm.txPower() = readLinkPmMetricS16(182, 0.01, TX_POWER);
+    linkPm.rxPower() = readLinkPmMetricS16(188, 0.01, RX_TOTAL_POWER);
+    linkPm.rxSigPower() = readLinkPmMetricS16(194, 0.01, RX_SIGNAL_POWER);
+    linkPm.sopcr() = readLinkPmMetricS16(200, 1.0, SOP_ROC);
+    linkPm.mer() = readLinkPmMetricU16(206, 0.1, MER);
+    linkPm.clockRecoveryLoop() =
+        readLinkPmMetricS16(212, 100.0 / 32767.0, CLOCK_RECOVERY_LOOP);
+    linkPm.snrMargin() = readLinkPmMetricS16(224, 0.1, SNR_MARGIN);
+    linkPm.qFactor() = readLinkPmMetricU16(230, 0.1, Q_FACTOR);
+    linkPm.qMargin() = readLinkPmMetricS16(236, 0.1, Q_MARGIN);
+
+    vdmStats.mediaPortVdmStats()[portName]
+        .coherentVdmStats()
+        .ensure()
+        .linkPm() = linkPm;
   }
   return true;
 }

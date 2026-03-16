@@ -608,18 +608,9 @@ void ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
         });
   };
 
-  if (FLAGS_intf_nbr_tables) {
-    for (auto& intfDelta : delta.getIntfsDelta()) {
-      processDelta(
-          intfDelta.getNeighborDelta<TableT>(),
-          getNeighborEntriesMap<TableT>());
-    }
-  } else {
-    for (auto& vlanDelta : delta.getVlansDelta()) {
-      processDelta(
-          vlanDelta.getNeighborDelta<TableT>(),
-          getNeighborEntriesMap<TableT>());
-    }
+  for (auto& intfDelta : delta.getIntfsDelta()) {
+    processDelta(
+        intfDelta.getNeighborDelta<TableT>(), getNeighborEntriesMap<TableT>());
   }
 }
 

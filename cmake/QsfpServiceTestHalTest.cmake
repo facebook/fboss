@@ -21,7 +21,9 @@ target_link_libraries(hal_test_utils
   bsp_transceiver_impl
   hal_test_config_cpp2
   fboss_error
+  switch_config_cpp2
   bsp_platform_mapping_cpp2
+  transceiver_cpp2
   qsfp_module
   Folly::folly
   FBThrift::thriftcpp2
@@ -41,6 +43,7 @@ target_link_libraries(hal_test_base
 )
 
 add_executable(qsfp_hal_test
+  fboss/qsfp_service/test/hal_test/HalTestApplicationModes.cpp
   fboss/qsfp_service/test/hal_test/HalTestModuleAdvertisement.cpp
   fboss/qsfp_service/test/hal_test/HalTestModuleInit.cpp
   fboss/qsfp_service/test/hal_test/Main.cpp
@@ -48,6 +51,7 @@ add_executable(qsfp_hal_test
 
 target_link_libraries(qsfp_hal_test
   ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
   hal_test_base
   transceiver_cpp2
   qsfp_module

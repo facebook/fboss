@@ -39,10 +39,21 @@ class ManagedSrv6SidList : public detail::SaiObjectEventSingleSubscriber<
       SaiSrv6SidListTraits::CreateAttributes attrs);
 
   template <typename PublishedObjectTrait>
-  void afterCreateNotifyAggregateSubscriber() {}
+  void afterCreateNotifyAggregateSubscriber() {
+    auto publisherObject = this->getPublisherObject().lock();
+    if (publisherObject) {
+      SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+          publisherObject->adapterKey()};
+      sidList_->setOptionalAttribute(std::move(nextHopIdAttr));
+    }
+  }
 
   template <typename PublishedObjectTrait>
-  void beforeRemoveNotifyAggregateSubscriber() {}
+  void beforeRemoveNotifyAggregateSubscriber() {
+    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
+        SAI_NULL_OBJECT_ID};
+    sidList_->setOptionalAttribute(std::move(nextHopIdAttr));
+  }
 
   template <typename PublishedObjectTrait>
   void notifyLinkDownAggregateSubscriber() {}

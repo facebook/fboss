@@ -68,6 +68,15 @@ void UDPHeader::parse(Cursor* cursor, PortStats* stats) {
   }
 }
 
+bool UDPHeader::tryParse(Cursor* cursor, PortStats* stats) {
+  if (cursor->totalLength() < size()) {
+    stats->udpTooSmall();
+    return false;
+  }
+  parse(cursor);
+  return true;
+}
+
 bool UDPHeader::operator==(const UDPHeader& r) const {
   return length == r.length && csum == r.csum && srcPort == r.srcPort &&
       dstPort == r.dstPort;

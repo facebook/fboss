@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 
+#include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 
@@ -42,6 +43,8 @@ std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::addOrReuseSrv6SidList(
         std::move(nexthopKey),
         adapterHostKey,
         createAttributes);
+    SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>().subscribe(
+        handle->managedSidList);
   }
   return handle;
 }

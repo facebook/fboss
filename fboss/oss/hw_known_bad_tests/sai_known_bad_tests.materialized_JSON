@@ -1718,6 +1718,9 @@
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "HwResourceStatsTest/[01].aclStats"
         },
         {
@@ -1844,6 +1847,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "HwResourceStatsTest/[01].aclStats"
@@ -2361,6 +2367,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "HwResourceStatsTest/[01].aclStats"
@@ -2885,6 +2894,9 @@
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
         },
         {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.*"
+        },
+        {
           "test_name_regex": "HwResourceStatsTest/[01].aclStats"
         },
         {
@@ -3405,6 +3417,9 @@
         },
         {
           "test_name_regex": "SaiAclTableGroupTrafficTest/[01].*"
+        },
+        {
+          "test_name_regex": "SaiAclTableGroupTrafficTest.*"
         },
         {
           "test_name_regex": "HwResourceStatsTest/[01].aclStats"

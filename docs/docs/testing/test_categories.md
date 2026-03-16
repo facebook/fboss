@@ -290,3 +290,25 @@ T1 Link tests scope is controlled by the known-bad and unsupported test files, s
 
 ```bash file=../fboss/oss/hw_sanity_tests/t2_sai_tests.conf
 ```
+
+## Scale-Up Tests
+
+Scale-up specific tests belonging to each T0/T1/T2 tier can be run by
+adding `--profile=s` to the standard `run_test.py` command.
+
+### Agent HW Tests
+
+```bash
+./bin/run_test.py sai_agent \
+--filter_file=./share/hw_sanity_tests/t0_agent_hw_tests.conf \
+--profile=s \
+--config ./share/hw_test_configs/$CONFIG \
+--enable-production-features \
+--production-features ./share/production_features/asic_production_features.materialized_JSON \
+--known-bad-tests-file ./share/hw_known_bad_tests/sai_agent_known_bad_tests.materialized_JSON \
+--unsupported-tests-file $UNSUPPORTED_TESTS \
+--asic $ASIC \
+--skip-known-bad-tests $KEY
+```
+
+Replace `t0` with `t1` or `t2` to run the corresponding tier.

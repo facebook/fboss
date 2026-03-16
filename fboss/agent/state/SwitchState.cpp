@@ -54,24 +54,15 @@ DEFINE_bool(
     "Allow multiple acl tables (acl table group)");
 
 /*
- * VOQ switches require that the packets are not tagged with VLAN.
- * We are gradually enhancing the wedge_agent to handle tagged as well as
- * untagged packets.
- * As part of these changes, neighbor tables will move to Interfaces instead of
- * VLANs. This allows for the same neighbor table implementation for VOQ as
- * well as non-VOQ switches.
- *
- * When this flag is TRUE: use neighbor tables from Interfaces.
- * When this flag is FALSE: use neighbor tables from VLANs.
- *
- * Once we have completely migrated to using neighbor tables from Interfaces,
- * this flag will be removed.
+ * Migration from VLAN neighbor tables to Interface neighbor tables is complete.
+ * This flag is now deprecated and will be removed in a future change.
  */
 
 DEFINE_bool(
     intf_nbr_tables,
-    false,
-    "Use Neighbor Tables from Interfaces instead of VLANs");
+    true,
+    "DEPRECATED: Use Neighbor Tables from Interfaces instead of VLANs. "
+    "Migration is complete, flag will be removed.");
 
 DEFINE_bool(
     emStatOnlyMode,
@@ -711,9 +702,10 @@ void SwitchState::migrateNeighborTables(
         toEntry->setArpResponseTable(fromEntry->getArpResponseTable());
         toEntry->setNdpResponseTable(fromEntry->getNdpResponseTable());
 
-        // Clear old Neighbor Tables
-        fromEntry->setNdpTable(nullptr);
-        fromEntry->setArpTable(nullptr);
+        // Clear old Neighbor Tables (use empty tables, not nullptr,
+        // to avoid null-deref in DeltaVisitor for non-optional fields)
+        fromEntry->setNdpTable(std::make_shared<NdpTable>());
+        fromEntry->setArpTable(std::make_shared<ArpTable>());
         fromEntry->setNdpResponseTable(nullptr);
         fromEntry->setArpResponseTable(nullptr);
       }
@@ -804,18 +796,27 @@ std::vector<SwitchID> SwitchState::getIntraClusterSwitchIds(
   return clusterIdToSwitchIds[clusterId.value()];
 }
 
-InterfaceID SwitchState::getInterfaceIDForPort(
+std::optional<InterfaceID> SwitchState::getInterfaceIDForPortIf(
     const PortDescriptor& port) const {
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
-      auto physicalPort = getPorts()->getNode(port.phyPortID());
+      auto physicalPort = getPorts()->getNodeIf(port.phyPortID());
+      if (!physicalPort) {
+        XLOG(ERR) << "No port node found for port " << port.phyPortID();
+        return std::nullopt;
+      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).
       return physicalPort->getInterfaceID();
     }
     case PortDescriptor::PortType::AGGREGATE: {
-      auto aggregatePort = getAggregatePorts()->getNode(port.aggPortID());
+      auto aggregatePort = getAggregatePorts()->getNodeIf(port.aggPortID());
+      if (!aggregatePort || aggregatePort->getInterfaceIDs()->empty()) {
+        XLOG(ERR) << "No aggregate port or interface found for "
+                  << port.aggPortID();
+        return std::nullopt;
+      }
       // All aggregate member ports always belong to the same interface(s).
       // Thus, pick the interface for any member port.
       return InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
@@ -824,7 +825,16 @@ InterfaceID SwitchState::getInterfaceIDForPort(
       XLOG(FATAL) << "Cannot get interface ID for system port: "
                   << port.sysPortID();
   }
-  return InterfaceID(0);
+  return std::nullopt;
+}
+
+InterfaceID SwitchState::getInterfaceIDForPort(
+    const PortDescriptor& port) const {
+  auto intfID = getInterfaceIDForPortIf(port);
+  if (!intfID) {
+    throw FbossError("No interface found for port ", port.str());
+  }
+  return intfID.value();
 }
 
 std::shared_ptr<SwitchState> SwitchState::fromThrift(
@@ -876,29 +886,6 @@ state::SwitchState SwitchState::toThrift() const {
       }
     }
     aclTableGroupMaps->clear();
-  }
-
-  // Reverse migrate new fibsInfoMap to old fibsMap for rollback compatibility
-  // The new fibsInfoMap contains map<SwitchIdList, FibInfoFields>
-  // We need to populate old fibsMap with map<SwitchIdList, map<vrf,
-  // FibContainerFields>>
-  // Please refer to the comment in uniquePtrFromThrift() for more details -
-  // (FIB Migration: Four-stage transition from fibsMap to fibsInfoMap) We will
-  // remove this code once we fully migrate to new FIB in stage 4.
-
-  auto fibsInfoMapThrift = data.fibsInfoMap();
-  if (fibsInfoMapThrift.has_value()) {
-    std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
-    if (!fibsInfoMapThrift.value().empty()) {
-      for (const auto& [switchIdListStr, fibInfoFields] :
-           fibsInfoMapThrift.value()) {
-        if (fibInfoFields.fibsMap().has_value()) {
-          // Copy the ForwardingInformationBaseMap to the old fibsMap structure
-          fibsMap[switchIdListStr] = fibInfoFields.fibsMap().value();
-        }
-      }
-    }
-    data.fibsMap() = fibsMap;
   }
 
   // Migrate new portsInfo field to old ports field for warmboot compatibility

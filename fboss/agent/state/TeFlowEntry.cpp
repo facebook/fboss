@@ -3,8 +3,6 @@
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 std::shared_ptr<TeFlowEntry> TeFlowEntry::createTeFlowEntry(
@@ -36,13 +34,8 @@ std::optional<folly::MacAddress> TeFlowEntry::getNeighborMac(
       NdpEntry>;
 
   std::shared_ptr<NeighborEntryT> neighbor;
-  if (FLAGS_intf_nbr_tables) {
-    auto intf = state->getInterfaces()->getNodeIf(interface->getID());
-    neighbor = intf->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
-  } else {
-    auto vlan = state->getVlans()->getNodeIf(interface->getVlanID());
-    neighbor = vlan->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
-  }
+  auto intf = state->getInterfaces()->getNodeIf(interface->getID());
+  neighbor = intf->getNeighborEntryTable<AddrT>()->getNodeIf(ip.str());
 
   if (!neighbor) {
     return std::nullopt;

@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
 

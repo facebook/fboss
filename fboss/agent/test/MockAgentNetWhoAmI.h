@@ -17,6 +17,7 @@ class MockAgentNetWhoAmI : public AgentNetWhoAmI {
   MOCK_CONST_METHOD0(isBcmPlatform, bool());
   MOCK_CONST_METHOD0(isTajoPlatform, bool());
   MOCK_CONST_METHOD0(isTajoMorgan800ccPlatform, bool());
+  MOCK_CONST_METHOD0(isTajoWedge800cPlatform, bool());
   MOCK_CONST_METHOD0(isBcmVoqPlatform, bool());
   MOCK_CONST_METHOD0(isFdsw, bool());
   MOCK_CONST_METHOD0(isSdsw, bool());

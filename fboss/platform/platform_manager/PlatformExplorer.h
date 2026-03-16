@@ -144,6 +144,11 @@ class PlatformExplorer {
       uint16_t busNum,
       const I2cAddr& addr,
       const std::vector<I2cRegData>& initRegSettings);
+  void setupCpldSysfsAttrs(
+      const std::string& devicePath,
+      uint16_t busNum,
+      const I2cAddr& addr,
+      const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
   void createI2cDevice(
       const std::string& devicePath,
       const std::string& deviceName,

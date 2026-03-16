@@ -19,12 +19,39 @@ namespace {
 constexpr int kNumFabricSwitches = 40;
 constexpr int kFabricPortsPerSwitch = 4;
 constexpr int kTotalFabricPorts = kNumFabricSwitches * kFabricPortsPerSwitch;
-constexpr int kFabricLinkMonitoringSystemPortOffset = -480;
+// SystemPortOffset is added to fabric port ID to derive the SystemPortId.
+// Different offsets ensure appropriate systemPortId ranges for each mode.
+constexpr int kFabricLinkMonitoringSystemPortOffsetSingleStage = -480;
+constexpr int kFabricLinkMonitoringSystemPortOffsetDualStage = -1015;
 constexpr int64_t kFabricSwitchIdStart = 512;
 constexpr int64_t kMinCounterIncrement = 3;
+// Switch IDs are spaced 4 apart (e.g., 512, 516, 520, ...)
+constexpr int kSwitchIdIncrement = 4;
+
+// In dual stage mode, we also need L2 fabric nodes to make the config
+// recognized as dual stage by numFabricLevels().
+// L2 fabric switch IDs start after L1 switches.
+constexpr int kNumL2FabricSwitches = 4;
+constexpr int64_t kL2FabricSwitchIdStart = 1024;
+
+// Get the fabric level for L1 DSF nodes (the ones VOQ switch connects to).
+// In both single stage and dual stage mode, VOQ switches connect to
+// L1 fabric switches which have fabricLevel = 1.
+constexpr int kL1FabricLevel = 1;
+
+// L2 fabric switches have fabricLevel = 2
+constexpr int kL2FabricLevel = 2;
+
+// Get the system port offset based on dual stage mode
+int getFabricLinkMonitoringSystemPortOffset() {
+  if (isDualStage3Q2QMode()) {
+    return kFabricLinkMonitoringSystemPortOffsetDualStage;
+  }
+  return kFabricLinkMonitoringSystemPortOffsetSingleStage;
+}
 
 int64_t getFabricSwitchId(int fabricSwitchIndex) {
-  return kFabricSwitchIdStart + (fabricSwitchIndex * 4);
+  return kFabricSwitchIdStart + (fabricSwitchIndex * kSwitchIdIncrement);
 }
 
 std::string getFabricSwitchName(int64_t fabricSwitchId) {
@@ -128,7 +155,7 @@ cfg::SwitchConfig AgentVoqSwitchFabricLinkMonitoringTest::initialConfig(
   config.switchSettings()->switchType() = cfg::SwitchType::VOQ;
 
   config.switchSettings()->fabricLinkMonitoringSystemPortOffset() =
-      kFabricLinkMonitoringSystemPortOffset;
+      getFabricLinkMonitoringSystemPortOffset();
 
   addFabricLinkMonitoringDsfNodes(config, ensemble);
 
@@ -151,11 +178,27 @@ void AgentVoqSwitchFabricLinkMonitoringTest::addFabricLinkMonitoringDsfNodes(
   auto asicType = cfg::AsicType::ASIC_TYPE_RAMON3;
   auto fabricPlatformType = PlatformType::PLATFORM_MERU800BFA;
 
-  // Create 40 fabric switches starting at switch ID 512
+  // Create 40 L1 fabric switches starting at switch ID 512
   // Fabric switch IDs are 4 apart: 512, 516, 520, ..., 668
+  // These are the fabric switches that the VOQ switch directly connects to.
   for (int i = 0; i < kNumFabricSwitches; i++) {
     addFabricDsfNode(
-        config, getFabricSwitchId(i), 1, fabricPlatformType, asicType);
+        config,
+        getFabricSwitchId(i),
+        kL1FabricLevel,
+        fabricPlatformType,
+        asicType);
+  }
+
+  // In dual stage mode, also add L2 fabric switches (fabricLevel = 2) so that
+  // numFabricLevels() returns 2 and the system recognizes this as a dual stage
+  // configuration.
+  if (isDualStage3Q2QMode()) {
+    for (int i = 0; i < kNumL2FabricSwitches; i++) {
+      int64_t l2SwitchId = kL2FabricSwitchIdStart + (i * kSwitchIdIncrement);
+      addFabricDsfNode(
+          config, l2SwitchId, kL2FabricLevel, fabricPlatformType, asicType);
+    }
   }
 
   // Configure expected neighbor reachability for each fabric port

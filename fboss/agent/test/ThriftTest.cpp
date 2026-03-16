@@ -133,16 +133,11 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-template <typename SwitchTypeAndEnableIntfNbrTableT>
+template <typename SwitchTypeT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:
-  static auto constexpr switchType =
-      SwitchTypeAndEnableIntfNbrTableT::switchType;
-  static auto constexpr intfNbrTable =
-      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
-  ;
+  static auto constexpr switchType = SwitchTypeT::switchType;
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     FLAGS_dsf_num_parallel_sessions_per_remote_interface_node =
         std::numeric_limits<uint32_t>::max();
     auto config = testConfigA(switchType);
@@ -183,7 +178,7 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeAndEnableIntfNbrTable);
+TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeTestTypes);
 
 TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
   auto switchInfoTable = this->sw_->getSwitchInfoTable();
@@ -2841,25 +2836,9 @@ TEST_F(ThriftTest, getCurrentStateJSONForPaths) {
       FbossError);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class ThriftTeFlowTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     cfg::ExactMatchTableConfig tableConfig;
     tableConfig.name() = "TeFlowTable";
@@ -2869,42 +2848,21 @@ class ThriftTeFlowTest : public ::testing::Test {
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
 
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
+    sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
 
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
-
+    sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceB,
+        folly::IPAddressV6(kNhopAddrB),
+        kMacAddress,
+        PortDescriptor(kPortIDB),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
     waitForStateUpdates(sw_);

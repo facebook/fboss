@@ -16,13 +16,10 @@
 
 using namespace facebook::fboss;
 
-template <typename SwitchTypeAndEnableIntfNbrTableT>
+template <typename SwitchTypeT>
 class SwitchIdScopeResolverTest : public ::testing::Test {
  public:
-  static auto constexpr switchType =
-      SwitchTypeAndEnableIntfNbrTableT::switchType;
-  static auto constexpr intfNbrTable =
-      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
+  static auto constexpr switchType = SwitchTypeT::switchType;
 
   void addMirrorConfig(cfg::SwitchConfig* cfg) {
     cfg::Mirror mirror;
@@ -35,7 +32,6 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     auto config = testConfigA(switchType);
     addMirrorConfig(&config);
     handle_ = createTestHandle(&config);
@@ -105,7 +101,7 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeAndEnableIntfNbrTable);
+TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeTestTypes);
 
 TYPED_TEST(SwitchIdScopeResolverTest, mirrorScope) {
   if (this->isFabric()) {

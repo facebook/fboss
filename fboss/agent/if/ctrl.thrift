@@ -10,6 +10,7 @@ include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/product_info.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
@@ -456,7 +457,7 @@ struct PortQueueFields {
   19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
-@common.AllowSkipThriftCow
+@fboss_common.AllowSkipThriftCow
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;

@@ -384,17 +384,14 @@ bool readThriftFromBinaryFile(
   return false;
 }
 /*
- * Helper function to get neighbor entry for specified IP.
- *
- * for VLAN based interface, look up the neighbor table for VLAN.
- * for Port based interface, look up the neighbor table for interface.
+ * Helper function to get neighbor entry for specified IP from interface's
+ * neighbor table.
  */
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIP(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<Interface>& intf,
-    const folly::IPAddress& ipAddr,
-    bool use_intf_nbr_tables);
+    const folly::IPAddress& ipAddr);
 
 template <typename NeighborEntryT>
 std::shared_ptr<NeighborEntryT> getNeighborEntryForIPAndIntf(
@@ -408,8 +405,7 @@ std::optional<VlanID> getVlanIDFromVlanOrIntf(
 template <typename NTableT>
 std::shared_ptr<NTableT> getNeighborTableForVlan(
     const std::shared_ptr<SwitchState>& state,
-    VlanID vlanID,
-    bool use_intf_nbr_tables);
+    VlanID vlanID);
 
 class OperDeltaFilter {
  public:

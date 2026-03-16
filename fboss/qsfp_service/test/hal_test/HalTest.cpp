@@ -17,6 +17,12 @@ void HalTest::SetUpTestSuite() {
 
   config_ = hal_test::loadHalTestConfig(FLAGS_hal_test_config);
 
+  // Ensure we refresh all pages every time
+  gflags::SetCommandLineOptionWithMode(
+      "refresh_all_pages_cycles", "1", gflags::SET_FLAGS_DEFAULT);
+  gflags::SetCommandLineOptionWithMode(
+      "qsfp_data_refresh_interval", "0", gflags::SET_FLAGS_DEFAULT);
+
   modules_ = hal_test::createAllQsfpModules(config_);
   XLOG(INFO) << "Created " << modules_.size() << " QsfpModule(s)";
 }
@@ -40,6 +46,13 @@ void HalTest::SetUp() {
   for (auto tcvrId : getPresentTransceiverIds()) {
     XLOG(INFO) << "Detecting transceiver " << tcvrId;
     getModule(tcvrId)->detectPresence();
+  }
+
+  if (shouldApplyStartupFirmware()) {
+    int upgraded = hal_test::applyStartupFirmwareUpgrades(config_, modules_);
+    if (upgraded > 0) {
+      XLOG(INFO) << "Upgraded firmware on " << upgraded << " module(s)";
+    }
   }
 }
 

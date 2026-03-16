@@ -3,13 +3,13 @@ name = rebalancer
 fbsource_path = fbcode/algopt/rebalancer/
 shipit_project = rebalancer
 shipit_fbcode_builder = true
-use_shipit = false
+use_shipit = true
 
 [git]
 # To git clone on devserver, setup fwdproxy:
 # https://www.internalfb.com/wiki/Open_Source/Maintain_a_FB_OSS_Project/Devserver_GitHub_Access/
 repo_url = https://github.com/facebookincubator/rebalancer.git
-branch = richard
+branch = main
 
 [build]
 builder = cmake

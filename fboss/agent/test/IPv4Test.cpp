@@ -21,8 +21,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/state/ArpResponseTable.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
+
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -44,8 +43,6 @@ using std::unique_ptr;
 using ::testing::_;
 using ::testing::Return;
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace {
 
 unique_ptr<HwTestHandle> setupTestHandle() {
@@ -58,11 +55,7 @@ unique_ptr<HwTestHandle> setupTestHandle() {
   respTable1->setEntry(
       IPAddressV4("10.0.0.1"), MacAddress("00:02:00:00:00:01"), intfId);
 
-  if (FLAGS_intf_nbr_tables) {
-    state->getInterfaces()->getNode(intfId)->setArpResponseTable(respTable1);
-  } else {
-    state->getVlans()->getNode(VlanID(1))->setArpResponseTable(respTable1);
-  }
+  state->getInterfaces()->getNode(intfId)->setArpResponseTable(respTable1);
 
   return createTestHandle(state);
 }

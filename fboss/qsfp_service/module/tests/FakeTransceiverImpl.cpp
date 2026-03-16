@@ -1945,6 +1945,42 @@ std::array<uint8_t, 128> kCmis800GZrPage34 = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
+// Page 35h: Link Performance Monitoring stats
+// Real data from 800G ZR module (wedge_qsfp_util --read-reg --page 0x35)
+// Layout (all start at byte 128, idx 0):
+//   Bytes 128-139 (idx 0-11):  CD avg/min/max (S32, LSB=1.0 ps/nm)
+//   Bytes 140-145 (idx 12-17): DGD avg/min/max (U16, LSB=0.01 ps)
+//   Bytes 146-151 (idx 18-23): SOPMD avg/min/max (U16, LSB=0.01 ps^2)
+//   Bytes 152-157 (idx 24-29): PDL avg/min/max (U16, LSB=0.1 dB)
+//   Bytes 158-163 (idx 30-35): OSNR avg/min/max (U16, LSB=0.1 dB)
+//   Bytes 164-169 (idx 36-41): eSNR avg/min/max (U16, LSB=0.1 dB)
+//   Bytes 170-175 (idx 42-47): CFO avg/min/max (S16, LSB=1.0 MHz)
+//   Bytes 176-181 (idx 48-53): EVM avg/min/max (U16, LSB=100/65535 %)
+//   Bytes 182-187 (idx 54-59): TxPower avg/min/max (S16, LSB=0.01 dBm)
+//   Bytes 188-193 (idx 60-65): RxTotalPower avg/min/max (S16, LSB=0.01 dBm)
+//   Bytes 194-199 (idx 66-71): RxSigPower avg/min/max (S16, LSB=0.01 dBm)
+//   Bytes 200-205 (idx 72-77): SOP ROC avg/min/max (S16, LSB=1.0 krad/s)
+//   Bytes 206-211 (idx 78-83): MER avg/min/max (U16, LSB=0.1 dB)
+//   Bytes 212-217 (idx 84-89): ClockRecoveryLoop avg/min/max
+//                               (S16, LSB=100/32767 %)
+//   Bytes 218-223 (idx 90-95): Reserved
+//   Bytes 224-229 (idx 96-101): SNR Margin avg/min/max (S16, LSB=0.1 dB)
+//   Bytes 230-235 (idx 102-107): Q-factor avg/min/max (U16, LSB=0.1 dB)
+//   Bytes 236-241 (idx 108-113): Q-margin avg/min/max (S16, LSB=0.1 dB)
+std::array<uint8_t, 128> kCmis800GZrPage35 = {
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfd, 0x00, 0x00, 0x00, 0x01,
+    0x00, 0x6d, 0x00, 0x5f, 0x00, 0x83, 0x19, 0x64, 0x03, 0x20, 0x52, 0x6c,
+    0x00, 0x08, 0x00, 0x07, 0x00, 0x09, 0x01, 0x52, 0x01, 0x48, 0x01, 0x5c,
+    0x00, 0x9c, 0x00, 0x9b, 0x00, 0x9c, 0x00, 0x77, 0x00, 0x3a, 0x00, 0xcd,
+    0x28, 0x1c, 0x28, 0x12, 0x28, 0xd5, 0xff, 0x39, 0xff, 0x33, 0xff, 0x40,
+    0xff, 0x34, 0xff, 0x2a, 0xff, 0x3f, 0xfe, 0xda, 0xfe, 0xc8, 0xfe, 0xf3,
+    0x00, 0x04, 0x00, 0x00, 0x00, 0x0e, 0x00, 0xa0, 0x00, 0x9e, 0x00, 0xa0,
+    0x00, 0x53, 0x00, 0x00, 0x00, 0xb7, 0x00, 0x41, 0x00, 0x08, 0x00, 0xd3,
+    0x00, 0x29, 0x00, 0x29, 0x00, 0x29, 0x00, 0x6a, 0x00, 0x6a, 0x00, 0x6b,
+    0x00, 0x29, 0x00, 0x28, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
 std::map<int, std::array<uint8_t, 128>> kCmis800GZrUpperPagesA0 = {
     {0, kCmis800GZrPage0},     {1, kCmis800GZrPage1},
     {2, kCmis800GZrPage2},     {0x10, kCmis800GZrPage10},
@@ -1955,7 +1991,7 @@ std::map<int, std::array<uint8_t, 128>> kCmis800GZrUpperPagesA0 = {
     {0x24, kCmis800GZrPage24}, {0x25, kCmis800GZrPage25},
     {0x26, kCmis800GZrPage26}, {0x27, kCmis800GZrPage27},
     {0x2c, kCmis800GZrPage2c}, {0x2f, kCmis800GZrPage2f},
-    {0x34, kCmis800GZrPage34},
+    {0x34, kCmis800GZrPage34}, {0x35, kCmis800GZrPage35},
 };
 
 std::map<uint8_t, std::map<int, std::array<uint8_t, 128>>>

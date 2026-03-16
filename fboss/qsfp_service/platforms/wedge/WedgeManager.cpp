@@ -1232,7 +1232,7 @@ void WedgeManager::publishPortStatToFsdb(
 void WedgeManager::publishPortStateToFsdb(
     std::string&& portName,
     portstate::PortState&& state) const {
-  if (FLAGS_publish_stats_to_fsdb) {
+  if (FLAGS_publish_state_to_fsdb) {
     fsdbSyncManager_->updatePortState(std::move(portName), std::move(state));
   }
 }

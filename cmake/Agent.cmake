@@ -884,6 +884,7 @@ target_link_libraries(test_utils
 
 
 add_library(validate_state_update
+  fboss/agent/ValidateInterfaceDelta.cpp
   fboss/agent/ValidateStateUpdate.cpp
   fboss/agent/ResourceAccountant.cpp
 )

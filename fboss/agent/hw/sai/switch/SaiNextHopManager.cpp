@@ -219,21 +219,10 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
     CHECK(srv6SidListHandle)
         << "SRv6 managed next hop must have a SID list handle";
-    // Set NextHopId in sidList before subscribing
-    SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
-        std::get<std::shared_ptr<ManagedIpNextHop>>(underlayNextHop)
-            ->getSaiObject()
-            ->adapterKey()};
-    srv6SidListHandle->managedSidList->getSidList()->setOptionalAttribute(
-        std::move(nextHopIdAttr));
     entry->setUnderlayNextHop(std::move(underlayNextHop));
 
     SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
         entry);
-
-    // After subscribe, the SAI next hop should be created
-    CHECK(entry->getSaiObject())
-        << "SRv6 managed next hop must have underlying SAI object";
 
     entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
 
@@ -330,36 +319,11 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects added) {
          std::get<typename NextHopTraits::Attributes::TunnelId>(key_),
          std::get<typename NextHopTraits::Attributes::Srv6SidlistId>(key_),
          std::nullopt});
-    if (srv6SidListHandle_ && srv6SidListHandle_->managedSidList &&
-        srv6SidListHandle_->managedSidList->getSidList()) {
-      SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
-          underlayIpNhop->getSaiObject()->adapterKey()};
-      srv6SidListHandle_->managedSidList->getSidList()->setOptionalAttribute(
-          std::move(nextHopIdAttr));
-    }
   }
 #endif
   this->setObject(object);
 
   XLOG(DBG2) << "ManagedNeighbor::createObject: " << toString();
-}
-
-template <typename NextHopTraits>
-void ManagedNextHop<NextHopTraits>::clearSrv6SidListNextHopId() {
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  if constexpr (std::is_same_v<NextHopTraits, SaiSrv6SidlistNextHopTraits>) {
-    if (srv6SidListHandle_) {
-      CHECK(
-          srv6SidListHandle_->managedSidList &&
-          srv6SidListHandle_->managedSidList->getSidList())
-          << "SRv6 SID list handle must have a SID list";
-      SaiSrv6SidListTraits::Attributes::NextHopId nextHopIdAttr{
-          SAI_NULL_OBJECT_ID};
-      srv6SidListHandle_->managedSidList->getSidList()->setOptionalAttribute(
-          std::move(nextHopIdAttr));
-    }
-  }
-#endif
 }
 
 template <typename NextHopTraits>

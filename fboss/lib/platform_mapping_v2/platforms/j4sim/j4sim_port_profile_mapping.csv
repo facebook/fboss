@@ -1,5 +1,5 @@
 Global_PortID,Logical_PortID,Port_Name,Supported_Port_Profiles,Attached_CoreID,Attached_Core_PortID,Virtual_Device_ID,Port_Type,Scope
-17,17,rcy1/1/529,49,0,3,0,3,0
+1,1,rcy1/1/529,49,0,3,0,3,1
 33,33,evt1/1/1033,49,0,5,0,5,0
 65,65,eth1/1/1,52-57,0,7,0,0,1
 66,66,eth1/1/5,52-57,0,8,0,0,1

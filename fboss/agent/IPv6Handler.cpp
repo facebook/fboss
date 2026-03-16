@@ -35,8 +35,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 DEFINE_bool(
     disable_icmp_error_response,
     false,
@@ -182,7 +180,10 @@ void IPv6Handler::handlePacket(
   if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
-    udpHdr.parse(&udpCursor, sw_->portStats(port));
+    if (!udpHdr.tryParse(&udpCursor, sw_->portStats(port))) {
+      XLOG_EVERY_MS(ERR, 1000) << "failed to parse udp header";
+      return;
+    }
     XLOG(DBG4) << "DHCP UDP packet, source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
@@ -222,8 +223,10 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfID = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
-    intf = state->getInterfaces()->getNodeIf(intfID);
+    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
+    if (intfIDOpt) {
+      intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
+    }
   } else if (ipv6.dstAddr.isLinkLocal()) {
     // If srcPort == CPU port, this packet was injected by self, and then
     // trapped back via RX callback. We don't need to handle self injected
@@ -237,9 +240,10 @@ void IPv6Handler::handlePacket(
     } else {
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
-      auto intfID =
-          sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
-      intf = state->getInterfaces()->getNodeIf(intfID);
+      auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
+      if (intfIDOpt) {
+        intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
+      }
       if (intf && !(intf->hasAddress(ipv6.dstAddr))) {
         intf = nullptr;
       }
@@ -381,9 +385,11 @@ void IPv6Handler::handleRouterSolicitation(
 
   cursor.skip(4); // 4 reserved bytes
 
-  auto intfID =
-      sw_->getState()->getInterfaceIDForPort(PortDescriptor(pkt->getSrcPort()));
-  auto intf = sw_->getState()->getInterfaces()->getNodeIf(intfID);
+  auto intfIDOpt = sw_->getState()->getInterfaceIDForPortIf(
+      PortDescriptor(pkt->getSrcPort()));
+  auto intf = intfIDOpt
+      ? sw_->getState()->getInterfaces()->getNodeIf(intfIDOpt.value())
+      : nullptr;
   if (!intf) {
     sw_->portStats(pkt)->pktDropped();
     return;
@@ -985,8 +991,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
         return;
       } else {
         // Check if destination is unknown, in which case trigger NDP
-        auto entry = getNeighborEntryForIP<NdpEntry>(
-            state, intf, target, FLAGS_intf_nbr_tables);
+        auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
 
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet

@@ -15,11 +15,11 @@ namespace {
 constexpr auto kJsonPlatformMappingStr = R"(
 {
   "ports": {
-    "17": {
+    "1": {
         "mapping": {
-          "id": 17,
+          "id": 1,
           "name": "rcy1/1/529",
-          "controllingPort": 17,
+          "controllingPort": 1,
           "pins": [
             {
               "a": {
@@ -32,7 +32,7 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "attachedCoreId": 0,
           "attachedCorePortIndex": 3,
           "virtualDeviceId": 0,
-          "scope": 0
+          "scope": 1
         },
         "supportedProfiles": {
           "49": {

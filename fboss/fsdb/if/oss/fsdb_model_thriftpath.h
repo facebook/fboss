@@ -2546,7 +2546,8 @@ std::pair<apache::thrift::ident::modEventToConfigMap, ChildThriftPath<::std::map
 std::pair<apache::thrift::ident::agingGroupAgingIntervalUsecs, ChildThriftPath<::std::map<::facebook::fboss::cfg::MirrorOnDropAgingGroup, ::std::int32_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::isResolved, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
 std::pair<apache::thrift::ident::resolvedCollectorMac, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-std::pair<apache::thrift::ident::resolvedEgressPort, ChildThriftPath<::facebook::fboss::cfg::PortDescriptor, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::resolvedEgressPort, ChildThriftPath<::facebook::fboss::cfg::PortDescriptor, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::samplingRate, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2570,6 +2571,7 @@ std::pair<apache::thrift::ident::resolvedEgressPort, ChildThriftPath<::facebook:
     STRUCT_CHILD_GETTERS(isResolved, 16);
     STRUCT_CHILD_GETTERS(resolvedCollectorMac, 17);
     STRUCT_CHILD_GETTERS(resolvedEgressPort, 18);
+    STRUCT_CHILD_GETTERS(samplingRate, 19);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -2591,6 +2593,7 @@ std::pair<apache::thrift::ident::resolvedEgressPort, ChildThriftPath<::facebook:
     else if constexpr (__id == apache::thrift::FieldId{16}) { return isResolved(); }
     else if constexpr (__id == apache::thrift::FieldId{17}) { return resolvedCollectorMac(); }
     else if constexpr (__id == apache::thrift::FieldId{18}) { return resolvedEgressPort(); }
+    else if constexpr (__id == apache::thrift::FieldId{19}) { return samplingRate(); }
   }
 };
 
@@ -5326,7 +5329,8 @@ std::pair<apache::thrift::ident::agingIntervalUsecs_DEPRECATED, Child<::std::int
 std::pair<apache::thrift::ident::eventIdToDropReasons_DEPRECATED, ChildThriftPath<::std::map<::std::int8_t, ::std::vector<::facebook::fboss::cfg::MirrorOnDropReasonAggregation>>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::modEventToConfigMap, ChildThriftPath<::std::map<::std::int8_t, ::facebook::fboss::cfg::MirrorOnDropEventConfig>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::agingGroupAgingIntervalUsecs, ChildThriftPath<::std::map<::facebook::fboss::cfg::MirrorOnDropAgingGroup, ::std::int32_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::mirrorPort, ChildThriftPath<::facebook::fboss::cfg::MirrorDestination, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::mirrorPort, ChildThriftPath<::facebook::fboss::cfg::MirrorDestination, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::samplingRate, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -5345,6 +5349,7 @@ std::pair<apache::thrift::ident::mirrorPort, ChildThriftPath<::facebook::fboss::
     STRUCT_CHILD_GETTERS(modEventToConfigMap, 11);
     STRUCT_CHILD_GETTERS(agingGroupAgingIntervalUsecs, 12);
     STRUCT_CHILD_GETTERS(mirrorPort, 13);
+    STRUCT_CHILD_GETTERS(samplingRate, 14);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -5361,6 +5366,7 @@ std::pair<apache::thrift::ident::mirrorPort, ChildThriftPath<::facebook::fboss::
     else if constexpr (__id == apache::thrift::FieldId{11}) { return modEventToConfigMap(); }
     else if constexpr (__id == apache::thrift::FieldId{12}) { return agingGroupAgingIntervalUsecs(); }
     else if constexpr (__id == apache::thrift::FieldId{13}) { return mirrorPort(); }
+    else if constexpr (__id == apache::thrift::FieldId{14}) { return samplingRate(); }
   }
 };
 

@@ -71,6 +71,8 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
+        ":cpld_manager",
+        ":fbcpld_ioctl_h",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":platform_manager_validators-cpp2-types",
@@ -183,6 +185,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
+        ":cpld_manager",
         ":data_store",
         ":device_path_resolver",
         ":exploration_errors",
@@ -302,8 +305,31 @@ cpp_binary(
 )
 
 cpp_library(
+    name = "fbcpld_ioctl_h",
+    headers = [
+        "uapi/fbcpld-ioctl.h",
+    ],
+)
+
+cpp_library(
     name = "fbiob_ioctl_h",
     headers = [
         "uapi/fbiob-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "cpld_manager",
+    srcs = ["CpldManager.cpp"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fbcpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
+        "//folly:conv",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
 )

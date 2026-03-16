@@ -22,7 +22,6 @@ char** argVec{nullptr};
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
-DECLARE_bool(intf_nbr_tables);
 DEFINE_bool(
     enable_sdk_dump,
     false,
@@ -170,9 +169,9 @@ void AgentEnsembleTest::resolveNeighbor(
 
 template <typename AddrT>
 void AgentEnsembleTest::resolveNeighbor(
-    PortDescriptor port,
+    const PortDescriptor& port,
     const AddrT& ip,
-    VlanID vlanId,
+    const VlanID& vlanId,
     folly::MacAddress mac) {
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -185,14 +184,9 @@ void AgentEnsembleTest::resolveNeighbor(
     auto vlan = outputState->getVlans()->getNode(vlanId);
     auto intfId = vlan->getInterfaceID();
     NeighborTableT* nbrTable;
-    if (FLAGS_intf_nbr_tables) {
-      auto intf = outputState->getInterfaces()->getNode(intfId);
-      nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-          intfId, &outputState);
-    } else {
-      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-          vlanId, &outputState);
-    }
+    auto intf = outputState->getInterfaces()->getNode(intfId);
+    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+        intfId, &outputState);
 
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(

@@ -7,8 +7,6 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 ResolvedNexthopProbeScheduler::ResolvedNexthopProbeScheduler(SwSwitch* sw)
@@ -56,14 +54,7 @@ void ResolvedNexthopProbeScheduler::schedule() {
   for (const auto& entry : resolvedNextHop2UseCount_) {
     auto intf = state->getInterfaces()->getNode(entry.first.intfID().value());
 
-    bool startProbe;
-    if (FLAGS_intf_nbr_tables) {
-      startProbe = shouldProbe(entry.first.addr(), intf);
-    } else {
-      auto vlanId = intf->getVlanIDHelper();
-      auto vlan = state->getVlans()->getNode(vlanId);
-      startProbe = shouldProbe(entry.first.addr(), vlan);
-    }
+    bool startProbe = shouldProbe(entry.first.addr(), intf);
 
     if (startProbe) {
       resolvedNextHop2Probes_[entry.first]->start();

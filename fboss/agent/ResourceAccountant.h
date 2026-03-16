@@ -17,8 +17,6 @@
 
 #include <gtest/gtest.h>
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 class ResourceAccountant {

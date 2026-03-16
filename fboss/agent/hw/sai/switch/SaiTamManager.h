@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/sai/api/TamApi.h"
 #include "fboss/agent/hw/sai/api/TamEventAgingGroupApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/hw/sai/switch/SaiSamplePacketManager.h"
 #include "fboss/agent/state/MirrorOnDropReport.h"
 
 namespace facebook::fboss {
@@ -37,6 +38,9 @@ struct SaiTamHandle {
   std::shared_ptr<SaiTamCollector> collector;
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups;
+#endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  std::shared_ptr<SaiSamplePacket> samplePacket;
 #endif
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::shared_ptr<SaiTam> tam;
@@ -104,6 +108,10 @@ class SaiTamManager {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
       ,
       std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups = {}
+#endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+      ,
+      std::shared_ptr<SaiSamplePacket> samplePacket = nullptr
 #endif
   );
 

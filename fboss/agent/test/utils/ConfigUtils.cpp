@@ -63,6 +63,7 @@ int getRdswSysPortBlockSize(
       case PlatformType::PLATFORM_JANGA800BIC:
         return 22;
       case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      case PlatformType::PLATFORM_J4SIM:
         return 1024;
       default:
         break;
@@ -966,7 +967,11 @@ cfg::SwitchConfig genPortVlanCfg(
         (FLAGS_hide_interface_ports &&
          *platformPorts.find(static_cast<int32_t>(portID))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
       continue;
     }
     config.ports()->push_back(

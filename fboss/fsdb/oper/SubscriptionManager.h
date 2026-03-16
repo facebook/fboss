@@ -128,8 +128,8 @@ class SubscriptionManager : public SubscriptionManagerBase {
     if (oldRoot != newRoot) {
       try {
         impl->serveSubscriptions(*store, oldRoot, newRoot, metadataServer);
-      } catch (const std::exception&) {
-        XLOG(ERR) << "Exception serving subscriptions...";
+      } catch (const std::exception& ex) {
+        XLOG(ERR) << "Exception serving subscriptions: " << ex.what();
       }
       impl->pruneDeletedPaths(*store, oldRoot, newRoot);
     }

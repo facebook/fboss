@@ -10,6 +10,7 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
+    cfgr_fboss_common_cpp2
     common_cpp2
 )
 

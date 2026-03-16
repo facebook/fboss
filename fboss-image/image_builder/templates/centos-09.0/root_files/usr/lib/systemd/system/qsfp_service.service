@@ -5,6 +5,8 @@ After=platform_manager.service
 After=rc-local.service
 Wants=fboss_init.service
 After=fboss_init.service
+StartLimitIntervalSec=600
+StartLimitBurst=5
 
 [Service]
 Type=simple

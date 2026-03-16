@@ -27,18 +27,20 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortConfigOverrideFactor,
     PlatformPortProfileConfigEntry,
 )
+from neteng.fboss.platform_mapping_config.thrift_enums import ChipType, CoreType
 from neteng.fboss.platform_mapping_config.ttypes import (
     Chip,
-    ChipType,
+    ChipType as ChipTypePyDeprecated,
     ConnectionEnd,
     ConnectionPair,
-    CoreType,
+    CoreType as CoreTypePyDeprecated,
     Port,
     SiSettingPinConnection,
     SpeedSetting,
 )
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
+from thrift.util.converter import fbthrift_name_or_key_error
 
 
 def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
@@ -162,33 +164,33 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
     raise Exception("Can't find num lanes for profile ", profile)
 
 
-def is_npu(chip_type: ChipType) -> bool:
-    return chip_type == ChipType.NPU
+def is_npu(chip_type: ChipTypePyDeprecated) -> bool:
+    return chip_type == ChipTypePyDeprecated.NPU
 
 
-def is_transceiver(chip_type: ChipType) -> bool:
-    return chip_type == ChipType.TRANSCEIVER
+def is_transceiver(chip_type: ChipTypePyDeprecated) -> bool:
+    return chip_type == ChipTypePyDeprecated.TRANSCEIVER
 
 
-def is_backplane(chip_type: ChipType) -> bool:
-    return chip_type == ChipType.BACKPLANE
+def is_backplane(chip_type: ChipTypePyDeprecated) -> bool:
+    return chip_type == ChipTypePyDeprecated.BACKPLANE
 
 
-def is_xphy(chip_type: ChipType) -> bool:
-    return chip_type == ChipType.XPHY
+def is_xphy(chip_type: ChipTypePyDeprecated) -> bool:
+    return chip_type == ChipTypePyDeprecated.XPHY
 
 
 # Any terminal connection (front panel transceivers or backplane connectors)
-def is_terminal_chip(chip_type: ChipType) -> bool:
+def is_terminal_chip(chip_type: ChipTypePyDeprecated) -> bool:
     return is_transceiver(chip_type) or is_backplane(chip_type)
 
 
 def get_npu_chip_name(chip: Chip) -> str:
-    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+    return f"{fbthrift_name_or_key_error(ChipType, chip.chip_type)}-{fbthrift_name_or_key_error(CoreType, chip.core_type)}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
 
 
 def get_terminal_chip_name(chip: Chip) -> str:
-    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}"
+    return f"{fbthrift_name_or_key_error(ChipType, chip.chip_type)}-{fbthrift_name_or_key_error(CoreType, chip.core_type)}-slot{chip.slot_id}/chip{chip.chip_id}"
 
 
 def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
@@ -222,7 +224,7 @@ def get_backplane_chip(chip: Chip) -> DataPlanePhyChip:
 
 
 def get_xphy_chip_name(chip: Chip) -> str:
-    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+    return f"{fbthrift_name_or_key_error(ChipType, chip.chip_type)}-{fbthrift_name_or_key_error(CoreType, chip.core_type)}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
 
 
 def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
@@ -314,16 +316,19 @@ def get_platform_config_entry(
 
 
 def _convert_xphy_core_type(
-    from_core_type: CoreType, suffix_from: str, suffix_to: str
-) -> Optional[CoreType]:
+    from_core_type: CoreTypePyDeprecated, suffix_from: str, suffix_to: str
+) -> Optional[CoreTypePyDeprecated]:
     """Convert between XPHY core types (e.g., LINE ↔ SYSTEM)."""
-    from_core_type_name = CoreType._VALUES_TO_NAMES[from_core_type]
+    from_core_type_name = fbthrift_name_or_key_error(CoreType, from_core_type)
     if not from_core_type_name.endswith(suffix_from):
         return None
 
     target_core_type_name = from_core_type_name.replace(suffix_from, suffix_to)
 
-    for core_type_value, core_type_name in CoreType._VALUES_TO_NAMES.items():
+    for (
+        core_type_value,
+        core_type_name,
+    ) in CoreTypePyDeprecated._VALUES_TO_NAMES.items():
         if core_type_name == target_core_type_name:
             return core_type_value
 
@@ -332,7 +337,7 @@ def _convert_xphy_core_type(
 
 def _find_matching_xphy_connection_in_pairs(
     reference_connection: ConnectionEnd,
-    target_core_type: CoreType,
+    target_core_type: CoreTypePyDeprecated,
     connection_pairs: List[ConnectionPair],
 ) -> Optional[ConnectionEnd]:
     """
@@ -340,10 +345,10 @@ def _find_matching_xphy_connection_in_pairs(
     - When matching from SYSTEM to LINE: expected_line_lane = system_lane - 8
     - When matching from LINE to SYSTEM: expected_system_lane = line_lane + 8
     """
-    reference_core_type_name = CoreType._VALUES_TO_NAMES[
-        reference_connection.chip.core_type
-    ]
-    target_core_type_name = CoreType._VALUES_TO_NAMES[target_core_type]
+    reference_core_type_name = fbthrift_name_or_key_error(
+        CoreType, reference_connection.chip.core_type
+    )
+    target_core_type_name = fbthrift_name_or_key_error(CoreType, target_core_type)
 
     reference_lane = reference_connection.lane.logical_id
     if reference_core_type_name.endswith("_SYSTEM") and target_core_type_name.endswith(
@@ -388,9 +393,9 @@ def find_corresponding_xphy_system_lane(
     )
 
     if system_core_type is None:
-        line_core_type_name = CoreType._VALUES_TO_NAMES[
-            line_connection_end.chip.core_type
-        ]
+        line_core_type_name = fbthrift_name_or_key_error(
+            CoreType, line_connection_end.chip.core_type
+        )
         if not line_core_type_name.endswith("_LINE"):
             raise Exception(
                 f"Expected line_connection_end to have a *_LINE core type, got {line_core_type_name}"
@@ -417,7 +422,7 @@ def get_start_connection_end(
         return static_mapping.find_connection_end(
             slot_id=int(match[2]),
             chip_id=int(match[3]),
-            chip_types={ChipType.NPU},
+            chip_types={ChipTypePyDeprecated.NPU},
             core_id=int(match[4]),
             logical_lane_id=0,
         )
@@ -426,7 +431,7 @@ def get_start_connection_end(
     return static_mapping.find_connection_end(
         slot_id=int(match[2]),
         chip_id=int(match[3]),
-        chip_types={ChipType.TRANSCEIVER, ChipType.BACKPLANE},
+        chip_types={ChipTypePyDeprecated.TRANSCEIVER, ChipTypePyDeprecated.BACKPLANE},
         core_id=0,
         logical_lane_id=int(match[4]) - 1,  # Lanes are 0 indexed in CSV
     )
@@ -474,10 +479,10 @@ def get_connection_pairs_for_profile(
             # If so, replace with corresponding *_SYSTEM
             if (
                 next_connection_end
-                and next_connection_end.chip.chip_type == ChipType.XPHY
-                and CoreType._VALUES_TO_NAMES[
-                    next_connection_end.chip.core_type
-                ].endswith("_LINE")
+                and next_connection_end.chip.chip_type == ChipTypePyDeprecated.XPHY
+                and fbthrift_name_or_key_error(
+                    CoreType, next_connection_end.chip.core_type
+                ).endswith("_LINE")
             ):
                 system_connection = find_corresponding_xphy_system_lane(
                     next_connection_end, static_mapping
@@ -485,9 +490,9 @@ def get_connection_pairs_for_profile(
                 if system_connection:
                     next_connection_end = system_connection
                 else:
-                    line_core_type_name = CoreType._VALUES_TO_NAMES[
-                        next_connection_end.chip.core_type
-                    ]
+                    line_core_type_name = fbthrift_name_or_key_error(
+                        CoreType, next_connection_end.chip.core_type
+                    )
                     system_core_type_name = line_core_type_name.replace(
                         "_LINE", "_SYSTEM"
                     )
@@ -528,7 +533,7 @@ def _create_override_from_si_setting(
     pin_conf: PinConfig,
     profile: PortProfileID,
     port_id: int,
-    chip_type: ChipType,
+    chip_type: ChipTypePyDeprecated,
 ) -> PlatformPortConfigOverride:
     """Create platform port config override from SI setting factor."""
     si_setting_vendor = si_setting_and_factor.factor.tcvr_override_setting.vendor
@@ -684,7 +689,7 @@ def _process_xphy_connection(
         )
     )
 
-    core_type_name = CoreType._VALUES_TO_NAMES[connection.chip.core_type]
+    core_type_name = fbthrift_name_or_key_error(CoreType, connection.chip.core_type)
     if core_type_name.endswith("_SYSTEM"):
         return configured_pins, [], custom_tx_collection_list, custom_rx_collection_list
     elif core_type_name.endswith("_LINE"):
@@ -845,9 +850,9 @@ def _create_xphy_junction(
     return Pin(junction=junction)
 
 
-def _is_xphy_system_core_type(core_type: CoreType) -> bool:
+def _is_xphy_system_core_type(core_type: CoreTypePyDeprecated) -> bool:
     """Check if the core type is an XPHY *_SYSTEM type."""
-    core_type_name = CoreType._VALUES_TO_NAMES[core_type]
+    core_type_name = fbthrift_name_or_key_error(CoreType, core_type)
     return core_type_name.endswith("_SYSTEM")
 
 
@@ -889,9 +894,9 @@ def get_mapping_pins(connection_pairs: List[ConnectionPair]) -> List[PinConnecti
                             terminal_connection,
                         )
                     else:
-                        sys_core_type_name = CoreType._VALUES_TO_NAMES[
-                            xphy_sys_connection.chip.core_type
-                        ]
+                        sys_core_type_name = fbthrift_name_or_key_error(
+                            CoreType, xphy_sys_connection.chip.core_type
+                        )
                         line_core_type_name = sys_core_type_name.replace(
                             "_SYSTEM", "_LINE"
                         )

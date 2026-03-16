@@ -164,31 +164,9 @@ TxMatchFn matchTxPacket(
   };
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-/**
- * Common stuff for testing software routing for packets flowing between Switch
- * and Linux host. We use same switch setup (VLANs, Interfaces) for all
- * test cases.
- */
-template <typename EnableIntfNbrTableT>
 class RoutingFixture : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
- public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
  public:
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = getSwitchConfig();
     config.switchSettings()->switchIdToSwitchInfo() = {
         {0,
@@ -210,28 +188,17 @@ class RoutingFixture : public ::testing::Test {
 
     // Add some ARP/NDP entries so that link-local addresses can be routed
     // as well.
-    auto updateFn = [=, this](const std::shared_ptr<SwitchState>& state) {
+    auto updateFn = [=](const std::shared_ptr<SwitchState>& state) {
       std::shared_ptr<SwitchState> newState{state};
 
       ArpTable *arpTable1, *arpTable2;
       NdpTable *ndpTable1, *ndpTable2;
-      if (isIntfNbrTable()) {
-        auto* intf1 =
-            newState->getInterfaces()->getNodeIf(InterfaceID(1)).get();
-        auto* intf2 =
-            newState->getInterfaces()->getNodeIf(InterfaceID(2)).get();
-        arpTable1 = intf1->getArpTable().get()->modify(&intf1, &newState);
-        ndpTable1 = intf1->getNdpTable().get()->modify(&intf1, &newState);
-        arpTable2 = intf2->getArpTable().get()->modify(&intf2, &newState);
-        ndpTable2 = intf2->getNdpTable().get()->modify(&intf2, &newState);
-      } else {
-        auto* vlan1 = newState->getVlans()->getNodeIf(VlanID(1)).get();
-        auto* vlan2 = newState->getVlans()->getNodeIf(VlanID(2)).get();
-        arpTable1 = vlan1->getArpTable().get()->modify(&vlan1, &newState);
-        ndpTable1 = vlan1->getNdpTable().get()->modify(&vlan1, &newState);
-        arpTable2 = vlan2->getArpTable().get()->modify(&vlan2, &newState);
-        ndpTable2 = vlan2->getNdpTable().get()->modify(&vlan2, &newState);
-      }
+      auto* intf1 = newState->getInterfaces()->getNodeIf(InterfaceID(1)).get();
+      auto* intf2 = newState->getInterfaces()->getNodeIf(InterfaceID(2)).get();
+      arpTable1 = intf1->getArpTable().get()->modify(&intf1, &newState);
+      ndpTable1 = intf1->getNdpTable().get()->modify(&intf1, &newState);
+      arpTable2 = intf2->getArpTable().get()->modify(&intf2, &newState);
+      ndpTable2 = intf2->getNdpTable().get()->modify(&intf2, &newState);
 
       arpTable1->addEntry(
           kIPv4NbhAddr1,
@@ -363,14 +330,12 @@ class RoutingFixture : public ::testing::Test {
   const InterfaceID ifID2{2};
 };
 
-TYPED_TEST_SUITE(RoutingFixture, NbrTableTypes);
-
 /**
  * Verify flow of unicast packets from switch to host for both v4 and v6.
  * Interface is identified based on the dstAddr on packet among all switch
  * interfaces.
  */
-TYPED_TEST(RoutingFixture, SwitchToHostUnicast) {
+TEST_F(RoutingFixture, SwitchToHostUnicast) {
   // Cache the current stats
   CounterCache counters(this->sw);
 
@@ -451,7 +416,7 @@ TYPED_TEST(RoutingFixture, SwitchToHostUnicast) {
  * doesn't matter from routing perspective.
  *
  */
-TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
+TEST_F(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // Cache the current stats
   CounterCache counters(this->sw);
 
@@ -473,19 +438,6 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
   // v4 packet destined to intf2 link-local address from any address but from
   // same VLAN as of intf2
   verifyV4LLUcastPkt(PortID(2));
-
-  // v4 packet destined to intf2 link-local address from any address
-  // originating from CPU port but from same VLAN as of intf2
-  //
-  // CPU originated LL V4 packets are sent to the ASIC. If the ARP is not
-  // resolved, the packets will be punted back to the CPU with the ingress port
-  // set to the CPU port. Mimic that by setting PortID in the pkt metadata to
-  // CPU port (0).
-  // TODO(skhare)
-  // Fix this test when FLAGS_intf_nbr_tables = true.
-  if (!this->isIntfNbrTable()) {
-    verifyV4LLUcastPkt(PortID(0));
-  }
 
   // v4 link local packet destined to non-interface address should be dropped.
   {
@@ -578,7 +530,7 @@ TYPED_TEST(RoutingFixture, SwitchToHostLinkLocalUnicast) {
  * Verif flow of multicast packets from switch to host for both v4 and v6.
  * Interface is directly derived from VLAN.
  */
-TYPED_TEST(RoutingFixture, SwitchToHostMulticast) {
+TEST_F(RoutingFixture, SwitchToHostMulticast) {
   // Cache the current stats
   CounterCache counters(this->sw);
 
@@ -621,7 +573,7 @@ TYPED_TEST(RoutingFixture, SwitchToHostMulticast) {
  * All outgoing L2 packets to switch must have platform MAC as the destination
  * address as it will trigger L3 lookup in hardware.
  */
-TYPED_TEST(RoutingFixture, HostToSwitchUnicast) {
+TEST_F(RoutingFixture, HostToSwitchUnicast) {
   // Cache the current stats
   CounterCache counters(this->sw);
 
@@ -681,7 +633,7 @@ TYPED_TEST(RoutingFixture, HostToSwitchUnicast) {
  * Verify flow of link local packets from host to switch for both v4 and v6.
  * All outgoing L2 packets must have their MAC resolved in software.
  */
-TYPED_TEST(RoutingFixture, HostToSwitchLinkLocal) {
+TEST_F(RoutingFixture, HostToSwitchLinkLocal) {
   // Cache the current stats
   CounterCache counters(this->sw);
 
@@ -788,7 +740,7 @@ TYPED_TEST(RoutingFixture, HostToSwitchLinkLocal) {
  * All outgoing multicast packets must have their destination mac address
  * based on their IPAddress.
  */
-TYPED_TEST(RoutingFixture, HostToSwitchMulticast) {
+TEST_F(RoutingFixture, HostToSwitchMulticast) {
   // Cache the current stats
   CounterCache counters(this->sw);
 

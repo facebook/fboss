@@ -110,6 +110,8 @@ cpp_library(
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/cpp2/visitation:visitation",
+        "//thrift/lib/thrift:metadata-cpp2-types",
     ],
 )
 
@@ -175,8 +177,7 @@ cpp_library(
         "//folly/gen:base",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",
-        "//thrift/lib/cpp2/visitation:visitation",
-        "//thrift/lib/thrift:metadata-cpp2-types",
+        "//thrift/lib/cpp2/op:get",
     ],
     exported_external_deps = [
         "CLI11",
@@ -929,6 +930,7 @@ cpp_library(
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.cpp",
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.cpp",
         "commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp",
         "commands/config/rollback/CmdConfigRollback.cpp",
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.cpp",
@@ -993,6 +995,8 @@ cpp_library(
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h",
         "commands/config/qos/CmdConfigQos.h",
         "commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h",
         "commands/config/rollback/CmdConfigRollback.h",
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionDiff.h",

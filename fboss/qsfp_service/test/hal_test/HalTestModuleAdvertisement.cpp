@@ -10,7 +10,7 @@ namespace facebook::fboss {
 // Verify that every present transceiver reports a known (non-UNKNOWN) media
 // interface code. A module returning UNKNOWN likely has unreadable or
 // unsupported application advertising fields.
-TEST_F(HalTest, verifyModuleMediaInterfaceIsNotUnknown) {
+TEST_F(T1HalTest, verifyModuleMediaInterfaceIsNotUnknown) {
   for (auto tcvrId : getPresentTransceiverIds()) {
     auto* module = getModule(tcvrId);
 
@@ -27,7 +27,7 @@ TEST_F(HalTest, verifyModuleMediaInterfaceIsNotUnknown) {
 // Verify that the datapath init max delay advertised by each present module
 // is within expected bounds: at most 5 seconds for standard modules, and
 // at most 1 minute for 800G ZR modules.
-TEST_F(HalTest, verifyDatapathMaxDelayFromModuleSpec) {
+TEST_F(T1HalTest, verifyDatapathMaxDelayFromModuleSpec) {
   constexpr uint64_t kMaxDelayUsecDefault = 5'000'000; // 5 seconds
   constexpr uint64_t kMaxDelayUsecZR = 60'000'000; // 1 minute
 

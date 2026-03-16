@@ -84,6 +84,7 @@ add_executable(fan_service_sw_test
 
 target_link_libraries(fan_service_sw_test
   fan_service_lib
+  platform_config_lib
   structured_logger
   Folly::folly
   ${LIBGPIOD}

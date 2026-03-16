@@ -53,7 +53,6 @@ add_library(packet_factory
   fboss/agent/packet/IPPacket.cpp
   fboss/agent/packet/MPLSPacket.cpp
   fboss/agent/packet/PktFactory.cpp
-  fboss/agent/packet/Srv6Packet.cpp
   fboss/agent/packet/TCPPacket.cpp
   fboss/agent/packet/UDPDatagram.cpp
 )

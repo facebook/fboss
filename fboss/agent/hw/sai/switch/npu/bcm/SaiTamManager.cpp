@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
+#include "fboss/lib/TupleUtils.h"
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
 extern "C" {
@@ -299,6 +300,10 @@ void SaiTamManager::storeTamHandle(
     ,
     std::vector<std::shared_ptr<SaiTamEventAgingGroup>> agingGroups
 #endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+    ,
+    std::shared_ptr<SaiSamplePacket> samplePacket
+#endif
 ) {
   auto tamHandle = std::make_unique<SaiTamHandle>();
   tamHandle->report = std::move(report);
@@ -307,6 +312,9 @@ void SaiTamManager::storeTamHandle(
   tamHandle->collector = std::move(collector);
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   tamHandle->agingGroups = std::move(agingGroups);
+#endif
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  tamHandle->samplePacket = samplePacket;
 #endif
   tamHandle->events = events;
   tamHandle->tam = std::move(tam);
@@ -380,7 +388,10 @@ void SaiTamManager::addDnxMirrorOnDropReport(
     std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(
         eventTraits) = agingGroupKey;
     auto& eventStore = saiStore_->get<SaiTamEventTraits>();
-    auto event = eventStore.setObject(eventTraits, eventTraits);
+    auto eventAdapterHostKey = tupleProjection<
+        SaiTamEventTraits::CreateAttributes,
+        SaiTamEventTraits::AdapterHostKey>(eventTraits);
+    auto event = eventStore.setObject(eventAdapterHostKey, eventTraits);
     events.push_back(event);
     eventIds.push_back(event->adapterKey());
     XLOG(INFO) << "Created event ID " << eventId << " with tam event "
@@ -436,6 +447,21 @@ void SaiTamManager::addXgsMirrorOnDropReport(
   auto collector =
       createTamCollector(report, transport->adapterKey(), std::nullopt);
 
+  // Create SamplePacket if samplingRate is configured
+  std::shared_ptr<SaiSamplePacket> samplePacket = nullptr;
+  auto samplingRate = report->getSamplingRate();
+  if (samplingRate.has_value() && samplingRate.value() > 0) {
+    XLOG(INFO) << "Creating SamplePacket with rate " << samplingRate.value()
+               << " for MirrorOnDropReport " << report->getID();
+    auto& samplePacketStore = saiStore_->get<SaiSamplePacketTraits>();
+    SaiSamplePacketTraits::AdapterHostKey samplePacketKey{
+        static_cast<sai_uint32_t>(samplingRate.value()),
+        SAI_SAMPLEPACKET_TYPE_MIRROR_SESSION,
+        SAI_SAMPLEPACKET_MODE_EXCLUSIVE};
+    samplePacket =
+        samplePacketStore.setObject(samplePacketKey, samplePacketKey);
+  }
+
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::vector<sai_object_id_t> eventIds;
 
@@ -460,8 +486,20 @@ void SaiTamManager::addXgsMirrorOnDropReport(
       std::optional<SaiTamEventTraits::Attributes::ExtensionsCollectorList>>(
       eventTraits) = collectors;
 
+  // Set IngressSamplepacketEnable if samplePacket was created
+  if (samplePacket) {
+    std::get<std::optional<
+        SaiTamEventTraits::Attributes::IngressSamplepacketEnable>>(
+        eventTraits) = static_cast<sai_object_id_t>(samplePacket->adapterKey());
+    XLOG(INFO) << "Setting IngressSamplepacketEnable to "
+               << samplePacket->adapterKey() << " on TAM event";
+  }
+
   auto& eventStore = saiStore_->get<SaiTamEventTraits>();
-  auto event = eventStore.setObject(eventTraits, eventTraits);
+  auto eventAdapterHostKey = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventTraits);
+  auto event = eventStore.setObject(eventAdapterHostKey, eventTraits);
   events.push_back(event);
   eventIds.push_back(event->adapterKey());
   XLOG(INFO) << "Created event ID " << tam::kModSwitchEventId
@@ -479,7 +517,8 @@ void SaiTamManager::addXgsMirrorOnDropReport(
       collector,
       events,
       tam,
-      egressPort);
+      egressPort,
+      samplePacket);
   bindTam(tam->adapterKey(), egressPort);
 }
 #endif

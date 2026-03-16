@@ -4,9 +4,11 @@ Description=FBOSS SW Agent
 After=platform_manager.service
 After=qsfp_service.service
 After=rc-local.service
+StartLimitIntervalSec=600
+StartLimitBurst=5
 
 [Service]
-Type=simple
+Type=notify
 LimitNOFILE=10000000
 LimitCORE=32G
 MemoryMax=3.75G
@@ -22,10 +24,8 @@ RestartSec=30
 TimeoutStartSec=180s
 TimeoutStopSec=30s
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=fboss_sw_agent
+StandardOutput=append:/var/facebook/logs/fboss/wedge_agent.log
+StandardError=append:/var/facebook/logs/fboss/wedge_agent.log
 
 [Install]
 WantedBy=multi-user.target

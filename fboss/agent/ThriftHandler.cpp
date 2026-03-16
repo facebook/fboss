@@ -110,8 +110,6 @@ DEFINE_bool(
     false, // false => Prevents such mutations in prod
     "Allow mutations of running switch state by external thrift calls");
 
-DECLARE_bool(intf_nbr_tables);
-
 DECLARE_bool(enable_acl_table_group);
 
 namespace facebook::fboss {
@@ -1127,11 +1125,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
 
   // Look up neighbor table entries
   std::list<facebook::fboss::NdpEntryThrift> entries;
-  if (FLAGS_intf_nbr_tables) {
-    entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-  } else {
-    entries = sw_->getNeighborUpdater()->getNdpCacheData().get();
-  }
+  entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
 
   ndpTable.reserve(entries.size());
   ndpTable.insert(
@@ -1148,11 +1142,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 
   // Look up neighbor table entries
   std::list<facebook::fboss::ArpEntryThrift> entries;
-  if (FLAGS_intf_nbr_tables) {
-    entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
-  } else {
-    entries = sw_->getNeighborUpdater()->getArpCacheData().get();
-  }
+  entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
 
   arpTable.reserve(entries.size());
   arpTable.insert(
@@ -2350,17 +2340,12 @@ int32_t ThriftHandler::flushNeighborEntry(
 
   try {
     int32_t result;
-    if (FLAGS_intf_nbr_tables) {
-      // VOQ switches don't support VLANs. The thrift client will pass
-      // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
-      // identical to interfaceID.
-      InterfaceID intfID = InterfaceID(vlan);
-      result =
-          sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
-    } else {
-      VlanID vlanID(vlan);
-      result = sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
-    }
+    // VOQ switches don't support VLANs. The thrift client will pass
+    // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
+    // identical to interfaceID.
+    InterfaceID intfID = InterfaceID(vlan);
+    result =
+        sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
 
     // Check if NDP static neighbor is enabled
     if (FLAGS_ndp_static_neighbor) {
