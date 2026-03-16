@@ -84,8 +84,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
         "enable trunk ports");
   }
 
-  utility::EcmpSetupAnyNPorts6 makeEcmpHelper() {
-    return utility::EcmpSetupAnyNPorts6(
+  template <typename IPAddrT = folly::IPAddressV6>
+  utility::EcmpSetupAnyNPorts<IPAddrT> makeEcmpHelper() {
+    return utility::EcmpSetupAnyNPorts<IPAddrT>(
         this->getProgrammedState(), this->getSw()->needL2EntryForNeighbor());
   }
 
@@ -95,18 +96,33 @@ class AgentSrv6EncapTest : public AgentHwTest {
           this->initialConfig(*this->getAgentEnsemble()));
     }
     if (resolveNeighbors) {
-      auto ecmpHelper = makeEcmpHelper();
-      this->resolveNeighbors(ecmpHelper, 2);
+      auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
+      this->resolveNeighbors(ecmpHelper6, 2);
+      auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
+      this->resolveNeighbors(ecmpHelper4, 2);
     }
-    addEncapRoute({folly::IPAddressV6("2800:2::"), 64}, {{kSid0}});
-    addEncapRoute({folly::IPAddressV6("2800:3::"), 64}, {{kSid1}, {kSid2}});
-    addEncapRoute({folly::IPAddressV6("2800:4::"), 64}, {{kSid1}, {kSid2}});
+    // IPv6 encap routes (v6 next hops)
+    addEncapRoute<folly::CIDRNetworkV6>(
+        {folly::IPAddressV6("2800:2::"), 64}, {{kSid0}});
+    addEncapRoute<folly::CIDRNetworkV6>(
+        {folly::IPAddressV6("2800:3::"), 64}, {{kSid1}, {kSid2}});
+    addEncapRoute<folly::CIDRNetworkV6>(
+        {folly::IPAddressV6("2800:4::"), 64}, {{kSid1}, {kSid2}});
+    // IPv4 encap routes (v4 next hops)
+    addEncapRoute<folly::CIDRNetworkV4>(
+        {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}});
+    addEncapRoute<folly::CIDRNetworkV4>(
+        {folly::IPAddressV4("200.0.0.0"), 24}, {{kSid1}, {kSid2}});
+    addEncapRoute<folly::CIDRNetworkV4>(
+        {folly::IPAddressV4("201.0.0.0"), 24}, {{kSid1}, {kSid2}});
   }
 
+  template <typename CIDRNetworkT>
   void addEncapRoute(
-      const folly::CIDRNetworkV6& prefix,
+      const CIDRNetworkT& prefix,
       const std::vector<std::vector<folly::IPAddressV6>>& sidLists) {
-    auto ecmpHelper = makeEcmpHelper();
+    using IPAddrT = decltype(prefix.first);
+    auto ecmpHelper = makeEcmpHelper<std::remove_const_t<IPAddrT>>();
     RouteNextHopSet nhops;
     for (auto i = 0; i < sidLists.size(); ++i) {
       auto nhop = ecmpHelper.nhop(i);
@@ -144,6 +160,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
   void verifyEncapPacket(
       PortID egressPort,
       bool ecnMarked,
+      bool isV4 = false,
       std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
@@ -154,13 +171,17 @@ class AgentSrv6EncapTest : public AgentHwTest {
     constexpr auto kTtl{24};
     auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
                              : static_cast<uint8_t>(kTc << 2);
+    auto srcIp =
+        isV4 ? folly::IPAddress("10.0.0.1") : folly::IPAddress("1::10");
+    auto dstIp =
+        isV4 ? folly::IPAddress("100.0.0.1") : folly::IPAddress("2800:2::1");
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
         intfMac,
         intfMac,
-        folly::IPAddressV6("1::10"),
-        folly::IPAddressV6("2800:2::1"),
+        srcIp,
+        dstIp,
         8000,
         8001,
         tcField,
@@ -191,6 +212,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
     folly::io::Cursor cursor((*frameRx).get());
     utility::EthFrame frame(cursor);
     auto ethHdr = frame.header();
+    // Outer header is always IPv6 (SRv6 encap)
     EXPECT_EQ(
         ethHdr.etherType, static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
     auto v6Payload = frame.v6PayLoad();
@@ -205,21 +227,33 @@ class AgentSrv6EncapTest : public AgentHwTest {
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
     // Compare origPacket against inner packet
-    auto origPacket = origFrame.v6PayLoad();
-    ASSERT_TRUE(origPacket.has_value());
-    // Inner packet should match origPacket. Note makeEthFrame(txPacket) already
-    // does a TTL decrement by default, so we don't have to account for it here.
-    EXPECT_EQ(*v6Payload->v6PayLoad(), *origPacket);
+    if (isV4) {
+      auto origPacket = origFrame.v4PayLoad();
+      ASSERT_TRUE(origPacket.has_value());
+      auto innerV4 = v6Payload->v4PayLoad();
+      ASSERT_NE(innerV4, nullptr);
+      // Inner packet should match origPacket. Note makeEthFrame(txPacket)
+      // already does a TTL decrement by default, so we don't have to account
+      // for it here.
+      EXPECT_EQ(*innerV4, *origPacket);
+    } else {
+      auto origPacket = origFrame.v6PayLoad();
+      ASSERT_TRUE(origPacket.has_value());
+      // Inner packet should match origPacket. Note makeEthFrame(txPacket)
+      // already does a TTL decrement by default, so we don't have to account
+      // for it here.
+      EXPECT_EQ(*v6Payload->v6PayLoad(), *origPacket);
+    }
   }
 
   void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
     auto injectPort = findInjectPort(egressPort);
     // ECN not marked
     verifyEncapPacket(egressPort, false);
-    verifyEncapPacket(egressPort, false, injectPort);
+    verifyEncapPacket(egressPort, false, false, injectPort);
     // ECN marked
     verifyEncapPacket(egressPort, true);
-    verifyEncapPacket(egressPort, true, injectPort);
+    verifyEncapPacket(egressPort, true, false, injectPort);
   }
 
   PortID findInjectPort(PortID egressPort) {
