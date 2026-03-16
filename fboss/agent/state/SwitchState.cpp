@@ -702,9 +702,10 @@ void SwitchState::migrateNeighborTables(
         toEntry->setArpResponseTable(fromEntry->getArpResponseTable());
         toEntry->setNdpResponseTable(fromEntry->getNdpResponseTable());
 
-        // Clear old Neighbor Tables
-        fromEntry->setNdpTable(nullptr);
-        fromEntry->setArpTable(nullptr);
+        // Clear old Neighbor Tables (use empty tables, not nullptr,
+        // to avoid null-deref in DeltaVisitor for non-optional fields)
+        fromEntry->setNdpTable(std::make_shared<NdpTable>());
+        fromEntry->setArpTable(std::make_shared<ArpTable>());
         fromEntry->setNdpResponseTable(nullptr);
         fromEntry->setArpResponseTable(nullptr);
       }
