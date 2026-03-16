@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/CmdHandler.h"
+#include <thrift/lib/cpp2/visitation/for_each.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
@@ -21,6 +22,9 @@
 #include <iostream>
 #include <queue>
 #include <stdexcept>
+
+using ThriftField = apache::thrift::metadata::ThriftField;
+using ThriftType = apache::thrift::metadata::ThriftType;
 
 template <typename CmdTypeT>
 void printTabular(
