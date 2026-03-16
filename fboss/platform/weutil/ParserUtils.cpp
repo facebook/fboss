@@ -1,7 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include <fmt/format.h>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -57,29 +56,21 @@ std::vector<uint8_t> ParserUtils::loadEeprom(
   std::vector<uint8_t> result(kMaxEepromDataRegionSize);
 
   // First, validate file can be opened
-  try {
-    if (!file) {
-      throw std::runtime_error(fmt::format("Unable to open EEPROM {}", eeprom));
-    }
-  } catch (std::exception& ex) {
-    std::cout << "Failed to open EEPROM (" << eeprom << "): " << ex.what()
-              << std::endl;
-    throw std::runtime_error("Failed to open EEPROM.");
+  if (!file) {
+    throw std::runtime_error(fmt::format("Failed to open EEPROM {}.", eeprom));
   }
 
   // Now, read the eeprom
   try {
     file.seekg(offset, std::ios::beg);
     file.read((char*)result.data(), kMaxEepromDataRegionSize);
+    if (file.gcount() == 0) {
+      throw std::runtime_error("Offset greater than file size");
+    }
     file.close();
   } catch (std::exception& ex) {
-    std::cout << "Failed to read EEPROM contents " << ex.what() << std::endl;
-    return result;
-  }
-
-  // Validate we read some data
-  if (file.gcount() == 0) {
-    throw std::runtime_error("Offset greater than file size");
+    throw std::runtime_error(
+        fmt::format("Failed to read EEPROM contents: {}", ex.what()));
   }
 
   return result;

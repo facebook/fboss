@@ -1047,6 +1047,7 @@ add_dependencies(fboss_platform_services
   platform_manager_handler_test
   weutil_crc16_ccitt_test
   weutil_fboss_eeprom_interface_test
+  weutil_parser_utils_test
   sensor_service_sw_test
   sensor_service_utils_test
   rackmon_test
