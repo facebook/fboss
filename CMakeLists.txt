@@ -1083,6 +1083,7 @@ add_custom_target(qsfp_targets)
 add_dependencies(qsfp_targets
   qsfp_service
   qsfp_hw_test
+  qsfp_hal_test
   wedge_qsfp_util
 )
 

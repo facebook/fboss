@@ -51,6 +51,7 @@ add_executable(qsfp_hal_test
 
 target_link_libraries(qsfp_hal_test
   ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
   hal_test_base
   transceiver_cpp2
   qsfp_module
