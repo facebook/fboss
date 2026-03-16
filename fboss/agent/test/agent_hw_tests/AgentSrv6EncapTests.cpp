@@ -230,6 +230,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
     if (!isV4) {
       EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
     }
+    // FIXME MT-864 - DSCP bits are being zeroed out
+    // EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc).
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
     // Compare origPacket against inner packet

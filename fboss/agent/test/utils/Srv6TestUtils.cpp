@@ -15,7 +15,7 @@ cfg::Srv6Tunnel makeSrv6TunnelConfig(
   tunnel.underlayIntfID() = interfaceId;
   tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
   tunnel.srcIp() = "2001:db8::1";
-  tunnel.ttlMode() = cfg::TunnelMode::PIPE;
+  tunnel.ttlMode() = cfg::TunnelMode::UNIFORM;
   tunnel.dscpMode() = cfg::TunnelMode::UNIFORM;
   tunnel.ecnMode() = cfg::TunnelMode::UNIFORM;
   return tunnel;
