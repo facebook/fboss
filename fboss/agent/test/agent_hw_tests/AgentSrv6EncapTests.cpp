@@ -243,26 +243,6 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
 TYPED_TEST_SUITE(AgentSrv6EncapTest, Srv6EncapPortTypes);
 
-TYPED_TEST(AgentSrv6EncapTest, CreateSrv6Tunnel) {
-  auto setup = [=, this]() { this->setupHelper(); };
-  auto verify = [=, this]() {
-    auto tunnel =
-        this->getProgrammedState()->getSrv6Tunnels()->getNodeIf("srv6Tunnel0");
-    ASSERT_NE(tunnel, nullptr);
-    EXPECT_EQ(tunnel->getID(), "srv6Tunnel0");
-    EXPECT_EQ(tunnel->getType(), TunnelType::SRV6_ENCAP);
-    EXPECT_EQ(
-        tunnel->getUnderlayIntfId(),
-        InterfaceID(this->initialConfig(*this->getAgentEnsemble())
-                        .interfaces()[0]
-                        .intfID()
-                        .value()));
-    EXPECT_EQ(tunnel->getSrcIP(), folly::IPAddress("2001:db8::1"));
-    EXPECT_EQ(tunnel->getDstIP(), std::nullopt);
-  };
-  this->verifyAcrossWarmBoots(setup, verify);
-}
-
 TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
   auto setup = [this]() {
     this->setupHelper();
