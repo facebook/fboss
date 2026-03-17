@@ -359,8 +359,7 @@ void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
 }
 
 void Bsp::getAsicTempData(const std::shared_ptr<SensorData>& pSensorData) {
-  bool useFsdb = FLAGS_subscribe_to_stats_from_fsdb ? true : false;
-  if (useFsdb) {
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
     getAsicTempThroughFsdb(pSensorData);
   } else {
     getAsicTempDataOverThrift(pSensorData);

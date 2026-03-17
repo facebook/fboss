@@ -17,7 +17,7 @@ struct SensorReadCache {
   // This is the last read value from the sensor which is yet to be processed.
   float lastReadValue{0};
   int16_t targetPwmCache{0};
-  uint64_t lastUpdatedTime;
+  uint64_t lastUpdatedTime{0};
   bool sensorFailed{false};
 };
 

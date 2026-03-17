@@ -5,6 +5,7 @@
 
 #include "fboss/platform/fan_service/ControlLogic.h"
 
+#include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 #include <gpiod.h>
 
@@ -403,10 +404,13 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   } else if (fan.presenceGpio()) {
     struct gpiod_chip* chip =
         gpiod_chip_open(fan.presenceGpio()->path()->c_str());
-    // Ensure GpiodLine is destroyed before gpiod_chip_close
+    SCOPE_EXIT {
+      if (chip) {
+        gpiod_chip_close(chip);
+      }
+    };
     int value = GpiodLine(chip, *fan.presenceGpio()->lineIndex(), "gpioline")
                     .getValue();
-    gpiod_chip_close(chip);
     if (value == *fan.presenceGpio()->desiredValue()) {
       fanPresent = true;
       XLOG(INFO) << fmt::format(
@@ -505,7 +509,7 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
     } else if (zoneType == constants::ZONE_TYPE_AVG()) {
       zonePwm += pwmForThisSensor;
     } else {
-      XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
+      XLOG(ERR) << "Undefined Zone Type for zone : " << *zone.zoneName();
     }
     totalPwmConsidered++;
   }
