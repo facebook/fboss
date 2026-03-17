@@ -30,6 +30,11 @@ DEFINE_bool(
     false,
     "For subscribing to qsfp state and stats from FSDB");
 
+namespace {
+auto constexpr kFsdbSensorDataThriftFallback =
+    "fsdb_sensor_data_thrift_fallback";
+} // namespace
+
 namespace facebook::fboss::platform::fan_service {
 
 Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
@@ -74,17 +79,27 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
 
   if (fetchFromFsdb) {
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
-    for (const auto& [sensorName, sensorData] : subscribedData) {
-      // Skip adding an entry for this sensor if either the value or timestamp
-      // fields are not set
-      if (sensorData.value().has_value() &&
-          sensorData.timeStamp().has_value()) {
-        pSensorData->updateSensorEntry(
-            *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+    bool fallbackToThrift =
+        subscribedData.empty() || fsdbSensorSubscriber_->isSensorDataStale();
+    if (fallbackToThrift) {
+      XLOG(WARNING) << "FSDB sensor data is empty or stale, falling back to "
+                       "thrift from sensor_service";
+      fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 1);
+      getSensorDataThrift(pSensorData);
+    } else {
+      fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 0);
+      for (const auto& [sensorName, sensorData] : subscribedData) {
+        // Skip adding an entry for this sensor if either the value or timestamp
+        // fields are not set
+        if (sensorData.value().has_value() &&
+            sensorData.timeStamp().has_value()) {
+          pSensorData->updateSensorEntry(
+              *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+        }
       }
+      XLOG(INFO) << fmt::format(
+          "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
     }
-    XLOG(INFO) << fmt::format(
-        "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
   }
 
   if (!initialSensorDataRead_) {
@@ -410,10 +425,15 @@ void Bsp::setEmergencyState(bool state) {
 }
 
 void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
-  auto sensorReadResponse =
-      getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+  sensor_service::SensorReadResponse sensorReadResponse;
+  try {
+    sensorReadResponse =
+        getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get sensor data from sensor_service: " << e.what();
+    return;
+  }
   for (auto& sensorData : *sensorReadResponse.sensorData()) {
-    // Value and Timestamp are not set for failed sensors. Skip them
     if (sensorData.value() && sensorData.timeStamp()) {
       pSensorData->updateSensorEntry(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());

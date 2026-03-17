@@ -639,17 +639,26 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   }
 
   // STEP 4: Determine whether boost mode is necessary
-  uint64_t secondsSinceLastOpticsUpdate =
-      pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
+  auto lastQsfpSvcTime = pSensor_->getLastQsfpSvcTime();
   bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false};
   std::string boostModeReason;
-  if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
-      (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
-    missingOpticsUpdate = true;
-    boostModeReason = fmt::format(
-        "Boost mode enabled for optics update missing for {}s",
-        secondsSinceLastOpticsUpdate);
-    XLOG(INFO) << boostModeReason;
+  if (*config_.pwmBoostOnNoQsfpAfterInSec() != 0) {
+    if (lastQsfpSvcTime == 0) {
+      missingOpticsUpdate = true;
+      boostModeReason = "Boost mode enabled for optics data never received";
+      XLOG(INFO) << boostModeReason;
+    } else {
+      uint64_t secondsSinceLastOpticsUpdate =
+          pBsp_->getCurrentTime() - lastQsfpSvcTime;
+      if (secondsSinceLastOpticsUpdate >=
+          *config_.pwmBoostOnNoQsfpAfterInSec()) {
+        missingOpticsUpdate = true;
+        boostModeReason = fmt::format(
+            "Boost mode enabled for optics update missing for {}s",
+            secondsSinceLastOpticsUpdate);
+        XLOG(INFO) << boostModeReason;
+      }
+    }
   }
   if ((*config_.pwmBoostOnNumDeadFan() != 0) &&
       (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) {
