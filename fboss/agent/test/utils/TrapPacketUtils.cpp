@@ -66,7 +66,8 @@ void addTrapPacketAcl(
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
-    const folly::CIDRNetwork& prefix) {
+    const folly::CIDRNetwork& prefix,
+    cfg::ToCpuAction toCpuAction) {
   cfg::AclEntry entry{};
   entry.name() = folly::to<std::string>("trap-", prefix.first.str());
   entry.dstIp() = prefix.first.str();
@@ -79,7 +80,7 @@ void addTrapPacketAcl(
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
   action.sendToQueue()->queueId() = 0;
-  action.toCpuAction() = cfg::ToCpuAction::COPY;
+  action.toCpuAction() = toCpuAction;
   cfg::SetTcAction setTcAction = cfg::SetTcAction();
   setTcAction.tcValue() = 0;
   action.setTc() = setTcAction;

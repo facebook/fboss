@@ -24,7 +24,8 @@ void addTrapPacketAcl(
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
-    const folly::CIDRNetwork& prefix);
+    const folly::CIDRNetwork& prefix,
+    cfg::ToCpuAction toCpuAction = cfg::ToCpuAction::COPY);
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
