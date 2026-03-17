@@ -558,6 +558,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t dscp,
     uint8_t ttl,
+    uint8_t ecn,
     std::optional<std::vector<uint8_t>> payload) {
   // TODO: Refactor such that both tests and DHCPv4Handler to use this
   // function for constructing v4 UDP packets
@@ -574,6 +575,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       payloadBytes.size() + UDPHeader::size());
   ipHdr.dscp = dscp;
+  ipHdr.ecn = ecn;
   ipHdr.ttl = ttl;
   ipHdr.computeChecksum();
   // UDPHeader
@@ -609,6 +611,17 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
         hopLimit,
         payload);
   }
+  // IPv4 ToS byte = (dscp << 2) | ecn. When trafficClass <= 63, treat as
+  // DSCP-only (legacy); otherwise split into dscp and ecn.
+  uint8_t dscp;
+  uint8_t ecn;
+  if (trafficClass <= 63) {
+    dscp = trafficClass;
+    ecn = 0;
+  } else {
+    dscp = trafficClass >> 2;
+    ecn = trafficClass & 0x3;
+  }
   return makeUDPTxPacket(
       allocator,
       vlan,
@@ -618,8 +631,9 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       dstIp.asV4(),
       srcPort,
       dstPort,
-      trafficClass,
+      dscp,
       hopLimit,
+      ecn,
       payload);
 }
 

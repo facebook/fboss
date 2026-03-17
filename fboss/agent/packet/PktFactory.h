@@ -136,6 +136,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
     uint16_t dstPort,
     uint8_t dscp = 0,
     uint8_t ttl = 255,
+    uint8_t ecn = 0,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
