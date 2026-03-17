@@ -250,7 +250,7 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
   return data;
 }
 
-void Bsp::getOpticsDataFromQsfpSvc(
+void Bsp::getOpticData(
     const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   std::map<int32_t, TransceiverInfo> transceiverInfoMap{};
@@ -317,14 +317,7 @@ void Bsp::getOpticsDataFromQsfpSvc(
 
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   for (const auto& optic : *config_.optics()) {
-    auto accessType = *optic.access()->accessType();
-    if (accessType == constants::ACCESS_TYPE_QSFP() ||
-        accessType == constants::ACCESS_TYPE_THRIFT()) {
-      getOpticsDataFromQsfpSvc(optic, pSensorData);
-    } else {
-      throw facebook::fboss::FbossError(
-          "Invalid way for fetching optics temperature!");
-    }
+    getOpticData(optic, pSensorData);
   }
 }
 

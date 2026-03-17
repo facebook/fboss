@@ -53,7 +53,7 @@ class Bsp {
   const FanServiceConfig config_;
 
  private:
-  void getOpticsDataFromQsfpSvc(
+  void getOpticData(
       const Optic& opticsGroup,
       std::shared_ptr<SensorData> pSensorData);
   bool writeToWatchdog(const std::string& value);

@@ -17,9 +17,6 @@
   "sensors": [
     {
       "sensorName": "NETLAKE_U1_CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": -4,
@@ -32,9 +29,6 @@
     },
     {
       "sensorName": "RTM_L_U8_LM75_INLET_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "30": 50,
@@ -63,9 +57,6 @@
     },
     {
       "sensorName": "RTM_R_U8_LM75_INLET_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "30": 50,
@@ -94,9 +85,6 @@
     },
     {
       "sensorName": "MCB_PSP3_XP12R0V_PB3_TEMPARTURES",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": -8,

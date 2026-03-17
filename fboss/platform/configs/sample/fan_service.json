@@ -9,9 +9,6 @@
   "optics": [
     {
       "opticName": "qsfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
       "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
       "tempToPwmMaps": {
         "OPTIC_TYPE_100_GENERIC": {
@@ -57,9 +54,6 @@
   "sensors": [
     {
       "sensorName": "INLET_SENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 24,
@@ -80,9 +74,6 @@
     },
     {
       "sensorName": "OUTLET_SENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "type": "linear_four_curves",
       "normalUpTable": {
@@ -104,9 +95,6 @@
     },
     {
       "sensorName": "ASIC_SENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "type": "linear_four_curves",
       "normalUpTable": {

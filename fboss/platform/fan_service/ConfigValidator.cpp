@@ -13,10 +13,6 @@ namespace {
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
-std::unordered_set<std::string> accessMethodTypes = {
-    constants::ACCESS_TYPE_THRIFT(),
-    constants::ACCESS_TYPE_QSFP()};
-
 std::unordered_set<std::string> zoneTypes = {
     constants::ZONE_TYPE_MAX(),
     constants::ZONE_TYPE_MIN(),
@@ -56,10 +52,6 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
   for (const auto& sensor : *config.sensors()) {
-    if (!accessMethodTypes.contains(*sensor.access()->accessType())) {
-      XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();
-      return false;
-    }
     if (!sensorPwmCalcTypes.contains(*sensor.pwmCalcType())) {
       XLOG(ERR) << "Invalid PWM calculation type: " << *sensor.pwmCalcType();
       return false;

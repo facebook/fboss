@@ -9,9 +9,6 @@
   "optics": [
     {
       "opticName": "osfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
       "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
       "tempToPwmMaps": {
         "OPTIC_TYPE_800_GENERIC": {
@@ -32,9 +29,6 @@
   "sensors": [
     {
       "sensorName": "SMB_INLET_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 40,
@@ -55,9 +49,6 @@
     },
     {
       "sensorName": "R3_0_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 7,
@@ -98,9 +89,6 @@
     },
     {
       "sensorName": "R3_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 7,
@@ -141,9 +129,6 @@
     },
     {
       "sensorName": "CPU_PACKAGE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 40,

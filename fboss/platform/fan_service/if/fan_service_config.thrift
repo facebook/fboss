@@ -6,8 +6,6 @@ package;
 namespace cpp2 facebook.fboss.platform.fan_service
 namespace py3 neteng.fboss.platform.fan_service
 
-const string ACCESS_TYPE_THRIFT = "ACCESS_TYPE_THRIFT";
-const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
 const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
 const string ZONE_TYPE_MIN = "ZONE_TYPE_MIN";
 const string ZONE_TYPE_AVG = "ZONE_TYPE_AVG";
@@ -21,10 +19,6 @@ const string SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE = "SENSOR_PWM_CALC_TYPE_FOUR
 const string SENSOR_PWM_CALC_TYPE_PID = "SENSOR_PWM_CALC_TYPE_PID";
 const string SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID = "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID";
 const string OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID = "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID";
-
-struct AccessMethod {
-  1: string accessType;
-}
 
 struct Zone {
   1: string zoneType;
@@ -56,7 +50,6 @@ struct PidSetting {
 
 struct Optic {
   1: string opticName;
-  2: AccessMethod access;
   4: string aggregationType;
   5: map<string/* optic_type */ , TempToPwmMap> tempToPwmMaps;
   6: map<string/* optic_type */ , PidSetting> pidSettings;
@@ -91,7 +84,6 @@ struct Watchdog {
 
 struct Sensor {
   1: string sensorName;
-  2: AccessMethod access;
   6: string pwmCalcType;
   8: TempToPwmMap normalUpTable;
   9: TempToPwmMap normalDownTable;
