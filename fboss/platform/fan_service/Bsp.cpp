@@ -93,14 +93,13 @@ int Bsp::emergencyShutdown(bool enable) {
   int rc = 0;
   bool currentState = getEmergencyState();
   if (enable && !currentState) {
-    if (*config_.shutdownCmd() == "NOT_DEFINED") {
-      throw facebook::fboss::FbossError(
-          "Emergency Shutdown Was Called But Not Defined!");
-    } else {
-      auto [exitStatus, standardOut] =
-          PlatformUtils().execCommand(*config_.shutdownCmd());
-      rc = exitStatus;
+    if (config_.shutdownCmd()->empty()) {
+      XLOG(ERR) << "Emergency shutdown called but shutdownCmd is empty!";
+      return -1;
     }
+    auto [exitStatus, standardOut] =
+        PlatformUtils().execCommand(*config_.shutdownCmd());
+    rc = exitStatus;
     setEmergencyState(enable);
   }
   return rc;

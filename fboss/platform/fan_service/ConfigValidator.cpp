@@ -97,6 +97,13 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
 
+  if (config.shutdownCondition()) {
+    if (config.shutdownCmd()->empty()) {
+      XLOG(ERR) << "shutdownCmd must be set when shutdownCondition is defined";
+      return false;
+    }
+  }
+
   return true;
 }
 
