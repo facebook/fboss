@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
@@ -63,6 +64,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/HwWriteBehavior.h"
+#include "fboss/lib/phy/CredoSdkVersion.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -2749,7 +2751,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
 
-#ifndef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
@@ -4923,7 +4925,7 @@ std::string SaiSwitch::listObjectsLocked(
    */
   bool useAdapterKeysJson =
       platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
-#ifndef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
   if (getPlatform()->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
     useAdapterKeysJson = false;
