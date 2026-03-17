@@ -162,6 +162,9 @@ std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
     case TcvrOperationalMode::MODE_1x800G_FR8:
       return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR8_800G);
   }
+  throw std::invalid_argument(
+      "Unsupported TcvrOperationalMode: " +
+      std::to_string(static_cast<int>(mode)));
 }
 
 ProgramTransceiverState createProgramTransceiverState(
