@@ -533,12 +533,10 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
 void ControlLogic::setTransitionValue() {
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
+      std::unordered_set<std::string> zoneFans(
+          zone.fanNames()->begin(), zone.fanNames()->end());
       for (const auto& fan : *config_.fans()) {
-        // If this fan belongs to the zone, then write the transitional value
-        if (std::find(
-                zone.fanNames()->begin(),
-                zone.fanNames()->end(),
-                *fan.fanName()) == zone.fanNames()->end()) {
+        if (!zoneFans.contains(*fan.fanName())) {
           continue;
         }
         int16_t fanPwm = *config_.pwmTransitionValue();
@@ -689,11 +687,10 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
       int16_t zonePwm = calculateZonePwm(zone, boostMode_);
+      std::unordered_set<std::string> zoneFans(
+          zone.fanNames()->begin(), zone.fanNames()->end());
       for (const auto& fan : *config_.fans()) {
-        if (std::find(
-                zone.fanNames()->begin(),
-                zone.fanNames()->end(),
-                *fan.fanName()) == zone.fanNames()->end()) {
+        if (!zoneFans.contains(*fan.fanName())) {
           continue;
         }
 

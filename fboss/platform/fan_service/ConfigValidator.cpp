@@ -162,26 +162,12 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
     return false;
   }
 
-  if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+  if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID() ||
+      *optic.aggregationType() ==
+          constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
     if (optic.pidSettings()->empty()) {
       XLOG(ERR) << "PID settings cannot be empty for optic aggregation type: "
                 << *optic.aggregationType();
-      return false;
-    }
-    for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
-      if (!opticTypes.contains(opticType)) {
-        XLOG(ERR) << "Invalid optic type: " << opticType;
-        return false;
-      }
-    }
-  }
-
-  if (*optic.aggregationType() ==
-      constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
-    if (optic.pidSettings()->empty()) {
-      XLOG(ERR)
-          << "PID settings cannot be empty for optic aggregation incremental type: "
-          << *optic.aggregationType();
       return false;
     }
     for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
