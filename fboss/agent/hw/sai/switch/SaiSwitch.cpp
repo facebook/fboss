@@ -3936,23 +3936,24 @@ void SaiSwitch::packetRxCallbackPort(
       platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT) &&
       (portSaiId == getCPUPortSaiId());
   if (!processVlanUntaggedPackets()) {
+    // NPU switch: need vlan resolution
     if (isCpuPort ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
+      // CPU port or missing src port: extract vlan from packet
       folly::io::Cursor cursor(rxPacket->buf());
       EthHdr ethHdr{cursor};
       auto vlanTags = ethHdr.getVlanTags();
-      if (vlanTags.size() == 1) {
-        swVlanId = VlanID(vlanTags[0].vid());
-        XLOG(DBG6) << "Rx packet on cpu port. "
-                   << "Found vlan from packet: " << swVlanIdStr();
-      } else {
+      if (vlanTags.size() != 1) {
         XLOG(ERR) << "RX packet on cpu port has no vlan tag "
                   << "or multiple vlan tags: " << ethHdr.printVlanTags();
         return;
       }
+      swVlanId = VlanID(vlanTags[0].vid());
+      XLOG(DBG6) << "Rx packet on cpu port. "
+                 << "Found vlan from packet: "
+                 << static_cast<int>(swVlanId.value());
     } else if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-      // TODO: add counter to keep track of spurious rx packet
       XLOG(DBG) << "RX packet had port with unknown sai id: 0x" << std::hex
                 << portSaiId;
       return;
@@ -3967,18 +3968,17 @@ void SaiSwitch::packetRxCallbackPort(
       }
       swVlanId = vlanItr->second;
     }
-  } else { // VOQ / FABRIC
+  } else {
+    // VOQ / FABRIC switch: no vlan needed
     if (!isCpuPort) {
       if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-        // TODO: add counter to keep track of spurious rx packet
         XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
                   << portSaiId;
         return;
-      } else {
-        swPortId = portItr->second.portID;
-        XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
-                   << " portID: " << swPortId;
       }
+      swPortId = portItr->second.portID;
+      XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
+                 << " portID: " << swPortId;
     }
   }
 
