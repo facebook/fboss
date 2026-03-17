@@ -84,7 +84,9 @@ python_binary(
         ":wedge800bact",
         "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
         "//fboss/lib/if:fboss_common-py-deprecated",
+        "//fboss/lib/if:fboss_common-python-types",
         "//thrift/lib/py:server_base",
+        "//thrift/lib/py/util:converter",
         "//thrift/lib/py/util:py_util",
     ],
 )
