@@ -6,8 +6,6 @@ package;
 namespace cpp2 facebook.fboss.platform.fan_service
 namespace py3 neteng.fboss.platform.fan_service
 
-const string ACCESS_TYPE_SYSFS = "ACCESS_TYPE_SYSFS";
-const string ACCESS_TYPE_UTIL = "ACCESS_TYPE_UTIL";
 const string ACCESS_TYPE_THRIFT = "ACCESS_TYPE_THRIFT";
 const string ACCESS_TYPE_QSFP = "ACCESS_TYPE_QSFP";
 const string ZONE_TYPE_MAX = "ZONE_TYPE_MAX";
@@ -26,7 +24,6 @@ const string OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID = "OPTIC_AGGREGATION_TYPE_IN
 
 struct AccessMethod {
   1: string accessType;
-  2: string path;
 }
 
 struct Zone {
@@ -60,7 +57,6 @@ struct PidSetting {
 struct Optic {
   1: string opticName;
   2: AccessMethod access;
-  3: list<i32> portList;
   4: string aggregationType;
   5: map<string/* optic_type */ , TempToPwmMap> tempToPwmMaps;
   6: map<string/* optic_type */ , PidSetting> pidSettings;

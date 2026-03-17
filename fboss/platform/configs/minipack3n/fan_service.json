@@ -20,7 +20,6 @@
       "access": {
         "accessType": "ACCESS_TYPE_QSFP"
       },
-      "portList": [],
       "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {

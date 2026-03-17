@@ -14,8 +14,6 @@ namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
 std::unordered_set<std::string> accessMethodTypes = {
-    constants::ACCESS_TYPE_SYSFS(),
-    constants::ACCESS_TYPE_UTIL(),
     constants::ACCESS_TYPE_THRIFT(),
     constants::ACCESS_TYPE_QSFP()};
 

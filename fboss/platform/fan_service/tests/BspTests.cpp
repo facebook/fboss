@@ -17,24 +17,7 @@
 using namespace facebook::fboss::platform::fan_service;
 using facebook::fboss::FbossError;
 
-class BspTest : public ::testing::Test {
-  static auto constexpr kSensorName = "sensor";
-
- protected:
-  FanServiceConfig makeConfig(AccessMethod accessMethod) const {
-    auto config = FanServiceConfig{};
-    Sensor sensor;
-    sensor.sensorName() = kSensorName;
-    sensor.access() = accessMethod;
-    config.sensors()->push_back(sensor);
-    return config;
-  }
-};
-
-TEST_F(BspTest, getSensorMethodUnset) {
-  auto bsp = Bsp(makeConfig({}));
-  EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
-}
+class BspTest : public ::testing::Test {};
 
 TEST_F(BspTest, emergencyShutdownUndefinedCmdThrows) {
   auto config = FanServiceConfig{};

@@ -56,28 +56,7 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
-  bool fetchOverThrift = false;
-  bool fetchFromFsdb = false;
-
-  for (const auto& sensor : *config_.sensors()) {
-    auto sensorAccessType = *sensor.access()->accessType();
-    if (sensorAccessType == constants::ACCESS_TYPE_THRIFT()) {
-      if (FLAGS_subscribe_to_stats_from_fsdb) {
-        fetchFromFsdb = true;
-      } else {
-        fetchOverThrift = true;
-      }
-    } else {
-      throw facebook::fboss::FbossError(
-          "Invalid way for fetching sensor data!");
-    }
-  }
-
-  if (fetchOverThrift) {
-    getSensorDataThrift(pSensorData);
-  }
-
-  if (fetchFromFsdb) {
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
     bool fallbackToThrift =
         subscribedData.empty() || fsdbSensorSubscriber_->isSensorDataStale();
@@ -89,8 +68,6 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
     } else {
       fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 0);
       for (const auto& [sensorName, sensorData] : subscribedData) {
-        // Skip adding an entry for this sensor if either the value or timestamp
-        // fields are not set
         if (sensorData.value().has_value() &&
             sensorData.timeStamp().has_value()) {
           pSensorData->updateSensorEntry(
@@ -100,6 +77,8 @@ void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
       XLOG(INFO) << fmt::format(
           "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
     }
+  } else {
+    getSensorDataThrift(pSensorData);
   }
 
   if (!initialSensorDataRead_) {
@@ -199,17 +178,9 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
     }
 
     float temp = static_cast<float>(*(tcvrStats.sensor()->temp()->value()));
-    // In the following two cases, do not process the entries and move on
-    // 1. temperature from QSFP service is 0.0 - meaning the port is
-    //    not populated in qsfp_service or read failure occured. So skip this.
-    // 2. Config file specified the port entries we care, but this port
-    //    does not belong to the ports we care.
-    if (((temp == 0.0)) ||
-        ((!opticsGroup.portList()->empty()) &&
-         (std::find(
-              opticsGroup.portList()->begin(),
-              opticsGroup.portList()->end(),
-              xvrId) != opticsGroup.portList()->end()))) {
+    // Skip entries where temperature is 0.0 - meaning the port is
+    // not populated in qsfp_service or read failure occured.
+    if (temp == 0.0) {
       continue;
     }
 
