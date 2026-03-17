@@ -8,6 +8,7 @@
     "dsf_single_stage_r128_f40_e16_uniform_local_offset": "true",
     "enable_acl_table_group": "true",
     "hyper_port": "true",
+    "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "sai_configure_six_tap": "true",
     "set_classid_for_my_subnet_and_ip_routes": "true",
