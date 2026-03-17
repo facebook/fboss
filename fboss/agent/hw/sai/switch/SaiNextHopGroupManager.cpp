@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -393,6 +394,48 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
     return nextHopGroupHandle->desiredArsMode_.value();
   }
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+}
+
+std::vector<EcmpDetails> SaiNextHopGroupManager::getAllEcmpDetails() const {
+  std::vector<EcmpDetails> ecmpDetails;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // Collect ARS interval and table size from the ARS handle once
+  int16_t flowletInterval = 0;
+  int32_t flowletTableSize = 0;
+  const auto* arsHandle = managerTable_->arsManager().getArsHandle();
+  if (arsHandle && arsHandle->ars) {
+    auto arsSaiId = arsHandle->ars->adapterKey();
+    try {
+      flowletInterval = static_cast<int16_t>(
+          SaiApiTable::getInstance()->arsApi().getAttribute(
+              arsSaiId, SaiArsTraits::Attributes::IdleTime{}));
+      flowletTableSize = static_cast<int32_t>(
+          SaiApiTable::getInstance()->arsApi().getAttribute(
+              arsSaiId, SaiArsTraits::Attributes::MaxFlows{}));
+    } catch (const std::exception& e) {
+      XLOG(ERR) << "Failed to get ARS attributes: " << e.what();
+    }
+  }
+#endif
+
+  for (const auto& entry : handles_) {
+    auto handle = entry.second.lock();
+    if (!handle || !handle->nextHopGroup) {
+      continue;
+    }
+    EcmpDetails ecmp;
+    ecmp.ecmpId() = static_cast<int32_t>(handle->nextHopGroup->adapterKey());
+    const bool flowletEnabled = isEcmpModeDynamic(handle->desiredArsMode_);
+    ecmp.flowletEnabled() = flowletEnabled;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    if (flowletEnabled) {
+      ecmp.flowletInterval() = flowletInterval;
+      ecmp.flowletTableSize() = flowletTableSize;
+    }
+#endif
+    ecmpDetails.emplace_back(std::move(ecmp));
+  }
+  return ecmpDetails;
 }
 
 NextHopGroupMember::NextHopGroupMember(

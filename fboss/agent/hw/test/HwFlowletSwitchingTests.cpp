@@ -438,7 +438,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     auto ecmpDetails = getHwSwitch()->getAllEcmpDetails();
     CHECK_EQ(ecmpDetails.size(), 1);
     for (const auto& entry : ecmpDetails) {
-      CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      if (!getHwSwitchEnsemble()->isSai()) {
+        CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      }
       if (*flowletCfg.flowletTableSize() > 0) {
         EXPECT_TRUE(*(entry.flowletEnabled()));
       }

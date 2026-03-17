@@ -5439,8 +5439,8 @@ HwFlowletStats SaiSwitch::getHwFlowletStats() const {
 }
 
 std::vector<EcmpDetails> SaiSwitch::getAllEcmpDetails() const {
-  // not implemented in SAI. Return empty object
-  return {};
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getAllEcmpDetails();
 }
 
 HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {
