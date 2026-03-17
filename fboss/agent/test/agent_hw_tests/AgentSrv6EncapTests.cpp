@@ -38,6 +38,10 @@ class AgentSrv6EncapTest : public AgentHwTest {
   const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
   const folly::IPAddressV6 kSid2{"3001:db8:7:8:9::"};
 
+  const folly::IPAddressV6 kEncapRoutePrefix{"2800:2::"};
+  static constexpr uint8_t kEncapRoutePrefixLen{64};
+  const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
+
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
@@ -107,11 +111,13 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
     // IPv6 encap routes (v6 next hops)
     addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:2::"), 64}, {{kSid0}});
+        {kEncapRoutePrefix, kEncapRoutePrefixLen}, {{kSid0}});
     addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:3::"), 64}, {{kSid1}, {kSid2}});
+        {folly::IPAddressV6("2800:3::"), kEncapRoutePrefixLen},
+        {{kSid1}, {kSid2}});
     addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:4::"), 64}, {{kSid1}, {kSid2}});
+        {folly::IPAddressV6("2800:4::"), kEncapRoutePrefixLen},
+        {{kSid1}, {kSid2}});
     // IPv4 encap routes (v4 next hops)
     addEncapRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}});
@@ -177,8 +183,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
                              : static_cast<uint8_t>(kTc << 2);
     auto srcIp =
         isV4 ? folly::IPAddress("10.0.0.1") : folly::IPAddress("1::10");
-    auto dstIp =
-        isV4 ? folly::IPAddress("100.0.0.1") : folly::IPAddress("2800:2::1");
+    auto dstIp = isV4 ? folly::IPAddress("100.0.0.1") : kEncapRouteDstIp;
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
