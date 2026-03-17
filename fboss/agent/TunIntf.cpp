@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/TunIntf.h"
 
+#include "fboss/agent/AgentFeatures.h"
+
 extern "C" {
 #include <fcntl.h>
 #include <libnetlink.h>
@@ -32,11 +34,6 @@ extern "C" {
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
 namespace facebook::fboss {
-
-DEFINE_int32(
-    max_tx_packets,
-    100000, // 1 gb / 10 kb
-    "the point at which we start dropping tx packets");
 
 namespace {
 
