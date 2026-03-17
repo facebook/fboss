@@ -28,12 +28,8 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/SaiWedge400CPlatformPort.cpp
   fboss/agent/platforms/sai/SaiTajoPlatform.cpp
   fboss/agent/platforms/sai/SaiTajoPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru800biaPlatform.cpp
   fboss/agent/platforms/sai/SaiMeru800bfaPlatform.cpp
-  fboss/agent/platforms/sai/SaiMeru400bfuPlatform.cpp
-  fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.cpp
-  fboss/agent/platforms/sai/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmMontblancPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800banwPlatform.cpp
   fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatform.cpp
@@ -73,16 +69,11 @@ set(SAI_PLATFORM_SRC
   fboss/agent/platforms/sai/oss/SaiBcmYampPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiBcmElbertPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiWedge400CPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru400biuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru400biuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800biaPlatformPort.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru400bfuPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiMeru800bfaPlatformPort.cpp
   fboss/agent/platforms/sai/oss/SaiTajoPlatform.cpp
-  fboss/agent/platforms/sai/oss/SaiMeru400biaPlatform.cpp
   fboss/agent/platforms/sai/oss/SaiMorgan800ccPlatformPort.cpp
   fboss/agent/platforms/sai/SaiYangra2PlatformPort.cpp
 )
@@ -120,9 +111,6 @@ target_link_libraries(sai_platform
   morgan_platform_mapping
   wedge_led_utils
   bcm_yaml_config
-  meru400biu_platform_mapping
-  meru400bia_platform_mapping
-  meru400bfu_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   yangra_platform_mapping

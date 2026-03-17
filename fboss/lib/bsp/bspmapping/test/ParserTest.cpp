@@ -22,14 +22,6 @@ TEST(ParserTest, GetNameForTests) {
       "minipack3n");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
-          facebook::fboss::PlatformType::PLATFORM_MERU400BFU),
-      "meru400bfu");
-  EXPECT_EQ(
-      facebook::fboss::Parser::getNameFor(
-          facebook::fboss::PlatformType::PLATFORM_MERU400BIU),
-      "meru400biu");
-  EXPECT_EQ(
-      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_MERU800BIA),
       "meru800bia");
   EXPECT_EQ(

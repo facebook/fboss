@@ -54,7 +54,7 @@ We recommend using the test runner to run tests, but you may also run tests usin
 directly. This is an example of running a single HW test using the HW test binary:
 
 ```
-./bin/sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.init
+./bin/sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/fuji.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.init
 ```
 
 Running multiple tests using test runner:
@@ -64,7 +64,7 @@ Also, the test runner can be run using various options - known good tests, known
 in run_test.py. After running all the tests, results will also be generated in a csv file.
 
 ```
-./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/meru400biu.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
+./bin/run_test.py sai --sai-bin sai_test-sai_impl-1.12.0 --config ./share/hw_test_configs/fuji.agent.materialized_JSON --filter=HwVoqSwitchWithFabricPortsTest.*
 ```
 
 ## How to use run_test.py
@@ -86,16 +86,16 @@ Examples of the command to run for each of the various types of tests are shown 
 
 ```
 # Run sanity tests for Jericho2
-./bin/run_test.py sai --config meru400biu.agent.materialized_JSON --coldboot_only --filter_file=/root/jericho2_sanity_tests
+./bin/run_test.py sai --config fuji.agent.materialized_JSON --coldboot_only --filter_file=/root/jericho2_sanity_tests
 
 # Run sanity tests for Ramon
-./bin/run_test.py sai --config meru400bfu.agent.materialized_JSON --coldboot_only --filter_file=/root/ramon_sanity_tests
+./bin/run_test.py sai --config fuji.agent.materialized_JSON --coldboot_only --filter_file=/root/ramon_sanity_tests
 
 # Run entire BCM SAI XGS Regression for a specific ASIC type and SDK
 ./bin/run_test.py sai --config fuji.agent.materialized_JSON --skip-known-bad-tests "brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk4"
 
 # Run entire SAI DNX regression for Jericho2 and SDK
-./bin/run_test.py sai --config meru400biu.agent.materialized_JSON --skip-known-bad-tests "brcm/9.0_ea_dnx_odp/9.0_ea_dnx_odp/jericho2"
+./bin/run_test.py sai --config fuji.agent.materialized_JSON --skip-known-bad-tests "brcm/9.0_ea_dnx_odp/9.0_ea_dnx_odp/jericho2"
 ```
 
 ### QSFP Hardware tests
@@ -117,9 +117,9 @@ Special flags:
 ### Link tests
 
 ```
-# Run LinkTest.asicLinkFlap for meru400bia using non-default platform mapping configs.
+# Run LinkTest.asicLinkFlap for fuji using non-default platform mapping configs.
 # NOTE: We recommend using mono mode to run link tests on a single ASIC platform.
-./bin/run_test.py link --agent-run-mode mono --config share/link_test_configs/meru400bia.materialized_JSON --qsfp-config /opt/fboss/share/qsfp_test_configs/meru400bia.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
+./bin/run_test.py link --agent-run-mode mono --config share/link_test_configs/fuji.materialized_JSON --qsfp-config /opt/fboss/share/qsfp_test_configs/fuji.materialized_JSON --filter=LinkTest.asicLinkFlap --platform_mapping_override_path /path/to/something --bsp_platform_mapping_override_path /path/to/something/else
 ```
 
 Special flags:

@@ -27,9 +27,6 @@
 #include "fboss/agent/platforms/common/j4sim/J4SimPlatformMapping.h"
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
 #include "fboss/agent/platforms/common/ladakh800bcls/Ladakh800bclsPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
@@ -152,10 +149,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Wedge400CPlatformMapping>()
           : std::make_unique<Wedge400CPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_MERU400BIU:
-      return platformMappingStr.empty()
-          ? std::make_unique<Meru400biuPlatformMapping>()
-          : std::make_unique<Meru400biuPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BIAC:
@@ -170,14 +163,6 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
       return platformMappingStr.empty()
           ? std::make_unique<Meru800bfaP1PlatformMapping>()
           : std::make_unique<Meru800bfaP1PlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_MERU400BFU:
-      return platformMappingStr.empty()
-          ? std::make_unique<Meru400bfuPlatformMapping>()
-          : std::make_unique<Meru400bfuPlatformMapping>(platformMappingStr);
-    case PlatformType::PLATFORM_MERU400BIA:
-      return platformMappingStr.empty()
-          ? std::make_unique<Meru400biaPlatformMapping>()
-          : std::make_unique<Meru400biaPlatformMapping>(platformMappingStr);
     case PlatformType::PLATFORM_MORGAN800CC:
       return platformMappingStr.empty()
           ? std::make_unique<Morgan800ccPlatformMapping>()
@@ -246,6 +231,9 @@ std::unique_ptr<PlatformMapping> initPlatformMapping(PlatformType type) {
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
     case PlatformType::PLATFORM_SANDIA:
+    case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
+    case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:
+    case PlatformType::PLATFORM_MERU400BIA_DEPRECATED:
     case PlatformType::PLATFORM_UNKNOWN:
       throw FbossError("Unsupported platform type");
   }

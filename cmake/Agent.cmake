@@ -156,9 +156,6 @@ target_link_libraries(utils
   state
   switchid_scope_resolver
   Folly::folly
-  meru400biu_platform_mapping
-  meru400bia_platform_mapping
-  meru400bfu_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
