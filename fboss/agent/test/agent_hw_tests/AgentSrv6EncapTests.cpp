@@ -314,6 +314,18 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->bringDownPort(egressPort);
     this->bringUpPort(egressPort);
+    // Unresolve neighbors for the port that went down so SW state matches SAI
+    // (agent-test uses NeighborUpdaterNoopImpl, so purge never updated SW
+    // state)
+    auto ecmpHelper6 = this->template makeEcmpHelper<folly::IPAddressV6>();
+    auto ecmpHelper4 = this->template makeEcmpHelper<folly::IPAddressV4>();
+    auto portDesc = ecmpHelper.nhop(0).portDesc;
+    this->applyNewState([&ecmpHelper6, &ecmpHelper4, &portDesc](
+                            std::shared_ptr<SwitchState> in) {
+      auto out = ecmpHelper6.unresolveNextHops(in, {portDesc});
+      out = ecmpHelper4.unresolveNextHops(out, {portDesc});
+      return out;
+    });
     this->resolveV4AndV6NextHops(2);
   };
 

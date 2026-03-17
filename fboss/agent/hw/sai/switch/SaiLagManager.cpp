@@ -314,6 +314,14 @@ void SaiLagManager::disableMember(AggregatePortID aggPort, PortID subPort) {
   setMemberState(member, AggregatePort::Forwarding::DISABLED);
 }
 
+void SaiLagManager::enableMember(AggregatePortID aggPort, PortID subPort) {
+  auto handleIter = handles_.find(aggPort);
+  CHECK(handleIter != handles_.end());
+  auto& saiLagHandle = handleIter->second;
+  auto member = getMember(saiLagHandle.get(), subPort);
+  setMemberState(member, AggregatePort::Forwarding::ENABLED);
+}
+
 bool SaiLagManager::isLagMember(PortID port) {
   auto handle = managerTable_->portManager().getPortHandle(port);
   if (!handle || !handle->port) {

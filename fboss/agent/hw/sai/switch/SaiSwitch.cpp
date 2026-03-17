@@ -3000,6 +3000,17 @@ void SaiSwitch::linkStateChangedCallbackBottomHalf(
         managerTable_->neighborManager().handleLinkDown(
             SaiPortDescriptor(swPortId));
       }
+    } else if (up && swAggPort) {
+      /*
+       * Link up for a LAG member: re-enable the member in the fast path.
+       * On link down we set EGRESS_DISABLE=true. For static LAGs (e.g. agent
+       * tests) there is no LACP to drive AggregatePort state updates, so we
+       * must re-enable here. For LACP LAGs, changeLag will also set the
+       * member state when the state update arrives; setting EGRESS_DISABLE=
+       * false twice is idempotent.
+       */
+      std::lock_guard<std::mutex> lock{saiSwitchMutex_};
+      managerTable_->lagManager().enableMember(swAggPort.value(), swPortId);
     }
     swPortId2StatusAndType[swPortId] = std::make_pair(up, portType);
   }

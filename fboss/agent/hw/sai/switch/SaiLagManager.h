@@ -64,6 +64,7 @@ class SaiLagManager {
   size_t getActiveMemberCount(AggregatePortID aggPort) const;
 
   void disableMember(AggregatePortID aggPort, PortID subPort);
+  void enableMember(AggregatePortID aggPort, PortID subPort);
 
   bool isLagMember(PortID port);
 
