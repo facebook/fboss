@@ -378,6 +378,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/CmdLocalOptions.cpp
+  fboss/cli/fboss2/CommandRegistry.h
+  fboss/cli/fboss2/CommandRegistry.cpp
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
@@ -411,6 +413,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.cpp
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h
   fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.cpp
+  fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h
+  fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.cpp
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h
   fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.cpp
   fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h
@@ -491,6 +495,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/CmdUtilsCommon.cpp
+  fboss/cli/fboss2/utils/InterfacesConfig.h
+  fboss/cli/fboss2/utils/InterfacesConfig.cpp
   fboss/cli/fboss2/utils/PortMap.cpp
   fboss/cli/fboss2/utils/Table.cpp
   fboss/cli/fboss2/utils/HostInfo.h
@@ -596,14 +602,11 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.cpp
+  fboss/cli/fboss2/commands/config/session/CmdConfigSession.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h

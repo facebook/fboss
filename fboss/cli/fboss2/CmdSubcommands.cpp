@@ -232,6 +232,12 @@ CLI::App* CmdSubcommands::addCommand(
           subCmd->add_option(
               "revisions", args, "Revision(s) in the form 'rN' or 'current'");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG:
+          subCmd->add_option(
+              "interfaces_config",
+              args,
+              "Interface(s) and optional attributes (description, mtu)");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

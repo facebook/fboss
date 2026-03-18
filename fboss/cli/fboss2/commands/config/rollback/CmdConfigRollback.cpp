@@ -10,9 +10,16 @@
 
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CommandRegistry.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
+
+namespace {
+CommandDef<CmdConfigRollback> registerConfigRollback(
+    "config rollback",
+    "Rollback to a previous config revision");
+} // namespace
 
 CmdConfigRollbackTraits::RetType CmdConfigRollback::queryClient(
     const HostInfo& hostInfo,

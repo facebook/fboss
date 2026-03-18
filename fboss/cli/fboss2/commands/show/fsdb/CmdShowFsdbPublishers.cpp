@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
-#include "servicerouter/client/cpp2/ServiceRouter.h"
 
 namespace facebook::fboss {
 

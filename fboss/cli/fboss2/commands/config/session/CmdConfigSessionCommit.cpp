@@ -10,9 +10,16 @@
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CommandRegistry.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
+
+namespace {
+CommandDef<CmdConfigSessionCommit> registerConfigSessionCommit(
+    "config session commit",
+    "Commit the current config session");
+} // namespace
 
 CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
     const HostInfo& hostInfo) {

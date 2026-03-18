@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CommandRegistry.h"
 #include <fcntl.h>
 #include <pwd.h>
 #include <sys/stat.h>
@@ -27,6 +28,10 @@ namespace fs = std::filesystem;
 namespace facebook::fboss {
 
 namespace {
+
+CommandDef<CmdConfigHistory> registerConfigHistory(
+    "config history",
+    "Show history of committed config revisions");
 
 struct RevisionInfo {
   int revisionNumber{};

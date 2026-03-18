@@ -21,7 +21,6 @@
 #include <folly/coro/AsyncPipe.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Task.h>
-#include <servicerouter/client/cpp2/ServiceRouter.h>
 #include <thrift/lib/cpp2/gen/module_types_h.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <unistd.h>

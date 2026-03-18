@@ -10,6 +10,7 @@
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CommandRegistry.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 #include <folly/Subprocess.h>
@@ -20,6 +21,10 @@ namespace fs = std::filesystem;
 namespace facebook::fboss {
 
 namespace {
+
+CommandDef<CmdConfigSessionDiff> registerConfigSessionDiff(
+    "config session diff",
+    "Show diff between configs (session vs live, session vs revision, or revision vs revision)");
 
 // Helper function to resolve a revision specifier to a file path
 // Note: Revision format validation is done in RevisionList constructor

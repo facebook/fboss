@@ -10,8 +10,15 @@
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CommandRegistry.h"
 
 namespace facebook::fboss {
+
+namespace {
+CommandDef<CmdConfigReload> registerConfigReload(
+    "config reload",
+    "Reload agent configuration");
+} // namespace
 
 CmdConfigReloadTraits::RetType CmdConfigReload::queryClient(
     const HostInfo& hostInfo) {

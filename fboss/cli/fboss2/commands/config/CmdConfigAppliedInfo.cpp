@@ -10,12 +10,19 @@
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
+#include "fboss/cli/fboss2/CommandRegistry.h"
 #include <folly/Conv.h>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 
 namespace facebook::fboss {
+
+namespace {
+CommandDef<CmdConfigAppliedInfo> registerConfigAppliedInfo(
+    "config applied-info",
+    "Show config applied information");
+} // namespace
 
 namespace {
 std::string formatTimestamp(int64_t timestampMs) {

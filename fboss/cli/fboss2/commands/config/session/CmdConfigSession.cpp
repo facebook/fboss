@@ -8,14 +8,15 @@
  *
  */
 
-#include "fboss/cli/fboss2/CmdList.h"
 #include "fboss/cli/fboss2/CommandRegistry.h"
 
 namespace facebook::fboss {
 
-const CommandTree& kConfigCommandTree() {
-  static CommandTree root = CommandRegistry::getInstance().buildTree();
-  return root;
-}
+namespace {
+CommandDefNoHandler registerConfigSession(
+    "config session",
+    "Manage config session");
+} // namespace
 
 } // namespace facebook::fboss
+

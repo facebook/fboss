@@ -14,7 +14,6 @@
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 
 #include <folly/coro/BlockingWait.h>
-#include <servicerouter/client/cpp2/ServiceRouter.h>
 #include <unistd.h>
 
 namespace facebook::fboss {
