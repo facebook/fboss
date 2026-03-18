@@ -2146,6 +2146,7 @@ ci_sandcastle(
         "fbcode/fboss/agent/**",
     ],
     command = "SandcastleUniversalCommand",
+    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_agent",
     schedules = [
         ci.diff,
