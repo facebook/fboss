@@ -108,7 +108,7 @@ class MySidEntryStoreTest : public SaiStoreTest {
   SaiMySidEntryTraits::CreateAttributes makeMySidEntryAttrs(
       sai_int32_t behavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_E) const {
     return SaiMySidEntryTraits::CreateAttributes{
-        behavior, std::nullopt, std::nullopt, std::nullopt};
+        behavior, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
   }
 };
 
@@ -146,6 +146,25 @@ TEST_F(MySidEntryStoreTest, modifyMySidEntry) {
   EXPECT_EQ(
       GET_ATTR(MySidEntry, EndpointBehavior, got->attributes()),
       SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_X);
+}
+
+TEST_F(MySidEntryStoreTest, setMySidEntryPacketAction) {
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto entry = makeMySidEntryKey();
+  auto attrs = makeMySidEntryAttrs();
+  srv6Api.create<SaiMySidEntryTraits>(entry, attrs);
+  srv6Api.setAttribute(
+      entry,
+      SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_TRAP});
+
+  saiStore->reload();
+  auto& store = saiStore->get<SaiMySidEntryTraits>();
+
+  auto got = store.get(entry);
+  EXPECT_EQ(got->adapterKey(), entry);
+  EXPECT_EQ(
+      GET_OPT_ATTR(MySidEntry, PacketAction, got->attributes()),
+      SAI_PACKET_ACTION_TRAP);
 }
 
 TEST_F(MySidEntryStoreTest, mySidEntrySerDeser) {

@@ -23,6 +23,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _MySidEntryMap{
     SAI_ATTR_MAP(MySidEntry, EndpointBehaviorFlavor),
     SAI_ATTR_MAP(MySidEntry, NextHopId),
     SAI_ATTR_MAP(MySidEntry, Vrf),
+    SAI_ATTR_MAP(MySidEntry, PacketAction),
 };
 } // namespace
 

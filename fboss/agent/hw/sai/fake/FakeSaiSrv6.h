@@ -35,6 +35,7 @@ struct FakeMySidEntryAttributes {
   sai_int32_t endpointBehaviorFlavor{0};
   sai_object_id_t nextHopId{SAI_NULL_OBJECT_ID};
   sai_object_id_t vrf{SAI_NULL_OBJECT_ID};
+  sai_int32_t packetAction{SAI_PACKET_ACTION_FORWARD};
 };
 
 using FakeMySidEntryManager =

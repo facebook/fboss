@@ -67,6 +67,10 @@ struct SaiMySidEntryTraits {
     using NextHopId =
         SaiAttribute<EnumType, SAI_MY_SID_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
     using Vrf = SaiAttribute<EnumType, SAI_MY_SID_ENTRY_ATTR_VRF, SaiObjectIdT>;
+    using PacketAction = SaiAttribute<
+        EnumType,
+        SAI_MY_SID_ENTRY_ATTR_PACKET_ACTION,
+        sai_int32_t>;
   };
   class MySidEntry {
    public:
@@ -136,7 +140,8 @@ struct SaiMySidEntryTraits {
       Attributes::EndpointBehavior,
       std::optional<Attributes::EndpointBehaviorFlavor>,
       std::optional<Attributes::NextHopId>,
-      std::optional<Attributes::Vrf>>;
+      std::optional<Attributes::Vrf>,
+      std::optional<Attributes::PacketAction>>;
 };
 template <>
 struct IsSaiEntryStruct<SaiMySidEntryTraits::MySidEntry>
@@ -146,6 +151,7 @@ SAI_ATTRIBUTE_NAME(MySidEntry, EndpointBehavior);
 SAI_ATTRIBUTE_NAME(MySidEntry, EndpointBehaviorFlavor);
 SAI_ATTRIBUTE_NAME(MySidEntry, NextHopId);
 SAI_ATTRIBUTE_NAME(MySidEntry, Vrf);
+SAI_ATTRIBUTE_NAME(MySidEntry, PacketAction);
 
 class Srv6Api : public SaiApi<Srv6Api> {
  public:

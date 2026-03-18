@@ -50,7 +50,7 @@ class Srv6ApiTest : public ::testing::Test {
     SaiMySidEntryTraits::Attributes::EndpointBehavior behavior{
         endpointBehavior};
     SaiMySidEntryTraits::CreateAttributes attrs{
-        behavior, std::nullopt, std::nullopt, std::nullopt};
+        behavior, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
     srv6Api->create<SaiMySidEntryTraits>(entry, attrs);
   }
 
@@ -110,7 +110,10 @@ TEST_F(Srv6ApiTest, createMySidEntryWithAllAttributes) {
       SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USD};
   SaiMySidEntryTraits::Attributes::NextHopId nextHop{42};
   SaiMySidEntryTraits::Attributes::Vrf vrf{10};
-  SaiMySidEntryTraits::CreateAttributes attrs{behavior, flavor, nextHop, vrf};
+  SaiMySidEntryTraits::Attributes::PacketAction packetAction{
+      SAI_PACKET_ACTION_TRAP};
+  SaiMySidEntryTraits::CreateAttributes attrs{
+      behavior, flavor, nextHop, vrf, packetAction};
   srv6Api->create<SaiMySidEntryTraits>(entry, attrs);
 
   EXPECT_EQ(
@@ -127,6 +130,10 @@ TEST_F(Srv6ApiTest, createMySidEntryWithAllAttributes) {
       42);
   EXPECT_EQ(
       srv6Api->getAttribute(entry, SaiMySidEntryTraits::Attributes::Vrf{}), 10);
+  EXPECT_EQ(
+      srv6Api->getAttribute(
+          entry, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_TRAP);
 }
 
 TEST_F(Srv6ApiTest, removeMySidEntry) {
@@ -188,6 +195,25 @@ TEST_F(Srv6ApiTest, setMySidEntryVrf) {
       srv6Api->getAttribute(entry, SaiMySidEntryTraits::Attributes::Vrf{}), 10);
 }
 
+TEST_F(Srv6ApiTest, setMySidEntryPacketAction) {
+  auto entry = createMySidEntryKey();
+  createMySidEntry(entry);
+  srv6Api->setAttribute(
+      entry,
+      SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_TRAP});
+  EXPECT_EQ(
+      srv6Api->getAttribute(
+          entry, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_TRAP);
+  srv6Api->setAttribute(
+      entry,
+      SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_DROP});
+  EXPECT_EQ(
+      srv6Api->getAttribute(
+          entry, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_DROP);
+}
+
 TEST_F(Srv6ApiTest, getMySidEntryDefaultAttributes) {
   auto entry = createMySidEntryKey();
   createMySidEntry(entry);
@@ -202,6 +228,10 @@ TEST_F(Srv6ApiTest, getMySidEntryDefaultAttributes) {
   EXPECT_EQ(
       srv6Api->getAttribute(entry, SaiMySidEntryTraits::Attributes::Vrf{}),
       SAI_NULL_OBJECT_ID);
+  EXPECT_EQ(
+      srv6Api->getAttribute(
+          entry, SaiMySidEntryTraits::Attributes::PacketAction{}),
+      SAI_PACKET_ACTION_FORWARD);
 }
 
 TEST_F(Srv6ApiTest, mySidEntryCount) {

@@ -161,6 +161,9 @@ sai_status_t set_my_sid_entry_attribute_fn(
     case SAI_MY_SID_ENTRY_ATTR_VRF:
       entry.vrf = attr->value.oid;
       break;
+    case SAI_MY_SID_ENTRY_ATTR_PACKET_ACTION:
+      entry.packetAction = attr->value.s32;
+      break;
     default:
       return SAI_STATUS_INVALID_PARAMETER;
   }
@@ -187,6 +190,9 @@ sai_status_t get_my_sid_entry_attribute_fn(
         break;
       case SAI_MY_SID_ENTRY_ATTR_VRF:
         attr_list[i].value.oid = entry.vrf;
+        break;
+      case SAI_MY_SID_ENTRY_ATTR_PACKET_ACTION:
+        attr_list[i].value.s32 = entry.packetAction;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
