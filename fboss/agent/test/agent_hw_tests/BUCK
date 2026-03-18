@@ -11,6 +11,7 @@ cpp_library(
     srcs = [
         "AgentArsBase.cpp",
         "AgentArsFlowletTest.cpp",
+        "AgentArsSprayTest.cpp",
         "AgentEcmpSpilloverTests.cpp",
         "AgentFlowletSwitchingTests.cpp",
     ],

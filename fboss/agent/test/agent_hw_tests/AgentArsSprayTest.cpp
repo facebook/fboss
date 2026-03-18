@@ -1,6 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 
+#include <cmath>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/test/AgentEnsemble.h"
@@ -55,6 +57,8 @@ class AgentArsSprayTest : public AgentArsBase {
 
   void setupEcmpGroups(int numEcmp) {
     generatePrefixes();
+    CHECK_LE(numEcmp, prefixes.size());
+    CHECK_LE(numEcmp, nhopSets.size());
     std::vector<RoutePrefixV6> testPrefixes = {
         prefixes.begin(), prefixes.begin() + numEcmp};
     std::vector<flat_set<PortDescriptor>> testNhopSets = {
@@ -64,6 +68,9 @@ class AgentArsSprayTest : public AgentArsBase {
   }
 
   void verifyEcmpGroups(const cfg::SwitchConfig& cfg, int numEcmp) {
+    generatePrefixes();
+    CHECK_LE(numEcmp, prefixes.size());
+    CHECK_LE(numEcmp, nhopSets.size());
     for (int i = 0; i < numEcmp; i++) {
       auto portFlowletConfig =
           getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
@@ -185,6 +192,44 @@ TEST_F(AgentArsSprayTest, VerifyPortFlowletConfigChange) {
     cfg = initialConfig(*getAgentEnsemble());
     applyNewConfig(cfg);
     verifyConfig(cfg, testPrefixes[0], port);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verify ability to create multiple ECMP DLB groups in spray mode.
+// The ResourceAccountant enforces a limit of ars_resource_percentage (default
+// 75%) of max DLB groups. Compute the actual enforced limit to test at scale.
+TEST_F(AgentArsSprayTest, VerifySprayModeScale) {
+  auto numEcmp = static_cast<int>(std::floor(
+      getMaxArsGroups() * static_cast<double>(FLAGS_ars_resource_percentage) /
+      100.0));
+
+  auto setup = [this, numEcmp]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kMinFlowletTableSize,
+        kScalingFactor1(),
+        kLoadWeight1,
+        kQueueWeight1);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
+    setupEcmpGroups(numEcmp);
+  };
+
+  auto verify = [this, numEcmp]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kMinFlowletTableSize,
+        kScalingFactor1(),
+        kLoadWeight1,
+        kQueueWeight1);
+    updatePortFlowletConfigName(cfg);
+    verifyEcmpGroups(cfg, numEcmp);
   };
 
   verifyAcrossWarmBoots(setup, verify);
