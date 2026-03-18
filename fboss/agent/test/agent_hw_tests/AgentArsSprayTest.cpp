@@ -110,6 +110,18 @@ class AgentArsSprayTest : public AgentArsBase {
     EXPECT_TRUE(verifyEcmpForFlowletSwitching(
         prefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true, port));
   }
+
+  // verifyPortFlowletConfig and verifyEcmpForFlowletSwitching are inherited
+  // from AgentArsBase
+
+  void verifyConfig(const cfg::SwitchConfig& cfg, const RoutePrefixV6& prefix) {
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
+    EXPECT_TRUE(
+        verifyPortFlowletConfig(prefix.toCidrNetwork(), portFlowletConfig));
+    EXPECT_TRUE(verifyEcmpForFlowletSwitching(
+        prefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+  }
 };
 
 } // namespace facebook::fboss
