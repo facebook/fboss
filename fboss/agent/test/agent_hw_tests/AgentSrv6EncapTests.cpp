@@ -35,10 +35,10 @@ class AgentSrv6EncapTest : public AgentHwTest {
   static constexpr bool kIsTrunk = PortType::isTrunk;
 
   // All 6 uSids populated
-  const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
+  static inline const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
   // 3 uSids populated
-  const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
-  const folly::IPAddressV6 kSid2{"3001:db8:7:8:9::"};
+  static inline const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
+  static inline const folly::IPAddressV6 kSid2{"3001:db8:7:8:9::"};
 
   const folly::IPAddressV6 kEncapRoutePrefix{"2800:2::"};
   static constexpr uint8_t kEncapRoutePrefixLen{64};
@@ -173,7 +173,10 @@ class AgentSrv6EncapTest : public AgentHwTest {
       PortID egressPort,
       bool ecnMarked,
       bool isV4 = false,
+      const std::vector<folly::IPAddressV6>& expectedSids = {kSid0},
       std::optional<PortID> injectPort = std::nullopt) {
+    const auto& sids = expectedSids;
+
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
@@ -229,8 +232,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
     auto v6Payload = frame.v6PayLoad();
     EXPECT_TRUE(v6Payload.has_value());
     auto v6Hdr = v6Payload->header();
-    // Outer header should have dst addr set to kSid0
-    EXPECT_EQ(v6Hdr.dstAddr, kSid0);
+    // Outer header dst addr should match one of the expected SIDs
+    bool sidMatch = std::any_of(sids.begin(), sids.end(), [&](const auto& sid) {
+      return v6Hdr.dstAddr == sid;
+    });
+    EXPECT_TRUE(sidMatch) << "Outer DA " << v6Hdr.dstAddr
+                          << " does not match any expected SID";
     // Flow label must be non 0
     EXPECT_NE(v6Hdr.flowLabel, 0);
     // FIXME: ECN bits in outer header are only propagated for v6-in-v6 encap
@@ -261,15 +268,17 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
   }
 
-  void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
+  void verifyEncapPacketCpuAndFrontPanel(
+      PortID egressPort,
+      const std::vector<folly::IPAddressV6>& expectedSids = {kSid0}) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
       // ECN not marked
-      verifyEncapPacket(egressPort, false, isV4);
-      verifyEncapPacket(egressPort, false, isV4, injectPort);
+      verifyEncapPacket(egressPort, false, isV4, expectedSids);
+      verifyEncapPacket(egressPort, false, isV4, expectedSids, injectPort);
       // ECN marked
-      verifyEncapPacket(egressPort, true, isV4);
-      verifyEncapPacket(egressPort, true, isV4, injectPort);
+      verifyEncapPacket(egressPort, true, isV4, expectedSids);
+      verifyEncapPacket(egressPort, true, isV4, expectedSids, injectPort);
     }
   }
 
