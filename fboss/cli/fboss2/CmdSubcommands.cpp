@@ -296,7 +296,7 @@ CLI::App* CmdSubcommands::addCommand(
               "Queue ID followed by key-value pairs: <queue-id> <attr> <value> "
               "[<attr> <value> ...] where <attr> is one of: reserved-bytes, "
               "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
-              "buffer-pool-name");
+              "buffer-pool-name, active-queue-management");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
