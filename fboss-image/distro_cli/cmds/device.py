@@ -10,13 +10,18 @@
 import json
 import logging
 import os
+import shutil
 import sys
+import urllib.request
+from http import HTTPStatus
+from pathlib import Path
 
 from distro_cli.lib.cli import validate_path
 from distro_cli.lib.distro_infra import (
     DISTRO_INFRA_CONTAINER,
     GETIP_SCRIPT_CONTAINER_PATH,
     deploy_image_to_device,
+    find_persistent_dir,
     get_interface_name,
 )
 from distro_cli.lib.docker import container
@@ -30,10 +35,114 @@ def print_to_console(message: str) -> None:
     print(message)  # noqa: T201
 
 
+def _download_with_cache(cache_dir: Path, url_prefix: str, filename: str) -> Path:
+    """Download from HTTP/HTTPS with caching support using ETag and Last-Modified headers.
+
+    Args:
+        url: HTTP or HTTPS URL
+        cache_dir: Directory to cache the downloaded file
+
+    Returns:
+        Path to the cached artifact file
+
+    Raises:
+        DistroInfraError: If download fails
+    """
+    artifact_path = cache_dir / filename
+    metadata_path = cache_dir / (filename + ".http_metadata.json")
+    url = url_prefix + filename
+
+    # Load existing metadata if available
+    http_metadata = {}
+    if metadata_path.exists():
+        try:
+            with metadata_path.open() as f:
+                http_metadata = json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to load HTTP metadata from {metadata_path}: {e}")
+
+    # Create request with conditional headers
+    request = urllib.request.Request(url)
+
+    if http_metadata.get("etag"):
+        request.add_header("If-None-Match", http_metadata["etag"])
+        logger.debug(f"Added If-None-Match: {http_metadata['etag']}")
+    if http_metadata.get("last_modified"):
+        request.add_header("If-Modified-Since", http_metadata["last_modified"])
+        logger.debug(f"Added If-Modified-Since: {http_metadata['last_modified']}")
+
+    try:
+        response = urllib.request.urlopen(request)
+
+        # Download the file
+        logger.info(f"Downloading: {url} -> {artifact_path}")
+        with artifact_path.open("wb") as f:
+            shutil.copyfileobj(response, f)
+
+        # Save metadata
+        metadata = {
+            "etag": response.headers.get("ETag"),
+            "last_modified": response.headers.get("Last-Modified"),
+        }
+        try:
+            with metadata_path.open("w") as f:
+                json.dump(metadata, f, indent=2)
+        except Exception as e:
+            logger.warning(f"Failed to save HTTP metadata to {metadata_path}: {e}")
+
+        logger.info(f"Downloaded: {url} -> {artifact_path}")
+        return artifact_path
+
+    except urllib.error.HTTPError as e:
+        if e.code == HTTPStatus.NOT_MODIFIED:
+            logger.info(f"Not modified {url} - using cached file")
+            if artifact_path.exists():
+                return artifact_path
+            raise DistroInfraError(
+                f"HTTP 304 Not Modified but cached file not found: {artifact_path}"
+            ) from e
+        raise DistroInfraError(f"HTTP error {e.code} downloading {url}: {e}") from e
+
+    except Exception as e:
+        raise DistroInfraError(f"Failed to download {url}: {e}") from e
+
+
 def image_upstream_command(args):
     """Download full image from upstream repository and set it to be loaded onto device"""
-    logger.info(f"Setting upstream image for device {args.mac}")
-    logger.info("Device image-upstream command (stub)")
+    image_repo = "https://facebook.github.io/fboss/images/latest"
+
+    filename = "fboss"
+    filename += f"_{args.hw_agent_sai}"
+    if args.qsfp_service_sai != "":
+        filename += f"_{args.qsfp_service_sai}"
+    filename += f"_{args.kernel}"
+    filename += f"_{args.bsps}"
+    filename += ".tar"
+
+    url_prefix = f"{image_repo}/{args.train}/"
+    logger.info(f"Would download {url_prefix}{filename}")
+
+    cache_dir = find_persistent_dir() / "cache"
+
+    # Download with HTTP caching
+    try:
+        logger.info(f"Downloading image from: {url_prefix}{filename}")
+        artifact_path = _download_with_cache(cache_dir, url_prefix, filename)
+        logger.info(f"Image cached at: {artifact_path}")
+    except DistroInfraError as e:
+        logger.error(f"Failed to download image: {e}")
+        sys.exit(1)
+
+    # Deploy the image to the device
+    try:
+        deploy_image_to_device(args.mac, artifact_path)
+        logger.info(
+            f"Successfully configured device {args.mac} with image {artifact_path}"
+        )
+        logger.info("Device is ready for PXE boot")
+    except DistroInfraError as e:
+        logger.error(f"Failed to deploy image to device: {e}")
+        sys.exit(1)
 
 
 def image_command(args):
@@ -169,7 +278,52 @@ def setup_device_commands(cli):
         "image-upstream",
         image_upstream_command,
         help_text="Download and set upstream Distro Image to be loaded onto device",
-        arguments=[],
+        arguments=[
+            (
+                "--hw_agent_sai",
+                {
+                    "required": True,
+                    "help": "hw_agent ASIC SAI version to use, decides ASIC support",
+                },
+            ),
+            (
+                "--train",
+                {
+                    "default": "stable",
+                    "choices": ("stable", "head"),
+                    "help": "Image release train to use",
+                },
+            ),
+            (
+                "--kernel",
+                {
+                    "default": "v6.11",
+                    "choices": ("v6.11", "v6.4"),
+                    "help": "Kernel version to use",
+                },
+            ),
+            (
+                "--qsfp_service_sai",
+                {
+                    "default": "",
+                    "help": "qsfp_service Phy SAI version to use",
+                },
+            ),
+            (
+                "--bsps",
+                {
+                    "default": "oss",
+                    "help": "BSP set to use",
+                },
+            ),
+            (
+                "--tag",
+                {
+                    "default": "",
+                    "help": "Misc image identification tag",
+                },
+            ),
+        ],
     )
 
     device.add_command(
