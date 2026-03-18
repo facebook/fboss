@@ -604,6 +604,15 @@ struct Srv6TunnelFields {
   9: common.TunnelType tunnelType;
 }
 
+struct MySidFields {
+  1: common.MySidType type;
+  # MySid entry in ip/mask format. 32 bits of this are
+  # locator block len and 32-maskLen are sid bits
+  2: Address.IPPrefix mySid;
+  3: optional RouteNextHopEntry unresolveNextHop;
+  4: optional RouteNextHopEntry resolvedNextHop;
+}
+
 struct QosPolicyFields {
   1: string name;
   2: TrafficClassToQosAttributeMap dscpMap;
@@ -806,6 +815,7 @@ struct SwitchState {
   > mirrorOnDropReportMaps;
   124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
+  126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;
