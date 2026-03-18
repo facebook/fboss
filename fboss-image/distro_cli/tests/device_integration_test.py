@@ -14,7 +14,11 @@ from pathlib import Path
 
 from distro_cli.lib.device_update import DeviceUpdater
 from distro_cli.lib.manifest import ImageManifest
-from distro_cli.tests.test_helpers import waitfor
+from distro_cli.tests.test_helpers import (
+    get_writable_copy,
+    override_artifact_store_dir,
+    waitfor,
+)
 
 INTEGRATION_DATA_DIR = Path(__file__).parent / "test_topology" / "integration_data"
 INTEGRATION_MANIFEST = INTEGRATION_DATA_DIR / "integration_manifest.json"
@@ -153,21 +157,30 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
     def test_integration_per_service_btrfs_subvolumes(self):
         """Verify each service runs in its own btrfs subvolume"""
         result = subprocess.run(
+            ["docker", "exec", self.PROXY_DEVICE, "ls", "-d", "/mnt/btrfs/updates/"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, "Updates directory should exist")
+
+        # Initially, no per-service subvolumes should exist (created during updates)
+        result = subprocess.run(
             ["docker", "exec", self.PROXY_DEVICE, "ls", "/mnt/btrfs/updates/"],
             capture_output=True,
             text=True,
             check=False,
         )
-        self.assertEqual(result.returncode, 0)
-        subvolumes = result.stdout.strip().split("\n")
-
-        for service in EXPECTED_SERVICES:
-            matching = [s for s in subvolumes if s.startswith(f"{service}-")]
-            self.assertEqual(
-                len(matching),
-                1,
-                f"Expected 1 subvolume for {service}, found {matching}",
-            )
+        # Directory should be empty or only contain distro-base
+        if result.stdout.strip():
+            subvolumes = result.stdout.strip().split("\n")
+            # Only distro-base should exist, no per-service subvolumes yet
+            for subvol in subvolumes:
+                self.assertNotIn(
+                    "-",
+                    subvol,
+                    f"No per-service subvolumes should exist yet, found {subvol}",
+                )
 
     def test_integration_services_have_base_version(self):
         """Verify each service starts with the base version (1.0.0)"""
@@ -181,16 +194,26 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
 
     def _update_component_and_verify(self, component: str, services: list[str]):
         """Update a component and wait for services to report new version."""
-        manifest = ImageManifest(INTEGRATION_MANIFEST)
+        # Get writable copy of integration data (test sandbox is read-only) to allow storing
+        # intermediate build artifacts
+        with get_writable_copy(
+            INTEGRATION_DATA_DIR, "integration_"
+        ) as temp_integration_data:
+            temp_manifest = temp_integration_data / "integration_manifest.json"
+            manifest = ImageManifest(temp_manifest)
 
-        # Use the device IP we got from Docker in setUpClass
-        updater = DeviceUpdater(
-            mac=self.device_mac,
-            manifest=manifest,
-            component=component,
-            device_ip=self.device_ip,
-        )
-        updater.update()
+            # Override artifact store to use writable temp directory (as the sandbox is read-only) to
+            # store final artifacts
+            artifact_dir = temp_integration_data.parent / "artifacts"
+            artifact_dir.mkdir(exist_ok=True)
+            with override_artifact_store_dir(artifact_dir):
+                updater = DeviceUpdater(
+                    mac=self.device_mac,
+                    manifest=manifest,
+                    component=component,
+                    device_ip=self.device_ip,
+                )
+                updater.update()
 
         for svc in services:
             waitfor(
@@ -199,17 +222,49 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
             )
 
     def _get_service_version(self, service: str) -> str:
-        """Read service version from its btrfs subvolume."""
-        root_dir = self._get_service_root_directory(service)
-        if not root_dir:
-            return ""
+        """Read service version from the service's btrfs subvolume.
+
+        Services run with RootDirectory set to their btrfs subvolume, so the version
+        file is written to /var/run/{service}.version inside that subvolume, not the
+        host's /var/run.
+        """
+        # Get the service's RootDirectory from systemd
+        root_dir_result = subprocess.run(
+            [
+                "docker",
+                "exec",
+                self.PROXY_DEVICE,
+                "systemctl",
+                "show",
+                service,
+                "--property=RootDirectory",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        # Parse RootDirectory=<path> output
+        root_dir = ""
+        for line in root_dir_result.stdout.strip().split("\n"):
+            if line.startswith("RootDirectory="):
+                root_dir = line.split("=", 1)[1]
+                break
+
+        # If no RootDirectory, read from host's /var/run (base version case)
+        version_path = (
+            f"/var/run/{service}.version"
+            if not root_dir
+            else f"{root_dir}/var/run/{service}.version"
+        )
+
         result = subprocess.run(
             [
                 "docker",
                 "exec",
                 self.PROXY_DEVICE,
                 "cat",
-                f"{root_dir}/var/run/{service}.version",
+                version_path,
             ],
             capture_output=True,
             text=True,
@@ -267,12 +322,12 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
         return result.stdout.strip() == "active"
 
     def test_integration_update_changes_version(self):
-        """Test update creates new btrfs subvolume and services run with updated version.
+        """Test update creates new btrfs subvolume and cleans up old ones.
 
         Verifies:
-        1. Pre-update: services have base version, 1 subvolume each
-        2. Post-update: RootDirectory changed to new subvolume, old subvolume cleaned up
-        3. Services active and report updated version
+        1. Initial state: services have base version (1.0.0), no subvolumes
+        2. After first update: services have new version (2.0.0), 1 subvolume each
+        3. After second update: services have newer version (2.0.0), still 1 subvolume (old cleaned up)
         """
         if not INTEGRATION_MANIFEST.exists():
             self.skipTest(f"Integration manifest not found: {INTEGRATION_MANIFEST}")
@@ -295,7 +350,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
 
         for component, services in test_cases:
             with self.subTest(component=component):
-                pre_root_dirs = {}
+                # Initial state: services start with base version, no subvolumes
                 for svc in services:
                     version = self._get_service_version(svc)
                     self.assertEqual(
@@ -304,50 +359,79 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                         f"Service {svc} should start with {BASE_VERSION}, got {version}",
                     )
                     pre_count = self._get_subvolume_count(svc)
-                    pre_root_dirs[svc] = self._get_service_root_directory(svc)
                     self.assertEqual(
                         pre_count,
-                        1,
-                        f"Service {svc} should have 1 subvolume before update",
-                    )
-                    self.assertTrue(
-                        pre_root_dirs[svc].startswith(f"/mnt/btrfs/updates/{svc}-"),
-                        f"Service {svc} should have valid RootDirectory before update",
+                        0,
+                        f"Service {svc} should have 0 subvolumes before first update",
                     )
 
+                # First update
                 self._update_component_and_verify(component, services)
+                first_update_root_dirs = {}
 
+                # After first update: verify subvolumes created and services use them
                 for svc in services:
-                    post_count = self._get_subvolume_count(svc)
+                    count = self._get_subvolume_count(svc)
                     self.assertEqual(
-                        post_count,
+                        count,
                         1,
-                        f"Service {svc} should have 1 subvolume after update "
-                        f"(old cleaned up)",
+                        f"Service {svc} should have 1 subvolume after first update",
                     )
 
-                    post_root_dir = self._get_service_root_directory(svc)
-                    self.assertNotEqual(
-                        post_root_dir,
-                        pre_root_dirs[svc],
-                        f"Service {svc} RootDirectory should change after update "
-                        f"(was {pre_root_dirs[svc]}, now {post_root_dir})",
-                    )
+                    root_dir = self._get_service_root_directory(svc)
+                    first_update_root_dirs[svc] = root_dir
                     self.assertTrue(
-                        post_root_dir.startswith(f"/mnt/btrfs/updates/{svc}-"),
-                        f"Service {svc} RootDirectory should be a btrfs subvolume",
+                        root_dir.startswith(f"/mnt/btrfs/updates/{svc}-"),
+                        f"Service {svc} should have valid RootDirectory after first update (got {root_dir})",
                     )
 
                     self.assertTrue(
                         self._is_service_active(svc),
-                        f"Service {svc} should be active after update",
+                        f"Service {svc} should be active after first update",
                     )
 
                     version = self._get_service_version(svc)
                     self.assertEqual(
                         version,
                         UPDATE_VERSION,
-                        f"Service {svc} should have {UPDATE_VERSION} after update, got {version}",
+                        f"Service {svc} should have {UPDATE_VERSION} after first update, got {version}",
+                    )
+
+                # Second update
+                self._update_component_and_verify(component, services)
+
+                # After second update: verify old subvolume cleaned up, only 1 subvolume remains
+                for svc in services:
+                    count = self._get_subvolume_count(svc)
+                    self.assertEqual(
+                        count,
+                        1,
+                        f"Service {svc} should have 1 subvolume after second update (old cleaned up)",
+                    )
+
+                    root_dir = self._get_service_root_directory(svc)
+                    self.assertTrue(
+                        root_dir.startswith(f"/mnt/btrfs/updates/{svc}-"),
+                        f"Service {svc} should have valid RootDirectory after second update (got {root_dir})",
+                    )
+
+                    # Verify RootDirectory changed (new subvolume created)
+                    self.assertNotEqual(
+                        root_dir,
+                        first_update_root_dirs[svc],
+                        f"Service {svc} RootDirectory should change after second update",
+                    )
+
+                    self.assertTrue(
+                        self._is_service_active(svc),
+                        f"Service {svc} should be active after second update",
+                    )
+
+                    version = self._get_service_version(svc)
+                    self.assertEqual(
+                        version,
+                        UPDATE_VERSION,
+                        f"Service {svc} should have {UPDATE_VERSION} after second update, got {version}",
                     )
 
     def test_integration_update_other_dependencies(self):
@@ -360,8 +444,6 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
         """
         if not INTEGRATION_MANIFEST.exists():
             self.skipTest(f"Integration manifest not found: {INTEGRATION_MANIFEST}")
-
-        manifest = ImageManifest(INTEGRATION_MANIFEST)
 
         result = subprocess.run(
             [
@@ -381,13 +463,26 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
             "test-tool should not exist before update",
         )
 
-        updater = DeviceUpdater(
-            mac=self.device_mac,
-            manifest=manifest,
-            component="other_dependencies",
-            device_ip=self.device_ip,
-        )
-        updater.update()
+        # Get writable copy of integration data as the test sandbox is read-only to allow for
+        # storing intermediate build artifacts
+        with get_writable_copy(
+            INTEGRATION_DATA_DIR, "integration_"
+        ) as temp_integration_data:
+            temp_manifest = temp_integration_data / "integration_manifest.json"
+            manifest = ImageManifest(temp_manifest)
+
+            # Override artifact store to use writable temp directory (sandbox is read-only) to
+            # store final artifacts
+            artifact_dir = temp_integration_data.parent / "artifacts"
+            artifact_dir.mkdir(exist_ok=True)
+            with override_artifact_store_dir(artifact_dir):
+                updater = DeviceUpdater(
+                    mac=self.device_mac,
+                    manifest=manifest,
+                    component="other_dependencies",
+                    device_ip=self.device_ip,
+                )
+                updater.update()
 
         result = subprocess.run(
             [

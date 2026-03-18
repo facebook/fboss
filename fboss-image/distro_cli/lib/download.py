@@ -77,31 +77,29 @@ def download_artifact(
             logger.info(f"Using cached file:// artifact (unchanged): {source_path}")
             return (True, cached_data_files, cached_metadata_files)
 
-        # File is new or modified - create metadata with mtime and copy the
-        # source file into a temporary directory within the artifact store.
-        #
-        # This ensures ArtifactStore.store() moves only the temporary copy and
-        # never the original source file referenced by the manifest.
+        # File is new or modified - copy to temp dir so the artifact store
+        # can safely move the copy without removing the original source file.
         temp_download_dir = ArtifactStore.create_temp_dir(prefix="download-")
-        metadata_path = temp_download_dir / HTTP_METADATA_FILENAME
-        copied_path = temp_download_dir / source_path.name
-        metadata = {"mtime": current_mtime}
         try:
+            # Copy the source file into the temp directory
+            temp_data_path = temp_download_dir / source_path.name
+            shutil.copy2(str(source_path), str(temp_data_path))
+
+            # Save metadata with mtime
+            metadata_path = temp_download_dir / HTTP_METADATA_FILENAME
+            metadata = {"mtime": current_mtime}
             with metadata_path.open("w") as f:
                 json.dump(metadata, f, indent=2)
-            # Copy the source file into the temp directory instead of using it
-            # directly so the artifact store can safely move the copy.
-            shutil.copy2(source_path, copied_path)
         except Exception as e:
             logger.warning(
-                f"Failed to prepare file:// artifact in {temp_download_dir}: {e}"
+                f"Failed to prepare file:// artifact from {source_path}: {e}"
             )
             # Clean up temp dir on error
             ArtifactStore.delete_temp_dir(temp_download_dir)
             raise
 
-        logger.info(f"Using local file copy: {copied_path} (source: {source_path})")
-        return (False, [copied_path], [metadata_path])
+        logger.info(f"Using local file: {source_path}")
+        return (False, [temp_data_path], [metadata_path])
 
     return _download_http_with_cache(url, cached_data_files, cached_metadata_files)
 

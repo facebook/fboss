@@ -51,6 +51,13 @@ rsync -aAX \
 echo "Creating base snapshot..."
 btrfs subvolume snapshot $BTRFS_MOUNT $BTRFS_MOUNT/distro-base
 
+# Fix /var/run symlink: replace with real directory so services can write version files
+# when running with RootDirectory isolation
+if [ -L $BTRFS_MOUNT/distro-base/var/run ]; then
+  rm $BTRFS_MOUNT/distro-base/var/run
+  mkdir -p $BTRFS_MOUNT/distro-base/var/run
+fi
+
 # Create symlinks for easy access (remove existing dirs first)
 rm -rf $DISTRO_BASE /updates
 ln -sf $BTRFS_MOUNT/distro-base $DISTRO_BASE

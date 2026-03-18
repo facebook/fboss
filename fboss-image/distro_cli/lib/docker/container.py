@@ -86,13 +86,21 @@ def run_container(  # noqa: PLR0913
     # Finally, add the actual command to run
     cmd.extend(command)
 
-    logger.debug(f"Running: {' '.join(str(c) for c in cmd)}")
+    logger.debug(f"Running command inside container: {' '.join(str(c) for c in cmd)}")
 
     try:
         result = subprocess.run(
             cmd,
+            capture_output=True,
+            text=True,
             check=False,  # Don't raise on non-zero exit
         )
+        logger.debug(f"\n----- Container command stdout -----")
+        logger.debug(f"{result.stdout}")
+        logger.debug(f"-----")
+        logger.debug(f"\n----- Container command stderr -----")
+        logger.debug(f"{result.stderr}")
+        logger.debug(f"-----")
         logger.info(f"Container exited with code: {result.returncode}")
         return result.returncode
     except FileNotFoundError as e:

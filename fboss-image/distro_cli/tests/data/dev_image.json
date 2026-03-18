@@ -20,6 +20,9 @@
   "hw_agent_sai": {
     "execute": ["../../../../fboss_brcm_sai/build.sh"]
   },
+  "qsfp_service_sai": {
+    "execute": ["../../../../fboss/oss/scripts/build_qsfp_service_sai.sh"]
+  },
   "fboss-forwarding-stack": {
     "execute": ["../../../../fboss/fboss/oss/scripts/build.py", "forwardingstack"]
   },

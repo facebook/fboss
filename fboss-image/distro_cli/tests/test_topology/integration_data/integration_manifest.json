@@ -18,6 +18,8 @@
   "hw_agent_sai": {
     "download": "file:sai-devel.tar"
   },
+  "qsfp_service_sai": {
+  },
   "fboss-forwarding-stack": {
     "execute": ["build_stack.sh", "forwarding-stack"],
     "artifact": "forwarding-stack.tar"

@@ -50,11 +50,13 @@ STAGING_DIR=$(mktemp -d -p "${UPDATES_DIR}")
 trap 'rm -rf "${STAGING_DIR}"' EXIT
 
 FOUND_ARTIFACT=false
+shopt -s nullglob
 for f in "${SCRIPT_DIR}"/*.tar.zst "${SCRIPT_DIR}"/*.tar; do
   FOUND_ARTIFACT=true
   echo "Extracting ${f}..."
   tar -xf "$f" -C "${STAGING_DIR}"
 done
+shopt -u nullglob
 
 if [ "${FOUND_ARTIFACT}" = false ]; then
   echo "Error: No artifact found in ${SCRIPT_DIR}" >&2

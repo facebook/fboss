@@ -86,8 +86,9 @@ class TestImageBuilder(unittest.TestCase):
 
         # Verify component build was called for each component element in manifest
         # dev_image.json has: kernel (1), other_dependencies (2 elements), fboss-platform-stack (1),
-        # bsps (2 elements), sai (1), fboss-forwarding-stack (1), image_build_hooks (1) = 9 total
-        self.assertEqual(mock_component_build.call_count, 9)
+        # bsps (2 elements), hw_agent_sai (1), fboss-forwarding-stack (1),
+        # qsfp_service_sai (1), image_build_hooks (1) = 10 total
+        self.assertEqual(mock_component_build.call_count, 10)
 
     @patch("distro_cli.builder.image_builder.ImageBuilder._compress_artifact")
     @patch("distro_cli.builder.component.ComponentBuilder.build")

@@ -13,16 +13,22 @@
     { "execute": ["examples/thirdparty_build.sh"], "artifact": "thirdparty-pkg-1.0-1.noarch.rpm"}
   ],
   "fboss-platform-stack": {
-    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "platform"],
+    "execute": [
+      "../fboss/oss/scripts/build_fboss_stack.sh",
+      "platform"
+    ],
     "artifact": "platform-stack.tar"
   },
-  "bsps": [
-  ],
+  "bsps": [],
   "hw_agent_sai": {
     "download": "file:../fboss/oss/scripts/fake-sai-devel.tar.zstd"
   },
+  "qsfp_service_sai": {},
   "fboss-forwarding-stack": {
-    "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"],
+    "execute": [
+      "../fboss/oss/scripts/build_fboss_stack.sh",
+      "forwarding"
+    ],
     "artifact": "forwarding-stack.tar"
   },
   "image_build_hooks": {

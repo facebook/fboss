@@ -34,7 +34,8 @@ RUN ssh-keygen -A && \
 RUN sed -i 's/^root:[^:]*:/root::/' /etc/shadow && \
     sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PermitEmptyPasswords.*/PermitEmptyPasswords yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/^UsePAM yes/UsePAM no/' /etc/ssh/sshd_config.d/50-redhat.conf
 
 # Create FBOSS directory structure
 RUN mkdir -p /opt/fboss/bin /opt/fboss/lib /updates
