@@ -791,4 +791,64 @@ uint32_t AgentArsBase::getMaxArsGroups() const {
   return maxArsGroups.value();
 }
 
+cfg::PortFlowletConfig AgentArsBase::getPortFlowletConfig(
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight) const {
+  cfg::PortFlowletConfig portFlowletConfig;
+  portFlowletConfig.scalingFactor() = scalingFactor;
+  portFlowletConfig.loadWeight() = loadWeight;
+  portFlowletConfig.queueWeight() = queueWeight;
+  return portFlowletConfig;
+}
+
+void AgentArsBase::updatePortFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight) const {
+  cfg.portFlowletConfigs() = {
+      {"default",
+       getPortFlowletConfig(scalingFactor, loadWeight, queueWeight)}};
+}
+
+void AgentArsBase::updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const {
+  for (const auto& portId : masterLogicalInterfacePortIds()) {
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    portCfg->flowletConfigName() = "default";
+  }
+}
+
+bool AgentArsBase::verifyPortFlowletConfig(
+    const folly::CIDRNetwork& ip,
+    cfg::PortFlowletConfig& portFlowletConfig,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+
+  return client->sync_verifyPortFlowletConfig(cidr, portFlowletConfig, true);
+}
+
+bool AgentArsBase::verifyEcmpForFlowletSwitching(
+    const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    bool flowletEnable,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+  state::SwitchSettingsFields settings;
+  settings.flowletSwitchingConfig() = flowletCfg;
+  return client->sync_verifyEcmpForFlowletSwitchingHandler(
+      cidr, settings, flowletEnable);
+}
+
 } // namespace facebook::fboss
