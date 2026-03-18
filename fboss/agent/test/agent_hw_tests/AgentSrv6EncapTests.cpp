@@ -34,7 +34,9 @@ class AgentSrv6EncapTest : public AgentHwTest {
  protected:
   static constexpr bool kIsTrunk = PortType::isTrunk;
 
-  const folly::IPAddressV6 kSid0{"3001:db8:1:2:3::"};
+  // All 6 uSids populated
+  const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
+  // 3 uSids populated
   const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
   const folly::IPAddressV6 kSid2{"3001:db8:7:8:9::"};
 
