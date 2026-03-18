@@ -18,8 +18,10 @@
   },
   "bsps": [
   ],
-  "sai": {
+  "hw_agent_sai": {
     "download": "file:../fboss/oss/scripts/fake-sai-devel.tar.zstd"
+  },
+  "qsfp_service_sai": {
   },
   "fboss-forwarding-stack": {
     "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"],

@@ -39,8 +39,11 @@ For example:
     {"execute": "vendor_bsp/build.make"},
     {"execute": "fboss/oss/reference_bsp/build.py"}
   ],
-  "sai": {
+  "hw_agent_sai": {
     "execute": "fboss_brcm_sai/build.sh"
+  },
+  "qsfp_service_sai": {
+    "execute": ["../fboss/oss/scripts/build_qsfp_service_sai.sh"]
   },
   "fboss-forwarding-stack": {
     "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"]
@@ -135,9 +138,9 @@ runtime.
 
 During each of these builds, the kernel devel package will be installed in the build container.
 
-### SAI
+### HW Agent SAI
 
-The SAI build script must output a tarball containing the following file structure:
+The HW Agent SAI build script must output a tarball containing the following file structure:
 ```
 sai_build.env   -- FBOSS SAI build environment variables
 include/        -- SAI headers
@@ -162,6 +165,23 @@ The SAI is built with the kernel devel packages installed.
 
 A special `fboss/oss/scripts/fake-sai-devel.tar.zstd` is provided which will activate the Fake-SAI build of the
 Forwarding Stack.
+
+### QSFP Service SAI
+
+The QSFP Service SAI build script must output a tarball containing the following file structure:
+```
+qsfp_service_sai_build.env   -- QSFP Service SAI build environment variables
+include/                     -- QSFP SAI headers
+lib/                         -- QSFP SAI library (libqsfp_service_sai.a)
+qsfp_service_sai-runtime.rpm -- QSFP Service SAI runtime package
+```
+
+The `qsfp_service_sai_build.env` file defines the environment variables needed to build the QSFP Service against the
+SAI implementation. The file might look like:
+```
+SAI_BRCM_PAI_IMPL=1
+SAI_SDK_VERSION=PHY_SAI_SDK
+```
 
 ## Environment variables
 
