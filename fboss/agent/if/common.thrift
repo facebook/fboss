@@ -204,3 +204,9 @@ enum TunnelType {
   IP_IN_IP = 0,
   SRV6_ENCAP = 1,
 }
+
+enum MySidType {
+  ADJACENCY_MICRO_SID = 0,
+  NODE_MICRO_SID = 1,
+  DECAPSULATE_AND_LOOKUP = 2,
+}
