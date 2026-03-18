@@ -155,4 +155,39 @@ TEST_F(AgentArsSprayTest, VerifyArsEnable) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+TEST_F(AgentArsSprayTest, VerifyPortFlowletConfigChange) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets);
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, {testNhopSets[0]}, {testPrefixes[0]});
+  };
+
+  auto verify = [=, this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    auto port = testNhopSets[0].begin()->phyPortID();
+    verifyConfig(cfg, testPrefixes[0], port);
+
+    // Modify the port flowlet config
+    updatePortFlowletConfigs(
+        cfg, kScalingFactor2(), kLoadWeight2, kQueueWeight2);
+    applyNewConfig(cfg);
+
+    // Verify modified config
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor2(), kLoadWeight2, kQueueWeight2);
+    EXPECT_TRUE(verifyPortFlowletConfig(
+        testPrefixes[0].toCidrNetwork(), portFlowletConfig, port));
+
+    // Restore initial config
+    cfg = initialConfig(*getAgentEnsemble());
+    applyNewConfig(cfg);
+    verifyConfig(cfg, testPrefixes[0], port);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
