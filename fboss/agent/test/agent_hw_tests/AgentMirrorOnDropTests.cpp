@@ -1776,8 +1776,9 @@ cfg::MirrorOnDropReport makeXgsModReport(
   return report;
 }
 
-// Basic verification test for Tomahawk5 (XGS platform) used in NSF clusters.
-TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
+// Verifies MoD captures packets dropped due to no matching route (default
+// route discard) on Tomahawk5 (XGS platform).
+TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
   PortID injectionPortId = masterLogicalInterfacePortIds()[0];
   PortID mirrorPortId = masterLogicalInterfacePortIds()[1];
   PortID collectorPortId = masterLogicalInterfacePortIds()[2];
