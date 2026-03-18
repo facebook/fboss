@@ -392,11 +392,6 @@ int applyStartupFirmwareUpgrades(
   int upgraded = 0;
 
   for (const auto& entry : *config.transceivers()) {
-    if (!entry.startupConfig().has_value() ||
-        !entry.startupConfig()->firmware().has_value()) {
-      continue;
-    }
-
     int id = *entry.id();
     auto it = modules.find(id);
     if (it == modules.end()) {

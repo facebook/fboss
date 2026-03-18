@@ -67,6 +67,7 @@ cpp_binary(
     name = "qsfp_hal_test",
     srcs = [
         "HalTestApplicationModes.cpp",
+        "HalTestFirmwareUpgrade.cpp",
         "HalTestModuleAdvertisement.cpp",
         "HalTestModuleInit.cpp",
         "Main.cpp",
@@ -79,6 +80,7 @@ cpp_binary(
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
         "//fboss/qsfp_service/module:qsfp-module",
         "//folly/init:init",
+        "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
     ],
 )
