@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "fboss/qsfp_service/module/QsfpModule.h"
+#include "fboss/qsfp_service/test/hal_test/HalTestParallel.h"
 #include "fboss/qsfp_service/test/hal_test/HalTestUtils.h"
 #include "fboss/qsfp_service/test/hal_test/gen-cpp2/hal_test_config_types.h"
 
@@ -34,13 +35,19 @@ class HalTest : public ::testing::Test {
   const HalTestConfig& getConfig() const;
   std::vector<int> getPresentTransceiverIds() const;
 
+  // Run fn in parallel for each present transceiver. If filter is provided,
+  // transceivers for which it returns false are marked as skipped. If ALL
+  // transceivers are skipped, the test is skipped via GTEST_SKIP().
+  void forEachTransceiverParallel(
+      std::function<void(hal_test::TransceiverTestResult&, int)> fn,
+      std::function<bool(int)> filter = nullptr);
+
  private:
   static inline HalTestConfig config_;
   static inline std::map<int, hal_test::HalTestModule> modules_;
 };
 
 // T0: runs first (alphabetically before T1). Skips startup firmware upgrades.
-// If any T0 test fails, the binary aborts before T1 tests run.
 class T0HalTest : public HalTest {
  protected:
   bool shouldApplyStartupFirmware() const override {

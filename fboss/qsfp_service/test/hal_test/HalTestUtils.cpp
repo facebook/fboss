@@ -2,6 +2,9 @@
 
 #include "fboss/qsfp_service/test/hal_test/HalTestUtils.h"
 
+#include <atomic>
+#include <thread>
+
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Format.h>
@@ -389,7 +392,15 @@ bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
 int applyStartupFirmwareUpgrades(
     const HalTestConfig& config,
     std::map<int, HalTestModule>& modules) {
-  int upgraded = 0;
+  std::atomic<int> upgraded{0};
+
+  // Collect entries that are eligible for upgrade
+  struct UpgradeTask {
+    int id;
+    const HalTestTransceiverEntry* entry;
+    HalTestModule* halModule;
+  };
+  std::vector<UpgradeTask> tasks;
 
   for (const auto& entry : *config.transceivers()) {
     int id = *entry.id();
@@ -407,13 +418,26 @@ int applyStartupFirmwareUpgrades(
       continue;
     }
 
-    if (upgradeFirmware(
-            halModule.module.get(), *entry.startupConfig()->firmware())) {
-      ++upgraded;
-    }
+    tasks.push_back({id, &entry, &halModule});
   }
 
-  return upgraded;
+  // Run upgrades in parallel
+  std::vector<std::thread> threads;
+  threads.reserve(tasks.size());
+  for (const auto& task : tasks) {
+    threads.emplace_back([&upgraded, &task]() {
+      if (upgradeFirmware(
+              task.halModule->module.get(),
+              *task.entry->startupConfig()->firmware())) {
+        ++upgraded;
+      }
+    });
+  }
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  return upgraded.load();
 }
 
 } // namespace facebook::fboss::hal_test

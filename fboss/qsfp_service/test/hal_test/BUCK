@@ -50,12 +50,24 @@ cpp_library(
 )
 
 cpp_library(
+    name = "hal_test_parallel",
+    srcs = ["HalTestParallel.cpp"],
+    headers = ["HalTestParallel.h"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/googletest:gtest",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "hal_test_base",
     srcs = ["HalTest.cpp"],
     headers = ["HalTest.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
         ":hal_test_config-cpp2-types",
+        ":hal_test_parallel",
         ":hal_test_utils",
         "//fboss/agent:fboss-error",
         "//fboss/qsfp_service/module:qsfp-module",
@@ -73,6 +85,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gtest",
         ":hal_test_base",
         ":hal_test_config-cpp2-types",

@@ -14,6 +14,7 @@ target_link_libraries(bsp_transceiver_impl
 )
 
 add_library(hal_test_utils
+  fboss/qsfp_service/test/hal_test/HalTestParallel.cpp
   fboss/qsfp_service/test/hal_test/HalTestUtils.cpp
 )
 
