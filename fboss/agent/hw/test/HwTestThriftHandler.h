@@ -193,6 +193,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool validateFlowSetTable(const bool expectFlowsetSizeZero) override;
 
+  bool verifyEcmpForNonFlowlet(
+      std::unique_ptr<CIDRNetwork> prefix,
+      std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
+      bool expectFlowsetFree) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

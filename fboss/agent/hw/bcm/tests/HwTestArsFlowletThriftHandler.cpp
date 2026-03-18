@@ -239,4 +239,13 @@ bool HwTestThriftHandler::validateFlowSetTable(
   return isVerified;
 }
 
+bool HwTestThriftHandler::verifyEcmpForNonFlowlet(
+    std::unique_ptr<CIDRNetwork> /*prefix*/,
+    std::unique_ptr<
+        ::facebook::fboss::state::SwitchSettingsFields> /*settings*/,
+    bool /*expectFlowsetFree*/) {
+  // Stub implementation - to be replaced with actual BCM implementation
+  return true;
+}
+
 } // namespace facebook::fboss::utility
