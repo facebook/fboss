@@ -2,6 +2,8 @@
 
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
+#include <set>
+
 #include <folly/logging/xlog.h>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/drop.hpp>
@@ -313,6 +315,7 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
   static const re2::RE2 kCpuBusNameRegex{"CPU_BUS@\\d+"};
   bool hasVirtual = false;
   bool hasExact = false;
+  std::set<std::string> seen;
   for (const auto& name : i2cAdaptersFromCpu) {
     if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
       if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
@@ -320,6 +323,10 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
             "Invalid virtual bus name '{}'. "
             "Only CPU_BUS@0 and CPU_BUS@1 are supported",
             name);
+        return false;
+      }
+      if (!seen.insert(name).second) {
+        XLOG(ERR) << fmt::format("Duplicate virtual bus name '{}'", name);
         return false;
       }
       hasVirtual = true;

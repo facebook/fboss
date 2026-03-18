@@ -17,9 +17,6 @@
   "sensors": [
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,
@@ -32,9 +29,6 @@
     },
     {
       "sensorName": "PIC_T_U12_INLET_LM75_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "43": 30,

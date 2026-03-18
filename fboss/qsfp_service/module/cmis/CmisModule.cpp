@@ -2057,13 +2057,13 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 alarm data";
   }
   if (!fillVdmPerfMonitorCoherentVdm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "Coherent VDM stats not available";
+    QSFP_LOG(DBG5, this) << "Coherent VDM stats not available";
   }
   if (!fillVdmPerfMonitorFecPm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "FEC PM stats not available";
+    QSFP_LOG(DBG5, this) << "FEC PM stats not available";
   }
   if (!fillVdmPerfMonitorLinkPm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "Link PM stats not available";
+    QSFP_LOG(DBG5, this) << "Link PM stats not available";
   }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";

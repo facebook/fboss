@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/LockPolicy.h"
@@ -50,6 +51,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
@@ -63,6 +65,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 #include "fboss/lib/HwWriteBehavior.h"
+#include "fboss/lib/phy/CredoSdkVersion.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -1604,6 +1607,16 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiSrv6TunnelManager::addSrv6Tunnel,
       &SaiSrv6TunnelManager::removeSrv6Tunnel);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  processDelta(
+      delta.getMySidsDelta(),
+      managerTable_->srv6Manager(),
+      lockPolicy,
+      &SaiSrv6Manager::changeMySidEntry,
+      &SaiSrv6Manager::addMySidEntry,
+      &SaiSrv6Manager::removeMySidEntry);
+#endif
+
 #if defined(TAJO_SDK_VERSION_1_42_8)
   FLAGS_enable_acl_table_group = false;
 #endif
@@ -2749,7 +2762,7 @@ void SaiSwitch::gracefulExitLocked(const std::lock_guard<std::mutex>& lock) {
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, restartWarm);
 
-#ifndef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
   SaiSwitchTraits::Attributes::SwitchPreShutdown preShutdown{true};
   SaiApiTable::getInstance()->switchApi().setAttribute(
       saiSwitchId_, preShutdown);
@@ -3934,23 +3947,24 @@ void SaiSwitch::packetRxCallbackPort(
       platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT) &&
       (portSaiId == getCPUPortSaiId());
   if (!processVlanUntaggedPackets()) {
+    // NPU switch: need vlan resolution
     if (isCpuPort ||
         (allowMissingSrcPort &&
          portItr == concurrentIndices_->portSaiId2PortInfo.cend())) {
+      // CPU port or missing src port: extract vlan from packet
       folly::io::Cursor cursor(rxPacket->buf());
       EthHdr ethHdr{cursor};
       auto vlanTags = ethHdr.getVlanTags();
-      if (vlanTags.size() == 1) {
-        swVlanId = VlanID(vlanTags[0].vid());
-        XLOG(DBG6) << "Rx packet on cpu port. "
-                   << "Found vlan from packet: " << swVlanIdStr();
-      } else {
+      if (vlanTags.size() != 1) {
         XLOG(ERR) << "RX packet on cpu port has no vlan tag "
                   << "or multiple vlan tags: " << ethHdr.printVlanTags();
         return;
       }
+      swVlanId = VlanID(vlanTags[0].vid());
+      XLOG(DBG6) << "Rx packet on cpu port. "
+                 << "Found vlan from packet: "
+                 << static_cast<int>(swVlanId.value());
     } else if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-      // TODO: add counter to keep track of spurious rx packet
       XLOG(DBG) << "RX packet had port with unknown sai id: 0x" << std::hex
                 << portSaiId;
       return;
@@ -3965,18 +3979,17 @@ void SaiSwitch::packetRxCallbackPort(
       }
       swVlanId = vlanItr->second;
     }
-  } else { // VOQ / FABRIC
+  } else {
+    // VOQ / FABRIC switch: no vlan needed
     if (!isCpuPort) {
       if (portItr == concurrentIndices_->portSaiId2PortInfo.cend()) {
-        // TODO: add counter to keep track of spurious rx packet
         XLOG(ERR) << "RX packet had port with unknown sai id: 0x" << std::hex
                   << portSaiId;
         return;
-      } else {
-        swPortId = portItr->second.portID;
-        XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
-                   << " portID: " << swPortId;
       }
+      swPortId = portItr->second.portID;
+      XLOG(DBG6) << "RX packet with sai id: 0x" << std::hex << portSaiId
+                 << " portID: " << swPortId;
     }
   }
 
@@ -4923,7 +4936,7 @@ std::string SaiSwitch::listObjectsLocked(
    */
   bool useAdapterKeysJson =
       platform_->getAsic()->isSupported(HwAsic::Feature::OBJECT_KEY_CACHE);
-#ifndef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
   if (getPlatform()->getAsic()->getAsicType() ==
       cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
     useAdapterKeysJson = false;
@@ -5437,8 +5450,8 @@ HwFlowletStats SaiSwitch::getHwFlowletStats() const {
 }
 
 std::vector<EcmpDetails> SaiSwitch::getAllEcmpDetails() const {
-  // not implemented in SAI. Return empty object
-  return {};
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->nextHopGroupManager().getAllEcmpDetails();
 }
 
 HwSwitchDropStats SaiSwitch::getSwitchDropStats() const {

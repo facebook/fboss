@@ -640,6 +640,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
+  fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
+  fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
+  fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
   fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
@@ -768,6 +771,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h
+  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h
+  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.cpp
+  fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h

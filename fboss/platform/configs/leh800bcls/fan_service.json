@@ -17,9 +17,6 @@
   "sensors": [
     {
       "sensorName": "NETLAKE_U1_CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": -4,

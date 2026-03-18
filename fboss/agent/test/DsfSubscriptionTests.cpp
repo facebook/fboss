@@ -1414,4 +1414,185 @@ TYPED_TEST(DsfSubscriptionTest, GRExpiryProcessedViaQueueDsfUpdate) {
   });
 }
 
+TYPED_TEST(DsfSubscriptionTest, GROverwritesPendingRegularUpdate) {
+  // Test that when a regular update is queued and GR fires before processing,
+  // the GR overwrites the regular update. The GR effects (marking ports STALE)
+  // should be observed, not the regular update's new ports.
+  this->subscription_ = this->createSubscription();
+
+  // First add ports directly so GR has something to mark STALE
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId});
+    auto rifs = makeRifs(sysPorts.get());
+    switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
+  waitForStateUpdates(this->sw_);
+
+  auto sysPortCountBefore = this->getRemoteSystemPorts()->size();
+  auto rifCountBefore = this->getRemoteInterfaces()->size();
+  ASSERT_GT(sysPortCountBefore, 0);
+
+  // Block hwUpdateEvb to prevent processing
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Queue a regular update that would add MORE ports (3 per switch)
+  DsfSubscription::DsfUpdate regularUpdate;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, 3);
+    auto rifs = makeRifs(sysPorts.get());
+    regularUpdate.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    regularUpdate.switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->queueDsfUpdate(std::move(regularUpdate));
+
+  // Fire GR - should overwrite the regular update
+  this->subscription_->processGRHoldTimerExpired();
+
+  // Unblock to process the GR update (the last writer)
+  baton.post();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify GR effects: ports should be STALE, no new ports added
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(), sysPortCountBefore);
+    EXPECT_EVENTUALLY_EQ(this->getRemoteInterfaces()->size(), rifCountBefore);
+    auto remotePorts = this->getRemoteSystemPorts();
+    for (const auto& [_, sysPort] : *remotePorts) {
+      if (sysPort->getRemoteSystemPortType().has_value() &&
+          sysPort->getRemoteSystemPortType().value() ==
+              RemoteSystemPortType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            sysPort->getRemoteLivenessStatus(), LivenessStatus::STALE);
+      }
+    }
+    auto remoteIntfs = this->getRemoteInterfaces();
+    for (const auto& [_, rif] : *remoteIntfs) {
+      if (rif->getRemoteInterfaceType().has_value() &&
+          rif->getRemoteInterfaceType().value() ==
+              RemoteInterfaceType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            rif->getRemoteLivenessStatus(), LivenessStatus::STALE);
+        EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+        EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      }
+    }
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, StopCancelsPendingDsfUpdate) {
+  // Test that stop() cancels a pending update by resetting nextDsfUpdate_.
+  // The lambda on hwUpdateEvb_ should find null and return early.
+  this->subscription_ = this->createSubscription();
+  auto sysPortCountBefore = this->getRemoteSystemPorts()->size();
+
+  // Block hwUpdateEvb to prevent processing
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Queue a regular update that would add ports
+  DsfSubscription::DsfUpdate update;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, 3);
+    auto rifs = makeRifs(sysPorts.get());
+    update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    update.switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->queueDsfUpdate(std::move(update));
+
+  // Verify update is pending
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_NE(*rlock, nullptr);
+  }
+
+  // Stop the subscription - should cancel the pending update
+  this->subscription_->stop();
+
+  // Verify update is cancelled
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_EQ(*rlock, nullptr);
+  }
+
+  // Unblock - the lambda should find null and return early
+  baton.post();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify state unchanged - no new ports added
+  EXPECT_EQ(this->getRemoteSystemPorts()->size(), sysPortCountBefore);
+}
+
+TYPED_TEST(DsfSubscriptionTest, NewUpdateAfterProcessingSchedulesNewLambda) {
+  // After one update is fully processed (nextDsfUpdate_ becomes null),
+  // a new update should schedule a new lambda and be processed correctly.
+  // This verifies the re-scheduling logic in queueDsfUpdate.
+  this->subscription_ = this->createSubscription();
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue first update and let it process
+  queueSysPortUpdate(1);
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify first update was applied
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + this->kNumRemoteSwitchAsics);
+  });
+
+  // Verify nextDsfUpdate_ is null after processing
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_EQ(*rlock, nullptr);
+  }
+
+  // Queue second update - should schedule a NEW lambda since
+  // nextDsfUpdate_ was null
+  queueSysPortUpdate(2);
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify second update was applied
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * 2));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * 2));
+  });
+}
+
 } // namespace facebook::fboss

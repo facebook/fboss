@@ -11,7 +11,6 @@ class ConfigValidator {
   bool isValid(const FanServiceConfig& config);
   bool isValidFanConfig(const Fan& fanConfig);
   bool isValidOpticConfig(const Optic& opticConfig);
-  bool isValidSensorConfig(const Sensor& sensorConfig);
   bool isValidZoneConfig(
       const Zone& zoneConfig,
       const std::vector<Fan>& fanConfigs,

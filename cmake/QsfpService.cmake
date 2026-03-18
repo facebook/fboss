@@ -64,36 +64,6 @@ target_link_libraries(bsp_platform_mapping
   FBThrift::thriftcpp2
 )
 
-add_library(meru400bfu_bsp
-  fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.cpp
-)
-
-target_link_libraries(meru400bfu_bsp
-  bsp_platform_mapping
-  bsp_platform_mapping_cpp2
-  FBThrift::thriftcpp2
-)
-
-add_library(meru400bia_bsp
-  fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.cpp
-)
-
-target_link_libraries(meru400bia_bsp
-  bsp_platform_mapping
-  bsp_platform_mapping_cpp2
-  FBThrift::thriftcpp2
-)
-
-add_library(meru400biu_bsp
-  fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.cpp
-)
-
-target_link_libraries(meru400biu_bsp
-  bsp_platform_mapping
-  bsp_platform_mapping_cpp2
-  FBThrift::thriftcpp2
-)
-
 add_library(meru800bia_bsp
   fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.cpp
 )
@@ -269,9 +239,6 @@ target_link_libraries(qsfp_bsp_core
   i2_api
   i2c_controller_stats_cpp2
   Folly::folly
-  meru400bfu_bsp
-  meru400bia_bsp
-  meru400biu_bsp
   meru800bia_bsp
   meru800bfa_bsp
   montblanc_bsp

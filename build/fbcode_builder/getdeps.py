@@ -1009,9 +1009,18 @@ class EnvCmd(ProjectCmdBase):
 class GenerateGitHubActionsCmd(ProjectCmdBase):
     RUN_ON_ALL = """ [push, pull_request]"""
 
+    WORKFLOW_DISPATCH_TMATE = """
+  workflow_dispatch:
+    inputs:
+      tmate_enabled:
+        description: 'Start a tmate SSH session on failure'
+        required: false
+        default: false
+        type: boolean"""
+
     def run_project_cmd(self, args, loader, manifest):
         platforms = [
-            HostType("linux", "ubuntu", "22"),
+            HostType("linux", "ubuntu", "24"),
             HostType("darwin", None, None),
             HostType("windows", None, None),
         ]
@@ -1023,24 +1032,35 @@ class GenerateGitHubActionsCmd(ProjectCmdBase):
 
     def get_run_on(self, args):
         if args.run_on_all_branches:
-            return self.RUN_ON_ALL
+            return (
+                """
+  push:
+  pull_request:"""
+                + self.WORKFLOW_DISPATCH_TMATE
+            )
         if args.cron:
             if args.cron == "never":
                 return " {}"
             elif args.cron == "workflow_dispatch":
-                return "\n  workflow_dispatch"
+                return self.WORKFLOW_DISPATCH_TMATE
             else:
-                return f"""
+                return (
+                    f"""
   schedule:
     - cron: '{args.cron}'"""
+                    + self.WORKFLOW_DISPATCH_TMATE
+                )
 
-        return f"""
+        return (
+            f"""
   push:
     branches:
     - {args.main_branch}
   pull_request:
     branches:
     - {args.main_branch}"""
+            + self.WORKFLOW_DISPATCH_TMATE
+        )
 
     # TODO: Break up complex function
     def write_job_for_platform(self, platform, args):  # noqa: C901
@@ -1386,6 +1406,12 @@ jobs:
                 out.write("      if: always()\n")
                 out.write("      run: df -h\n")
 
+            out.write("    - name: Setup tmate session\n")
+            out.write(
+                "      if: failure() && github.event_name == 'workflow_dispatch' && inputs.tmate_enabled\n"
+            )
+            out.write("      uses: mxschmitt/action-tmate@v3\n")
+
     def setup_project_cmd_parser(self, parser):
         parser.add_argument(
             "--disallow-system-packages",
@@ -1402,7 +1428,7 @@ jobs:
             help="Allow CI to fire on all branches - Handy for testing",
         )
         parser.add_argument(
-            "--ubuntu-version", default="22.04", help="Version of Ubuntu to use"
+            "--ubuntu-version", default="24.04", help="Version of Ubuntu to use"
         )
         parser.add_argument(
             "--cpu-cores",

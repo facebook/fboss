@@ -168,4 +168,10 @@ service AgentHwTestCtrl {
   );
 
   bool validateFlowSetTable(1: bool expectFlowsetSizeZero);
+
+  bool verifyEcmpForNonFlowlet(
+    1: CIDRNetwork prefix,
+    2: switch_state.SwitchSettingsFields settings,
+    3: bool expectFlowsetFree,
+  );
 }

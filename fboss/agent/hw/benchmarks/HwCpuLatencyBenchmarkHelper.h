@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/packet/EthFrame.h"
@@ -169,9 +170,13 @@ inline CpuLatencyBenchmarkSetup createCpuLatencyEnsemble() {
   auto dstMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
 
-  // Add trap ACL after ensemble creation when programmed state is available
+  // Add DstIP-based trap ACL with TRAP action (DstMac not supported on
+  // Gibraltar/Graphene200).
   auto config = ensemble->getCurrentConfig();
-  utility::addTrapPacketAcl(&config, dstMac);
+  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+  utility::addTrapPacketAcl(
+      asic, &config, folly::CIDRNetwork(kDstIp, 128), cfg::ToCpuAction::TRAP);
+
   ensemble->applyNewConfig(config);
 
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(

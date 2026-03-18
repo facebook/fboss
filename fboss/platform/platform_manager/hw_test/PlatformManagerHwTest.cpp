@@ -108,10 +108,9 @@ class PlatformManagerHwTest : public ::testing::Test {
         std::chrono::system_clock::now() - startTime);
     auto platformName = platformConfig_.platformName().value();
     auto maxSetupTime = PlatformExplorer::kMaxSetupTime;
-    if (platformName == "MORGAN800CC") {
-      maxSetupTime = PlatformExplorer::kMaxSetupTimeMorgan800CC;
-    } else if (platformName == "MERU800BFA" || platformName == "MERU800BIA") {
-      maxSetupTime = PlatformExplorer::kMaxSetupTimeMeru800;
+    if (platformName == "MORGAN800CC" || platformName == "MERU800BFA" ||
+        platformName == "MERU800BIA") {
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeViolaters;
     }
     EXPECT_LE(duration, maxSetupTime) << fmt::format(
         "Exploration time {}s exceeded maximum allowed {}s",

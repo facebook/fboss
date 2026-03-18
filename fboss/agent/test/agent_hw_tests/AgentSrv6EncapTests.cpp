@@ -34,9 +34,15 @@ class AgentSrv6EncapTest : public AgentHwTest {
  protected:
   static constexpr bool kIsTrunk = PortType::isTrunk;
 
-  const folly::IPAddressV6 kSid0{"3001:db8:1:2:3::"};
-  const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
-  const folly::IPAddressV6 kSid2{"3001:db8:7:8:9::"};
+  // All 6 uSids populated
+  static inline const folly::IPAddressV6 kSid0{"3001:db8:1:2:3:4:5:6"};
+  // 3 uSids populated
+  static inline const folly::IPAddressV6 kSid1{"3001:db8:4:5:6::"};
+  static inline const folly::IPAddressV6 kSid2{"3001:db8:7:8:9::"};
+
+  const folly::IPAddressV6 kEncapRoutePrefix{"2800:2::"};
+  static constexpr uint8_t kEncapRoutePrefixLen{64};
+  const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -107,11 +113,13 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
     // IPv6 encap routes (v6 next hops)
     addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:2::"), 64}, {{kSid0}});
+        {kEncapRoutePrefix, kEncapRoutePrefixLen}, {{kSid0}});
     addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:3::"), 64}, {{kSid1}, {kSid2}});
+        {folly::IPAddressV6("2800:3::"), kEncapRoutePrefixLen},
+        {{kSid1}, {kSid2}});
     addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:4::"), 64}, {{kSid1}, {kSid2}});
+        {folly::IPAddressV6("2800:4::"), kEncapRoutePrefixLen},
+        {{kSid1}, {kSid2}});
     // IPv4 encap routes (v4 next hops)
     addEncapRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}});
@@ -165,7 +173,10 @@ class AgentSrv6EncapTest : public AgentHwTest {
       PortID egressPort,
       bool ecnMarked,
       bool isV4 = false,
+      const std::vector<folly::IPAddressV6>& expectedSids = {kSid0},
       std::optional<PortID> injectPort = std::nullopt) {
+    const auto& sids = expectedSids;
+
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
@@ -177,8 +188,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
                              : static_cast<uint8_t>(kTc << 2);
     auto srcIp =
         isV4 ? folly::IPAddress("10.0.0.1") : folly::IPAddress("1::10");
-    auto dstIp =
-        isV4 ? folly::IPAddress("100.0.0.1") : folly::IPAddress("2800:2::1");
+    auto dstIp = isV4 ? folly::IPAddress("100.0.0.1") : kEncapRouteDstIp;
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
@@ -222,8 +232,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
     auto v6Payload = frame.v6PayLoad();
     EXPECT_TRUE(v6Payload.has_value());
     auto v6Hdr = v6Payload->header();
-    // Outer header should have dst addr set to kSid0
-    EXPECT_EQ(v6Hdr.dstAddr, kSid0);
+    // Outer header dst addr should match one of the expected SIDs
+    bool sidMatch = std::any_of(sids.begin(), sids.end(), [&](const auto& sid) {
+      return v6Hdr.dstAddr == sid;
+    });
+    EXPECT_TRUE(sidMatch) << "Outer DA " << v6Hdr.dstAddr
+                          << " does not match any expected SID";
     // Flow label must be non 0
     EXPECT_NE(v6Hdr.flowLabel, 0);
     // FIXME: ECN bits in outer header are only propagated for v6-in-v6 encap
@@ -254,15 +268,17 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
   }
 
-  void verifyEncapPacketCpuAndFrontPanel(PortID egressPort) {
+  void verifyEncapPacketCpuAndFrontPanel(
+      PortID egressPort,
+      const std::vector<folly::IPAddressV6>& expectedSids = {kSid0}) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
       // ECN not marked
-      verifyEncapPacket(egressPort, false, isV4);
-      verifyEncapPacket(egressPort, false, isV4, injectPort);
+      verifyEncapPacket(egressPort, false, isV4, expectedSids);
+      verifyEncapPacket(egressPort, false, isV4, expectedSids, injectPort);
       // ECN marked
-      verifyEncapPacket(egressPort, true, isV4);
-      verifyEncapPacket(egressPort, true, isV4, injectPort);
+      verifyEncapPacket(egressPort, true, isV4, expectedSids);
+      verifyEncapPacket(egressPort, true, isV4, expectedSids, injectPort);
     }
   }
 

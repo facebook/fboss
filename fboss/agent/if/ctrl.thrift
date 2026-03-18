@@ -928,12 +928,20 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * This injects the packet into the controller, as if it had been received
    * from a front-panel port.
    */
-  void sendPkt(1: i32 port, 2: i32 vlan, 3: fbbinary data) throws (
-    1: fboss.FbossBaseError error,
-  );
-  void sendPktHex(1: i32 port, 2: i32 vlan, 3: fbstring hex) throws (
-    1: fboss.FbossBaseError error,
-  );
+  void sendPkt(
+    1: i32 port,
+    2: i32 vlan,
+    3: fbbinary data,
+    4: i32 numOfPkts = 1,
+    5: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
+  void sendPktHex(
+    1: i32 port,
+    2: i32 vlan,
+    3: fbstring hex,
+    4: i32 numOfPkts = 1,
+    5: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit a packet out a specific front panel port.
@@ -944,9 +952,12 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * packet actually sent by the hardware, based on the hardware VLAN tagging
    * configuration for this VLAN+port.)
    */
-  void txPkt(1: i32 port, 2: fbbinary data) throws (
-    1: fboss.FbossBaseError error,
-  );
+  void txPkt(
+    1: i32 port,
+    2: fbbinary data,
+    3: i32 numOfPkts = 1,
+    4: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit a packet out to a specific VLAN.
@@ -960,7 +971,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * packet actually sent by the hardware, based on the hardware VLAN tagging
    * configuration for this VLAN.)
    */
-  void txPktL2(1: fbbinary data) throws (1: fboss.FbossBaseError error);
+  void txPktL2(
+    1: fbbinary data,
+    2: i32 numOfPkts = 1,
+    3: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit an L3 packet.
@@ -969,7 +984,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * The controller will add an appropriate ethernet frame header.  It will
    * contain the correct next hop information based on the layer 3 header.
    */
-  void txPktL3(1: fbbinary payload) throws (1: fboss.FbossBaseError error);
+  void txPktL3(
+    1: fbbinary payload,
+    2: i32 numOfPkts = 1,
+    3: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Flush the ARP/NDP entry with the specified IP address.

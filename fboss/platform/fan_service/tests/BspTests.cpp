@@ -17,36 +17,11 @@
 using namespace facebook::fboss::platform::fan_service;
 using facebook::fboss::FbossError;
 
-class BspTest : public ::testing::Test {
-  static auto constexpr kSensorName = "sensor";
-
- protected:
-  FanServiceConfig makeConfig(AccessMethod accessMethod) const {
-    auto config = FanServiceConfig{};
-    Sensor sensor;
-    sensor.sensorName() = kSensorName;
-    sensor.access() = accessMethod;
-    config.sensors()->push_back(sensor);
-    return config;
-  }
-};
-
-TEST_F(BspTest, getSensorMethodUnset) {
-  auto bsp = Bsp(makeConfig({}));
-  EXPECT_THROW(bsp.getSensorData(std::make_shared<SensorData>()), FbossError);
-}
-
-TEST_F(BspTest, emergencyShutdownUndefinedCmdThrows) {
-  auto config = FanServiceConfig{};
-  config.shutdownCmd() = "NOT_DEFINED";
-  auto bsp = Bsp(config);
-  EXPECT_THROW(bsp.emergencyShutdown(true), FbossError);
-}
+class BspTest : public ::testing::Test {};
 
 TEST_F(BspTest, emergencyShutdownIdempotent) {
   auto config = FanServiceConfig{};
-  config.shutdownCmd() = "NOT_DEFINED";
   auto bsp = Bsp(config);
-  // First call with enable=false should be a no-op (no throw)
+  // Call with enable=false should be a no-op (no throw)
   EXPECT_NO_THROW(bsp.emergencyShutdown(false));
 }

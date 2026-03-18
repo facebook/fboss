@@ -113,7 +113,6 @@ thrift_library(
         ":mpls",
         "//common/network/if:if",
         "//thrift/annotation:cpp",
-        "//thrift/annotation:scope",
         "//thrift/annotation:thrift",
     ],
 )

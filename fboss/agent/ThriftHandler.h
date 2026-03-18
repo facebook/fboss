@@ -130,14 +130,32 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     return sw_;
   }
 
-  void sendPkt(int32_t port, int32_t vlan, std::unique_ptr<fbstring> data)
-      override;
-  void sendPktHex(int32_t port, int32_t vlan, std::unique_ptr<fbstring> hex)
-      override;
+  void sendPkt(
+      int32_t port,
+      int32_t vlan,
+      std::unique_ptr<fbstring> data,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
+  void sendPktHex(
+      int32_t port,
+      int32_t vlan,
+      std::unique_ptr<fbstring> hex,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
 
-  void txPkt(int32_t port, std::unique_ptr<fbstring> data) override;
-  void txPktL2(std::unique_ptr<fbstring> data) override;
-  void txPktL3(std::unique_ptr<fbstring> payload) override;
+  void txPkt(
+      int32_t port,
+      std::unique_ptr<fbstring> data,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
+  void txPktL2(
+      std::unique_ptr<fbstring> data,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
+  void txPktL3(
+      std::unique_ptr<fbstring> payload,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
 
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip, int32_t vlan)
       override;

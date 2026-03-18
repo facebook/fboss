@@ -75,6 +75,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <memory>
+#include <thread>
 
 #include <limits>
 
@@ -2247,56 +2248,121 @@ void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
 void ThriftHandler::sendPkt(
     int32_t port,
     int32_t vlan,
-    unique_ptr<fbstring> data) {
+    unique_ptr<fbstring> data,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
-  auto buf = IOBuf::copyBuffer(
-      reinterpret_cast<const uint8_t*>(data->data()), data->size());
-  auto pkt = make_unique<MockRxPacket>(std::move(buf));
-  pkt->setSrcPort(PortID(port));
-  pkt->setSrcVlan(VlanID(vlan));
-  sw_->packetReceived(std::move(pkt));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    auto buf = IOBuf::copyBuffer(
+        reinterpret_cast<const uint8_t*>(data->data()), data->size());
+    auto pkt = make_unique<MockRxPacket>(std::move(buf));
+    pkt->setSrcPort(PortID(port));
+    pkt->setSrcVlan(VlanID(vlan));
+    sw_->packetReceived(std::move(pkt));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
 void ThriftHandler::sendPktHex(
     int32_t port,
     int32_t vlan,
-    unique_ptr<fbstring> hex) {
+    unique_ptr<fbstring> hex,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
-  auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
-  pkt->setSrcPort(PortID(port));
-  pkt->setSrcVlan(VlanID(vlan));
-  sw_->packetReceived(std::move(pkt));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
+    pkt->setSrcPort(PortID(port));
+    pkt->setSrcVlan(VlanID(vlan));
+    sw_->packetReceived(std::move(pkt));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
-void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
+void ThriftHandler::txPkt(
+    int32_t port,
+    unique_ptr<fbstring> data,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
-  unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
-  RWPrivateCursor cursor(pkt->buf());
-  cursor.push(StringPiece(*data));
-
-  sw_->sendPacketOutOfPortAsync(std::move(pkt), PortID(port));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    unique_ptr<TxPacket> pkt =
+        sw_->allocatePacket(static_cast<uint32_t>(data->size()));
+    RWPrivateCursor cursor(pkt->buf());
+    cursor.push(StringPiece(*data));
+    sw_->sendPacketOutOfPortAsync(std::move(pkt), PortID(port));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
-void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
+void ThriftHandler::txPktL2(
+    unique_ptr<fbstring> data,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
-  unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
-  RWPrivateCursor cursor(pkt->buf());
-  cursor.push(StringPiece(*data));
-
-  sw_->sendPacketSwitchedAsync(std::move(pkt));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    unique_ptr<TxPacket> pkt =
+        sw_->allocatePacket(static_cast<uint32_t>(data->size()));
+    RWPrivateCursor cursor(pkt->buf());
+    cursor.push(StringPiece(*data));
+    sw_->sendPacketSwitchedAsync(std::move(pkt));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
-void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
+void ThriftHandler::txPktL3(
+    unique_ptr<fbstring> payload,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
-  // Use any configured interface
   const auto interfaceMap = sw_->getState()->getInterfaces();
   if (interfaceMap->numNodes() == 0) {
     throw FbossError("No interface configured");
@@ -2312,12 +2378,25 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   }
   CHECK(intfID.has_value());
 
-  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(
-      payload->size(), (type == cfg::InterfaceType::VLAN));
-  RWPrivateCursor cursor(pkt->buf());
-  cursor.push(StringPiece(*payload));
-
-  sw_->sendL3Packet(std::move(pkt), *intfID);
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(
+        static_cast<uint32_t>(payload->size()),
+        (type == cfg::InterfaceType::VLAN));
+    RWPrivateCursor cursor(pkt->buf());
+    cursor.push(StringPiece(*payload));
+    sw_->sendL3Packet(std::move(pkt), *intfID);
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {

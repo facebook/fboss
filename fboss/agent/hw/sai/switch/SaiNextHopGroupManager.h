@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -273,6 +274,8 @@ class SaiNextHopGroupManager {
 
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
+
+  std::vector<EcmpDetails> getAllEcmpDetails() const;
 
  private:
   bool isFixedWidthNextHopGroup(

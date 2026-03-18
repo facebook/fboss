@@ -77,6 +77,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -159,6 +165,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -370,6 +382,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -449,6 +467,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -669,6 +693,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -751,6 +781,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -881,6 +917,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -954,6 +996,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1189,6 +1237,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -1271,6 +1325,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1545,6 +1605,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1624,6 +1690,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1859,6 +1931,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -1941,6 +2019,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2062,6 +2146,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -2141,6 +2231,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2313,6 +2409,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2395,6 +2497,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2542,6 +2650,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2624,6 +2738,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2760,6 +2880,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -2839,6 +2965,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3014,6 +3146,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3096,6 +3234,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3246,6 +3390,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3328,6 +3478,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3518,6 +3674,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -3597,6 +3759,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3892,6 +4060,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3974,6 +4148,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4200,6 +4380,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -4279,6 +4465,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4448,6 +4640,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -4527,6 +4725,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4708,6 +4912,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -4790,6 +5000,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4932,6 +5148,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5014,6 +5236,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5186,6 +5414,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5268,6 +5502,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5404,6 +5644,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5486,6 +5732,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5622,6 +5874,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5704,6 +5962,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5834,6 +6098,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -5907,6 +6177,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6136,6 +6412,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6218,6 +6500,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6489,6 +6777,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -6568,6 +6862,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6797,6 +7097,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6879,6 +7185,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7048,6 +7360,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -7127,6 +7445,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7416,6 +7740,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -7498,6 +7828,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7718,6 +8054,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -7797,6 +8139,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7969,6 +8317,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -8048,6 +8402,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8232,6 +8592,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8314,6 +8680,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8459,6 +8831,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8541,6 +8919,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8716,6 +9100,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8798,6 +9188,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8937,6 +9333,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9019,6 +9421,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9155,6 +9563,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9237,6 +9651,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9367,6 +9787,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -9440,6 +9866,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9669,6 +10101,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9751,6 +10189,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10022,6 +10466,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10101,6 +10551,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10330,6 +10786,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -10412,6 +10874,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10581,6 +11049,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10660,6 +11134,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10949,6 +11429,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -11031,6 +11517,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11305,6 +11797,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -11384,6 +11882,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11673,6 +12177,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -11755,6 +12265,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11975,6 +12491,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -12054,6 +12576,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12226,6 +12754,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -12305,6 +12839,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12486,6 +13026,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -12565,6 +13111,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12740,6 +13292,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -12822,6 +13380,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12967,6 +13531,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13049,6 +13619,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13224,6 +13800,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13306,6 +13888,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13445,6 +14033,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13527,6 +14121,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13663,6 +14263,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13745,6 +14351,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13935,6 +14547,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -14014,6 +14632,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -14312,6 +14936,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -14394,6 +15024,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -14677,6 +15313,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -14756,6 +15398,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15054,6 +15702,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -15136,6 +15790,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15419,6 +16079,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -15498,6 +16164,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15730,6 +16402,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -15812,6 +16490,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15954,6 +16638,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -16027,6 +16717,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16271,6 +16967,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -16353,6 +17055,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16639,6 +17347,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -16718,6 +17432,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16989,6 +17709,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -17071,6 +17797,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -17611,6 +18343,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -17880,6 +18618,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -18108,6 +18852,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -18344,6 +19094,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -18594,6 +19350,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -18839,6 +19601,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -18925,6 +19693,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -19006,6 +19780,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -19142,6 +19922,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -19271,6 +20057,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -19470,6 +20262,12 @@
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
         },
         {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -19662,6 +20460,12 @@
         },
         {
           "test_name_regex": "roundtrip.trunk_2_preprod_2_trunk.warm_boot_for_warm_boot.0.AgentEmptyTest.CheckInit.AgentIngressBufferTest.*$"
+        },
+        {
+          "test_name_regex": "AgentTrunkTest.TrunkPortStats$"
+        },
+        {
+          "test_name_regex": "warm_boot.AgentPacketStreamHandlerTest.VerifySinkToStreamLoopback$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"

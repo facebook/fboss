@@ -54,6 +54,21 @@ const SaiSrv6SidListHandle* SaiSrv6Manager::getSrv6SidListHandle(
   return srv6SidLists_.get(adapterHostKey);
 }
 
+void SaiSrv6Manager::addMySidEntry(const std::shared_ptr<MySid>& /*mySid*/) {
+  // TODO: implement
+}
+
+void SaiSrv6Manager::removeMySidEntry(const std::shared_ptr<MySid>& /*mySid*/) {
+  // TODO: implement
+}
+
+void SaiSrv6Manager::changeMySidEntry(
+    const std::shared_ptr<MySid>& oldMySid,
+    const std::shared_ptr<MySid>& newMySid) {
+  removeMySidEntry(oldMySid);
+  addMySidEntry(newMySid);
+}
+
 std::pair<
     SaiSrv6SidListTraits::AdapterHostKey,
     SaiSrv6SidListTraits::CreateAttributes>

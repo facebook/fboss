@@ -48,9 +48,6 @@
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -1285,17 +1282,8 @@ DOMDataUnion getDOMDataUnionI2CBus(
 
   auto cfgPtr = i2cInfo.transceiverManager->getTransceiverConfig();
 
-  // On these platforms, we are configuring the 200G optics in 2x50G
-  // experimental mode. Thus 2 of the 4 lanes remain disabled which kicks in the
-  // remediation logic and flaps the other 2 ports. Disabling remediation for
-  // just these 2 platforms as this is an experimental mode only
   bool cmisSupportRemediate = true;
   auto tcvrMgr = i2cInfo.transceiverManager;
-  if (tcvrMgr->getPlatformType() == PlatformType::PLATFORM_MERU400BIU ||
-      tcvrMgr->getPlatformType() == PlatformType::PLATFORM_MERU400BFU) {
-    cmisSupportRemediate = false;
-  }
-
   auto tcvrID = TransceiverID(qsfpImpl->getNum());
   if (mgmtInterface == TransceiverManagementInterface::CMIS) {
     auto cmisModule = std::make_unique<CmisModule>(
@@ -4577,24 +4565,6 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
       return std::make_pair(std::make_unique<WedgeI2CBus>(), 0);
     } else if (FLAGS_platform == "wedge400c") {
       return std::make_pair(std::make_unique<Wedge400I2CBus>(), 0);
-    } else if (FLAGS_platform == "meru400bfu") {
-      auto systemContainer =
-          BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
-              .get();
-      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
-      return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "meru400bia") {
-      auto systemContainer =
-          BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
-              .get();
-      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
-      return std::make_pair(std::move(ioBus), 0);
-    } else if (FLAGS_platform == "meru400biu") {
-      auto systemContainer =
-          BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
-              .get();
-      auto ioBus = std::make_unique<BspIOBus>(systemContainer);
-      return std::make_pair(std::move(ioBus), 0);
     } else if (
         FLAGS_platform == "meru800bia" || FLAGS_platform == "meru800biab" ||
         FLAGS_platform == "meru800biac") {
@@ -4700,24 +4670,6 @@ std::pair<std::unique_ptr<TransceiverI2CApi>, int> getTransceiverAPI() {
   auto mode = productInfo->getType();
   if (mode == PlatformType::PLATFORM_WEDGE100) {
     return std::make_pair(std::make_unique<Wedge100I2CBus>(), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU400BFU) {
-    auto systemContainer =
-        BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
-            .get();
-    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
-    return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
-    auto systemContainer =
-        BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
-            .get();
-    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
-    return std::make_pair(std::move(ioBus), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
-    auto systemContainer =
-        BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
-            .get();
-    auto ioBus = std::make_unique<BspIOBus>(systemContainer);
-    return std::make_pair(std::move(ioBus), 0);
   } else if (
       mode == PlatformType::PLATFORM_MERU800BIA ||
       mode == PlatformType::PLATFORM_MERU800BIAB ||
@@ -4847,10 +4799,6 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
       mode = PlatformType::PLATFORM_WEDGE400;
     } else if (FLAGS_platform == "darwin") {
       mode = PlatformType::PLATFORM_DARWIN;
-    } else if (FLAGS_platform == "meru400bfu") {
-      mode = PlatformType::PLATFORM_MERU400BFU;
-    } else if (FLAGS_platform == "meru400biu") {
-      mode = PlatformType::PLATFORM_MERU400BIU;
     } else if (FLAGS_platform == "montblanc") {
       mode = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_platform == "minipack3n") {
@@ -4888,26 +4836,7 @@ getTransceiverPlatformAPI(TransceiverI2CApi* i2cBus) {
     mode = productInfo->getType();
   }
 
-  if (mode == PlatformType::PLATFORM_MERU400BFU) {
-    auto systemContainer =
-        BspGenericSystemContainer<Meru400bfuBspPlatformMapping>::getInstance()
-            .get();
-    return std::make_pair(
-        std::make_unique<BspTransceiverApi>(systemContainer), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU400BIA) {
-    auto systemContainer =
-        BspGenericSystemContainer<Meru400biaBspPlatformMapping>::getInstance()
-            .get();
-    return std::make_pair(
-        std::make_unique<BspTransceiverApi>(systemContainer), 0);
-  } else if (mode == PlatformType::PLATFORM_MERU400BIU) {
-    auto systemContainer =
-        BspGenericSystemContainer<Meru400biuBspPlatformMapping>::getInstance()
-            .get();
-    return std::make_pair(
-        std::make_unique<BspTransceiverApi>(systemContainer), 0);
-  } else if (
-      mode == PlatformType::PLATFORM_MERU800BIA ||
+  if (mode == PlatformType::PLATFORM_MERU800BIA ||
       mode == PlatformType::PLATFORM_MERU800BIAB ||
       mode == PlatformType::PLATFORM_MERU800BIAC) {
     auto systemContainer =

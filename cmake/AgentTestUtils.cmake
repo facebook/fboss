@@ -573,3 +573,17 @@ target_link_libraries(neighbor_test_utils
   core
   state
 )
+
+add_library(tunnel_mgr_test_utils
+  fboss/agent/test/utils/TunnelMgrTestUtils.cpp
+)
+
+target_link_libraries(tunnel_mgr_test_utils
+  core
+  fboss_types
+  state
+  switch_config_cpp2
+  utils
+  Folly::folly
+  ${GTEST}
+)

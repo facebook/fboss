@@ -30,6 +30,8 @@ DEFINE_bool(
     false,
     "For subscribing to qsfp state and stats from FSDB");
 
+namespace {} // namespace
+
 namespace facebook::fboss::platform::fan_service {
 
 Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
@@ -51,40 +53,29 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
-  bool fetchOverThrift = false;
-  bool fetchFromFsdb = false;
-
-  for (const auto& sensor : *config_.sensors()) {
-    auto sensorAccessType = *sensor.access()->accessType();
-    if (sensorAccessType == constants::ACCESS_TYPE_THRIFT()) {
-      if (FLAGS_subscribe_to_stats_from_fsdb) {
-        fetchFromFsdb = true;
-      } else {
-        fetchOverThrift = true;
-      }
-    } else {
-      throw facebook::fboss::FbossError(
-          "Invalid way for fetching sensor data!");
-    }
-  }
-
-  if (fetchOverThrift) {
-    getSensorDataThrift(pSensorData);
-  }
-
-  if (fetchFromFsdb) {
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
-    for (const auto& [sensorName, sensorData] : subscribedData) {
-      // Skip adding an entry for this sensor if either the value or timestamp
-      // fields are not set
-      if (sensorData.value().has_value() &&
-          sensorData.timeStamp().has_value()) {
-        pSensorData->updateSensorEntry(
-            *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+    bool fallbackToThrift =
+        subscribedData.empty() || fsdbSensorSubscriber_->isSensorDataStale();
+    if (fallbackToThrift) {
+      XLOG(WARNING) << "FSDB sensor data is empty or stale, falling back to "
+                       "thrift from sensor_service";
+      fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 1);
+      getSensorDataThrift(pSensorData);
+    } else {
+      fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 0);
+      for (const auto& [sensorName, sensorData] : subscribedData) {
+        if (sensorData.value().has_value() &&
+            sensorData.timeStamp().has_value()) {
+          pSensorData->updateSensorEntry(
+              *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+        }
       }
+      XLOG(INFO) << fmt::format(
+          "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
     }
-    XLOG(INFO) << fmt::format(
-        "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
+  } else {
+    getSensorDataThrift(pSensorData);
   }
 
   if (!initialSensorDataRead_) {
@@ -99,14 +90,13 @@ int Bsp::emergencyShutdown(bool enable) {
   int rc = 0;
   bool currentState = getEmergencyState();
   if (enable && !currentState) {
-    if (*config_.shutdownCmd() == "NOT_DEFINED") {
-      throw facebook::fboss::FbossError(
-          "Emergency Shutdown Was Called But Not Defined!");
-    } else {
-      auto [exitStatus, standardOut] =
-          PlatformUtils().execCommand(*config_.shutdownCmd());
-      rc = exitStatus;
+    if (config_.shutdownCmd()->empty()) {
+      XLOG(ERR) << "Emergency shutdown called but shutdownCmd is empty!";
+      return -1;
     }
+    auto [exitStatus, standardOut] =
+        PlatformUtils().execCommand(*config_.shutdownCmd());
+    rc = exitStatus;
     setEmergencyState(enable);
   }
   return rc;
@@ -184,17 +174,9 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
     }
 
     float temp = static_cast<float>(*(tcvrStats.sensor()->temp()->value()));
-    // In the following two cases, do not process the entries and move on
-    // 1. temperature from QSFP service is 0.0 - meaning the port is
-    //    not populated in qsfp_service or read failure occured. So skip this.
-    // 2. Config file specified the port entries we care, but this port
-    //    does not belong to the ports we care.
-    if (((temp == 0.0)) ||
-        ((!opticsGroup.portList()->empty()) &&
-         (std::find(
-              opticsGroup.portList()->begin(),
-              opticsGroup.portList()->end(),
-              xvrId) != opticsGroup.portList()->end()))) {
+    // Skip entries where temperature is 0.0 - meaning the port is
+    // not populated in qsfp_service or read failure occured.
+    if (temp == 0.0) {
       continue;
     }
 
@@ -265,7 +247,7 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
   return data;
 }
 
-void Bsp::getOpticsDataFromQsfpSvc(
+void Bsp::getOpticData(
     const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   std::map<int32_t, TransceiverInfo> transceiverInfoMap{};
@@ -332,20 +314,12 @@ void Bsp::getOpticsDataFromQsfpSvc(
 
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   for (const auto& optic : *config_.optics()) {
-    auto accessType = *optic.access()->accessType();
-    if (accessType == constants::ACCESS_TYPE_QSFP() ||
-        accessType == constants::ACCESS_TYPE_THRIFT()) {
-      getOpticsDataFromQsfpSvc(optic, pSensorData);
-    } else {
-      throw facebook::fboss::FbossError(
-          "Invalid way for fetching optics temperature!");
-    }
+    getOpticData(optic, pSensorData);
   }
 }
 
 void Bsp::getAsicTempData(const std::shared_ptr<SensorData>& pSensorData) {
-  bool useFsdb = FLAGS_subscribe_to_stats_from_fsdb ? true : false;
-  if (useFsdb) {
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
     getAsicTempThroughFsdb(pSensorData);
   } else {
     getAsicTempDataOverThrift(pSensorData);
@@ -410,10 +384,15 @@ void Bsp::setEmergencyState(bool state) {
 }
 
 void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
-  auto sensorReadResponse =
-      getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+  sensor_service::SensorReadResponse sensorReadResponse;
+  try {
+    sensorReadResponse =
+        getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get sensor data from sensor_service: " << e.what();
+    return;
+  }
   for (auto& sensorData : *sensorReadResponse.sensorData()) {
-    // Value and Timestamp are not set for failed sensors. Skip them
     if (sensorData.value() && sensorData.timeStamp()) {
       pSensorData->updateSensorEntry(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());

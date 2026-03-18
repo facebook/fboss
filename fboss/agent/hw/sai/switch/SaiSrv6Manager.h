@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/lib/RefMap.h"
 
@@ -94,6 +95,12 @@ class SaiSrv6Manager {
 
   const SaiSrv6SidListHandle* getSrv6SidListHandle(
       const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey) const;
+
+  void addMySidEntry(const std::shared_ptr<MySid>& mySid);
+  void removeMySidEntry(const std::shared_ptr<MySid>& mySid);
+  void changeMySidEntry(
+      const std::shared_ptr<MySid>& oldMySid,
+      const std::shared_ptr<MySid>& newMySid);
 #endif
 
  private:

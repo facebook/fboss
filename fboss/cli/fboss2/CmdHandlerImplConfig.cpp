@@ -21,6 +21,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h"
+#include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
@@ -86,6 +87,8 @@
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h"
+#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -108,6 +111,9 @@ template void CmdHandler<
     CmdConfigInterfaceDescriptionTraits>::run();
 template void
 CmdHandler<CmdConfigInterfaceMtu, CmdConfigInterfaceMtuTraits>::run();
+template void CmdHandler<
+    CmdConfigInterfacePfcConfig,
+    CmdConfigInterfacePfcConfigTraits>::run();
 template void CmdHandler<
     CmdConfigInterfaceSwitchport,
     CmdConfigInterfaceSwitchportTraits>::run();
@@ -142,6 +148,11 @@ template void CmdHandler<
 template void CmdHandler<
     CmdConfigQosPriorityGroupPolicyGroupId,
     CmdConfigQosPriorityGroupPolicyGroupIdTraits>::run();
+template void
+CmdHandler<CmdConfigQosQueuingPolicy, CmdConfigQosQueuingPolicyTraits>::run();
+template void CmdHandler<
+    CmdConfigQosQueuingPolicyQueueId,
+    CmdConfigQosQueuingPolicyQueueIdTraits>::run();
 
 // BGP config commands
 template void CmdHandler<CmdConfigProtocol, CmdConfigProtocolTraits>::run();

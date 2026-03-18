@@ -1728,7 +1728,7 @@ if __name__ == "__main__":
         help=(
             "run tests with specified qsfp config with the absolute path e.g. "
             + OPT_ARG_QSFP_CONFIG_FILE
-            + "=/opt/fboss/share/qsfp_test_configs/meru400bfu.materialized_JSON"
+            + "=/opt/fboss/share/qsfp_test_configs/meru800bia.materialized_JSON"
         ),
     )
     ap.add_argument(
@@ -1850,7 +1850,7 @@ if __name__ == "__main__":
         help=(
             "run tests with specified fsdb config with the absolute path e.g. "
             + OPT_ARG_FSDB_CONFIG_FILE
-            + "=/opt/fboss/share/fsdb_test_configs/meru400bfu.materialized_JSON"
+            + "=/opt/fboss/share/fsdb_test_configs/meru800bia.materialized_JSON"
         ),
         default=None,
     )
