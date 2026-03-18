@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fb303/ServiceData.h>
 #include <folly/Subprocess.h>
 #include <gtest/gtest.h>
 
@@ -36,22 +37,22 @@ const std::vector<std::string> kRestartSensorSvc = {
     "sensor_service_for_testing"};
 
 void stopFsdbService() {
-  XLOG(DBG2) << "Stopping FSDB Service";
+  XLOG(INFO) << "Stopping FSDB Service";
   folly::Subprocess(kStopFsdb).waitChecked();
 }
 
 void startFsdbService() {
-  XLOG(DBG2) << "Starting FSDB Service";
+  XLOG(INFO) << "Starting FSDB Service";
   folly::Subprocess(kStartFsdb).waitChecked();
 }
 
 void restartFsdbService() {
-  XLOG(DBG2) << "Restarting FSDB Service";
+  XLOG(INFO) << "Restarting FSDB Service";
   folly::Subprocess(kRestartFsdb).waitChecked();
 }
 
 void restartSensorService() {
-  XLOG(DBG2) << "Restarting Sensor Service";
+  XLOG(INFO) << "Restarting Sensor Service";
   folly::Subprocess(kRestartSensorSvc).waitChecked();
 }
 
@@ -88,139 +89,173 @@ class FanSensorFsdbIntegrationTests : public ::testing::Test {
 namespace facebook::fboss::platform::fan_service {
 
 TEST_F(FanSensorFsdbIntegrationTests, sensorUpdate) {
-  SensorData prevSensorData;
-  uint64_t beforeLastFetchTime;
+  SensorData initialSensorData;
 
   // Get the sensor data separately from sensor service via thrift. Expect the
   // same sensors to be available in the fan service cache later. This would
   // confirm that the sensor service publishes its sensors to fsdb and the fan
   // service correctly subscribes to those sensors from fsdb
-  std::shared_ptr<SensorData> thriftSensorData = std::make_shared<SensorData>();
-  controlLogic_->getSensorDataThrift(thriftSensorData);
+  auto referenceSensorData = std::make_shared<SensorData>();
+  controlLogic_->getSensorDataThrift(referenceSensorData);
   // Expect non-zero sensors
-  ASSERT_TRUE(thriftSensorData->getSensorEntries().size());
+  ASSERT_TRUE(referenceSensorData->getSensorEntries().size());
 
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
     // Kick off the control fan logic, which will try to fetch the sensor
     // data from sensor_service
     controlLogic_->controlFan();
-    beforeLastFetchTime = controlLogic_->lastSensorFetchTimeSec();
-    prevSensorData = controlLogic_->sensorData();
+    initialSensorData = controlLogic_->sensorData();
     // Confirm that the fan service received the same sensors from fsdb as
     // returned by sensor service via thrift
     ASSERT_EVENTUALLY_TRUE(
-        prevSensorData.getSensorEntries().size() >=
-        thriftSensorData->getSensorEntries().size());
+        initialSensorData.getSensorEntries().size() >=
+        referenceSensorData->getSensorEntries().size());
     for (const auto& [sensorName, sensorEntry] :
-         thriftSensorData->getSensorEntries()) {
-      ASSERT_TRUE(prevSensorData.getSensorEntry(sensorName));
+         referenceSensorData->getSensorEntries()) {
+      ASSERT_TRUE(initialSensorData.getSensorEntry(sensorName));
     }
   });
 
-  // Fetch the sensor data again and expect the timestamps to advance
+  // Fetch the sensor data again and expect sensor timestamps to advance
   WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
     controlLogic_->controlFan();
-    auto currSensorData = controlLogic_->sensorData();
-    auto afterLastFetchTime = controlLogic_->lastSensorFetchTimeSec();
-    ASSERT_EVENTUALLY_TRUE(afterLastFetchTime > beforeLastFetchTime);
+    auto latestSensorData = controlLogic_->sensorData();
     ASSERT_EVENTUALLY_TRUE(
-        currSensorData.getSensorEntries().size() ==
-        prevSensorData.getSensorEntries().size());
-    for (const auto& [sensorName, prevSensorEntry] :
-         prevSensorData.getSensorEntries()) {
-      auto currSensorEntry = currSensorData.getSensorEntry(sensorName);
-      ASSERT_TRUE(currSensorEntry);
+        latestSensorData.getSensorEntries().size() ==
+        initialSensorData.getSensorEntries().size());
+    int sensorsWithUpdatedTimestamps = 0;
+    for (const auto& [sensorName, initialEntry] :
+         initialSensorData.getSensorEntries()) {
+      auto latestEntry = latestSensorData.getSensorEntry(sensorName);
+      ASSERT_TRUE(latestEntry);
       XLOG(INFO) << "Sensor: " << sensorName
-                 << ". Previous timestamp: " << prevSensorEntry.lastUpdated
-                 << ", Current timestamp: " << currSensorEntry->lastUpdated;
+                 << ". Initial timestamp: " << initialEntry.lastUpdated
+                 << ", Current timestamp: " << latestEntry->lastUpdated;
       // The timestamps should advance. Sometimes the timestamps are 0 for
       // some sensors returned by sensor data, so add a special check for
       // that too
-      ASSERT_EVENTUALLY_TRUE(
-          (currSensorEntry->lastUpdated > prevSensorEntry.lastUpdated) ||
-          (currSensorEntry->lastUpdated == 0 &&
-           prevSensorEntry.lastUpdated == 0));
+      if (latestEntry->lastUpdated > initialEntry.lastUpdated ||
+          (latestEntry->lastUpdated == 0 && initialEntry.lastUpdated == 0)) {
+        sensorsWithUpdatedTimestamps++;
+      }
     }
+    // All sensors should have updated timestamps (or both be 0)
+    ASSERT_EVENTUALLY_EQ(
+        sensorsWithUpdatedTimestamps,
+        initialSensorData.getSensorEntries().size());
   });
 }
 
-// Verifies sensor data is synced correctly after a fsdb restart
+// Verifies sensor data is synced correctly after a fsdb restart and that
+// thrift fallback kicks in when FSDB is unavailable
 TEST_F(FanSensorFsdbIntegrationTests, fsdbRestart) {
-  SensorData prevSensorData;
-  uint64_t prevLastFetchTime;
+  SensorData initialFsdbSensorData;
 
   // Fetch the sensor data from sensor_service over thrift. This way we know
   // which sensors were explicitly published by sensor service
-  std::shared_ptr<SensorData> thriftSensorData = std::make_shared<SensorData>();
-  controlLogic_->getSensorDataThrift(thriftSensorData);
+  auto referenceSensorData = std::make_shared<SensorData>();
+  controlLogic_->getSensorDataThrift(referenceSensorData);
   // Expect non-zero sensors
-  ASSERT_TRUE(thriftSensorData->getSensorEntries().size());
+  ASSERT_TRUE(referenceSensorData->getSensorEntries().size());
 
-  // Allow time for fan_service to warm up and sync all the sensor data from
-  // fsdb. We should expect to sync all the sensors that were received from
-  // thrift earlier
-  WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
+  XLOG(INFO) << "Waiting for FSDB data to become available (2 minutes)";
+  // Verify we are getting sensor data from fsdb.
+  WITH_RETRIES_N_TIMED(12, std::chrono::seconds(10), {
     controlLogic_->controlFan();
-    prevLastFetchTime = controlLogic_->lastSensorFetchTimeSec();
-    prevSensorData = controlLogic_->sensorData();
-    // Confirm that the fan service received the same sensors from fsdb as
-    // returned by sensor service via thrift
-    ASSERT_EVENTUALLY_TRUE(
-        prevSensorData.getSensorEntries().size() >=
-        thriftSensorData->getSensorEntries().size());
-    for (const auto& [sensorName, sensorEntry] :
-         thriftSensorData->getSensorEntries()) {
-      ASSERT_TRUE(prevSensorData.getSensorEntry(sensorName));
-    }
+    initialFsdbSensorData = controlLogic_->sensorData();
+    auto thriftFallbackCounter =
+        fb303::fbData->getCounter(kFsdbSensorDataThriftFallback);
+    ASSERT_EVENTUALLY_EQ(thriftFallbackCounter, 0)
+        << "Should be getting sensor data from FSDB, not thrift fallback";
   });
+
+  XLOG(INFO) << "Verifying sensor data from FSDB";
+  // Verify the content we received from fsdb.
+  ASSERT_TRUE(initialFsdbSensorData.getSensorEntries().size() > 0);
+  for (const auto& [sensorName, sensorEntry] :
+       referenceSensorData->getSensorEntries()) {
+    ASSERT_TRUE(initialFsdbSensorData.getSensorEntry(sensorName))
+        << "Sensor " << sensorName << " should be available via fsdb";
+  }
 
   // Stop FSDB
   stopFsdbService();
 
-  // With FSDB stopped, we shouldn't receive any new sensor updates. Fetch the
-  // sensor data for two SensorFetchFrequency intervals and confirm that the
-  // sensor timestamps don't advance
-  auto fetchFrequencyInSec = controlLogic_->getSensorFetchFrequency();
-  XLOG(INFO) << "Verifying that there are no sensor updates for "
-             << (2 * fetchFrequencyInSec + 10) << " seconds";
-  /* sleep override */
-  sleep(2 * fetchFrequencyInSec + 10);
-  controlLogic_->controlFan();
-  auto sensorDataAfterFsdbStop = controlLogic_->sensorData();
-  for (const auto& [sensorName, prevSensorEntry] :
-       prevSensorData.getSensorEntries()) {
-    auto currSensorEntry = sensorDataAfterFsdbStop.getSensorEntry(sensorName);
-    ASSERT_TRUE(currSensorEntry);
-    ASSERT_EQ(currSensorEntry->lastUpdated, prevSensorEntry.lastUpdated);
+  // With FSDB stopped, the fan_service will fall back to thrift from
+  // sensor_service after the FSDB data becomes stale. Wait for staleness
+  // threshold (90 seconds) plus buffer, then verify fallback is active.
+  XLOG(INFO) << "Waiting for FSDB data to become stale and fallback to thrift";
+  // Wait for FSDB data to become stale and verify fallback kicks in
+  WITH_RETRIES_N_TIMED(12, std::chrono::seconds(10), {
+    controlLogic_->controlFan();
+    auto thriftFallbackCounter =
+        fb303::fbData->getCounter(kFsdbSensorDataThriftFallback);
+    ASSERT_EVENTUALLY_EQ(thriftFallbackCounter, 1)
+        << "Should be getting sensor data from thrift fallback";
+  });
+
+  XLOG(INFO) << "Verifying sensor data from thrift fallback";
+  // Verify the content we received from thrift.
+  auto sensorDataDuringFallback = controlLogic_->sensorData();
+  ASSERT_TRUE(sensorDataDuringFallback.getSensorEntries().size() > 0)
+      << "Should still have sensor data via thrift fallback";
+  for (const auto& [sensorName, sensorEntry] :
+       referenceSensorData->getSensorEntries()) {
+    ASSERT_TRUE(sensorDataDuringFallback.getSensorEntry(sensorName))
+        << "Sensor " << sensorName
+        << " should be available via thrift fallback";
   }
+
+  // Verify thrift fallback is fetching fresh data by checking timestamps
+  // advance. Wait another fetch interval and confirm sensor timestamps are
+  // updating.
+  XLOG(INFO) << "Verifying thrift fallback fetches fresh data (timestamps "
+                "should advance)";
+  WITH_RETRIES_N_TIMED(12, std::chrono::seconds(10), {
+    controlLogic_->controlFan();
+    auto latestSensorData = controlLogic_->sensorData();
+    int sensorsWithUpdatedTimestamps = 0;
+    for (const auto& [sensorName, snapshotEntry] :
+         sensorDataDuringFallback.getSensorEntries()) {
+      auto latestEntry = latestSensorData.getSensorEntry(sensorName);
+      if (latestEntry && latestEntry->lastUpdated > snapshotEntry.lastUpdated) {
+        sensorsWithUpdatedTimestamps++;
+      }
+    }
+    XLOG(INFO) << "Timestamps advanced for " << sensorsWithUpdatedTimestamps
+               << " out of "
+               << sensorDataDuringFallback.getSensorEntries().size()
+               << " sensors";
+    // At least some sensor timestamps should advance, confirming fresh data
+    ASSERT_EVENTUALLY_GT(sensorsWithUpdatedTimestamps, 0);
+  });
 
   // Start FSDB
   startFsdbService();
 
-  // Expect the lastFetchTime to advance and number of sensors to be same as
-  // last time
-  WITH_RETRIES_N_TIMED(6, std::chrono::seconds(10), {
+  XLOG(INFO) << "Verifying sensor data from FSDB after restart";
+  // Expect the sensor count to be same, and fallback counter to return to 0
+  // (back to FSDB)
+  WITH_RETRIES_N_TIMED(12, std::chrono::seconds(10), {
     controlLogic_->controlFan();
-    auto currSensorData = controlLogic_->sensorData();
-    auto afterLastFetchTime = controlLogic_->lastSensorFetchTimeSec();
-    ASSERT_EVENTUALLY_TRUE(afterLastFetchTime > prevLastFetchTime);
-    ASSERT_EVENTUALLY_TRUE(
-        currSensorData.getSensorEntries().size() ==
-        prevSensorData.getSensorEntries().size());
-    for (const auto& [sensorName, prevSensorEntry] :
-         prevSensorData.getSensorEntries()) {
-      auto currSensorEntry = currSensorData.getSensorEntry(sensorName);
-      ASSERT_TRUE(currSensorEntry);
+    auto sensorDataAfterFsdbRestart = controlLogic_->sensorData();
+    auto thriftFallbackCounter =
+        fb303::fbData->getCounter(kFsdbSensorDataThriftFallback);
+    // Fallback counter should return to 0 when FSDB is back
+    ASSERT_EVENTUALLY_EQ(thriftFallbackCounter, 0);
+    for (const auto& [sensorName, initialEntry] :
+         initialFsdbSensorData.getSensorEntries()) {
+      auto latestEntry = sensorDataAfterFsdbRestart.getSensorEntry(sensorName);
+      ASSERT_TRUE(latestEntry);
       XLOG(INFO) << "Sensor: " << sensorName
-                 << ". Previous timestamp: " << prevSensorEntry.lastUpdated
-                 << ", Current timestamp: " << currSensorEntry->lastUpdated;
+                 << ". Initial timestamp: " << initialEntry.lastUpdated
+                 << ", Current timestamp: " << latestEntry->lastUpdated;
       // The timestamps should advance. Sometimes the timestamps are 0 for
       // some sensors returned by sensor data, so add a special check for
       // that too
       ASSERT_EVENTUALLY_TRUE(
-          (currSensorEntry->lastUpdated > prevSensorEntry.lastUpdated) ||
-          (currSensorEntry->lastUpdated == 0 &&
-           prevSensorEntry.lastUpdated == 0));
+          (latestEntry->lastUpdated > initialEntry.lastUpdated) ||
+          (latestEntry->lastUpdated == 0 && initialEntry.lastUpdated == 0));
     }
   });
 }

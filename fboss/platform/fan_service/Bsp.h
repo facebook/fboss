@@ -20,6 +20,10 @@
 
 namespace facebook::fboss::platform::fan_service {
 
+// fb303 counter name for tracking when thrift fallback is used for sensor data
+inline constexpr auto kFsdbSensorDataThriftFallback =
+    "fsdb_sensor_data_thrift_fallback";
+
 class Bsp {
  public:
   explicit Bsp(const FanServiceConfig& config);

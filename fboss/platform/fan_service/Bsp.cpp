@@ -30,10 +30,7 @@ DEFINE_bool(
     false,
     "For subscribing to qsfp state and stats from FSDB");
 
-namespace {
-auto constexpr kFsdbSensorDataThriftFallback =
-    "fsdb_sensor_data_thrift_fallback";
-} // namespace
+namespace {} // namespace
 
 namespace facebook::fboss::platform::fan_service {
 

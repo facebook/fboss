@@ -21,7 +21,7 @@ auto constexpr kFsdbQsfpStatsStale = "fsdb_qsfp_stats_stale";
 auto constexpr kFsdbQsfpStatsContentName = "QSFP Stats";
 auto constexpr kFsdbAgentDataStale = "fsdb_asic_temp_stats_stale";
 auto constexpr kFsdbAgentDataContentName = "Agent Data";
-auto constexpr kFsdbSyncTimeoutThresholdInSec = 3 * 60; // 3 minutes
+auto constexpr kFsdbSyncTimeoutThresholdInSec = 90;
 } // namespace
 
 namespace facebook::fboss {
