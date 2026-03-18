@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiApi.h"
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiAttributeDataTypes.h"
@@ -50,6 +51,100 @@ SAI_ATTRIBUTE_NAME(Srv6SidList, Type);
 SAI_ATTRIBUTE_NAME(Srv6SidList, SegmentList);
 SAI_ATTRIBUTE_NAME(Srv6SidList, NextHopId);
 
+struct SaiMySidEntryTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_MY_SID_ENTRY;
+  using SaiApiT = Srv6Api;
+  struct Attributes {
+    using EnumType = sai_my_sid_entry_attr_t;
+    using EndpointBehavior = SaiAttribute<
+        EnumType,
+        SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR,
+        sai_int32_t>;
+    using EndpointBehaviorFlavor = SaiAttribute<
+        EnumType,
+        SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR_FLAVOR,
+        sai_int32_t>;
+    using NextHopId =
+        SaiAttribute<EnumType, SAI_MY_SID_ENTRY_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
+    using Vrf = SaiAttribute<EnumType, SAI_MY_SID_ENTRY_ATTR_VRF, SaiObjectIdT>;
+  };
+  class MySidEntry {
+   public:
+    MySidEntry() {}
+    MySidEntry(
+        sai_object_id_t switchId,
+        sai_object_id_t vrId,
+        uint8_t locatorBlockLen,
+        uint8_t locatorNodeLen,
+        uint8_t functionLen,
+        uint8_t argsLen,
+        const folly::IPAddressV6& sid) {
+      my_sid_entry.switch_id = switchId;
+      my_sid_entry.vr_id = vrId;
+      my_sid_entry.locator_block_len = locatorBlockLen;
+      my_sid_entry.locator_node_len = locatorNodeLen;
+      my_sid_entry.function_len = functionLen;
+      my_sid_entry.args_len = argsLen;
+      toSaiIpAddressV6(sid, &my_sid_entry.sid);
+    }
+    explicit MySidEntry(const sai_object_key_t& key) {
+      my_sid_entry = key.key.my_sid_entry;
+    }
+    sai_object_id_t switchId() const {
+      return my_sid_entry.switch_id;
+    }
+    sai_object_id_t vrId() const {
+      return my_sid_entry.vr_id;
+    }
+    uint8_t locatorBlockLen() const {
+      return my_sid_entry.locator_block_len;
+    }
+    uint8_t locatorNodeLen() const {
+      return my_sid_entry.locator_node_len;
+    }
+    uint8_t functionLen() const {
+      return my_sid_entry.function_len;
+    }
+    uint8_t argsLen() const {
+      return my_sid_entry.args_len;
+    }
+    folly::IPAddressV6 sid() const {
+      return fromSaiIpAddress(my_sid_entry.sid);
+    }
+    const sai_my_sid_entry_t* entry() const {
+      return &my_sid_entry;
+    }
+    bool operator==(const MySidEntry& other) const {
+      return (
+          switchId() == other.switchId() && vrId() == other.vrId() &&
+          locatorBlockLen() == other.locatorBlockLen() &&
+          locatorNodeLen() == other.locatorNodeLen() &&
+          functionLen() == other.functionLen() &&
+          argsLen() == other.argsLen() && sid() == other.sid());
+    }
+    std::string toString() const;
+
+   private:
+    sai_my_sid_entry_t my_sid_entry{};
+  };
+
+  using AdapterKey = MySidEntry;
+  using AdapterHostKey = MySidEntry;
+  using CreateAttributes = std::tuple<
+      Attributes::EndpointBehavior,
+      std::optional<Attributes::EndpointBehaviorFlavor>,
+      std::optional<Attributes::NextHopId>,
+      std::optional<Attributes::Vrf>>;
+};
+template <>
+struct IsSaiEntryStruct<SaiMySidEntryTraits::MySidEntry>
+    : public std::true_type {};
+
+SAI_ATTRIBUTE_NAME(MySidEntry, EndpointBehavior);
+SAI_ATTRIBUTE_NAME(MySidEntry, EndpointBehaviorFlavor);
+SAI_ATTRIBUTE_NAME(MySidEntry, NextHopId);
+SAI_ATTRIBUTE_NAME(MySidEntry, Vrf);
+
 class Srv6Api : public SaiApi<Srv6Api> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_SRV6;
@@ -95,9 +190,47 @@ class Srv6Api : public SaiApi<Srv6Api> {
     return api_->clear_srv6_sidlist_stats(key, num_of_counters, counter_ids);
   }
 
+  sai_status_t _create(
+      const SaiMySidEntryTraits::MySidEntry& mySidEntry,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_my_sid_entry(
+        mySidEntry.entry(), static_cast<uint32_t>(count), attr_list);
+  }
+  sai_status_t _remove(
+      const SaiMySidEntryTraits::MySidEntry& mySidEntry) const {
+    return api_->remove_my_sid_entry(mySidEntry.entry());
+  }
+  sai_status_t _getAttribute(
+      const SaiMySidEntryTraits::MySidEntry& mySidEntry,
+      sai_attribute_t* attr) const {
+    return api_->get_my_sid_entry_attribute(mySidEntry.entry(), 1, attr);
+  }
+  sai_status_t _setAttribute(
+      const SaiMySidEntryTraits::MySidEntry& mySidEntry,
+      const sai_attribute_t* attr) const {
+    return api_->set_my_sid_entry_attribute(mySidEntry.entry(), attr);
+  }
+
   sai_srv6_api_t* api_{nullptr};
   friend class SaiApi<Srv6Api>;
 };
+inline void toAppend(
+    const SaiMySidEntryTraits::MySidEntry& entry,
+    std::string* result) {
+  result->append(entry.toString());
+}
+
 #endif
 
 } // namespace facebook::fboss
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+namespace std {
+template <>
+struct hash<facebook::fboss::SaiMySidEntryTraits::MySidEntry> {
+  size_t operator()(
+      const facebook::fboss::SaiMySidEntryTraits::MySidEntry& n) const;
+};
+} // namespace std
+#endif
