@@ -1541,4 +1541,58 @@ TYPED_TEST(DsfSubscriptionTest, StopCancelsPendingDsfUpdate) {
   EXPECT_EQ(this->getRemoteSystemPorts()->size(), sysPortCountBefore);
 }
 
+TYPED_TEST(DsfSubscriptionTest, NewUpdateAfterProcessingSchedulesNewLambda) {
+  // After one update is fully processed (nextDsfUpdate_ becomes null),
+  // a new update should schedule a new lambda and be processed correctly.
+  // This verifies the re-scheduling logic in queueDsfUpdate.
+  this->subscription_ = this->createSubscription();
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue first update and let it process
+  queueSysPortUpdate(1);
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify first update was applied
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + this->kNumRemoteSwitchAsics);
+  });
+
+  // Verify nextDsfUpdate_ is null after processing
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_EQ(*rlock, nullptr);
+  }
+
+  // Queue second update - should schedule a NEW lambda since
+  // nextDsfUpdate_ was null
+  queueSysPortUpdate(2);
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify second update was applied
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * 2));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * 2));
+  });
+}
+
 } // namespace facebook::fboss

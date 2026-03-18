@@ -146,6 +146,8 @@ class DsfSubscription {
   FRIEND_TEST(DsfSubscriptionTest, GROverwritesPendingRegularUpdate);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, StopCancelsPendingDsfUpdate);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, NewUpdateAfterProcessingSchedulesNewLambda);
 };
 
 } // namespace facebook::fboss
