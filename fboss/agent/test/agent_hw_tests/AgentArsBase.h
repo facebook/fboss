@@ -109,6 +109,16 @@ class AgentArsBase : public AgentHwTest {
 
   void updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const;
 
+  void updateFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      const cfg::SwitchingMode switchingMode,
+      int flowletTableSize,
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight,
+      const std::optional<cfg::SwitchingMode> backupSwitchingMode =
+          std::nullopt) const;
+
   // Verification helpers - consolidated from AgentArsFlowletTest
   bool verifyPortFlowletConfig(
       const folly::CIDRNetwork& ip,

@@ -20,6 +20,9 @@ const int kMinFlowletTableSize = 256;
 const int kLoadWeight1 = 70;
 const int kQueueWeight1 = 30;
 
+const int kLoadWeight2 = 60;
+const int kQueueWeight2 = 20;
+
 using namespace ::testing;
 
 class AgentArsSprayTest : public AgentArsBase {
@@ -51,6 +54,32 @@ class AgentArsSprayTest : public AgentArsBase {
     testNhopSets = nhopSets;
   }
 
+  void setupEcmpGroups(int numEcmp) {
+    generatePrefixes();
+    std::vector<RoutePrefixV6> testPrefixes = {
+        prefixes.begin(), prefixes.begin() + numEcmp};
+    std::vector<flat_set<PortDescriptor>> testNhopSets = {
+        nhopSets.begin(), nhopSets.begin() + numEcmp};
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+  }
+
+  void verifyEcmpGroups(const cfg::SwitchConfig& cfg, int numEcmp) {
+    for (int i = 0; i < numEcmp; i++) {
+      auto portFlowletConfig =
+          getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
+      EXPECT_TRUE(verifyPortFlowletConfig(
+          prefixes[i].toCidrNetwork(),
+          portFlowletConfig,
+          nhopSets[i].begin()->phyPortID()));
+      EXPECT_TRUE(verifyEcmpForFlowletSwitching(
+          prefixes[i].toCidrNetwork(),
+          *cfg.flowletSwitchingConfig(),
+          true,
+          nhopSets[i].begin()->phyPortID()));
+    }
+  }
+
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto cfg = utility::onePortPerInterfaceConfig(
@@ -64,6 +93,22 @@ class AgentArsSprayTest : public AgentArsBase {
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         cfg::SwitchingMode::FIXED_ASSIGNMENT);
     return cfg;
+  }
+
+  // getPortFlowletConfig, updatePortFlowletConfigs,
+  // updatePortFlowletConfigName, and updateFlowletConfigs are inherited from
+  // AgentArsBase
+
+  void verifyConfig(
+      const cfg::SwitchConfig& cfg,
+      const RoutePrefixV6& prefix,
+      const PortID& port) {
+    auto portFlowletConfig =
+        getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
+    EXPECT_TRUE(verifyPortFlowletConfig(
+        prefix.toCidrNetwork(), portFlowletConfig, port));
+    EXPECT_TRUE(verifyEcmpForFlowletSwitching(
+        prefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true, port));
   }
 };
 

@@ -819,6 +819,23 @@ void AgentArsBase::updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const {
   }
 }
 
+void AgentArsBase::updateFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    const cfg::SwitchingMode switchingMode,
+    int flowletTableSize,
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight,
+    const std::optional<cfg::SwitchingMode> backupSwitchingMode) const {
+  cfg.flowletSwitchingConfig()->switchingMode() = switchingMode;
+  cfg.flowletSwitchingConfig()->flowletTableSize() = flowletTableSize;
+  if (backupSwitchingMode.has_value()) {
+    cfg.flowletSwitchingConfig()->backupSwitchingMode() =
+        backupSwitchingMode.value();
+  }
+  updatePortFlowletConfigs(cfg, scalingFactor, loadWeight, queueWeight);
+}
+
 bool AgentArsBase::verifyPortFlowletConfig(
     const folly::CIDRNetwork& ip,
     cfg::PortFlowletConfig& portFlowletConfig,
