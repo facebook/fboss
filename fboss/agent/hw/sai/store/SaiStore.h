@@ -705,6 +705,7 @@ class SaiStore {
       SaiObjectStore<SaiSrv6TunnelTraits>,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiMySidEntryTraits>,
       SaiObjectStore<SaiSrv6SidListTraits>,
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)

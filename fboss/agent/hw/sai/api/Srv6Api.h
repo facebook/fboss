@@ -123,6 +123,8 @@ struct SaiMySidEntryTraits {
           argsLen() == other.argsLen() && sid() == other.sid());
     }
     std::string toString() const;
+    folly::dynamic toFollyDynamic() const;
+    static MySidEntry fromFollyDynamic(const folly::dynamic& json);
 
    private:
     sai_my_sid_entry_t my_sid_entry{};
