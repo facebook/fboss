@@ -1414,4 +1414,82 @@ TYPED_TEST(DsfSubscriptionTest, GRExpiryProcessedViaQueueDsfUpdate) {
   });
 }
 
+TYPED_TEST(DsfSubscriptionTest, GROverwritesPendingRegularUpdate) {
+  // Test that when a regular update is queued and GR fires before processing,
+  // the GR overwrites the regular update. The GR effects (marking ports STALE)
+  // should be observed, not the regular update's new ports.
+  this->subscription_ = this->createSubscription();
+
+  // First add ports directly so GR has something to mark STALE
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId});
+    auto rifs = makeRifs(sysPorts.get());
+    switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
+  waitForStateUpdates(this->sw_);
+
+  auto sysPortCountBefore = this->getRemoteSystemPorts()->size();
+  auto rifCountBefore = this->getRemoteInterfaces()->size();
+  ASSERT_GT(sysPortCountBefore, 0);
+
+  // Block hwUpdateEvb to prevent processing
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Queue a regular update that would add MORE ports (3 per switch)
+  DsfSubscription::DsfUpdate regularUpdate;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, 3);
+    auto rifs = makeRifs(sysPorts.get());
+    regularUpdate.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    regularUpdate.switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->queueDsfUpdate(std::move(regularUpdate));
+
+  // Fire GR - should overwrite the regular update
+  this->subscription_->processGRHoldTimerExpired();
+
+  // Unblock to process the GR update (the last writer)
+  baton.post();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify GR effects: ports should be STALE, no new ports added
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(), sysPortCountBefore);
+    EXPECT_EVENTUALLY_EQ(this->getRemoteInterfaces()->size(), rifCountBefore);
+    auto remotePorts = this->getRemoteSystemPorts();
+    for (const auto& [_, sysPort] : *remotePorts) {
+      if (sysPort->getRemoteSystemPortType().has_value() &&
+          sysPort->getRemoteSystemPortType().value() ==
+              RemoteSystemPortType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            sysPort->getRemoteLivenessStatus(), LivenessStatus::STALE);
+      }
+    }
+    auto remoteIntfs = this->getRemoteInterfaces();
+    for (const auto& [_, rif] : *remoteIntfs) {
+      if (rif->getRemoteInterfaceType().has_value() &&
+          rif->getRemoteInterfaceType().value() ==
+              RemoteInterfaceType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            rif->getRemoteLivenessStatus(), LivenessStatus::STALE);
+        EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+        EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      }
+    }
+  });
+}
+
 } // namespace facebook::fboss
