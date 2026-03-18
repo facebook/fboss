@@ -1492,4 +1492,53 @@ TYPED_TEST(DsfSubscriptionTest, GROverwritesPendingRegularUpdate) {
   });
 }
 
+TYPED_TEST(DsfSubscriptionTest, StopCancelsPendingDsfUpdate) {
+  // Test that stop() cancels a pending update by resetting nextDsfUpdate_.
+  // The lambda on hwUpdateEvb_ should find null and return early.
+  this->subscription_ = this->createSubscription();
+  auto sysPortCountBefore = this->getRemoteSystemPorts()->size();
+
+  // Block hwUpdateEvb to prevent processing
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Queue a regular update that would add ports
+  DsfSubscription::DsfUpdate update;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, 3);
+    auto rifs = makeRifs(sysPorts.get());
+    update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    update.switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->queueDsfUpdate(std::move(update));
+
+  // Verify update is pending
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_NE(*rlock, nullptr);
+  }
+
+  // Stop the subscription - should cancel the pending update
+  this->subscription_->stop();
+
+  // Verify update is cancelled
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_EQ(*rlock, nullptr);
+  }
+
+  // Unblock - the lambda should find null and return early
+  baton.post();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify state unchanged - no new ports added
+  EXPECT_EQ(this->getRemoteSystemPorts()->size(), sysPortCountBefore);
+}
+
 } // namespace facebook::fboss
