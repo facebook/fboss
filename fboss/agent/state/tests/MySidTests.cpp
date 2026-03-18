@@ -1,0 +1,104 @@
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+#include <gtest/gtest.h>
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/SwitchState.h"
+#include "folly/IPAddressV6.h"
+
+using namespace facebook::fboss;
+
+namespace {
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(10)}};
+}
+
+folly::CIDRNetwork makeSidPrefix(
+    const std::string& addr = "fc00:100::1",
+    uint8_t len = 48) {
+  return std::make_pair(folly::IPAddress(addr), len);
+}
+
+std::shared_ptr<MySid> makeMySid(
+    const folly::CIDRNetwork& prefix = makeSidPrefix()) {
+  auto mySid = std::make_shared<MySid>();
+  mySid->setType(MySidType::NODE_MICRO_SID);
+  mySid->setMySid(prefix);
+  return mySid;
+}
+} // namespace
+
+TEST(MySidTest, GettersReturnSetValues) {
+  auto mySid = makeMySid();
+  EXPECT_EQ(mySid->getType(), MySidType::NODE_MICRO_SID);
+  auto cidr = mySid->getMySid();
+  EXPECT_EQ(cidr.first, folly::IPAddress("fc00:100::1"));
+  EXPECT_EQ(cidr.second, 48);
+}
+
+TEST(MySidTest, GetID) {
+  auto mySid = makeMySid();
+  EXPECT_EQ(mySid->getID(), "fc00:100::1/48");
+}
+
+TEST(MySidTest, ModifyType) {
+  auto mySid = makeMySid();
+  mySid->setType(MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_EQ(mySid->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
+}
+
+TEST(MySidTest, ModifyMySid) {
+  auto mySid = makeMySid();
+  auto newPrefix = makeSidPrefix("fc00:200::1", 64);
+  mySid->setMySid(newPrefix);
+  auto cidr = mySid->getMySid();
+  EXPECT_EQ(cidr.first, folly::IPAddress("fc00:200::1"));
+  EXPECT_EQ(cidr.second, 64);
+  EXPECT_EQ(mySid->getID(), "fc00:200::1/64");
+}
+
+TEST(MySidTest, Inequality) {
+  auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 48));
+  EXPECT_FALSE(*mySid0 == *mySid1);
+}
+
+TEST(MySidTest, SerDeserMySid) {
+  auto mySid = makeMySid();
+  auto serialized = mySid->toThrift();
+  auto mySidBack = std::make_shared<MySid>(serialized);
+  EXPECT_TRUE(*mySid == *mySidBack);
+}
+
+TEST(MySidTest, SerDeserSwitchState) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 64));
+
+  auto mySids = state->getMySids()->modify(&state);
+  mySids->addNode(mySid0, scope());
+  mySids->addNode(mySid1, scope());
+
+  auto serialized = state->toThrift();
+  auto stateBack = SwitchState::fromThrift(serialized);
+
+  for (const auto& key : {"fc00:100::1/48", "fc00:200::1/64"}) {
+    EXPECT_TRUE(
+        *state->getMySids()->getNode(key) ==
+        *stateBack->getMySids()->getNode(key));
+  }
+}
+
+TEST(MySidTest, AddRemove) {
+  auto state = std::make_shared<SwitchState>();
+
+  auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 64));
+
+  auto mySids = state->getMySids()->modify(&state);
+  mySids->addNode(mySid0, scope());
+  mySids->addNode(mySid1, scope());
+  mySids->removeNode("fc00:100::1/48");
+  EXPECT_EQ(state->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+  EXPECT_NE(state->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+}
