@@ -14,7 +14,6 @@ using namespace facebook::fboss::utility;
 
 namespace facebook::fboss {
 
-const int kMaxLinks = 4;
 const int kMinFlowletTableSize = 256;
 
 const int kLoadWeight1 = 70;
@@ -110,18 +109,50 @@ class AgentArsSprayTest : public AgentArsBase {
     EXPECT_TRUE(verifyEcmpForFlowletSwitching(
         prefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true, port));
   }
-
-  // verifyPortFlowletConfig and verifyEcmpForFlowletSwitching are inherited
-  // from AgentArsBase
-
-  void verifyConfig(const cfg::SwitchConfig& cfg, const RoutePrefixV6& prefix) {
-    auto portFlowletConfig =
-        getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
-    EXPECT_TRUE(
-        verifyPortFlowletConfig(prefix.toCidrNetwork(), portFlowletConfig));
-    EXPECT_TRUE(verifyEcmpForFlowletSwitching(
-        prefix.toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
-  }
 };
+
+TEST_F(AgentArsSprayTest, VerifyArsEnable) {
+  std::vector<RoutePrefixV6> testPrefixes;
+  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  generateTestPrefixes(testPrefixes, testNhopSets);
+
+  // Find a nhopSet index with size >= 2 for meaningful shrink/expand testing
+  size_t testNhopSetIndex = 0;
+  for (size_t i = 0; i < testNhopSets.size(); ++i) {
+    if (testNhopSets[i].size() >= 2) {
+      testNhopSetIndex = i;
+      break;
+    }
+  }
+  CHECK_GE(testNhopSets[testNhopSetIndex].size(), 2)
+      << "Need at least 2 ports in nhopSet for shrink/expand testing";
+
+  auto setup = [=, this]() {
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(
+        &wrapper, {testNhopSets[testNhopSetIndex]}, {testPrefixes[0]});
+  };
+
+  auto verify = [=, this]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    auto port = testNhopSets[testNhopSetIndex].begin()->phyPortID();
+    verifyConfig(cfg, testPrefixes[0], port);
+
+    // Shrink egress and verify - unresolve the last port in the nhopSet
+    auto portDesc = *testNhopSets[testNhopSetIndex].rbegin();
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->unresolveNextHops(in, {portDesc});
+    });
+    verifyConfig(cfg, testPrefixes[0], port);
+
+    // Expand egress and verify
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, {portDesc});
+    });
+    verifyConfig(cfg, testPrefixes[0], port);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
 
 } // namespace facebook::fboss
