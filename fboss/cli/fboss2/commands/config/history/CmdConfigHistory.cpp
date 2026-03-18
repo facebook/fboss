@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 #include <fcntl.h>
 #include <pwd.h>
 #include <sys/stat.h>
@@ -159,4 +160,7 @@ void CmdConfigHistory::printOutput(const RetType& tableOutput) {
   std::cout << tableOutput << std::endl;
 }
 
+
+template void
+CmdHandler<CmdConfigHistory, CmdConfigHistoryTraits>::run();
 } // namespace facebook::fboss

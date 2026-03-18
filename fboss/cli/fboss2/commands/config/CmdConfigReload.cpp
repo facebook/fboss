@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -25,4 +26,7 @@ void CmdConfigReload::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
 
+
+template void
+CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
 } // namespace facebook::fboss

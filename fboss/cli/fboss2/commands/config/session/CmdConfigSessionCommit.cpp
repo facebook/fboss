@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
@@ -30,4 +31,7 @@ void CmdConfigSessionCommit::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
 
+
+template void
+CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
 } // namespace facebook::fboss

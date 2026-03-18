@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 #include <folly/Conv.h>
 #include <ctime>
 #include <iomanip>
@@ -66,5 +67,8 @@ void CmdConfigAppliedInfo::printOutput(const RetType& configAppliedInfo) {
     std::cout << "Not available (warmboot)" << std::endl;
   }
 }
+
+template void
+CmdHandler<CmdConfigAppliedInfo, CmdConfigAppliedInfoTraits>::run();
 
 } // namespace facebook::fboss

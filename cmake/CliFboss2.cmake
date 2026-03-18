@@ -595,6 +595,7 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
@@ -612,7 +613,6 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/utils/InterfaceList.h
   fboss/cli/fboss2/utils/InterfaceList.cpp
   fboss/cli/fboss2/CmdListConfig.cpp
-  fboss/cli/fboss2/CmdHandlerImplConfig.cpp
 )
 
 target_link_libraries(fboss2_config_lib

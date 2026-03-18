@@ -796,11 +796,11 @@ auto_tab_complete(
 cpp_library(
     name = "fboss2-config-lib",
     srcs = [
-        "CmdHandlerImplConfig.cpp",
         "CmdListConfig.cpp",
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
         "commands/config/history/CmdConfigHistory.cpp",
+        "commands/config/interface/CmdConfigInterface.cpp",
         "commands/config/interface/CmdConfigInterfaceDescription.cpp",
         "commands/config/interface/CmdConfigInterfaceMtu.cpp",
         "commands/config/rollback/CmdConfigRollback.cpp",

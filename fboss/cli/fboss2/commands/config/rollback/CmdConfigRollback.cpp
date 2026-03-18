@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 
 namespace facebook::fboss {
@@ -54,4 +55,7 @@ void CmdConfigRollback::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
 
+
+template void
+CmdHandler<CmdConfigRollback, CmdConfigRollbackTraits>::run();
 } // namespace facebook::fboss
