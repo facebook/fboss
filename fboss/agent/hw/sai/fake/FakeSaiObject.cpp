@@ -174,6 +174,9 @@ sai_status_t sai_get_object_count(
     case SAI_OBJECT_TYPE_SRV6_SIDLIST:
       *count = static_cast<uint32_t>(fs->srv6SidListManager.map().size());
       break;
+    case SAI_OBJECT_TYPE_MY_SID_ENTRY:
+      *count = static_cast<uint32_t>(fs->mySidEntryManager.map().size());
+      break;
 #endif
     case SAI_OBJECT_TYPE_MIRROR_SESSION:
       *count = fs->mirrorManager.map().size();
@@ -542,6 +545,12 @@ sai_status_t sai_get_object_key(
     case SAI_OBJECT_TYPE_SRV6_SIDLIST: {
       for (const auto& ob : fs->srv6SidListManager.map()) {
         object_list[i++].key.object_id = ob.second.id;
+      }
+      break;
+    }
+    case SAI_OBJECT_TYPE_MY_SID_ENTRY: {
+      for (const auto& entry : fs->mySidEntryManager.map()) {
+        object_list[i++].key.my_sid_entry = entry.first.sai_my_sid_entry;
       }
       break;
     }
