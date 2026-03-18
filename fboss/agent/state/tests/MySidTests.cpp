@@ -1,7 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include <gtest/gtest.h>
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "folly/IPAddressV6.h"
 
@@ -101,4 +103,155 @@ TEST(MySidTest, AddRemove) {
   mySids->removeNode("fc00:100::1/48");
   EXPECT_EQ(state->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
   EXPECT_NE(state->getMySids()->getNodeIf("fc00:200::1/64"), nullptr);
+}
+
+TEST(MySidDeltaTest, EmptyDelta) {
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+  auto newState = std::make_shared<SwitchState>();
+  newState->publish();
+  StateDelta delta(oldState, newState);
+
+  std::set<std::string> added, removed, changed;
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& oldEntry, const auto& newEntry) {
+        changed.insert(oldEntry->getID());
+      },
+      [&](const auto& entry) { added.insert(entry->getID()); },
+      [&](const auto& entry) { removed.insert(entry->getID()); });
+
+  EXPECT_TRUE(added.empty());
+  EXPECT_TRUE(removed.empty());
+  EXPECT_TRUE(changed.empty());
+}
+
+TEST(MySidDeltaTest, AddEntries) {
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 64));
+  auto mySids = newState->getMySids()->modify(&newState);
+  mySids->addNode(mySid0, scope());
+  mySids->addNode(mySid1, scope());
+  newState->publish();
+
+  StateDelta delta(oldState, newState);
+
+  std::set<std::string> added, removed, changed;
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& oldEntry, const auto& newEntry) {
+        changed.insert(oldEntry->getID());
+      },
+      [&](const auto& entry) { added.insert(entry->getID()); },
+      [&](const auto& entry) { removed.insert(entry->getID()); });
+
+  EXPECT_EQ(added, (std::set<std::string>{"fc00:100::1/48", "fc00:200::1/64"}));
+  EXPECT_TRUE(removed.empty());
+  EXPECT_TRUE(changed.empty());
+}
+
+TEST(MySidDeltaTest, RemoveEntries) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 64));
+  auto mySids = oldState->getMySids()->modify(&oldState);
+  mySids->addNode(mySid0, scope());
+  mySids->addNode(mySid1, scope());
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto newMySids = newState->getMySids()->modify(&newState);
+  newMySids->removeNode("fc00:100::1/48");
+  newMySids->removeNode("fc00:200::1/64");
+  newState->publish();
+
+  StateDelta delta(oldState, newState);
+
+  std::set<std::string> added, removed, changed;
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& oldEntry, const auto& newEntry) {
+        changed.insert(oldEntry->getID());
+      },
+      [&](const auto& entry) { added.insert(entry->getID()); },
+      [&](const auto& entry) { removed.insert(entry->getID()); });
+
+  EXPECT_TRUE(added.empty());
+  EXPECT_EQ(
+      removed, (std::set<std::string>{"fc00:100::1/48", "fc00:200::1/64"}));
+  EXPECT_TRUE(changed.empty());
+}
+
+TEST(MySidDeltaTest, ChangeEntry) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto mySid = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySids = oldState->getMySids()->modify(&oldState);
+  mySids->addNode(mySid, scope());
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto newMySids = newState->getMySids()->modify(&newState);
+  auto updatedMySid = newMySids->getNode("fc00:100::1/48")->clone();
+  updatedMySid->setType(MySidType::DECAPSULATE_AND_LOOKUP);
+  newMySids->updateNode(updatedMySid, scope());
+  newState->publish();
+
+  StateDelta delta(oldState, newState);
+
+  std::set<std::string> added, removed, changed;
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& oldEntry, const auto& newEntry) {
+        EXPECT_EQ(oldEntry->getType(), MySidType::NODE_MICRO_SID);
+        EXPECT_EQ(newEntry->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
+        changed.insert(oldEntry->getID());
+      },
+      [&](const auto& entry) { added.insert(entry->getID()); },
+      [&](const auto& entry) { removed.insert(entry->getID()); });
+
+  EXPECT_TRUE(added.empty());
+  EXPECT_TRUE(removed.empty());
+  EXPECT_EQ(changed, (std::set<std::string>{"fc00:100::1/48"}));
+}
+
+TEST(MySidDeltaTest, MixedAddRemoveChange) {
+  auto oldState = std::make_shared<SwitchState>();
+  auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
+  auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 64));
+  auto mySids = oldState->getMySids()->modify(&oldState);
+  mySids->addNode(mySid0, scope());
+  mySids->addNode(mySid1, scope());
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto newMySids = newState->getMySids()->modify(&newState);
+  // Remove mySid0
+  newMySids->removeNode("fc00:100::1/48");
+  // Change mySid1
+  auto updatedMySid1 = newMySids->getNode("fc00:200::1/64")->clone();
+  updatedMySid1->setType(MySidType::DECAPSULATE_AND_LOOKUP);
+  newMySids->updateNode(updatedMySid1, scope());
+  // Add mySid2
+  auto mySid2 = makeMySid(makeSidPrefix("fc00:300::1", 128));
+  newMySids->addNode(mySid2, scope());
+  newState->publish();
+
+  StateDelta delta(oldState, newState);
+
+  std::set<std::string> added, removed, changed;
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& oldEntry, const auto& newEntry) {
+        changed.insert(oldEntry->getID());
+      },
+      [&](const auto& entry) { added.insert(entry->getID()); },
+      [&](const auto& entry) { removed.insert(entry->getID()); });
+
+  EXPECT_EQ(added, (std::set<std::string>{"fc00:300::1/128"}));
+  EXPECT_EQ(removed, (std::set<std::string>{"fc00:100::1/48"}));
+  EXPECT_EQ(changed, (std::set<std::string>{"fc00:200::1/64"}));
 }
