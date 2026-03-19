@@ -164,12 +164,12 @@ perform_build() {
 
   common_options='--allow-system-packages'
   common_options+=' --scratch-path '$build_dir
-  common_options+=' --src-dir .'
   common_options+=' --extra-cmake-defines {'
   common_options+='"CMAKE_BUILD_TYPE":"MinSizeRel"'
   common_options+=',"CMAKE_CXX_STANDARD":"20"'
   common_options+=',"RANGE_V3_TESTS":"OFF"'
   common_options+=',"RANGE_V3_PERF":"OFF"}'
+  common_options+=' --src-dir .'
   common_options+=' fboss'
 
   # Share download / repo / extracted caches across different types of builds
