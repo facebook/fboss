@@ -62,12 +62,17 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   CHECK(vrHandle) << "No default virtual router";
   auto vrId = vrHandle->virtualRouter->adapterKey();
 
+  sai_int32_t packetAction = SAI_PACKET_ACTION_FORWARD;
+  if (nextHopId && *nextHopId == SAI_NULL_OBJECT_ID) {
+    packetAction = SAI_PACKET_ACTION_DROP;
+  }
+
   return SaiMySidEntryTraits::CreateAttributes{
       endpointBehavior,
       SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
       nextHopId,
       vrId,
-      SAI_PACKET_ACTION_FORWARD};
+      packetAction};
 }
 } // namespace
 
@@ -114,6 +119,8 @@ void ManagedMySidNextHop::afterCreate(
   }
   entry->setOptionalAttribute(
       SaiMySidEntryTraits::Attributes::NextHopId{nexthop->adapterKey()});
+  entry->setOptionalAttribute(
+      SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_FORWARD});
 }
 
 void ManagedMySidNextHop::beforeRemove() {

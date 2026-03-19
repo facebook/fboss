@@ -5,6 +5,8 @@
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
+#include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/MySid.h"
@@ -197,6 +199,104 @@ TEST_F(MySidManagerTest, changeType) {
   saiManagerTable->srv6MySidManager().changeMySidEntry(oldMySid, newMySid);
 
   EXPECT_NE(saiManagerTable->srv6MySidManager().getMySidObject(key), nullptr);
+}
+
+TEST_F(MySidManagerTest, addWithUnresolvedNeighborThenResolve) {
+  const auto& intf0 = testInterfaces.at(0);
+  const auto& remoteHost = intf0.remoteHosts.at(0);
+
+  // Remove the neighbor so the next hop is unresolved
+  auto arpEntry = makeArpEntry(intf0.id, remoteHost);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry);
+
+  // Create MySid entry pointing to the unresolved next hop
+  auto mySid = makeMySidWithNextHop(
+      remoteHost.ip,
+      InterfaceID(intf0.id),
+      "fc00:200::1",
+      48,
+      MySidType::ADJACENCY_MICRO_SID);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  auto saiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
+  ASSERT_NE(saiEntry, nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+
+  // NextHopId should be null and PacketAction should be DROP
+  auto initialNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(initialNextHopId, SAI_NULL_OBJECT_ID);
+  auto initialAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(initialAction, SAI_PACKET_ACTION_DROP);
+
+  // Resolve the neighbor — triggers afterCreate on the managed next hop
+  resolveArp(intf0.id, remoteHost);
+
+  // NextHopId should now be set and PacketAction should be FORWARD
+  auto restoredNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_NE(restoredNextHopId, SAI_NULL_OBJECT_ID);
+  auto forwardAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(forwardAction, SAI_PACKET_ACTION_FORWARD);
+
+  saiManagerTable->srv6MySidManager().removeMySidEntry(mySid);
+}
+
+TEST_F(MySidManagerTest, linkDownAndReResolveWithSingleNextHop) {
+  const auto& intf0 = testInterfaces.at(0);
+  const auto& remoteHost = intf0.remoteHosts.at(0);
+  auto mySid = makeMySidWithNextHop(
+      remoteHost.ip,
+      InterfaceID(intf0.id),
+      "fc00:200::1",
+      48,
+      MySidType::ADJACENCY_MICRO_SID);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  auto saiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
+  ASSERT_NE(saiEntry, nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+
+  // Verify initial state: NextHopId is set and PacketAction is FORWARD
+  auto initialNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_NE(initialNextHopId, SAI_NULL_OBJECT_ID);
+  auto initialAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(initialAction, SAI_PACKET_ACTION_FORWARD);
+
+  // Simulate link down — cascades through FDB → neighbor → managed next hop
+  saiManagerTable->fdbManager().handleLinkDown(
+      SaiPortDescriptor(PortID(remoteHost.port.id)));
+
+  // NextHopId should be cleared and PacketAction should be DROP
+  auto clearedNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(clearedNextHopId, SAI_NULL_OBJECT_ID);
+  auto dropAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(dropAction, SAI_PACKET_ACTION_DROP);
+
+  // Remove the neighbor and FDB entry, then re-resolve
+  auto arpEntry = makeArpEntry(intf0.id, remoteHost);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry);
+  resolveArp(intf0.id, remoteHost);
+
+  // NextHopId should be restored and PacketAction should be FORWARD
+  auto restoredNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_NE(restoredNextHopId, SAI_NULL_OBJECT_ID);
+  auto forwardAction = srv6Api.getAttribute(
+      key, SaiMySidEntryTraits::Attributes::PacketAction{});
+  EXPECT_EQ(forwardAction, SAI_PACKET_ACTION_FORWARD);
+
+  saiManagerTable->srv6MySidManager().removeMySidEntry(mySid);
 }
 
 TEST_F(MySidManagerTest, changeFromDecapToNextHop) {
