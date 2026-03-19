@@ -862,9 +862,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // There is a known limitation in the kernel that the source route
       // rule entries are not created if the interface is not up. So,
       // checking for the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false));
+        });
       }
 
       // change ipv6 address of the interface
