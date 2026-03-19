@@ -1122,6 +1122,9 @@ void SaiPortManager::programSerdes(
           HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET) &&
       serdes) {
     // Give up all references to the serdes object to delete the serdes object.
+
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PrbsConfig{SAI_PORT_PRBS_CONFIG_DISABLE});
     portHandle->serdes.reset();
     serdes.reset();
   }

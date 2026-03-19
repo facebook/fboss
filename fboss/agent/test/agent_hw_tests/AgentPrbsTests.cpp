@@ -5,7 +5,7 @@
 
 namespace {
 constexpr auto kPrbsPolynomial = 9;
-constexpr auto kPrbsPolynomial13 = 13;
+constexpr auto kPrbsPolynomial31 = 31;
 } // unnamed namespace
 
 namespace facebook::fboss {
@@ -62,7 +62,7 @@ class AgentPrbsTest : public AgentHwTest {
       auto l3Asics = getAgentEnsemble()->getL3Asics();
       auto asic = checkSameAndGetAsic(l3Asics);
       if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
-        return kPrbsPolynomial13;
+        return kPrbsPolynomial31;
       }
     }
     return kPrbsPolynomial;
