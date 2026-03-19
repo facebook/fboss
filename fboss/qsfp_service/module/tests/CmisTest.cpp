@@ -1238,11 +1238,64 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_EQ(
       0x80, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_150GHZ));
 
-  // Test 3P125GHZ getChannelNumFromFrequency conversion
+  // Test getChannelNumFromFrequency: base frequency → channel 0
   EXPECT_EQ(
       xcvr->getChannelNumFromFrequency(
           193100000, FrequencyGrid::LASER_3P125GHZ),
       0);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193100000, FrequencyGrid::LASER_6P25GHZ),
+      0);
+
+  // Test getChannelNumFromFrequency: positive channel numbers
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193775000, FrequencyGrid::LASER_6P25GHZ),
+      108);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193925000, FrequencyGrid::LASER_6P25GHZ),
+      132);
+
+  // Test getChannelNumFromFrequency: negative channel numbers (L-band)
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(186125000, FrequencyGrid::LASER_6P25GHZ),
+      -1116);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(191375000, FrequencyGrid::LASER_6P25GHZ),
+      -276);
+
+  // Test getChannelNumFromFrequency across all grids to verify
+  // no floating-point truncation (the off-by-one bug)
+  // 150 GHz grid: n = (diffMhz * 40) / 1000000 - 3; channel 1 at 193200000
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193200000, FrequencyGrid::LASER_150GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193200000, FrequencyGrid::LASER_100GHZ),
+      1);
+  // 75 GHz grid: n = (diffMhz * 40) / 1000000; channel 1 at 193125000
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193125000, FrequencyGrid::LASER_75GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193150000, FrequencyGrid::LASER_50GHZ),
+      1);
+  // 33 GHz grid: n = (diffMhz * 30) / 1000000; channel 3 at 193200000
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193200000, FrequencyGrid::LASER_33GHZ),
+      3);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193125000, FrequencyGrid::LASER_25GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193112500, FrequencyGrid::LASER_12P5GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193106250, FrequencyGrid::LASER_6P25GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(
+          193103125, FrequencyGrid::LASER_3P125GHZ),
+      1);
 
   auto tunableLaserStatus = xcvr->getTunableLaserStatus();
   EXPECT_NE(tunableLaserStatus, std::nullopt);

@@ -68,8 +68,6 @@ constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
-// Tunable module const expr
-constexpr double kMhzToGhzFactor = 0.000001;
 // DeInitAllMask
 constexpr uint8_t kFullDataPathDeInitMask = 0xFF;
 
@@ -3559,43 +3557,35 @@ uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
 int16_t CmisModule::getChannelNumFromFrequency(
     int32_t frequencyMhz,
     FrequencyGrid frequencyGrid) {
+  int64_t diffMhz = static_cast<int64_t>(frequencyMhz) - kDefaultFrequencyMhz;
   int32_t channelNum = 0;
   switch (frequencyGrid) {
     case FrequencyGrid::LASER_150GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40) - 3);
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000 - 3);
       break;
     case FrequencyGrid::LASER_100GHZ:
-      channelNum =
-          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 10);
+      channelNum = static_cast<int32_t>((diffMhz * 10) / 1000000);
       break;
     case FrequencyGrid::LASER_75GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000);
       break;
     case FrequencyGrid::LASER_50GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 20));
+      channelNum = static_cast<int32_t>((diffMhz * 20) / 1000000);
       break;
     case FrequencyGrid::LASER_33GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 30));
+      channelNum = static_cast<int32_t>((diffMhz * 30) / 1000000);
       break;
     case FrequencyGrid::LASER_25GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000);
       break;
     case FrequencyGrid::LASER_12P5GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 80));
+      channelNum = static_cast<int32_t>((diffMhz * 80) / 1000000);
       break;
     case FrequencyGrid::LASER_6P25GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 160));
+      channelNum = static_cast<int32_t>((diffMhz * 160) / 1000000);
       break;
     case FrequencyGrid::LASER_3P125GHZ:
-      channelNum =
-          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 320);
+      channelNum = static_cast<int32_t>((diffMhz * 320) / 1000000);
       break;
     default:
       throw FbossError(
