@@ -72,6 +72,8 @@ void ManagedMySidNextHop::beforeRemove() {
   if (entry) {
     entry->setOptionalAttribute(
         SaiMySidEntryTraits::Attributes::NextHopId{SAI_NULL_OBJECT_ID});
+    entry->setOptionalAttribute(
+        SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_DROP});
   }
   this->setPublisherObject(nullptr);
 }
