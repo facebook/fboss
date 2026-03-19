@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
 
 #include <memory>
+#include <variant>
 
 namespace facebook::fboss {
 
@@ -18,6 +19,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 class SaiSrv6MySidManager;
+struct SaiNextHopGroupHandle;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 using SaiMySid = SaiObject<SaiMySidEntryTraits>;
@@ -46,7 +48,10 @@ class ManagedMySidNextHop
 };
 
 struct SaiMySidEntryHandle {
-  std::shared_ptr<ManagedMySidNextHop> managedNextHop;
+  using NextHopHandle = std::variant<
+      std::shared_ptr<SaiNextHopGroupHandle>,
+      std::shared_ptr<ManagedMySidNextHop>>;
+  NextHopHandle nexthopHandle;
   std::shared_ptr<SaiMySid> mySidEntry;
 };
 #endif
