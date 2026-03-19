@@ -128,6 +128,12 @@ def parse_args():
         help="Full path to SAI spec experiments directory.",
     )
     parser.add_argument(
+        "--preserve-env",
+        required=False,
+        action="store_true",
+        help="When set, flags will not overwrite previously set environment variables.",
+    )
+    parser.add_argument(
         ARG_BENCHMARK_INSTALL,
         required=False,
         action="store_true",
@@ -481,8 +487,14 @@ def _set_build_env_vars(args):
 
     # Set all collected env vars
     for name, value in env_vars.items():
-        os.environ[name] = value
-        print_info(f"Set ENV {name}={value}")
+        if args.preserve_env and name in os.environ:
+            print_info(
+                f"Preserved existing ENV {name}={os.environ[name]} "
+                f"(flag value was {value})"
+            )
+        else:
+            os.environ[name] = value
+            print_info(f"Set ENV {name}={value}")
 
 
 def main():
