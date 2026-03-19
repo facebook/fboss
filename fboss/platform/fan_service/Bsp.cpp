@@ -21,7 +21,6 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
-using namespace folly::literals::shell_literals;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
@@ -31,6 +30,9 @@ DEFINE_bool(
     "For subscribing to qsfp state and stats from FSDB");
 
 namespace {
+auto constexpr kDefaultMaxBrightness = 255;
+auto constexpr kSensordThriftPort = 5970;
+auto constexpr kAgentTempThriftPort = 5972;
 
 std::optional<std::string> getOpticTypeFromMediaCode(
     std::optional<facebook::fboss::MediaInterfaceCode> mediaInterfaceCode,
@@ -163,7 +165,14 @@ void Bsp::closeWatchdog() {
 }
 
 bool Bsp::writeToWatchdog(const std::string& value) {
-  std::string cmdLine;
+  auto writeFd = [](int fd, const std::string& val) {
+    auto ret = write(fd, val.c_str(), val.size());
+    if (ret < 0) {
+      XLOG(ERR) << "Failed to write to file descriptor " << fd << ": "
+                << folly::errnoStr(errno);
+    }
+    return ret > 0;
+  };
   if (!config_.watchdog().has_value()) {
     return false;
   }
@@ -365,7 +374,7 @@ void Bsp::getAsicTempDataOverThrift(
     const std::shared_ptr<SensorData>& pSensorData) {
   try {
     auto agentReadResponse =
-        getAsicTempThroughThrift(agentTempThriftPort_, evbSensor_);
+        getAsicTempThroughThrift(kAgentTempThriftPort, evbSensor_);
     for (auto& asicTempData : *agentReadResponse.asicTempData()) {
       // Again, for Thrift too, only honor the entry with value and timestamp.
       if (asicTempData.value() && asicTempData.timeStamp()) {
@@ -400,7 +409,7 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
   sensor_service::SensorReadResponse sensorReadResponse;
   try {
     sensorReadResponse =
-        getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+        getSensorValueThroughThrift(kSensordThriftPort, evbSensor_);
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to get sensor data from sensor_service: " << e.what();
     return;
@@ -430,9 +439,9 @@ float Bsp::readSysfs(const std::string& path) const {
   std::string buf = facebook::fboss::readSysfs(path);
   try {
     retVal = std::stof(buf);
-  } catch (std::exception& e) {
+  } catch (const std::exception&) {
     XLOG(ERR) << "Failed to convert sysfs read to float!! ";
-    throw e;
+    throw;
   }
   return retVal;
 }
@@ -450,7 +459,8 @@ bool Bsp::turnOnLedSysfs(const std::string& path) {
   auto max_brightness = getLedMaxBrightness(path);
   return writeSysfs(
       path + "/brightness",
-      max_brightness.has_value() ? max_brightness.value() : 255);
+      max_brightness.has_value() ? max_brightness.value()
+                                 : kDefaultMaxBrightness);
 }
 
 std::optional<int> Bsp::getLedMaxBrightness(const std::string& path) const {
