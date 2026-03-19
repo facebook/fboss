@@ -18,7 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -369,7 +369,7 @@ void SaiRouteManager::addOrUpdateRoute(
           auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
               routerInterfaceHandle->adapterKey(), swNextHop);
           srv6SidListHandle =
-              managerTable_->srv6Manager().addOrReuseSrv6SidList(
+              managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
                   sidListKey, sidListAttrs);
         }
         auto managedSaiNextHop =

@@ -11,7 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -94,7 +94,7 @@ class Srv6NextHopManagerTest : public ManagerTestBase {
             swNextHop.intfID().value());
     auto [sidListKey, sidListAttrs] =
         makeSrv6SidListKeyAndAttributes(rifHandle->adapterKey(), swNextHop);
-    return saiManagerTable->srv6Manager().addOrReuseSrv6SidList(
+    return saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
         sidListKey, sidListAttrs);
   }
 
@@ -202,9 +202,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {
   auto sidListKey =
       sidListHandle->managedSidList->getSidList()->adapterHostKey();
 
-  // Verify the SID list was inserted into SaiSrv6Manager
+  // Verify the SID list was inserted into SaiSrv6SidListManager
   auto* handle =
-      saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+      saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
   EXPECT_NE(handle, nullptr);
 }
 
@@ -251,15 +251,16 @@ TEST_F(Srv6NextHopManagerTest, sidListFreedWhenManagedNextHopDestroyed) {
     ASSERT_NE(sidListHandle, nullptr);
     sidListKey = sidListHandle->managedSidList->getSidList()->adapterHostKey();
 
-    // Verify SID list exists in SaiSrv6Manager while managed next hop is alive
+    // Verify SID list exists in SaiSrv6SidListManager while managed next hop is
+    // alive
     auto* handle =
-        saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+        saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(handle, nullptr);
   }
   // managedNextHop destroyed here — SID list should be freed
 
   auto* handle =
-      saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+      saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
   EXPECT_EQ(handle, nullptr);
 }
 

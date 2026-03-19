@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 
 #include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -8,7 +8,7 @@
 
 namespace facebook::fboss {
 
-SaiSrv6Manager::SaiSrv6Manager(
+SaiSrv6SidListManager::SaiSrv6SidListManager(
     SaiStore* saiStore,
     SaiManagerTable* /*managerTable*/,
     SaiPlatform* /*platform*/)
@@ -17,7 +17,7 @@ SaiSrv6Manager::SaiSrv6Manager(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 
 ManagedSrv6SidList::ManagedSrv6SidList(
-    SaiSrv6Manager* manager,
+    SaiSrv6SidListManager* manager,
     SaiStore* saiStore,
     typename SaiIpNextHopTraits::AdapterHostKey nexthopKey,
     SaiSrv6SidListTraits::AdapterHostKey sidListKey,
@@ -30,7 +30,8 @@ ManagedSrv6SidList::ManagedSrv6SidList(
           sidListKey_,
           attrs_)) {}
 
-std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::addOrReuseSrv6SidList(
+std::shared_ptr<SaiSrv6SidListHandle>
+SaiSrv6SidListManager::addOrReuseSrv6SidList(
     const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey,
     const SaiSrv6SidListTraits::CreateAttributes& createAttributes) {
   auto [handle, emplaced] = srv6SidLists_.refOrEmplace(adapterHostKey);
@@ -49,24 +50,9 @@ std::shared_ptr<SaiSrv6SidListHandle> SaiSrv6Manager::addOrReuseSrv6SidList(
   return handle;
 }
 
-const SaiSrv6SidListHandle* SaiSrv6Manager::getSrv6SidListHandle(
+const SaiSrv6SidListHandle* SaiSrv6SidListManager::getSrv6SidListHandle(
     const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey) const {
   return srv6SidLists_.get(adapterHostKey);
-}
-
-void SaiSrv6Manager::addMySidEntry(const std::shared_ptr<MySid>& /*mySid*/) {
-  // TODO: implement
-}
-
-void SaiSrv6Manager::removeMySidEntry(const std::shared_ptr<MySid>& /*mySid*/) {
-  // TODO: implement
-}
-
-void SaiSrv6Manager::changeMySidEntry(
-    const std::shared_ptr<MySid>& oldMySid,
-    const std::shared_ptr<MySid>& newMySid) {
-  removeMySidEntry(oldMySid);
-  addMySidEntry(newMySid);
 }
 
 std::pair<

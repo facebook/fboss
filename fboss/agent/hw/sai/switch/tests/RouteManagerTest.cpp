@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -747,7 +747,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
   ASSERT_NE(nhgHandle, nullptr);
   EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
 
-  // Verify SID list for each next hop via SaiSrv6Manager
+  // Verify SID list for each next hop via SaiSrv6SidListManager
   std::vector<folly::IPAddressV6> segmentList{
       folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
   for (const auto& intf : {std::cref(intf0), std::cref(intf1)}) {
@@ -761,7 +761,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
     SaiSrv6SidListTraits::AdapterHostKey sidListKey{
         SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segmentList, rifId, ip};
     auto* sidListHandle =
-        saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+        saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(sidListHandle, nullptr);
     ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
 

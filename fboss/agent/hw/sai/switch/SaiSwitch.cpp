@@ -51,7 +51,8 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
@@ -1610,11 +1611,11 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   processDelta(
       delta.getMySidsDelta(),
-      managerTable_->srv6Manager(),
+      managerTable_->srv6MySidManager(),
       lockPolicy,
-      &SaiSrv6Manager::changeMySidEntry,
-      &SaiSrv6Manager::addMySidEntry,
-      &SaiSrv6Manager::removeMySidEntry);
+      &SaiSrv6MySidManager::changeMySidEntry,
+      &SaiSrv6MySidManager::addMySidEntry,
+      &SaiSrv6MySidManager::removeMySidEntry);
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_42_8)

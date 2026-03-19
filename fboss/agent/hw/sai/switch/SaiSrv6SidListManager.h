@@ -10,7 +10,6 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
-#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/lib/RefMap.h"
 
@@ -19,7 +18,7 @@ namespace facebook::fboss {
 class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
-class SaiSrv6Manager;
+class SaiSrv6SidListManager;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 using SaiSrv6SidList = SaiObject<SaiSrv6SidListTraits>;
@@ -33,7 +32,7 @@ class ManagedSrv6SidList : public detail::SaiObjectEventSingleSubscriber<
   using IpNextHopWeakPtr = std::weak_ptr<const SaiObject<SaiIpNextHopTraits>>;
 
   ManagedSrv6SidList(
-      SaiSrv6Manager* manager,
+      SaiSrv6SidListManager* manager,
       SaiStore* saiStore,
       typename SaiIpNextHopTraits::AdapterHostKey nexthopKey,
       SaiSrv6SidListTraits::AdapterHostKey sidListKey,
@@ -68,7 +67,7 @@ class ManagedSrv6SidList : public detail::SaiObjectEventSingleSubscriber<
   }
 
  private:
-  SaiSrv6Manager* manager_;
+  SaiSrv6SidListManager* manager_;
   SaiSrv6SidListTraits::AdapterHostKey sidListKey_;
   SaiSrv6SidListTraits::CreateAttributes attrs_;
   std::shared_ptr<SaiSrv6SidList> sidList_;
@@ -81,9 +80,9 @@ struct SaiSrv6SidListHandle {
 #endif
 };
 
-class SaiSrv6Manager {
+class SaiSrv6SidListManager {
  public:
-  SaiSrv6Manager(
+  SaiSrv6SidListManager(
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform);
@@ -95,12 +94,6 @@ class SaiSrv6Manager {
 
   const SaiSrv6SidListHandle* getSrv6SidListHandle(
       const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey) const;
-
-  void addMySidEntry(const std::shared_ptr<MySid>& mySid);
-  void removeMySidEntry(const std::shared_ptr<MySid>& mySid);
-  void changeMySidEntry(
-      const std::shared_ptr<MySid>& oldMySid,
-      const std::shared_ptr<MySid>& newMySid);
 #endif
 
  private:
