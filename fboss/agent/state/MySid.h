@@ -71,6 +71,11 @@ class MySid : public ThriftStructNode<MySid, state::MySidFields> {
     }
   }
 
+  bool resolved() const {
+    return getType() == MySidType::DECAPSULATE_AND_LOOKUP ||
+        getResolvedNextHop() != nullptr;
+  }
+
  private:
   // Inherit the constructors required for clone()
   using Base::Base;

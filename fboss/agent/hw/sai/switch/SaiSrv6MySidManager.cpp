@@ -6,6 +6,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
@@ -21,6 +22,54 @@ SaiSrv6MySidManager::SaiSrv6MySidManager(
     : saiStore_(saiStore), managerTable_(managerTable) {}
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+
+namespace {
+SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
+    const MySid& mySid,
+    const std::optional<SaiMySidEntryHandle::NextHopHandle>& nexthopHandle,
+    SaiManagerTable* managerTable) {
+  sai_int32_t endpointBehavior;
+  switch (mySid.getType()) {
+    case MySidType::ADJACENCY_MICRO_SID:
+      endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UA;
+      break;
+    case MySidType::NODE_MICRO_SID:
+      endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UN;
+      break;
+    case MySidType::DECAPSULATE_AND_LOOKUP:
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 1)
+      endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UDT46;
+#else
+      throw FbossError("Decapsulate with uSids requires SAI >= 1.16.0");
+#endif
+      break;
+  }
+
+  std::optional<sai_object_id_t> nextHopId;
+  if (nexthopHandle) {
+    if (auto* nhgHandle = std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(
+            &nexthopHandle.value())) {
+      nextHopId = (*nhgHandle)->nextHopGroup->adapterKey();
+    } else if (
+        auto* managedNh = std::get_if<std::shared_ptr<ManagedMySidNextHop>>(
+            &nexthopHandle.value())) {
+      nextHopId = (*managedNh)->adapterKey();
+    }
+  }
+
+  auto* vrHandle =
+      managerTable->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
+  CHECK(vrHandle) << "No default virtual router";
+  auto vrId = vrHandle->virtualRouter->adapterKey();
+
+  return SaiMySidEntryTraits::CreateAttributes{
+      endpointBehavior,
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
+      nextHopId,
+      vrId,
+      SAI_PACKET_ACTION_FORWARD};
+}
+} // namespace
 
 SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
     const MySid& mySid,
@@ -91,13 +140,64 @@ SaiSrv6MySidManager::getMySidObject(
   return saiStore_->get<SaiMySidEntryTraits>().get(key);
 }
 
-void SaiSrv6MySidManager::addMySidEntry(
-    const std::shared_ptr<MySid>& /*mySid*/) {
-  // TODO: implement
+void SaiSrv6MySidManager::addMySidEntry(const std::shared_ptr<MySid>& mySid) {
+  auto adapterHostKey = getMySidAdapterHostKey(*mySid, managerTable_);
+  if (handles_.find(adapterHostKey) != handles_.end()) {
+    throw FbossError("MySid entry already exists for ", mySid->getID());
+  }
+
+  if (!mySid->resolved()) {
+    XLOG(DBG2) << "Skipping MySid entry " << mySid->getID()
+               << " without resolved next hop";
+    return;
+  }
+
+  auto* resolvedNextHop = mySid->getResolvedNextHop();
+  std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
+
+  if (resolvedNextHop) {
+    const auto& nexthops = resolvedNextHop->getNextHopSet();
+    if (nexthops.size() > 1) {
+      auto nextHopGroupHandle =
+          managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
+              SaiNextHopGroupKey(
+                  resolvedNextHop->normalizedNextHops(), std::nullopt));
+      nexthopHandle = nextHopGroupHandle;
+    } else if (nexthops.size() == 1) {
+      auto resolvedNh = folly::poly_cast<ResolvedNextHop>(*nexthops.begin());
+      auto managedSaiNextHop =
+          managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNh);
+      auto* ipNextHop =
+          std::get_if<std::shared_ptr<ManagedIpNextHop>>(&managedSaiNextHop);
+      CHECK(ipNextHop) << "Expected IP next hop for MySid entry "
+                       << mySid->getID();
+      auto managedMySidNextHop = std::make_shared<ManagedMySidNextHop>(
+          this, adapterHostKey, *ipNextHop);
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiIpNextHopTraits>()
+          .subscribe(managedMySidNextHop);
+      nexthopHandle = managedMySidNextHop;
+    }
+  }
+
+  auto createAttributes =
+      getMySidCreateAttributes(*mySid, nexthopHandle, managerTable_);
+  auto& store = saiStore_->get<SaiMySidEntryTraits>();
+  auto mySidEntry = store.setObject(adapterHostKey, createAttributes);
+
+  auto handle = std::make_unique<SaiMySidEntryHandle>();
+  if (nexthopHandle) {
+    handle->nexthopHandle = nexthopHandle.value();
+  }
+  handle->mySidEntry = mySidEntry;
+  handles_.emplace(adapterHostKey, std::move(handle));
 }
 
 void SaiSrv6MySidManager::removeMySidEntry(
     const std::shared_ptr<MySid>& mySid) {
+  if (!mySid->resolved()) {
+    return;
+  }
   auto key = getMySidAdapterHostKey(*mySid, managerTable_);
   auto itr = handles_.find(key);
   if (itr == handles_.end()) {
