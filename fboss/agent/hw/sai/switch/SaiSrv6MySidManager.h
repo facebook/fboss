@@ -47,6 +47,10 @@ class ManagedMySidNextHop
   std::shared_ptr<ManagedNextHop<SaiIpNextHopTraits>> managedNextHop_;
 };
 
+SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
+    const MySid& mySid,
+    SaiManagerTable* managerTable);
+
 struct SaiMySidEntryHandle {
   using NextHopHandle = std::variant<
       std::shared_ptr<SaiNextHopGroupHandle>,
