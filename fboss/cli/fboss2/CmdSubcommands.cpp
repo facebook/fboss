@@ -298,6 +298,16 @@ CLI::App* CmdSubcommands::addCommand(
               "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
               "buffer-pool-name, active-queue-management");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME:
+          subCmd->add_option("qos_policy_name", args, "QoS policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY:
+          subCmd->add_option(
+              "map_entry",
+              args,
+              "<map-type> <key> <value> where map-type is one of: "
+              "tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
