@@ -194,6 +194,13 @@ switch_manager_unittest(
     ],
 )
 
+switch_manager_unittest(
+    name = "mysid_manager_test",
+    srcs = [
+        "MySidManagerTest.cpp",
+    ],
+)
+
 phy_switch_manager_unittest(
     name = "phy_switch_manager_test",
     srcs = [
