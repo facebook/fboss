@@ -1268,15 +1268,18 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
   };
 
   if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
-    // TODO(daiweix): remove these rx reason traps and replace them by ACLs
     rxReasonToQueues = {
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCP, coppMidPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCPV6, coppMidPriQueueId),
     };
+    if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO4) {
+      rxReasonToQueues.push_back(
+          ControlPlane::makeRxReasonToQueueEntry(
+              cfg::PacketRxReason::DHCP, coppMidPriQueueId));
+      rxReasonToQueues.push_back(
+          ControlPlane::makeRxReasonToQueueEntry(
+              cfg::PacketRxReason::DHCPV6, coppMidPriQueueId));
+    }
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {

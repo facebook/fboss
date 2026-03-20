@@ -85,7 +85,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::NO_RX_REASON_TRAP:
     case HwAsic::Feature::EGRESS_GVOQ_WATERMARK_BYTES:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
-    case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
     case HwAsic::Feature::FAST_LLFC_COUNTER:
     case HwAsic::Feature::INGRESS_SRAM_MIN_BUFFER_WATERMARK:
     case HwAsic::Feature::FDR_FIFO_WATERMARK:
@@ -107,6 +106,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
+    case HwAsic::Feature::VOQ:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -114,7 +114,6 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PFC:
     case HwAsic::Feature::PFC_XON_TO_XOFF_COUNTER:
     case HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET:
-    case HwAsic::Feature::VOQ:
     case HwAsic::Feature::FABRIC_TX_QUEUES:
     case HwAsic::Feature::VOQ_DELETE_COUNTER:
     case HwAsic::Feature::L3_QOS:
@@ -246,6 +245,7 @@ bool Jericho4Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::FEC_ERROR_DETECT_ENABLE:
     case HwAsic::Feature::CABLE_PROPOGATION_DELAY:
     case HwAsic::Feature::VENDOR_SWITCH_NOTIFICATION:
+    case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
       return false;
   }
   return false;
