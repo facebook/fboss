@@ -65,6 +65,13 @@ KNOWN_BAD_TEST = "known_bad_tests"
 FBOSS_KNOWN_BAD_TESTS = f"fboss_{KNOWN_BAD_TEST}"
 DEFAULT_LOG_TYPE = "stderr"
 
+_RE_PLATFORM = re.compile(r"_run_netcastle_([^_]+)")
+_RE_VARIANT_FAMILY = re.compile(r"_run_netcastle_{platform}_(.*?)_ensemble_link_")
+_RE_RUN_MODE = re.compile(r"_(mono|multi_switch)_test_")
+_RE_SDK_RAW = re.compile(
+    r"_(?:mono|multi_switch)_test_([^_]+(?:_[^_]+)*)_l2_known_bad_test"
+)
+
 
 @dataclass
 class TestConfig:
@@ -198,7 +205,10 @@ class UserAndEmailHandler:
         )
 
     def HTTP_format_known_bad_list(
-        self, tests: Dict[str, int], known_bad_tests: Dict[str, int], job_name: str
+        self,
+        tests: List[Dict[str, str]],
+        known_bad_tests: Dict[str, int],
+        job_name: str,
     ) -> str:
         """Format the test data into a Workplace post."""
         html = (
@@ -206,17 +216,33 @@ class UserAndEmailHandler:
         )
         html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
         html += "<p>Please remove them from known bad. </p>"
+
+        columns = [
+            "Test",
+            "Platform",
+            "variant_family",
+            "run mode",
+            "sdk version",
+            "test",
+        ]
         html += "<table>"
-        html += "<tr><th>Test Name</th></tr>"
-        for test_name, _status in tests.items():
-            html += f"<tr><td>{test_name}</td></tr>"
+        html += "<tr>"
+        for col in columns:
+            html += f"<th>{col}</th>"
+        html += "</tr>"
+        for row in tests:
+            html += "<tr>"
+            for col in columns:
+                html += f"<td>{row.get(col, '')}</td>"
+            html += "</tr>"
         html += "</table>"
+
         html += "<h1>Total known bad tests</h1>"
         html += "<p>Here is the list of all known bad tests:</p>"
         html += "<table>"
-        html += "<tr><th>Test Name</th></tr>"
+        html += "<tr><th>Test Name</th><th>Count</th></tr>"
         for test_name, status in known_bad_tests.items():
-            html += f"<tr><td>{test_name}: {status}</td></tr>"
+            html += f"<tr><td>{test_name}</td><td>{status}</td></tr>"
         html += "</table>"
 
         return html
@@ -237,6 +263,82 @@ class UserAndEmailHandler:
             text += f"{test_name}: {status}\n"
 
         return text
+
+    def parse_known_bad_line(self, line: str) -> Optional[Dict[str, str]]:
+        """
+        Parse one line like:
+        netcastle_agent_ensemble_link_stress_run_netcastle_wedge400_ensemble_link_mono_test_preprod2trunk2preprod_10_2_0_10_2_0_l2_known_bad_test::roundtrip....cold_boot....
+
+        Returns dict with:
+        Test, Platform, variant_family, run mode, sdk version, test
+
+        Notes:
+        - Accepts inputs where underscores may be escaped as '\\_'.
+        - 'sdk version' is cleaned to remove '_l2_known_bad' and everything after it.
+        - 'Test' is forced to 'ensemble_link' (per your requirement).
+        """
+        if not line:
+            return None
+        s = line.strip()
+        if not s:
+            return None
+
+        # unescape underscores from chat formatting
+        s = s.replace(r"\_", "_")
+
+        if "::" not in s:
+            return None
+
+        prefix, testpart = s.split("::", 1)
+
+        plat_m = _RE_PLATFORM.search(prefix)
+        platform = plat_m.group(1) if plat_m else ""
+
+        rm_m = _RE_RUN_MODE.search(prefix)
+        run_mode = rm_m.group(1) if rm_m else ""
+        run_mode = (
+            "Mono"
+            if run_mode == "mono"
+            else ("Multi" if run_mode == "multi_switch" else "")
+        )
+
+        # variant family: platform_(variant)_ensemble_link ; empty if none exists
+        vf_re = re.compile(
+            _RE_VARIANT_FAMILY.pattern.format(platform=re.escape(platform))
+        )
+        vf_m = vf_re.search(prefix)
+        variant_family = vf_m.group(1) if vf_m else ""
+
+        # sdk raw: everything after _<mono|multi_switch>_test_ up to _l2_known_bad_test
+        sdk_m = _RE_SDK_RAW.search(prefix)
+        sdk_version = sdk_m.group(1) if sdk_m else ""
+
+        return {
+            "Test": "ensemble_link",
+            "Platform": platform,
+            "variant_family": variant_family,
+            "run mode": run_mode,
+            "sdk version": sdk_version,
+            "test": testpart,
+        }
+
+    def parse_known_bad(self, tests: t.Dict[str, int]) -> t.List[t.Dict[str, str]]:
+        """
+        Parse many known-bad test identifiers from a dict of tests.
+        Args:
+            tests: Dict whose keys are known-bad test identifiers (one per line in the old format).
+        Returns:
+            list[dict]: Parsed rows for each test key.
+        """
+        if not tests:
+            return []
+
+        rows: t.List[t.Dict[str, str]] = []
+        for test_key in tests.keys():
+            d = self.parse_known_bad_line(test_key)
+            if d:
+                rows.append(d)
+        return rows
 
 
 class ScubaQueryBuilder:
@@ -796,7 +898,9 @@ def main() -> Optional[int]:
             if args.send_email:
                 logger.info("Sending email...")
                 html = UserAndEmailHandler().HTTP_format_known_bad_list(
-                    tests, known_bad_jobs, test_config.name
+                    UserAndEmailHandler().parse_known_bad(tests),
+                    known_bad_jobs,
+                    test_config.name,
                 )
 
                 logger.info("html generated successfully for email body")
@@ -825,6 +929,10 @@ def main() -> Optional[int]:
                 logger.info(f"Task created successfully: T{task.task_number}")
             else:
                 logger.info("No task created")
+
+            # # parse tests
+            # data = UserAndEmailHandler().parse_known_bad(tests)
+            # logger.info(f"Known bad Table: {data}")
 
         # Get monthly stats comparing today vs 1st of month.
         if args.get_monthly_stats:
