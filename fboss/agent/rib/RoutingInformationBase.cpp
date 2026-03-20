@@ -508,7 +508,7 @@ void RibRouteTables::ensureVrf(RouterID rid) {
 
 std::vector<RouterID> RibRouteTables::getVrfList() const {
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  std::vector<RouterID> res(lockedRouteTables->routerIDToRouteTable.size());
+  std::vector<RouterID> res;
   for (const auto& entry : lockedRouteTables->routerIDToRouteTable) {
     res.push_back(entry.first);
   }

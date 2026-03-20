@@ -12,6 +12,7 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
 
 #include "fboss/agent/rib/RouteUpdater.h"
@@ -702,6 +703,36 @@ TEST(Route, resolveUcmpDistinctSrv6TunnelIds) {
   }
   EXPECT_TRUE(foundTunnelA);
   EXPECT_TRUE(foundTunnelB);
+}
+
+TEST(RibRouteTables, getVrfList) {
+  RoutingInformationBase rib;
+
+  // Initially no VRFs
+  EXPECT_TRUE(rib.getVrfList().empty());
+
+  // Add a single VRF
+  rib.ensureVrf(RouterID(0));
+  auto vrfList = rib.getVrfList();
+  EXPECT_EQ(vrfList.size(), 1);
+  EXPECT_EQ(vrfList[0], RouterID(0));
+
+  // Add more VRFs
+  rib.ensureVrf(RouterID(1));
+  rib.ensureVrf(RouterID(2));
+  vrfList = rib.getVrfList();
+  EXPECT_EQ(vrfList.size(), 3);
+
+  // Verify all VRFs are present
+  std::set<RouterID> vrfSet(vrfList.begin(), vrfList.end());
+  EXPECT_EQ(vrfSet.count(RouterID(0)), 1);
+  EXPECT_EQ(vrfSet.count(RouterID(1)), 1);
+  EXPECT_EQ(vrfSet.count(RouterID(2)), 1);
+
+  // Ensure duplicate VRF does not add a new entry
+  rib.ensureVrf(RouterID(1));
+  vrfList = rib.getVrfList();
+  EXPECT_EQ(vrfList.size(), 3);
 }
 
 } // namespace facebook::fboss
