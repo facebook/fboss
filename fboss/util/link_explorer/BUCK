@@ -1,0 +1,36 @@
+load("@fbcode//fbpkg:fbpkg.bzl", "fbpkg")
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_optics_phy")
+
+python_library(
+    name = "link_explorer_app",
+    srcs = ["link_explorer_app.py"],
+    deps = [
+        "//fboss/agent/if:ctrl-py3-clients",
+        "//fboss/agent/if:ctrl-py3-types",
+        "//fboss/qsfp_service/if:qsfp-py3-clients",
+        "//fboss/qsfp_service/if:transceiver-py3-types",
+        "//libfb/py/asyncio:thrift",
+        "//neteng/fboss/lib/asyncio:hostnames",
+        "//servicerouter/client/py3:get_client",
+    ],
+)
+
+python_binary(
+    name = "main",
+    srcs = ["server.py"],
+    main_function = "fboss.util.link_explorer.server.main",
+    par_style = "xar",
+    resources = glob(["templates/**"]),
+    deps = [
+        "fbsource//third-party/pypi/flask:flask",
+        ":link_explorer_app",
+    ],
+)
+
+fbpkg.builder(
+    name = "fboss.link_explorer",
+    path_actions = {"main": ":main"},
+)
