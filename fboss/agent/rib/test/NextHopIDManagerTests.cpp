@@ -1299,4 +1299,93 @@ TEST_F(NextHopIDManagerTest, Srv6NextHopSetID) {
   auto setIterDup = manager_->getOrAllocateNextHopSetID(srv6Set);
   EXPECT_EQ(setIterDup->second.id, setId);
 }
+TEST_F(NextHopIDManagerTest, getNextHops) {
+  // Test with resolved v4 nexthops
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+
+  RouteNextHopSet nhSet1 = {nh1, nh2};
+  auto result1 = manager_->getOrAllocRouteNextHopSetID(nhSet1);
+  NextHopSetID setID1 = result1.nextHopIdSetIter->second.id;
+
+  auto retrievedSet = manager_->getNextHops(setID1);
+  EXPECT_EQ(retrievedSet, nhSet1);
+
+  // Test with unresolved v6 nexthops
+  NextHop unh1 = UnresolvedNextHop(folly::IPAddress("2001:db8::1"), 1);
+  NextHop unh2 = UnresolvedNextHop(folly::IPAddress("2001:db8::2"), 1);
+
+  RouteNextHopSet nhSet2 = {unh1, unh2};
+  auto result2 = manager_->getOrAllocRouteNextHopSetID(nhSet2);
+  NextHopSetID setID2 = result2.nextHopIdSetIter->second.id;
+
+  auto retrievedSet2 = manager_->getNextHops(setID2);
+  EXPECT_EQ(retrievedSet2, nhSet2);
+
+  // Test with mixed resolved v4, resolved v6, and unresolved nexthops
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "2001:db8::3", UCMP_DEFAULT_WEIGHT);
+  NextHop unh3 = UnresolvedNextHop(folly::IPAddress("10.1.0.3"), 1);
+
+  RouteNextHopSet nhSet3 = {nh3, unh3};
+  auto result3 = manager_->getOrAllocRouteNextHopSetID(nhSet3);
+  NextHopSetID setID3 = result3.nextHopIdSetIter->second.id;
+
+  auto retrievedSet3 = manager_->getNextHops(setID3);
+  EXPECT_EQ(retrievedSet3, nhSet3);
+
+  // getNextHops with non-existent ID should throw
+  NextHopSetID nonExistentID = NextHopSetID(999999);
+  EXPECT_THROW(manager_->getNextHops(nonExistentID), FbossError);
+}
+
+TEST_F(NextHopIDManagerTest, getNextHopsIf) {
+  // Test with resolved v4 nexthops
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+
+  RouteNextHopSet nhSet1 = {nh1, nh2};
+  auto result1 = manager_->getOrAllocRouteNextHopSetID(nhSet1);
+  NextHopSetID setID1 = result1.nextHopIdSetIter->second.id;
+
+  auto retrievedOpt1 = manager_->getNextHopsIf(setID1);
+  ASSERT_TRUE(retrievedOpt1.has_value());
+  EXPECT_EQ(*retrievedOpt1, nhSet1);
+
+  // Test with unresolved v6 nexthops
+  NextHop unh1 = UnresolvedNextHop(folly::IPAddress("2001:db8::1"), 1);
+  NextHop unh2 = UnresolvedNextHop(folly::IPAddress("2001:db8::2"), 1);
+
+  RouteNextHopSet nhSet2 = {unh1, unh2};
+  auto result2 = manager_->getOrAllocRouteNextHopSetID(nhSet2);
+  NextHopSetID setID2 = result2.nextHopIdSetIter->second.id;
+
+  auto retrievedOpt2 = manager_->getNextHopsIf(setID2);
+  ASSERT_TRUE(retrievedOpt2.has_value());
+  EXPECT_EQ(*retrievedOpt2, nhSet2);
+
+  // Test with resolved v6 nexthops
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "2001:db8::3", UCMP_DEFAULT_WEIGHT);
+  NextHop nh4 =
+      makeResolvedNextHop(InterfaceID(1), "2001:db8::4", UCMP_DEFAULT_WEIGHT);
+
+  RouteNextHopSet nhSet3 = {nh3, nh4};
+  auto result3 = manager_->getOrAllocRouteNextHopSetID(nhSet3);
+  NextHopSetID setID3 = result3.nextHopIdSetIter->second.id;
+
+  auto retrievedOpt3 = manager_->getNextHopsIf(setID3);
+  ASSERT_TRUE(retrievedOpt3.has_value());
+  EXPECT_EQ(*retrievedOpt3, nhSet3);
+
+  // getNextHopsIf with non-existent ID should return std::nullopt
+  NextHopSetID nonExistentID = NextHopSetID(999999);
+  auto notFoundOpt = manager_->getNextHopsIf(nonExistentID);
+  EXPECT_FALSE(notFoundOpt.has_value());
+}
+
 } // namespace facebook::fboss
