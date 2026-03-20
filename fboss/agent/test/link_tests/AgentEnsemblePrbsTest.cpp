@@ -245,27 +245,50 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
   }
 
   bool setPrbsOnAllInterfaces(prbs::InterfacePrbsState& state) {
+    // Group ASIC ports by polynomial for bulk set
+    std::map<prbs::PrbsPolynomial, std::vector<std::string>>
+        asicPortsByPolynomial;
+    for (const auto& testPort : portsToTest_) {
+      if (testPort.component == phy::PortComponent::ASIC) {
+        asicPortsByPolynomial[testPort.polynomial].push_back(testPort.portName);
+      }
+    }
+
+    // Bulk set PRBS on all ASIC ports grouped by polynomial
+    if (!asicPortsByPolynomial.empty()) {
+      // Setting ASIC PRBS requires generator and checker to be both enabled
+      // or both disabled.
+      if ((state.generatorEnabled() && state.generatorEnabled().value()) ||
+          (state.checkerEnabled() && state.checkerEnabled().value())) {
+        state.generatorEnabled() = true;
+        state.checkerEnabled() = true;
+      } else {
+        state.generatorEnabled() = false;
+        state.checkerEnabled() = false;
+      }
+      auto agentClient = utils::createWedgeAgentClient();
+      for (const auto& [polynomial, portNames] : asicPortsByPolynomial) {
+        state.polynomial() = polynomial;
+        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
+          try {
+            agentClient->sync_setInterfacesPrbs(
+                portNames, phy::PortComponent::ASIC, state);
+            EXPECT_EVENTUALLY_TRUE(true);
+          } catch (const std::exception& ex) {
+            XLOG(ERR) << "Setting PRBS on ASIC ports failed with " << ex.what();
+            EXPECT_EVENTUALLY_TRUE(false);
+          }
+        });
+      }
+    }
+
+    // Handle non-ASIC ports individually
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
       state.polynomial() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
-        // Setting ASIC PRBS requires generator and checker to be both enabled
-        // or both disabled.
-        if ((state.generatorEnabled() && state.generatorEnabled().value()) ||
-            (state.checkerEnabled() && state.checkerEnabled().value())) {
-          state.generatorEnabled() = true;
-          state.checkerEnabled() = true;
-        } else {
-          state.generatorEnabled() = false;
-          state.checkerEnabled() = false;
-        }
-        auto agentClient = utils::createWedgeAgentClient();
-        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
-          EXPECT_EVENTUALLY_TRUE(
-              setPrbsOnInterface<apache::thrift::Client<FbossCtrl>>(
-                  agentClient.get(), interfaceName, component, state));
-        });
+        continue;
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
