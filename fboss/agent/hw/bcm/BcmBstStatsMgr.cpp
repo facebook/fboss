@@ -15,7 +15,6 @@
 #include <folly/Indestructible.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
