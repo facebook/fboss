@@ -91,8 +91,8 @@
 #include <utility>
 #include <vector>
 
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -127,7 +127,7 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
     void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater fibUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,

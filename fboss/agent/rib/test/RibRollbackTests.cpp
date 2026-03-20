@@ -13,8 +13,8 @@
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"

@@ -7,7 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FibHelpers.h"
@@ -29,7 +29,7 @@
 
 namespace facebook::fboss {
 
-ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
+RibToSwitchStateUpdater::RibToSwitchStateUpdater(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -43,7 +43,7 @@ ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
       labelToRoute_(labelToRoute),
       nextHopIDManager_(nextHopIDManager) {}
 
-std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
+std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
   // A ForwardingInformationBaseContainer holds a
   // ForwardingInformationBaseV4 and a ForwardingInformationBaseV6 for a
@@ -149,7 +149,7 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
 
 template <typename AddressT>
 std::shared_ptr<typename facebook::fboss::ForwardingInformationBase<AddressT>>
-ForwardingInformationBaseUpdater::createUpdatedFib(
+RibToSwitchStateUpdater::createUpdatedFib(
     const facebook::fboss::NetworkToRouteMap<AddressT>& rib,
     const std::shared_ptr<facebook::fboss::ForwardingInformationBase<AddressT>>&
         fib,
@@ -215,7 +215,7 @@ ForwardingInformationBaseUpdater::createUpdatedFib(
 }
 
 std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase>
-ForwardingInformationBaseUpdater::createUpdatedLabelFib(
+RibToSwitchStateUpdater::createUpdatedLabelFib(
     const facebook::fboss::NetworkToRouteMap<LabelID>& rib,
     std::shared_ptr<facebook::fboss::MultiLabelForwardingInformationBase> fib) {
   if (!FLAGS_mpls_rib) {
@@ -266,7 +266,7 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
   return updated ? newFib : nullptr;
 }
 
-bool ForwardingInformationBaseUpdater::verifyNextHopIdConsistency(
+bool RibToSwitchStateUpdater::verifyNextHopIdConsistency(
     const std::shared_ptr<SwitchState>& state) const {
   if (!nextHopIDManager_) {
     return true;

@@ -11,8 +11,8 @@
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 
 #include "fboss/agent/SwitchIdScopeResolver.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -24,7 +24,7 @@ StateDelta ribToSwitchStateUpdate(
     const LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
     void* cookie) {
-  ForwardingInformationBaseUpdater fibUpdater(
+  RibToSwitchStateUpdater fibUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,

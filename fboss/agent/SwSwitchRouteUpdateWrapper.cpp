@@ -13,8 +13,8 @@
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -43,15 +43,14 @@ FibUpdateFunction createFibUpdateFunction(
     // update is synchronous and we will call getLastDelta only
     // after the update is done. Its cleaner to protect variables
     // accessed from multiple threads.
-    folly::Synchronized<facebook::fboss::ForwardingInformationBaseUpdater>
-        fibUpdater(
-            std::in_place,
-            resolver,
-            vrf,
-            v4NetworkToRoute,
-            v6NetworkToRoute,
-            labelToRoute,
-            nextHopIDManager);
+    folly::Synchronized<facebook::fboss::RibToSwitchStateUpdater> fibUpdater(
+        std::in_place,
+        resolver,
+        vrf,
+        v4NetworkToRoute,
+        v6NetworkToRoute,
+        labelToRoute,
+        nextHopIDManager);
 
     auto wFibUpdater = fibUpdater.wlock();
     auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);

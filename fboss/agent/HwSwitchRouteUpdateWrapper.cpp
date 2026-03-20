@@ -1,8 +1,8 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitch.h"
@@ -20,7 +20,7 @@ StateDelta hwSwitchFibUpdate(
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
     const std::shared_ptr<SwitchState> oldState) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater fibUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,

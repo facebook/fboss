@@ -25,7 +25,7 @@ namespace facebook::fboss {
 class SwitchState;
 class SwitchIdScopeResolver;
 
-class ForwardingInformationBaseUpdater {
+class RibToSwitchStateUpdater {
  public:
   /*
    * Constructor with NextHopIDManager for clients that need ECMP NextHop ID
@@ -45,7 +45,7 @@ class ForwardingInformationBaseUpdater {
    * temporary functionality needed before the RIB-based allocation is
    * complete.
    */
-  ForwardingInformationBaseUpdater(
+  RibToSwitchStateUpdater(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
@@ -53,13 +53,13 @@ class ForwardingInformationBaseUpdater {
       const LabelToRouteMap& labelToRoute,
       const NextHopIDManager* nextHopIDManager);
 
-  ForwardingInformationBaseUpdater(
+  RibToSwitchStateUpdater(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
       const IPv4NetworkToRouteMap& v4NetworkToRoute,
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
       const LabelToRouteMap& labelToRoute)
-      : ForwardingInformationBaseUpdater(
+      : RibToSwitchStateUpdater(
             resolver,
             vrf,
             v4NetworkToRoute,

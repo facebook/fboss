@@ -11,7 +11,7 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/state/SwitchState.h"

@@ -38,7 +38,7 @@ target_link_libraries(network_to_route_map
 
 add_library(fib_updater
   fboss/agent/rib/FibUpdateHelpers.cpp
-  fboss/agent/rib/ForwardingInformationBaseUpdater.cpp
+  fboss/agent/rib/RibToSwitchStateUpdater.cpp
 )
 
 target_link_libraries(fib_updater

@@ -3,8 +3,8 @@
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 
 #include "fboss/agent/VoqUtils.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -18,7 +18,7 @@ facebook::fboss::StateDelta updateFibForRemoteConnectedRoutes(
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
     void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater fibUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,

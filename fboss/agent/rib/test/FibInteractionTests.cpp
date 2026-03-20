@@ -12,9 +12,9 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/FibInfo.h"
@@ -44,7 +44,7 @@ HwSwitchMatcher scope() {
 
 } // namespace
 
-TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
+TEST(RibToSwitchStateUpdater, ModifyUnpublishedSwitchState) {
   auto vrfOne = RouterID(1);
 
   // First, we put together a Forwarding Information Base tree containing
@@ -81,7 +81,7 @@ TEST(ForwardingInformationBaseUpdater, ModifyUnpublishedSwitchState) {
   facebook::fboss::IPv6NetworkToRouteMap v6NetworkToRouteMap;
   facebook::fboss::LabelToRouteMap labelToRouteMap;
   facebook::fboss::NextHopIDManager nextHopIDManager;
-  facebook::fboss::ForwardingInformationBaseUpdater updater(
+  facebook::fboss::RibToSwitchStateUpdater updater(
       nullptr,
       vrfOne,
       v4NetworkToRouteMap,
@@ -367,7 +367,7 @@ TEST(Rib, Update) {
 //    forwarding information differs from that in the FIB
 // 3) a route has been added whose prefix exists in the RIB AND whose
 //    forwarding information matches that in the FIB
-TEST(ForwardingInformationBaseUpdater, Deduplication) {
+TEST(RibToSwitchStateUpdater, Deduplication) {
   using namespace facebook::fboss;
 
   const RouterID vrfZero{0};
