@@ -220,10 +220,10 @@ class UserAndEmailHandler:
         columns = [
             "Test",
             "Platform",
-            "variant_family",
-            "run mode",
-            "sdk version",
-            "test",
+            "Variant",
+            "Run Mode",
+            "SDK Version",
+            "Test Case",
         ]
         html += "<table>"
         html += "<tr>"
@@ -266,16 +266,12 @@ class UserAndEmailHandler:
 
     def parse_known_bad_line(self, line: str) -> Optional[Dict[str, str]]:
         """
-        Parse one line like:
-        netcastle_agent_ensemble_link_stress_run_netcastle_wedge400_ensemble_link_mono_test_preprod2trunk2preprod_10_2_0_10_2_0_l2_known_bad_test::roundtrip....cold_boot....
+        Auto-detect the test format and dispatch to the appropriate parser.
 
-        Returns dict with:
-        Test, Platform, variant_family, run mode, sdk version, test
-
-        Notes:
-        - Accepts inputs where underscores may be escaped as '\\_'.
-        - 'sdk version' is cleaned to remove '_l2_known_bad' and everything after it.
-        - 'Test' is forced to 'ensemble_link' (per your requirement).
+        Supported formats:
+        - ensemble_link: contains '::' and 'ensemble_link' in prefix
+        - sai_agent: contains '/' separators (e.g. netcastle_test/sai_agent_test/...)
+        - QSFP: contains '::' and 'qsfp' in prefix
         """
         if not line:
             return None
@@ -286,9 +282,19 @@ class UserAndEmailHandler:
         # unescape underscores from chat formatting
         s = s.replace(r"\_", "_")
 
-        if "::" not in s:
-            return None
+        if "/" in s and "sai_agent" in s:
+            return self._parse_sai_agent_line(s)
+        elif "::" in s and "qsfp" in s:
+            return self._parse_qsfp_line(s)
+        elif "::" in s:
+            return self._parse_ensemble_link_line(s)
+        return None
 
+    def _parse_ensemble_link_line(self, s: str) -> Optional[Dict[str, str]]:
+        """
+        Parse an ensemble_link line like:
+        netcastle_agent_ensemble_link_stress_run_netcastle_wedge400_ensemble_link_mono_test_preprod2trunk2preprod_10_2_0_10_2_0_l2_known_bad_test::cold_boot.TestClass.TestMethod
+        """
         prefix, testpart = s.split("::", 1)
 
         plat_m = _RE_PLATFORM.search(prefix)
@@ -316,10 +322,98 @@ class UserAndEmailHandler:
         return {
             "Test": "ensemble_link",
             "Platform": platform,
-            "variant_family": variant_family,
-            "run mode": run_mode,
-            "sdk version": sdk_version,
-            "test": testpart,
+            "Variant": variant_family,
+            "Run Mode": run_mode,
+            "SDK Version": sdk_version,
+            "Test Case": testpart,
+        }
+
+    def _parse_sai_agent_line(self, s: str) -> Optional[Dict[str, str]]:
+        """
+        Parse a sai_agent line like:
+        netcastle_test/sai_agent_test/brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/mono - ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic (cold_boot.AgentTrunkLoadBalancerTest)
+        """
+        # Split into path part and test part by ' - '
+        parts = s.split(" - ", 1)
+        if len(parts) != 2:
+            return None
+
+        path_part, test_info = parts
+        segments = path_part.split("/")
+        # Expected: [netcastle_test, sai_agent_test, asic_family, sdk, sdk, asic, run_mode]
+        if len(segments) < 7:
+            return None
+
+        asic_family = segments[2]
+        sdk_version = segments[3]
+        asic = segments[5]
+        run_mode = segments[6]
+        run_mode = (
+            "Mono"
+            if run_mode == "mono"
+            else ("Multi" if run_mode == "multi_switch" else run_mode)
+        )
+
+        # Parse test_method and (boot_type.TestClass) from test_info
+        # e.g. "ECMPFull... (cold_boot.AgentTrunkLoadBalancerTest)"
+        test_match = re.match(r"(.+?)\s+\((.+)\)", test_info)
+        if test_match:
+            test_method = test_match.group(1)
+            test_class = test_match.group(2)
+            test_case = f"{test_class}.{test_method}"
+        else:
+            test_case = test_info
+
+        return {
+            "Test": "sai_agent",
+            "Platform": asic_family,
+            "Variant": asic,
+            "Run Mode": run_mode,
+            "SDK Version": sdk_version,
+            "Test Case": test_case,
+        }
+
+    def _parse_qsfp_line(self, s: str) -> Optional[Dict[str, str]]:
+        """
+        Parse a QSFP line like:
+        netcastle_fboss_qsfp_stress_run_netcastle_fboss_qsfp_test_fuji_8x16q_barchetta2_5_2_barchetta2_5_2_known_bad_test::cold_boot.HwPortPrbsTest_LINE_PAM4_true.SetPrbs
+        """
+        if "::" not in s:
+            return None
+
+        prefix, test_case = s.split("::", 1)
+
+        # Strip known prefix and suffix
+        qsfp_prefix = "netcastle_fboss_qsfp_stress_run_netcastle_fboss_qsfp_test_"
+        qsfp_suffix = "_known_bad_test"
+        if not prefix.startswith(qsfp_prefix) or not prefix.endswith(qsfp_suffix):
+            return None
+
+        middle = prefix[len(qsfp_prefix) : -len(qsfp_suffix)]
+        # middle is e.g. "fuji_8x16q_barchetta2_5_2_barchetta2_5_2"
+        # SDK appears twice consecutively; find the repeated suffix
+        tokens = middle.split("_")
+        n = len(tokens)
+
+        platform = ""
+        variant = ""
+        sdk_version = ""
+
+        for k in range(1, (n // 2) + 1):
+            if tokens[n - 2 * k : n - k] == tokens[n - k : n]:
+                sdk_version = "_".join(tokens[n - 2 * k : n - k])
+                platform_variant_tokens = tokens[: n - 2 * k]
+                if platform_variant_tokens:
+                    platform = platform_variant_tokens[0]
+                    variant = "_".join(platform_variant_tokens[1:])
+                break
+
+        return {
+            "Test": "QSFP",
+            "Platform": platform,
+            "Variant": variant,
+            "SDK Version": sdk_version,
+            "Test Case": test_case,
         }
 
     def parse_known_bad(self, tests: t.Dict[str, int]) -> t.List[t.Dict[str, str]]:
