@@ -171,8 +171,8 @@ void reconstructRibFromFib(
 template <typename RibUpdateFn>
 void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  auto it = lockedRouteTables->find(vrf);
-  if (it == lockedRouteTables->end()) {
+  auto it = lockedRouteTables->routerIDToRouteTable.find(vrf);
+  if (it == lockedRouteTables->routerIDToRouteTable.end()) {
     throw FbossError("VRF ", vrf, " not configured");
   }
   auto& routeTable = it->second;
@@ -268,7 +268,7 @@ void RibRouteTables::reconfigure(
   }
   {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
-    *lockedRouteTables = constructRouteTables(
+    lockedRouteTables->routerIDToRouteTable = constructRouteTables(
         lockedRouteTables, configRouterIDToInterfaceRoutes);
   }
   for (auto& vrf : getVrfList()) {
@@ -358,7 +358,8 @@ void RibRouteTables::updateFib(
   std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
-    auto& routeTable = lockedRouteTables->find(vrf)->second;
+    auto& routeTable =
+        lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
     auto gotDelta = fibUpdateCallback(
         resolver,
         vrf,
@@ -378,7 +379,8 @@ void RibRouteTables::updateFib(
       auto fib =
           hwUpdateError.appliedState->getFibsInfoMap()->getFibContainer(vrf);
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
-      auto& routeTable = lockedRouteTables->find(vrf)->second;
+      auto& routeTable =
+          lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
       reconstructRibFromFib<
           folly::IPAddressV4,
           ForwardingInformationBase<folly::IPAddressV4>>(
@@ -494,15 +496,17 @@ void RibRouteTables::updateEcmpOverrides(const StateDelta& delta) {
 
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {
-    lockedRouteTables->insert(std::make_pair(rid, VrfRouteTable()));
+  if (lockedRouteTables->routerIDToRouteTable.find(rid) ==
+      lockedRouteTables->routerIDToRouteTable.end()) {
+    lockedRouteTables->routerIDToRouteTable.insert(
+        std::make_pair(rid, VrfRouteTable()));
   }
 }
 
 std::vector<RouterID> RibRouteTables::getVrfList() const {
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  std::vector<RouterID> res(lockedRouteTables->size());
-  for (const auto& entry : *lockedRouteTables) {
+  std::vector<RouterID> res(lockedRouteTables->routerIDToRouteTable.size());
+  for (const auto& entry : lockedRouteTables->routerIDToRouteTable) {
     res.push_back(entry.first);
   }
   return res;
@@ -638,9 +642,10 @@ std::shared_ptr<Route<AddressT>> RibRouteTables::longestMatch(
     RouterID vrf) const {
   StopWatch lookupTimer(std::nullopt, false);
   auto ribTables = synchronizedRouteTables_.rlock();
-  auto vrfIt = ribTables->find(vrf);
-  auto rt =
-      vrfIt == ribTables->end() ? nullptr : vrfIt->second.longestMatch(address);
+  auto vrfIt = ribTables->routerIDToRouteTable.find(vrf);
+  auto rt = vrfIt == ribTables->routerIDToRouteTable.end()
+      ? nullptr
+      : vrfIt->second.longestMatch(address);
   if (lookupTimer.msecsElapsed().count() > 1000) {
     XLOG(WARNING) << " Lookup for : " << address
                   << " took: " << lookupTimer.msecsElapsed().count() << " ms ";
@@ -662,8 +667,9 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
     newRouteTablesIter = newRouteTables.emplace_hint(
         newRouteTables.cend(), configVrf, VrfRouteTable());
 
-    auto oldRouteTablesIter = lockedRouteTables->find(configVrf);
-    if (oldRouteTablesIter == lockedRouteTables->end()) {
+    auto oldRouteTablesIter =
+        lockedRouteTables->routerIDToRouteTable.find(configVrf);
+    if (oldRouteTablesIter == lockedRouteTables->routerIDToRouteTable.end()) {
       // configVrf did not exist in the RIB, so it has been added to
       // newRouteTables with an empty set of routes
       continue;
@@ -852,7 +858,7 @@ RibRouteTables RibRouteTables::fromThrift(
   for (const auto& [rid, table] : ribThrift) {
     VrfRouteTable rtable = VrfRouteTable::fromThrift(table);
     auto vrf = RouterID(rid);
-    lockedRouteTables->emplace(vrf, std::move(rtable));
+    lockedRouteTables->routerIDToRouteTable.emplace(vrf, std::move(rtable));
   }
 
   if (fibsInfoMap) {
@@ -881,8 +887,9 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
 std::vector<MplsRouteDetails> RibRouteTables::getMplsRouteTableDetails() const {
   std::vector<MplsRouteDetails> mplsRouteDetails;
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
-    const auto it = synchronizedRouteTables.find(RouterID(0));
-    if (it != synchronizedRouteTables.end()) {
+    const auto it =
+        synchronizedRouteTables.routerIDToRouteTable.find(RouterID(0));
+    if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
       for (auto rit = it->second.labelToRoute.begin();
            rit != it->second.labelToRoute.end();
            ++rit) {
@@ -905,8 +912,8 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     RouterID rid) const {
   std::vector<RouteDetails> routeDetails;
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
-    const auto it = synchronizedRouteTables.find(rid);
-    if (it != synchronizedRouteTables.end()) {
+    const auto it = synchronizedRouteTables.routerIDToRouteTable.find(rid);
+    if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
@@ -1006,7 +1013,7 @@ RibRouteTables::VrfRouteTable RibRouteTables::VrfRouteTable::fromThrift(
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
   std::map<int32_t, state::RouteTableFields> obj{};
   auto routeTables = synchronizedRouteTables_.rlock();
-  for (const auto& [rid, routeTable] : *routeTables) {
+  for (const auto& [rid, routeTable] : routeTables->routerIDToRouteTable) {
     obj.emplace(rid, routeTable.toThrift());
   }
   return obj;
@@ -1015,8 +1022,8 @@ std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
 std::map<int32_t, state::RouteTableFields> RibRouteTables::warmBootState()
     const {
   std::map<int32_t, state::RouteTableFields> obj{};
-  const auto& routeTables = *synchronizedRouteTables_.rlock();
-  for (const auto& [rid, routeTable] : routeTables) {
+  const auto& routeTables = synchronizedRouteTables_.rlock();
+  for (const auto& [rid, routeTable] : routeTables->routerIDToRouteTable) {
     obj.emplace(rid, routeTable.warmBootState());
   }
   return obj;
@@ -1029,7 +1036,7 @@ RibRouteTables RibRouteTables::fromThrift(
   auto routeTables = ribRouteTables.synchronizedRouteTables_.wlock();
   for (const auto& [rid, routeTableFields] : obj) {
     // @lint-ignore CLANGTIDY
-    routeTables->emplace(
+    routeTables->routerIDToRouteTable.emplace(
         RouterID(rid),
         RibRouteTables::VrfRouteTable::fromThrift(routeTableFields));
   }
@@ -1082,7 +1089,8 @@ void RibRouteTables::importFibs(
     // Import routes from each FIB container
     for (const auto& iter : std::as_const(*fibsMap)) {
       const auto& fibContainer = iter.second;
-      auto& routeTables = (*lockedRouteTables)[fibContainer->getID()];
+      auto& routeTables =
+          lockedRouteTables->routerIDToRouteTable[fibContainer->getID()];
       importRoutes(fibContainer->getFibV6(), &routeTables.v6NetworkToRoute);
       importRoutes(fibContainer->getFibV4(), &routeTables.v4NetworkToRoute);
       auto mplsTable = &routeTables.labelToRoute;

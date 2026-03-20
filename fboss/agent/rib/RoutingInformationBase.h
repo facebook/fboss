@@ -16,6 +16,7 @@
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
@@ -204,7 +205,13 @@ class RibRouteTables {
    */
   using RouterIDToRouteTable =
       boost::container::flat_map<RouterID, VrfRouteTable>;
-  using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
+
+  struct RouteTables {
+    RouterIDToRouteTable routerIDToRouteTable;
+    std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>> mySidTable;
+  };
+
+  using SynchronizedRouteTables = folly::Synchronized<RouteTables>;
 
   void importFibs(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
