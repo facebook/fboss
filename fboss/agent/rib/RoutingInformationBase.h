@@ -159,16 +159,16 @@ class RibRouteTables {
   void updateEcmpOverrides(const StateDelta& delta);
 
  private:
-  struct RouteTable {
+  struct VrfRouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
     LabelToRouteMap labelToRoute;
 
-    bool operator==(const RouteTable& other) const {
+    bool operator==(const VrfRouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
           v6NetworkToRoute == other.v6NetworkToRoute;
     }
-    bool operator!=(const RouteTable& other) const {
+    bool operator!=(const VrfRouteTable& other) const {
       return !(*this == other);
     }
     std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
@@ -182,7 +182,7 @@ class RibRouteTables {
       return it == v6NetworkToRoute.end() ? nullptr : it->value();
     }
     state::RouteTableFields toThrift() const;
-    static RouteTable fromThrift(const state::RouteTableFields&);
+    static VrfRouteTable fromThrift(const state::RouteTableFields&);
     state::RouteTableFields warmBootState() const;
   };
 
@@ -202,7 +202,8 @@ class RibRouteTables {
    * route updates across VRFs. This can be accomplished simply by associating
    * the mutex implicit in folly::Synchronized with an individual RouteTable.
    */
-  using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
+  using RouterIDToRouteTable =
+      boost::container::flat_map<RouterID, VrfRouteTable>;
   using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
 
   void importFibs(

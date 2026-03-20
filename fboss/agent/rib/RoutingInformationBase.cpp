@@ -495,7 +495,7 @@ void RibRouteTables::updateEcmpOverrides(const StateDelta& delta) {
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {
-    lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
+    lockedRouteTables->insert(std::make_pair(rid, VrfRouteTable()));
   }
 }
 
@@ -660,7 +660,7 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
     const RouterID configVrf = routerIDAndInterfaceRoutes.first;
 
     newRouteTablesIter = newRouteTables.emplace_hint(
-        newRouteTables.cend(), configVrf, RouteTable());
+        newRouteTables.cend(), configVrf, VrfRouteTable());
 
     auto oldRouteTablesIter = lockedRouteTables->find(configVrf);
     if (oldRouteTablesIter == lockedRouteTables->end()) {
@@ -850,7 +850,7 @@ RibRouteTables RibRouteTables::fromThrift(
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
 
   for (const auto& [rid, table] : ribThrift) {
-    RouteTable rtable = RouteTable::fromThrift(table);
+    VrfRouteTable rtable = VrfRouteTable::fromThrift(table);
     auto vrf = RouterID(rid);
     lockedRouteTables->emplace(vrf, std::move(rtable));
   }
@@ -976,7 +976,7 @@ void RoutingInformationBase::updateStateInRibThread(
   ribUpdateEventBase_.runInEventBaseThreadAndWait([fn] { fn(); });
 }
 
-state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
+state::RouteTableFields RibRouteTables::VrfRouteTable::toThrift() const {
   state::RouteTableFields obj{};
   obj.v4NetworkToRoute() = v4NetworkToRoute.toThrift();
   obj.v6NetworkToRoute() = v6NetworkToRoute.toThrift();
@@ -984,7 +984,7 @@ state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
   return obj;
 }
 
-state::RouteTableFields RibRouteTables::RouteTable::warmBootState() const {
+state::RouteTableFields RibRouteTables::VrfRouteTable::warmBootState() const {
   state::RouteTableFields obj{};
   obj.v4NetworkToRoute() = v4NetworkToRoute.warmBootState();
   obj.v6NetworkToRoute() = v6NetworkToRoute.warmBootState();
@@ -992,9 +992,9 @@ state::RouteTableFields RibRouteTables::RouteTable::warmBootState() const {
   return obj;
 }
 
-RibRouteTables::RouteTable RibRouteTables::RouteTable::fromThrift(
+RibRouteTables::VrfRouteTable RibRouteTables::VrfRouteTable::fromThrift(
     const state::RouteTableFields& obj) {
-  RouteTable routeTable;
+  VrfRouteTable routeTable;
   routeTable.v4NetworkToRoute =
       IPv4NetworkToRouteMap::fromThrift(*obj.v4NetworkToRoute());
   routeTable.v6NetworkToRoute =
@@ -1031,7 +1031,7 @@ RibRouteTables RibRouteTables::fromThrift(
     // @lint-ignore CLANGTIDY
     routeTables->emplace(
         RouterID(rid),
-        RibRouteTables::RouteTable::fromThrift(routeTableFields));
+        RibRouteTables::VrfRouteTable::fromThrift(routeTableFields));
   }
   return ribRouteTables;
 }
