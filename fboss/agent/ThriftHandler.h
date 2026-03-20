@@ -233,6 +233,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void clearInterfacePrbsStats(
       std::unique_ptr<std::string> portName,
       phy::PortComponent component) override;
+  void setInterfacesPrbs(
+      std::unique_ptr<std::vector<std::string>> portNames,
+      phy::PortComponent component,
+      std::unique_ptr<prbs::InterfacePrbsState> state) override;
   void setInterfaceTxRx(
       std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
       std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests)
