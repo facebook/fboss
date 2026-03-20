@@ -5644,7 +5644,7 @@ bool CmisModule::fillVdmPerfMonitorPam4AlarmData(
  * which is expected for non-coherent modules.
  */
 bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
-  if (!isVdmSupported() || !cacheIsValid()) {
+  if (!isTunableOptics() || !isVdmSupported() || !cacheIsValid()) {
     return false;
   }
 
