@@ -22,13 +22,12 @@ class SwSwitch;
  * - toExternalAgent (asic -> Handler -> Agent):
  *   handlePacket() called from SwSwitch ethertype dispatch -> send()
  *
- * Packets with ethertype 0x9999 are dispatched to this handler from
+ * Packets with ethertype 0x88B6 are dispatched to this handler from
  * SwSwitch::handlePacketImpl() (same pattern as MKAServiceManager).
  */
 class PacketStreamHandler : public PacketStreamService {
  public:
-  // TODO(AIFM_ETHERNET) - update when available
-  static constexpr uint16_t ETHERTYPE_AIFM_CTRL = 0x9999;
+  static constexpr uint16_t ETHERTYPE_AIFM_CTRL = 0x88B6;
 
   PacketStreamHandler(
       SwSwitch* sw,

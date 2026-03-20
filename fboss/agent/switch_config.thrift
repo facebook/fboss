@@ -255,6 +255,7 @@ enum EtherType {
   LLDP = 0x88CC,
   ARP = 0x0806,
   LACP = 0x8809,
+  AIFM = 0x88B6,
 }
 
 struct Ttl {

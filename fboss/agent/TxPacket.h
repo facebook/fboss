@@ -93,7 +93,7 @@ void TxPacket::writeEthHeader(
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
   cursor->template writeBE<uint16_t>(static_cast<uint16_t>(0x8100)); // 802.1Q
-  cursor->template writeBE<uint16_t>(vlan);
+  cursor->template writeBE<uint16_t>(static_cast<uint16_t>(vlan));
   cursor->template writeBE<uint16_t>(protocol);
 }
 

@@ -86,8 +86,8 @@ inline std::vector<uint8_t> encodePayload(uint32_t sequenceNumber) {
           std::chrono::steady_clock::now().time_since_epoch())
           .count();
 
-  cursor.writeBE(timestampNs);
-  cursor.writeBE(sequenceNumber);
+  cursor.writeBE<uint64_t>(timestampNs);
+  cursor.writeBE<uint32_t>(sequenceNumber);
 
   return std::vector(buf.data(), buf.data() + buf.length());
 }
