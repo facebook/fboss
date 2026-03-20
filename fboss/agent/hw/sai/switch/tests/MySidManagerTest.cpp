@@ -4,9 +4,11 @@
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
+#include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/MySid.h"
@@ -322,6 +324,115 @@ TEST_F(MySidManagerTest, changeFromDecapToNextHop) {
   EXPECT_EQ(gotBehavior, SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UA);
 
   saiManagerTable->srv6MySidManager().removeMySidEntry(newMySid);
+}
+
+TEST_F(MySidManagerTest, ecmpNextHopGroupRemainsNonNullWhenMembersUnresolve) {
+  const auto& intf0 = testInterfaces.at(0);
+  const auto& intf1 = testInterfaces.at(1);
+  const auto& host0 = intf0.remoteHosts.at(0);
+  const auto& host1 = intf1.remoteHosts.at(0);
+
+  std::vector<std::pair<folly::IPAddress, InterfaceID>> nextHops = {
+      {host0.ip, InterfaceID(intf0.id)}, {host1.ip, InterfaceID(intf1.id)}};
+  auto mySid = makeMySidWithEcmpNextHops(
+      nextHops, "fc00:300::1", 48, MySidType::NODE_MICRO_SID);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  auto saiEntry = saiManagerTable->srv6MySidManager().getMySidObject(key);
+  ASSERT_NE(saiEntry, nullptr);
+
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+
+  // Verify initial state: NextHopId is set (points to next hop group)
+  // Note: FakeSai NHG OIDs can be 0, which equals SAI_NULL_OBJECT_ID,
+  // so we verify the NHG is valid by checking it has the expected members.
+  auto initialNextHopId =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  auto nhgId = NextHopGroupSaiId(initialNextHopId);
+
+  // Both members should be in the group — this proves NextHopId points to a
+  // valid NHG
+  SaiNextHopGroupTraits::Attributes::NextHopMemberList memberList{};
+  auto members = nextHopGroupApi.getAttribute(nhgId, memberList);
+  EXPECT_EQ(members.size(), 2);
+
+  // Remove one neighbor — that member should be removed from the group
+  auto arpEntry0 = makeArpEntry(intf0.id, host0);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry0);
+
+  members = nextHopGroupApi.getAttribute(nhgId, memberList);
+  EXPECT_EQ(members.size(), 1);
+
+  // NextHopId on MySid should still be the same (non-null) next hop group
+  auto nhIdAfterOneDown =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(nhIdAfterOneDown, initialNextHopId);
+
+  // Remove the second neighbor — group should have 0 members but still exist
+  auto arpEntry1 = makeArpEntry(intf1.id, host1);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry1);
+
+  members = nextHopGroupApi.getAttribute(nhgId, memberList);
+  EXPECT_EQ(members.size(), 0);
+
+  // NextHopId on MySid should STILL be non-null (group object persists)
+  auto nhIdAfterAllDown =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(nhIdAfterAllDown, initialNextHopId);
+
+  // Re-resolve both neighbors — members should reappear
+  resolveArp(intf0.id, host0);
+  resolveArp(intf1.id, host1);
+
+  members = nextHopGroupApi.getAttribute(nhgId, memberList);
+  EXPECT_EQ(members.size(), 2);
+
+  auto nhIdAfterReResolve =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(nhIdAfterReResolve, initialNextHopId);
+
+  saiManagerTable->srv6MySidManager().removeMySidEntry(mySid);
+}
+
+TEST_F(MySidManagerTest, ecmpPartialUnresolveThenReResolve) {
+  const auto& intf0 = testInterfaces.at(0);
+  const auto& intf1 = testInterfaces.at(1);
+  const auto& host0 = intf0.remoteHosts.at(0);
+  const auto& host1 = intf1.remoteHosts.at(0);
+
+  std::vector<std::pair<folly::IPAddress, InterfaceID>> nextHops = {
+      {host0.ip, InterfaceID(intf0.id)}, {host1.ip, InterfaceID(intf1.id)}};
+  auto mySid = makeMySidWithEcmpNextHops(
+      nextHops, "fc00:400::1", 48, MySidType::NODE_MICRO_SID);
+  saiManagerTable->srv6MySidManager().addMySidEntry(mySid);
+
+  auto key = getMySidAdapterHostKey(*mySid, saiManagerTable);
+  auto& srv6Api = saiApiTable->srv6Api();
+  auto& nextHopGroupApi = saiApiTable->nextHopGroupApi();
+
+  auto nhgOid =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  auto nhgId = NextHopGroupSaiId(nhgOid);
+
+  SaiNextHopGroupTraits::Attributes::NextHopMemberList memberList{};
+  EXPECT_EQ(nextHopGroupApi.getAttribute(nhgId, memberList).size(), 2);
+
+  // Remove one neighbor, re-resolve it, verify group is back to 2 members
+  auto arpEntry0 = makeArpEntry(intf0.id, host0);
+  saiManagerTable->neighborManager().removeNeighbor(arpEntry0);
+  EXPECT_EQ(nextHopGroupApi.getAttribute(nhgId, memberList).size(), 1);
+
+  resolveArp(intf0.id, host0);
+  EXPECT_EQ(nextHopGroupApi.getAttribute(nhgId, memberList).size(), 2);
+
+  // NextHopId on MySid unchanged throughout
+  auto nhIdAfter =
+      srv6Api.getAttribute(key, SaiMySidEntryTraits::Attributes::NextHopId{});
+  EXPECT_EQ(nhIdAfter, nhgOid);
+
+  saiManagerTable->srv6MySidManager().removeMySidEntry(mySid);
 }
 
 #endif
