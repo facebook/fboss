@@ -160,6 +160,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip, int32_t vlan)
       override;
 
+  int32_t flushNeighborEntries(
+      std::unique_ptr<std::vector<IfAndIP>> entries) override;
+
   void getVlanAddresses(Addresses& addrs, int32_t vlan) override;
   void getVlanAddressesByName(
       Addresses& addrs,

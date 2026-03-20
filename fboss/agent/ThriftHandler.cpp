@@ -2462,6 +2462,27 @@ int32_t ThriftHandler::flushNeighborEntry(
   }
 }
 
+int32_t ThriftHandler::flushNeighborEntries(
+    unique_ptr<std::vector<IfAndIP>> entries) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  int32_t totalFlushed = 0;
+
+  for (const auto& entry : *entries) {
+    try {
+      totalFlushed += flushNeighborEntry(
+          std::make_unique<BinaryAddress>(*entry.ip()), *entry.interfaceID());
+    } catch (...) {
+      XLOG(WARNING) << "Failed to flush neighbor entry for "
+                    << toIPAddress(*entry.ip()).str() << " on interface "
+                    << *entry.interfaceID();
+    }
+  }
+
+  return totalFlushed;
+}
+
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNPU(__func__);
