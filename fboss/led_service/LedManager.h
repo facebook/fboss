@@ -191,7 +191,7 @@ class LedManager {
   std::unique_ptr<std::thread> ledManagerThread_{nullptr};
   std::unique_ptr<folly::EventBase> eventBase_;
 
-  void triggerLedUpdate();
+  void triggerLedUpdate(const std::vector<PortID>& portIds);
 };
 
 } // namespace facebook::fboss
