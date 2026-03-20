@@ -176,7 +176,7 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
     throw FbossError("VRF ", vrf, " not configured");
   }
   auto& routeTable = it->second;
-  updateRibFn(routeTable);
+  updateRibFn(routeTable, &lockedRouteTables->mySidTable);
 }
 
 void RibRouteTables::reconfigure(
@@ -223,7 +223,7 @@ void RibRouteTables::reconfigure(
 
     // ConfigApplier can be made independent of the VRF whose routes it
     // is processing by the use of boost::filter_iterator.
-    updateRib(vrf, [&](auto& routeTable) {
+    updateRib(vrf, [&](auto& routeTable, auto* mySidTable) {
       ConfigApplier configApplier(
           vrf,
           &(routeTable.v4NetworkToRoute),
@@ -244,7 +244,8 @@ void RibRouteTables::reconfigure(
               staticMplsRoutesToNull.cbegin(), staticMplsRoutesToNull.cend()),
           folly::range(
               staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()),
-          nextHopIDManager_);
+          nextHopIDManager_,
+          mySidTable);
       // Apply config
       configApplier.apply();
     });
@@ -311,12 +312,13 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
       }
     }
     if (!toAddRoutes.empty() || !toDelRoutes.empty()) {
-      updateRib(vrf, [&](auto& routeTable) {
+      updateRib(vrf, [&](auto& routeTable, auto* mySidTable) {
         RibRouteUpdater updater(
             &(routeTable.v4NetworkToRoute),
             &(routeTable.v6NetworkToRoute),
             &(routeTable.labelToRoute),
-            nextHopIDManager_);
+            nextHopIDManager_,
+            mySidTable);
         updater.update(
             {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
             {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
@@ -339,12 +341,13 @@ void RibRouteTables::update(
     folly::StringPiece updateType,
     const FibUpdateFunction& fibUpdateCallback,
     void* cookie) {
-  updateRib(routerID, [&](auto& routeTable) {
+  updateRib(routerID, [&](auto& routeTable, auto* mySidTable) {
     RibRouteUpdater updater(
         &(routeTable.v4NetworkToRoute),
         &(routeTable.v6NetworkToRoute),
         &(routeTable.labelToRoute),
-        nextHopIDManager_);
+        nextHopIDManager_,
+        mySidTable);
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
   updateFib(resolver, routerID, fibUpdateCallback, cookie);
@@ -519,7 +522,7 @@ void RibRouteTables::setClassID(
     FibUpdateFunction fibUpdateCallback,
     std::optional<cfg::AclLookupClass> classId,
     void* cookie) {
-  updateRib(rid, [&](auto& routeTable) {
+  updateRib(rid, [&](auto& routeTable, auto* /*mySidTable*/) {
     // Update rib
     auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
       auto ritr = rib.exactMatch(ip, mask);
@@ -548,7 +551,7 @@ void RibRouteTables::setOverrideEcmpMode(
     const std::unordered_map<
         folly::CIDRNetwork,
         std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
-  updateRib(rid, [&](auto& routeTable) {
+  updateRib(rid, [&](auto& routeTable, auto* /*mySidTable*/) {
     // Update rib
     auto updateRoute = [](auto& rib,
                           auto ip,
@@ -595,7 +598,7 @@ void RibRouteTables::setOverrideEcmpNhops(
     const std::unordered_map<
         folly::CIDRNetwork,
         std::optional<RouteNextHopSet>>& prefix2Nhops) {
-  updateRib(rid, [&](auto& routeTable) {
+  updateRib(rid, [&](auto& routeTable, auto* /*mySidTable*/) {
     // Update rib
     auto updateRoute = [](auto& rib,
                           auto ip,
