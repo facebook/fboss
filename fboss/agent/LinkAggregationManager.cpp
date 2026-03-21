@@ -277,7 +277,7 @@ void LinkAggregationManager::updateHyperPortState(
   if (!FLAGS_hyper_port) {
     return;
   }
-  cfg::PortState newPortState;
+  cfg::PortState newPortState{cfg::PortState::DISABLED};
   std::optional<PortID> hyperPortId;
   if (!newAggPort) {
     // remove old aggregate port
