@@ -1749,6 +1749,11 @@ class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
       EXPECT_EVENTUALLY_GE(stableCount, kStableIterations);
     });
   }
+
+  // Ingress buffer pool shared size large enough for MoD pool allocation
+  // (2580 cells) plus PG min guarantees across all ports, but small enough
+  // to trigger MMU drops without excessive packet injection.
+  static constexpr auto kModGlobalSharedBytes{2'000'000};
 };
 
 cfg::MirrorOnDropReport makeXgsModReport(
@@ -1832,6 +1837,93 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
         XLOG(INFO) << "XGS MoD test completed - packet captured and dumped";
       }
     });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test verifies MoD captures MMU drops caused by buffer exhaustion.
+TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
+  PortID injectionPortId = masterLogicalInterfacePortIds()[0];
+  PortID collectorPortId = masterLogicalInterfacePortIds()[1];
+  PortID txOffPortId = masterLogicalInterfacePortIds()[2];
+  const int kPriority = 2;
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+  XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
+
+  auto setup = [&]() {
+    cfg::SwitchConfig config = getAgentEnsemble()->getCurrentConfig();
+
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-mmu-drop-test",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_));
+
+    // Lossy PG (headroom=0) with larger globalShared (kModGlobalSharedBytes)
+    // to ensure enough shared buffer for the MoD pool (2580 cells) after PG
+    // min guarantees, but small enough to trigger MMU drops quickly.
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        config,
+        {injectionPortId},
+        {}, // losslessPgIds
+        {kPriority}, // lossyPgIds
+        {}, // tcToPgOverride
+        utility::PfcBufferParams::getPfcBufferParams(
+            hwAsic->getAsicType(), kModGlobalSharedBytes));
+
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    setupEcmpTraffic(
+        txOffPortId,
+        kDropDestIp,
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+    waitForStateUpdates(getSw());
+  };
+
+  auto verify = [&]() {
+    // Disable TX on egress port to cause buffer buildup and MMU drops
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, false);
+
+    utility::SwSwitchPacketSnooper snooper(getSw(), "xgs-mmu-drop-snooper");
+    snooper.ignoreUnclaimedRxPkts();
+
+    // Send traffic on the lossy PG priority to fill the buffer.
+    // Drops occur once shared buffer is exhausted.
+    XLOG(INFO) << "Sending packets to trigger MMU drops...";
+    std::unique_ptr<TxPacket> pkt =
+        sendPackets(10000, injectionPortId, kDropDestIp, kPriority);
+    XLOG(INFO) << "Sample packet:\n" << PktUtil::hexDump(pkt->buf());
+
+    WITH_RETRIES({
+      auto portStats = getLatestPortStats(injectionPortId);
+      XLOG(DBG2) << "In congestion discards: "
+                 << *portStats.inCongestionDiscards_();
+      EXPECT_EVENTUALLY_GT(*portStats.inCongestionDiscards_(), 0);
+    });
+
+    WITH_RETRIES_N(5, {
+      XLOG(DBG3) << "Waiting for MoD packet...";
+      std::optional<std::unique_ptr<folly::IOBuf>> frameRx =
+          snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      if (frameRx.has_value()) {
+        XLOG(INFO) << "Captured MoD packet for MMU drop:\n"
+                   << PktUtil::hexDump(frameRx->get());
+      }
+    });
+
+    // Note: Do NOT consume remaining MoD packets here.
+    // Trapping MoD packets triggers more drops, causing infinite MoD loop.
+
+    // Re-enable TX (required for SDK cleanup)
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, true);
   };
 
   verifyAcrossWarmBoots(setup, verify);
