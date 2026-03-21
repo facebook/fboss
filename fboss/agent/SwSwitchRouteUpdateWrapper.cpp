@@ -15,6 +15,7 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -24,11 +25,11 @@ namespace facebook::fboss {
 
 namespace {
 
-// Creates a FibUpdateFunction that captures the useRollback flag to determine
-// which SwSwitch update method to call:
+// Creates a RibToSwitchStateFunction that captures the useRollback flag to
+// determine which SwSwitch update method to call:
 // - useRollback=true:  calls updateStateWithForcedRollback (for testing)
 // - useRollback=false: calls updateStateWithHwFailureProtection (production)
-FibUpdateFunction createFibUpdateFunction(
+RibToSwitchStateFunction createRibToSwitchStateFunction(
     const std::optional<StateDeltaApplication>& deltaApplicationBehavior) {
   return [deltaApplicationBehavior](
              const facebook::fboss::SwitchIdScopeResolver* resolver,
@@ -37,32 +38,33 @@ FibUpdateFunction createFibUpdateFunction(
              const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
              const facebook::fboss::LabelToRouteMap& labelToRoute,
              const NextHopIDManager* nextHopIDManager,
+             const MySidTable& /*mySidTable*/,
              void* cookie) -> StateDelta {
-    // Since FIB updater will be accessed in swSwitch's update event
-    // base protect with a lock. This is even though we know the
-    // update is synchronous and we will call getLastDelta only
-    // after the update is done. Its cleaner to protect variables
-    // accessed from multiple threads.
-    folly::Synchronized<facebook::fboss::RibToSwitchStateUpdater> fibUpdater(
-        std::in_place,
-        resolver,
-        vrf,
-        v4NetworkToRoute,
-        v6NetworkToRoute,
-        labelToRoute,
-        nextHopIDManager);
+    // Since RIB to switch state updater will be accessed in swSwitch's update
+    // event base protect with a lock. This is even though we know the update is
+    // synchronous and we will call getLastDelta only after the update is done.
+    // Its cleaner to protect variables accessed from multiple threads.
+    folly::Synchronized<facebook::fboss::RibToSwitchStateUpdater>
+        ribToSwitchStateUpdater(
+            std::in_place,
+            resolver,
+            vrf,
+            v4NetworkToRoute,
+            v6NetworkToRoute,
+            labelToRoute,
+            nextHopIDManager);
 
-    auto wFibUpdater = fibUpdater.wlock();
+    auto wRibToSwitchStateUpdater = ribToSwitchStateUpdater.wlock();
     auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);
 
     sw->updateStateWithHwFailureProtection(
         "update fib",
-        [&wFibUpdater](const std::shared_ptr<SwitchState>& in) {
-          return (*wFibUpdater)(in);
+        [&wRibToSwitchStateUpdater](const std::shared_ptr<SwitchState>& in) {
+          return (*wRibToSwitchStateUpdater)(in);
         },
         deltaApplicationBehavior);
 
-    auto lastDelta = wFibUpdater->getLastDelta();
+    auto lastDelta = wRibToSwitchStateUpdater->getLastDelta();
     // Fib update could get cancelled - e.g. when SwSwitch already started its
     // exit. In that case last delta will be empty. Account for this case
     auto oldState =
@@ -80,8 +82,8 @@ SwSwitchRouteUpdateWrapper::SwSwitchRouteUpdateWrapper(
     : RouteUpdateWrapper(
           sw->getScopeResolver(),
           rib,
-          rib ? createFibUpdateFunction(deltaApplicationBehavior)
-              : std::optional<FibUpdateFunction>(),
+          rib ? createRibToSwitchStateFunction(deltaApplicationBehavior)
+              : std::optional<RibToSwitchStateFunction>(),
           rib ? sw : nullptr),
       sw_(sw) {}
 

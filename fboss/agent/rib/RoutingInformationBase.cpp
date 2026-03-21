@@ -190,7 +190,7 @@ void RibRouteTables::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-    FibUpdateFunction updateFibCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   // Config application is accomplished in the following sequence of steps:
   // 1. Update the VRFs held in RoutingInformationBase's
@@ -249,7 +249,7 @@ void RibRouteTables::reconfigure(
       // Apply config
       configApplier.apply();
     });
-    updateFib(resolver, vrf, updateFibCallback, cookie);
+    updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
   };
   // Because of this sequential loop over each VRF, config application scales
   // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
@@ -284,7 +284,7 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     const boost::container::flat_map<
         facebook::fboss::RouterID,
         std::vector<folly::CIDRNetwork>>& toDel,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   auto makeNhop = [](const auto& interfaceIDAndAddr) {
     auto interfaceID = interfaceIDAndAddr.first;
@@ -324,7 +324,7 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
             {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
             {});
       });
-      updateFib(resolver, vrf, fibUpdateCallback, cookie);
+      updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
     }
   }
 }
@@ -339,7 +339,7 @@ void RibRouteTables::update(
     const std::vector<RouteIdType>& toDelPrefixes,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   updateRib(routerID, [&](auto& routeTable, auto* mySidTable) {
     RibRouteUpdater updater(
@@ -350,26 +350,27 @@ void RibRouteTables::update(
         mySidTable);
     updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
   });
-  updateFib(resolver, routerID, fibUpdateCallback, cookie);
+  updateFib(resolver, routerID, ribToSwitchStateFunc, cookie);
 }
 
 void RibRouteTables::updateFib(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
     auto& routeTable =
         lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
-    auto gotDelta = fibUpdateCallback(
+    auto gotDelta = ribToSwitchStateFunc(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
         nextHopIDManager_,
+        lockedRouteTables->mySidTable,
         cookie);
     std::optional<StateDelta> tmp(
         StateDelta(gotDelta.oldState(), gotDelta.newState()));
@@ -519,7 +520,7 @@ void RibRouteTables::setClassID(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     std::optional<cfg::AclLookupClass> classId,
     void* cookie) {
   updateRib(rid, [&](auto& routeTable, auto* /*mySidTable*/) {
@@ -543,7 +544,7 @@ void RibRouteTables::setClassID(
       }
     }
   });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
+  updateFib(resolver, rid, ribToSwitchStateFunc, cookie);
 }
 
 void RibRouteTables::setOverrideEcmpMode(
@@ -728,7 +729,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-    FibUpdateFunction updateFibCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   ensureRunning();
   auto updateFn = [&] {
@@ -742,7 +743,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
         staticMplsRoutesToNull,
         staticMplsRoutesToCpu,
-        updateFibCallback,
+        ribToSwitchStateFunc,
         cookie);
   };
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
@@ -754,10 +755,10 @@ void RoutingInformationBase::updateRemoteInterfaceRoutes(
     const boost::container::flat_map<
         facebook::fboss::RouterID,
         std::vector<folly::CIDRNetwork>>& toDel,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   ribTables_.updateRemoteInterfaceRoutes(
-      resolver, toAdd, toDel, fibUpdateCallback, cookie);
+      resolver, toAdd, toDel, ribToSwitchStateFunc, cookie);
 }
 
 template <typename TraitsType>
@@ -770,7 +771,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     const std::vector<typename TraitsType::ThriftRouteId>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   ensureRunning();
   UpdateStatistics stats;
@@ -808,7 +809,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
           toDelPrefixes,
           resetClientsRoutes,
           updateType,
-          fibUpdateCallback,
+          ribToSwitchStateFunc,
           cookie);
     } catch (const std::exception&) {
       updateException = std::current_exception();
@@ -826,14 +827,14 @@ void RoutingInformationBase::setClassIDImpl(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     std::optional<cfg::AclLookupClass> classId,
     void* cookie,
     bool async) {
   ensureRunning();
   auto updateFn = [=, this]() {
     ribTables_.setClassID(
-        resolver, rid, prefixes, fibUpdateCallback, classId, cookie);
+        resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie);
   };
   if (async) {
     ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
@@ -941,7 +942,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     const std::vector<IpPrefix>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   return updateImpl<RibIpRouteUpdate>(
       resolver,
@@ -952,7 +953,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       toDelete,
       resetClientsRoutes,
       updateType,
-      fibUpdateCallback,
+      ribToSwitchStateFunc,
       cookie);
 }
 
@@ -965,7 +966,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     const std::vector<MplsLabel>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   return updateImpl<RibMplsRouteUpdate>(
       resolver,
@@ -976,7 +977,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       toDelete,
       resetClientsRoutes,
       updateType,
-      fibUpdateCallback,
+      ribToSwitchStateFunc,
       cookie);
 }
 

@@ -67,6 +67,7 @@ class FailSomeUpdates {
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
       const LabelToRouteMap& labelToRoute,
       const NextHopIDManager* nextHopIDManager,
+      const MySidTable& mySidTable,
       void* cookie) {
     if (toFail_.find(++cnt_) != toFail_.end()) {
       auto curSwitchStatePtr =
@@ -80,6 +81,7 @@ class FailSomeUpdates {
           v6NetworkToRoute,
           labelToRoute,
           nextHopIDManager,
+          mySidTable,
           static_cast<void*>(&desiredState));
       throw FbossHwUpdateError(desiredState, *curSwitchStatePtr);
     }
@@ -90,6 +92,7 @@ class FailSomeUpdates {
         v6NetworkToRoute,
         labelToRoute,
         nextHopIDManager,
+        mySidTable,
         cookie);
   }
 

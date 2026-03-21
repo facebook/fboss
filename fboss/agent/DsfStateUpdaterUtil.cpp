@@ -17,8 +17,9 @@ facebook::fboss::StateDelta updateFibForRemoteConnectedRoutes(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
+    const facebook::fboss::MySidTable& /*mySidTable*/,
     void* cookie) {
-  facebook::fboss::RibToSwitchStateUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,
@@ -29,8 +30,8 @@ facebook::fboss::StateDelta updateFibForRemoteConnectedRoutes(
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
-  fibUpdater(*nextStatePtr);
-  auto lastDelta = fibUpdater.getLastDelta();
+  ribToSwitchStateUpdater(*nextStatePtr);
+  auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
   return facebook::fboss::StateDelta(lastDelta->oldState(), *nextStatePtr);
 }

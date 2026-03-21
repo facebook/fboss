@@ -93,6 +93,7 @@
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
@@ -126,8 +127,9 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
+    const facebook::fboss::MySidTable& /*mySidTable*/,
     void* cookie) {
-  facebook::fboss::RibToSwitchStateUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,
@@ -138,8 +140,8 @@ StateDelta updateFibFromConfig(
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
-  fibUpdater(*nextStatePtr);
-  auto lastDelta = fibUpdater.getLastDelta();
+  ribToSwitchStateUpdater(*nextStatePtr);
+  auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
   return StateDelta(lastDelta->oldState(), *nextStatePtr);
 }

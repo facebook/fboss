@@ -36,13 +36,14 @@ class MultiSwitchFibInfoMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
-using FibUpdateFunction = std::function<StateDelta(
+using RibToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
     void* cookie)>;
 
 /*
@@ -71,14 +72,14 @@ class RibRouteTables {
       const std::vector<RouteIdType>& toDelPrefixes,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie);
   void setOverrideEcmpMode(
@@ -117,7 +118,7 @@ class RibRouteTables {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   void updateRemoteInterfaceRoutes(
@@ -126,7 +127,7 @@ class RibRouteTables {
       const boost::container::flat_map<
           facebook::fboss::RouterID,
           std::vector<folly::CIDRNetwork>>& toDel,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
   /*
@@ -190,7 +191,7 @@ class RibRouteTables {
   void updateFib(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
@@ -281,7 +282,7 @@ class RoutingInformationBase {
       const std::vector<IpPrefix>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   UpdateStatistics update(
@@ -293,7 +294,7 @@ class RoutingInformationBase {
       const std::vector<MplsLabel>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   /*
@@ -320,7 +321,7 @@ class RoutingInformationBase {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   void updateRemoteInterfaceRoutes(
@@ -329,29 +330,29 @@ class RoutingInformationBase {
       const boost::container::flat_map<
           facebook::fboss::RouterID,
           std::vector<folly::CIDRNetwork>>& toDel,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
     setClassIDImpl(
-        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, false);
+        resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie, false);
   }
 
   void setClassIDAsync(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
     setClassIDImpl(
-        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
+        resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie, true);
   }
   void updateEcmpOverrides(const StateDelta& delta);
   void updateStateInRibThread(const std::function<void()>& fn);
@@ -409,7 +410,7 @@ class RoutingInformationBase {
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie,
       bool async);
@@ -424,7 +425,7 @@ class RoutingInformationBase {
       const std::vector<typename TraitsType::ThriftRouteId>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   std::unique_ptr<std::thread> ribUpdateThread_;
