@@ -245,13 +245,19 @@ static void sendArp(
 }
 
 void ArpHandler::floodGratuituousArp() {
-  for (const auto& [_, intfMap] :
-       std::as_const(*sw_->getState()->getInterfaces())) {
+  if (!sw_->isFullyInitialized()) {
+    XLOG(DBG2) << "Skip flooding gratuitous ARP, switch not initialized";
+    return;
+  }
+  // Capture state once to prevent use-after-free: without a local shared_ptr,
+  // a concurrent state update can free Interface nodes mid-iteration.
+  auto state = sw_->getState();
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     for (auto iiter : std::as_const(*intfMap)) {
       const auto& intf = iiter.second;
       // mostly for agent tests where we dont want to flood arp
       // causing loop, when ports are in loopback
-      if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+      if (isAnyInterfacePortInLoopbackMode(state, intf)) {
         XLOG(DBG2) << "Do not flood gratuitous arp on interface: "
                    << intf->getName();
         continue;
@@ -268,8 +274,8 @@ void ArpHandler::floodGratuituousArp() {
           // VOQ switches don't use VLANs (no broadcast domain).
           // Find the port to send out the pkt with pipeline bypass on.
           CHECK(intf->getSystemPortID().has_value());
-          portDescriptor = PortDescriptor(
-              getPortID(*intf->getSystemPortID(), sw_->getState()));
+          portDescriptor =
+              PortDescriptor(getPortID(*intf->getSystemPortID(), state));
           XLOG(DBG4) << "Sending gratuitous ARP for " << addrEntry.str()
                      << " Using port: " << portDescriptor.value().str();
         }
