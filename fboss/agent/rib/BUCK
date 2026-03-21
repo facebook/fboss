@@ -136,6 +136,7 @@ cpp_library(
     name = "fib_updater",
     srcs = [
         "FibUpdateHelpers.cpp",
+        "MySidMapUpdater.cpp",
         "RibToSwitchStateUpdater.cpp",
     ],
     exported_deps = [
