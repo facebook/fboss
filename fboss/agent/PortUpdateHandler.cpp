@@ -277,7 +277,8 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
         continue;
       }
       if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
-          port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+          port->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+          port->getPortType() == cfg::PortType::HYPER_PORT) {
         bwInfo.nifBwMbps += static_cast<uint32_t>(port->getSpeed());
       } else if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
         if (port->isActive().value_or(false)) {
