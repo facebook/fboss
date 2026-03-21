@@ -49,6 +49,8 @@ class ControlPlane;
 class AggregatePort;
 class SflowCollector;
 class SwitchSettings;
+class MySid;
+class MySidMap;
 
 class SwitchIdScopeResolver {
  public:
@@ -154,6 +156,12 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(
       const std::shared_ptr<PortFlowletCfg>& /*p*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<MySid>& /*m*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<MySidMap>& /*m*/) const {
     return l3SwitchMatcher();
   }
 
