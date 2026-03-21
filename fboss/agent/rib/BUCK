@@ -64,6 +64,7 @@ cpp_unittest(
     name = "rib_tests",
     srcs = [
         "test/FibInteractionTests.cpp",
+        "test/MySidMapUpdaterTests.cpp",
         "test/NextHopIDManagerTests.cpp",
         "test/NextHopMapPopulationTests.cpp",
         "test/RibLpmTests.cpp",
