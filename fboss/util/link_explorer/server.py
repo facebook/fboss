@@ -77,7 +77,7 @@ def is_dev_server():
 
 def main():
     parser = argparse.ArgumentParser(description="FBOSS Link Explorer")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 443)))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8080)))
     parser.add_argument("--debug", type=str, default=os.environ.get("DEBUG", "false"))
     args = parser.parse_args()
 
