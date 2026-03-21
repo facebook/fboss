@@ -368,7 +368,8 @@
         93,
         49,
         96,
-        97
+        97,
+        101
     ],
     "tomahawk6": [
         2,
@@ -425,7 +426,8 @@
         82,
         84,
         86,
-        99
+        99,
+        101
     ],
     "yuba": [
         2,
@@ -845,7 +847,8 @@
         "PFC_TX_DURATION",
         "MIRROR_ON_DROP",
         "MIRROR_ON_DROP_XGS",
-        "ECN_PROBABILISTIC_MARKING"
+        "ECN_PROBABILISTIC_MARKING",
+        "AIFM_PACKET_STREAM_HANDLER"
     ],
     "tomahawk6": [
         "CPU_RX_TX",
@@ -902,7 +905,8 @@
         "ARS_SPRAY",
         "STATIC_PG_SHARED_LIMIT",
         "CLASS_ID_FOR_NEIGHBOR",
-        "VIRTUAL_ARS_GROUP"
+        "VIRTUAL_ARS_GROUP",
+        "AIFM_PACKET_STREAM_HANDLER"
     ],
     "yuba": [
         "CPU_RX_TX",
