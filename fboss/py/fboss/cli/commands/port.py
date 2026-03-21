@@ -69,22 +69,14 @@ class PortDetailsCmd(cmds.FbossCmd):
         :return suffix string: human readable format
         """
 
-        # TODO: Make this more accurate.
-        bps_per_unit = suffix = None
         value = bps
-        # expand to 'T' and beyond by adding in the proper unit
-        for factor, unit in [(0, ""), (3, "K"), (6, "M"), (9, "G")]:
+        for factor, unit in [(0, ""), (3, "K"), (6, "M"), (9, "G"), (12, "T")]:
             if value < 1000:
-                bps_per_unit = bps / 10**factor
-                suffix = f"{unit}bps"
-                break
+                return bps / 10**factor, f"{unit}bps"
             value /= 1000
 
-        assert bps_per_unit is not None and suffix, (
-            "Unable to convert bps to human readable format"
-        )
-
-        return bps_per_unit, suffix
+        # Fallback for any value >= 1 Pbps
+        return bps / 10**12, "Tbps"
 
     # TODO: Make this function less complex
     def _print_port_details(self, port_info):
