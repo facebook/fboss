@@ -75,6 +75,16 @@ RouteNextHopSet getNonOverrideNormalizedNextHops(
     const std::shared_ptr<SwitchState>& state,
     const RouteNextHopEntry& entry);
 
+/*
+ * Build a new SwitchState that has newState's non-FIB data but
+ * oldState's FIB routes (and ID maps when FLAGS_enable_nexthop_id_manager
+ * is on). When oldState has no FibsInfoMap (warmboot/rollback),
+ * creates empty FIBs matching newState's structure.
+ */
+std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState);
+
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
   for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {

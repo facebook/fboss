@@ -17,6 +17,7 @@
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
@@ -189,6 +190,46 @@ RouteNextHopSet getNonOverrideNormalizedNextHops(
     return RouteNextHopSet(nhops.begin(), nhops.end());
   }
   return entry.nonOverrideNormalizedNextHops();
+}
+
+std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState) {
+  auto result = newState->clone();
+  if (oldState->getFibsInfoMap() && !oldState->getFibsInfoMap()->empty()) {
+    for (const auto& [matcherStr, oldFibInfo] :
+         std::as_const(*oldState->getFibsInfoMap())) {
+      auto fibInfoPtr =
+          result->getFibsInfoMap()->getNodeIf(matcherStr)->modify(&result);
+      fibInfoPtr->resetFibsMap(oldFibInfo->getfibsMap());
+      if (FLAGS_enable_nexthop_id_manager) {
+        // Reset ID maps to old state so old routes still in
+        // intermediate deltas can resolve their IDs.
+        fibInfoPtr->setIdToNextHopIdSetMap(
+            oldFibInfo->getIdToNextHopIdSetMap());
+        fibInfoPtr->setIdToNextHopMap(oldFibInfo->getIdToNextHopMap());
+      }
+    }
+  } else {
+    // Cater for when old state is empty - e.g. warmboot, rollback
+    auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    for (const auto& [matcherStr, curFibInfo] :
+         std::as_const(*newState->getFibsInfoMap())) {
+      auto fibInfo = std::make_shared<FibInfo>();
+      auto curFibsMap = curFibInfo->getfibsMap();
+      if (curFibsMap) {
+        for (const auto& [rid, _] : std::as_const(*curFibsMap)) {
+          fibInfo->updateFibContainer(
+              std::make_shared<ForwardingInformationBaseContainer>(
+                  RouterID(rid)),
+              &result);
+        }
+      }
+      fibInfoMap->addNode(matcherStr, fibInfo);
+    }
+    result->resetFibsInfoMap(std::move(fibInfoMap));
+  }
+  return result;
 }
 
 } // namespace facebook::fboss
