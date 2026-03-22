@@ -22,14 +22,18 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/agent/types.h"
 
+#include <gflags/gflags.h>
 #include <optional>
 
 using namespace facebook::fboss;
 class RouteManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_resolve_nexthops_from_id = true;
     setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE |
         SetupStage::NEIGHBOR | SetupStage::SYSTEM_PORT;
     ManagerTestBase::SetUp();
@@ -77,14 +81,21 @@ TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
     RouteV4::Prefix pfx2{ip4, 16};
     fib4->addNode(pfx2.str(), std::move(r2));
   }
+  assignNextHopIdsToAllRoutes(nextHopIDManager_.get(), newState);
   newState->publish();
   applyNewState(newState);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto hwState = saiSwitch->constructSwitchStateWithFib();
   auto swState = saiPlatform->getHwSwitch()->getProgrammedState();
-  ASSERT_EQ(
-      hwState->getFibsInfoMap()->toThrift(),
-      swState->getFibsInfoMap()->toThrift());
+  auto hwThrift = hwState->getFibsInfoMap()->toThrift();
+  auto swThrift = swState->getFibsInfoMap()->toThrift();
+  // constructSwitchStateWithFib doesn't reconstruct NextHopID maps.
+  // Clear them from swState for comparison.
+  for (auto& [key, fibInfo] : swThrift) {
+    fibInfo.idToNextHop()->clear();
+    fibInfo.idToNextHopIdSet()->clear();
+  }
+  ASSERT_EQ(hwThrift, swThrift);
 }
 
 TEST_F(RouteManagerTest, addRoute) {
@@ -181,6 +192,7 @@ TEST_F(RouteManagerTest, addRemoteInterfaceRoute) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
@@ -216,6 +228,7 @@ TEST_F(RouteManagerTest, addConnectedRouteNonLocalInterfaceNpu) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
@@ -283,6 +296,7 @@ TEST_F(RouteManagerTest, addSubnetRoute) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
@@ -511,6 +525,7 @@ TEST_F(ToMeRouteTest, toMeRoutesSlash32) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
@@ -575,6 +590,7 @@ class Srv6RouteTest : public ManagerTestBase {
     auto r = std::make_shared<Route<folly::IPAddressV4>>(
         Route<folly::IPAddressV4>::makeThrift(prefix));
     r->update(ClientID{42}, entry);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
     r->setResolved(entry);
     return r;
   }
@@ -594,6 +610,7 @@ class Srv6RouteTest : public ManagerTestBase {
     auto r = std::make_shared<Route<folly::IPAddressV4>>(
         Route<folly::IPAddressV4>::makeThrift(prefix));
     r->update(ClientID{42}, entry);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
     r->setResolved(entry);
     return r;
   }
