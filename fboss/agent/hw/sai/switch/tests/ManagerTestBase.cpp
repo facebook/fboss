@@ -654,6 +654,10 @@ void ManagerTestBase::applyNewState(
   programmedState->publish();
 }
 
+std::shared_ptr<SwitchState> ManagerTestBase::getProgrammedState() const {
+  return saiPlatform->getHwSwitch()->getProgrammedState();
+}
+
 const SwitchIdScopeResolver& ManagerTestBase::scopeResolver() const {
   CHECK(resolver);
   return *resolver;

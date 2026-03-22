@@ -257,6 +257,8 @@ class ManagerTestBase : public ::testing::Test {
 
   void applyNewState(const std::shared_ptr<SwitchState>& newState);
 
+  std::shared_ptr<SwitchState> getProgrammedState() const;
+
   std::shared_ptr<SwitchState> programmedState;
 
   static constexpr int kSysPortOffset = 100;
