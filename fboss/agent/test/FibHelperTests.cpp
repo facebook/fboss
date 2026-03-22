@@ -568,4 +568,70 @@ TYPED_TEST(FibHelperTest, syncIdMapsFromStateClearsWhenSourceEmpty) {
   EXPECT_EQ(resultFibInfo->getIdToNextHopIdSetMap(), nullptr);
   EXPECT_EQ(resultFibInfo->getIdToNextHopMap(), nullptr);
 }
+
+TYPED_TEST(FibHelperTest, getNormalizedNextHopsFromEntry) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  auto fib = this->getFib(fibContainer);
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    const auto& fwdInfo = route->getForwardInfo();
+    if (fwdInfo.getNextHopSet().empty()) {
+      continue;
+    }
+    auto result = getNormalizedNextHops(state, fwdInfo);
+    EXPECT_EQ(result, fwdInfo.normalizedNextHops());
+    EXPECT_EQ(result, getNonOverrideNormalizedNextHops(state, fwdInfo));
+  }
+}
+
+TYPED_TEST(FibHelperTest, getNormalizedNextHopsWithOverrides) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+
+  // Set override nexthops (subset of original) on kPrefix2 route in state
+  RouteNextHopSet overrideNhops;
+  overrideNhops.emplace(
+      ResolvedNextHop(this->kIpAddressA(), this->kInterfaceID(), 1));
+  this->updateState("set overrides", [&](const auto& state) {
+    auto newState = state->clone();
+    auto route = findRoute<typename TestFixture::AddrT>(
+        this->kRid(), this->kPrefix2(), newState);
+    auto clonedRoute = route->clone();
+    RouteNextHopEntry updatedFwd;
+    updatedFwd.fromThrift(clonedRoute->getForwardInfo().toThrift());
+    updatedFwd.setOverrideNextHops(overrideNhops);
+    clonedRoute->setResolved(updatedFwd);
+    auto fib = newState->getFibsInfoMap()
+                   ->getFibContainer(this->kRid())
+                   ->template getFib<typename TestFixture::AddrT>();
+    auto modifiedFib = fib->modify(this->kRid(), &newState);
+    modifiedFib->updateNode(clonedRoute);
+    return newState;
+  });
+
+  // Verify all routes in FIB
+  auto state = this->sw_->getState();
+  auto fibContainer = this->getFibInfo()->getFibContainerIf(this->kRid());
+  auto fib = this->getFib(fibContainer);
+  for (const auto& [_, route] : std::as_const(*fib)) {
+    const auto& fwdInfo = route->getForwardInfo();
+    if (fwdInfo.getNextHopSet().empty()) {
+      continue;
+    }
+    auto result = getNormalizedNextHops(state, fwdInfo);
+    EXPECT_EQ(result, fwdInfo.normalizedNextHops());
+    auto nonOverrideResult = getNonOverrideNormalizedNextHops(state, fwdInfo);
+    EXPECT_EQ(nonOverrideResult, fwdInfo.nonOverrideNormalizedNextHops());
+
+    if (fwdInfo.getOverrideNextHops().has_value()) {
+      // This is kPrefix2 — override (A only) should differ from
+      // non-override (A and B)
+      EXPECT_EQ(result, overrideNhops);
+      EXPECT_NE(result, nonOverrideResult);
+    }
+  }
+}
+
 } // namespace facebook::fboss
