@@ -273,8 +273,6 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     });
   }
 
-  executor.join();
-
   if (!parsedAggregationInput.has_value()) {
     if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
       printJson(impl(), futureList, std::cout, std::cerr);
@@ -284,6 +282,11 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
   } else {
     printAggregate<CmdTypeT>(parsedAggregationInput, futureList, validAggs);
   }
+
+  // Join after printing: the print functions call .get() on each future,
+  // which blocks until that individual result is ready, enabling streaming
+  // output (especially for tabular mode) instead of waiting for all tasks.
+  executor.join();
 
   std::queue<std::pair<std::string, std::string>> executionFailures{};
 
