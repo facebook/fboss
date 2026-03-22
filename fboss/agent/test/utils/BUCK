@@ -842,3 +842,14 @@ cpp_library(
         "//folly/logging:logging",
     ],
 )
+
+cpp_library(
+    name = "nexthop_id_test_utils",
+    srcs = ["NextHopIdTestUtils.cpp"],
+    headers = ["NextHopIdTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:hwswitch_matcher",
+        "//fboss/agent/rib:nexthop_id_manager",
+        "//fboss/agent/state:state",
+    ],
+)
