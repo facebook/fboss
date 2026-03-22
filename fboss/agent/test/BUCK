@@ -1049,6 +1049,7 @@ cpp_unittest(
         "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/state:state",
         "//fboss/agent/test/utils:ecmp_resource_mgr_test_utils",
+        "//fboss/agent/test/utils:nexthop_id_test_utils",
         "//folly:network_address",
     ],
 )
