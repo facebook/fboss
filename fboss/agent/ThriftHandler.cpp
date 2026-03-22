@@ -1980,9 +1980,12 @@ void ThriftHandler::getRouteTableByClient(
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  auto state = sw_->getState();
   forAllRoutes(
-      sw_->getState(), [&routes](const RouterID& /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails(true));
+      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+        routes.emplace_back(route->toRouteDetails(
+            getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
+            true));
       });
 }
 
@@ -2065,12 +2068,16 @@ void ThriftHandler::getIpRouteDetails(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(true);
+      route = match->toRouteDetails(
+          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
+          true);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(true);
+      route = match->toRouteDetails(
+          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
+          true);
     }
   }
 }

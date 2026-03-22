@@ -36,6 +36,7 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 
 template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails(
+    const RouteNextHopSet& nhopSet,
     bool normalizedNhopWeights) const {
   RouteDetails rd;
   if constexpr (
@@ -60,9 +61,6 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     }
     return nhops;
   };
-  // if no overrideNextHops nonOverrideNormalizedNextHops == normalizedNextHops
-  auto nhopSet = normalizedNhopWeights ? fwd().nonOverrideNormalizedNextHops()
-                                       : fwd().getNextHopSet();
   rd.nextHops() = fillNextHops(nhopSet, rd);
 
   // Add the multi-nexthops
@@ -168,9 +166,11 @@ template struct RouteFields<folly::IPAddressV6>;
 template struct RouteFields<LabelID>;
 
 template <typename AddrT>
-RouteDetails Route<AddrT>::toRouteDetails(bool normalizedNhopWeights) const {
+RouteDetails Route<AddrT>::toRouteDetails(
+    const RouteNextHopSet& nhopSet,
+    bool normalizedNhopWeights) const {
   RouteFields<AddrT> fields{this->toThrift()};
-  return fields.toRouteDetails(normalizedNhopWeights);
+  return fields.toRouteDetails(nhopSet, normalizedNhopWeights);
 }
 
 template <typename AddrT>

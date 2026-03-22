@@ -898,7 +898,8 @@ std::vector<MplsRouteDetails> RibRouteTables::getMplsRouteTableDetails() const {
            rit != it->second.labelToRoute.end();
            ++rit) {
         MplsRouteDetails mplsRouteDetail;
-        auto routeDetails = rit->second->toRouteDetails();
+        auto routeDetails = rit->second->toRouteDetails(
+            rit->second->getForwardInfo().getNextHopSet());
         mplsRouteDetail.topLabel() = rit->first;
         mplsRouteDetail.nextHopMulti() = *routeDetails.nextHopMulti();
         mplsRouteDetail.nextHops() = *routeDetails.nextHops();
@@ -921,12 +922,14 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails());
+        routeDetails.emplace_back(rit->value()->toRouteDetails(
+            rit->value()->getForwardInfo().getNextHopSet()));
       }
       for (auto rit = it->second.v6NetworkToRoute.begin();
            rit != it->second.v6NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails());
+        routeDetails.emplace_back(rit->value()->toRouteDetails(
+            rit->value()->getForwardInfo().getNextHopSet()));
       }
     }
   });
