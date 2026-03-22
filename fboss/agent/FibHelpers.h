@@ -85,6 +85,19 @@ std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
     const std::shared_ptr<SwitchState>& oldState,
     const std::shared_ptr<SwitchState>& newState);
 
+/*
+ * Optimized overload: populates pre-cloned mutable maps directly.
+ * Caller clones the maps once and passes them across multiple route calls,
+ * avoiding per-route cloning overhead. Maps must be non-null (caller
+ * initializes them before the first call).
+ */
+template <typename AddrT>
+void populateIdMapsForRoute(
+    const std::shared_ptr<Route<AddrT>>& route,
+    const std::shared_ptr<SwitchState>& sourceState,
+    std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
+    std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
+
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
   for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {

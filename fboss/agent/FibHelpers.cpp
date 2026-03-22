@@ -232,4 +232,78 @@ std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
   return result;
 }
 
+template <typename AddrT>
+void populateIdMapsForRoute(
+    const std::shared_ptr<Route<AddrT>>& route,
+    const std::shared_ptr<SwitchState>& sourceState,
+    std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
+    std::shared_ptr<IdToNextHopMap>& dstIdToNhMap) {
+  const auto& fwdInfo = route->getForwardInfo();
+  auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+  auto normalizedSetId = fwdInfo.getNormalizedResolvedNextHopSetID();
+  if (!resolvedSetId.has_value() && !normalizedSetId.has_value()) {
+    return;
+  }
+
+  auto populateForSetId =
+      [&](NextHopSetId setId) {
+        if (dstIdToSetMap->getNextHopIdSetIf(setId)) {
+          return;
+        }
+        auto sourceFibsInfoMap = sourceState->getFibsInfoMap();
+        for (const auto& [matcherStr, srcFibInfo] :
+             std::as_const(*sourceFibsInfoMap)) {
+          auto srcIdToSetMap = srcFibInfo->getIdToNextHopIdSetMap();
+          if (!srcIdToSetMap) {
+            continue;
+          }
+          auto srcSetNode = srcIdToSetMap->getNextHopIdSetIf(setId);
+          if (!srcSetNode) {
+            continue;
+          }
+          auto srcIdToNhMap = srcFibInfo->getIdToNextHopMap();
+          CHECK(srcIdToNhMap)
+              << "idToNextHopMap missing but idToNextHopIdSetMap exists";
+          std::set<NextHopId> nextHopIds;
+          for (const auto& elem : std::as_const(*srcSetNode)) {
+            nextHopIds.insert((*elem).toThrift());
+          }
+          dstIdToSetMap->addNextHopIdSet(setId, nextHopIds);
+
+          for (auto nhId : nextHopIds) {
+            if (!dstIdToNhMap->getNextHopIf(nhId)) {
+              auto srcNhNode = srcIdToNhMap->getNextHopIf(nhId);
+              CHECK(srcNhNode)
+                  << "NextHopId " << nhId << " missing from idToNextHopMap";
+              dstIdToNhMap->addNextHop(nhId, srcNhNode->toThrift());
+            }
+          }
+          return;
+        }
+        throw FbossError(
+            "NextHopSetId ",
+            setId,
+            " not found in sourceState idToNextHopIdSetMap");
+      };
+
+  if (resolvedSetId.has_value()) {
+    populateForSetId(static_cast<NextHopSetId>(*resolvedSetId));
+  }
+  if (normalizedSetId.has_value()) {
+    populateForSetId(static_cast<NextHopSetId>(*normalizedSetId));
+  }
+}
+
+template void populateIdMapsForRoute<folly::IPAddressV4>(
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    const std::shared_ptr<SwitchState>& sourceState,
+    std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
+    std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
+
+template void populateIdMapsForRoute<folly::IPAddressV6>(
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    const std::shared_ptr<SwitchState>& sourceState,
+    std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
+    std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
+
 } // namespace facebook::fboss
