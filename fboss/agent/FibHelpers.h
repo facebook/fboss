@@ -98,6 +98,14 @@ void populateIdMapsForRoute(
     std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
     std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
 
+/*
+ * Copy ID maps (idToNextHopIdSetMap and idToNextHopMap) from sourceState
+ * to dstState for each switch. Returns the modified state.
+ */
+std::shared_ptr<SwitchState> syncIdMapsFromState(
+    const std::shared_ptr<SwitchState>& sourceState,
+    const std::shared_ptr<SwitchState>& dstState);
+
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
   for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {

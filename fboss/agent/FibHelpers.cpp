@@ -232,6 +232,23 @@ std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
   return result;
 }
 
+std::shared_ptr<SwitchState> syncIdMapsFromState(
+    const std::shared_ptr<SwitchState>& sourceState,
+    const std::shared_ptr<SwitchState>& dstState) {
+  auto srcFibsInfoMap = sourceState->getFibsInfoMap();
+  auto result = dstState->isPublished() ? dstState->clone() : dstState;
+  for (const auto& [matcherStr, srcFibInfo] : std::as_const(*srcFibsInfoMap)) {
+    auto dstFibInfo = result->getFibsInfoMap()->getNodeIf(matcherStr);
+    CHECK(dstFibInfo) << "FibInfo for " << matcherStr
+                      << " not found in dstState";
+    auto dstFibInfoPtr =
+        result->getFibsInfoMap()->getNodeIf(matcherStr)->modify(&result);
+    dstFibInfoPtr->setIdToNextHopIdSetMap(srcFibInfo->getIdToNextHopIdSetMap());
+    dstFibInfoPtr->setIdToNextHopMap(srcFibInfo->getIdToNextHopMap());
+  }
+  return result;
+}
+
 template <typename AddrT>
 void populateIdMapsForRoute(
     const std::shared_ptr<Route<AddrT>>& route,
