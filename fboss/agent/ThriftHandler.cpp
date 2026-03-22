@@ -1937,7 +1937,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
         }
         if (fwdInfo.getOverrideNextHops().has_value()) {
           tempRoute.overrideNextHops() =
-              util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+              util::fromRouteNextHopSet(getNormalizedNextHops(state, fwdInfo));
         }
         routes.emplace_back(std::move(tempRoute));
       });
