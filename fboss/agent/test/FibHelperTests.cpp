@@ -524,4 +524,48 @@ TYPED_TEST(FibHelperTest, populateIdMapsForRouteNoOps) {
   EXPECT_EQ(emptyNhMap->size(), 0);
 }
 
+TYPED_TEST(FibHelperTest, syncIdMapsFromStateCopiesMaps) {
+  // Program routes to populate ID maps in source state
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto sourceState = this->sw_->getState();
+
+  // Create a destination state with empty ID maps
+  auto dstState = sourceState->clone();
+  auto dstFibInfo =
+      dstState->getFibsInfoMap()->getFibInfo(scope())->modify(&dstState);
+  dstFibInfo->setIdToNextHopIdSetMap(nullptr);
+  dstFibInfo->setIdToNextHopMap(nullptr);
+
+  auto result = syncIdMapsFromState(sourceState, dstState);
+
+  // Verify ID maps match source
+  auto srcFibInfo = sourceState->getFibsInfoMap()->getFibInfo(scope());
+  auto resultFibInfo = result->getFibsInfoMap()->getFibInfo(scope());
+  EXPECT_EQ(
+      resultFibInfo->getIdToNextHopIdSetMap(),
+      srcFibInfo->getIdToNextHopIdSetMap());
+  EXPECT_EQ(
+      resultFibInfo->getIdToNextHopMap(), srcFibInfo->getIdToNextHopMap());
+}
+
+TYPED_TEST(FibHelperTest, syncIdMapsFromStateClearsWhenSourceEmpty) {
+  // Source has no ID maps, destination has populated maps — should clear
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto dstState = this->sw_->getState();
+
+  // Create a source state with cleared ID maps
+  auto sourceState = dstState->clone();
+  auto srcFibInfo =
+      sourceState->getFibsInfoMap()->getFibInfo(scope())->modify(&sourceState);
+  srcFibInfo->setIdToNextHopIdSetMap(nullptr);
+  srcFibInfo->setIdToNextHopMap(nullptr);
+
+  auto result = syncIdMapsFromState(sourceState, dstState);
+
+  auto resultFibInfo = result->getFibsInfoMap()->getFibInfo(scope());
+  EXPECT_EQ(resultFibInfo->getIdToNextHopIdSetMap(), nullptr);
+  EXPECT_EQ(resultFibInfo->getIdToNextHopMap(), nullptr);
+}
 } // namespace facebook::fboss
