@@ -82,15 +82,11 @@ link against. More specifically, you'll need the static library `libsai_impl.a`
 for the SDK which you are trying to link against, as well as the associated set
 of SAI headers. In order to run the build:
 
-#### Set Important Environment Variables
-
-```bash file=./static/code_snips/important_environment_variables.sh
-```
-
 #### Build Against the SDK
 
-Ensure you are in the right directory, set your relevant environment variables,
-and start the build:
+Ensure you are in the right directory and start the build. The `run-getdeps.py`
+script accepts flags to configure the SAI implementation and SDK version
+(run `./fboss/oss/scripts/run-getdeps.py -h` to see all options and Meta supported values):
 
 ```bash file=./static/code_snips/build_forwarding_stack.sh
 ```
