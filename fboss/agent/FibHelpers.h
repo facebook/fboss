@@ -106,6 +106,13 @@ std::shared_ptr<SwitchState> syncIdMapsFromState(
     const std::shared_ptr<SwitchState>& sourceState,
     const std::shared_ptr<SwitchState>& dstState);
 
+// Resolve override-aware normalized nexthops from RouteNextHopEntry.
+// If overrides present, uses entry.normalizedNextHops() (overrides are inline).
+// If no overrides, delegates to getNonOverrideNormalizedNextHops (ID-aware).
+RouteNextHopSet getNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
+
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
   for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {

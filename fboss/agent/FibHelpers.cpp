@@ -323,4 +323,16 @@ template void populateIdMapsForRoute<folly::IPAddressV6>(
     std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
     std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
 
+RouteNextHopSet getNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry) {
+  if (entry.getOverrideNextHops().has_value()) {
+    // Override nexthops are inline for now
+    // normalizedNextHops() handles the override normalization path correctly.
+    return entry.normalizedNextHops();
+  }
+  // No overrides, delegate to ID-aware non-override path.
+  return getNonOverrideNormalizedNextHops(state, entry);
+}
+
 } // namespace facebook::fboss
