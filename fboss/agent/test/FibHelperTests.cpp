@@ -429,4 +429,99 @@ TYPED_TEST(FibHelperTest, getNewStateWithOldFibInfoPreservesIdMaps) {
   }
 }
 
+TYPED_TEST(FibHelperTest, populateIdMapsForRouteCopiesIds) {
+  // Program a route with two nexthops to get ID maps populated
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto sourceState = this->sw_->getState();
+
+  // Create empty mutable maps (simulating what ERM's initCachedIdMaps does)
+  auto dstIdToSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  auto dstIdToNhMap = std::make_shared<IdToNextHopMap>();
+
+  auto route = findRoute<typename TestFixture::AddrT>(
+      this->kRid(), this->kPrefix2(), sourceState);
+  ASSERT_NE(route, nullptr);
+
+  // Populate using mutable maps overload
+  populateIdMapsForRoute(route, sourceState, dstIdToSetMap, dstIdToNhMap);
+
+  // Verify the route's IDs can be resolved from the populated maps
+  const auto& fwdInfo = route->getForwardInfo();
+  auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+  ASSERT_TRUE(resolvedSetId.has_value());
+  EXPECT_NE(
+      dstIdToSetMap->getNextHopIdSetIf(
+          static_cast<NextHopSetId>(*resolvedSetId)),
+      nullptr);
+  EXPECT_GT(dstIdToNhMap->size(), 0);
+
+  // Program a second route with different nexthops, populate into same maps
+  this->programRouteWithNexthops(this->kPrefix1(), {this->kIpAddressB().str()});
+  auto updatedSourceState = this->sw_->getState();
+  auto route2 = findRoute<typename TestFixture::AddrT>(
+      this->kRid(), this->kPrefix1(), updatedSourceState);
+  ASSERT_NE(route2, nullptr);
+
+  populateIdMapsForRoute(
+      route2, updatedSourceState, dstIdToSetMap, dstIdToNhMap);
+
+  // Second route's IDs should also be resolvable from the same maps
+  auto resolvedSetId2 = route2->getForwardInfo().getResolvedNextHopSetID();
+  ASSERT_TRUE(resolvedSetId2.has_value());
+  EXPECT_NE(
+      dstIdToSetMap->getNextHopIdSetIf(
+          static_cast<NextHopSetId>(*resolvedSetId2)),
+      nullptr);
+}
+
+TYPED_TEST(FibHelperTest, populateIdMapsForRouteNoOps) {
+  // Test 1: Skip when IDs already exist in destination
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto sourceState = this->sw_->getState();
+
+  // Clone maps from source (IDs already present)
+  auto srcFibInfo = sourceState->getFibsInfoMap()->getFibInfo(scope());
+  auto dstIdToSetMap = srcFibInfo->getIdToNextHopIdSetMap()->clone();
+  auto dstIdToNhMap = srcFibInfo->getIdToNextHopMap()->clone();
+
+  auto route = findRoute<typename TestFixture::AddrT>(
+      this->kRid(), this->kPrefix2(), sourceState);
+  ASSERT_NE(route, nullptr);
+
+  auto sizeBefore = dstIdToSetMap->size();
+  populateIdMapsForRoute(route, sourceState, dstIdToSetMap, dstIdToNhMap);
+
+  // Size should be unchanged — IDs already exist
+  EXPECT_EQ(dstIdToSetMap->size(), sizeBefore);
+
+  // Test 2: Skip DROP routes (no IDs)
+  auto routeUpdater = this->sw_->getRouteUpdater();
+  routeUpdater.addRoute(
+      this->kRid(),
+      this->kPrefix2().first,
+      this->kPrefix2().second,
+      this->kClientID(),
+      RouteNextHopEntry(
+          RouteForwardAction::DROP, AdminDistance::MAX_ADMIN_DISTANCE));
+  routeUpdater.program();
+
+  sourceState = this->sw_->getState();
+  auto dropRoute = findRoute<typename TestFixture::AddrT>(
+      this->kRid(), this->kPrefix2(), sourceState);
+  ASSERT_NE(dropRoute, nullptr);
+  EXPECT_FALSE(
+      dropRoute->getForwardInfo().getResolvedNextHopSetID().has_value());
+  EXPECT_FALSE(dropRoute->getForwardInfo()
+                   .getNormalizedResolvedNextHopSetID()
+                   .has_value());
+
+  auto emptySetMap = std::make_shared<IdToNextHopIdSetMap>();
+  auto emptyNhMap = std::make_shared<IdToNextHopMap>();
+  populateIdMapsForRoute(dropRoute, sourceState, emptySetMap, emptyNhMap);
+  EXPECT_EQ(emptySetMap->size(), 0);
+  EXPECT_EQ(emptyNhMap->size(), 0);
+}
+
 } // namespace facebook::fboss
