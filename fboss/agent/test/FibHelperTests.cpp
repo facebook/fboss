@@ -327,4 +327,106 @@ TYPED_TEST(FibHelperTest, getNonOverrideNormalizedNextHopsFromEntry) {
   }
 }
 
+TYPED_TEST(FibHelperTest, getNewStateWithOldFibInfoPreservesOldFibs) {
+  using AddrT = typename TestFixture::AddrT;
+  // Program routes into oldState
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto oldState = this->sw_->getState();
+
+  // Program a different route into newState
+  this->programRoute(this->kPrefix2());
+  auto newState = this->sw_->getState();
+
+  auto result = getNewStateWithOldFibInfo(oldState, newState);
+
+  // Every route in the result's FIB should be present in the old state's FIB
+  // with matching nexthops
+  auto resultFibContainer =
+      result->getFibsInfoMap()->getFibInfo(scope())->getFibContainerIf(
+          this->kRid());
+  ASSERT_NE(resultFibContainer, nullptr);
+  auto resultFib = this->getFib(resultFibContainer);
+  for (const auto& [_, resultRoute] : std::as_const(*resultFib)) {
+    auto oldRoute = findRoute<AddrT>(
+        this->kRid(), resultRoute->prefix().toCidrNetwork(), oldState);
+    ASSERT_NE(oldRoute, nullptr) << "Route " << resultRoute->prefix().str()
+                                 << " in result but not in oldState";
+    EXPECT_EQ(
+        resultRoute->getForwardInfo().getNextHopSet(),
+        oldRoute->getForwardInfo().getNextHopSet())
+        << "Nexthops mismatch for route " << resultRoute->prefix().str();
+  }
+}
+
+TYPED_TEST(FibHelperTest, getNewStateWithOldFibInfoEmptyOldState) {
+  // Create an empty old state (simulates warmboot/rollback)
+  auto emptyOldState = std::make_shared<SwitchState>();
+  auto newState = this->sw_->getState();
+
+  auto result = getNewStateWithOldFibInfo(emptyOldState, newState);
+
+  // Result should have empty FIBs but matching structure
+  auto resultFibsInfoMap = result->getFibsInfoMap();
+  ASSERT_NE(resultFibsInfoMap, nullptr);
+  auto resultFibInfo = resultFibsInfoMap->getFibInfo(scope());
+  ASSERT_NE(resultFibInfo, nullptr);
+  auto resultFibContainer = resultFibInfo->getFibContainerIf(this->kRid());
+  ASSERT_NE(resultFibContainer, nullptr);
+  auto resultFib = this->getFib(resultFibContainer);
+  EXPECT_EQ(resultFib->size(), 0);
+}
+
+TYPED_TEST(FibHelperTest, getNewStateWithOldFibInfoPreservesIdMaps) {
+  this->programRouteWithNexthops(
+      this->kPrefix2(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto oldState = this->sw_->getState();
+
+  // Modify existing route and add a new route with different nexthops
+  // in new state, so newState has different/additional ID map entries
+  this->programRoute(this->kPrefix2());
+  this->programRouteWithNexthops(
+      this->kPrefix1(), {this->kIpAddressA().str(), this->kIpAddressB().str()});
+  auto newState = this->sw_->getState();
+
+  auto result = getNewStateWithOldFibInfo(oldState, newState);
+
+  // ID maps should come from old state — compare every entry
+  auto oldFibInfo = oldState->getFibsInfoMap()->getFibInfo(scope());
+  auto resultFibInfo = result->getFibsInfoMap()->getFibInfo(scope());
+
+  // Compare idToNextHopIdSetMap
+  auto oldIdToSetMap = oldFibInfo->getIdToNextHopIdSetMap();
+  auto resultIdToSetMap = resultFibInfo->getIdToNextHopIdSetMap();
+  ASSERT_NE(resultIdToSetMap, nullptr);
+  EXPECT_EQ(resultIdToSetMap->size(), oldIdToSetMap->size());
+  for (const auto& [setId, resultSetNode] : std::as_const(*resultIdToSetMap)) {
+    auto oldSetNode = oldIdToSetMap->getNextHopIdSetIf(setId);
+    ASSERT_NE(oldSetNode, nullptr)
+        << "NextHopSetId " << setId << " in result but not in oldState";
+    std::set<NextHopId> oldNhIds, resultNhIds;
+    for (const auto& elem : std::as_const(*oldSetNode)) {
+      oldNhIds.insert((*elem).toThrift());
+    }
+    for (const auto& elem : std::as_const(*resultSetNode)) {
+      resultNhIds.insert((*elem).toThrift());
+    }
+    EXPECT_EQ(resultNhIds, oldNhIds)
+        << "NextHopId set mismatch for NextHopSetId " << setId;
+  }
+
+  // Compare idToNextHopMap
+  auto oldIdToNhMap = oldFibInfo->getIdToNextHopMap();
+  auto resultIdToNhMap = resultFibInfo->getIdToNextHopMap();
+  ASSERT_NE(resultIdToNhMap, nullptr);
+  EXPECT_EQ(resultIdToNhMap->size(), oldIdToNhMap->size());
+  for (const auto& [nhId, resultNhNode] : std::as_const(*resultIdToNhMap)) {
+    auto oldNhNode = oldIdToNhMap->getNextHopIf(nhId);
+    ASSERT_NE(oldNhNode, nullptr)
+        << "NextHopId " << nhId << " in result but not in oldState";
+    EXPECT_EQ(resultNhNode->toThrift(), oldNhNode->toThrift())
+        << "NextHop mismatch for NextHopId " << nhId;
+  }
+}
+
 } // namespace facebook::fboss
