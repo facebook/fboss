@@ -358,6 +358,7 @@ def _edit_libsai_manifest(version):
         "\n"
         "[install.files]\n"
         "inc = include\n"
+        "experimental = experimental\n"
     )
     with open(manifest_path, "w") as f:
         f.write(manifest_str)
@@ -447,6 +448,9 @@ def _set_build_env_vars(args):
     env_vars = {}
 
     # --- NPU SAI flags ---
+    if args.npu_sai_version is not None:
+        env_vars["SAI_VERSION"] = args.npu_sai_version
+
     if args.npu_sai_impl is None:
         print_info(
             "No --npu-sai-impl provided, defaulting to fake SAI build (BUILD_SAI_FAKE=1)"
@@ -462,10 +466,7 @@ def _set_build_env_vars(args):
                 f"{ARG_NPU_SAI_IMPL}={args.npu_sai_impl}."
             )
             sys.exit(1)
-
         env_vars[args.npu_sai_impl] = "1"
-        if args.npu_sai_version is not None:
-            env_vars["SAI_VERSION"] = args.npu_sai_version
 
         _warn_if_unsupported(
             ARG_NPU_SAI_SDK_VERSION,
@@ -493,7 +494,7 @@ def _set_build_env_vars(args):
                 f"(flag value was {value})"
             )
         else:
-            os.environ[name] = value
+            os.environ[name] = str(value).strip()
             print_info(f"Set ENV {name}={value}")
 
 
