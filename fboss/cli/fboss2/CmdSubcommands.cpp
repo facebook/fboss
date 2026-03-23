@@ -245,7 +245,9 @@ CLI::App* CmdSubcommands::addCommand(
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST:
           subCmd->add_option(
-              "revisions", args, "Revision(s) in the form 'rN' or 'current'");
+              "revisions",
+              args,
+              "Git revision(s) as sha1 or other git ref, or 'current'");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_BUFFER_POOL_NAME:
           subCmd->add_option(
