@@ -63,9 +63,7 @@ async def _get_agent_client(host: str):
         "thrift_security": "required",
         "processing_timeout": str(_DEFAULT_TIMEOUT),
     }
-    return get_client(
-        FbossCtrl, "fboss.agent", options=options, overrides=overrides
-    )
+    return get_client(FbossCtrl, "fboss.agent", options=options, overrides=overrides)
 
 
 async def _get_qsfp_client(host: str):
@@ -166,7 +164,11 @@ async def _query_switch_async(hostname: str) -> dict:
         if port_info is not None:
             oper_state = port_info.operState
             status = "up" if oper_state == 1 else "down"
-            speed = str(port_info.speedMbps) if hasattr(port_info, "speedMbps") and port_info.speedMbps else "--"
+            speed = (
+                str(port_info.speedMbps)
+                if hasattr(port_info, "speedMbps") and port_info.speedMbps
+                else "--"
+            )
             profile = port_info.profileID or ""
             expected = getattr(port_info, "expectedLLDPeerName", "") or ""
             desc = port_info.description or ""
@@ -180,8 +182,14 @@ async def _query_switch_async(hostname: str) -> dict:
                     "inErrorPkts": getattr(hw_stats, "inErrors_", 0) or 0,
                     "inDiscardPkts": getattr(hw_stats, "inDiscards_", 0) or 0,
                     "outDiscardPkts": getattr(hw_stats, "outDiscards_", 0) or 0,
-                    "outCongestionDiscardPkts": getattr(hw_stats, "outCongestionDiscardPkts_", 0) or 0,
-                    "inCongestionDiscards": getattr(hw_stats, "inCongestionDiscards_", 0) or 0,
+                    "outCongestionDiscardPkts": getattr(
+                        hw_stats, "outCongestionDiscardPkts_", 0
+                    )
+                    or 0,
+                    "inCongestionDiscards": getattr(
+                        hw_stats, "inCongestionDiscards_", 0
+                    )
+                    or 0,
                     "inPausePackets": getattr(hw_stats, "inPause_", 0) or 0,
                     "outPausePackets": getattr(hw_stats, "outPause_", 0) or 0,
                 }
@@ -229,7 +237,9 @@ async def _query_switch_async(hostname: str) -> dict:
                 else:
                     media_interface = getattr(tcvr_state, "moduleMediaInterface", None)
                     if media_interface is not None:
-                        media_int = MEDIA_INTERFACE_MAP.get(int(media_interface), "UNKNOWN")
+                        media_int = MEDIA_INTERFACE_MAP.get(
+                            int(media_interface), "UNKNOWN"
+                        )
                     else:
                         media_int = "UNKNOWN"
 
@@ -254,8 +264,12 @@ async def _query_switch_async(hostname: str) -> dict:
                         if flags:
                             alarm = getattr(flags, "alarm", None)
                             temp_flags = {
-                                "alarm_high": getattr(alarm, "high", False) if alarm else False,
-                                "alarm_low": getattr(alarm, "low", False) if alarm else False,
+                                "alarm_high": getattr(alarm, "high", False)
+                                if alarm
+                                else False,
+                                "alarm_low": getattr(alarm, "low", False)
+                                if alarm
+                                else False,
                             }
                     if vcc_sensor:
                         voltage = getattr(vcc_sensor, "value", 0) or 0
@@ -263,8 +277,12 @@ async def _query_switch_async(hostname: str) -> dict:
                         if vcc_flags_obj:
                             vcc_alarm = getattr(vcc_flags_obj, "alarm", None)
                             vcc_flags = {
-                                "alarm_high": getattr(vcc_alarm, "high", False) if vcc_alarm else False,
-                                "alarm_low": getattr(vcc_alarm, "low", False) if vcc_alarm else False,
+                                "alarm_high": getattr(vcc_alarm, "high", False)
+                                if vcc_alarm
+                                else False,
+                                "alarm_low": getattr(vcc_alarm, "low", False)
+                                if vcc_alarm
+                                else False,
                             }
 
                 channels = getattr(tcvr_stats, "channels", []) or []
