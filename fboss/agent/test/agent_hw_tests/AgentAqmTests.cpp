@@ -644,10 +644,14 @@ class AgentAqmTest : public AgentHwTest {
       HwPortStats beforePortStats =
           getAgentEnsemble()->getLatestPortStats(portId);
       AqmTestStats beforeAqmQueueStats{};
+      auto useQueueStatsForAqm =
+          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+              ->getSwitchType() == cfg::SwitchType::VOQ;
+
       extractAqmTestStats(
           beforePortStats,
           silverQueueId,
-          true /*useQueueStatsForAqm*/,
+          useQueueStatsForAqm,
           beforeAqmQueueStats);
 
       // Send traffic
@@ -667,7 +671,7 @@ class AgentAqmTest : public AgentHwTest {
         extractAqmTestStats(
             afterPortStats,
             silverQueueId,
-            true /*useQueueStatsForAqm*/,
+            useQueueStatsForAqm,
             afterAqmQueueStats);
 
         uint64_t deltaQueueEcnMarkedPackets = afterAqmQueueStats.outEcnCounter -
