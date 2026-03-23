@@ -33,7 +33,7 @@ need_sai=0
 stack_label=""
 cmake_target=""
 package_target=""
-build_with_qsfp_service_sai="no"
+build_with_phy_sai="no"
 
 case "$stack_type" in
 forwarding)
@@ -80,15 +80,15 @@ if [ -d "/src" ]; then
 
   if [ "$need_sai" -eq 1 ]; then
     # Link /opt/sdk -> extracted SAI dependency
-    # build_entrypoint extracts /deps/hw_agent_sai to /deps/hw_agent_sai-extracted
+    # build_entrypoint extracts /deps/npu_sai to /deps/npu_sai-extracted
     if [ ! -e "/opt/sdk" ]; then
-      ln -sf /deps/hw_agent_sai-extracted /opt/sdk
-      echo "  Created: /opt/sdk -> /deps/hw_agent_sai-extracted"
+      ln -sf /deps/npu_sai-extracted /opt/sdk
+      echo "  Created: /opt/sdk -> /deps/npu_sai-extracted"
     fi
 
-    if [ ! -e "/opt/qsfp-sdk" ]; then
-      ln -sf /deps/qsfp_service_sai-extracted /opt/qsfp-sdk
-      echo "  Created: /opt/qsfp-sdk -> /deps/qsfp_service_sai-extracted"
+    if [ ! -e "/opt/phy-sdk" ]; then
+      ln -sf /deps/phy_sai-extracted /opt/phy-sdk
+      echo "  Created: /opt/phy-sdk -> /deps/phy_sai-extracted"
     fi
   fi
 fi
@@ -100,10 +100,10 @@ if [ "$need_sai" -eq 1 ]; then
     SAI_DIR="/opt/sdk"
   fi
 
-  # Check if qsfp_service_sai build environment exists (will be sourced in subshell later)
-  if [ -f "/opt/qsfp-sdk/qsfp_service_sai_build.env" ]; then
-    SAI_DIR="/opt/qsfp-sdk"
-    build_with_qsfp_service_sai="yes"
+  # Check if phy_sai build environment exists (will be sourced in subshell later)
+  if [ -f "/opt/phy-sdk/phy_sai_build.env" ]; then
+    SAI_DIR="/opt/phy-sdk"
+    build_with_phy_sai="yes"
   fi
   echo "Found SAI at $SAI_DIR (installed by build_entrypoint.py)"
 fi
@@ -293,13 +293,13 @@ perform_build() {
 # First build: standard build with current settings
 if [ "$need_sai" -eq 1 ]; then
   (
-    log "Building with hw_agent SAI settings"
+    log "Building with npu_sai SAI settings"
     perform_build "" "" "$SAI_DIR/sai_build.env"
   )
-  if [ "$build_with_qsfp_service_sai" = "yes" ]; then
+  if [ "$build_with_phy_sai" = "yes" ]; then
     (
-      log "Building with qsfp_service_sai settings"
-      perform_build "-qsfp-sai" "-qsfp-sai" "/opt/qsfp-sdk/qsfp_service_sai_build.env"
+      log "Building with phy_sai settings"
+      perform_build "-phy-sai" "-phy-sai" "$SAI_DIR/phy_sai_build.env"
     )
   fi
 else

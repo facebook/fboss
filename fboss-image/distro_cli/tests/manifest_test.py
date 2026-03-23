@@ -49,8 +49,8 @@ class TestImageManifest(unittest.TestCase):
         self.assertTrue(manifest.has_component("other_dependencies"))
         self.assertTrue(manifest.has_component("fboss-platform-stack"))
         self.assertTrue(manifest.has_component("bsps"))
-        self.assertTrue(manifest.has_component("hw_agent_sai"))
-        self.assertTrue(manifest.has_component("qsfp_service_sai"))
+        self.assertTrue(manifest.has_component("npu_sai"))
+        self.assertTrue(manifest.has_component("phy_sai"))
         self.assertTrue(manifest.has_component("fboss-forwarding-stack"))
 
         # Non-existent component should return False
@@ -74,8 +74,8 @@ class TestImageManifest(unittest.TestCase):
             self.assertFalse(manifest.has_component("other_dependencies"))
             self.assertFalse(manifest.has_component("fboss-platform-stack"))
             self.assertFalse(manifest.has_component("bsps"))
-            self.assertFalse(manifest.has_component("hw_agent_sai"))
-            self.assertFalse(manifest.has_component("qsfp_service_sai"))
+            self.assertFalse(manifest.has_component("npu_sai"))
+            self.assertFalse(manifest.has_component("phy_sai"))
             self.assertFalse(manifest.has_component("fboss-forwarding-stack"))
         finally:
             minimal_path.unlink()

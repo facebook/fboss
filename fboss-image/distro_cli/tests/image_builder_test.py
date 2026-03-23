@@ -60,7 +60,7 @@ class TestImageBuilder(unittest.TestCase):
         """Test build_components method (stub)"""
         # Just verify it doesn't crash
         # When implemented, this should verify component-specific builds
-        components = ["kernel", "hw_agent_sai"]
+        components = ["kernel", "npu_sai"]
         self.builder.build_components(components)
 
 

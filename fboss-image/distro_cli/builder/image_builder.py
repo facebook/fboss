@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 # try both uncompressed (.tar) and zstd-compressed (.tar.zst) variants
 COMPONENT_ARTIFACT_PATTERNS = {
     "kernel": "kernel-*.rpms.tar",
-    "hw_agent_sai": "sai-*.tar",
-    "qsfp_service_sai": "qsfp_service-*.tar",
+    "npu_sai": "sai-*.tar",
+    "phy_sai": "phy_sai-*.tar",
     "fboss-platform-stack": "fboss-platform-stack-*.tar",
     "fboss-forwarding-stack": "fboss-forwarding-stack-*.tar",
     "bsps": "bsp-*.tar",
@@ -49,11 +49,11 @@ class ImageBuilder:
         "other_dependencies": [],
         "fboss-platform-stack": [],
         "bsps": ["kernel"],  # Each BSP needs kernel headers/modules
-        "hw_agent_sai": ["kernel"],  # HW SAI needs kernel headers/RPMs
-        "qsfp_service_sai": ["kernel"],  # QSFP SAI needs kernel headers/RPMs
+        "npu_sai": ["kernel"],  # HW SAI needs kernel headers/RPMs
+        "phy_sai": ["kernel"],  # PHY SAI needs kernel headers/RPMs
         "fboss-forwarding-stack": [
-            "hw_agent_sai",
-            "qsfp_service_sai",
+            "npu_sai",
+            "phy_sai",
         ],  # Forwarding stack needs both
         "image_build_hooks": [],
     }

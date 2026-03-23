@@ -39,11 +39,11 @@ For example:
     {"execute": "vendor_bsp/build.make"},
     {"execute": "fboss/oss/reference_bsp/build.py"}
   ],
-  "hw_agent_sai": {
+  "npu_sai": {
     "execute": "fboss_brcm_sai/build.sh"
   },
-  "qsfp_service_sai": {
-    "execute": ["../fboss/oss/scripts/build_qsfp_service_sai.sh"]
+  "phy_sai": {
+    "execute": ["../fboss/oss/scripts/build_phy_sai.sh"]
   },
   "fboss-forwarding-stack": {
     "execute": ["../fboss/oss/scripts/build_fboss_stack.sh", "forwarding"]
@@ -170,13 +170,13 @@ Forwarding Stack.
 
 The QSFP Service SAI build script must output a tarball containing the following file structure:
 ```
-qsfp_service_sai_build.env   -- QSFP Service SAI build environment variables
+phy_sai_build.env   -- QSFP Service SAI build environment variables
 include/                     -- QSFP SAI headers
-lib/                         -- QSFP SAI library (libqsfp_service_sai.a)
-qsfp_service_sai-runtime.rpm -- QSFP Service SAI runtime package
+lib/                         -- QSFP SAI library (libphy_sai.a)
+phy_sai-runtime.rpm -- QSFP Service SAI runtime package
 ```
 
-The `qsfp_service_sai_build.env` file defines the environment variables needed to build the QSFP Service against the
+The `phy_sai_build.env` file defines the environment variables needed to build the QSFP Service against the
 SAI implementation. The file might look like:
 ```
 SAI_BRCM_PAI_IMPL=1
