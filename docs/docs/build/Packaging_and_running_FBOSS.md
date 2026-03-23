@@ -126,8 +126,20 @@ Special flags:
 
 1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
 1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the link tests. Currently it supports "mono", "multi_switch", and "legacy" modes. If not specified, it will use "legacy" mode.
+1. `--num-npus {1,2}`: number of npus to run in multi switch mode. Default is 1.
 1. `--bsp_platform_mapping_override_path`: an optional flag to override the BSP platform mapping. This value is passed through to the QSFP service binary.
 1. `--platform_mapping_override_path`: an optional flag to override the ASIC platform mapping. This value is passed through to the QSFP service binary and the link tests binary.
+
+### SAI Agent tests
+```
+# Run AgentRxReasonTests.InsertAndRemoveRxReason in multi_switch mode with num_npus = 1.
+./bin/run_test.py sai_agent \
+    --config ./share/hw_test_configs/$CONFIG \
+    --filter AgentRxReasonTests.InsertAndRemoveRxReason --agent-run-mode multi_switch
+```
+1. `--filter`: FBOSS uses GTEST for it's test cases, and supports filtering tests via `--gtest_filter` ([doc](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)). The filter is passed through to the test binary.
+1. `--agent-run-mode`: the agent run mode to use. This value is passed through to the sai_agent tests. Currently it supports "mono" and "multi_switch" modes. If not specified, it will use "mono" mode.
+1. `--num-npus {1,2}`: number of npus to run in multi switch mode. Default is 1.
 
 ### Platform tests
 
