@@ -162,3 +162,46 @@ TEST_F(SaiObjectEventPublisherTest, multipleSubscribersAllNotified) {
   EXPECT_EQ(sub1->removeCount_, 1);
   EXPECT_EQ(sub2->removeCount_, 1);
 }
+
+TEST_F(SaiObjectEventPublisherTest, subscriberReceivesLinkDownNotification) {
+  auto entry = makeNeighborEntry("10.0.0.7");
+  auto subscriber = std::make_shared<TestNeighborSubscriber>(entry);
+  neighborPublisher().subscribe(subscriber);
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+  EXPECT_EQ(subscriber->createCount_, 1);
+
+  neighborPublisher().notifyLinkDown(entry);
+
+  EXPECT_EQ(subscriber->linkDownCount_, 1);
+  // linkDown should not trigger create or remove
+  EXPECT_EQ(subscriber->createCount_, 1);
+  EXPECT_EQ(subscriber->removeCount_, 0);
+}
+
+TEST_F(SaiObjectEventPublisherTest, linkDownPublisherStillLive) {
+  auto entry = makeNeighborEntry("10.0.0.8");
+  auto subscriber = std::make_shared<TestNeighborSubscriber>(entry);
+  neighborPublisher().subscribe(subscriber);
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+
+  neighborPublisher().notifyLinkDown(entry);
+
+  // Publisher object should still be considered live after linkDown
+  EXPECT_TRUE(subscriber->isReady());
+  auto publisherObj = subscriber->getPublisherObject().lock();
+  EXPECT_NE(publisherObj, nullptr);
+}
+
+TEST_F(SaiObjectEventPublisherTest, linkDownWithNoSubscribers) {
+  auto entry = makeNeighborEntry("10.0.0.9");
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+
+  // Should not crash when no subscribers are listening
+  neighborPublisher().notifyLinkDown(entry);
+}
