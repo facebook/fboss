@@ -424,7 +424,7 @@ uint32_t ChenabAsic::getSflowShimHeaderSize() const {
   return 9;
 }
 std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
-  return std::nullopt;
+  return -15; // must be same as pre1
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
   return 192;
