@@ -193,10 +193,6 @@ auto filterTupleMonostates(Tuple tup) {
       tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
 }
 
-// Called after CLI11 is initlized but before parsing, for any final
-// initialization steps
-void postAppInit(int argc, char* argv[], CLI::App& app);
-
 // API to retrieve host related information
 std::pair<std::string, folly::IPAddress> getCanonicalNameAndIPFromHost(
     const std::string& hostname);

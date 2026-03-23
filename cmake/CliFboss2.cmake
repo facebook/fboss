@@ -618,8 +618,15 @@ target_link_libraries(fboss2_lib
   ${RE2}
 )
 
+# CmdInitUtils sources are compiled directly into each binary rather than as a
+# separate library. In Buck, cmd-init-utils uses preferred_linkage = "static"
+# to defer kCommandTree() symbol resolution to the final binary. CMake can't
+# do this without also losing transitive include paths (e.g. generated thrift
+# headers needed by CmdGlobalOptions.h), so we inline the sources instead.
 add_executable(fboss2
   fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/utils/CmdInitUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
 )
 
 target_link_libraries(fboss2
@@ -816,6 +823,8 @@ target_link_libraries(fboss2_config_lib
 
 add_executable(fboss2-dev
   fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/utils/CmdInitUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
   fboss/cli/fboss2/oss/CmdListConfig.cpp
 )
 

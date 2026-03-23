@@ -97,6 +97,33 @@ cpp_library(
 )
 
 cpp_library(
+    name = "cmd-init-utils",
+    srcs = [
+        "utils/CmdInitUtils.cpp",
+        "utils/facebook/CmdInitUtils.cpp",
+    ],
+    headers = [
+        "utils/CmdInitUtils.h",
+    ],
+    # kCommandTree/kAdditionalCommandTree/kSpecialCommands are declared in
+    # CmdList.h (cmd-list-header) but defined in CmdList.cpp (fboss2-lib).
+    # We can't depend on fboss2-lib here without creating a cycle, so we
+    # use static linkage and let the final binary resolve these symbols.
+    # Different binaries (fboss2, fboss2-routing-protocol) provide their
+    # own CmdList.cpp with different command trees.
+    preferred_linkage = "static",
+    exported_deps = [
+        ":cmd-global-options",
+        ":cmd-list-header",  # @manual
+        ":cmd-subcommands",
+        "//fastcli:utils-cpp",
+    ],
+    exported_external_deps = [
+        "CLI11",
+    ],
+)
+
+cpp_library(
     name = "cmd-handler",
     headers = [
         "CmdHandler.cpp",
@@ -620,7 +647,6 @@ cpp_library(
         "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
         "//employee/if:thrift-cpp2-services",
         "//employee/if:thrift-cpp2-types",
-        "//fastcli:utils-cpp",
         "//fboss/agent:address_utils",
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:fboss-types",
@@ -831,9 +857,7 @@ cpp_binary(
         "Main.cpp",
     ],
     deps = [
-        ":cmd-common-utils",
-        ":cmd-global-options",
-        ":cmd-subcommands",
+        ":cmd-init-utils",
         ":fboss2-lib",  # @manual
         "//folly/init:init",
         "//folly/logging:init",
@@ -1060,9 +1084,7 @@ cpp_binary(
         "oss/CmdListConfig.cpp",
     ],
     deps = [
-        ":cmd-common-utils",
-        ":cmd-global-options",
-        ":cmd-subcommands",
+        ":cmd-init-utils",
         ":fboss2-config-lib",  # @manual
         ":fboss2-lib",
         "//folly/init:init",
@@ -1116,9 +1138,9 @@ cpp_binary(
         ":cmd-common-utils",
         ":cmd-global-options",
         ":cmd-handler",
+        ":cmd-init-utils",
         ":cmd-list-header",
         ":cmd-local-options",
-        ":cmd-subcommands",
         ":commands-show-bgp",
         ":table-utils",
         "//common/config:configerator",
@@ -1128,7 +1150,6 @@ cpp_binary(
         "//configerator/structs/neteng/bgp_policy/thrift:routing_policy-cpp2-types",
         "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",
         "//configerator/structs/neteng/fboss/push/forwarding_stack:fbpkg_map-cpp2-types",
-        "//fastcli:utils-cpp",
         "//fboss/agent:address_utils",
         "//fboss/cli/fboss2/commands/show/facebook/bgp/summary:bgp_summary-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/bgp/techsupport:bgp_techsupport-cpp2-types",

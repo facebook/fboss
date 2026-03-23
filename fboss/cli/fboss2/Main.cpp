@@ -9,9 +9,7 @@
  */
 
 #include <CLI/CLI.hpp>
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
-#include "fboss/cli/fboss2/CmdSubcommands.h"
-#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+#include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
@@ -27,21 +25,7 @@ int cliMain(int argc, char* argv[]) {
 
   CLI::App app{"FBOSS CLI"};
 
-  app.require_subcommand();
-
-  /*
-   * initialize available global options for CLI
-   */
-  CmdGlobalOptions::getInstance()->init(app);
-
-  /*
-   * initialize/build CLI command token trees
-   *
-   * NOTE: kCommandTree/kAdditionalCommandTree/kSpecialCommands will be linked
-   * from elsewhere to make `CmdSubcommands` an independent lib.
-   */
-  CmdSubcommands::getInstance()->init(
-      app, kCommandTree(), kAdditionalCommandTree(), kSpecialCommands());
+  utils::initApp(app);
 
   utils::postAppInit(argc, argv, app);
 
