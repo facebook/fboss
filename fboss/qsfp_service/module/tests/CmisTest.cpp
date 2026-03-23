@@ -935,8 +935,8 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(),
       MediaInterfaceCode::FR4_LPO_2x400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
-    EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR1_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::FR1_100G);
   }
 
   // Check cmisStateChanged
@@ -980,10 +980,10 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
         std::nullopt);
   }
 
-  // TODO T230016502: Add SMFMediaInterfaceCode::FR8_800G once we have new
-  // EEPROM and modules supporting 800G ?
   for (auto supportedApplication :
-       {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::FR1_100G}) {
+       {SMFMediaInterfaceCode::FR8_800G,
+        SMFMediaInterfaceCode::FR4_400G,
+        SMFMediaInterfaceCode::FR1_100G}) {
     auto applicationField = xcvr->getApplicationField(
         static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
