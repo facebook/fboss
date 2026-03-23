@@ -861,7 +861,6 @@ cpp_binary(
         ":fboss2-lib",  # @manual
         "//folly/init:init",
         "//folly/logging:init",
-        "//folly/logging:logging",
     ],
     external_deps = [
         "CLI11",
@@ -1089,7 +1088,6 @@ cpp_binary(
         ":fboss2-lib",
         "//folly/init:init",
         "//folly/logging:init",
-        "//folly/logging:logging",
     ],
     external_deps = [
         "CLI11",

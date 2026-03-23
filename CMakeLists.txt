@@ -1101,6 +1101,7 @@ add_dependencies(fboss2_targets
   fboss2_cmd_config_test
   fboss2_framework_test
   fboss2-dev
+  fboss2_integration_test
 )
 
 if (SAI_IMPL OR BUILD_SAI_FAKE)

@@ -8,12 +8,12 @@
  *
  */
 
-#include <CLI/CLI.hpp>
+#include <CLI/App.hpp>
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 
 #include <folly/init/Init.h>
 #include <folly/logging/Init.h>
-#include <folly/logging/xlog.h>
+#include <exception>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG0; default:async=true");
 
@@ -26,10 +26,14 @@ int cliMain(int argc, char* argv[]) {
   CLI::App app{"FBOSS CLI"};
 
   utils::initApp(app);
-
   utils::postAppInit(argc, argv, app);
 
-  CLI11_PARSE(app, argc, argv);
+  try {
+    CLI11_PARSE(app, argc, argv);
+  } catch (const std::exception& /* e */) {
+    // Errors are already printed to stderr by CmdHandler::run()
+    return 1;
+  }
 
   return 0;
 }
