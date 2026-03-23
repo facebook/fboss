@@ -269,6 +269,8 @@ template const ValidAggMapType
 CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
 
 template const ValidFilterMapType
+CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::getValidFilters();
+template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowFabric, CmdShowFabricTraits>::getValidFilters();

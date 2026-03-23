@@ -137,8 +137,8 @@ cpp_library(
         "//folly/executors:cpu_thread_pool_executor",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
-        "//thrift/lib/cpp2/visitation:visitation",
         "//thrift/lib/thrift:metadata-cpp2-types",
     ],
 )
