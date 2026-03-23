@@ -111,3 +111,54 @@ TEST_F(SaiObjectEventPublisherTest, subscriberGetsCorrectPublisherObject) {
   EXPECT_NE(publisherObj, nullptr);
   EXPECT_EQ(publisherObj->adapterKey(), entry);
 }
+
+TEST_F(SaiObjectEventPublisherTest, lateSubscriberImmediatelyNotified) {
+  auto entry = makeNeighborEntry("10.0.0.4");
+
+  // Create publisher object first
+  auto& store = saiStore->get<SaiNeighborTraits>();
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+
+  // Subscribe after publisher is already live
+  auto subscriber = std::make_shared<TestNeighborSubscriber>(entry);
+  neighborPublisher().subscribe(subscriber);
+
+  // Subscriber should be immediately notified since publisher is live
+  EXPECT_EQ(subscriber->createCount_, 1);
+  EXPECT_TRUE(subscriber->isReady());
+}
+
+TEST_F(SaiObjectEventPublisherTest, destroyedSubscriberNotNotified) {
+  auto entry = makeNeighborEntry("10.0.0.5");
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+
+  {
+    auto subscriber = std::make_shared<TestNeighborSubscriber>(entry);
+    neighborPublisher().subscribe(subscriber);
+    // subscriber goes out of scope here
+  }
+
+  // Creating a publisher object after subscriber is destroyed should not crash
+  // (boost::signals2 track_foreign handles cleanup)
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+}
+
+TEST_F(SaiObjectEventPublisherTest, multipleSubscribersAllNotified) {
+  auto entry = makeNeighborEntry("10.0.0.6");
+  auto sub1 = std::make_shared<TestNeighborSubscriber>(entry);
+  auto sub2 = std::make_shared<TestNeighborSubscriber>(entry);
+  neighborPublisher().subscribe(sub1);
+  neighborPublisher().subscribe(sub2);
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+
+  EXPECT_EQ(sub1->createCount_, 1);
+  EXPECT_EQ(sub2->createCount_, 1);
+
+  obj.reset();
+
+  EXPECT_EQ(sub1->removeCount_, 1);
+  EXPECT_EQ(sub2->removeCount_, 1);
+}
