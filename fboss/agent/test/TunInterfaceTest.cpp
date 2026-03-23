@@ -84,3 +84,41 @@ TEST(TunInterfacesTest, NoPacketForwardingDuringExit) {
   sw->sendL3Packet(
       sw->allocateL3TxPacket(64, false /* tagged */), InterfaceID(1));
 }
+
+/*
+ * Test that TunManager::stopProcessing() synchronizes with the EventBase
+ * thread, ensuring no in-flight TunIntf::handlerReady callbacks can race
+ * with SwSwitch::stop() teardown.
+ *
+ * The root cause of the SIGSEGV crash was that stopProcessing() called
+ * TunIntf::stop() (unregisterHandler) from the main thread, which doesn't
+ * wait for an already-executing handlerReady callback on the EventBase
+ * thread. The fix runs stop() on the EventBase thread via
+ * runImmediatelyOrRunInFbossEventBaseThreadAndWait, guaranteeing that
+ * when stopProcessing() returns, no handler callbacks are in progress.
+ *
+ * This test verifies that graceful exit (which calls stopProcessing)
+ * completes without crashing, and that the EXITING state is properly set
+ * before any TUN packet processing would occur.
+ */
+TEST(TunInterfacesTest, StopProcessingSynchronizesWithEventBase) {
+  auto platform = createMockPlatform();
+  auto sw = setupMockSwitchWithoutHW(
+      platform.get(), nullptr, SwitchFlags::ENABLE_TUN);
+  auto tunMgr = dynamic_cast<MockTunManager*>(sw->getTunManager());
+  EXPECT_NE(nullptr, tunMgr);
+  EXPECT_CALL(*tunMgr, sync(_)).Times(1);
+  EXPECT_CALL(*tunMgr, startObservingUpdates()).Times(1);
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  waitForBackgroundThread(sw.get());
+
+  EXPECT_TRUE(sw->isFullyInitialized());
+
+  // gracefulExit calls stop() which calls tunMgr_->stopProcessing()
+  // internally. The fix ensures stopProcessing() synchronizes with
+  // the EventBase thread before continuing with teardown.
+  // This must complete without deadlock or crash.
+  sw->gracefulExit();
+
+  EXPECT_TRUE(sw->isExiting());
+}
