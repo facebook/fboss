@@ -69,6 +69,7 @@ cpp_unittest(
         "test/NextHopMapPopulationTests.cpp",
         "test/ReconstructRibFromSwitchStateTests.cpp",
         "test/RibLpmTests.cpp",
+        "test/RibMySidUpdateTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
         "test/RibToSwitchStateUpdaterTests.cpp",

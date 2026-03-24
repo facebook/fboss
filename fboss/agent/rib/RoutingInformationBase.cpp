@@ -130,6 +130,23 @@ class Timer {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
+std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
+  if (*entry.type() != MySidType::DECAPSULATE_AND_LOOKUP) {
+    throw FbossError(
+        "Only DECAPSULATE_AND_LOOKUP MySid type is currently supported");
+  }
+  if (!entry.nextHops()->empty()) {
+    throw FbossError("NextHops are not supported for MySid entries");
+  }
+  state::MySidFields fields;
+  fields.type() = *entry.type();
+  fields.mySid() = *entry.mySid();
+  auto mySid = std::make_shared<MySid>(fields);
+  mySid->setUnresolvedNextHop(std::nullopt);
+  mySid->setResolvedNextHop(std::nullopt);
+  return mySid;
+}
+
 } // namespace
 
 template <typename AddressT, typename FibType>
@@ -192,6 +209,12 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
   }
   auto& routeTable = it->second;
   updateRibFn(routeTable, &lockedRouteTables->mySidTable);
+}
+
+template <typename RibUpdateFn>
+void RibRouteTables::updateRib(const RibUpdateFn& updateRibFn) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  updateRibFn(&lockedRouteTables->mySidTable);
 }
 
 void RibRouteTables::reconfigure(
@@ -433,6 +456,28 @@ void RibRouteTables::updateFib(
   }
   CHECK(fibDelta.has_value());
   updateEcmpOverrides(vrf, *fibDelta);
+}
+
+void RibRouteTables::updateFib(
+    const SwitchIdScopeResolver* resolver,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  try {
+    auto lockedRouteTables = synchronizedRouteTables_.rlock();
+    ribMySidToSwitchStateFunc(resolver, lockedRouteTables->mySidTable, cookie);
+  } catch (const FbossHwUpdateError& hwUpdateError) {
+    {
+      SCOPE_FAIL {
+        XLOG(FATAL) << " RIB Rollback failed, aborting program";
+      };
+      auto lockedRouteTables = synchronizedRouteTables_.wlock();
+      // Reconstruct MySidTable from the applied state
+      reconstructMySidTableFromSwitchState(
+          hwUpdateError.appliedState->getMySids(),
+          &lockedRouteTables->mySidTable);
+    }
+    throw;
+  }
 }
 
 void RibRouteTables::updateEcmpOverrides(
@@ -1019,6 +1064,54 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       updateType,
       ribToSwitchStateFunc,
       cookie);
+}
+
+void RibRouteTables::update(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<MySidEntry>& toAdd,
+    const std::vector<IpPrefix>& toDelete,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  updateRib([&](MySidTable* mySidTable) {
+    // Add new MySid entries
+    for (const auto& entry : toAdd) {
+      auto mySid = mySidFromEntry(entry);
+      auto cidr = mySid->getMySid();
+      folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      (*mySidTable)[cidrV6] = std::move(mySid);
+    }
+    // Delete MySid entries
+    for (const auto& prefix : toDelete) {
+      auto ip = network::toIPAddress(*prefix.ip());
+      auto mask = static_cast<uint8_t>(*prefix.prefixLength());
+      folly::CIDRNetworkV6 cidr(ip.asV6(), mask);
+      mySidTable->erase(cidr);
+    }
+  });
+  updateFib(resolver, ribMySidToSwitchStateFunc, cookie);
+}
+
+void RoutingInformationBase::update(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<MySidEntry>& toAdd,
+    const std::vector<IpPrefix>& toDelete,
+    folly::StringPiece updateType,
+    const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
+    void* cookie) {
+  ensureRunning();
+  std::exception_ptr updateException;
+  auto updateFn = [&]() {
+    try {
+      ribTables_.update(
+          resolver, toAdd, toDelete, ribMySidToSwitchStateFunc, cookie);
+    } catch (const std::exception&) {
+      updateException = std::current_exception();
+    }
+  };
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
+  if (updateException) {
+    std::rethrow_exception(updateException);
+  }
 }
 
 void RoutingInformationBase::updateStateInRibThread(

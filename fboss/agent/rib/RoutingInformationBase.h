@@ -56,6 +56,10 @@ using RibToSwitchStateFunction = std::function<StateDelta(
     const MySidTable& mySidTable,
     void* cookie)>;
 
+using RibMySidToSwitchStateFunction = std::function<StateDelta(
+    const SwitchIdScopeResolver* resolver,
+    const MySidTable& mySidTable,
+    void* cookie)>;
 /*
  * RibRouteTables provides a thread safe abstraction for maintaining Rib data
  * structures and programming them down to the FIB. Its designed to abstract
@@ -83,6 +87,13 @@ class RibRouteTables {
       bool resetClientsRoutes,
       folly::StringPiece updateType,
       const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidEntry>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
   void setClassID(
@@ -214,6 +225,16 @@ class RibRouteTables {
   void updateEcmpOverrides(RouterID vrf, const StateDelta& delta);
 
   /*
+   * MySid updates
+   */
+  void updateFib(
+      const SwitchIdScopeResolver* resolver,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+  template <typename RibUpdateFn>
+  void updateRib(const RibUpdateFn& updateRib);
+
+  /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
    * event FBOSS has to operate in a routing architecture with numerous VRFs,
    * we can avoid a slow down by a factor of number of VRFs by parallelizing
@@ -312,7 +333,16 @@ class RoutingInformationBase {
       folly::StringPiece updateType,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
-
+  /*
+   * Update mySids in RIB and switchState
+   */
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidEntry>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
+      void* cookie);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
