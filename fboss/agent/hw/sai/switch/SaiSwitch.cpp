@@ -1497,6 +1497,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiFdbManager::addMac);
   }
 
+  processDelta(
+      delta.getSrv6TunnelsDelta(),
+      managerTable_->srv6TunnelManager(),
+      lockPolicy,
+      &SaiSrv6TunnelManager::changeSrv6Tunnel,
+      &SaiSrv6TunnelManager::addSrv6Tunnel,
+      &SaiSrv6TunnelManager::removeSrv6Tunnel);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
@@ -1620,14 +1628,6 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiTunnelManager::changeTunnel,
       &SaiTunnelManager::addTunnel,
       &SaiTunnelManager::removeTunnel);
-
-  processDelta(
-      delta.getSrv6TunnelsDelta(),
-      managerTable_->srv6TunnelManager(),
-      lockPolicy,
-      &SaiSrv6TunnelManager::changeSrv6Tunnel,
-      &SaiSrv6TunnelManager::addSrv6Tunnel,
-      &SaiSrv6TunnelManager::removeSrv6Tunnel);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   processDelta(
