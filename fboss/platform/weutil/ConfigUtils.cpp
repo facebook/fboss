@@ -159,7 +159,7 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";
-    fruEeprom.offset = getEepromOffset(config_, eepromName);
+    fruEeprom.offset = 0;
     fruEepromList[eepromName] = fruEeprom;
   } else if (config_.platformName().value() == "ICECUBE800BANW") {
     std::string eepromName = "SMB";
