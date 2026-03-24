@@ -478,11 +478,6 @@ bool BcmRouteTable::Key::operator<(const Key& k2) const {
 BcmRouteTable::BcmRouteTable(BcmSwitch* hw) : hw_(hw) {}
 
 BcmRouteTable::~BcmRouteTable() {
-  // Clear fib_ first to release all shared_ptr<BcmHostRoute> held by
-  // BcmRoute objects while hostRoutes_ (FlatRefMap) is still alive.
-  // The RefMap custom deleter captures &map_ by reference, so the RefMap
-  // must outlive all shared_ptrs it created.
-  fib_.clear();
   releaseHosts();
 }
 
