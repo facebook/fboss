@@ -266,6 +266,39 @@ TEST_F(SaiObjectEventPublisherTest, linkDownWithNoSubscribers) {
   neighborPublisher().notifyLinkDown(entry);
 }
 
+TEST_F(SaiObjectEventPublisherTest, notifyDeleteWithNoSubscribers) {
+  auto entry = makeNeighborEntry("10.0.0.14");
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+
+  // Destroy publisher object with no subscribers - should not crash
+  obj.reset();
+}
+
+TEST_F(SaiObjectEventPublisherTest, publisherReCreationAfterRemoval) {
+  auto entry = makeNeighborEntry("10.0.0.15");
+  auto subscriber = std::make_shared<TestNeighborSubscriber>(entry);
+  neighborPublisher().subscribe(subscriber);
+
+  auto& store = saiStore->get<SaiNeighborTraits>();
+
+  // Create → subscriber notified
+  auto obj = store.setObject(entry, makeNeighborAttrs());
+  EXPECT_EQ(subscriber->createCount_, 1);
+  EXPECT_TRUE(subscriber->isReady());
+
+  // Delete → subscriber notified
+  obj.reset();
+  EXPECT_EQ(subscriber->removeCount_, 1);
+  EXPECT_FALSE(subscriber->isReady());
+
+  // Re-create → subscriber notified again
+  auto obj2 = store.setObject(entry, makeNeighborAttrs());
+  EXPECT_EQ(subscriber->createCount_, 2);
+  EXPECT_TRUE(subscriber->isReady());
+}
+
 TEST_F(SaiObjectEventPublisherTest, aggregateNotCreatedWithPartialPublishers) {
   auto neighborEntry = makeNeighborEntry("10.0.0.10");
   auto nextHopKey = makeNextHopKey("10.0.0.10");
