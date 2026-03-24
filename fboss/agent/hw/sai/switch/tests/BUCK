@@ -250,6 +250,13 @@ switch_manager_unittest(
     ],
 )
 
+switch_manager_unittest(
+    name = "managed_vlan_rif_neighbor_pubsub_test",
+    srcs = [
+        "ManagedVlanRifNeighborPubSubTest.cpp",
+    ],
+)
+
 phy_switch_manager_unittest(
     name = "phy_acltable_manager_test",
     srcs = [
