@@ -342,9 +342,13 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
          platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
+      // ICECUBE800BANW has SMB at root level, others have SCM
+      std::string eepromName =
+          (platformConfig_.platformName().value() == "ICECUBE800BANW")
+          ? "SMB_EEPROM"
+          : "MERU_SCM_EEPROM";
       try {
         std::string eepromDir = "/run/devmap/eeproms/";
-        std::string eepromName = "MERU_SCM_EEPROM";
         eepromPath = eepromDir + eepromName;
         IoctlSmbusEepromReader::readEeprom(
             eepromDir,
@@ -354,7 +358,8 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
             dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()));
       } catch (const std::exception& e) {
         auto errMsg = fmt::format(
-            "Could not read MERU_SCM_EEPROM for {}: {}",
+            "Could not read EEPROM {} for {}: {}",
+            eepromName,
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
@@ -1119,8 +1124,15 @@ void PlatformExplorer::genHumanReadableEeproms() {
   // Hence, the eeproms were created through custom utility and not listed under
   // `symbolicLinkToDevicePath()`
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-  if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
+  if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+       platformConfig_.platformName().value() == "MERU800BIA" ||
+       platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
+      std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
     writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
+  }
+  if (platformConfig_.platformName().value() == "ICECUBE800BANW" &&
+      std::filesystem::exists("/run/devmap/eeproms/SMB_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/SMB_EEPROM");
   }
 }
 } // namespace facebook::fboss::platform::platform_manager
