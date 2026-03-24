@@ -875,6 +875,7 @@ RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
     NextHopIDManager* nextHopIDManager) {
   RibRouteTables rib(nextHopIDManager);
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
@@ -888,16 +889,21 @@ RibRouteTables RibRouteTables::fromThrift(
   if (fibsInfoMap) {
     rib.importFibs(lockedRouteTables, fibsInfoMap, labelFib);
   }
+  if (mySidMap) {
+    reconstructMySidTableFromSwitchState(
+        mySidMap, &lockedRouteTables->mySidTable);
+  }
   return rib;
 }
 
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
   auto rib = std::make_unique<RoutingInformationBase>();
   rib->ribTables_ = RibRouteTables::fromThrift(
-      ribThrift, fibsInfoMap, labelFib, rib->nextHopIDManager_.get());
+      ribThrift, fibsInfoMap, labelFib, mySidMap, rib->nextHopIDManager_.get());
 
   // Reconstruct NextHopIDManager state from FIB during warm boot
   // This consolidates ID maps from all switches and reconstructs ref counts
@@ -956,12 +962,12 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
   return routeDetails;
 }
 
-std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>
+std::unordered_map<folly::CIDRNetworkV6, state::MySidFields>
 RibRouteTables::getMySidTableCopy() const {
-  std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>> result;
+  std::unordered_map<folly::CIDRNetworkV6, state::MySidFields> result;
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
     for (const auto& [cidr, mySidPtr] : synchronizedRouteTables.mySidTable) {
-      result.emplace(cidr, mySidPtr->clone());
+      result.emplace(cidr, mySidPtr->toThrift());
     }
   });
   return result;

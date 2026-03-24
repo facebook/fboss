@@ -320,3 +320,62 @@ TEST(ReconstructMySidTable, PreservesMySidType) {
   ASSERT_EQ(table.size(), 1);
   EXPECT_EQ(table[prefix]->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
 }
+
+// --- Tests for fromThrift with mySidMap ---
+
+TEST(FromThriftWithMySid, NullMySidMap) {
+  std::map<int32_t, state::RouteTableFields> ribThrift;
+  ribThrift.emplace(0, state::RouteTableFields{});
+
+  auto rib =
+      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, nullptr);
+
+  EXPECT_EQ(rib->getMySidTableCopy().size(), 0);
+}
+
+TEST(FromThriftWithMySid, EmptyMySidMap) {
+  std::map<int32_t, state::RouteTableFields> ribThrift;
+  ribThrift.emplace(0, state::RouteTableFields{});
+
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+  auto rib =
+      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, mySidMap);
+
+  EXPECT_EQ(rib->getMySidTableCopy().size(), 0);
+}
+
+TEST(FromThriftWithMySid, PopulatesMySidTable) {
+  std::map<int32_t, state::RouteTableFields> ribThrift;
+  ribThrift.emplace(0, state::RouteTableFields{});
+
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+  auto prefix1 = makeSidPrefix("fc00:100::1", 48);
+  auto prefix2 = makeSidPrefix("fc00:200::1", 64);
+  mySidMap->addNode(makeMySid(prefix1), scope());
+  mySidMap->addNode(makeMySid(prefix2), scope());
+
+  auto rib =
+      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, mySidMap);
+
+  auto mySidTableCopy = rib->getMySidTableCopy();
+  EXPECT_EQ(mySidTableCopy.size(), 2);
+  EXPECT_NE(mySidTableCopy.find(prefix1), mySidTableCopy.end());
+  EXPECT_NE(mySidTableCopy.find(prefix2), mySidTableCopy.end());
+}
+
+TEST(FromThriftWithMySid, PreservesMySidType) {
+  std::map<int32_t, state::RouteTableFields> ribThrift;
+  ribThrift.emplace(0, state::RouteTableFields{});
+
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+  auto prefix = makeSidPrefix("fc00:100::1", 48);
+  mySidMap->addNode(
+      makeMySid(prefix, MySidType::DECAPSULATE_AND_LOOKUP), scope());
+
+  auto rib =
+      RoutingInformationBase::fromThrift(ribThrift, nullptr, nullptr, mySidMap);
+
+  auto mySidTableCopy = rib->getMySidTableCopy();
+  ASSERT_EQ(mySidTableCopy.size(), 1);
+  EXPECT_EQ(*mySidTableCopy[prefix].type(), MySidType::DECAPSULATE_AND_LOOKUP);
+}

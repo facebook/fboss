@@ -150,6 +150,7 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
       NextHopIDManager* nextHopIDManager);
 
   void ensureVrf(RouterID rid);
@@ -157,9 +158,9 @@ class RibRouteTables {
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
   std::vector<MplsRouteDetails> getMplsRouteTableDetails() const;
 
-  // Returns a deep copy of the MySidTable. This is expensive due to
-  // cloning all MySid objects and should only be used in tests.
-  std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>
+  // Returns a copy of the MySidTable as thrift fields.
+  // This is expensive and should only be used in tests.
+  std::unordered_map<folly::CIDRNetworkV6, state::MySidFields>
   getMySidTableCopy() const;
 
   template <typename AddressT>
@@ -381,7 +382,8 @@ class RoutingInformationBase {
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribJson,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
@@ -395,7 +397,7 @@ class RoutingInformationBase {
   std::vector<MplsRouteDetails> getMplsRouteTableDetails() const {
     return ribTables_.getMplsRouteTableDetails();
   }
-  std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>
+  std::unordered_map<folly::CIDRNetworkV6, state::MySidFields>
   getMySidTableCopy() const {
     return ribTables_.getMySidTableCopy();
   }
