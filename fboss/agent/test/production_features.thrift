@@ -117,6 +117,7 @@ enum ProductionFeature {
   VIRTUAL_ARS_GROUP = 99,
   SRV6_ENCAP = 100,
   AIFM_PACKET_STREAM_HANDLER = 101,
+  SRV6_DECAP = 102,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }

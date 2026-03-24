@@ -524,6 +524,7 @@
         79,
         86,
         100,
+        102,
         33
     ]
   },
@@ -1052,6 +1053,7 @@
         "PTP_TC_PROVISIONING_TIME_HW_VALIDATION",
         "CLASS_ID_FOR_NEIGHBOR",
         "SRV6_ENCAP",
+        "SRV6_DECAP",
         "INTERFACE_NEIGHBOR_TABLE"
     ]
   }
