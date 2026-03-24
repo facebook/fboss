@@ -935,6 +935,7 @@ cpp_library(
         "StaticL2ForNeighborSwSwitchUpdater.cpp",
         "StaticL2ForNeighborUpdater.cpp",
         "SwSwitch.cpp",
+        "SwSwitchMySidUpdater.cpp",
         "SwSwitchRouteUpdateWrapper.cpp",
         "SwitchInfoTable.cpp",
         "SwitchStats.cpp",
