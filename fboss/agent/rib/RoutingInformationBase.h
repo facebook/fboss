@@ -33,6 +33,7 @@ namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchForwardingInformationBaseMap;
 class MultiSwitchFibInfoMap;
+class MultiSwitchMySidMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
@@ -40,6 +41,10 @@ template <typename AddressT, typename FibType>
 void reconstructRibFromFib(
     const std::shared_ptr<FibType>& fib,
     NetworkToRouteMap<AddressT>* addrToRoute);
+
+void reconstructMySidTableFromSwitchState(
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    MySidTable* mySidTable);
 
 using RibToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,

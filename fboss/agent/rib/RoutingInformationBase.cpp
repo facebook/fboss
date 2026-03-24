@@ -23,6 +23,7 @@
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -167,6 +168,19 @@ void reconstructRibFromFib(
       [addrToRoute](const auto& route) {
         addrToRoute->insert(route->prefix(), route);
       });
+}
+
+void reconstructMySidTableFromSwitchState(
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    MySidTable* mySidTable) {
+  mySidTable->clear();
+  for (const auto& miter : std::as_const(*mySidMap)) {
+    for (const auto& [key, mySid] : std::as_const(*miter.second)) {
+      auto cidr = mySid->getMySid();
+      folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      mySidTable->emplace(cidrV6, mySid);
+    }
+  }
 }
 
 template <typename RibUpdateFn>

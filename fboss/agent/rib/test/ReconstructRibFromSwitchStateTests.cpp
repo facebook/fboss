@@ -1,8 +1,12 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
 
@@ -11,6 +15,32 @@
 using namespace facebook::fboss;
 
 namespace {
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
+folly::CIDRNetworkV6 makeSidPrefix(
+    const std::string& addr = "fc00:100::1",
+    uint8_t len = 48) {
+  return std::make_pair(folly::IPAddressV6(addr), len);
+}
+
+std::shared_ptr<MySid> makeMySid(
+    const folly::CIDRNetworkV6& prefix = makeSidPrefix(),
+    MySidType type = MySidType::DECAPSULATE_AND_LOOKUP) {
+  state::MySidFields fields;
+  fields.type() = type;
+  facebook::network::thrift::IPPrefix thriftPrefix;
+  thriftPrefix.prefixAddress() =
+      facebook::network::toBinaryAddress(prefix.first);
+  thriftPrefix.prefixLength() = prefix.second;
+  fields.mySid() = thriftPrefix;
+  auto mySid = std::make_shared<MySid>(fields);
+  mySid->setUnresolvedNextHop(std::nullopt);
+  mySid->setResolvedNextHop(std::nullopt);
+  return mySid;
+}
 
 template <typename AddrT>
 std::shared_ptr<Route<AddrT>> makeResolvedRoute(
@@ -190,4 +220,103 @@ TEST(ReconstructRibFromFib, UnresolvedRouteOverwritesFibRouteForSamePrefix) {
 
   // The unresolved route overwrites the FIB route for the same prefix
   EXPECT_EQ(rib.size(), 1);
+}
+
+// --- Tests for reconstructMySidTableFromSwitchState ---
+
+TEST(ReconstructMySidTable, EmptyMapEmptyTable) {
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+  MySidTable table;
+
+  reconstructMySidTableFromSwitchState(mySidMap, &table);
+
+  EXPECT_EQ(table.size(), 0);
+}
+
+TEST(ReconstructMySidTable, PopulatesEmptyTable) {
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+
+  auto prefix1 = makeSidPrefix("fc00:100::1", 48);
+  auto prefix2 = makeSidPrefix("fc00:200::1", 64);
+  mySidMap->addNode(makeMySid(prefix1), scope());
+  mySidMap->addNode(makeMySid(prefix2), scope());
+
+  MySidTable table;
+  reconstructMySidTableFromSwitchState(mySidMap, &table);
+
+  EXPECT_EQ(table.size(), 2);
+  EXPECT_NE(table.find(prefix1), table.end());
+  EXPECT_NE(table.find(prefix2), table.end());
+}
+
+TEST(ReconstructMySidTable, ClearsExistingEntries) {
+  // MySidTable has entries not in the state map.
+  // After reconstruction, only entries from the state map should remain.
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+
+  auto statePrefix = makeSidPrefix("fc00:100::1", 48);
+  mySidMap->addNode(makeMySid(statePrefix), scope());
+
+  MySidTable table;
+  auto oldPrefix = makeSidPrefix("fc00:999::1", 48);
+  table[oldPrefix] = makeMySid(oldPrefix);
+
+  reconstructMySidTableFromSwitchState(mySidMap, &table);
+
+  EXPECT_EQ(table.size(), 1);
+  EXPECT_NE(table.find(statePrefix), table.end());
+  EXPECT_EQ(table.find(oldPrefix), table.end());
+}
+
+TEST(ReconstructMySidTable, ReplacesTableWithStateEntries) {
+  // MySidTable has some overlapping entries with state map.
+  // After reconstruction, table should exactly match state map.
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+
+  auto prefix1 = makeSidPrefix("fc00:100::1", 48);
+  auto prefix2 = makeSidPrefix("fc00:200::1", 64);
+  mySidMap->addNode(makeMySid(prefix1), scope());
+  mySidMap->addNode(makeMySid(prefix2), scope());
+
+  MySidTable table;
+  // Overlapping entry
+  table[prefix1] = makeMySid(prefix1);
+  // Extra entry not in state
+  auto extraPrefix = makeSidPrefix("fc00:300::1", 48);
+  table[extraPrefix] = makeMySid(extraPrefix);
+
+  reconstructMySidTableFromSwitchState(mySidMap, &table);
+
+  EXPECT_EQ(table.size(), 2);
+  EXPECT_NE(table.find(prefix1), table.end());
+  EXPECT_NE(table.find(prefix2), table.end());
+  EXPECT_EQ(table.find(extraPrefix), table.end());
+}
+
+TEST(ReconstructMySidTable, EmptyMapClearsTable) {
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+
+  MySidTable table;
+  auto prefix1 = makeSidPrefix("fc00:100::1", 48);
+  auto prefix2 = makeSidPrefix("fc00:200::1", 64);
+  table[prefix1] = makeMySid(prefix1);
+  table[prefix2] = makeMySid(prefix2);
+
+  reconstructMySidTableFromSwitchState(mySidMap, &table);
+
+  EXPECT_EQ(table.size(), 0);
+}
+
+TEST(ReconstructMySidTable, PreservesMySidType) {
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+
+  auto prefix = makeSidPrefix("fc00:100::1", 48);
+  auto mySid = makeMySid(prefix, MySidType::DECAPSULATE_AND_LOOKUP);
+  mySidMap->addNode(mySid, scope());
+
+  MySidTable table;
+  reconstructMySidTableFromSwitchState(mySidMap, &table);
+
+  ASSERT_EQ(table.size(), 1);
+  EXPECT_EQ(table[prefix]->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
 }
