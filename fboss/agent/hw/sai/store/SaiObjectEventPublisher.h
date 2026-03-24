@@ -19,19 +19,30 @@
 namespace facebook::fboss {
 
 template <>
-struct IsPublisherKeyAdapterHostKey<SaiIpNextHopTraits> : std::true_type {};
+struct PublisherKey<SaiIpNextHopTraits>
+    : detail::PublisherKeyInternal<
+          SaiIpNextHopTraits,
+          typename SaiIpNextHopTraits::AdapterHostKey> {};
 
 template <>
-struct IsPublisherKeyAdapterHostKey<SaiMplsNextHopTraits> : std::true_type {};
+struct PublisherKey<SaiMplsNextHopTraits>
+    : detail::PublisherKeyInternal<
+          SaiMplsNextHopTraits,
+          typename SaiMplsNextHopTraits::AdapterHostKey> {};
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
-struct IsPublisherKeyAdapterHostKey<SaiSrv6SidlistNextHopTraits>
-    : std::true_type {};
+struct PublisherKey<SaiSrv6SidlistNextHopTraits>
+    : detail::PublisherKeyInternal<
+          SaiSrv6SidlistNextHopTraits,
+          typename SaiSrv6SidlistNextHopTraits::AdapterHostKey> {};
 #endif
 
 template <>
-struct IsPublisherKeyAdapterHostKey<SaiNeighborTraits> : std::true_type {};
+struct PublisherKey<SaiNeighborTraits>
+    : detail::PublisherKeyInternal<
+          SaiNeighborTraits,
+          typename SaiNeighborTraits::AdapterHostKey> {};
 
 template <>
 struct IsObjectPublisher<SaiIpNextHopTraits> : std::true_type {};

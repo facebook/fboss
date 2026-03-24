@@ -376,7 +376,9 @@ class SaiObject {
       return publisherKey_;
     } else {
       static_assert(
-          IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value,
+          std::is_same_v<
+              typename PublisherKey<SaiObjectTraits>::type,
+              typename SaiObjectTraits::AdapterHostKey>,
           "publisher key must use adapter host key");
       return adapterHostKey_;
     }
