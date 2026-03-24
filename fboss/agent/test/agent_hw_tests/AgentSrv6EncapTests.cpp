@@ -240,12 +240,8 @@ class AgentSrv6EncapTest : public AgentHwTest {
                           << " does not match any expected SID";
     // Flow label must be non 0
     EXPECT_NE(v6Hdr.flowLabel, 0);
-    // FIXME: ECN bits in outer header are only propagated for v6-in-v6 encap
-    if (!isV4) {
-      EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
-    }
-    // FIXME MT-864 - DSCP bits are being zeroed out
-    // EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc).
+    EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
+    EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
     // TTL is decremented
     EXPECT_EQ(v6Hdr.hopLimit, kTtl - 1);
     // Compare origPacket against inner packet
