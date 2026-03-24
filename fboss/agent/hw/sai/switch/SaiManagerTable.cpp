@@ -240,11 +240,11 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   bufferManager_.reset();
 
   tunnelManager_.reset();
-  srv6SidListManager_.reset();
-  srv6MySidManager_.reset();
-  srv6TunnelManager_.reset();
   queueManager_.reset();
   routeManager_.reset();
+  srv6MySidManager_.reset();
+  srv6SidListManager_.reset();
+  srv6TunnelManager_.reset();
   schedulerManager_.reset();
   teFlowEntryManager_.reset();
 
