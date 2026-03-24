@@ -108,6 +108,14 @@ struct MplsRoute {
   6: common.NamedRouteDestination namedRouteDestination;
 }
 
+struct MySidEntry {
+  1: common.MySidType type;
+  # MySid entry in ip/mask format. 32 bits of this are
+  # locator block len and 32-maskLen are sid bits
+  2: Address.IPPrefix mySid;
+  3: list<common.NextHopThrift> nextHops;
+}
+
 struct ClientAndNextHops {
   1: i32 clientId;
   // Deprecated in favor of '3: nextHops'
