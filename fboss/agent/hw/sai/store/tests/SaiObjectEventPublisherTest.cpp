@@ -80,23 +80,46 @@ class TestDualPubAggregateSubscriber : public SaiObjectEventAggregateSubscriber<
       typename PublisherKey<SaiIpNextHopTraits>::type nextHopKey)
       : Base(neighborKey, nextHopKey) {}
 
-  void createObject(PublishedObjects /*added*/) {
+  void createObject(PublishedObjects added) {
     createCount_++;
+    lastPublishedObjects_ = added;
+    // Mimic real subscriber: create a SAI object and set it
+    if (manager_) {
+      auto obj = manager_->setObject(managedKey_, managedAttrs_);
+      this->setObject(obj);
+    }
   }
 
-  void removeObject(size_t index, PublishedObjects /*removed*/) {
+  void removeObject(size_t index, PublishedObjects removed) {
     removeCount_++;
     lastRemovedIndex_ = index;
+    lastPublishedObjects_ = removed;
+    this->resetObject();
   }
 
   void handleLinkDown() {
     linkDownCount_++;
   }
 
+  void setManager(
+      SaiObjectStore<SaiNextHopGroupMemberTraits>* manager,
+      SaiNextHopGroupMemberTraits::AdapterHostKey key,
+      SaiNextHopGroupMemberTraits::CreateAttributes attrs) {
+    manager_ = manager;
+    managedKey_ = key;
+    managedAttrs_ = attrs;
+  }
+
   int createCount_{0};
   int removeCount_{0};
   int linkDownCount_{0};
   size_t lastRemovedIndex_{0};
+  PublishedObjects lastPublishedObjects_;
+
+ private:
+  SaiObjectStore<SaiNextHopGroupMemberTraits>* manager_{nullptr};
+  SaiNextHopGroupMemberTraits::AdapterHostKey managedKey_;
+  SaiNextHopGroupMemberTraits::CreateAttributes managedAttrs_;
 };
 
 class SaiObjectEventPublisherTest : public SaiStoreTest {
@@ -119,6 +142,18 @@ class SaiObjectEventPublisherTest : public SaiStoreTest {
   SaiIpNextHopTraits::CreateAttributes makeNextHopAttrs(
       const std::string& ip) const {
     return {SAI_NEXT_HOP_TYPE_IP, 42, folly::IPAddress(ip), std::nullopt};
+  }
+
+  SaiNextHopGroupMemberTraits::AdapterHostKey makeNhGroupMemberKey(
+      sai_object_id_t groupId,
+      sai_object_id_t nextHopId) const {
+    return SaiNextHopGroupMemberTraits::AdapterHostKey{groupId, nextHopId};
+  }
+
+  SaiNextHopGroupMemberTraits::CreateAttributes makeNhGroupMemberAttrs(
+      sai_object_id_t groupId,
+      sai_object_id_t nextHopId) const {
+    return {groupId, nextHopId, std::nullopt};
   }
 
   detail::SaiObjectEventPublisher<SaiNeighborTraits>& neighborPublisher() {
@@ -384,4 +419,106 @@ TEST_F(SaiObjectEventPublisherTest, aggregateLinkDown) {
   EXPECT_EQ(sub->linkDownCount_, 1);
   // Publisher should still be alive after linkDown
   EXPECT_TRUE(sub->allPublishedObjectsAlive());
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateRemoveSecondPublisher) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.16");
+  auto nextHopKey = makeNextHopKey("10.0.0.16");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+  auto& nextHopStore = saiStore->get<SaiIpNextHopTraits>();
+  auto nextHopObj =
+      nextHopStore.setObject(nextHopKey, makeNextHopAttrs("10.0.0.16"));
+  EXPECT_EQ(sub->createCount_, 1);
+
+  // Remove next hop (index 1 in AggregateType tuple)
+  nextHopObj.reset();
+
+  EXPECT_EQ(sub->removeCount_, 1);
+  EXPECT_EQ(sub->lastRemovedIndex_, 1);
+  EXPECT_FALSE(sub->allPublishedObjectsAlive());
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateIsAliveAndResetObject) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.17");
+  auto nextHopKey = makeNextHopKey("10.0.0.17");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  // Before any publishers created - not alive, no SAI object
+  EXPECT_FALSE(sub->isAlive());
+  EXPECT_EQ(sub->getSaiObject(), nullptr);
+
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+  auto& nextHopStore = saiStore->get<SaiIpNextHopTraits>();
+  auto nextHopObj =
+      nextHopStore.setObject(nextHopKey, makeNextHopAttrs("10.0.0.17"));
+  EXPECT_EQ(sub->createCount_, 1);
+
+  // Still not alive because our test createObject doesn't call setObject
+  EXPECT_FALSE(sub->isAlive());
+
+  // resetObject on null object_ is a no-op (early return)
+  sub->resetObject();
+  EXPECT_FALSE(sub->isAlive());
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateSetAndGetObject) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.18");
+  auto nextHopKey = makeNextHopKey("10.0.0.18");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+
+  // Create a NextHopGroup so we can create a member under it
+  SaiNextHopGroupTraits::AdapterHostKey nhGroupKey;
+  SaiNextHopGroupTraits::CreateAttributes nhGroupAttrs{
+      SAI_NEXT_HOP_GROUP_TYPE_ECMP, std::nullopt, std::nullopt};
+  auto& nhGroupStore = saiStore->get<SaiNextHopGroupTraits>();
+  auto nhGroupObj = nhGroupStore.setObject(nhGroupKey, nhGroupAttrs);
+  auto nhGroupId = nhGroupObj->adapterKey();
+
+  // Configure the subscriber to create a managed SAI object in createObject
+  auto& nextHopStore = saiStore->get<SaiIpNextHopTraits>();
+  auto publisherNextHopObj = nextHopStore.setObject(
+      makeNextHopKey("10.0.0.19"), makeNextHopAttrs("10.0.0.19"));
+  auto nhId = publisherNextHopObj->adapterKey();
+
+  auto managedKey = makeNhGroupMemberKey(nhGroupId, nhId);
+  auto managedAttrs = makeNhGroupMemberAttrs(nhGroupId, nhId);
+  auto& nhGroupMemberStore = saiStore->get<SaiNextHopGroupMemberTraits>();
+  sub->setManager(&nhGroupMemberStore, managedKey, managedAttrs);
+
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+  auto nextHopObj =
+      nextHopStore.setObject(nextHopKey, makeNextHopAttrs("10.0.0.18"));
+
+  // createObject was called and it called setObject internally
+  EXPECT_EQ(sub->createCount_, 1);
+  EXPECT_TRUE(sub->isAlive());
+  EXPECT_NE(sub->getSaiObject(), nullptr);
+
+  // Non-const getSaiObject also works
+  auto* mutableObj = sub->getSaiObject();
+  EXPECT_NE(mutableObj, nullptr);
+
+  // Remove a publisher → removeObject calls resetObject
+  neighborObj.reset();
+  EXPECT_EQ(sub->removeCount_, 1);
+  EXPECT_FALSE(sub->isAlive());
+  EXPECT_EQ(sub->getSaiObject(), nullptr);
 }
