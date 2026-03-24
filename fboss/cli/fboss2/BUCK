@@ -265,6 +265,9 @@ cpp_library(
         "commands/show/facebook/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h",
         "commands/show/facebook/bgp/neighbors/received/BgpNeighborsReceivedRejected.h",
         "commands/show/facebook/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h",
+        "commands/show/facebook/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h",
+        "commands/show/facebook/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h",
+        "commands/show/facebook/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h",
         "commands/show/facebook/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h",
         "commands/show/facebook/bgp/profiler/CmdShowBgpProfiler.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicy.h",
@@ -298,6 +301,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":cmd-common-utils",
         ":cmd-handler",
         ":cmd-show-utils",  # @manual
