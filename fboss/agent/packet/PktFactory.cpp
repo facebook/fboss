@@ -638,7 +638,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       dstIp,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       payloadBytes.size() + UDPHeader::size());
-  ipHdr.dscp = dscp;
+  ipHdr.dscp = dscp >> 2;
+  ipHdr.ecn = dscp & 0x3;
   ipHdr.ttl = ttl;
   ipHdr.computeChecksum();
   // UDPHeader
