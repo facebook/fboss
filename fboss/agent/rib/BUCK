@@ -70,6 +70,7 @@ cpp_unittest(
         "test/RibLpmTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
+        "test/RibToSwitchStateUpdaterTests.cpp",
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
