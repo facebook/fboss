@@ -81,13 +81,15 @@ TEST(RibToSwitchStateUpdater, ModifyUnpublishedSwitchState) {
   facebook::fboss::IPv6NetworkToRouteMap v6NetworkToRouteMap;
   facebook::fboss::LabelToRouteMap labelToRouteMap;
   facebook::fboss::NextHopIDManager nextHopIDManager;
+  facebook::fboss::MySidTable mySidTable;
   facebook::fboss::RibToSwitchStateUpdater updater(
       nullptr,
       vrfOne,
       v4NetworkToRouteMap,
       v6NetworkToRouteMap,
       labelToRouteMap,
-      &nextHopIDManager);
+      &nextHopIDManager,
+      mySidTable);
   auto updatedState = updater(initialState);
 
   // Lastly, we check that the invocations of modify() operated on the

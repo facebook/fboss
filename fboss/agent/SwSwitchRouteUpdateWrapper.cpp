@@ -38,7 +38,7 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
              const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
              const facebook::fboss::LabelToRouteMap& labelToRoute,
              const NextHopIDManager* nextHopIDManager,
-             const MySidTable& /*mySidTable*/,
+             const MySidTable& mySidTable,
              void* cookie) -> StateDelta {
     // Since RIB to switch state updater will be accessed in swSwitch's update
     // event base protect with a lock. This is even though we know the update is
@@ -52,7 +52,8 @@ RibToSwitchStateFunction createRibToSwitchStateFunction(
             v4NetworkToRoute,
             v6NetworkToRoute,
             labelToRoute,
-            nextHopIDManager);
+            nextHopIDManager,
+            mySidTable);
 
     auto wRibToSwitchStateUpdater = ribToSwitchStateUpdater.wlock();
     auto sw = static_cast<facebook::fboss::SwSwitch*>(cookie);

@@ -29,10 +29,16 @@ StateDelta hwSwitchEnsembleFibUpdate(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
-    const MySidTable& /*mySidTable*/,
+    const MySidTable& mySidTable,
     void* cookie) {
   facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nullptr,
+      mySidTable);
 
   auto hwEnsemble = static_cast<facebook::fboss::HwSwitchEnsemble*>(cookie);
   hwEnsemble->getHwSwitch()->transactionsSupported()

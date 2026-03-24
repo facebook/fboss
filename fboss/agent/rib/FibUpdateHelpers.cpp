@@ -23,7 +23,7 @@ StateDelta ribToSwitchStateUpdate(
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
-    const MySidTable& /*mySidTable*/,
+    const MySidTable& mySidTable,
     void* cookie) {
   RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
@@ -31,7 +31,8 @@ StateDelta ribToSwitchStateUpdate(
       v4NetworkToRoute,
       v6NetworkToRoute,
       labelToRoute,
-      nextHopIDManager);
+      nextHopIDManager,
+      mySidTable);
 
   auto switchState =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);

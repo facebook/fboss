@@ -20,6 +20,7 @@ StateDelta hwSwitchFibUpdate(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
     const std::shared_ptr<SwitchState> oldState) {
   facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
@@ -27,7 +28,8 @@ StateDelta hwSwitchFibUpdate(
       v4NetworkToRoute,
       v6NetworkToRoute,
       labelToRoute,
-      nextHopIDManager);
+      nextHopIDManager,
+      mySidTable);
   ribToSwitchStateUpdater(oldState);
   auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
@@ -48,7 +50,7 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
               const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
               const facebook::fboss::LabelToRouteMap& labelToRoute,
               const NextHopIDManager* nextHopIDManager,
-              const MySidTable& /*mySidTable*/,
+              const MySidTable& mySidTable,
               void* cookie) {
             auto hwSwitch = static_cast<HwSwitch*>(cookie);
             auto oldState = hwSwitch->getProgrammedState();
@@ -59,6 +61,7 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
                                 v6NetworkToRoute,
                                 labelToRoute,
                                 nextHopIDManager,
+                                mySidTable,
                                 oldState)
                                 .newState();
             if (apply) {
