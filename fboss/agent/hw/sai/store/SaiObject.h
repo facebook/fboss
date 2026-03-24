@@ -374,13 +374,11 @@ class SaiObject {
         "object must be pubisher to notify destroy");
     if constexpr (IsPublisherKeyCustomType<SaiObjectTraits>::value) {
       return publisherKey_;
-    } else if constexpr (IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value) {
-      return adapterHostKey_;
     } else {
       static_assert(
-          IsPublisherKeyCreateAttributes<SaiObjectTraits>::value,
-          "publisher key is not create attributes");
-      return attributes_;
+          IsPublisherKeyAdapterHostKey<SaiObjectTraits>::value,
+          "publisher key must use adapter host key");
+      return adapterHostKey_;
     }
   }
 
