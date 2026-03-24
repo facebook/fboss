@@ -16,13 +16,12 @@ MySidMapUpdater::MySidMapUpdater(
 
 std::shared_ptr<SwitchState> MySidMapUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
-  std::shared_ptr<SwitchState> nextState(state);
-
   auto newMySids = createUpdatedMySidMap(mySidTable_, state->getMySids());
   if (!newMySids) {
-    return nextState;
+    return state;
   }
 
+  auto nextState = state->clone();
   nextState->resetMySids(newMySids);
   return nextState;
 }
