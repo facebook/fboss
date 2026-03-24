@@ -637,6 +637,7 @@
           "address": "0x60",
           "kernelDeviceName": "fbg_mcbcpld",
           "pmUnitScopedName": "MCB_CPLD",
+          "__SOURCE_DOC__": "https://drive.google.com/file/d/1P_PwgJ7xJmPQ-HvuHUq0P7wfYsiZsCEt/view",
           "cpldSysfsAttrs": [
             {
               "name": "version_id",
@@ -703,6 +704,42 @@
               "name": "come_pwrok",
               "regAddr": "0xB5",
               "description": "COMe power OK. 1 normal, 0 fail."
+            },
+            {
+              "name": "pdb_r_sensor_int",
+              "regAddr": "0x11",
+              "bitOffset": 7,
+              "description": "Right PSU thermal sensor status.  1 normal, 0 alert."
+            },
+            {
+              "name": "pdb_l_sensor_int",
+              "regAddr": "0x11",
+              "bitOffset": 6,
+              "description": "Left PSU thermal sensor status.  1 normal, 0 alert."
+            },
+            {
+              "name": "psu_r_ac_ok",
+              "regAddr": "0x11",
+              "bitOffset": 5,
+              "description": "Right PSU input power status.  1 normal, 0 fail."
+            },
+            {
+              "name": "psu_l_ac_ok",
+              "regAddr": "0x11",
+              "bitOffset": 4,
+              "description": "Left PSU input power status.  1 normal, 0 fail."
+            },
+            {
+              "name": "cpld_psu_r_pg",
+              "regAddr": "0x11",
+              "bitOffset": 3,
+              "description": "Right PSU 12v output power status.  1 normal, 0 fail."
+            },
+            {
+              "name": "cpld_psu_l_pg",
+              "regAddr": "0x11",
+              "bitOffset": 2,
+              "description": "Left PSU 12v output power status.  1 normal, 0 fail."
             },
             {
               "name": "pdb_psu_r_alert",
