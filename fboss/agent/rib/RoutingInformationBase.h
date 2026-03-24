@@ -36,6 +36,11 @@ class MultiSwitchFibInfoMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
+template <typename AddressT, typename FibType>
+void reconstructRibFromFib(
+    const std::shared_ptr<FibType>& fib,
+    NetworkToRouteMap<AddressT>* addrToRoute);
+
 using RibToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,

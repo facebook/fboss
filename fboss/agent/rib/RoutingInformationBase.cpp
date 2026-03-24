@@ -129,6 +129,8 @@ class Timer {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
+} // namespace
+
 template <typename AddressT, typename FibType>
 void reconstructRibFromFib(
     const std::shared_ptr<FibType>& fib,
@@ -166,7 +168,6 @@ void reconstructRibFromFib(
         addrToRoute->insert(route->prefix(), route);
       });
 }
-} // namespace
 
 template <typename RibUpdateFn>
 void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
@@ -1128,5 +1129,20 @@ RibRouteTables::longestMatch(const folly::IPAddressV4& address, RouterID vrf)
 template std::shared_ptr<Route<folly::IPAddressV6>>
 RibRouteTables::longestMatch(const folly::IPAddressV6& address, RouterID vrf)
     const;
+
+template void reconstructRibFromFib<
+    folly::IPAddressV4,
+    ForwardingInformationBase<folly::IPAddressV4>>(
+    const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV4>>& fib,
+    NetworkToRouteMap<folly::IPAddressV4>* addrToRoute);
+template void reconstructRibFromFib<
+    folly::IPAddressV6,
+    ForwardingInformationBase<folly::IPAddressV6>>(
+    const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV6>>& fib,
+    NetworkToRouteMap<folly::IPAddressV6>* addrToRoute);
+template void
+reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& fib,
+    NetworkToRouteMap<LabelID>* addrToRoute);
 
 } // namespace facebook::fboss
