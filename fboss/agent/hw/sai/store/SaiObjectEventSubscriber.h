@@ -191,6 +191,10 @@ class SaiObjectEventAggregateSubscriber
     subscriber->handleLinkDown();
   }
 
+  /* Default no-op for subscribers that don't need link down handling.
+   * Concrete subscribers can shadow this via CRTP when they need real logic. */
+  void handleLinkDown() {}
+
   bool allPublishedObjectsAlive() const {
     return std::all_of(
         livePublisherObjects_.begin(),
