@@ -87,7 +87,7 @@ SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
   auto [ip, maskLen] = mySid.getMySid();
   auto sid = ip.asV6();
   constexpr uint8_t kLocatorBlockLen = 32;
-  uint8_t nonLocatorMaskLen = maskLen;
+  uint8_t nonLocatorMaskLen = maskLen - kLocatorBlockLen;
   uint8_t nodeLen{0}, functionLen{0};
 
   switch (mySid.getType()) {
