@@ -316,6 +316,7 @@ void verifyTxSettting(
     EXPECT_EQ(driverCurrent, expectedDriveCurrent->value());
   }
 
+#if !defined(CHENAB_SAI_SDK)
   // Also need to check Preemphasis is set correctly
   if (saiPlatform->getAsic()->getPortSerdesPreemphasis().has_value()) {
     EXPECT_EQ(
@@ -324,6 +325,7 @@ void verifyTxSettting(
             SaiPortSerdesTraits::Attributes::Preemphasis{}),
         GET_OPT_ATTR(PortSerdes, Preemphasis, expectedTx));
   }
+#endif
 }
 
 bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {

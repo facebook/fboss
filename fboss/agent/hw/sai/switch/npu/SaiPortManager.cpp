@@ -1324,7 +1324,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxFfeLmsDynamicGatingEn;
 
   // Now use pinConfigs from SW port as the source of truth
-  auto numExpectedTxLanes = 0;
+  [[maybe_unused]] auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
@@ -1630,6 +1630,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre3{}, txPre3);
   }
 
+#if !defined(CHENAB_SAI_SDK)
   if (platform_->getAsic()->getPortSerdesPreemphasis().has_value() ||
       zeroPreemphasis) {
     SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preempahsis(
@@ -1640,6 +1641,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
+#endif
 
   if (numExpectedRxLanes &&
       platform_->getAsic()->getAsicVendor() ==
@@ -1716,18 +1718,20 @@ void SaiPortManager::createSerdesWithZeroPreemphasis(
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attributes) =
       static_cast<sai_object_id_t>(portSaiId);
 
-  auto numExpectedTxLanes = 0;
+  [[maybe_unused]] auto numExpectedTxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
     }
   }
 
+#if !defined(CHENAB_SAI_SDK)
   SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
   preemphasis.resize(numExpectedTxLanes, 0);
   std::get<std::optional<
       std::decay_t<decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
       attributes) = preemphasis;
+#endif
   SaiPortSerdesTraits::AdapterHostKey serdesKey{portSaiId};
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
   portHandle->serdes = store.setObject(serdesKey, attributes);
