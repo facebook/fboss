@@ -10,6 +10,8 @@
 
 #include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
 #include "fboss/agent/hw/sai/api/NeighborApi.h"
+#include "fboss/agent/hw/sai/api/NextHopApi.h"
+#include "fboss/agent/hw/sai/api/NextHopGroupApi.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
@@ -53,6 +55,50 @@ class TestNeighborSubscriber
   int linkDownCount_{0};
 };
 
+/*
+ * A test aggregate subscriber with two publishers (SaiNeighborTraits +
+ * SaiIpNextHopTraits). Used to verify the aggregate subscriber pattern
+ * where createObject is called only when ALL publishers are alive.
+ */
+class TestDualPubAggregateSubscriber : public SaiObjectEventAggregateSubscriber<
+                                           TestDualPubAggregateSubscriber,
+                                           SaiNextHopGroupMemberTraits,
+                                           SaiNeighborTraits,
+                                           SaiIpNextHopTraits> {
+ public:
+  using Base = SaiObjectEventAggregateSubscriber<
+      TestDualPubAggregateSubscriber,
+      SaiNextHopGroupMemberTraits,
+      SaiNeighborTraits,
+      SaiIpNextHopTraits>;
+  using PublishedObjects = std::tuple<
+      std::weak_ptr<const SaiObject<SaiNeighborTraits>>,
+      std::weak_ptr<const SaiObject<SaiIpNextHopTraits>>>;
+
+  TestDualPubAggregateSubscriber(
+      typename PublisherKey<SaiNeighborTraits>::type neighborKey,
+      typename PublisherKey<SaiIpNextHopTraits>::type nextHopKey)
+      : Base(neighborKey, nextHopKey) {}
+
+  void createObject(PublishedObjects /*added*/) {
+    createCount_++;
+  }
+
+  void removeObject(size_t index, PublishedObjects /*removed*/) {
+    removeCount_++;
+    lastRemovedIndex_ = index;
+  }
+
+  void handleLinkDown() {
+    linkDownCount_++;
+  }
+
+  int createCount_{0};
+  int removeCount_{0};
+  int linkDownCount_{0};
+  size_t lastRemovedIndex_{0};
+};
+
 class SaiObjectEventPublisherTest : public SaiStoreTest {
  public:
   SaiNeighborTraits::NeighborEntry makeNeighborEntry(
@@ -65,8 +111,22 @@ class SaiObjectEventPublisherTest : public SaiStoreTest {
     return {dstMac, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
   }
 
+  SaiIpNextHopTraits::AdapterHostKey makeNextHopKey(
+      const std::string& ip) const {
+    return SaiIpNextHopTraits::AdapterHostKey{42, folly::IPAddress(ip)};
+  }
+
+  SaiIpNextHopTraits::CreateAttributes makeNextHopAttrs(
+      const std::string& ip) const {
+    return {SAI_NEXT_HOP_TYPE_IP, 42, folly::IPAddress(ip), std::nullopt};
+  }
+
   detail::SaiObjectEventPublisher<SaiNeighborTraits>& neighborPublisher() {
     return SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>();
+  }
+
+  detail::SaiObjectEventPublisher<SaiIpNextHopTraits>& nextHopPublisher() {
+    return SaiObjectEventPublisher::getInstance()->get<SaiIpNextHopTraits>();
   }
 };
 
@@ -204,4 +264,91 @@ TEST_F(SaiObjectEventPublisherTest, linkDownWithNoSubscribers) {
 
   // Should not crash when no subscribers are listening
   neighborPublisher().notifyLinkDown(entry);
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateNotCreatedWithPartialPublishers) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.10");
+  auto nextHopKey = makeNextHopKey("10.0.0.10");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  // Only create neighbor (publisher 1)
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+
+  // createObject should NOT be called - only one of two publishers is alive
+  EXPECT_EQ(sub->createCount_, 0);
+  EXPECT_FALSE(sub->allPublishedObjectsAlive());
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateCreatedWhenAllPublishersAlive) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.11");
+  auto nextHopKey = makeNextHopKey("10.0.0.11");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  // Create first publisher
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+  EXPECT_EQ(sub->createCount_, 0);
+
+  // Create second publisher - now all are alive
+  auto& nextHopStore = saiStore->get<SaiIpNextHopTraits>();
+  auto nextHopObj =
+      nextHopStore.setObject(nextHopKey, makeNextHopAttrs("10.0.0.11"));
+
+  EXPECT_EQ(sub->createCount_, 1);
+  EXPECT_TRUE(sub->allPublishedObjectsAlive());
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateRemoveOnPublisherDeath) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.12");
+  auto nextHopKey = makeNextHopKey("10.0.0.12");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+  auto& nextHopStore = saiStore->get<SaiIpNextHopTraits>();
+  auto nextHopObj =
+      nextHopStore.setObject(nextHopKey, makeNextHopAttrs("10.0.0.12"));
+  EXPECT_EQ(sub->createCount_, 1);
+
+  // Remove neighbor (index 0 in AggregateType tuple)
+  neighborObj.reset();
+
+  EXPECT_EQ(sub->removeCount_, 1);
+  EXPECT_EQ(sub->lastRemovedIndex_, 0);
+  EXPECT_FALSE(sub->allPublishedObjectsAlive());
+}
+
+TEST_F(SaiObjectEventPublisherTest, aggregateLinkDown) {
+  auto neighborEntry = makeNeighborEntry("10.0.0.13");
+  auto nextHopKey = makeNextHopKey("10.0.0.13");
+  auto sub = std::make_shared<TestDualPubAggregateSubscriber>(
+      neighborEntry, nextHopKey);
+  neighborPublisher().subscribe(sub);
+  nextHopPublisher().subscribe(sub);
+
+  auto& neighborStore = saiStore->get<SaiNeighborTraits>();
+  auto neighborObj =
+      neighborStore.setObject(neighborEntry, makeNeighborAttrs());
+  auto& nextHopStore = saiStore->get<SaiIpNextHopTraits>();
+  auto nextHopObj =
+      nextHopStore.setObject(nextHopKey, makeNextHopAttrs("10.0.0.13"));
+
+  neighborPublisher().notifyLinkDown(neighborEntry);
+
+  EXPECT_EQ(sub->linkDownCount_, 1);
+  // Publisher should still be alive after linkDown
+  EXPECT_TRUE(sub->allPublishedObjectsAlive());
 }
