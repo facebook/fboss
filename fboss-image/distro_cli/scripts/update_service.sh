@@ -21,6 +21,14 @@ shift
 
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
+if [ "${COMPONENT}" = "other_dependencies" ]; then
+  for rpm in "${SCRIPT_DIR}"/*.rpm; do
+    echo "Updating ${rpm}..."
+    rpm -Uvh --replacepkgs "$rpm"
+  done
+  exit 0
+fi
+
 SERVICES="$*"
 if [ -z "${SERVICES}" ]; then
   echo "Error: Component '${COMPONENT}' requires at least one service" >&2

@@ -27,6 +27,7 @@ COMPONENT_SERVICES: dict[str, list[str]] = {
         "fan_service",
         "data_corral_service",
     ],
+    "other_dependencies": [],
 }
 
 # Path to the update script that runs on the device
@@ -87,6 +88,10 @@ class DeviceUpdater:
             raise DeviceUpdateError(
                 f"Component '{self.component}' not found in manifest"
             )
+
+        if self.component == "other_dependencies":
+            # other_dependencies are validated by ImageBuilder
+            return
 
         services = self._get_services()
         if not services:
