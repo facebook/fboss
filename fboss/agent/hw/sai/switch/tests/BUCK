@@ -243,6 +243,13 @@ switch_manager_unittest(
     ],
 )
 
+switch_manager_unittest(
+    name = "managed_fdb_entry_pubsub_test",
+    srcs = [
+        "ManagedFdbEntryPubSubTest.cpp",
+    ],
+)
+
 phy_switch_manager_unittest(
     name = "phy_acltable_manager_test",
     srcs = [
