@@ -87,13 +87,24 @@ SaiMySidEntryTraits::AdapterHostKey getMySidAdapterHostKey(
   auto [ip, maskLen] = mySid.getMySid();
   auto sid = ip.asV6();
   constexpr uint8_t kLocatorBlockLen = 32;
-  uint8_t locatorNodeLen = maskLen;
+  uint8_t nonLocatorMaskLen = maskLen;
+  uint8_t nodeLen{0}, functionLen{0};
+
+  switch (mySid.getType()) {
+    case MySidType::ADJACENCY_MICRO_SID:
+    case MySidType::DECAPSULATE_AND_LOOKUP:
+      functionLen = nonLocatorMaskLen;
+      break;
+    case MySidType::NODE_MICRO_SID:
+      nodeLen = nonLocatorMaskLen;
+      break;
+  }
   return SaiMySidEntryTraits::AdapterHostKey(
       switchId,
       vrId,
       kLocatorBlockLen,
-      locatorNodeLen,
-      0 /* functionLen */,
+      nodeLen,
+      functionLen,
       0 /* argsLen */,
       sid);
 }
