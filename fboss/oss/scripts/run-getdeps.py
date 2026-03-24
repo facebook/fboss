@@ -94,13 +94,16 @@ def parse_args():
         ARG_NPU_SAI_IMPL,
         required=False,
         help="SAI implementation to be used for the build. "
-        "If not provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
+        "Mutually exclusive with --phy-sai-impl. "
+        "If neither is provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
         f"Meta officially supports: {sorted(SUPPORTED_SAI_IMPLS)}",
     )
     parser.add_argument(
         ARG_PHY_SAI_IMPL,
         required=False,
         help="PHY (XPHY) SAI implementation to be used for the build. "
+        "Mutually exclusive with --npu-sai-impl. "
+        "If neither is provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
         f"Meta officially supports: {sorted(SUPPORTED_PHY_IMPLS)}",
     )
     parser.add_argument(
@@ -447,16 +450,19 @@ def _set_build_env_vars(args):
     """
     env_vars = {}
 
-    # --- NPU SAI flags ---
+    # --- SAI impl mutual exclusivity check ---
+    if args.npu_sai_impl is not None and args.phy_sai_impl is not None:
+        print_error(
+            f"Error: {ARG_NPU_SAI_IMPL} and {ARG_PHY_SAI_IMPL} are mutually exclusive. "
+            "Specify only one SAI implementation."
+        )
+        sys.exit(1)
+
+    # --- SAI flags ---
     if args.npu_sai_version is not None:
         env_vars["SAI_VERSION"] = args.npu_sai_version
 
-    if args.npu_sai_impl is None:
-        print_info(
-            "No --npu-sai-impl provided, defaulting to fake SAI build (BUILD_SAI_FAKE=1)"
-        )
-        env_vars["BUILD_SAI_FAKE"] = "1"
-    else:
+    if args.npu_sai_impl is not None:
         _warn_if_unsupported(ARG_NPU_SAI_IMPL, args.npu_sai_impl, SUPPORTED_SAI_IMPLS)
 
         # Real SAI impl requires an SDK version
@@ -474,11 +480,14 @@ def _set_build_env_vars(args):
             SUPPORTED_SAI_SDK_VERSIONS,
         )
         env_vars["SAI_SDK_VERSION"] = args.npu_sai_sdk_version
-
-    # --- PHY SAI flags ---
-    if args.phy_sai_impl is not None:
+    elif args.phy_sai_impl is not None:
         _warn_if_unsupported(ARG_PHY_SAI_IMPL, args.phy_sai_impl, SUPPORTED_PHY_IMPLS)
         env_vars[args.phy_sai_impl] = "1"
+    else:
+        print_info(
+            "No SAI implementation provided, defaulting to fake SAI build (BUILD_SAI_FAKE=1)"
+        )
+        env_vars["BUILD_SAI_FAKE"] = "1"
 
     # --- Misc build flags ---
     if args.benchmark_install:
