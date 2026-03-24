@@ -257,6 +257,13 @@ switch_manager_unittest(
     ],
 )
 
+switch_manager_unittest(
+    name = "managed_next_hop_pubsub_test",
+    srcs = [
+        "ManagedNextHopPubSubTest.cpp",
+    ],
+)
+
 phy_switch_manager_unittest(
     name = "phy_acltable_manager_test",
     srcs = [
