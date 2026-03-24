@@ -98,6 +98,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::vector<UnicastRoute>> routes,
       int32_t vrf) override;
 
+  /* MySid entries */
+  void addMySidEntries(
+      std::unique_ptr<std::vector<MySidEntry>> mySidEntries) override;
+  void deleteMySidEntries(
+      std::unique_ptr<std::vector<IpPrefix>> prefixes) override;
+
   /* MPLS routes */
   void addMplsRoutes(
       int16_t clientId,

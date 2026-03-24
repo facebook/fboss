@@ -923,6 +923,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     3: i32 vrf,
   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
 
+  void addMySidEntries(1: list<MySidEntry> mySidEntries) throws (
+    1: fboss.FbossBaseError error,
+  );
+  void deleteMySidEntries(1: list<IpPrefix> prefixes) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   // Get route counter values
   map<string, i64> getRouteCounterBytes(1: list<string> counters) throws (
     1: fboss.FbossBaseError error,

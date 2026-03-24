@@ -27,6 +27,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
@@ -39,7 +40,6 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -926,6 +926,44 @@ void ThriftHandler::updateUnicastRoutesImpl(
     sw_->stats()->routeProgrammingUpdateFailures();
     translateToFibError(ex);
   }
+}
+
+void ThriftHandler::addMySidEntries(
+    std::unique_ptr<std::vector<MySidEntry>> mySidEntries) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw_->getScopeResolver(),
+      *mySidEntries,
+      {} /* toDelete */,
+      "addMySidEntries",
+      ribMySidToSwitchStateFunc,
+      sw_);
+}
+
+void ThriftHandler::deleteMySidEntries(
+    std::unique_ptr<std::vector<IpPrefix>> prefixes) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw_->getScopeResolver(),
+      {} /* toAdd */,
+      *prefixes,
+      "deleteMySidEntries",
+      ribMySidToSwitchStateFunc,
+      sw_);
 }
 
 static void populateInterfaceDetail(

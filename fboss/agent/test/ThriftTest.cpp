@@ -19,6 +19,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
@@ -2992,3 +2993,140 @@ class ThriftTeFlowTest : public ::testing::Test {
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
 };
+
+namespace {
+
+MySidEntry makeMySidEntry(
+    const std::string& addr,
+    uint8_t len,
+    MySidType type = MySidType::DECAPSULATE_AND_LOOKUP) {
+  MySidEntry entry;
+  entry.type() = type;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  entry.mySid() = prefix;
+  return entry;
+}
+
+IpPrefix toMySidIpPrefix(const std::string& addr, uint8_t len) {
+  IpPrefix prefix;
+  prefix.ip() = facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  return prefix;
+}
+
+} // namespace
+
+TEST_F(ThriftTest, addMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_NE(nullptr, mySids);
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, deleteMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  // First add entries
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Delete one
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_EQ(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsNonDecapsulateType) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(
+      makeMySidEntry("2001:db8::1", 64, MySidType::NODE_MICRO_SID));
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsEntryWithNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  entry.nextHops()->push_back(nhop);
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addAndDeleteMySidEntriesInSequence) {
+  ThriftHandler handler(sw_);
+
+  // Add
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+
+  // Delete
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  state = sw_->getState();
+  EXPECT_EQ(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
+
+TEST_F(ThriftTest, deleteNonExistentMySidEntryIsNoOp) {
+  ThriftHandler handler(sw_);
+
+  auto stateBefore = sw_->getState();
+
+  // Delete a prefix that doesn't exist
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::99", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto stateAfter = sw_->getState();
+  // MySids map should be the same (both empty)
+  EXPECT_EQ(
+      stateBefore->getMySids()->toThrift(),
+      stateAfter->getMySids()->toThrift());
+}
+
+TEST_F(ThriftTest, mySidEntryReflectedInRib) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Verify RIB has the entry
+  auto rib = sw_->getRib();
+  auto ribMySidTable = rib->getMySidTableCopy();
+  auto cidr = std::make_pair(folly::IPAddressV6("2001:db8::1"), 64);
+  EXPECT_EQ(ribMySidTable.count(cidr), 1);
+
+  // Verify SwitchState has the entry
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
