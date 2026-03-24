@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/Utils.h"
@@ -15,6 +16,8 @@
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/test/LabelForwardingUtils.h"
 
 #include "fboss/agent/rib/RoutingInformationBase.h"
@@ -52,6 +55,30 @@ const SwitchIdScopeResolver* scopeResolver() {
   static const SwitchIdScopeResolver kSwitchIdScopeResolver(
       getTestSwitchInfo());
   return &kSwitchIdScopeResolver;
+}
+
+HwSwitchMatcher scope() {
+  return HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}};
+}
+
+folly::CIDRNetworkV6 makeSidPrefix(const std::string& addr, uint8_t len) {
+  return std::make_pair(folly::IPAddressV6(addr), len);
+}
+
+std::shared_ptr<MySid> makeMySid(
+    const folly::CIDRNetworkV6& prefix,
+    MySidType type = MySidType::DECAPSULATE_AND_LOOKUP) {
+  state::MySidFields fields;
+  fields.type() = type;
+  facebook::network::thrift::IPPrefix thriftPrefix;
+  thriftPrefix.prefixAddress() =
+      facebook::network::toBinaryAddress(prefix.first);
+  thriftPrefix.prefixLength() = prefix.second;
+  fields.mySid() = thriftPrefix;
+  auto mySid = std::make_shared<MySid>(fields);
+  mySid->setUnresolvedNextHop(std::nullopt);
+  mySid->setResolvedNextHop(std::nullopt);
+  return mySid;
 }
 
 } // namespace
@@ -431,4 +458,106 @@ TEST_F(RibRollbackTest, rollbackMpls) {
       FbossHwUpdateError);
   assertRouteCount(0, 1, 1);
   EXPECT_EQ(routeTableBeforeFailedUpdate, rib_.getRouteTableDetails(kRid));
+}
+
+// Callback that injects MySid entries into the applied state on failure.
+class FailWithMySidInAppliedState {
+ public:
+  explicit FailWithMySidInAppliedState(MySidTable mySidEntriesToInject)
+      : mySidEntriesToInject_(std::move(mySidEntriesToInject)) {}
+
+  StateDelta operator()(
+      const SwitchIdScopeResolver* resolver,
+      RouterID vrf,
+      const IPv4NetworkToRouteMap& v4NetworkToRoute,
+      const IPv6NetworkToRouteMap& v6NetworkToRoute,
+      const LabelToRouteMap& labelToRoute,
+      const NextHopIDManager* nextHopIDManager,
+      const MySidTable& mySidTable,
+      void* cookie) {
+    auto curSwitchStatePtr = static_cast<std::shared_ptr<SwitchState>*>(cookie);
+    (*curSwitchStatePtr)->publish();
+
+    // Build the desired state normally
+    auto desiredState = *curSwitchStatePtr;
+    ribToSwitchStateUpdate(
+        resolver,
+        vrf,
+        v4NetworkToRoute,
+        v6NetworkToRoute,
+        labelToRoute,
+        nextHopIDManager,
+        mySidTable,
+        static_cast<void*>(&desiredState));
+
+    // Build the applied state from the ORIGINAL state (not desiredState),
+    // since in a partial HW update the FIB may not have been updated.
+    // Inject MySid entries to simulate MySid being applied to HW.
+    auto appliedState = (*curSwitchStatePtr)->clone();
+    auto newMySids = std::make_shared<MultiSwitchMySidMap>();
+    for (const auto& [cidr, mySid] : mySidEntriesToInject_) {
+      newMySids->addNode(mySid, scope());
+    }
+    appliedState->resetMySids(newMySids);
+    appliedState->publish();
+
+    throw FbossHwUpdateError(desiredState, appliedState);
+  }
+
+ private:
+  MySidTable mySidEntriesToInject_;
+};
+
+TEST(RibRollbackMySidTest, rollbackMySidReconstruction) {
+  // Verify that MySidTable is reconstructed from the applied state
+  // after a failed HW update.
+  FLAGS_mpls_rib = true;
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  // Add an initial route
+  rib.update(
+      scopeResolver(),
+      kRid,
+      kBgpClient,
+      kBgpDistance,
+      {makeDropUnicastRoute(kPrefix1)},
+      {},
+      false,
+      "setup",
+      ribToSwitchStateUpdate,
+      &switchState);
+
+  // Verify mySidTable starts empty
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+
+  // Create MySid entries to inject into the applied state
+  auto sidPrefix = makeSidPrefix("fc00:100::1", 48);
+  MySidTable mySidEntries;
+  mySidEntries[sidPrefix] = makeMySid(sidPrefix);
+
+  // The update fails and injects MySid entries into the applied state.
+  // The rollback should reconstruct the RIB's mySidTable from the applied
+  // state's MySidMap.
+  FailWithMySidInAppliedState failWithMySid(mySidEntries);
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          kRid,
+          kBgpClient,
+          kBgpDistance,
+          {makeDropUnicastRoute(kPrefix2)},
+          {},
+          false,
+          "fail with mysid",
+          failWithMySid,
+          &switchState),
+      FbossHwUpdateError);
+
+  // Verify the mySidTable was reconstructed with the injected entries
+  auto mySidTableCopy = rib.getMySidTableCopy();
+  EXPECT_EQ(mySidTableCopy.size(), 1);
+  EXPECT_NE(mySidTableCopy.find(sidPrefix), mySidTableCopy.end());
 }

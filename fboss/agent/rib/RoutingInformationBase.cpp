@@ -423,6 +423,11 @@ void RibRouteTables::updateFib(
           nextHopIDManager_->reconstructFromFib(fibsInfoMap);
         }
       }
+
+      // Reconstruct MySidTable from the applied state
+      reconstructMySidTableFromSwitchState(
+          hwUpdateError.appliedState->getMySids(),
+          &lockedRouteTables->mySidTable);
     }
     throw;
   }
@@ -949,6 +954,17 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     }
   });
   return routeDetails;
+}
+
+std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>
+RibRouteTables::getMySidTableCopy() const {
+  std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>> result;
+  synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
+    for (const auto& [cidr, mySidPtr] : synchronizedRouteTables.mySidTable) {
+      result.emplace(cidr, mySidPtr->clone());
+    }
+  });
+  return result;
 }
 
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(

@@ -157,6 +157,11 @@ class RibRouteTables {
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
   std::vector<MplsRouteDetails> getMplsRouteTableDetails() const;
 
+  // Returns a deep copy of the MySidTable. This is expensive due to
+  // cloning all MySid objects and should only be used in tests.
+  std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>
+  getMySidTableCopy() const;
+
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
       const AddressT& address,
@@ -389,6 +394,10 @@ class RoutingInformationBase {
   }
   std::vector<MplsRouteDetails> getMplsRouteTableDetails() const {
     return ribTables_.getMplsRouteTableDetails();
+  }
+  std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>
+  getMySidTableCopy() const {
+    return ribTables_.getMySidTableCopy();
   }
   void waitForRibUpdates() {
     ensureRunning();
