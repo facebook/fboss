@@ -634,6 +634,30 @@ TEST(RibMySidUpdate, rollbackDeleteRestoresEntries) {
       mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
 }
 
+TEST(RibMySidUpdate, updaterClonesPublishedState) {
+  // Verify that MySidMapUpdater clones the state before mutating it.
+  // A previous bug had MySidMapUpdater returning a shared_ptr copy (not a
+  // clone), which mutated the already-published input state and caused an
+  // assertion failure.
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  // Build a RIB MySidTable with one entry
+  MySidTable mySidTable;
+  auto prefix = makeSidPrefix("fc00:100::1", 48);
+  mySidTable[prefix] = makeMySid(prefix);
+
+  MySidMapUpdater updater(scopeResolver(), mySidTable);
+  auto newState = updater(switchState);
+
+  // Returned state must be a different object (cloned, not aliased)
+  EXPECT_NE(newState.get(), switchState.get());
+  // Original published state must not have been mutated
+  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+  // New state should have the entry
+  EXPECT_NE(newState->getMySids()->getNodeIf("fc00:100::1/48"), nullptr);
+}
+
 TEST(RibMySidUpdate, emptyUpdate) {
   RoutingInformationBase rib;
   rib.ensureVrf(kRid);
