@@ -180,6 +180,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     constexpr uint16_t kSrcPort{8000};
     constexpr uint16_t kDstPort{8001};
     constexpr uint8_t kHopLimit{64};
+    constexpr uint8_t kTc{42};
 
     // Outer IPv6: dst = mySid address (triggers decap)
     // Inner IP: dst matches route prefix (forwarded after decap)
@@ -197,8 +198,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kV4RouteDstIp,
           kSrcPort,
           kDstPort,
-          0 /* outerTrafficClass */,
-          0 /* innerDscp */,
+          kTc << 2 /* outerTrafficClass */,
+          kTc /* innerDscp */,
           kHopLimit);
     } else {
       txPacket = utility::makeIpInIpTxPacket(
@@ -212,8 +213,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kV6RouteDstIp,
           kSrcPort,
           kDstPort,
-          0 /* outerTrafficClass */,
-          0 /* innerTrafficClass */,
+          kTc << 2 /* outerTrafficClass */,
+          kTc << 2 /* innerTrafficClass */,
           kHopLimit);
     }
 
@@ -250,6 +251,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
       auto v4Hdr = rxV4->header();
       EXPECT_EQ(v4Hdr.srcAddr, folly::IPAddressV4("10.0.0.1"));
       EXPECT_EQ(v4Hdr.dstAddr, kV4RouteDstIp);
+      EXPECT_EQ(v4Hdr.ttl, kHopLimit - 1);
+      // DSCP is preserved
+      EXPECT_EQ(v4Hdr.dscp, kTc);
       auto rxUdp = rxV4->udpPayload();
       ASSERT_TRUE(rxUdp.has_value());
       EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
@@ -263,6 +267,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
       auto v6Hdr = rxV6->header();
       EXPECT_EQ(v6Hdr.srcAddr, folly::IPAddressV6("1::10"));
       EXPECT_EQ(v6Hdr.dstAddr, kV6RouteDstIp);
+      EXPECT_EQ(v6Hdr.hopLimit, kHopLimit - 1);
+      // DSCP is preserved
+      EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
       auto rxUdp = rxV6->udpPayload();
       ASSERT_TRUE(rxUdp.has_value());
       EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
