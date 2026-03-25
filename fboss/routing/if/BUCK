@@ -1,0 +1,10 @@
+load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
+
+thrift_library(
+    name = "vip_service_config",
+    languages = [
+        "cpp2",
+    ],
+    thrift_cpp2_options = "json",
+    thrift_srcs = {"vip_service_config.thrift": []},
+)
