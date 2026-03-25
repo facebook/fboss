@@ -17,7 +17,6 @@ cpp_binary(
         "//fboss/fsdb/client:fsdb_syncer",
         "//fboss/fsdb/common:flags",
         "//fboss/fsdb/if:fsdb_common-cpp2-types",
-        "//fboss/fsdb/if:fsdb_model",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//fboss/thrift_cow/storage/tests:data_factory",
         "//folly:string",
@@ -80,7 +79,6 @@ cpp_library(
     exported_deps = [
         "//fboss/fsdb/client:fsdb_cow_state_sub_manager",
         "//fboss/fsdb/client:fsdb_pub_sub",
-        "//fboss/fsdb/if:fsdb_model",
         "//fboss/fsdb/tests/utils:fsdb_test_server",
         "//fboss/lib/thrift_service_client:thrift-service-client",
         "//folly:string",
