@@ -709,49 +709,73 @@
               "name": "pdb_r_sensor_int",
               "regAddr": "0x11",
               "bitOffset": 7,
-              "description": "Right PSU thermal sensor status.  1 normal, 0 alert."
+              "description": "Right PSU thermal sensor status.  1 normal, 0 alert.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "pdb_l_sensor_int",
               "regAddr": "0x11",
               "bitOffset": 6,
-              "description": "Left PSU thermal sensor status.  1 normal, 0 alert."
+              "description": "Left PSU thermal sensor status.  1 normal, 0 alert.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "psu_r_ac_ok",
               "regAddr": "0x11",
               "bitOffset": 5,
-              "description": "Right PSU input power status.  1 normal, 0 fail."
+              "description": "Right PSU input power status.  1 normal, 0 fail.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "psu_l_ac_ok",
               "regAddr": "0x11",
               "bitOffset": 4,
-              "description": "Left PSU input power status.  1 normal, 0 fail."
+              "description": "Left PSU input power status.  1 normal, 0 fail.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "cpld_psu_r_pg",
               "regAddr": "0x11",
               "bitOffset": 3,
-              "description": "Right PSU 12v output power status.  1 normal, 0 fail."
+              "description": "Right PSU 12v output power status.  1 normal, 0 fail.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "cpld_psu_l_pg",
               "regAddr": "0x11",
               "bitOffset": 2,
-              "description": "Left PSU 12v output power status.  1 normal, 0 fail."
+              "description": "Left PSU 12v output power status.  1 normal, 0 fail.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "pdb_psu_r_alert",
               "regAddr": "0x11",
               "bitOffset": 1,
-              "description": "Right PSU alert status. 1 normal, 0 alert."
+              "description": "Right PSU alert status. 1 normal, 0 alert.",
+              "flags": [
+                "decimal"
+              ]
             },
             {
               "name": "pdb_psu_l_alert",
               "regAddr": "0x11",
               "bitOffset": 0,
-              "description": "Left PSU alert status. 1 normal, 0 alert."
+              "description": "Left PSU alert status. 1 normal, 0 alert.",
+              "flags": [
+                "decimal"
+              ]
             }
           ]
         },
