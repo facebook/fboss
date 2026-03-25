@@ -179,7 +179,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     constexpr uint16_t kSrcPort{8000};
     constexpr uint16_t kDstPort{8001};
-    constexpr uint8_t kHopLimit{64};
+    constexpr uint8_t kInnerHopLimit{64};
+    constexpr uint8_t kOuterHopLimit{24};
     constexpr uint8_t kTc{42};
 
     // Outer IPv6: dst = mySid address (triggers decap)
@@ -200,7 +201,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kDstPort,
           kTc << 2 /* outerTrafficClass */,
           kTc /* innerDscp */,
-          kHopLimit);
+          kOuterHopLimit,
+          kInnerHopLimit);
     } else {
       txPacket = utility::makeIpInIpTxPacket(
           this->getSw(),
@@ -215,7 +217,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kDstPort,
           kTc << 2 /* outerTrafficClass */,
           kTc << 2 /* innerTrafficClass */,
-          kHopLimit);
+          kOuterHopLimit,
+          kInnerHopLimit);
     }
 
     // Extract expected inner UDP payload before sending (txPacket gets moved)
@@ -268,7 +271,12 @@ class AgentSrv6DecapTest : public AgentHwTest {
       auto v4Hdr = rxV4->header();
       EXPECT_EQ(v4Hdr.srcAddr, folly::IPAddressV4("10.0.0.1"));
       EXPECT_EQ(v4Hdr.dstAddr, kV4RouteDstIp);
-      EXPECT_EQ(v4Hdr.ttl, kHopLimit - 1);
+      // Outer header hop limit should get decremented and
+      // copied
+      // EXPECT_EQ(v4Hdr.ttl, kOuterHopLimit - 1);
+      // FIXME - change to outer hop limit check once
+      // MT-878 is fixed
+      EXPECT_EQ(v4Hdr.ttl, kInnerHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v4Hdr.dscp, kTc);
       rxUdp = rxV4->udpPayload();
@@ -281,7 +289,12 @@ class AgentSrv6DecapTest : public AgentHwTest {
       auto v6Hdr = rxV6->header();
       EXPECT_EQ(v6Hdr.srcAddr, folly::IPAddressV6("1::10"));
       EXPECT_EQ(v6Hdr.dstAddr, kV6RouteDstIp);
-      EXPECT_EQ(v6Hdr.hopLimit, kHopLimit - 1);
+      // Outer header hop limit should get decremented and
+      // copied
+      // EXPECT_EQ(v4Hdr.hopLimit, kOuterHopLimit - 1);
+      // FIXME - change to outer hop limit check once
+      // MT-878 is fixed
+      EXPECT_EQ(v6Hdr.hopLimit, kInnerHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
       rxUdp = rxV6->udpPayload();
