@@ -75,9 +75,6 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
         key_(key),
         disableTTLDecrement_(disableTTLDecrement) {}
 
-  ~ManagedNextHop() {
-    this->resetObject();
-  }
   void createObject(PublishedObjects /*added*/);
 
   void removeObject(size_t index, PublishedObjects removed) {
