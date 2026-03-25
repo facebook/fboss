@@ -788,19 +788,31 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
   ASSERT_NE(nhgHandle, nullptr);
   EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
 
-  // Verify SID list for each next hop via SaiSrv6SidListManager
-  std::vector<folly::IPAddressV6> segmentList{
-      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
-  for (const auto& intf : {std::cref(intf0), std::cref(intf1)}) {
+  // Verify SID list for each ECMP member; keys must match
+  // SaiNextHopGroupManager (normalized next-hop set + path discriminator per
+  // member index).
+  const auto& fwd = route->getForwardInfo();
+  SaiNextHopGroupKey nhgKey{
+      fwd.normalizedNextHops(), fwd.getOverrideEcmpSwitchingMode()};
+  size_t memberIdx = 0;
+  for (const auto& nh : nhgKey.first) {
+    auto resolved = folly::poly_cast<ResolvedNextHop>(nh);
     auto rifHandle =
         saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
-            InterfaceID(intf.get().id));
+            resolved.intf());
     ASSERT_NE(rifHandle, nullptr);
     auto rifId = rifHandle->adapterKey();
-    folly::IPAddress ip = intf.get().remoteHosts.at(0).ip;
+    folly::IPAddress ip = resolved.addr();
+    auto segmentList = resolved.srv6SegmentList();
+    ASSERT_FALSE(segmentList.empty());
 
     SaiSrv6SidListTraits::AdapterHostKey sidListKey{
-        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segmentList, rifId, ip};
+        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
+        segmentList,
+        rifId,
+        ip,
+        ecmpSrv6SidListPathDiscriminator(nhgKey, memberIdx)};
+    ++memberIdx;
     auto* sidListHandle =
         saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(sidListHandle, nullptr);

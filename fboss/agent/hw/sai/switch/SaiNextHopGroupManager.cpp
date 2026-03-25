@@ -66,6 +66,7 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
       std::shared_ptr<SaiSrv6SidListHandle>>
       srv6SidListMap;
 #endif
+  size_t srv6SidListMemberIndex = 0;
   for (const auto& swNextHop : swNextHops) {
     // Compute the sai id of the next hop's router interface
     InterfaceID interfaceId = swNextHop.intf();
@@ -80,14 +81,19 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     std::optional<sai_object_id_t> sidListId;
     if (!resolvedNextHop.srv6SegmentList().empty()) {
-      auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
-          routerInterfaceHandle->adapterKey(), resolvedNextHop);
+      uint64_t pathDisc =
+          ecmpSrv6SidListPathDiscriminator(key, srv6SidListMemberIndex);
+      auto keyAndAttrs = makeSrv6SidListKeyAndAttributes(
+          routerInterfaceHandle->adapterKey(), resolvedNextHop, pathDisc);
       auto sidListHandle =
           managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
-              sidListKey, sidListAttrs);
+              keyAndAttrs.adapterHostKey,
+              keyAndAttrs.createAttributes,
+              keyAndAttrs.subscriptionNexthopKey);
       sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
       srv6SidListMap.emplace(&resolvedNextHop, std::move(sidListHandle));
     }
+    ++srv6SidListMemberIndex;
     auto nhk = managerTable_->nextHopManager().getAdapterHostKey(
         resolvedNextHop, sidListId);
 #else

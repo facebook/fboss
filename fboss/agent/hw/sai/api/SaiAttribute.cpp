@@ -16,8 +16,10 @@
 #include <cstdint>
 #include <vector>
 
-void _fill(std::vector<folly::IPAddressV6>& src, sai_segment_list_t& dst) {
-  static thread_local std::vector<std::array<uint8_t, 16>> buf;
+void _fill(
+    std::vector<folly::IPAddressV6>& src,
+    sai_segment_list_t& dst,
+    std::vector<std::array<uint8_t, 16>>& buf) {
   buf.resize(src.size());
   for (size_t i = 0; i < src.size(); i++) {
     facebook::fboss::toSaiIpAddressV6(

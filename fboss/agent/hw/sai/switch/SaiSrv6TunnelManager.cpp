@@ -9,6 +9,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiTunnelUtils.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -42,9 +43,7 @@ void SaiSrv6TunnelManager::addSrv6Tunnel(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   auto existTunnel = getSrv6TunnelHandle(srv6Tunnel->getID());
   if (existTunnel) {
-    throw FbossError(
-        "Attempted to add srv6 tunnel which already exists: ",
-        srv6Tunnel->getID());
+    return;
   }
   SaiRouterInterfaceHandle* intfHandle =
       managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
@@ -92,6 +91,24 @@ void SaiSrv6TunnelManager::addSrv6Tunnel(
       "SRv6 tunnels require SAI API version >= 1.12.0, "
       "tunnel: ",
       srv6Tunnel->getID());
+#endif
+}
+
+void SaiSrv6TunnelManager::ensureSrv6TunnelFromState(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& tunnelId) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  if (getSrv6TunnelHandle(tunnelId)) {
+    return;
+  }
+  auto tunnel = state->getSrv6Tunnels()->getNodeIf(tunnelId);
+  if (tunnel) {
+    addSrv6Tunnel(tunnel);
+  }
+#else
+  (void)state;
+  (void)tunnelId;
+  // SRv6 not supported when SAI < 1.12; no-op
 #endif
 }
 

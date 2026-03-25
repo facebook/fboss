@@ -21,6 +21,7 @@
 #include <boost/functional/hash.hpp>
 #include <fmt/ranges.h>
 
+#include <array>
 #include <cstring>
 #include <type_traits>
 #include <utility>
@@ -312,7 +313,10 @@ inline void _realloc(
 
 } // namespace
 
-void _fill(std::vector<folly::IPAddressV6>& src, sai_segment_list_t& dst);
+void _fill(
+    std::vector<folly::IPAddressV6>& src,
+    sai_segment_list_t& dst,
+    std::vector<std::array<uint8_t, 16>>& buf);
 
 void _fill(const sai_segment_list_t& src, std::vector<folly::IPAddressV6>& dst);
 
@@ -759,20 +763,52 @@ class SaiAttribute<
    */
   SaiAttribute(const SaiAttribute& other) : SaiAttribute() {
     saiAttr_.id = other.saiAttr_.id;
-    setValue(other.value());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        setValue(other.value_);
+      } else {
+        setValue(other.value());
+      }
+    } else {
+      setValue(other.value());
+    }
   }
   SaiAttribute(SaiAttribute&& other) : SaiAttribute() {
     saiAttr_.id = other.saiAttr_.id;
-    setValue(std::move(other).value());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        setValue(std::move(other.value_));
+      } else {
+        setValue(std::move(other).value());
+      }
+    } else {
+      setValue(std::move(other).value());
+    }
   }
   SaiAttribute& operator=(const SaiAttribute& other) {
     saiAttr_.id = other.saiAttr_.id;
-    setValue(other.value());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        setValue(other.value_);
+      } else {
+        setValue(other.value());
+      }
+    } else {
+      setValue(other.value());
+    }
     return *this;
   }
   SaiAttribute& operator=(SaiAttribute&& other) {
     saiAttr_.id = other.saiAttr_.id;
-    setValue(std::move(other).value());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        setValue(std::move(other.value_));
+      } else {
+        setValue(std::move(other).value());
+      }
+    } else {
+      setValue(std::move(other).value());
+    }
     return *this;
   }
   /*
@@ -818,7 +854,15 @@ class SaiAttribute<
    */
   void realloc() {
     _realloc(data(), value_);
-    _fill(value_, data());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        _fill(value_, data(), segmentListSaiBuf_);
+      } else {
+        _fill(value_, data());
+      }
+    } else {
+      _fill(value_, data());
+    }
   }
 
   sai_attribute_t* saiAttr() {
@@ -850,11 +894,27 @@ class SaiAttribute<
  private:
   void setValue(const ValueType& value) {
     value_ = value;
-    _fill(value_, data());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        _fill(value_, data(), segmentListSaiBuf_);
+      } else {
+        _fill(value_, data());
+      }
+    } else {
+      _fill(value_, data());
+    }
   }
   void setValue(ValueType&& value) {
     value_ = std::move(value);
-    _fill(value_, data());
+    if constexpr (std::is_same_v<AttrEnumT, sai_srv6_sidlist_attr_t>) {
+      if constexpr (AttrEnum == SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST) {
+        _fill(value_, data(), segmentListSaiBuf_);
+      } else {
+        _fill(value_, data());
+      }
+    } else {
+      _fill(value_, data());
+    }
   }
   DataType& data() {
     return _extract<SaiAttribute>(saiAttr_);
@@ -864,6 +924,10 @@ class SaiAttribute<
   }
   sai_attribute_t saiAttr_{};
   ValueType value_{};
+  // Per-attribute backing for converted sai_ip6_t list; must not use a
+  // thread-local buffer (see _fill in SaiAttribute.cpp) or every
+  // SaiAttribute::sai_attr_ would point at the same memory.
+  mutable std::vector<std::array<uint8_t, 16>> segmentListSaiBuf_{};
 };
 
 template <typename T>

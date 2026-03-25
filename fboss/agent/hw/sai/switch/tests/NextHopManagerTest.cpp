@@ -92,10 +92,12 @@ class Srv6NextHopManagerTest : public ManagerTestBase {
     auto rifHandle =
         saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
             swNextHop.intfID().value());
-    auto [sidListKey, sidListAttrs] =
+    auto keyAndAttrs =
         makeSrv6SidListKeyAndAttributes(rifHandle->adapterKey(), swNextHop);
     return saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
-        sidListKey, sidListAttrs);
+        keyAndAttrs.adapterHostKey,
+        keyAndAttrs.createAttributes,
+        keyAndAttrs.subscriptionNexthopKey);
   }
 
   TestInterface intf0;

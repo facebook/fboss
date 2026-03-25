@@ -20,6 +20,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -190,6 +191,14 @@ void SaiRouteManager::addOrUpdateRoute(
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     const auto nhops = getNextHops(state, fwd);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    for (const auto& nhop : nhops) {
+      if (!nhop.srv6SegmentList().empty() && nhop.tunnelId().has_value()) {
+        managerTable_->srv6TunnelManager().ensureSrv6TunnelFromState(
+            state, nhop.tunnelId().value());
+      }
+    }
+#endif
     /*
      * A Route which satisfies isConnected() is an interface subnet route.
      * It will have one NextHop with the ip configured for the interface
@@ -368,11 +377,13 @@ void SaiRouteManager::addOrUpdateRoute(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
         std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle;
         if (!swNextHop.srv6SegmentList().empty()) {
-          auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+          auto keyAndAttrs = makeSrv6SidListKeyAndAttributes(
               routerInterfaceHandle->adapterKey(), swNextHop);
           srv6SidListHandle =
               managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
-                  sidListKey, sidListAttrs);
+                  keyAndAttrs.adapterHostKey,
+                  keyAndAttrs.createAttributes,
+                  keyAndAttrs.subscriptionNexthopKey);
         }
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(

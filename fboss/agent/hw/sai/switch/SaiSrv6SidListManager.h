@@ -10,10 +10,18 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber-defs.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventSubscriber.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/RouteNextHop.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/lib/RefMap.h"
 
 namespace facebook::fboss {
+
+uint64_t ecmpSrv6SidListPathDiscriminator(
+    const std::pair<
+        RouteNextHopEntry::NextHopSet,
+        std::optional<cfg::SwitchingMode>>& nextHopGroupKey,
+    size_t memberIndex);
 
 class SaiManagerTable;
 class SaiPlatform;
@@ -90,7 +98,8 @@ class SaiSrv6SidListManager {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::shared_ptr<SaiSrv6SidListHandle> addOrReuseSrv6SidList(
       const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey,
-      const SaiSrv6SidListTraits::CreateAttributes& createAttributes);
+      const SaiSrv6SidListTraits::CreateAttributes& createAttributes,
+      SaiIpNextHopTraits::AdapterHostKey subscriptionNexthopKey);
 
   const SaiSrv6SidListHandle* getSrv6SidListHandle(
       const SaiSrv6SidListTraits::AdapterHostKey& adapterHostKey) const;
@@ -105,12 +114,16 @@ class SaiSrv6SidListManager {
 };
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-std::pair<
-    SaiSrv6SidListTraits::AdapterHostKey,
-    SaiSrv6SidListTraits::CreateAttributes>
-makeSrv6SidListKeyAndAttributes(
+struct Srv6SidListKeyAndAttrs {
+  SaiSrv6SidListTraits::AdapterHostKey adapterHostKey;
+  SaiSrv6SidListTraits::CreateAttributes createAttributes;
+  SaiIpNextHopTraits::AdapterHostKey subscriptionNexthopKey;
+};
+
+Srv6SidListKeyAndAttrs makeSrv6SidListKeyAndAttributes(
     RouterInterfaceSaiId rifId,
-    const ResolvedNextHop& swNextHop);
+    const ResolvedNextHop& swNextHop,
+    uint64_t pathDiscriminator = 0);
 #endif
 
 } // namespace facebook::fboss

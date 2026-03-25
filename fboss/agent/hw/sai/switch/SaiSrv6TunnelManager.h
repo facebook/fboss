@@ -6,6 +6,7 @@
 #include "fboss/agent/hw/sai/api/TunnelApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include "folly/container/F14Map.h"
 
@@ -37,6 +38,9 @@ class SaiSrv6TunnelManager {
   ~SaiSrv6TunnelManager();
 
   void addSrv6Tunnel(const std::shared_ptr<Srv6Tunnel>& srv6Tunnel);
+  void ensureSrv6TunnelFromState(
+      const std::shared_ptr<SwitchState>& state,
+      const std::string& tunnelId);
   void removeSrv6Tunnel(const std::shared_ptr<Srv6Tunnel>& srv6Tunnel);
   void changeSrv6Tunnel(
       const std::shared_ptr<Srv6Tunnel>& oldTunnel,

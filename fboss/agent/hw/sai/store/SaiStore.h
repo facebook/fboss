@@ -532,7 +532,23 @@ class SaiObjectStore {
               ObjectType(adapterHostKey, attributes, saiSwitchId_.value()),
               true /*force*/);
     if (!ins.second) {
-      ins.first->setAttributes(attributes);
+      // NextHop CreateAttributes (RouterInterfaceId, Ip, Type, etc.) are
+      // create-only. Setting them on existing HW objects returns
+      // INVALID_ATTRIBUTE. During warm boot, we program with resolved attrs;
+      // skip HW write to avoid failing set_attribute and just update in-memory
+      // attributes_.
+      constexpr bool kNextHopCreateOnly =
+          std::is_same_v<SaiObjectTraits, SaiIpNextHopTraits> ||
+          std::is_same_v<SaiObjectTraits, SaiMplsNextHopTraits>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+          || std::is_same_v<SaiObjectTraits, SaiSrv6SidlistNextHopTraits>
+#endif
+          ;
+      if constexpr (kNextHopCreateOnly) {
+        ins.first->setAttributes(attributes, true /* skipHwWrite */);
+      } else {
+        ins.first->setAttributes(attributes);
+      }
     }
     auto notify = ins.second;
     auto iter = warmBootHandles_.find(adapterHostKey);

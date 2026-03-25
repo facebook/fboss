@@ -1,7 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "fboss/agent/hw/sai/store/SaiObject.h"
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
+
+#include <tuple>
 
 namespace facebook {
 namespace fboss {
@@ -58,18 +61,14 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
             &ahk.first)) {
       object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
           folly::to<std::string>(SAI_NEXT_HOP_TYPE_SRV6_SIDLIST);
+      // Tunnel-based SRv6: always serialize as (0, 0.0.0.0) for warm boot
+      // key consistency.
       object[AttributeName<
           SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>::value] =
-          folly::to<std::string>(
-              std::get<
-                  SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>(
-                  *srv6Ahk)
-                  .value());
+          "0";
       object
           [AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::Ip>::value] =
-              std::get<SaiSrv6SidlistNextHopTraits::Attributes::Ip>(*srv6Ahk)
-                  .value()
-                  .str();
+              "0.0.0.0";
       object[AttributeName<
           SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>::value] =
           folly::to<std::string>(
@@ -167,17 +166,12 @@ void follyDynamicToNhopSet(
       case SAI_NEXT_HOP_TYPE_SRV6_SIDLIST: {
         SaiSrv6SidlistNextHopTraits::AdapterHostKey srv6Ahk;
 
+        // Tunnel-based SRv6: always use (0, 0.0.0.0) for AdapterHostKey
+        // consistency (old checkpoints may have stored real RIF/IP).
         std::get<SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>(
-            srv6Ahk) =
-            folly::to<sai_object_id_t>(
-                object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
-                                         RouterInterfaceId>::value]
-                    .asString());
+            srv6Ahk) = 0;
         std::get<SaiSrv6SidlistNextHopTraits::Attributes::Ip>(srv6Ahk) =
-            folly::IPAddress(
-                object[AttributeName<
-                           SaiSrv6SidlistNextHopTraits::Attributes::Ip>::value]
-                    .asString());
+            folly::IPAddress("0.0.0.0");
         std::get<SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>(srv6Ahk) =
             folly::to<sai_object_id_t>(
                 object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
@@ -204,12 +198,20 @@ typename SaiNextHopGroupTraits::AdapterHostKey
 SaiObject<SaiNextHopGroupTraits>::follyDynamicToAdapterHostKey(
     const folly::dynamic& json) {
   SaiNextHopGroupTraits::AdapterHostKey key;
-  const auto& memberJson = json[AttributeName<
-      SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
-  follyDynamicToNhopSet(memberJson, key);
+  // Pre D75845886 used an array as adapterHostKey value
+  if (json.isObject()) {
+    const auto& memberJson = json[AttributeName<
+        SaiNextHopGroupTraits::Attributes::NextHopMemberList>::value];
+    follyDynamicToNhopSet(memberJson, key);
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
-  key.mode = json[AttributeName<SaiArsTraits::Attributes::Mode>::value].asInt();
+    key.mode =
+        json[AttributeName<SaiArsTraits::Attributes::Mode>::value].asInt();
 #endif
+  } else if (json.isArray()) {
+    follyDynamicToNhopSet(json, key);
+  } else {
+    throw FbossError("Unsupported value type for nhop-group AdapterHostKey");
+  }
   return key;
 }
 
@@ -344,12 +346,18 @@ folly::dynamic SaiObject<SaiSrv6SidListTraits>::adapterHostKeyToFollyDynamic() {
   CHECK(nextHopIdOpt.has_value())
       << "SRv6 SID list must have NextHopId set for adapterHostKeyToFollyDynamic";
 
+  // AdapterHostKey tuple layout (Srv6Api.h): Type, optional<SegmentList>,
+  // RouterInterfaceSaiId, IP, pathDiscriminator. Use numeric indices so warm
+  // boot JSON always matches the tuple written by setObject/replay (no
+  // ambiguous std::get<T> with similar attribute types).
+  static_assert(
+      std::tuple_size_v<SaiSrv6SidListTraits::AdapterHostKey> == 5,
+      "SaiSrv6SidListTraits::AdapterHostKey must have 5 tuple elements");
+
   folly::dynamic json = folly::dynamic::object;
-  json["type"] =
-      std::get<SaiSrv6SidListTraits::Attributes::Type>(adapterHostKey_).value();
-  auto segmentListOpt =
-      std::get<std::optional<SaiSrv6SidListTraits::Attributes::SegmentList>>(
-          adapterHostKey_);
+  json["type"] = std::get<0>(adapterHostKey_).value();
+
+  const auto& segmentListOpt = std::get<1>(adapterHostKey_);
   if (segmentListOpt.has_value()) {
     folly::dynamic segments = folly::dynamic::array;
     for (const auto& ip : segmentListOpt.value().value()) {
@@ -358,8 +366,10 @@ folly::dynamic SaiObject<SaiSrv6SidListTraits>::adapterHostKeyToFollyDynamic() {
     json["segmentList"] = segments;
   }
   json["routerInterfaceId"] =
-      folly::to<std::string>(std::get<RouterInterfaceSaiId>(adapterHostKey_));
-  json["ip"] = std::get<folly::IPAddress>(adapterHostKey_).str();
+      folly::to<std::string>(std::get<2>(adapterHostKey_));
+  json["ip"] = std::get<3>(adapterHostKey_).str();
+  json["pathDiscriminator"] =
+      static_cast<std::int64_t>(std::get<4>(adapterHostKey_));
   return json;
 }
 
@@ -380,7 +390,13 @@ SaiObject<SaiSrv6SidListTraits>::follyDynamicToAdapterHostKey(
   auto rifId = RouterInterfaceSaiId(
       folly::to<sai_object_id_t>(json["routerInterfaceId"].asString()));
   auto ip = folly::IPAddress(json["ip"].asString());
-  return SaiSrv6SidListTraits::AdapterHostKey{type, segmentList, rifId, ip};
+  uint64_t pathDiscriminator = 0;
+  if (json.find("pathDiscriminator") != json.items().end()) {
+    pathDiscriminator =
+        static_cast<uint64_t>(json["pathDiscriminator"].asInt());
+  }
+  return SaiSrv6SidListTraits::AdapterHostKey{
+      type, segmentList, rifId, ip, pathDiscriminator};
 }
 #endif
 

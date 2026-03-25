@@ -32,16 +32,20 @@ class Srv6ManagerTest : public ManagerTestBase {
       const std::optional<std::vector<folly::IPAddressV6>>& segmentList =
           std::nullopt,
       RouterInterfaceSaiId rifId = RouterInterfaceSaiId{42},
-      folly::IPAddress ip = folly::IPAddress("10.0.0.1")) {
-    return SaiSrv6SidListTraits::AdapterHostKey{type, segmentList, rifId, ip};
+      folly::IPAddress ip = folly::IPAddress("10.0.0.1"),
+      uint64_t pathDiscriminator = 0) {
+    return SaiSrv6SidListTraits::AdapterHostKey{
+        type, segmentList, rifId, ip, pathDiscriminator};
   }
 };
 
 TEST_F(Srv6ManagerTest, addSrv6SidList) {
   auto key = makeAdapterHostKey();
   auto attrs = makeCreateAttributes();
-  auto handle =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+      std::get<2>(key), std::get<3>(key)};
+  auto handle = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key, attrs, std::move(nexthopKey));
   EXPECT_NE(handle, nullptr);
   EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
 }
@@ -53,8 +57,10 @@ TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
       folly::IPAddressV6("2001:db8::3")};
   auto key = makeAdapterHostKey(SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segments);
   auto attrs = makeCreateAttributes(SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segments);
-  auto handle =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+      std::get<2>(key), std::get<3>(key)};
+  auto handle = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key, attrs, std::move(nexthopKey));
   EXPECT_NE(handle, nullptr);
   EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
 
@@ -76,10 +82,12 @@ TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
 TEST_F(Srv6ManagerTest, reuseSrv6SidList) {
   auto key = makeAdapterHostKey();
   auto attrs = makeCreateAttributes();
-  auto handle1 =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
-  auto handle2 =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+      std::get<2>(key), std::get<3>(key)};
+  auto handle1 = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key, attrs, nexthopKey);
+  auto handle2 = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key, attrs, nexthopKey);
   // Same key should return the same handle
   EXPECT_EQ(handle1, handle2);
   EXPECT_EQ(
@@ -90,9 +98,11 @@ TEST_F(Srv6ManagerTest, reuseSrv6SidList) {
 TEST_F(Srv6ManagerTest, getSrv6SidListHandle) {
   auto key = makeAdapterHostKey();
   auto attrs = makeCreateAttributes();
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+      std::get<2>(key), std::get<3>(key)};
   // Must hold the shared_ptr to keep the RefMap entry alive
-  auto holder =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+  auto holder = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key, attrs, std::move(nexthopKey));
   auto* handle =
       saiManagerTable->srv6SidListManager().getSrv6SidListHandle(key);
   EXPECT_NE(handle, nullptr);
@@ -112,10 +122,14 @@ TEST_F(Srv6ManagerTest, addDifferentSidLists) {
   auto key2 = makeAdapterHostKey(SAI_SRV6_SIDLIST_TYPE_INSERT_RED);
   auto attrs2 = makeCreateAttributes(SAI_SRV6_SIDLIST_TYPE_INSERT_RED);
 
-  auto handle1 =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key1, attrs1);
-  auto handle2 =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key2, attrs2);
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey1{
+      std::get<2>(key1), std::get<3>(key1)};
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey2{
+      std::get<2>(key2), std::get<3>(key2)};
+  auto handle1 = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key1, attrs1, std::move(nexthopKey1));
+  auto handle2 = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key2, attrs2, std::move(nexthopKey2));
   EXPECT_NE(handle1, handle2);
   EXPECT_NE(handle1->managedSidList->getSidList(), nullptr);
   EXPECT_NE(handle2->managedSidList->getSidList(), nullptr);
@@ -127,10 +141,12 @@ TEST_F(Srv6ManagerTest, addDifferentSidLists) {
 TEST_F(Srv6ManagerTest, refCountRelease) {
   auto key = makeAdapterHostKey();
   auto attrs = makeCreateAttributes();
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+      std::get<2>(key), std::get<3>(key)};
   std::weak_ptr<SaiSrv6SidListHandle> weakHandle;
   {
-    auto handle =
-        saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+    auto handle = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+        key, attrs, nexthopKey);
     weakHandle = handle;
     EXPECT_EQ(handle.use_count(), 1);
   }
@@ -141,15 +157,17 @@ TEST_F(Srv6ManagerTest, refCountRelease) {
 TEST_F(Srv6ManagerTest, recreateAfterRelease) {
   auto key = makeAdapterHostKey();
   auto attrs = makeCreateAttributes();
+  SaiIpNextHopTraits::AdapterHostKey nexthopKey{
+      std::get<2>(key), std::get<3>(key)};
   sai_object_id_t firstAdapterKey;
   {
-    auto handle =
-        saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+    auto handle = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+        key, attrs, nexthopKey);
     firstAdapterKey = handle->managedSidList->getSidList()->adapterKey();
   }
   // Entry released; creating again should produce a fresh object
-  auto handle =
-      saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(key, attrs);
+  auto handle = saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+      key, attrs, nexthopKey);
   EXPECT_NE(handle, nullptr);
   EXPECT_NE(handle->managedSidList->getSidList(), nullptr);
   // New SAI object gets a different adapter key

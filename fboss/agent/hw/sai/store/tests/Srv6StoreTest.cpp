@@ -25,7 +25,8 @@ class Srv6StoreTest : public SaiStoreTest {
         SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
         std::nullopt,
         RouterInterfaceSaiId{kRifId},
-        kNextHopIp};
+        kNextHopIp,
+        0};
   }
 
   static constexpr sai_object_id_t kRifId{42};

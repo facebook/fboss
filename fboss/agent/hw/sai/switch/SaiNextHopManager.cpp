@@ -77,8 +77,14 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
     CHECK(sidListId.has_value())
         << "sidListId must be provided for next hop with non-empty srv6SegmentList";
     auto sidListSaiId = sidListId.value();
+    // For tunnel-based SRv6, use canonical (0, 0.0.0.0) so AdapterHostKey
+    // matches checkpoint/warmboot state; real RIF/IP stored separately for
+    // CreateAttributes and NeighborEntry.
     return SaiSrv6SidlistNextHopTraits::AdapterHostKey{
-        rifId, ip, tunnelSaiId, sidListSaiId};
+        RouterInterfaceSaiId(0),
+        folly::IPAddress("0.0.0.0"),
+        tunnelSaiId,
+        sidListSaiId};
   }
 #endif
 
@@ -123,12 +129,21 @@ std::shared_ptr<SaiSrv6SidList> SaiNextHopManager::createSrv6SidList(
   }
   auto rifId = routerInterfaceHandle->adapterKey();
   folly::IPAddress ip = swNextHop.addr();
+  using Attr = SaiSrv6SidListTraits::Attributes;
+  const std::vector<folly::IPAddressV6> segments = swNextHop.srv6SegmentList();
+  Attr::Type sidListType{SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED};
+  Attr::SegmentList segListForKey{segments};
+  Attr::SegmentList segListForCreate{segments};
   SaiSrv6SidListTraits::CreateAttributes sidListCreateAttrs{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-      swNextHop.srv6SegmentList(),
+      sidListType,
+      std::optional<Attr::SegmentList>{std::move(segListForCreate)},
       std::nullopt};
   SaiSrv6SidListTraits::AdapterHostKey sidListKey{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, swNextHop.srv6SegmentList(), rifId, ip};
+      sidListType,
+      std::optional<Attr::SegmentList>{std::move(segListForKey)},
+      rifId,
+      ip,
+      0};
   auto& store = saiStore_->get<SaiSrv6SidListTraits>();
   return store.setObject(sidListKey, sidListCreateAttrs);
 }
@@ -207,24 +222,37 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     auto underlayNextHop =
         addManagedSaiNextHop(getSrv6UnderlayNextHop(swNextHop));
     CHECK(std::get<std::shared_ptr<ManagedIpNextHop>>(underlayNextHop));
+    auto interfaceId = swNextHop.intfID().value();
+    auto routerInterfaceHandle =
+        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+            interfaceId);
+    if (!routerInterfaceHandle) {
+      throw FbossError("Missing SAI router interface for ", interfaceId);
+    }
+    auto rifId = routerInterfaceHandle->adapterKey();
     auto [entry, emplaced] = managedSrv6NextHops_.refOrEmplace(
         *srv6NextHopKey,
         this,
-        SaiNeighborTraits::NeighborEntry{
-            switchId, std::get<0>(*srv6NextHopKey).value(), ip},
+        SaiNeighborTraits::NeighborEntry{switchId, rifId, ip},
         *srv6NextHopKey,
         swNextHop.disableTTLDecrement());
 
     entry->setDisableTTLDecrement(swNextHop.disableTTLDecrement());
-    CHECK(emplaced) << "SRv6 managed next hop must always be emplaced";
-    CHECK(srv6SidListHandle)
-        << "SRv6 managed next hop must have a SID list handle";
-    entry->setUnderlayNextHop(std::move(underlayNextHop));
 
-    SaiObjectEventPublisher::getInstance()->get<SaiNeighborTraits>().subscribe(
-        entry);
+    /* Same AdapterHostKey can be shared by multiple routes; refOrEmplace only
+     * emplaces the first time (like IP/MPLS managed nexthops). */
+    if (emplaced) {
+      CHECK(srv6SidListHandle)
+          << "SRv6 managed next hop must have a SID list handle";
+      entry->setUnderlayNextHop(std::move(underlayNextHop));
+      entry->setCreateRifAndIp(rifId, ip);
 
-    entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
+      SaiObjectEventPublisher::getInstance()
+          ->get<SaiNeighborTraits>()
+          .subscribe(entry);
+
+      entry->setSrv6SidListHandle(std::move(srv6SidListHandle));
+    }
 
     return entry;
   }
@@ -311,11 +339,17 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects added) {
     auto underlayIpNhop =
         std::get<std::shared_ptr<ManagedIpNextHop>>(*underlayNextHop_);
     underlayIpNhop->createObject(added);
+    using RifAttr = typename NextHopTraits::Attributes::RouterInterfaceId;
+    using IpAttr = typename NextHopTraits::Attributes::Ip;
+    auto rifAttr = createRifId_.has_value() ? RifAttr{createRifId_.value()}
+                                            : std::get<RifAttr>(key_);
+    auto ipAttr = createIp_.has_value() ? IpAttr{createIp_.value()}
+                                        : std::get<IpAttr>(key_);
     object = manager_->createSaiObject<NextHopTraits>(
         key_,
         {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST,
-         std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(key_),
-         std::get<typename NextHopTraits::Attributes::Ip>(key_),
+         rifAttr,
+         ipAttr,
          std::get<typename NextHopTraits::Attributes::TunnelId>(key_),
          std::get<typename NextHopTraits::Attributes::Srv6SidlistId>(key_),
          std::nullopt});

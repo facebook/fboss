@@ -40,11 +40,15 @@ struct SaiSrv6SidListTraits {
       Attributes::Type,
       std::optional<Attributes::SegmentList>,
       std::optional<Attributes::NextHopId>>;
+  // pathDiscriminator disambiguates multiple SAI SID-list OIDs that share the
+  // same (type, segment list, underlay RIF, underlay IP), e.g. ECMP members
+  // across different next-hop groups. Single-nexthop routes use 0.
   using AdapterHostKey = std::tuple<
       Attributes::Type,
       std::optional<Attributes::SegmentList>,
       RouterInterfaceSaiId,
-      folly::IPAddress>;
+      folly::IPAddress,
+      uint64_t /*pathDiscriminator*/>;
 };
 
 SAI_ATTRIBUTE_NAME(Srv6SidList, Type);
