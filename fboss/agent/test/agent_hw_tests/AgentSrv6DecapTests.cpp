@@ -290,6 +290,14 @@ class AgentSrv6DecapTest : public AgentHwTest {
     EXPECT_EQ(*rxUdp, *expectedUdp);
   }
 
+  void verifyDecapCpuAndFrontPanel(PortID egressPort) {
+    auto injectPort = findInjectPort(egressPort);
+    for (bool isV4 : {false, true}) {
+      verifyDecapPacket(egressPort, isV4);
+      verifyDecapPacket(egressPort, isV4, injectPort);
+    }
+  }
+
   PortID findInjectPort(PortID egressPort) {
     for (const auto& portMap :
          std::as_const(*this->getProgrammedState()->getPorts())) {
@@ -311,10 +319,7 @@ TYPED_TEST(AgentSrv6DecapTest, sendPacketForDecap) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    // Verify decap with inner v6 packet
-    this->verifyDecapPacket(egressPort, false /* isV4 */);
-    // Verify decap with inner v4 packet
-    this->verifyDecapPacket(egressPort, true /* isV4 */);
+    this->verifyDecapCpuAndFrontPanel(egressPort);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
