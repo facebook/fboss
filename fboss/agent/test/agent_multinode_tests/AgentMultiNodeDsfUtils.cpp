@@ -693,12 +693,61 @@ bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   return true;
 }
 
+bool verifyHyperPortMemberCableLengthForSwitch(const std::string& switchName) {
+  auto verifyCableLengthHelper = [switchName]() {
+    XLOG(DBG2) << "Verifying Hyper Port Member Cable Length: " << switchName;
+    auto aggregatePorts = getAggregatePortTable(switchName);
+    auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+
+    for (const auto& aggPort : aggregatePorts) {
+      for (const auto& member : aggPort.memberPorts().value()) {
+        auto it = portIdToPortInfo.find(member.memberPortID().value());
+        if (it == portIdToPortInfo.end()) {
+          XLOG(DBG2) << "Member port " << member.memberPortID().value()
+                     << " of hyper port " << aggPort.name().value()
+                     << " not found in port info on " << switchName;
+          return false;
+        }
+
+        if (it->second.cableLengthMeters().has_value() &&
+            it->second.cableLengthMeters().value() >= 0) {
+          continue;
+        }
+
+        XLOG(DBG2) << "From " << switchName
+                   << " hyper port member: " << it->second.name().value()
+                   << " of hyper port " << aggPort.name().value()
+                   << " has invalid cable length: "
+                   << it->second.cableLengthMeters().value_or(-1);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Cable length is collected during periodic stats collection, not immediately
+  // when port comes up. Thus, retry to allow stats collection to complete.
+  return checkWithRetryErrorReturn(
+      verifyCableLengthHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(2000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool verifyHyperPortMemberCableLength(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Hyper Port Member Cable Length";
+  for (const auto& edsw : topologyInfo->getEdsws()) {
+    if (!verifyHyperPortMemberCableLengthForSwitch(edsw)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool verifyPortsForEdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying Ports for EDSWs";
-  // for (const auto& edsw : topologyInfo->getEdsws()) {
-  //  TODO(daiweix): verify cable length of eth ports
-  //}
-
   if (FLAGS_hyper_port) {
     if (!verifyHyperPortMembersUp(topologyInfo)) {
       return false;
@@ -707,6 +756,9 @@ bool verifyPortsForEdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
       return false;
     }
     if (!verifyHyperPortUp(topologyInfo)) {
+      return false;
+    }
+    if (!verifyHyperPortMemberCableLength(topologyInfo)) {
       return false;
     }
   }
