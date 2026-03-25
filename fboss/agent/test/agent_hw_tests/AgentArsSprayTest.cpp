@@ -223,6 +223,61 @@ TEST_F(AgentArsSprayTest, VerifySprayModeScale) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Verify that creating ECMP groups beyond the DLB limit fails when backup mode
+// is also DLB (PER_PACKET_QUALITY). Unlike VerifySprayModeScale which uses
+// FIXED_ASSIGNMENT as backup, this test uses PER_PACKET_QUALITY for both
+// primary and backup, so there's no fallback to non-DLB IDs.
+TEST_F(AgentArsSprayTest, VerifyEcmpIdAllocationForDynamicEcmp) {
+  // Use the actual ResourceAccountant enforced limit to fill all DLB slots.
+  // This matches VerifySprayModeScale's calculation.
+  auto numEcmp = static_cast<int>(std::floor(
+      getMaxArsGroups() * static_cast<double>(FLAGS_ars_resource_percentage) /
+      100.0));
+
+  auto setup = [this, numEcmp]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    // Use PER_PACKET_QUALITY for both primary and backup - no fallback to
+    // non-DLB
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kMinFlowletTableSize,
+        kScalingFactor1(),
+        kLoadWeight1,
+        kQueueWeight1,
+        cfg::SwitchingMode::PER_PACKET_QUALITY);
+    updatePortFlowletConfigName(cfg);
+    applyNewConfig(cfg);
+    setupEcmpGroups(numEcmp);
+  };
+
+  auto verify = [this, numEcmp]() {
+    auto cfg = initialConfig(*getAgentEnsemble());
+    updateFlowletConfigs(
+        cfg,
+        cfg::SwitchingMode::PER_PACKET_QUALITY,
+        kMinFlowletTableSize,
+        kScalingFactor1(),
+        kLoadWeight1,
+        kQueueWeight1,
+        cfg::SwitchingMode::PER_PACKET_QUALITY);
+    updatePortFlowletConfigName(cfg);
+    verifyEcmpGroups(cfg, numEcmp);
+
+    // Attempt to create one more ECMP group beyond the DLB limit.
+    // Since backup mode is also DLB, there's no fallback to non-DLB IDs,
+    // so the ResourceAccountant should reject the state update.
+    generatePrefixes();
+    auto wrapper = getSw()->getRouteUpdater();
+    EXPECT_THROW(
+        helper_->programRoutes(
+            &wrapper, {nhopSets[numEcmp]}, {prefixes[numEcmp]}),
+        FbossError);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 const int kNumNonDlbEcmpGroups = 32;
 
 // Test class for non-DLB ECMP tests using PER_PACKET_RANDOM mode.
