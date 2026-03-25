@@ -72,8 +72,12 @@ class MacLearningTest : public LinkTest {
     // if L2 entry is in pending state, these packets would be dropped
     auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
     auto switchId = scope(ecmpPorts);
-    programDefaultRoute(ecmpPorts, sw()->getLocalMac(switchId));
-    utility::disableTTLDecrements(sw(), ecmpPorts);
+    programDefaultRoute(
+        ecmpPorts, sw()->getLocalMac(switchId), true /* disableTTLDecrement */);
+    if (sw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+            HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+      utility::disableTTLDecrementOnPorts(sw(), ecmpPorts);
+    }
     // wait long enough for all L2 entries learned/validated, port stats updated
     // sleep override
     sleep(5);
