@@ -10,11 +10,19 @@
 
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/format.h>
 #include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <ostream>
+#include <string>
+#include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
 
@@ -25,20 +33,18 @@ CmdConfigVlanStaticMacDelete::queryClient(
     const ObjectArgType& macAddressArg) {
   auto& config = ConfigSession::getInstance().getAgentConfig();
   auto& swConfig = *config.sw();
-  int32_t vlanId = vlanIdArg.getVlanId();
-
-  // Check if VLAN exists in configuration
-  auto vitr = std::find_if(
-      swConfig.vlans()->cbegin(),
-      swConfig.vlans()->cend(),
-      [vlanId](const auto& vlan) { return *vlan.id() == vlanId; });
-
-  if (vitr == swConfig.vlans()->cend()) {
-    throw std::invalid_argument(
-        fmt::format("VLAN {} does not exist in configuration", vlanId));
-  }
+  VlanID vlanId(vlanIdArg.getVlanId());
 
   const std::string& macAddress = macAddressArg.getMacAddress();
+
+  // Check if VLAN exists — if not, the MAC entry can't exist either
+  // (idempotent)
+  if (!VlanManager::findVlan(swConfig, vlanId)) {
+    return fmt::format(
+        "Static MAC entry for MAC {} on VLAN {} does not exist",
+        macAddress,
+        static_cast<uint16_t>(vlanId));
+  }
 
   // Check if staticMacAddrs exists and find the entry to delete
   // If no entries exist or entry not found, return success (idempotent)
@@ -47,7 +53,7 @@ CmdConfigVlanStaticMacDelete::queryClient(
     return fmt::format(
         "Static MAC entry for MAC {} on VLAN {} does not exist (no entries configured)",
         macAddress,
-        vlanId);
+        static_cast<uint16_t>(vlanId));
   }
 
   auto& staticMacs = *swConfig.staticMacAddrs();
@@ -55,14 +61,15 @@ CmdConfigVlanStaticMacDelete::queryClient(
       staticMacs.begin(),
       staticMacs.end(),
       [vlanId, &macAddress](const auto& entry) {
-        return *entry.vlanID() == vlanId && *entry.macAddress() == macAddress;
+        return *entry.vlanID() == static_cast<int32_t>(vlanId) &&
+            *entry.macAddress() == macAddress;
       });
 
   if (it == staticMacs.end()) {
     return fmt::format(
         "Static MAC entry for MAC {} on VLAN {} does not exist",
         macAddress,
-        vlanId);
+        static_cast<uint16_t>(vlanId));
   }
 
   // Remove the entry
@@ -74,7 +81,7 @@ CmdConfigVlanStaticMacDelete::queryClient(
   return fmt::format(
       "Successfully deleted static MAC entry: MAC {} from VLAN {}",
       macAddress,
-      vlanId);
+      static_cast<uint16_t>(vlanId));
 }
 
 void CmdConfigVlanStaticMacDelete::printOutput(const RetType& logMsg) {

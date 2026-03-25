@@ -260,8 +260,19 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
 
 std::map<std::string, Fboss2IntegrationTest::Interface>
 Fboss2IntegrationTest::getAllInterfaces() const {
-  auto json = runCliJson({"show", "interface"});
+  auto result = runCli({"show", "interface"});
+  XLOG(DBG2) << "getAllInterfaces: exitCode=" << result.exitCode
+             << " stdout.size=" << result.stdout.size()
+             << " stderr=" << result.stderr;
+
+  if (result.exitCode != 0 || result.stdout.empty()) {
+    return {};
+  }
+
+  auto json = folly::parseJson(result.stdout);
   std::map<std::string, Fboss2IntegrationTest::Interface> interfaces;
+  int totalIntfs = 0;
+  int withVlan = 0;
 
   // JSON has a host key containing the interfaces
   for (const auto& [host, hostData] : json.items()) {
@@ -269,10 +280,17 @@ Fboss2IntegrationTest::getAllInterfaces() const {
       continue;
     }
     for (const auto& intfData : hostData["interfaces"]) {
+      ++totalIntfs;
       auto intf = parseInterfaceJson(intfData);
+      if (intf.vlan.has_value() && *intf.vlan > 1) {
+        ++withVlan;
+      }
       interfaces[intf.name] = intf;
     }
   }
+
+  XLOG(DBG2) << "getAllInterfaces: total=" << totalIntfs
+             << " withVlan>1=" << withVlan;
 
   return interfaces;
 }
@@ -303,37 +321,48 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::getInterfaceInfo(
 
 Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
     const {
-  auto interfaces = getAllInterfaces();
+  // Retry with backoff to handle the window where the agent is processing a
+  // config reload after a preceding commit. Agent reloads can take up to ~30s.
+  constexpr int kMaxRetries = 60;
+  constexpr auto kRetryDelay = std::chrono::milliseconds(1000);
 
-  std::vector<Interface> upCandidates;
-  std::vector<Interface> allCandidates;
-  for (const auto& [name, intf] : interfaces) {
-    if (name.rfind("eth", 0) != 0 || !intf.vlan.has_value() ||
-        *intf.vlan <= 1) {
-      continue;
+  for (int attempt = 0; attempt < kMaxRetries; ++attempt) {
+    auto interfaces = getAllInterfaces();
+    std::vector<Interface> upCandidates;
+    std::vector<Interface> allCandidates;
+    for (const auto& [name, intf] : interfaces) {
+      if (name.rfind("eth", 0) != 0 || !intf.vlan.has_value() ||
+          *intf.vlan <= 1) {
+        continue;
+      }
+      allCandidates.push_back(intf);
+      std::string status = intf.status;
+      std::transform(status.begin(), status.end(), status.begin(), ::tolower);
+      if (status == "up") {
+        upCandidates.push_back(intf);
+      }
     }
-    allCandidates.push_back(intf);
-    std::string status = intf.status;
-    std::transform(status.begin(), status.end(), status.begin(), ::tolower);
-    if (status == "up") {
-      upCandidates.push_back(intf);
+    const auto& pool = !upCandidates.empty() ? upCandidates : allCandidates;
+    if (!pool.empty()) {
+      thread_local std::mt19937 rng{std::random_device{}()};
+      std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
+      const auto& chosen = pool[dist(rng)];
+      XLOG(INFO) << "Selected test interface " << chosen.name
+                 << " (status=" << chosen.status
+                 << ", pool=" << (!upCandidates.empty() ? "up" : "all")
+                 << ", size=" << pool.size() << ")";
+      return chosen;
+    }
+    if (attempt + 1 < kMaxRetries) {
+      XLOG(WARN) << "findFirstEthInterface: no suitable interface found "
+                    "(attempt "
+                 << (attempt + 1) << "/" << kMaxRetries
+                 << "), retrying in 1s...";
+      std::this_thread::sleep_for(kRetryDelay);
     }
   }
-
-  const auto& pool = !upCandidates.empty() ? upCandidates : allCandidates;
-  if (pool.empty()) {
-    throw std::runtime_error(
-        "No suitable ethernet interface found with VLAN > 1");
-  }
-
-  thread_local std::mt19937 rng{std::random_device{}()};
-  std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);
-  const auto& chosen = pool[dist(rng)];
-  XLOG(INFO) << "Selected test interface " << chosen.name
-             << " (status=" << chosen.status
-             << ", pool=" << (!upCandidates.empty() ? "up" : "all")
-             << ", size=" << pool.size() << ")";
-  return chosen;
+  throw std::runtime_error(
+      "No suitable ethernet interface found with VLAN > 1");
 }
 
 void Fboss2IntegrationTest::commitConfig() const {

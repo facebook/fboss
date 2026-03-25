@@ -10,11 +10,22 @@
 
 #include "fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h"
 
+#include "fboss/agent/types.h"
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/format.h>
-#include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+#include "fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h"
+#include "fboss/cli/fboss2/commands/config/vlan/VlanManager.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
 namespace facebook::fboss {
@@ -28,17 +39,13 @@ CmdConfigVlanPortTaggingMode::queryClient(
   auto& session = ConfigSession::getInstance();
   auto& config = session.getAgentConfig();
   auto& swConfig = *config.sw();
-  int32_t vlanId = vlanIdArg.getVlanId();
+  VlanID vlanId(vlanIdArg.getVlanId());
 
-  // Check if VLAN exists in configuration
-  auto vitr = std::find_if(
-      swConfig.vlans()->cbegin(),
-      swConfig.vlans()->cend(),
-      [vlanId](const auto& vlan) { return *vlan.id() == vlanId; });
-
-  if (vitr == swConfig.vlans()->cend()) {
-    throw std::invalid_argument(
-        fmt::format("VLAN {} does not exist in configuration", vlanId));
+  // Ensure VLAN exists, creating it if needed
+  auto [created, vlan] = VlanManager::createVlan(swConfig, vlanId);
+  if (created) {
+    std::cout << fmt::format("Created VLAN {}", static_cast<uint16_t>(vlanId))
+              << std::endl;
   }
 
   const auto& ports = portList.data();
@@ -67,7 +74,7 @@ CmdConfigVlanPortTaggingMode::queryClient(
   for (const auto& [portName, portLogicalId] : portNamesAndIds) {
     bool found = false;
     for (auto& vlanPort : *swConfig.vlanPorts()) {
-      if (*vlanPort.vlanID() == vlanId &&
+      if (*vlanPort.vlanID() == static_cast<int32_t>(vlanId) &&
           *vlanPort.logicalPort() == portLogicalId) {
         vlanPort.emitTags() = emitTags;
         vlanPort.emitPriorityTags() = emitPriorityTags;
@@ -83,7 +90,7 @@ CmdConfigVlanPortTaggingMode::queryClient(
               "Port '{}' (ID {}) is not a member of VLAN {}",
               portName,
               portLogicalId,
-              vlanId));
+              static_cast<uint16_t>(vlanId)));
     }
   }
 
@@ -105,13 +112,13 @@ CmdConfigVlanPortTaggingMode::queryClient(
         "Successfully set port {} tagging mode to {} on VLAN {}",
         updatedPorts[0],
         modeStr,
-        vlanId);
+        static_cast<uint16_t>(vlanId));
   } else {
     return fmt::format(
         "Successfully set {} ports tagging mode to {} on VLAN {}",
         updatedPorts.size(),
         modeStr,
-        vlanId);
+        static_cast<uint16_t>(vlanId));
   }
 }
 
