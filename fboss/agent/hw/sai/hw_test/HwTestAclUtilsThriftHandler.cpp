@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
+#include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
@@ -219,6 +220,97 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
 #endif
   }
   return true;
+}
+
+void HwTestThriftHandler::getDefaultAclTableStatCountInfo(
+    AclStatCountInfo& info) {
+  std::set<unsigned long> aclCounterIds;
+  const auto& aclTableManager = static_cast<const SaiSwitch*>(hwSwitch_)
+                                    ->managerTable()
+                                    ->aclTableManager();
+  auto tableName = getActualAclTableName(std::nullopt);
+  auto aclTableHandle = aclTableManager.getAclTableHandle(tableName);
+  if (!aclTableHandle) {
+    throw FbossError("ACL table ", tableName, " not found");
+  }
+  auto aclTableId = aclTableHandle->aclTable->adapterKey();
+
+  auto aclTableEntryListGot = SaiApiTable::getInstance()->aclApi().getAttribute(
+      aclTableId, SaiAclTableTraits::Attributes::EntryList());
+
+  info.aclEntryCount() = aclTableEntryListGot.size();
+
+  int aclStatCountGot = 0;
+  int counterCountGot = 0;
+  for (const auto& aclEntryId : aclTableEntryListGot) {
+    auto aclCounterIdGot =
+        SaiApiTable::getInstance()
+            ->aclApi()
+            .getAttribute(
+                AclEntrySaiId(aclEntryId),
+                SaiAclEntryTraits::Attributes::ActionCounter())
+            .getData();
+
+    if ((aclCounterIdGot == SAI_NULL_OBJECT_ID) ||
+        (aclCounterIds.find(aclCounterIdGot) != aclCounterIds.end())) {
+      continue;
+    }
+
+    aclStatCountGot++;
+    aclCounterIds.insert(aclCounterIdGot);
+
+    auto enablePacketCount = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::EnablePacketCount());
+
+    if (enablePacketCount) {
+      counterCountGot++;
+    }
+
+    auto enableByteCount = SaiApiTable::getInstance()->aclApi().getAttribute(
+        AclCounterSaiId(aclCounterIdGot),
+        SaiAclCounterTraits::Attributes::EnableByteCount());
+
+    if (enableByteCount) {
+      counterCountGot++;
+    }
+  }
+
+  info.aclStatCount() = aclStatCountGot;
+  info.counterCount() = counterCountGot;
+}
+
+bool HwTestThriftHandler::isAclStatDeleted(
+    std::unique_ptr<std::string> statName) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
+  if (!hwSwitch_->getPlatform()->getAsic()->isSupported(
+          HwAsic::Feature::ACL_COUNTER_LABEL)) {
+    // Cannot verify without counter label support
+    return true;
+  }
+  // Check all ACL counter objects in the SAI store directly,
+  // rather than iterating through ACL entries. This correctly
+  // detects deleted counters even when all ACL entries are removed.
+  auto saiSwitch = static_cast<const SaiSwitch*>(hwSwitch_);
+  const auto& aclCounterStore =
+      saiSwitch->getSaiStore()->get<SaiAclCounterTraits>();
+  for (const auto& [key, counterWeakPtr] : aclCounterStore.objects()) {
+    auto counter = counterWeakPtr.lock();
+    if (!counter) {
+      continue;
+    }
+    auto label = GET_OPT_ATTR(AclCounter, Label, counter->attributes());
+    std::string labelStr(label.data());
+    if (*statName == labelStr) {
+      return false;
+    }
+  }
+  return true;
+#else
+  // On earlier SAI versions, we cannot verify since there is no ACL counter
+  // label. Return true to not block tests.
+  return true;
+#endif
 }
 
 bool HwTestThriftHandler::isAclEntrySame(

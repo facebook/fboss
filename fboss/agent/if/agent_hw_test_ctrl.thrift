@@ -47,6 +47,12 @@ struct AggPortInfo {
   3: i32 numActiveMembers;
 }
 
+struct AclStatCountInfo {
+  1: i32 aclEntryCount;
+  2: i32 aclStatCount;
+  3: i32 counterCount;
+}
+
 service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
@@ -76,6 +82,10 @@ service AgentHwTestCtrl {
     3: list<switch_config.CounterType> types,
     4: string tableName,
   );
+
+  AclStatCountInfo getDefaultAclTableStatCountInfo();
+
+  bool isAclStatDeleted(1: string statName);
 
   bool isMirrorProgrammed(1: switch_state.MirrorFields mirror);
 

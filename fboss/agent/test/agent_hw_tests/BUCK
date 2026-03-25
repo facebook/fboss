@@ -274,6 +274,7 @@ cpp_library(
         "//fboss/agent/hw/test:hw_copp_utils",
         "//fboss/agent/hw/test:hw_packet_utils",
         "//fboss/agent/hw/test:prod_config_factory",
+        "//fboss/agent/if:agent_hw_test_ctrl-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:highfreq-cpp2-types",
         "//fboss/agent/if:hw_ctrl-cpp2-clients",
