@@ -426,6 +426,7 @@ set(core_libs
   build_info_wrapper
   ecmp_resource_manager
   thrift_method_rate_limit
+  thrift_service_utils
   shel_manager
   state_delta_logger
   dsfnode_utils

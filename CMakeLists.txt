@@ -1194,6 +1194,7 @@ add_dependencies(fboss_fake_agent_test_targets
   multi_switch_agent_hw_test
   sai_agent_scale_test-fake
   sai_invariant_agent_test-fake
+  switch_test
 )
 
 if(BUILD_SAI_FAKE_BENCHMARKS)

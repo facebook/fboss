@@ -1,12 +1,11 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 
 #include <folly/IPAddressV6.h>
 
