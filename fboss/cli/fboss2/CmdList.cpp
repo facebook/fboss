@@ -45,6 +45,10 @@
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
@@ -167,6 +171,28 @@ const CommandTree& kCommandTree() {
        "Show Flowlet information",
        commandHandler<CmdShowFlowlet>,
        argTypeHandler<CmdShowFlowletTraits>},
+
+      {"show",
+       "fsdb",
+       "Show operational information from fsdb",
+       {
+           {"stats",
+            "Show fsdb operational stats",
+            commandHandler<CmdShowFsdbOperStats>,
+            argTypeHandler<CmdShowFsdbDataCommonTraits>},
+           {"state",
+            "Show fsdb operational state",
+            commandHandler<CmdShowFsdbOperState>,
+            argTypeHandler<CmdShowFsdbDataCommonTraits>},
+           {"subscribers",
+            "Show fsdb subscribers",
+            commandHandler<CmdShowFsdbSubscribers>,
+            argTypeHandler<CmdShowFsdbSubscriberTraits>},
+           {"publishers",
+            "Show fsdb publishers",
+            commandHandler<CmdShowFsdbPublishers>,
+            argTypeHandler<CmdShowFsdbPublisherTraits>},
+       }},
 
       {"show",
        "example",
