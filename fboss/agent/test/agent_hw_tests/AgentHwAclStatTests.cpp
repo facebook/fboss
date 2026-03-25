@@ -242,11 +242,17 @@ TEST_F(AgentHwAclStatTest, AclStatMultipleActions) {
     auto& ensemble = *getAgentEnsemble();
     auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
     auto client = ensemble.getHwAgentTestClient(switchId);
+    auto counterTypes =
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics());
+
+    utility::AclStatCountInfo statCountInfo;
+    client->sync_getDefaultAclTableStatCountInfo(statCountInfo);
+    EXPECT_EQ(*statCountInfo.aclEntryCount(), 1);
+    EXPECT_EQ(*statCountInfo.aclStatCount(), 1);
+    EXPECT_EQ(*statCountInfo.counterCount(), (int)counterTypes.size());
 
     EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
-        {"acl0"},
-        {"stat0"},
-        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+        {"acl0"}, {"stat0"}, counterTypes));
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
@@ -269,11 +275,17 @@ TEST_F(AgentHwAclStatTest, AclStatDelete) {
     auto& ensemble = *getAgentEnsemble();
     auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
     auto client = ensemble.getHwAgentTestClient(switchId);
+    auto counterTypes =
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics());
+
+    utility::AclStatCountInfo statCountInfo;
+    client->sync_getDefaultAclTableStatCountInfo(statCountInfo);
+    EXPECT_EQ(*statCountInfo.aclEntryCount(), 1);
+    EXPECT_EQ(*statCountInfo.aclStatCount(), 1);
+    EXPECT_EQ(*statCountInfo.counterCount(), (int)counterTypes.size());
 
     EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
-        {"acl0"},
-        {"stat0"},
-        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+        {"acl0"}, {"stat0"}, counterTypes));
   };
 
   auto setupPostWB = [=, this]() {
@@ -286,11 +298,17 @@ TEST_F(AgentHwAclStatTest, AclStatDelete) {
     auto& ensemble = *getAgentEnsemble();
     auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
     auto client = ensemble.getHwAgentTestClient(switchId);
+    auto counterTypes =
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics());
+
+    utility::AclStatCountInfo statCountInfo;
+    client->sync_getDefaultAclTableStatCountInfo(statCountInfo);
+    EXPECT_EQ(*statCountInfo.aclEntryCount(), 0);
+    EXPECT_EQ(*statCountInfo.aclStatCount(), 0);
+    EXPECT_EQ(*statCountInfo.counterCount(), 0);
 
     EXPECT_FALSE(client->sync_isStatProgrammedInDefaultAclTable(
-        {"acl0"},
-        {"stat0"},
-        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+        {"acl0"}, {"stat0"}, counterTypes));
   };
 
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
@@ -321,11 +339,17 @@ TEST_F(AgentHwAclStatTest, AclStatCreatePostWarmBoot) {
     auto& ensemble = *getAgentEnsemble();
     auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
     auto client = ensemble.getHwAgentTestClient(switchId);
+    auto counterTypes =
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics());
+
+    utility::AclStatCountInfo statCountInfo;
+    client->sync_getDefaultAclTableStatCountInfo(statCountInfo);
+    EXPECT_EQ(*statCountInfo.aclEntryCount(), 1);
+    EXPECT_EQ(*statCountInfo.aclStatCount(), 1);
+    EXPECT_EQ(*statCountInfo.counterCount(), (int)counterTypes.size());
 
     EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
-        {"acl0"},
-        {"stat0"},
-        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics())));
+        {"acl0"}, {"stat0"}, counterTypes));
   };
 
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
