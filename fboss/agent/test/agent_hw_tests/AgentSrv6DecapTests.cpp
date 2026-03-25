@@ -114,6 +114,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
     // Add a mySid entry for decapsulation
+    // G200 required use of local uSid range 0xe000 - 0xffff
+    // for uA, uA part of uNuA, uDT*, B6_ENCAPS_RED
     addMySidEntry("3001:db8:e001::", 48);
   }
 
@@ -245,8 +247,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
           static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
       auto rxV4 = frame.v4PayLoad();
       ASSERT_TRUE(rxV4.has_value());
-      EXPECT_EQ(rxV4->header().srcAddr, folly::IPAddressV4("10.0.0.1"));
-      EXPECT_EQ(rxV4->header().dstAddr, kV4RouteDstIp);
+      auto v4Hdr = rxV4->header();
+      EXPECT_EQ(v4Hdr.srcAddr, folly::IPAddressV4("10.0.0.1"));
+      EXPECT_EQ(v4Hdr.dstAddr, kV4RouteDstIp);
       auto rxUdp = rxV4->udpPayload();
       ASSERT_TRUE(rxUdp.has_value());
       EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
@@ -257,8 +260,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
           static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
       auto rxV6 = frame.v6PayLoad();
       ASSERT_TRUE(rxV6.has_value());
-      EXPECT_EQ(rxV6->header().srcAddr, folly::IPAddressV6("1::10"));
-      EXPECT_EQ(rxV6->header().dstAddr, kV6RouteDstIp);
+      auto v6Hdr = rxV6->header();
+      EXPECT_EQ(v6Hdr.srcAddr, folly::IPAddressV6("1::10"));
+      EXPECT_EQ(v6Hdr.dstAddr, kV6RouteDstIp);
       auto rxUdp = rxV6->udpPayload();
       ASSERT_TRUE(rxUdp.has_value());
       EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
