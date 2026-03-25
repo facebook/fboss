@@ -585,7 +585,8 @@ TEST(PktFactoryTest, makeIpInIpTxPacket) {
       /*dstPort=*/6001,
       /*outerTrafficClass=*/0x20,
       /*innerTrafficClass=*/0x10,
-      /*hopLimit=*/64);
+      /*outerHopLimit=*/64,
+      /*innerHopLimit=*/128);
   ASSERT_NE(pkt, nullptr);
   auto frame = makeEthFrame(*pkt, /*skipTtlDecrement=*/true);
   auto outerV6 = frame.v6PayLoad();
@@ -603,6 +604,7 @@ TEST(PktFactoryTest, makeIpInIpTxPacket) {
   EXPECT_EQ(innerV6->header().srcAddr, innerSrcIp);
   EXPECT_EQ(innerV6->header().dstAddr, innerDstIp);
   EXPECT_EQ(innerV6->header().trafficClass, 0x10);
+  EXPECT_EQ(innerV6->header().hopLimit, 128);
   auto udp = innerV6->udpPayload();
   ASSERT_TRUE(udp.has_value());
   EXPECT_EQ(udp->header().srcPort, 6000);
@@ -627,7 +629,8 @@ TEST(PktFactoryTest, makeIpInIpTxPacketWithInnerV4) {
       /*dstPort=*/7001,
       /*outerTrafficClass=*/0x20,
       /*innerDscp=*/0x10,
-      /*hopLimit=*/64);
+      /*outerHopLimit=*/64,
+      /*innerHopLimit=*/128);
   ASSERT_NE(pkt, nullptr);
   auto frame = makeEthFrame(*pkt, /*skipTtlDecrement=*/true);
   auto outerV6 = frame.v6PayLoad();
@@ -645,6 +648,7 @@ TEST(PktFactoryTest, makeIpInIpTxPacketWithInnerV4) {
   EXPECT_EQ(innerV4->header().srcAddr, innerSrcIp);
   EXPECT_EQ(innerV4->header().dstAddr, innerDstIp);
   EXPECT_EQ(innerV4->header().dscp, 0x10);
+  EXPECT_EQ(innerV4->header().ttl, 128);
   auto udp = innerV4->udpPayload();
   ASSERT_TRUE(udp.has_value());
   EXPECT_EQ(udp->header().srcPort, 7000);

@@ -466,7 +466,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass,
     uint8_t innerTrafficClass,
-    uint8_t hopLimit,
+    uint8_t outerHopLimit,
+    std::optional<uint8_t> innerHopLimit,
     std::optional<std::vector<uint8_t>> payload) {
   if (!payload) {
     payload = kDefaultPayload;
@@ -480,13 +481,13 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
   outerIpHdr.trafficClass = outerTrafficClass;
   outerIpHdr.payloadLength =
       IPv6Hdr::size() + UDPHeader::size() + payloadBytes.size();
-  outerIpHdr.hopLimit = hopLimit;
+  outerIpHdr.hopLimit = outerHopLimit;
   // IPv6Hdr -- inner
   IPv6Hdr innerIpHdr(innerSrcIp, innerDstIp);
   innerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
   innerIpHdr.trafficClass = innerTrafficClass;
   innerIpHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
-  innerIpHdr.hopLimit = hopLimit;
+  innerIpHdr.hopLimit = innerHopLimit.value_or(outerHopLimit);
 
   auto txPacket = allocatePacket(
       EthHdr::SIZE + 2 * outerIpHdr.size() + UDPHeader::size() +
@@ -528,7 +529,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass,
     uint8_t innerDscp,
-    uint8_t hopLimit,
+    uint8_t outerHopLimit,
+    std::optional<uint8_t> innerHopLimit,
     std::optional<std::vector<uint8_t>> payload) {
   if (!payload) {
     payload = kDefaultPayload;
@@ -542,7 +544,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
   outerIpHdr.trafficClass = outerTrafficClass;
   outerIpHdr.payloadLength =
       IPv4Hdr::minSize() + UDPHeader::size() + payloadBytes.size();
-  outerIpHdr.hopLimit = hopLimit;
+  outerIpHdr.hopLimit = outerHopLimit;
   // IPv4Hdr -- inner
   IPv4Hdr innerIpHdr(
       innerSrcIp,
@@ -550,7 +552,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       UDPHeader::size() + payloadBytes.size());
   innerIpHdr.dscp = innerDscp;
-  innerIpHdr.ttl = hopLimit;
+  innerIpHdr.ttl = innerHopLimit.value_or(outerHopLimit);
   innerIpHdr.computeChecksum();
 
   auto txPacket = allocatePacket(

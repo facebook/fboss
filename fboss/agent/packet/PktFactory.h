@@ -107,7 +107,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
     uint8_t innerTrafficClass = 0,
-    uint8_t hopLimit = 255,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
@@ -124,7 +125,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
     uint8_t innerDscp = 0,
-    uint8_t hopLimit = 255,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
@@ -330,7 +332,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
     uint8_t innerTrafficClass = 0,
-    uint8_t hopLimit = 255,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeIpInIpTxPacket(
@@ -346,7 +349,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       dstPort,
       outerTrafficClass,
       innerTrafficClass,
-      hopLimit,
+      outerHopLimit,
+      innerHopLimit,
       payload);
 }
 
@@ -364,7 +368,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
     uint8_t innerDscp = 0,
-    uint8_t hopLimit = 255,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeIpInIpTxPacket(
@@ -380,7 +385,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       dstPort,
       outerTrafficClass,
       innerDscp,
-      hopLimit,
+      outerHopLimit,
+      innerHopLimit,
       payload);
 }
 
