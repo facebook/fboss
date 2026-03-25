@@ -295,14 +295,14 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
   )
 
-  add_library(agent_scale_test_src
+  add_library(agent_scale_test_src-${SAI_IMPL_NAME}
     fboss/agent/test/agent_hw_tests/AgentAclScaleTests.cpp
     fboss/agent/test/agent_hw_tests/AgentEcmpScaleTests.cpp
   )
 
-  add_sai_sdk_dependencies(agent_scale_test_src)
+  add_sai_sdk_dependencies(agent_scale_test_src-${SAI_IMPL_NAME})
 
-  target_link_libraries(agent_scale_test_src
+  target_link_libraries(agent_scale_test_src-${SAI_IMPL_NAME}
     config_factory
     packet_factory
     agent_hw_test_src
@@ -323,7 +323,7 @@ function(BUILD_SAI_AGENT_HW_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
   target_link_libraries(sai_agent_scale_test-${SAI_IMPL_NAME}
     -Wl,--whole-archive
     ${SAI_IMPL_ARG}
-    agent_scale_test_src
+    agent_scale_test_src-${SAI_IMPL_NAME}
     agent_hw_test
     sai_acl_utils
     mono_agent_ensemble
