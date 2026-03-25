@@ -531,6 +531,11 @@ class HwAsic {
     // Feature for platforms that can create wide DLB groups and
     // also increase DLB table scale by combining multiple DLBs
     VIRTUAL_ARS_GROUP,
+    // Support for SAI_SWITCH_ATTR_SWITCHING_MODE to switch between
+    // store-and-forward and cut-through packet forwarding modes.
+    // Cut-through starts forwarding after reading just the header,
+    // reducing latency for scale-up switches.
+    CUT_THROUGH_FORWARDING,
   };
 
   enum class AsicMode {
