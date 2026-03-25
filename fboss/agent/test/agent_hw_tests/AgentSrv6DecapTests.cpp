@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
@@ -10,7 +11,6 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
-#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -30,9 +30,13 @@ class AgentSrv6DecapTest : public AgentHwTest {
  protected:
   static constexpr bool kIsTrunk = PortType::isTrunk;
 
-  // Same prefixes as encap test but used for regular forwarding after decap
+  // Route prefixes used for forwarding after decap
   const folly::IPAddressV6 kV6RoutePrefix{"2800:2::"};
   static constexpr uint8_t kV6RoutePrefixLen{64};
+  const folly::IPAddressV6 kV6RouteDstIp{"2800:2::1"};
+  const folly::IPAddressV4 kV4RoutePrefix{"100.0.0.0"};
+  const folly::IPAddressV4 kV4RouteDstIp{"100.0.0.1"};
+  const folly::IPAddressV6 kMySidAddr{"3001:db8:e001::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -60,6 +64,14 @@ class AgentSrv6DecapTest : public AgentHwTest {
           ensemble.masterLogicalPortIds(),
           true /*interfaceHasSubnet*/);
     }
+    // Add trap ACLs for inner packet destinations so snooper can capture
+    // the decapped and forwarded packets
+    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    utility::addTrapPacketAcl(
+        asic,
+        &cfg,
+        std::set<folly::CIDRNetwork>{
+            {kV6RoutePrefix, kV6RoutePrefixLen}, {kV4RoutePrefix, 24}});
     return cfg;
   }
 
@@ -151,6 +163,61 @@ class AgentSrv6DecapTest : public AgentHwTest {
         portDesc.aggPortID());
     return aggPort->sortedSubports().front().portID;
   }
+
+  void verifyDecapPacket(PortID egressPort, bool isV4) {
+    auto portStatsBefore = this->getLatestPortStats(egressPort);
+    auto bytesBefore = *portStatsBefore.outBytes_();
+
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+    constexpr uint16_t kSrcPort{8000};
+    constexpr uint16_t kDstPort{8001};
+    constexpr uint8_t kHopLimit{64};
+
+    // Outer IPv6: dst = mySid address (triggers decap)
+    // Inner IP: dst matches route prefix (forwarded after decap)
+    auto outerSrcIp = folly::IPAddressV6("1::1");
+    std::unique_ptr<facebook::fboss::TxPacket> txPacket;
+    if (isV4) {
+      txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          outerSrcIp,
+          kMySidAddr,
+          folly::IPAddressV4("10.0.0.1"),
+          kV4RouteDstIp,
+          kSrcPort,
+          kDstPort,
+          0 /* outerTrafficClass */,
+          0 /* innerDscp */,
+          kHopLimit);
+    } else {
+      txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          outerSrcIp,
+          kMySidAddr,
+          folly::IPAddressV6("1::10"),
+          kV6RouteDstIp,
+          kSrcPort,
+          kDstPort,
+          0 /* outerTrafficClass */,
+          0 /* innerTrafficClass */,
+          kHopLimit);
+    }
+
+    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(egressPort);
+      auto bytesAfter = *portStatsAfter.outBytes_();
+      EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+    });
+  }
 };
 
 TYPED_TEST_SUITE(AgentSrv6DecapTest, Srv6DecapPortTypes);
@@ -158,8 +225,13 @@ TYPED_TEST_SUITE(AgentSrv6DecapTest, Srv6DecapPortTypes);
 TYPED_TEST(AgentSrv6DecapTest, sendPacketForDecap) {
   auto setup = [this]() { this->setupHelper(); };
 
-  auto verify = []() {
-    // TODO: Add decap packet verification
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    // Verify decap with inner v6 packet
+    this->verifyDecapPacket(egressPort, false /* isV4 */);
+    // Verify decap with inner v4 packet
+    this->verifyDecapPacket(egressPort, true /* isV4 */);
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
