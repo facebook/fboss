@@ -812,9 +812,18 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
     RouteUpdateWrapper* updater,
     size_t width,
     const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
+    const std::vector<NextHopWeight>& weights,
+    const std::optional<bool>& disableTTLDecrement) const {
+  // Use default route prefix when caller passes empty prefixes
+  const auto& effectivePrefixes =
+      prefixes.empty() ? std::vector<RouteT>{{IPAddrT(), 0}} : prefixes;
   ecmpSetupTargetedPorts_.programRoutes(
-      updater, getPortDescs(width), prefixes, weights);
+      updater,
+      getPortDescs(width),
+      effectivePrefixes,
+      weights,
+      std::nullopt,
+      disableTTLDecrement);
 }
 
 template <typename IPAddrT>

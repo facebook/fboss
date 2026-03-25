@@ -44,11 +44,16 @@ void ForwardingInformationBase<AddressT>::setDisableTTLDecrement(
   CHECK(!this->isPublished());
   for (auto& entry : *this) {
     auto route = entry.second;
-    auto adminDistance = route->getForwardInfo().getAdminDistance();
-    auto counter = route->getForwardInfo().getCounterID();
-    auto classID = route->getForwardInfo().getClassID();
-    RouteNextHopEntry::NextHopSet nhops =
-        route->getForwardInfo().getNextHopSet();
+    const auto& fwd = route->getForwardInfo();
+    auto adminDistance = fwd.getAdminDistance();
+    auto counter = fwd.getCounterID();
+    auto classID = fwd.getClassID();
+    auto overrideEcmpSwitchingMode = fwd.getOverrideEcmpSwitchingMode();
+    auto overrideNextHops = fwd.getOverrideNextHops();
+    auto normalizedResolvedNextHopSetID =
+        fwd.getNormalizedResolvedNextHopSetID();
+    auto resolvedNextHopSetID = fwd.getResolvedNextHopSetID();
+    RouteNextHopEntry::NextHopSet nhops = fwd.getNextHopSet();
     bool changed = false;
     for (auto& nhop : nhops) {
       CHECK(nhop.isResolved());
@@ -59,8 +64,15 @@ void ForwardingInformationBase<AddressT>::setDisableTTLDecrement(
     }
     if (changed) {
       route = route->clone();
-      route->setResolved(
-          RouteNextHopEntry(nhops, adminDistance, counter, classID));
+      route->setResolved(RouteNextHopEntry(
+          nhops,
+          adminDistance,
+          counter,
+          classID,
+          overrideEcmpSwitchingMode,
+          overrideNextHops,
+          normalizedResolvedNextHopSetID,
+          resolvedNextHopSetID));
       entry.second = route;
     }
   }
