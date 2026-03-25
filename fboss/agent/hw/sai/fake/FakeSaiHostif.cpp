@@ -27,6 +27,7 @@ sai_status_t send_hostif_fn(
   sai_object_id_t tx_port;
   sai_hostif_tx_type_t tx_type;
   sai_uint8_t queueId = 0;
+  std::optional<int32_t> packetType;
   for (int i = 0; i < attr_count; ++i) {
     switch (attr_list[i].id) {
       case SAI_HOSTIF_PACKET_ATTR_HOSTIF_TX_TYPE:
@@ -38,10 +39,16 @@ sai_status_t send_hostif_fn(
       case SAI_HOSTIF_PACKET_ATTR_EGRESS_QUEUE_INDEX:
         queueId = attr_list[i].value.u8;
         break;
+      case SAI_HOSTIF_PACKET_ATTR_PACKET_TYPE:
+        packetType = attr_list[i].value.s32;
+        break;
     }
   }
   XLOG(DBG2) << "Sending packet on port : " << std::hex << tx_port
              << " tx type : " << tx_type << " on queue: " << queueId;
+  if (packetType.has_value()) {
+    XLOG(DBG2) << " packet type: " << packetType.value();
+  }
 
   return SAI_STATUS_SUCCESS;
 }

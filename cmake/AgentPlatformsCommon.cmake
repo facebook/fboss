@@ -11,7 +11,7 @@ add_library(platform_mapping
 
 target_link_libraries(platform_mapping
   agent_features
-  error
+  fboss_error
   fboss_config_utils
   platform_config_cpp2
   state
@@ -23,7 +23,7 @@ add_library(platform_mapping_utils
 )
 
 target_link_libraries(platform_mapping_utils
-  error
+  fboss_error
   minipack_platform_mapping
   elbert_platform_mapping
   yamp_platform_mapping
@@ -38,10 +38,7 @@ target_link_libraries(platform_mapping_utils
   wedge400_platform_mapping
   wedge400c_platform_mapping
   morgan_platform_mapping
-  meru400biu_platform_mapping
-  meru400bfu_platform_mapping
   montblanc_platform_mapping
-  meru400bia_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   yangra_platform_mapping
@@ -49,10 +46,16 @@ target_link_libraries(platform_mapping_utils
   janga800bic_platform_mapping
   tahan800bc_platform_mapping
   icecube800bc_platform_mapping
+  blackwolf800banw_platform_mapping
   wedge800bact_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
   wedge800cact_platform_mapping
   ladakh800bcls_platform_mapping
+  yangra2_platform_mapping
+  minipack3bta_platform_mapping
+  icecube800banw_platform_mapping
+  j4sim_platform_mapping
+  platform_mode
   ${RE2}
 )

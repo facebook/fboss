@@ -1,0 +1,25 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_agent_push")
+
+cpp_library(
+    name = "fsdb_cgo_pub_sub_wrapper",
+    srcs = [
+        "FsdbCgoPubSubWrapper.cpp",
+    ],
+    headers = [
+        "FsdbCgoPubSubWrapper.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:agent_stats-cpp2-types",
+        "//fboss/agent:switch_state-cpp2-types",
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/if:fsdb_model",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/lib/thrift_service_client:thrift-service-client",
+        "//folly:string",
+        "//folly/concurrency:dynamic_bounded_queue",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

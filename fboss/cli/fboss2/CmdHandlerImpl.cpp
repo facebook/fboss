@@ -34,6 +34,8 @@
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/arp/CmdShowArp.h"
 #include "fboss/cli/fboss2/commands/show/arp/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h"
+#include "fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h"
 #include "fboss/cli/fboss2/commands/show/cpuport/CmdShowCpuPort.h"
 #include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
@@ -46,11 +48,17 @@
 #include "fboss/cli/fboss2/commands/show/fabric/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/gen-cpp2/model_visitation.h"
+#include "fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringCounters.h"
+#include "fboss/cli/fboss2/commands/show/fabric/monitoring/CmdShowFabricMonitoringDetails.h"
+#include "fboss/cli/fboss2/commands/show/fabric/monitoring/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
@@ -139,6 +147,9 @@ template void
 CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits>::run();
 template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 template void
+CmdHandler<CmdShowConfigRunningAgent, CmdShowConfigDynamicTraits>::run();
+template void CmdHandler<CmdShowConfigHistoryAgent, CmdShowConfigTraits>::run();
+template void
 CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
 template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
 template void CmdHandler<CmdShowExample, CmdShowExampleTraits>::run();
@@ -154,6 +165,12 @@ template void
 CmdHandler<CmdShowFabricTopology, CmdShowFabricTopologyTraits>::run();
 template void
 CmdHandler<CmdShowFabricInputBalance, CmdShowFabricInputBalanceTraits>::run();
+template void CmdHandler<
+    CmdShowFabricMonitoringCounters,
+    CmdShowFabricMonitoringCountersTraits>::run();
+template void CmdHandler<
+    CmdShowFabricMonitoringDetails,
+    CmdShowFabricMonitoringDetailsTraits>::run();
 template void CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::run();
 template void
 CmdHandler<CmdShowDsfSubscription, CmdShowDsfSubscriptionTraits>::run();
@@ -215,7 +232,8 @@ template void CmdHandler<
     CmdShowInterfaceCapabilitiesTraits>::run();
 template void
 CmdHandler<CmdShowInterfaceTraffic, CmdShowInterfaceTrafficTraits>::run();
-template void CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::run();
+template void CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits>::run();
+template void CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits>::run();
 template void CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::run();
 template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
 template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
@@ -249,7 +267,18 @@ template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
+template void
+CmdHandler<CmdShowFsdbDataCommon, CmdShowFsdbDataCommonTraits>::run();
+template void
+CmdHandler<CmdShowFsdbSubscribers, CmdShowFsdbSubscriberTraits>::run();
+template void
+CmdHandler<CmdShowFsdbPublishers, CmdShowFsdbPublisherTraits>::run();
 
+template const ValidAggMapType
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
+
+template const ValidFilterMapType
+CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
 template const ValidFilterMapType
@@ -266,6 +295,12 @@ template const ValidFilterMapType CmdHandler<
 template const ValidFilterMapType CmdHandler<
     CmdShowFabricInputBalance,
     CmdShowFabricInputBalanceTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricMonitoringCounters,
+    CmdShowFabricMonitoringCountersTraits>::getValidFilters();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricMonitoringDetails,
+    CmdShowFabricMonitoringDetailsTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::getValidFilters();
 template const ValidFilterMapType
@@ -336,7 +371,9 @@ template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceTraffic,
     CmdShowInterfaceTrafficTraits>::getValidFilters();
 template const ValidFilterMapType
-CmdHandler<CmdShowSdkDump, CmdShowSdkDumpTraits>::getValidFilters();
+CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::getValidFilters();
 template const ValidFilterMapType

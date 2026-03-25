@@ -23,6 +23,9 @@ thrift_library(
     thrift_srcs = {
         "results.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 cpp_library(
@@ -36,13 +39,11 @@ cpp_library(
     compiler_flags = ["-ftemplate-backtrace-limit=0"],
     exported_deps = [
         ":results-cpp2-types",
-        "//fatal:fatal",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//folly:conv",
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2/op:get",
-        "//thrift/lib/cpp2/reflection:reflection",
     ],
     exported_external_deps = [
         "boost",

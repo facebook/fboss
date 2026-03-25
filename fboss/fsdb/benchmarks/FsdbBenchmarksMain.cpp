@@ -6,14 +6,11 @@
 #include <folly/json/json.h>
 #include <folly/logging/Init.h>
 #include <folly/logging/xlog.h>
-#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include <sys/resource.h>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG3; default:async=true");
-
-DECLARE_int64(bm_max_iters);
 
 inline bool listBenchmarks(int* argc, char** argv) {
   for (int i = 0; i < *argc; i++) {

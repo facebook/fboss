@@ -266,6 +266,10 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
     if (switchInfo.switchType() != cfg::SwitchType::VOQ) {
       continue;
     }
+    // Q4D is a VOQ switch but has no fabric ports, skip fabric overhead calc
+    if (*switchInfo.asicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
+      continue;
+    }
     auto& bwInfo = swIndexToBwInfo[*switchInfo.switchIndex()];
     bwInfo.asicType = *switchInfo.asicType();
     for (const auto& [_, port] : std::as_const(*portMap)) {
@@ -273,7 +277,8 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
         continue;
       }
       if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
-          port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+          port->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+          port->getPortType() == cfg::PortType::HYPER_PORT) {
         bwInfo.nifBwMbps += static_cast<uint32_t>(port->getSpeed());
       } else if (port->getPortType() == cfg::PortType::FABRIC_PORT) {
         if (port->isActive().value_or(false)) {
@@ -302,6 +307,7 @@ void PortUpdateHandler::computeFabricOverdrainPct(const StateDelta& delta) {
         return 1.06;
       case cfg::AsicType::ASIC_TYPE_MOCK:
       case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
         // Mimicing J3 overhead
         return 1.10;
       default:

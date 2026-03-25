@@ -3,7 +3,6 @@
 
 #include <thrift/lib/cpp2/TypeClass.h>
 #include "fboss/agent/lldp/LinkNeighbor.h"
-#include "fboss/agent/lldp/gen-cpp2/lldp_fatal_types.h"
 #include "fboss/agent/lldp/gen-cpp2/lldp_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/thrift_cow/storage/CowStorage.h"
@@ -26,6 +25,7 @@ class LinkNeighbor;
 class LinkNeighborDB {
  public:
   LinkNeighborDB();
+  ~LinkNeighborDB() = default;
 
   /*
    * Update the DB with new neighbor information.
@@ -64,6 +64,8 @@ class LinkNeighborDB {
   // Forbidden copy constructor and assignment operator
   LinkNeighborDB(LinkNeighborDB const&) = delete;
   LinkNeighborDB& operator=(LinkNeighborDB const&) = delete;
+  LinkNeighborDB(LinkNeighborDB&&) = delete;
+  LinkNeighborDB& operator=(LinkNeighborDB&&) = delete;
 
   folly::Synchronized<LldpState> byLocalPort_{LldpState(lldp::LldpState())};
 };

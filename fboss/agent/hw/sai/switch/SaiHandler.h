@@ -14,16 +14,19 @@
 #include "fboss/agent/hw/sai/diag/DiagShell.h"
 #include "fboss/agent/hw/sai/switch/gen-cpp2/SaiCtrl.h"
 
+#include <folly/Utility.h>
+
 namespace facebook::fboss {
 
 class DiagCmdServer;
 class SaiSwitch;
 class StreamingDiagShellServer;
 
-class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
+class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl>,
+                   public folly::NonCopyableNonMovable {
  public:
   explicit SaiHandler(SaiSwitch* hw);
-  ~SaiHandler() override;
+  ~SaiHandler() override = default;
 
   void getCurrentHwStateJSON(
       std::string& ret,
@@ -123,6 +126,8 @@ class SaiHandler : public apache::thrift::ServiceHandler<SaiCtrl> {
   void getPortPrbsPolynomials(
       std::vector<prbs::PrbsPolynomial>& prbsPolynomials,
       int32_t portId) override;
+
+  void getProgrammedState(state::SwitchState& state) override;
 
  private:
   SaiSwitch* hw_;

@@ -8,6 +8,10 @@ namespace py.asyncio neteng.fboss.asyncio.common
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 @cpp.Type{name = "::folly::fbstring"}
 typedef binary fbbinary
@@ -49,6 +53,9 @@ struct NextHopThrift {
   // MPLS encapsulation information for IP->MPLS and MPLS routes
   3: optional mpls.MplsAction mplsAction;
   4: optional bool disableTTLDecrement;
+  5: list<Address.BinaryAddress> srv6SegmentList;
+  6: optional TunnelType tunnelType;
+  7: optional string tunnelId;
 
   /**
   * For capturing topology information to assist Agent path pruning decisions
@@ -85,9 +92,9 @@ enum ForwardingClass {
 }
 
 /*
- * Packet type being transmitted, primarily used for fabric ports
+ * Packet type for transmit and receive, primarily used for fabric ports
  */
-enum TxPacketType {
+enum PacketType {
   DEFAULT = 0,
   FABRIC_LINK_MONITORING = 1,
 }
@@ -126,6 +133,7 @@ enum SwitchRunState {
   CONFIGURED = 2,
   FIB_SYNCED = 3,
   EXITING = 4,
+  ROLLBACK = 5,
 }
 
 enum RemoteInterfaceType {
@@ -176,4 +184,29 @@ struct BufferPoolFields {
   2: optional i32 headroomBytes;
   3: i32 sharedBytes;
   4: optional i32 reservedBytes;
+}
+
+enum DeltaApplicationMode {
+  // Apply the full StateDelta vector
+  APPLY_ALL = 0,
+  // Rollback StateDelta vector at the end after application
+  ROLLBACK = 1,
+  // Rollback StateDelta vector at a specific index
+  ROLLBACK_AT_INDEX = 2,
+}
+
+struct StateDeltaApplication {
+  1: DeltaApplicationMode mode = DeltaApplicationMode.APPLY_ALL;
+  2: optional i32 rollbackIndex;
+}
+
+enum TunnelType {
+  IP_IN_IP = 0,
+  SRV6_ENCAP = 1,
+}
+
+enum MySidType {
+  ADJACENCY_MICRO_SID = 0,
+  NODE_MICRO_SID = 1,
+  DECAPSULATE_AND_LOOKUP = 2,
 }

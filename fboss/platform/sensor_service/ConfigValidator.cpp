@@ -5,19 +5,17 @@
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <re2/re2.h>
+#include <thrift/lib/cpp2/FieldRef.h>
 
 namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
-namespace {
-const re2::RE2 kSensorSymlinkRegex{"(?P<Path>/run/devmap/sensors/.+)(/.+)+"};
-}; // namespace
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   XLOG(INFO) << "Validating sensor_service config";
   if (!isValidPmUnitSensorsList(*sensorConfig.pmUnitSensorsList())) {
     return false;
   }
-  if (!isValidPowerConsumptionConfig(sensorConfig)) {
+  if (!isValidPowerConfig(sensorConfig)) {
     return false;
   }
   if (!isValidTemperatureConfig(sensorConfig)) {
@@ -92,81 +90,115 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
       return false;
     }
     usedSensorNames.emplace(*pmSensor.name());
-    if (!pmSensor.sysfsPath()->starts_with("/run/devmap/sensors/")) {
-      XLOG(ERR) << "PmSensor sysfsPath must start with /run/devmap/sensors/";
+    if (!pmSensor.sysfsPath()->starts_with("/run/devmap/sensors/") &&
+        !pmSensor.sysfsPath()->starts_with("/run/devmap/cplds/")) {
+      XLOG(ERR)
+          << "PmSensor sysfsPath must start with /run/devmap/sensors/ or /run/devmap/cplds/";
       return false;
     }
   }
   return true;
 }
 
-bool ConfigValidator::isValidPowerConsumptionConfig(
+bool ConfigValidator::isValidPowerConfig(
     const sensor_config::SensorConfig& sensorConfig) {
   re2::RE2 psuPattern("((PSU|PEM)([1-9][0-9]*)|HSC)");
 
-  XLOG(DBG1) << "Validating Power Consumption Config config";
+  XLOG(DBG1) << "Validating Power Config";
 
+  const auto& powerConfig = *sensorConfig.powerConfig();
   auto sensorNames = getAllSensorNames(sensorConfig);
   auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
-  std::unordered_set<std::string> powerConsumptionConfigNames;
+  std::unordered_set<std::string> perSlotPowerConfigNames;
 
-  for (const auto& pcConfig : *sensorConfig.powerConsumptionConfigs()) {
-    // Check for duplicate power consumption config names
-    if (powerConsumptionConfigNames.find(*pcConfig.name()) !=
-        powerConsumptionConfigNames.end()) {
+  // perSlotPowerConfigs is mandatory and must not be empty
+  if (powerConfig.perSlotPowerConfigs()->empty()) {
+    XLOG(ERR) << "perSlotPowerConfigs must be defined and non-empty";
+    return false;
+  }
+
+  for (const auto& perSlotConfig : *powerConfig.perSlotPowerConfigs()) {
+    // Check for duplicate per-slot power config names
+    if (perSlotPowerConfigNames.find(*perSlotConfig.name()) !=
+        perSlotPowerConfigNames.end()) {
       XLOG(ERR) << fmt::format(
-          "powerConsumptionConfig name {} is a duplicate", *pcConfig.name());
+          "perSlotPowerConfig name {} is a duplicate", *perSlotConfig.name());
       return false;
     }
-    powerConsumptionConfigNames.insert(*pcConfig.name());
+    perSlotPowerConfigNames.insert(*perSlotConfig.name());
 
-    // Check if power consumption config name conflicts with existing sensor
-    // names
-    if (sensorNames.find(*pcConfig.name()) != sensorNames.end()) {
+    // Check if per-slot power config name conflicts with existing sensor names
+    if (sensorNames.find(*perSlotConfig.name()) != sensorNames.end()) {
       XLOG(ERR) << fmt::format(
-          "powerConsumptionConfig name {} conflicts with existing sensor name",
-          *pcConfig.name());
+          "perSlotPowerConfig name {} conflicts with existing sensor name",
+          *perSlotConfig.name());
       return false;
     }
 
-    if (!RE2::FullMatch(*pcConfig.name(), psuPattern)) {
+    // Validate name pattern (PSU/PEM/HSC)
+    if (!RE2::FullMatch(*perSlotConfig.name(), psuPattern)) {
       XLOG(ERR) << fmt::format(
-          "powerConsumptionConfig name {} should be PSU[number] or PEM[number]",
-          *pcConfig.name());
+          "perSlotPowerConfig name {} should be PSU[number], PEM[number], or HSC",
+          *perSlotConfig.name());
       return false;
     }
 
-    if (pcConfig.powerSensorName().has_value()) {
-      if (universalSensorNames.count(*pcConfig.powerSensorName()) == 0) {
+    // Validate sensor references
+    if (perSlotConfig.powerSensorName().has_value()) {
+      if (universalSensorNames.count(*perSlotConfig.powerSensorName()) == 0) {
         XLOG(ERR) << fmt::format(
-            "powerConsumptionConfig powerSensorName {} is not defined in"
+            "perSlotPowerConfig powerSensorName {} is not defined in"
             " SensorConfig",
-            *pcConfig.powerSensorName());
+            *perSlotConfig.powerSensorName());
         return false;
       }
     } else if (
-        pcConfig.voltageSensorName().has_value() &&
-        pcConfig.currentSensorName().has_value()) {
-      if (universalSensorNames.count(*pcConfig.voltageSensorName()) == 0) {
+        perSlotConfig.voltageSensorName().has_value() &&
+        perSlotConfig.currentSensorName().has_value()) {
+      if (universalSensorNames.count(*perSlotConfig.voltageSensorName()) == 0) {
         XLOG(ERR) << fmt::format(
-            "powerConsumptionConfig voltageSensorName {} is not defined in"
+            "perSlotPowerConfig voltageSensorName {} is not defined in"
             " SensorConfig",
-            *pcConfig.voltageSensorName());
+            *perSlotConfig.voltageSensorName());
         return false;
       }
 
-      if (universalSensorNames.count(*pcConfig.currentSensorName()) == 0) {
+      if (universalSensorNames.count(*perSlotConfig.currentSensorName()) == 0) {
         XLOG(ERR) << fmt::format(
-            "powerConsumptionConfig currentSensorName {} is not defined in"
+            "perSlotPowerConfig currentSensorName {} is not defined in"
             " SensorConfig",
-            *pcConfig.currentSensorName());
+            *perSlotConfig.currentSensorName());
         return false;
       }
-
     } else {
       XLOG(ERR) << fmt::format(
-          "powerConsumptionConfig: Either powerSensorName, or voltageSensorName"
-          " and currentSensorName should be defined");
+          "perSlotPowerConfig {}: Either powerSensorName, or voltageSensorName"
+          " and currentSensorName should be defined",
+          *perSlotConfig.name());
+      return false;
+    }
+  }
+
+  // Validate otherPowerSensorNames
+  for (const auto& sensorName : *powerConfig.otherPowerSensorNames()) {
+    if (universalSensorNames.count(sensorName) == 0) {
+      XLOG(ERR) << fmt::format(
+          "otherPowerSensorName {} is not defined in SensorConfig", sensorName);
+      return false;
+    }
+  }
+
+  // Validate inputVoltageSensors
+  // inputVoltageSensors is mandatory and must not be empty
+  if (powerConfig.inputVoltageSensors()->empty()) {
+    XLOG(ERR) << "inputVoltageSensors must be defined and non-empty";
+    return false;
+  }
+
+  for (const auto& sensorName : *powerConfig.inputVoltageSensors()) {
+    if (universalSensorNames.count(sensorName) == 0) {
+      XLOG(ERR) << fmt::format(
+          "inputVoltageSensor {} is not defined in SensorConfig", sensorName);
       return false;
     }
   }
@@ -180,6 +212,12 @@ bool ConfigValidator::isValidTemperatureConfig(
 
   XLOG(DBG1) << "Validating Temperature Config";
 
+  // Validate that temperatureConfigs is not empty
+  if (sensorConfig.temperatureConfigs()->empty()) {
+    XLOG(ERR) << "temperatureConfigs must not be empty";
+    return false;
+  }
+
   auto sensorNames = getAllSensorNames(sensorConfig);
   auto universalSensorNames = getAllUniversalSensorNames(sensorConfig);
   std::unordered_set<std::string> temperatureConfigNames;
@@ -189,7 +227,7 @@ bool ConfigValidator::isValidTemperatureConfig(
     if (temperatureConfigNames.find(*tempConfig.name()) !=
         temperatureConfigNames.end()) {
       XLOG(ERR) << fmt::format(
-          "temperatureConfig name {} is a duplicate", *tempConfig.name());
+          "temperatureConfig name `{}` is a duplicate", *tempConfig.name());
       return false;
     }
     temperatureConfigNames.insert(*tempConfig.name());
@@ -197,7 +235,7 @@ bool ConfigValidator::isValidTemperatureConfig(
     // Check if temperature config name conflicts with existing sensor names
     if (sensorNames.find(*tempConfig.name()) != sensorNames.end()) {
       XLOG(ERR) << fmt::format(
-          "temperatureConfig name {} conflicts with existing sensor name",
+          "temperatureConfig name `{}` conflicts with existing sensor name",
           *tempConfig.name());
       return false;
     }
@@ -205,7 +243,7 @@ bool ConfigValidator::isValidTemperatureConfig(
     // Validate temperature config name pattern (ASIC or ASIC[number])
     if (!RE2::FullMatch(*tempConfig.name(), asicPattern)) {
       XLOG(ERR) << fmt::format(
-          "temperatureConfig name {} should be ASIC or ASIC[number]",
+          "temperatureConfig name `{}` should be ASIC or ASIC[number]",
           *tempConfig.name());
       return false;
     }
@@ -213,7 +251,8 @@ bool ConfigValidator::isValidTemperatureConfig(
     // Validate that temperatureSensorNames list is non-empty
     if (tempConfig.temperatureSensorNames()->empty()) {
       XLOG(ERR) << fmt::format(
-          "temperatureConfig {} must have a non-empty temperatureSensorNames list",
+          "temperatureConfig `{}` must have a non-empty temperatureSensorNames"
+          " list ",
           *tempConfig.name());
       return false;
     }
@@ -222,7 +261,7 @@ bool ConfigValidator::isValidTemperatureConfig(
     for (const auto& sensorName : *tempConfig.temperatureSensorNames()) {
       if (universalSensorNames.count(sensorName) == 0) {
         XLOG(ERR) << fmt::format(
-            "temperatureConfig temperatureSensorName {} is not defined in"
+            "temperatureConfig temperatureSensorName `{}` is not defined in"
             " SensorConfig",
             sensorName);
         return false;

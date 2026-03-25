@@ -15,3 +15,29 @@ target_link_libraries(platform_helpers_platform_name_lib_test
 )
 
 gtest_discover_tests(platform_helpers_platform_name_lib_test)
+
+add_executable(platform_helpers_platform_utils_test
+  fboss/platform/helpers/tests/PlatformUtilsTest.cpp
+)
+
+target_link_libraries(platform_helpers_platform_utils_test
+  platform_utils
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_helpers_platform_utils_test)
+
+add_executable(platform_helpers_platform_fs_utils_test
+  fboss/platform/helpers/tests/PlatformFsUtilsTest.cpp
+)
+
+target_link_libraries(platform_helpers_platform_fs_utils_test
+  platform_fs_utils
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_helpers_platform_fs_utils_test)

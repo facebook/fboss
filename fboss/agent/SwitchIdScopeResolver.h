@@ -14,6 +14,7 @@ class Mirror;
 class MirrorOnDropReport;
 class DsfNode;
 class IpInIpTunnel;
+class Srv6Tunnel;
 class AclEntry;
 class SystemPort;
 class Port;
@@ -26,6 +27,7 @@ class Mirror;
 class MirrorOnDropReport;
 class DsfNode;
 class IpTunnel;
+class Srv6Tunnel;
 class AclEntry;
 class SystemPort;
 class Vlan;
@@ -37,6 +39,7 @@ class Port;
 class PortDescriptor;
 class AclTableGroup;
 class ForwardingInformationBaseContainer;
+class FibInfo;
 class BufferPoolCfg;
 class PortFlowletCfg;
 class QosPolicy;
@@ -46,6 +49,8 @@ class ControlPlane;
 class AggregatePort;
 class SflowCollector;
 class SwitchSettings;
+class MySid;
+class MySidMap;
 
 class SwitchIdScopeResolver {
  public:
@@ -88,6 +93,15 @@ class SwitchIdScopeResolver {
   const HwSwitchMatcher& scope(const std::shared_ptr<IpTunnel>& /*m*/) const {
     return l3SwitchMatcher();
   }
+  HwSwitchMatcher scope(
+      const cfg::Srv6Tunnel& tunnel,
+      const cfg::SwitchConfig& cfg) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<Srv6Tunnel>& tunnel,
+      const std::shared_ptr<SwitchState>& state) const;
+  HwSwitchMatcher scope(
+      const std::shared_ptr<Srv6Tunnel>& tunnel,
+      const cfg::SwitchConfig& cfg) const;
   const HwSwitchMatcher& scope(const cfg::AclEntry& /*acl*/) const {
     return l3SwitchMatcher();
   }
@@ -115,6 +129,7 @@ class SwitchIdScopeResolver {
       const std::shared_ptr<AclTableGroup>& aclTableGroup) const;
   HwSwitchMatcher scope(
       const std::shared_ptr<ForwardingInformationBaseContainer>& fibs) const;
+  HwSwitchMatcher scope(const std::shared_ptr<FibInfo>& fibInfo) const;
   HwSwitchMatcher scope(const std::shared_ptr<Route<LabelID>>& entry) const;
   const HwSwitchMatcher& scope(const cfg::BufferPoolConfig& /*b*/) const {
     return l3SwitchMatcher();
@@ -130,9 +145,7 @@ class SwitchIdScopeResolver {
     return l3SwitchMatcher();
   }
   const HwSwitchMatcher& scope(
-      const std::shared_ptr<ControlPlane>& /*c*/) const {
-    return l3SwitchMatcher();
-  }
+      const std::shared_ptr<ControlPlane>& /*c*/) const;
   const HwSwitchMatcher& scope(
       const std::shared_ptr<SflowCollector>& collector) const;
   const HwSwitchMatcher& scope(const cfg::SflowCollector& collector) const;
@@ -143,6 +156,12 @@ class SwitchIdScopeResolver {
   }
   const HwSwitchMatcher& scope(
       const std::shared_ptr<PortFlowletCfg>& /*p*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<MySid>& /*m*/) const {
+    return l3SwitchMatcher();
+  }
+  const HwSwitchMatcher& scope(const std::shared_ptr<MySidMap>& /*m*/) const {
     return l3SwitchMatcher();
   }
 

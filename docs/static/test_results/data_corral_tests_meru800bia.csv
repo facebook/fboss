@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"DataCorralServiceHwTest.getUncachedFruid","meru800bia","PASSED"
+"DataCorralServiceHwTest.getCachedFruid","meru800bia","PASSED"
+"DataCorralServiceHwTest.FruLedProgrammingSysfsCheck","meru800bia","PASSED"
+"DataCorralServiceHwTest.FruLEDProgrammingODSCheck","meru800bia","PASSED"

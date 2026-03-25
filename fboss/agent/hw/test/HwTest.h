@@ -71,6 +71,8 @@ class HwTest : public ::testing::Test,
       bool /* fwIsolated */,
       const std::optional<uint32_t>& /* numActiveFabricPortsAtFwIsolate */
       ) override {}
+  void linkAdminStateChangedByFw(
+      const std::vector<int32_t>& /* fwDisabledPortIds */) override {}
   void switchReachabilityChanged(
       const SwitchID /*switchId*/,
       const std::map<SwitchID, std::set<PortID>>& /*switchReachabilityInfo*/)
@@ -107,6 +109,7 @@ class HwTest : public ::testing::Test,
       const std::set<cfg::PortType>& filter = {}) const;
 
   std::vector<PortID> masterLogicalInterfacePortIds() const;
+  std::vector<PortID> masterLogicalHyperPortIds() const;
   std::vector<PortID> masterLogicalFabricPortIds() const;
 
   std::vector<PortID> getAllPortsInGroup(PortID portID) const;

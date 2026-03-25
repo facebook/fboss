@@ -24,6 +24,10 @@ struct BcmMplsTunnelSwitchImplT {
 struct BcmMplsTunnelSwitchT {
   BcmMplsTunnelSwitchT();
   ~BcmMplsTunnelSwitchT();
+  BcmMplsTunnelSwitchT(const BcmMplsTunnelSwitchT&) = delete;
+  BcmMplsTunnelSwitchT& operator=(const BcmMplsTunnelSwitchT&) = delete;
+  BcmMplsTunnelSwitchT(BcmMplsTunnelSwitchT&&) noexcept = default;
+  BcmMplsTunnelSwitchT& operator=(BcmMplsTunnelSwitchT&&) noexcept = default;
   BcmMplsTunnelSwitchImplT* get();
 
  private:

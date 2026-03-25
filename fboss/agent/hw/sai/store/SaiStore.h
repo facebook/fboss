@@ -53,6 +53,12 @@ template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiUdfGroupTraits> : std::false_type {
 };
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template <>
+struct AdapterHostKeyWarmbootRecoverable<SaiSrv6SidListTraits>
+    : std::false_type {};
+#endif
+
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
 template <>
 struct AdapterHostKeyWarmbootRecoverable<SaiWredTraits> : std::false_type {};
@@ -200,7 +206,9 @@ class SaiObjectStore {
       bool notify = true) {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
       static_assert(
-          !IsPublisherKeyCustomType<SaiObjectTraits>::value,
+          std::is_same_v<
+              typename PublisherKey<SaiObjectTraits>::custom_type,
+              std::monostate>,
           "method not available for objects with publisher attributes of custom types");
     }
     XLOGF(
@@ -224,7 +232,9 @@ class SaiObjectStore {
       const typename PublisherKey<SaiObjectTraits>::custom_type& publisherKey,
       bool notify = true) {
     static_assert(
-        IsPublisherKeyCustomType<SaiObjectTraits>::value,
+        !std::is_same_v<
+            typename PublisherKey<SaiObjectTraits>::custom_type,
+            std::monostate>,
         "method available only for objects with publisher attributes of custom types");
     XLOGF(
         DBG5,
@@ -586,7 +596,8 @@ class SaiStore {
    */
   void reload(
       const folly::dynamic* adapterKeys = nullptr,
-      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr);
+      const folly::dynamic* adapterKeys2AdapterHostKey = nullptr,
+      const std::vector<sai_object_type_t>& objTypes = {});
 
   /*
    *
@@ -603,6 +614,7 @@ class SaiStore {
   }
 
   std::string storeStr(sai_object_type_t objType) const;
+  std::string storeStr(const std::vector<sai_object_type_t>& objTypes) const;
   folly::dynamic adapterKeysFollyDynamic() const;
 
   void exitForWarmBoot();
@@ -646,6 +658,7 @@ class SaiStore {
 #endif
       SaiObjectStore<SaiInPortDebugCounterTraits>,
       SaiObjectStore<SaiOutPortDebugCounterTraits>,
+      SaiObjectStore<SaiInSwitchDebugCounterTraits>,
       SaiObjectStore<SaiSystemPortTraits>,
       SaiObjectStore<SaiPortTraits>,
       SaiObjectStore<SaiUdfTraits>,
@@ -666,6 +679,9 @@ class SaiStore {
       SaiObjectStore<SaiEnhancedRemoteMirrorTraits>,
       SaiObjectStore<SaiSflowMirrorTraits>,
       SaiObjectStore<SaiMplsNextHopTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6SidlistNextHopTraits>,
+#endif
       SaiObjectStore<SaiNeighborTraits>,
       SaiObjectStore<SaiHostifTrapGroupTraits>,
       SaiObjectStore<SaiHostifTrapTraits>,
@@ -688,7 +704,14 @@ class SaiStore {
       SaiObjectStore<SaiTamEventTraits>,
       SaiObjectStore<SaiTamTransportTraits>,
       SaiObjectStore<SaiTamCollectorTraits>,
-      SaiObjectStore<SaiTunnelTraits>,
+      SaiObjectStore<SaiIpInIpTunnelTraits>,
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiSrv6TunnelTraits>,
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      SaiObjectStore<SaiMySidEntryTraits>,
+      SaiObjectStore<SaiSrv6SidListTraits>,
+#endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
       SaiObjectStore<SaiVendorSwitchTraits>,
 #endif

@@ -28,6 +28,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SAI_WEIGHTED_NEXTHOPGROUP_MEMBER:
@@ -49,6 +50,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DRAM_ENQUEUE_DEQUEUE_STATS:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::SAI_FEC_COUNTERS:
     case HwAsic::Feature::SAI_FEC_CORRECTED_BITS:
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
@@ -60,7 +62,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::ERSPANv4:
@@ -115,6 +116,7 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TECH_SUPPORT:
     case HwAsic::Feature::DRAM_QUARANTINED_BUFFER_STATS:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
+    case HwAsic::Feature::TEMPERATURE_MONITORING:
       return true;
     // Features not expected to work on SIM
     case HwAsic::Feature::SHARED_INGRESS_EGRESS_BUFFER_POOL:
@@ -224,7 +226,6 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SWITCH_ASIC_SDK_HEALTH_NOTIFY:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
-    case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ROUTER_INTERFACE_STATISTICS:
     case HwAsic::Feature::CPU_PORT_EGRESS_BUFFER_POOL:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
@@ -233,14 +234,23 @@ bool Jericho3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::FABRIC_INTER_CELL_JITTER_WATERMARK:
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
-      /*
-       * J3 does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect is
-       * achieved by configuring to forward TTL0 packets by enabling
-       * SAI_TTL0_PACKET_FORWARD_ENABLE.
-       */
+    /*
+     * J3 does not support NEXTHOP_TTL_DECREMENT_DISABLE. Similar effect is
+     * achieved by configuring to forward TTL0 packets by enabling
+     * SAI_TTL0_PACKET_FORWARD_ENABLE.
+     */
     case HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::CUT_THROUGH_FORWARDING:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
       return false;
   }
   return false;

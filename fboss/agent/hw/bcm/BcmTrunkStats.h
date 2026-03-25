@@ -19,6 +19,7 @@
 #include <folly/CppAttributes.h>
 #include <folly/Range.h>
 #include <folly/Synchronized.h>
+#include <folly/Utility.h>
 
 #include <map>
 #include <string>
@@ -28,9 +29,10 @@ namespace facebook::fboss {
 
 class BcmSwitchIf;
 
-class BcmTrunkStats {
+class BcmTrunkStats : public folly::NonCopyableNonMovable {
  public:
   explicit BcmTrunkStats(const BcmSwitchIf* hw);
+  ~BcmTrunkStats() = default;
 
   void initialize(AggregatePortID aggPortID, std::string trunkName);
   void update();
@@ -41,9 +43,6 @@ class BcmTrunkStats {
   HwTrunkStats getHwTrunkStats() const;
 
  private:
-  BcmTrunkStats(const BcmTrunkStats&) = delete;
-  BcmTrunkStats& operator=(const BcmTrunkStats&) = delete;
-
   // Helpers operating on an HwTrunkStats object
   std::pair<HwTrunkStats, std::chrono::seconds> accumulateMemberStats() const;
 

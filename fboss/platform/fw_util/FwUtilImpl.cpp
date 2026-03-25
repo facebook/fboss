@@ -25,7 +25,15 @@ using namespace folly::literals::shell_literals;
 
 namespace facebook::fboss::platform::fw_util {
 void FwUtilImpl::init() {
-  platformName_ = helpers::PlatformNameLib().getPlatformName().value();
+  auto platformNameOpt = helpers::PlatformNameLib().getPlatformName();
+  if (!platformNameOpt.has_value()) {
+    XLOG(WARNING) << "Could not determine platform name from system. "
+                  << "Using 'UNKNOWN' as default. This may occur in test "
+                  << "environments or systems without dmidecode.";
+    platformName_ = "UNKNOWN";
+  } else {
+    platformName_ = platformNameOpt.value();
+  }
   ConfigLib configLib(configFilePath_);
   std::string fwUtilConfJson = configLib.getFwUtilConfig();
   try {

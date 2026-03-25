@@ -45,6 +45,7 @@ class FakeAsic : public HwAsic {
       case HwAsic::Feature::LINK_TRAINING:
       case HwAsic::Feature::SAI_PORT_VCO_CHANGE:
       case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+      case HwAsic::Feature::SWITCH_ISOLATE:
       case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
       case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
       case HwAsic::Feature::PORT_MTU_ERROR_TRAP:
@@ -199,6 +200,7 @@ class FakeAsic : public HwAsic {
         return 1;
       case cfg::MMUScalingFactor::FOUR:
         return 2;
+      case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
       case cfg::MMUScalingFactor::ONE_32768TH:
         // Unsupported
         throw FbossError(
@@ -238,4 +240,25 @@ class FakeAsic : public HwAsic {
     return std::nullopt;
   }
 };
+
+/**
+ * FakeAsicNoWarmboot is a FakeAsic that does not support warmboot.
+ * This is useful for testing cold boot scenarios.
+ */
+class FakeAsicNoWarmboot : public FakeAsic {
+ public:
+  using FakeAsic::FakeAsic;
+
+  bool isSupported(Feature feature) const override {
+    if (feature == Feature::WARMBOOT) {
+      return false;
+    }
+    return FakeAsic::isSupported(feature);
+  }
+
+  cfg::AsicType getAsicType() const override {
+    return cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT;
+  }
+};
+
 } // namespace facebook::fboss

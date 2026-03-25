@@ -17,6 +17,7 @@
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/CredoSdkVersion.h"
 #include "fboss/lib/phy/NullPortStats.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
@@ -58,7 +59,13 @@ void SaiPhyManager::PlatformInfo::applyUpdate(
   }
 }
 
-SaiPhyManager::~SaiPhyManager() {}
+SaiPhyManager::~SaiPhyManager() {
+  for (auto itr = saiPlatforms_.begin(); itr != saiPlatforms_.end(); ++itr) {
+    for (auto itr2 = itr->second.begin(); itr2 != itr->second.end(); ++itr2) {
+      itr2->second->getHwSwitch()->unregisterCallbacks();
+    }
+  }
+}
 
 SaiPhyManager::PlatformInfo::PlatformInfo(std::unique_ptr<SaiPlatform> platform)
     : saiPlatform_(std::move(platform)) {
@@ -1141,7 +1148,7 @@ void SaiPhyManager::gracefulExit() {
     // Loop through all xphy in the pim
     for (auto& platformItr : pimPlatform) {
       GlobalXphyID xphyID = platformItr.first;
-#ifndef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
       if (getSaiPlatform(xphyID)->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
         return;

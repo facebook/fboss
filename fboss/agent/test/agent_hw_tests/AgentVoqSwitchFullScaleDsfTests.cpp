@@ -19,4 +19,20 @@ TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTest) {
   verifyAcrossWarmBoots(setup, [] {});
 }
 
+TEST_F(AgentVoqSwitchFullScaleDsfNodesTest, systemPortScaleTestWithHyperPort) {
+  auto setup = [this]() {
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE));
+  };
+  auto verify = [this]() {
+    utility::setupRemoteIntfAndSysPorts(
+        getSw(),
+        isSupportedOnAllAsics(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE),
+        true /* useHyperPort*/);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss

@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -84,10 +85,6 @@ class ManagedSaiNextHopGroupMember
         weight_(weight),
         fixedWidthMode_(fixedWidthMode) {}
 
-  ~ManagedSaiNextHopGroupMember() {
-    this->resetObject();
-  }
-
   std::pair<
       std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
       std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
@@ -106,8 +103,6 @@ class ManagedSaiNextHopGroupMember
   void createObject(PublisherObjects added);
 
   void removeObject(size_t index, PublisherObjects removed);
-
-  void handleLinkDown() {}
 
   std::string toString() const;
 
@@ -129,6 +124,10 @@ class NextHopGroupMember {
       ManagedSaiNextHopGroupMember<SaiIpNextHopTraits>;
   using ManagedMplsNextHopGroupMember =
       ManagedSaiNextHopGroupMember<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  using ManagedSrv6NextHopGroupMember =
+      ManagedSaiNextHopGroupMember<SaiSrv6SidlistNextHopTraits>;
+#endif
 
   NextHopGroupMember(
       SaiNextHopGroupManager* manager,
@@ -197,7 +196,12 @@ class NextHopGroupMember {
  private:
   std::variant<
       std::shared_ptr<ManagedIpNextHopGroupMember>,
-      std::shared_ptr<ManagedMplsNextHopGroupMember>>
+      std::shared_ptr<ManagedMplsNextHopGroupMember>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      ,
+      std::shared_ptr<ManagedSrv6NextHopGroupMember>
+#endif
+      >
       managedNextHopGroupMember_;
 };
 
@@ -259,8 +263,13 @@ class SaiNextHopGroupManager {
   void setPrimaryArsSwitchingMode(
       std::optional<cfg::SwitchingMode> switchingMode);
 
+  void setMinWidthForArsVirtualGroup(
+      std::optional<int32_t> minWidthForArsVirtualGroup);
+
   cfg::SwitchingMode getNextHopGroupSwitchingMode(
       const RouteNextHopEntry::NextHopSet& swNextHops);
+
+  std::vector<EcmpDetails> getAllEcmpDetails() const;
 
  private:
   bool isFixedWidthNextHopGroup(
@@ -277,6 +286,7 @@ class SaiNextHopGroupManager {
       NextHopGroupMember>
       nextHopGroupMembers_;
   std::optional<cfg::SwitchingMode> primaryArsMode_;
+  std::optional<int32_t> minWidthForArsVirtualGroup_;
 };
 
 } // namespace facebook::fboss

@@ -27,6 +27,7 @@
 #include "fboss/agent/state/BufferPoolConfigMap.h"
 #include "fboss/agent/state/ControlPlane.h"
 #include "fboss/agent/state/DsfNodeMap.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/Interface.h"
@@ -36,6 +37,7 @@
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/MirrorOnDropReportMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/PortFlowletConfigMap.h"
@@ -43,6 +45,7 @@
 #include "fboss/agent/state/QcmConfig.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/SystemPortMap.h"
 #include "fboss/agent/state/TeFlowTable.h"
@@ -80,6 +83,10 @@ RESOLVE_STRUCT_MEMBER(
     MultiSwitchForwardingInformationBaseMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
+    switch_state_tags::fibsInfoMap,
+    MultiSwitchFibInfoMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
     switch_state_tags::mirrorMaps,
     MultiSwitchMirrorMap);
 RESOLVE_STRUCT_MEMBER(
@@ -102,6 +109,14 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::ipTunnelMaps,
     MultiSwitchIpTunnelMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::srv6TunnelMaps,
+    MultiSwitchSrv6TunnelMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::mySidMaps,
+    MultiSwitchMySidMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::teFlowTables,
@@ -446,6 +461,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchMirrorMap>& getMirrors() const;
   const std::shared_ptr<MultiSwitchMirrorOnDropReportMap>&
   getMirrorOnDropReports() const;
+  const std::shared_ptr<MultiSwitchFibInfoMap>& getFibsInfoMap() const;
   const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& getFibs()
       const;
   const std::shared_ptr<MultiLabelForwardingInformationBase>&
@@ -456,6 +472,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   const std::shared_ptr<MultiSwitchSystemPortMap>&
   getFabricLinkMonitoringSystemPorts() const;
   const std::shared_ptr<MultiSwitchIpTunnelMap>& getTunnels() const;
+
+  const std::shared_ptr<MultiSwitchSrv6TunnelMap>& getSrv6Tunnels() const;
+
+  const std::shared_ptr<MultiSwitchMySidMap>& getMySids() const;
 
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
 
@@ -490,6 +510,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   std::shared_ptr<InterfaceMap> getInterfaces(SwitchID switchId) const;
 
   InterfaceID getInterfaceIDForPort(const PortDescriptor& port) const;
+  std::optional<InterfaceID> getInterfaceIDForPortIf(
+      const PortDescriptor& port) const;
   /*
    * The following functions modify the static state.
    * The should only be called on newly created SwitchState objects that are
@@ -520,6 +542,7 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       std::shared_ptr<MultiLabelForwardingInformationBase> labelFib);
   void resetForwardingInformationBases(
       std::shared_ptr<MultiSwitchForwardingInformationBaseMap> fibs);
+  void resetFibsInfoMap(std::shared_ptr<MultiSwitchFibInfoMap> fibsInfoMap);
   void resetSwitchSettings(std::shared_ptr<MultiSwitchSettings> switchSettings);
   void resetBufferPoolCfgs(std::shared_ptr<MultiSwitchBufferPoolCfgMap> cfgs);
   void resetTransceivers(
@@ -533,6 +556,10 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
       const std::shared_ptr<MultiSwitchSystemPortMap>& systemPorts);
 
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
+
+  void resetSrv6Tunnels(std::shared_ptr<MultiSwitchSrv6TunnelMap> tunnels);
+
+  void resetMySids(std::shared_ptr<MultiSwitchMySidMap> mySids);
 
   void resetTeFlowTable(std::shared_ptr<MultiTeFlowTable> teFlowTable);
   void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);

@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss.platform.fan_service
 namespace php NetengFbossPlatformFanService
 namespace py3 neteng.fboss.platform.fan_service

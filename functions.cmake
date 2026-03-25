@@ -30,3 +30,26 @@ function (strtok str delim out_list)
   endforeach()
   set(${out_list} "${result_list}" PARENT_SCOPE)
 endfunction()
+
+function(BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS NAME SRCS_VAR DEPS_VAR XPHY_SDK_NAME XPHY_SDK_LIBS_VAR)
+  if("${XPHY_SDK_NAME}" STREQUAL "")
+    message(STATUS "Building ${NAME} without XPHY SDK")
+  else()
+    message(STATUS "Building ${NAME} with XPHY SDK=${XPHY_SDK_NAME}")
+  endif()
+
+  add_executable(${NAME} ${${SRCS_VAR}})
+
+  target_link_libraries(${NAME} ${${DEPS_VAR}})
+
+  if(NOT "${XPHY_SDK_NAME}" STREQUAL "" AND DEFINED ${XPHY_SDK_LIBS_VAR})
+    # Only add XPHY_SDK_LIBS if it's defined and not empty
+    target_link_libraries(${NAME}
+      -Wl,--whole-archive
+      ${${XPHY_SDK_LIBS_VAR}}
+      -Wl,--no-whole-archive
+    )
+  endif()
+
+  install(TARGETS ${NAME})
+endfunction()

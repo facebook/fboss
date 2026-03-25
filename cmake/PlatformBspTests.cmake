@@ -44,6 +44,7 @@ target_link_libraries(bsp_test_utils
   bsp_tests_runtime_config_cpp2
   fbiob_device_config_cpp2
   platform_utils
+  platform_manager_i2c_explorer
   platform_manager_pkg_manager
   platform_manager_config_cpp2
   Folly::folly
@@ -60,8 +61,10 @@ target_link_libraries(bsp_test_environment
   bsp_tests_config_cpp2
   bsp_tests_runtime_config_cpp2
   platform_config_lib
+  platform_name_lib
   platform_manager_pkg_manager
   platform_manager_config_cpp2
+  platform_manager_utils
   Folly::folly
   FBThrift::thriftcpp2
 )
@@ -76,6 +79,7 @@ add_executable(bsp_tests
   fboss/platform/bsp_tests/LedTests.cpp
   fboss/platform/bsp_tests/WatchdogTests.cpp
   fboss/platform/bsp_tests/XcvrTests.cpp
+  fboss/platform/bsp_tests/HwmonTests.cpp
 )
 
 target_link_libraries(bsp_tests
@@ -83,9 +87,7 @@ target_link_libraries(bsp_tests
   ${LIBGMOCK_LIBRARIES}
   bsp_test_environment
   bsp_test_utils
-  platform_config_lib
   platform_manager_i2c_explorer
-  platform_name_lib
   platform_manager_config_cpp2
   Folly::folly
   ${GFLAGS}

@@ -96,21 +96,30 @@ class AgentMirroringScaleTest : public AgentHwTest {
                        : "egress")
                << " mirrors";
     // single mirror session need pair of ports to work
-    if (maxMirrors * 2 > ensemble.masterLogicalInterfacePortIds().size()) {
+    if (maxMirrors * 2 > this->getAllPorts(ensemble).size()) {
       throw FbossError("Not enough ports to create mirrors");
     }
     for (int i = 0; i < maxMirrors; i++) {
-      const std::string mirrorName = getMirrorMode() + "-" + std::to_string(i);
-      utility::addMirrorConfig<typename MirrorT::AddrT>(
-          &cfg,
-          ensemble,
-          mirrorName,
-          false /* truncate */,
-          utility::kDscpDefault,
-          maxMirrors + i /* mirrorToPortIndex */);
-      addPortMirrorConfig(&cfg, ensemble, mirrorName, i);
+      addMirrorConfig(&ensemble, &cfg, i);
     }
     return cfg;
+  }
+
+  void addMirrorConfig(
+      const AgentEnsemble* ensemble,
+      cfg::SwitchConfig* cfg,
+      int mirrorIndex) const {
+    const auto maxMirrors = getMaxMirrorsEntries(ensemble->getL3Asics());
+    const std::string mirrorName =
+        getMirrorMode() + "-" + std::to_string(mirrorIndex);
+    utility::addMirrorConfig<typename MirrorT::AddrT>(
+        cfg,
+        *ensemble,
+        mirrorName,
+        false /* truncate */,
+        utility::kDscpDefault,
+        maxMirrors + mirrorIndex /* mirrorToPortIndex */);
+    addPortMirrorConfig(cfg, *ensemble, mirrorName, mirrorIndex);
   }
 
   uint32_t getMaxMirrorsEntries(const std::vector<const HwAsic*>& asics) const {
@@ -120,6 +129,9 @@ class AgentMirroringScaleTest : public AgentHwTest {
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||
         MirrorT::mirrorType == MirrorType::EGRESS_SPAN) {
       maxMirrorsEntries = maxMirrorsEntries - 0;
+    }
+    if (FLAGS_hyper_port) {
+      maxMirrorsEntries = std::min(maxMirrorsEntries, (uint32_t)(2));
     }
     CHECK_GT(maxMirrorsEntries, 0);
     return maxMirrorsEntries;
@@ -142,10 +154,16 @@ class AgentMirroringScaleTest : public AgentHwTest {
     throw FbossError("Invalid mirror type");
   }
 
+  std::vector<PortID> getAllPorts(const AgentEnsemble& ensemble) const {
+    if (FLAGS_hyper_port) {
+      return ensemble.masterLogicalHyperPortIds();
+    }
+    return ensemble.masterLogicalInterfacePortIds();
+  }
+
   PortID getTrafficPort(const AgentEnsemble& ensemble, int portIndex) const {
-    CHECK_LE(portIndex, ensemble.masterLogicalInterfacePortIds().size());
-    return ensemble.masterLogicalPortIds(
-        {cfg::PortType::INTERFACE_PORT})[portIndex];
+    CHECK_LE(portIndex, getAllPorts(ensemble).size());
+    return getAllPorts(ensemble)[portIndex];
   }
   void addPortMirrorConfig(
       cfg::SwitchConfig* cfg,
@@ -178,6 +196,22 @@ TYPED_TEST(AgentMirroringScaleTest, MaxMirroringTest) {
         mirrors,
         this->getMaxMirrorsEntries(this->getAgentEnsemble()->getL3Asics()));
   };
-  this->verifyAcrossWarmBoots([] {}, verify);
+  this->verifyAcrossWarmBoots(verify);
 }
+
+TYPED_TEST(AgentMirroringScaleTest, ExceedMaxMirroringTest) {
+  auto verify = [=, this]() {
+    auto mirrors = this->getProgrammedState()->getMirrors()->numNodes();
+    CHECK_EQ(
+        mirrors,
+        this->getMaxMirrorsEntries(this->getAgentEnsemble()->getL3Asics()));
+
+    auto cfg = this->getAgentEnsemble()->getSw()->getConfig();
+
+    this->addMirrorConfig(this->getAgentEnsemble(), &cfg, mirrors + 1);
+    ASSERT_THROW(this->applyNewConfig(cfg), FbossError);
+  };
+  verify();
+}
+
 } // namespace facebook::fboss

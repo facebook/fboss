@@ -37,8 +37,6 @@ using std::unique_ptr;
 
 BcmPortTable::BcmPortTable(BcmSwitch* hw) : hw_(hw) {}
 
-BcmPortTable::~BcmPortTable() {}
-
 void BcmPortTable::addBcmPort(bcm_port_t logicalPort, bool warmBoot) {
   // Find the platform port object
   BcmPlatformPort* platformPort = dynamic_cast<BcmPlatformPort*>(

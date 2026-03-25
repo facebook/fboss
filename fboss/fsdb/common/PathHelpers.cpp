@@ -29,7 +29,6 @@ std::string PathHelpers::toString(const ExtendedOperPath& path) {
         break;
       case OperPathElem::Type::__EMPTY__:
         throw std::runtime_error("Illformed extended path");
-        break;
     }
   }
   return PathHelpers::toString(pathElms);

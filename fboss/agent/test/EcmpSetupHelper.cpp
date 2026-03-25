@@ -27,8 +27,6 @@
 
 #include <folly/IPAddress.h>
 
-DECLARE_bool(intf_nbr_tables);
-
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::IPAddress;
@@ -96,7 +94,8 @@ boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
   if (sw->getSwitchInfoTable().l3SwitchType() == cfg::SwitchType::VOQ) {
     for (const auto& portMap : std::as_const(*sw->getState()->getPorts())) {
       for (const auto& port : std::as_const(*portMap.second)) {
-        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT) {
+        if (port.second->getPortType() == cfg::PortType::INTERFACE_PORT ||
+            port.second->getPortType() == cfg::PortType::HYPER_PORT) {
           ports.insert(PortDescriptor{PortID(port.second->getID())});
         }
       }
@@ -115,7 +114,7 @@ boost::container::flat_set<PortDescriptor> getSingleVlanOrRoutedCabledPorts(
         } else if (intf.second->getType() == cfg::InterfaceType::VLAN) {
           auto vlan =
               sw->getState()->getVlans()->getNode(intf.second->getVlanID());
-          auto memberPorts = vlan->getPorts();
+          auto memberPorts = vlan->getPortsInfo();
           if (memberPorts.size() == 1) {
             ports.insert(PortDescriptor{PortID(memberPorts.begin()->first)});
           }
@@ -227,14 +226,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto existingEntry = nbrTable->getEntryIf(nhopIp);
@@ -255,7 +248,6 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   } else {
     nbrTable->addEntry(nhopIp, nhop.mac, nhop.portDesc, intf->getID());
     if (needL2EntryForNeighbor()) {
-      CHECK(intf->getVlanIDIf().has_value());
       outputState = NeighborTestUtils::addMacEntryForNewNbrEntry(
           outputState, intf->getVlanID(), nbrTable->getEntryIf(nhopIp));
     }
@@ -311,14 +303,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto entry = nbrTable->getEntryIf(nhopIp);
@@ -826,9 +812,18 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
     RouteUpdateWrapper* updater,
     size_t width,
     const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
+    const std::vector<NextHopWeight>& weights,
+    const std::optional<bool>& disableTTLDecrement) const {
+  // Use default route prefix when caller passes empty prefixes
+  const auto& effectivePrefixes =
+      prefixes.empty() ? std::vector<RouteT>{{IPAddrT(), 0}} : prefixes;
   ecmpSetupTargetedPorts_.programRoutes(
-      updater, getPortDescs(width), prefixes, weights);
+      updater,
+      getPortDescs(width),
+      effectivePrefixes,
+      weights,
+      std::nullopt,
+      disableTTLDecrement);
 }
 
 template <typename IPAddrT>

@@ -13,6 +13,10 @@ include "fboss/agent/if/highfreq.thrift"
 include "fboss/agent/switch_state.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/lib/phy/prbs.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 const i32 DEFAULT_HW_CTRL_BASE_PORT = 5931;
 
@@ -180,4 +184,13 @@ service FbossHwCtrl {
    * on a box
    */
   string getHwDebugDump();
+
+  /*
+   * Get the current programmed switch state from HwAgent.
+   * This returns the in-memory state that HwAgent maintains,
+   * which can be used for SW Agent warmboot recovery.
+   */
+  switch_state.SwitchState getProgrammedState() throws (
+    1: fboss.FbossBaseError error,
+  );
 }

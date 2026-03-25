@@ -23,7 +23,8 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto config = AgentHwTest::initialConfig(ensemble);
-    auto port = ensemble.masterLogicalInterfacePortIds()[0];
+    auto port = FLAGS_hyper_port ? ensemble.masterLogicalHyperPortIds()[0]
+                                 : ensemble.masterLogicalInterfacePortIds()[0];
     utility::addOlympicQosMaps(config, ensemble.getL3Asics());
     auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
     utility::addTrapPacketAcl(asic, &config, port);
@@ -36,8 +37,15 @@ class AgentDeepPacketInspectionTest : public AgentHwTest {
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
   PortDescriptor kPort() const {
-    return PortDescriptor(masterLogicalInterfacePortIds()[0]);
+    return PortDescriptor(getTestPortId(0));
   }
+  PortID getTestPortId(int idx = 0) const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds()[idx];
+    }
+    return masterLogicalInterfacePortIds()[idx];
+  }
+
   std::unique_ptr<TxPacket> makePacket(
       bool tcp,
       const folly::IPAddressV6& dstIp,
@@ -115,10 +123,7 @@ TEST_F(AgentDeepPacketInspectionTest, l3ForwardedPkt) {
     });
   };
   auto verify = [this]() {
-    std::optional<PortID> frontPanelPort =
-        ecmpHelper()
-            .ecmpPortDescriptorAt(masterLogicalInterfacePortIds()[1])
-            .phyPortID();
+    std::optional<PortID> frontPanelPort = getTestPortId(1);
     for (bool isTcp : {true, false}) {
       for (bool isFrontPanel : {true, false}) {
         std::optional<PortID> outOfPort =

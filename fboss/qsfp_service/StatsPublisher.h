@@ -11,10 +11,14 @@
 #pragma once
 
 #include <folly/io/async/EventBase.h>
-#include "fboss/qsfp_service/TransceiverManager.h"
+#include "fboss/agent/types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook {
 namespace fboss {
+
+class TransceiverManager;
+
 class StatsPublisher {
  public:
   explicit StatsPublisher(TransceiverManager* transceiverManager)

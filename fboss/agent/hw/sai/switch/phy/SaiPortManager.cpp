@@ -25,6 +25,11 @@
 
 #include <folly/logging/xlog.h>
 
+DEFINE_bool(
+    enable_xphy_link_training,
+    false,
+    "Enable/disable link training for XPHY ports");
+
 namespace facebook::fboss {
 
 void SaiPortManager::fillInSupportedStats(PortID portId) {
@@ -71,9 +76,6 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   XLOG(DBG3) << "Created lineport " << saiLinePort->adapterKey();
   handle->port = saiLinePort;
 
-  // Program System and Line side Serdes
-  programSerdes(saiLinePort, swPort, handle.get());
-
   // Create the port connector
   SaiPortConnectorTraits::CreateAttributes portConnAttr{
       saiLinePort->adapterKey(), saiSysPort->adapterKey()};
@@ -84,6 +86,10 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
   XLOG(DBG3) << "Created port connector " << saiPortConn->adapterKey();
 
   handle->connector = saiPortConn;
+
+  // Program System and Line side Serdes
+  programSerdes(saiLinePort, swPort, handle.get());
+
   handles_.emplace(swPort->getID(), std::move(handle));
 
   // Make admin state of sysport and lineport up after the connector  is created
@@ -248,35 +254,55 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   XLOG(DBG2) << dbgOutput;
 
   return SaiPortTraits::CreateAttributes{
-      laneList,       static_cast<uint32_t>(speed),
-      enabled,        fecMode,
+      laneList,
+      static_cast<uint32_t>(speed),
+      enabled,
+      fecMode,
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-      useExtendedFec, extendedFecMode,
+      useExtendedFec,
+      extendedFecMode,
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
       std::nullopt, // Port Fabric Isolate
 #endif
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      intfType,       std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      intfType,
+      std::nullopt,
       std::nullopt, // TAM Object
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
-      std::nullopt,   std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
 #if !defined(TAJO_SDK)
-      std::nullopt,   std::nullopt,
+      std::nullopt,
+      std::nullopt,
 #endif
-      std::nullopt,   std::nullopt,
+      std::nullopt,
+      std::nullopt,
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
       std::nullopt,
 #endif
-      std::nullopt, // Link Training Enable
+      FLAGS_enable_xphy_link_training
+          ? std::make_optional<SaiPortTraits::Attributes::LinkTrainingEnable>(
+                true)
+          : std::nullopt, // Link Training Enable
       std::nullopt, // FDR Enable
       std::nullopt, // Rx Squelch Enable
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 2)
@@ -303,6 +329,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcMonitorDirection
       std::nullopt, // QosDot1pToTcMap
       std::nullopt, // QosTcAndColorToDot1pMap
+      std::nullopt, // QosIngressBufferProfileList
+      std::nullopt, // QosEgressBufferProfileList
+      std::nullopt, // CablePropagationDelayMediaType
+      std::nullopt, // PfcPauseDurationOverride
   };
 }
 
@@ -320,7 +350,8 @@ void SaiPortManager::programSerdes(
     SaiPortHandle* portHandle) {
   if (!platform_->isSerdesApiSupported() ||
       !(platform_->getAsic()->isSupported(
-          HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET))) {
+          HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING))) {
+    XLOG(INFO) << "Serdes programming not supported, skipping";
     return;
   }
 
@@ -381,7 +412,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& /* serdes */,
-    bool /* zeroPreemphasis */) {
+    bool /* zeroPreemphasis */,
+    const std::optional<std::string>& customCollection) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;

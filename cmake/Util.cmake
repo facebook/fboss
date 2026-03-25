@@ -3,7 +3,7 @@
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
 
-add_executable(wedge_qsfp_util
+set(WEDGE_QSFP_UTIL_SRCS
   fboss/util/wedge_qsfp_util.cpp
   fboss/util/qsfp_util_main.cpp
   fboss/util/qsfp/QsfpServiceDetector.cpp
@@ -12,7 +12,7 @@ add_executable(wedge_qsfp_util
   fboss/util/oss/wedge_qsfp_util.cpp
 )
 
-target_link_libraries(wedge_qsfp_util
+set(WEDGE_QSFP_UTIL_DEPS
   firmware_upgrader
   qsfp_config
   qsfp_lib
@@ -23,9 +23,19 @@ target_link_libraries(wedge_qsfp_util
   port_manager
   qsfp_platforms_wedge
   fboss_common_cpp2
+  wedge_i2c
 )
 
-install(TARGETS wedge_qsfp_util)
+if(SAI_BRCM_PAI_IMPL)
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "wedge_qsfp_util" WEDGE_QSFP_UTIL_SRCS WEDGE_QSFP_UTIL_DEPS "brcm_pai" XPHY_SDK_LIBS
+  )
+else()
+  BUILD_AND_INSTALL_WITH_XPHY_SDK_LIBS(
+    "wedge_qsfp_util" WEDGE_QSFP_UTIL_SRCS WEDGE_QSFP_UTIL_DEPS "" ""
+  )
+endif()
+
 
 add_executable(thrift_state_updater
   fboss/util/ThriftStateUpdater.cpp

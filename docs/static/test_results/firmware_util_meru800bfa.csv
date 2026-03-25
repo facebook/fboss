@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","meru800bfa","PASSED"
+"FwUtilHwTest.listFirmwareNames","meru800bfa","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","meru800bfa","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","meru800bfa","PASSED"

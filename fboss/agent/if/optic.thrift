@@ -6,6 +6,10 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.optic
 
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 /*
  * THIS IS DEPRECATED, PLEASE USE TransceiverInfo INSTEAD

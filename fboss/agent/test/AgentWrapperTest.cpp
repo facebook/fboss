@@ -48,19 +48,23 @@ void AgentWrapperTest<T>::SetUp() {
     }
   }
   config_ = AgentConfig::fromFile("/etc/coop/agent/current");
+
+  auto newConfigThrift = config_->thrift;
+  newConfigThrift.defaultCommandLineArgs()["agent_graceful_exit_timeout_ms"] =
+      "130000";
   createDirectoryTree(util_.getWarmBootDir());
+
   if constexpr (T::kMultiSwitch) {
-    auto newConfigThrift = config_->thrift;
     newConfigThrift.defaultCommandLineArgs()["multi_switch"] = "true";
     newConfigThrift.defaultCommandLineArgs()["multi_npu_platform_mapping"] =
         "true";
-    config_ = std::make_unique<AgentConfig>(newConfigThrift);
-    std::filesystem::copy_options opt =
-        std::filesystem::copy_options::overwrite_existing;
-    std::filesystem::copy(
-        "/etc/coop/agent/current", "/etc/coop/agent/current.backup", opt);
-    config_->dumpConfig("/etc/coop/agent/current");
   }
+  config_ = std::make_unique<AgentConfig>(newConfigThrift);
+  std::filesystem::copy_options opt =
+      std::filesystem::copy_options::overwrite_existing;
+  std::filesystem::copy(
+      "/etc/coop/agent/current", "/etc/coop/agent/current.backup", opt);
+  config_->dumpConfig("/etc/coop/agent/current");
 }
 
 template <typename T>

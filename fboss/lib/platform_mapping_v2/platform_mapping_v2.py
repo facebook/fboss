@@ -8,7 +8,7 @@ from fboss.lib.platform_mapping_v2.helpers import (
     get_connection_pairs_for_profile,
     get_mapping_pins,
     get_npu_chip,
-    get_pins_from_connections,
+    get_pin_data_from_connections,
     get_platform_config_entry,
     get_transceiver_chip,
     get_unique_connection_pairs,
@@ -29,13 +29,12 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
 )
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     PortPinConfig,
+    Side,
 )
-
 from neteng.fboss.platform_config.ttypes import (
     PlatformMapping,
     PlatformPortConfig,
@@ -71,6 +70,10 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "tahan800bc": [
         "tahan800bc_chassis",
         "tahan800bc_test_fixture",
+    ],
+    "montblanc": [
+        "montblanc_odd_ports_8x100G",
+        "montblanc",
     ],
 }
 
@@ -134,7 +137,7 @@ class PlatformMappingParser:
             )
 
     def _read_csvs(self) -> None:
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add processing for yangra platform csv processing
             self._static_mapping = StaticMapping(az_connections=[])
             self._port_profile_mapping = PortProfileMapping(ports={})
@@ -223,9 +226,11 @@ class PlatformMappingV2:
     # Sort unique_factors by:
     # ports[0], then profiles[0], then vendor.name then vendor.partNumber
     def _sort_key(
-        self, factor: PlatformPortConfigOverrideFactor
+        self,
+        factor_in: Tuple[PlatformPortConfigOverrideFactor, Tuple[Tuple[int, int], ...]],
     ) -> tuple[str, int, str, str]:
         # Use empty string or 0 if list is empty or attribute is missing
+        factor = factor_in[0]
         profile = (
             str(factor.profiles[0])
             if getattr(factor, "profiles", None)
@@ -261,37 +266,54 @@ class PlatformMappingV2:
     ) -> List[PlatformPortConfigOverride]:
         # merge lists
         merged_factors: List[
-            Tuple[PlatformPortConfigOverrideFactor, List[PortPinConfig]]
+            Tuple[
+                PlatformPortConfigOverrideFactor,
+                List[PortPinConfig],
+                Dict[int, int],
+            ]
         ] = []
         for port_config_override in port_config_overrides:
             found = False
-            for factor, pins in merged_factors:
+            for factor, pins, driver_peakings in merged_factors:
                 if factor == port_config_override.factor:
                     found = True
                     if port_config_override.pins is not None:
                         pins.append(port_config_override.pins)
+                    if port_config_override.driverPeaking is not None:
+                        driver_peakings.update(port_config_override.driverPeaking)
+
             if not found:
+                driver_peaking: Dict[int, int] = {}
+                if port_config_override.driverPeaking is not None:
+                    driver_peaking.update(port_config_override.driverPeaking)
                 if port_config_override.pins is not None:
                     merged_factors.append(
-                        (port_config_override.factor, [port_config_override.pins])
+                        (
+                            port_config_override.factor,
+                            [port_config_override.pins],
+                            driver_peaking,
+                        )
                     )
 
         # generate output
         retval: List[PlatformPortConfigOverride] = []
-        unique_factors: set[PlatformPortConfigOverrideFactor] = set()
+        unique_factors: set[
+            Tuple[PlatformPortConfigOverrideFactor, Tuple[Tuple[int, int], ...]]
+        ] = set()
 
-        for factor, _ in merged_factors:
-            unique_factors.add(factor)
+        for factor, _, driver_peaking in merged_factors:
+            unique_factors.add((factor, tuple(driver_peaking.items())))
 
         unique_factors_list = sorted(unique_factors, key=self._sort_key)
 
-        for unique_factor in unique_factors_list:
+        for unique_factor, driver_peaking in unique_factors_list:
             platform_port_config_override = PlatformPortConfigOverride()
             platform_port_config_override.factor = unique_factor
+            platform_port_config_override.driverPeaking = dict[int, int](driver_peaking)
             port_pin_config_list: List[PortPinConfig] = []
-            for merged_factor, merged_port_pin_config_list in merged_factors:
+            for merged_factor, merged_port_pin_config_list, _ in merged_factors:
                 if merged_factor == unique_factor:
-                    port_pin_config_list.extend(merged_port_pin_config_list)
+                    port_pin_config_list.extend(merged_port_pin_config_list or [])
             final_port_pin_config = PortPinConfig(iphy=[])
             for port_pin_config in port_pin_config_list:
                 if len(port_pin_config.iphy) > 0:
@@ -315,7 +337,7 @@ class PlatformMappingV2:
     def _generate_chips(self) -> List[DataPlanePhyChip]:
         parsed_chips = self.pm_parser.get_static_mapping().get_chips()
         chips = []
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add logic to generate chips for yangra
             return chips
 
@@ -340,7 +362,7 @@ class PlatformMappingV2:
         self,
     ) -> List[PlatformPortProfileConfigEntry]:
         platform_config_entry = []
-        if self.platform == "yangra":
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add logic to generate platform supported profiles for yangra
             return platform_config_entry
 
@@ -352,22 +374,35 @@ class PlatformMappingV2:
                 profile, DataPlanePhyChipType.IPHY
             )
 
-            # Get XPHY speed setting (optional)
-            xphy_speed_setting = None
+            # Get XPHY line speed setting
+            xphy_line_speed_setting = None
             try:
-                xphy_speed_setting = (
+                xphy_line_speed_setting = (
                     self.pm_parser.get_profile_settings().get_speed_setting(
-                        profile, DataPlanePhyChipType.XPHY
+                        profile, DataPlanePhyChipType.XPHY, Side.LINE
                     )
                 )
             except Exception:
-                # XPHY speed setting doesn't exist for this profile, which is okay
+                # XPHY line speed setting doesn't exist for this profile, which is okay
+                pass
+
+            # Get XPHY system speed setting
+            xphy_system_speed_setting = None
+            try:
+                xphy_system_speed_setting = (
+                    self.pm_parser.get_profile_settings().get_speed_setting(
+                        profile, DataPlanePhyChipType.XPHY, Side.SYSTEM
+                    )
+                )
+            except Exception:
+                # XPHY system speed setting doesn't exist for this profile, which is okay
                 pass
 
             entry = get_platform_config_entry(
                 profile=profile,
                 npu_speed_setting=npu_speed_setting,
-                xphy_speed_setting=xphy_speed_setting,
+                xphy_line_speed_setting=xphy_line_speed_setting,
+                xphy_system_speed_setting=xphy_system_speed_setting,
             )
             if entry:
                 platform_config_entry.append(entry)
@@ -380,8 +415,8 @@ class PlatformMappingV2:
         Dict[int, PlatformPortEntry], Optional[List[PlatformPortConfigOverride]]
     ]:
         ports = {}
-        port_config_overrides = []
-        if self.platform == "yangra":
+        port_config_overrides: List[PlatformPortConfigOverride] = []
+        if self.platform == "yangra" or self.platform == "yangra2":
             # TODO(pshaikh): add logic to generate ports for yangra
             return (ports, port_config_overrides)
 
@@ -406,17 +441,19 @@ class PlatformMappingV2:
                 )
                 all_connection_pairs = all_connection_pairs + profile_connections
                 # can get the overrides from here per profile
-                [platform_port_config.pins, platform_port_config_override] = (
-                    get_pins_from_connections(
-                        connections=profile_connections,
-                        si_settings=self.pm_parser.get_si_settings(),
-                        profile=profile,
-                        # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
-                        lane_speed=0
-                        if speed_setting.num_lanes == 0
-                        else speed_setting.speed / speed_setting.num_lanes,
-                        port_id=port_detail.global_port_id,
-                    )
+
+                [
+                    platform_port_config.pins,
+                    platform_port_config_override,
+                ] = get_pin_data_from_connections(
+                    connections=profile_connections,
+                    si_settings=self.pm_parser.get_si_settings(),
+                    profile=profile,
+                    # pyre-fixme[6]: Expected `PortSpeed` for 4th param, but got `float`.
+                    lane_speed=0
+                    if speed_setting.num_lanes == 0
+                    else speed_setting.speed / speed_setting.num_lanes,
+                    port_id=port_detail.global_port_id,
                 )
                 if len(platform_port_config_override) > 0:
                     port_config_overrides.extend(platform_port_config_override)
@@ -431,9 +468,11 @@ class PlatformMappingV2:
             mapping.pins = get_mapping_pins(all_connection_pairs)
             # Sort pins by lane id of the 'a' end
             mapping.pins = sorted(mapping.pins, key=lambda pin: pin.a.lane)
-            # Mark the controllingPort as self here. We'll override it later when
-            # we figure out which ports this port needs to subsume
-            mapping.controllingPort = port_id
+            # If explicit controlling_port is specified in the CSV, use it directly.
+            if port_detail.controlling_port is not None:
+                mapping.controllingPort = port_detail.controlling_port
+            else:
+                mapping.controllingPort = port_id
             mapping.portType = port_detail.port_type
             mapping.scope = port_detail.scope
             if port_detail.attached_coreid is not None:
@@ -457,6 +496,10 @@ class PlatformMappingV2:
         # other port uses its iphy pins, then the former port needs to be a
         # subsumed port controlled by the later port
         for port_id, port_entry in ports.items():
+            # Check if explicit controlling_port was set in CSV
+            port_detail = self.pm_parser.get_port_profile_mapping().get_ports()[port_id]
+            has_explicit_controlling_port = port_detail.controlling_port is not None
+
             for port_config in port_entry.supportedProfiles.values():
                 if port_entry.mapping.portType != PortType.HYPER_PORT:
                     all_iphy_pins_needed = port_config.pins.iphy
@@ -469,15 +512,26 @@ class PlatformMappingV2:
                         for (
                             other_port_config
                         ) in other_port_entry.supportedProfiles.values():
-                            if all(
-                                needed_iphy_pin in other_port_config.pins.iphy
-                                for needed_iphy_pin in all_iphy_pins_needed
+                            other_port_pin_ids = [
+                                pin_config.id
+                                for pin_config in other_port_config.pins.iphy
+                            ]
+                            needed_pin_ids = [
+                                pin_config.id for pin_config in all_iphy_pins_needed
+                            ]
+
+                            if needed_pin_ids and all(
+                                needed_iphy_pin_id in other_port_pin_ids
+                                for needed_iphy_pin_id in needed_pin_ids
                             ):
                                 if not other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts = []
                                 if port_id not in other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts.append(port_id)
-                                port_entry.mapping.controllingPort = other_port_id
+                                # Only set controllingPort if not explicitly set in CSV
+                                if not has_explicit_controlling_port:
+                                    port_entry.mapping.controllingPort = other_port_id
+
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():
                         other_port_detail = (

@@ -73,6 +73,14 @@ class WedgeQsfp : public TransceiverImpl {
   /* Detects if a SFP is present on the particular port
    */
   bool detectTransceiver() override {
+    if (logBuffer_) {
+      uint8_t dummyData = 0;
+      logBuffer_->log(
+          TransceiverAccessParameter(0, 0, 0), /* param */
+          0, /* field */
+          &dummyData, /* fieldValue */
+          I2cLogBuffer::Operation::Presence);
+    }
     return threadSafeI2CBus_->isPresent(module_ + 1);
   }
 
@@ -97,6 +105,14 @@ class WedgeQsfp : public TransceiverImpl {
   }
 
   void triggerQsfpHardReset() override {
+    if (logBuffer_) {
+      uint8_t dummyData = 0;
+      logBuffer_->log(
+          TransceiverAccessParameter(0, 0, 0), /* param */
+          0, /* field */
+          &dummyData, /* fieldValue */
+          I2cLogBuffer::Operation::Reset);
+    }
     tcvrManager_->getQsfpPlatformApi()->triggerQsfpHardReset(module_ + 1);
   }
 

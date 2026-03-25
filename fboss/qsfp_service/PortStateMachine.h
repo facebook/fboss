@@ -57,7 +57,10 @@ bool isEnabled = newState == PortStateMachineState::INITIALIZED;
 XLOG(DBG2) << "[Port:" << portId << "] State changed to "
            << apache::thrift::util::enumNameSafe(newState);
 
+portMgr->clearTransceiversReadyForProgramming(portId);
 portMgr->setPortEnabledStatusInCache(portId, isEnabled);
+portMgr->clearEnabledTransceiversForPort(portId);
+portMgr->clearMultiTcvrMappings(portId);
 } // namespace facebook::fboss
 }
 ;
@@ -144,16 +147,32 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
+  if (!portMgr->portHasTransceiver(portId)) {
+    // XPHY-only port without transceiver - skip IPHY programming via
+    // transceiver, just proceed to next state.
+    XLOG(INFO) << "[Port:" << name
+               << "] No transceiver for port, skipping IPHY programming";
+    return true;
+  }
+
+  if (portMgr->isLowestIndexedInitializedPortForTransceiverPortGroup(portId)) {
     // Port should orchestrate PHY programming.
-    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
-      portMgr->programInternalPhyPorts(tcvrID);
+    // First transceiver will communicate which pins need to be programmed (for
+    // both ports) - so only one transceiver needs to request information from
+    // agent.
+    auto tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      XLOG(INFO)
+          << "[Port:" << name
+          << "] Port should have transceiver, but no transceiver found. Failing IPHY programming.";
+      return false;
     }
+    portMgr->programInternalPhyPorts(*tcvrIdOpt);
   } else {
     // Port shouldn't orchestrate PHY programming. Port needs to check state
     // of orchestrating port to proceed to next stage.
     auto lowestIdxPort =
-        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
+        portMgr->getLowestIndexedInitializedPortForTransceiverPortGroup(portId);
     return portMgr->hasPortFinishedIphyProgramming(lowestIdxPort);
   }
   return true;
@@ -182,24 +201,23 @@ if (!portMgr) {
 }
 
 try {
-  if (portMgr->isLowestIndexedPortForTransceiverPortGroup(portId)) {
-    // Port should orchestrate PHY programming.
-    for (auto tcvrID : portMgr->getTransceiverIdsForPort(portId)) {
-      portMgr->programExternalPhyPorts(
-          tcvrID, fsm.get_attribute(xphyNeedResetDataPath));
+  std::optional<TransceiverID> tcvrIdOpt;
+  if (portMgr->portHasTransceiver(portId)) {
+    tcvrIdOpt = portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+    if (!tcvrIdOpt) {
+      // This case shouldn't be hit for non-XPHY-only ports, so we return
+      // false.
+      return false;
     }
-  } else {
-    // Port shouldn't orchestrate PHY programming. Port needs to check state
-    // of orchestrating port to proceed to next stage.
-    auto lowestIdxPort =
-        portMgr->getLowestIndexedPortForTransceiverPortGroup(portId);
-    return portMgr->hasPortFinishedXphyProgramming(lowestIdxPort);
   }
+
+  portMgr->programExternalPhyPort(
+      portId, tcvrIdOpt, fsm.get_attribute(xphyNeedResetDataPath));
   return true;
 } catch (const std::exception& ex) {
   // We have retry mechanism to handle failure. No crash here
   XLOG(WARN) << "[Port:" << name
-             << "] programExternalPhyPorts failed:" << folly::exceptionStr(ex);
+             << "] programExternalPhyPort failed:" << folly::exceptionStr(ex);
   return false;
 }
 }

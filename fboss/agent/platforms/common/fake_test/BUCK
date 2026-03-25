@@ -8,6 +8,7 @@ cpp_library(
         "FakeTestPlatformMapping.cpp",
     ],
     exported_deps = [
+        "//fboss/agent:fboss-error",
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/lib/phy:phy-cpp2-types",
         "//folly:format",

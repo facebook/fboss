@@ -17,6 +17,8 @@ extern "C" {
 #include <sai.h>
 }
 
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
 namespace facebook::fboss {
 
 struct FakeNextHop {
@@ -38,6 +40,10 @@ struct FakeNextHop {
   sai_object_id_t id;
   std::vector<sai_uint32_t> labelStack;
   bool disableTtlDecrement{false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  sai_object_id_t tunnelId{SAI_NULL_OBJECT_ID};
+  sai_object_id_t srv6SidlistId{SAI_NULL_OBJECT_ID};
+#endif
 };
 
 // first next hop begins with 1

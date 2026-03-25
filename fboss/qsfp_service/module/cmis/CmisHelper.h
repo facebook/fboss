@@ -543,7 +543,7 @@ class CmisHelper final {
         }
       }
       if (combolValid) {
-        XLOG(ERR)
+        XLOG(INFO)
             << "Transceiver " << tcvrName << ": "
             << folly::sformat(
                    "Found the valid speed combo of media intf id {:s} for lanemask {:#x}",
@@ -622,7 +622,7 @@ class CmisHelper final {
               apache::thrift::util::enumNameSafe(validSpeedCombo[laneId]);
           speedCfgCombo += " ";
         }
-        XLOG(ERR)
+        XLOG(INFO)
             << "Transceiver " << tcvrName << ": "
             << folly::sformat(
                    "Returning the valid speed combo of media intf id {:s} for lanemask {:#x} = {:s}",

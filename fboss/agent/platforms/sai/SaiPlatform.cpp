@@ -10,17 +10,24 @@
 
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
 
+#include <folly/String.h>
+
 #include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/switch_asics/Jericho3Asic.h"
+#include "fboss/agent/hw/switch_asics/Jericho4Asic.h"
+#include "fboss/agent/hw/switch_asics/Qumran4DAsic.h"
+#include "fboss/agent/platforms/sai/SaiBcmBlackwolf800banwPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmDarwinPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmElbertPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmFujiPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiBcmIcecube800bcPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmIcecube800PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmIcetea800bcPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmJ4SimPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmLadakh800bclsPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiBcmMinipack3BTAPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMinipackPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmMontblancPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiBcmTahansb800bcPlatformPort.h"
@@ -31,9 +38,6 @@
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru400bfuPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru400biuPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.h"
@@ -41,6 +45,7 @@
 #include "fboss/agent/platforms/sai/SaiTahan800bcPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge400CPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiWedge800CACTPlatformPort.h"
+#include "fboss/agent/platforms/sai/SaiYangra2PlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiYangraPlatformPort.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -154,15 +159,21 @@ SaiPlatform::SaiPlatform(
   const auto& platPorts = getPlatformPorts();
   CHECK(portsByMasterPort.size() > 1);
   for (const auto& itPort : portsByMasterPort) {
-    if (FLAGS_hide_fabric_ports) {
-      if (*platPorts.find(static_cast<int32_t>(itPort.first))
-               ->second.mapping()
-               ->portType() != cfg::PortType::FABRIC_PORT) {
-        masterLogicalPortIds_.push_back(itPort.first);
-      }
-    } else {
-      masterLogicalPortIds_.push_back(itPort.first);
+    if ((FLAGS_hide_fabric_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::FABRIC_PORT) ||
+        (FLAGS_hide_interface_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
+      continue;
     }
+    masterLogicalPortIds_.push_back(itPort.first);
   }
 }
 
@@ -300,6 +311,12 @@ std::string SaiPlatform::getHwAsicConfig(
 }
 
 void SaiPlatform::initSaiProfileValues() {
+  auto platformMode = getType();
+  // LADAKH800BCLS need SAI_CUSTOM_KERNEL_BDE_NAME to support mnpu
+  if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
+    kSaiProfileValues.insert(
+        std::make_pair("SAI_CUSTOM_KERNEL_BDE_NAME", "linux_ngbde"));
+  }
   kSaiProfileValues.insert(
       std::make_pair(SAI_KEY_INIT_CONFIG_FILE, getHwConfigDumpFile()));
   kSaiProfileValues.insert(
@@ -356,6 +373,8 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmDarwinPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK) {
       saiPort = std::make_unique<SaiBcmMinipackPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_MINIPACK3BTA) {
+      saiPort = std::make_unique<SaiBcmMinipack3BTAPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MORGAN800CC) {
       saiPort = std::make_unique<SaiMorgan800ccPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_YAMP) {
@@ -369,17 +388,11 @@ void SaiPlatform::initPorts() {
           getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
         saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
-    } else if (platformMode == PlatformType::PLATFORM_MERU400BIU) {
-      saiPort = std::make_unique<SaiMeru400biuPlatformPort>(portId, this);
     } else if (
         platformMode == PlatformType::PLATFORM_MERU800BIA ||
         platformMode == PlatformType::PLATFORM_MERU800BIAB ||
         platformMode == PlatformType::PLATFORM_MERU800BIAC) {
       saiPort = std::make_unique<SaiMeru800biaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MERU400BIA) {
-      saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MERU400BFU) {
-      saiPort = std::make_unique<SaiMeru400bfuPlatformPort>(portId, this);
     } else if (
         platformMode == PlatformType::PLATFORM_MERU800BFA ||
         platformMode == PlatformType::PLATFORM_MERU800BFA_P1) {
@@ -394,8 +407,10 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiYangraPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_MINIPACK3N) {
       saiPort = std::make_unique<SaiMinipack3NPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_ICECUBE800BC) {
-      saiPort = std::make_unique<SaiBcmIcecube800bcPlatformPort>(portId, this);
+    } else if (
+        platformMode == PlatformType::PLATFORM_ICECUBE800BC ||
+        platformMode == PlatformType::PLATFORM_ICECUBE800BANW) {
+      saiPort = std::make_unique<SaiBcmIcecube800PlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_ICETEA800BC) {
       saiPort = std::make_unique<SaiBcmIcetea800bcPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_LADAKH800BCLS) {
@@ -404,8 +419,15 @@ void SaiPlatform::initPorts() {
       saiPort = std::make_unique<SaiBcmWedge800BACTPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_WEDGE800CACT) {
       saiPort = std::make_unique<SaiWedge800CACTPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_J4SIM) {
+      saiPort = std::make_unique<SaiBcmJ4SimPlatformPort>(portId, this);
     } else if (platformMode == PlatformType::PLATFORM_TAHANSB800BC) {
       saiPort = std::make_unique<SaiBcmTahansb800bcPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_BLACKWOLF800BANW) {
+      saiPort =
+          std::make_unique<SaiBcmBlackwolf800banwPlatformPort>(portId, this);
+    } else if (platformMode == PlatformType::PLATFORM_YANGRA2) {
+      saiPort = std::make_unique<SaiYangra2PlatformPort>(portId, this);
     } else {
       saiPort = std::make_unique<SaiFakePlatformPort>(portId, this);
     }
@@ -445,10 +467,16 @@ SaiPlatform::findPortIDAndProfiles(
     std::vector<uint32_t> lanes,
     PortSaiId portSaiId) const {
   std::vector<cfg::PortProfileID> matchingProfiles;
+
   for (const auto& portMapping : portMapping_) {
     const auto& platformPort = portMapping.second;
     auto profiles = platformPort->getAllProfileIDsForSpeed(speed);
     for (auto profileID : profiles) {
+      XLOG(DBG5) << "portID: " << portMapping.first
+                 << " profileID : " << static_cast<int>(profileID)
+                 << " expected: " << static_cast<int>(speed)
+                 << " lanes: " << folly::join(",", lanes) << " got lanes: "
+                 << folly::join(",", platformPort->getHwPortLanes(profileID));
       if (platformPort->getHwPortLanes(profileID) == lanes) {
         matchingProfiles.push_back(profileID);
       }
@@ -461,7 +489,9 @@ SaiPlatform::findPortIDAndProfiles(
       "platform port not found ",
       (PortID)portSaiId,
       " speed: ",
-      static_cast<int>(speed));
+      static_cast<int>(speed),
+      ", lanes ",
+      folly::join(",", lanes));
 }
 
 std::vector<SaiPlatformPort*> SaiPlatform::getPortsWithTransceiverID(
@@ -531,6 +561,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       swInfo.switchType() = cfg::SwitchType::VOQ;
       swInfo.switchMac() = localMac.toString();
       const Jericho3Asic j3(0, swInfo);
+      const Qumran4DAsic qumran4d(0, swInfo);
+      const Jericho4Asic j4(0, swInfo);
       for (const auto& [id, dsfNode] : *agentCfg->thrift.sw()->dsfNodes()) {
         if (dsfNode.type() != cfg::DsfNodeType::INTERFACE_NODE) {
           continue;
@@ -542,6 +574,16 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
             maxCoreCount = std::max(j3.getNumCores(), maxCoreCount);
             maxSystemCoreCount =
                 std::max(maxSystemCoreCount, uint32_t(id + j3.getNumCores()));
+            break;
+          case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+            maxCoreCount = std::max(qumran4d.getNumCores(), maxCoreCount);
+            maxSystemCoreCount = std::max(
+                maxSystemCoreCount, uint32_t(id + qumran4d.getNumCores()));
+            break;
+          case cfg::AsicType::ASIC_TYPE_JERICHO4:
+            maxCoreCount = std::max(j4.getNumCores(), maxCoreCount);
+            maxSystemCoreCount =
+                std::max(maxSystemCoreCount, uint32_t(id + j4.getNumCores()));
             break;
           default:
             throw FbossError("Unexpected asic type: ", *dsfNode.asicType());
@@ -564,6 +606,15 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       sflowNofSamples = *agentCfg->thrift.sw()
                              ->switchSettings()
                              ->numberOfSflowSamplesPerPacket();
+    }
+  }
+  std::optional<SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>
+      measureCableLengths{std::nullopt};
+  if (getAsic()->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
+    auto agentCfg = config();
+    if (agentCfg->thrift.sw()->switchSettings()->measureCableLengths()) {
+      measureCableLengths =
+          *agentCfg->thrift.sw()->switchSettings()->measureCableLengths();
     }
   }
   std::optional<SaiSwitchTraits::Attributes::DllPath> dllPath;
@@ -722,7 +773,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
   std::optional<int32_t> maxSystemPorts;
   std::optional<int32_t> maxVoqs;
-  std::optional<int32_t> maxSwitchId;
+  std::optional<uint32_t> maxSwitchId;
 #if defined(BRCM_SAI_SDK_DNX) && defined(BRCM_SAI_SDK_GTE_11_0)
   if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3 ||
       getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
@@ -730,25 +781,12 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     // switch id that's used in their deployment to be below the
     // default (HW advertised) value.
     auto agentConfig = config();
-    bool isL2FabricNode = false;
     if (swType == cfg::SwitchType::FABRIC) {
-      auto fabricNodeRole = getAsic()->getFabricNodeRole();
-      isL2FabricNode =
-          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L1 ||
-          fabricNodeRole == HwAsic::FabricNodeRole::DUAL_STAGE_L2;
-    }
-    auto isDualStage = utility::isDualStage(*agentConfig) ||
-        // Use isDualStage3Q2QMode and fabricNodeRole so we set
-        // max switch-id in single node tests as well
-        isDualStage3Q2QMode() || isL2FabricNode;
-    if (isDualStage) {
-      // TODO: look at 2-stage configs, find max switch-id and use that
-      // to compute the value here.
-      maxSwitchId = kDualStageMaxGlobalSwitchId;
+      HwAsic::FabricNodeRole fabricNodeRole = getAsic()->getFabricNodeRole();
+      maxSwitchId =
+          utility::getDsfFabricSwitchMaxSwitchId(*agentConfig, fabricNodeRole);
     } else {
-      // TODO: Programatically calculate the max switch-id and
-      // assert that we are are within this limit
-      maxSwitchId = kSingleStageMaxGlobalSwitchId;
+      maxSwitchId = utility::getDsfVoqSwitchMaxSwitchId();
     }
     auto maxDsfConfigSwitchId = utility::maxDsfSwitchId(*agentConfig) +
         std::max(getAsic()->getNumCores(),
@@ -769,88 +807,109 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
     constexpr uint32_t kRamon3LlfcThreshold{800};
     fabricLLFC = std::vector<uint32_t>({kRamon3LlfcThreshold});
   }
-  if (isDualStage3Q2QMode()) {
-    maxSystemPortId = 32694;
+
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_RAMON3) {
+    if (isDualStage3Q2QMode()) {
+      maxSystemPortId = 32694;
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
-#else
-    maxLocalSystemPortId = 184;
-#endif
-    maxSystemPorts = 22136;
-    maxVoqs = 65284;
-  } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
-    // Total System Ports in the cluster
-    // =================================
-    //
-    // 1 Global recycle port
-    // 1 Management port
-    // RDSW: 36 x 400G NIF ports. Thus, 1 + 1 + 36 = 38 ports.
-    // EDSW: 18 x 800G NIF ports. Thus, 1 + 1 + 18 = 20 ports.
-    //
-    // 4 CPU (1 per core) + 4 Recycle (1 per core) + 1 eventor +
-    // 160 Fabric link monitoring + 16 hyerports = 185
-    // Thus, Max local system PortID (starting 0) = 184.
-    //
-    // Max System Ports = 185 + (38 x 192) + (20 x 32) = 8121.
-    //
-    // System Port ID assignment
-    // =========================
-    //   Local Ports
-    //   -----------
-    //      [0-3]: CPU ports
-    //      [4-7]: Recycle ports
-    //          8: Eventor port
-    //    [9-168]: 160 Fabric link monitoring ports (in the future)
-    //  [169-184]: 16 Hyper ports (in the future)
-    //
-    //   The above assignment is same for ALL the RDSWs, EDSWs.
-    //
-    //   Global Ports for RDSW 1, base offset 184
-    //   ----------------------------------------
-    //        185: Recycle port for inband
-    //        186: Management port
-    //  [187-222]: One for each of the 36 x 400G NIF ports
-    //
-    //   Global Ports for EDSW 1, base offset 7480
-    //   -----------------------------------------
-    //        7481: Recycle port for inband
-    //        7482: Management port
-    //  [7483-7500: One for each of the 16 x 800G NIF ports
-    maxSystemPortId = 8120;
-    maxSystemPorts = 8121;
-#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    if (FLAGS_hyper_port) {
-      localSystemPortIdRangeList =
-          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
-    } else {
       localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
-    }
 #else
-    maxLocalSystemPortId = 184;
+      maxLocalSystemPortId = 184;
 #endif
-    maxVoqs = maxSystemPorts.value() * 8;
-  } else {
-    if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
+      maxSystemPorts = 22136;
+      maxVoqs = 65284;
+    } else if (FLAGS_dsf_single_stage_r192_f40_e32) {
+      // Total System Ports in the cluster
+      // =================================
+      //
+      // 1 Global recycle port
+      // 1 Management port
+      // RDSW: 36 x 400G NIF ports. Thus, 1 + 1 + 36 = 38 ports.
+      // EDSW: 18 x 800G NIF ports. Thus, 1 + 1 + 18 = 20 ports.
+      //
+      // 4 CPU (1 per core) + 4 Recycle (1 per core) + 1 eventor +
+      // 160 Fabric link monitoring + 16 hyerports = 185
+      // Thus, Max local system PortID (starting 0) = 184.
+      //
+      // Max System Ports = 185 + (38 x 192) + (20 x 32) = 8121.
+      //
+      // System Port ID assignment
+      // =========================
+      //   Local Ports
+      //   -----------
+      //      [0-3]: CPU ports
+      //      [4-7]: Recycle ports
+      //          8: Eventor port
+      //    [9-168]: 160 Fabric link monitoring ports (in the future)
+      //  [169-184]: 16 Hyper ports (in the future)
+      //
+      //   The above assignment is same for ALL the RDSWs, EDSWs.
+      //
+      //   Global Ports for RDSW 1, base offset 184
+      //   ----------------------------------------
+      //        185: Recycle port for inband
+      //        186: Management port
+      //  [187-222]: One for each of the 36 x 400G NIF ports
+      //
+      //   Global Ports for EDSW 1, base offset 7480
+      //   -----------------------------------------
+      //        7481: Recycle port for inband
+      //        7482: Management port
+      //  [7483-7500: One for each of the 16 x 800G NIF ports
       maxSystemPortId = 8120;
       maxSystemPorts = 8121;
-    } else {
-      maxSystemPortId = 6143;
-      maxSystemPorts = 6144;
-    }
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
-    if (FLAGS_hyper_port) {
-      localSystemPortIdRangeList =
-          std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
-    } else {
-      localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
-    }
+      if (FLAGS_hyper_port) {
+        localSystemPortIdRangeList =
+            std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+      } else {
+        localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 184}};
+      }
 #else
-    maxLocalSystemPortId = -1;
+      maxLocalSystemPortId = 184;
 #endif
-    maxVoqs = maxSystemPorts.value() * 8;
+      maxVoqs = maxSystemPorts.value() * 8;
+    } else {
+      if (FLAGS_dsf_single_stage_r128_f40_e16_8k_sys_ports) {
+        maxSystemPortId = 8120;
+        maxSystemPorts = 8121;
+      } else {
+        maxSystemPortId = 6143;
+        maxSystemPorts = 6144;
+      }
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+      if (FLAGS_hyper_port) {
+        localSystemPortIdRangeList =
+            std::vector<sai_u16_range_t>{{0, 10}, {6144, 6320}};
+      } else {
+        localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+      }
+#else
+      maxLocalSystemPortId = -1;
+#endif
+      maxVoqs = maxSystemPorts.value() * 8;
+    }
+  }
+
+  // Q4D standalone box configuration
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D) {
+    maxSystemPorts = 1024;
+    maxVoqs = 8 * 1024;
+    maxSystemPortId = 1024 - 1;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{};
+  }
+  // J4 SIM configuraion
+  if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4) {
+    maxSystemPorts = 8192;
+    maxVoqs = 8192 * 8;
+    maxSystemPortId = 8192 - 1;
+    localSystemPortIdRangeList = std::vector<sai_u16_range_t>{{0, 53}};
   }
 #endif
-  if (swType == cfg::SwitchType::FABRIC && bootType == BootType::COLD_BOOT) {
+
+  if (getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE) &&
+      bootType == BootType::COLD_BOOT) {
     // FABRIC switches should always start in isolated state until we configure
     // the switch
     switchIsolate = true;
@@ -986,6 +1045,8 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
       localSystemPortIdRangeList, // range list of local scope system port ids
 #endif
       std::nullopt, // enable PFC monitoring for the switch
+      measureCableLengths, // enable cable propagation delay measurement
+      std::nullopt, // switching mode (store-and-forward / cut-through)
   };
 }
 

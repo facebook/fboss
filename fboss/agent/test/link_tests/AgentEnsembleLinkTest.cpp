@@ -2,6 +2,7 @@
 
 #include <folly/String.h>
 #include <folly/Subprocess.h>
+#include <folly/system/EnvUtil.h>
 #include <gflags/gflags.h>
 
 #include <thrift/lib/cpp2/protocol/DebugProtocol.h>
@@ -15,6 +16,7 @@
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -57,13 +59,10 @@ long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
   switch (platform) {
     case facebook::fboss::PlatformType::PLATFORM_WEDGE100:
     case facebook::fboss::PlatformType::PLATFORM_WEDGE400:
-    case facebook::fboss::PlatformType::PLATFORM_WEDGE400C:
     case facebook::fboss::PlatformType::PLATFORM_DARWIN:
     case facebook::fboss::PlatformType::PLATFORM_DARWIN48V:
     case facebook::fboss::PlatformType::PLATFORM_MINIPACK:
     case facebook::fboss::PlatformType::PLATFORM_YAMP:
-    case facebook::fboss::PlatformType::PLATFORM_FUJI:
-    case facebook::fboss::PlatformType::PLATFORM_ELBERT:
       return 3 * 1000 * 1000 * 1000L; // 3GB
     case facebook::fboss::PlatformType::PLATFORM_MORGAN800CC:
       return 5 * 1000 * 1000 * 1000L; // 5GB
@@ -90,7 +89,7 @@ void AgentEnsembleLinkTest::SetUp() {
   // Wait for all the cabled ports to link up before finishing the setup
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
-  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+  waitForPortStateMachineState(true, 60, 5s);
 
   XLOG(DBG2) << "Multi Switch Link Test setup ready";
 }
@@ -108,6 +107,9 @@ void AgentEnsembleLinkTest::TearDown() {
           QsfpServiceRunState::ACTIVE,
           qsfpServiceClient.get()->sync_getQsfpServiceRunState())
           << "QSFP Service run state no longer active after the test";
+
+      // Dump the I2C Logs at the end of the test.
+      dumpTransceiverI2cLogs(*qsfpServiceClient);
 
     } catch (const std::exception& ex) {
       XLOG(ERR) << "Failed to call qsfp_service getStatus(). " << ex.what();
@@ -127,6 +129,47 @@ void AgentEnsembleLinkTest::TearDown() {
 #endif
   }
   AgentEnsembleTest::TearDown();
+}
+
+std::vector<std::string>
+AgentEnsembleLinkTest::getPrimaryPortNamesCabledPorts() {
+  const auto& ports = getCabledPorts();
+  std::unordered_set<std::string> uniqueSet;
+  std::vector<std::string> result_list;
+  for (const auto& port : ports) {
+    auto portName =
+        getSw()->getPlatformMapping()->getPortNameByPortId(port).value_or("");
+    if (portName.empty()) {
+      continue;
+    }
+    size_t firstSlash = portName.find('/');
+    size_t secondSlash = portName.find('/', firstSlash + 1);
+    if (firstSlash == std::string::npos || secondSlash == std::string::npos) {
+      // Skip wrong input
+      continue;
+    }
+    std::string firstTwoParams = portName.substr(0, secondSlash);
+    if (uniqueSet.find(firstTwoParams) == uniqueSet.end()) {
+      uniqueSet.insert(firstTwoParams);
+      result_list.push_back(portName);
+    }
+  }
+  return result_list;
+}
+
+void AgentEnsembleLinkTest::dumpTransceiverI2cLogs(
+    apache::thrift::Client<facebook::fboss::QsfpService>& qsfpServiceClient) {
+  auto ports = getPrimaryPortNamesCabledPorts();
+  for (auto& port : ports) {
+    try {
+      qsfpServiceClient.sync_dumpTransceiverI2cLog(port);
+    } catch (const std::exception& ex) {
+      // Passive cables may not have EEPROM, ignore the error if the i2c log
+      // does not exist.
+      XLOG(ERR) << "Failed to dump i2c log for port " << port << " Exception "
+                << ex.what();
+    }
+  }
 }
 
 void AgentEnsembleLinkTest::checkAgentMemoryInBounds() const {
@@ -185,6 +228,14 @@ void AgentEnsembleLinkTest::waitForAllCabledPorts(
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
 }
 
+void AgentEnsembleLinkTest::waitForPortStateMachineState(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  utility::waitForPortStateMachineState(
+      up, getQsfpServiceManagedPorts(), retries, msBetweenRetry);
+}
+
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
@@ -192,22 +243,35 @@ void AgentEnsembleLinkTest::initializeCabledPorts() {
   const auto& platformPorts = getSw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = getSw()->getConfig();
-  const auto& chips = getSw()->getPlatformMapping()->getChips();
+  const auto& platformMapping = getSw()->getPlatformMapping();
+  const auto& chips = platformMapping->getChips();
+
+  // Specifically for ports that qsfp_service should track in Port Manager mode.
+  auto managedPortIds =
+      utility::getPortIdsWithTransceiverOrXphy(platformPorts, chips);
+  std::set<PortID> managedPortSet(managedPortIds.begin(), managedPortIds.end());
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty() ||
         !(*port.expectedNeighborReachability()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.emplace_back(portID);
+      if (managedPortSet.count(PortID(portID))) {
+        qsfpServiceManagedPorts_.emplace_back(portID);
+      }
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
         cabledFabricPorts_.emplace_back(portID);
       }
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
-      auto transceiverID =
-          utility::getTransceiverId(platformPortEntry->second, chips);
-      if (transceiverID.has_value()) {
-        cabledTransceivers_.insert(*transceiverID);
+
+      const auto tcvrIds = utility::getTransceiverIds(
+          platformPortEntry->second, chips, *port.profileID());
+      for (const auto& tcvrId : tcvrIds) {
+        cabledTransceivers_.insert(tcvrId);
+      }
+      if (!tcvrIds.empty()) {
         cabledTransceiverPorts_.emplace_back(portID);
       }
     }
@@ -292,6 +356,14 @@ AgentEnsembleLinkTest::getSingleVlanOrRoutedCabledPorts(
       ecmpPorts.insert(PortDescriptor(port));
     }
   }
+  std::vector<PortDescriptor> hyperPortDescriptors;
+  for (auto hyperPortId : utility::getHyperPorts(getSw()->getState())) {
+    if (getSw()->getState()->getPort(hyperPortId)->isPortUp()) {
+      hyperPortDescriptors.emplace_back(hyperPortId);
+      XLOG(DBG2) << "add hyper port " << hyperPortId << " to ecmp ports";
+    }
+  }
+  ecmpPorts.insert(hyperPortDescriptors.begin(), hyperPortDescriptors.end());
   return ecmpPorts;
 }
 
@@ -317,8 +389,29 @@ void AgentEnsembleLinkTest::programDefaultRoute(
       dstMac,
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+      {cfg::PortType::INTERFACE_PORT,
+       cfg::PortType::MANAGEMENT_PORT,
+       cfg::PortType::HYPER_PORT});
   programDefaultRoute(ecmpPorts, ecmp6);
+}
+
+// only use when NEXTHOP_TTL_DECREMENT_DISABLE is supported
+// This allows a single state update to both program routes and configure nhops
+void AgentEnsembleLinkTest::programDefaultRouteWithDisableTTLDecrement(
+    const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+    utility::EcmpSetupTargetedPorts6& ecmp6) {
+  ASSERT_GT(ecmpPorts.size(), 0);
+  getSw()->updateStateBlocking(
+      "Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
+        return ecmp6.resolveNextHops(state, ecmpPorts);
+      });
+  ecmp6.programRoutes(
+      std::make_unique<SwSwitchRouteUpdateWrapper>(getSw()->getRouteUpdater()),
+      ecmpPorts,
+      {Route<folly::IPAddressV6>::Prefix{folly::IPAddressV6(), 0}},
+      std::vector<NextHopWeight>(),
+      std::nullopt,
+      true /* disableTTLDecrement */);
 }
 
 void AgentEnsembleLinkTest::createL3DataplaneFlood(
@@ -330,9 +423,16 @@ void AgentEnsembleLinkTest::createL3DataplaneFlood(
       getSw()->getLocalMac(switchId),
       RouterID(0),
       false,
-      {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
-  programDefaultRoute(ecmpPorts, ecmp6);
-  utility::disableTTLDecrements(getSw(), ecmpPorts);
+      {cfg::PortType::INTERFACE_PORT,
+       cfg::PortType::MANAGEMENT_PORT,
+       cfg::PortType::HYPER_PORT});
+  if (getSw()->getHwAsicTable()->isFeatureSupported(
+          switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
+  } else {
+    programDefaultRoute(ecmpPorts, ecmp6);
+    utility::disableTTLDecrements(getSw(), ecmpPorts);
+  }
   auto vlanID = getAgentEnsemble()->getVlanIDForTx();
   utility::pumpTraffic(
       true,
@@ -542,6 +642,10 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
   std::map<std::string, phy::PhyInfo> xPhyInfos;
   std::map<int32_t, TransceiverInfo> tcvrInfos;
 
+  auto cabledTcvrPorts = getCabledTransceiverPorts();
+  std::unordered_set<PortID> cabledTcvrPortSet(
+      cabledTcvrPorts.begin(), cabledTcvrPorts.end());
+
   try {
     qsfpServiceClient->sync_getInterfacePhyInfo(xPhyInfos, portNames);
   } catch (const std::exception& ex) {
@@ -551,6 +655,9 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
 
   std::vector<int32_t> tcvrIds;
   for (auto portID : portIDs) {
+    if (!cabledTcvrPortSet.contains(portID)) {
+      continue;
+    }
     tcvrIds.push_back(
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID));
   }
@@ -579,6 +686,9 @@ void AgentEnsembleLinkTest::logLinkDbgMessage(
       XLOG(ERR) << "XPHY info missing for " << portName;
     }
 
+    if (!cabledTcvrPortSet.contains(portID)) {
+      continue;
+    }
     auto tcvrId =
         getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID);
     if (tcvrInfos.find(tcvrId) != tcvrInfos.end()) {
@@ -685,6 +795,12 @@ int agentEnsembleLinkTestMain(
   kArgc = argc;
   kArgv = argv;
   initAgentEnsembleTest(argc, argv, initPlatformFn, streamType);
+  auto env = folly::experimental::EnvironmentState::fromCurrentEnvironment();
+  std::vector<std::string> environment;
+  for (const auto& [key, value] : *env) {
+    environment.emplace_back(folly::to<std::string>(key, "=", value));
+  }
+  XLOG(INFO) << "Environment Variables: " << folly::join(" ", environment);
   return RUN_ALL_TESTS();
 }
 

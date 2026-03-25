@@ -1,0 +1,144 @@
+{
+  "platform": "darwin_original",
+  "pimInfo": [
+    {
+      "slot": 1,
+      "pimName": "",
+      "interfaces": {
+        "eth1/1/1": {
+            "neighbor": "eth1/5/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/10/1": {
+            "neighbor": "eth1/12/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/12/1": {
+            "neighbor": "eth1/10/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/13/1": {
+            "neighbor": "eth1/9/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/14/1": {
+            "neighbor": "eth1/16/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/16/1": {
+            "neighbor": "eth1/14/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/17/1": {
+            "neighbor": "eth1/21/1",
+            "profileID": 25,
+            "hasTransceiver": true
+        },
+        "eth1/18/1": {
+            "neighbor": "eth1/20/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/2/1": {
+            "neighbor": "eth1/4/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/20/1": {
+            "neighbor": "eth1/18/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/21/1": {
+            "neighbor": "eth1/17/1",
+            "profileID": 25,
+            "hasTransceiver": true
+        },
+        "eth1/22/1": {
+            "neighbor": "eth1/24/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/24/1": {
+            "neighbor": "eth1/22/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/25/1": {
+            "neighbor": "eth1/29/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/26/1": {
+            "neighbor": "eth1/28/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/28/1": {
+            "neighbor": "eth1/26/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/29/1": {
+            "neighbor": "eth1/25/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/3/1": {
+            "neighbor": "eth1/7/1",
+            "profileID": 26,
+            "hasTransceiver": true
+        },
+        "eth1/30/1": {
+            "neighbor": "eth1/32/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/32/1": {
+            "neighbor": "eth1/30/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/4/1": {
+            "neighbor": "eth1/2/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/5/1": {
+            "neighbor": "eth1/1/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        },
+        "eth1/6/1": {
+            "neighbor": "eth1/8/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/7/1": {
+            "neighbor": "eth1/3/1",
+            "profileID": 26,
+            "hasTransceiver": true
+        },
+        "eth1/8/1": {
+            "neighbor": "eth1/6/1",
+            "profileID": 22,
+            "hasTransceiver": true
+        },
+        "eth1/9/1": {
+            "neighbor": "eth1/13/1",
+            "profileID": 23,
+            "hasTransceiver": true
+        }
+      },
+      "tcvrs": {
+        
+      }
+    }
+  ]
+}

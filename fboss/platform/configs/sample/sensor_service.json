@@ -32,6 +32,49 @@
           "compute": "@/1000.0"
         }
       ]
+    },
+    {
+      "slotPath": "/SMB_SLOT@0/YOLO_SLOT@0/PSU_SLOT@0",
+      "pmUnitName": "PSU_2GH",
+      "sensors": [
+        {
+          "name": "PSU1_PIN",
+          "sysfsPath": "/run/devmap/sensors/PSU1_2GH_SENSOR/power1_input",
+          "type": 0,
+          "thresholds": {
+            "upperCriticalVal": 1000
+          },
+          "compute": "@/1000000"
+        },
+        {
+          "name": "PSU1_VIN",
+          "sysfsPath": "/run/devmap/sensors/PSU1_2GH_SENSOR/in1_input",
+          "type": 1,
+          "thresholds": {
+            "upperCriticalVal": 300
+          },
+          "compute": "@/1000.0"
+        }
+      ]
     }
-  ]
+  ],
+  "temperatureConfigs": [
+    {
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "ASIC_SENSOR"
+      ]
+    }
+  ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "name": "PSU1",
+        "powerSensorName": "PSU1_PIN"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PSU1_VIN"
+    ]
+  }
 }

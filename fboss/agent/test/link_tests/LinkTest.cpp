@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
@@ -80,7 +81,7 @@ void LinkTest::SetUp() {
   // programming
   waitForAllCabledPorts(true, 60, 5s);
   utility::waitForAllTransceiverStates(true, getCabledTranceivers(), 60, 5s);
-  utility::waitForPortStateMachineState(true, getCabledPorts(), 60, 5s);
+  waitForPortStateMachineState(true, 60, 5s);
   XLOG(DBG2) << "Link Test setup ready";
 }
 
@@ -164,6 +165,14 @@ void LinkTest::waitForAllCabledPorts(
   waitForLinkStatus(getCabledPorts(), up, retries, msBetweenRetry);
 }
 
+void LinkTest::waitForPortStateMachineState(
+    bool up,
+    uint32_t retries,
+    std::chrono::duration<uint32_t, std::milli> msBetweenRetry) const {
+  utility::waitForPortStateMachineState(
+      up, getQsfpServiceManagedPorts(), retries, msBetweenRetry);
+}
+
 // Initializes the vector that holds the ports that are expected to be cabled.
 // If the expectedLLDPValues in the switch config has an entry, we expect
 // that port to take part in the test
@@ -171,21 +180,34 @@ void LinkTest::initializeCabledPorts() {
   const auto& platformPorts = sw()->getPlatformMapping()->getPlatformPorts();
 
   auto swConfig = sw()->getConfig();
-  const auto& chips = sw()->getPlatformMapping()->getChips();
+  const auto& platformMapping = sw()->getPlatformMapping();
+  const auto& chips = platformMapping->getChips();
+
+  // Specifically for ports that qsfp_service should track in Port Manager mode.
+  auto managedPortIds =
+      utility::getPortIdsWithTransceiverOrXphy(platformPorts, chips);
+  std::set<PortID> managedPortSet(managedPortIds.begin(), managedPortIds.end());
+
   for (const auto& port : *swConfig.ports()) {
     if (!(*port.expectedLLDPValues()).empty()) {
       auto portID = *port.logicalID();
       cabledPorts_.emplace_back(portID);
+      if (managedPortSet.count(PortID(portID))) {
+        qsfpServiceManagedPorts_.emplace_back(portID);
+      }
       if (*port.portType() == cfg::PortType::FABRIC_PORT) {
         cabledFabricPorts_.emplace_back(portID);
       }
       const auto platformPortEntry = platformPorts.find(portID);
       EXPECT_TRUE(platformPortEntry != platformPorts.end())
           << "Can't find port:" << portID << " in PlatformMapping";
-      auto transceiverID =
-          utility::getTransceiverId(platformPortEntry->second, chips);
-      if (transceiverID.has_value()) {
-        cabledTransceivers_.insert(*transceiverID);
+
+      const auto tcvrIds = utility::getTransceiverIds(
+          platformPortEntry->second, chips, *port.profileID());
+      for (const auto& tcvrId : tcvrIds) {
+        cabledTransceivers_.insert(tcvrId);
+      }
+      if (!tcvrIds.empty()) {
         cabledTransceiverPorts_.emplace_back(portID);
       }
     }
@@ -261,19 +283,25 @@ LinkTest::getSingleVlanOrRoutedCabledPorts() const {
 
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-    utility::EcmpSetupTargetedPorts6& ecmp6) {
+    utility::EcmpSetupTargetedPorts6& ecmp6,
+    bool disableTTLDecrement) {
   ASSERT_GT(ecmpPorts.size(), 0);
   sw()->updateStateBlocking("Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
     return ecmp6.resolveNextHops(state, ecmpPorts);
   });
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
-      ecmpPorts);
+      ecmpPorts,
+      {Route<folly::IPAddressV6>::Prefix{folly::IPAddressV6(), 0}},
+      std::vector<NextHopWeight>(),
+      std::nullopt,
+      disableTTLDecrement);
 }
 
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-    std::optional<folly::MacAddress> dstMac) {
+    std::optional<folly::MacAddress> dstMac,
+    bool disableTTLDecrement) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(),
       sw()->needL2EntryForNeighbor(),
@@ -281,7 +309,7 @@ void LinkTest::programDefaultRoute(
       RouterID(0),
       false,
       {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
-  programDefaultRoute(ecmpPorts, ecmp6);
+  programDefaultRoute(ecmpPorts, ecmp6, disableTTLDecrement);
 }
 
 void LinkTest::createL3DataplaneFlood(
@@ -294,8 +322,11 @@ void LinkTest::createL3DataplaneFlood(
       RouterID(0),
       false,
       {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
-  programDefaultRoute(ecmpPorts, ecmp6);
-  utility::disableTTLDecrements(sw(), ecmpPorts);
+  programDefaultRoute(ecmpPorts, ecmp6, true /* disableTTLDecrement */);
+  if (sw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    utility::disableTTLDecrementOnPorts(sw(), ecmpPorts);
+  }
   auto vlanID = getVlanIDForTx();
   utility::pumpTraffic(
       true,

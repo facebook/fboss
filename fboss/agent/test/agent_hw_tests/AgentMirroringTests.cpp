@@ -52,11 +52,19 @@ class AgentMirroringTest : public AgentHwTest {
   PortID getMirrorToPort(
       const AgentEnsemble& ensemble,
       uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex) const {
+    if (FLAGS_hyper_port) {
+      return ensemble.masterLogicalPortIds(
+          {cfg::PortType::HYPER_PORT})[mirrorToPortIndex];
+    }
     return ensemble.masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[mirrorToPortIndex];
   }
 
   PortID getTrafficPort(const AgentEnsemble& ensemble) const {
+    if (FLAGS_hyper_port) {
+      return ensemble.masterLogicalPortIds(
+          {cfg::PortType::HYPER_PORT})[utility::kTrafficPortIndex];
+    }
     return ensemble.masterLogicalPortIds(
         {cfg::PortType::INTERFACE_PORT})[utility::kTrafficPortIndex];
   }
@@ -130,8 +138,17 @@ class AgentMirroringTest : public AgentHwTest {
   void resolveMirror(
       const std::string& mirrorName,
       uint8_t mirrorToPortIndex = utility::kMirrorToPortIndex) {
+    std::set<cfg::PortType> ecmpPortTypes;
+    if (FLAGS_hyper_port) {
+      ecmpPortTypes = {cfg::PortType::HYPER_PORT};
+    } else {
+      ecmpPortTypes = {cfg::PortType::INTERFACE_PORT};
+    }
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
-        getProgrammedState(), getSw()->needL2EntryForNeighbor());
+        getProgrammedState(),
+        getSw()->needL2EntryForNeighbor(),
+        RouterID(0),
+        ecmpPortTypes);
     PortID trafficPort = getTrafficPort(*getAgentEnsemble());
     PortID mirrorToPort =
         getMirrorToPort(*getAgentEnsemble(), mirrorToPortIndex);
@@ -145,7 +162,10 @@ class AgentMirroringTest : public AgentHwTest {
       boost::container::flat_set<PortDescriptor> nhopPorts{
           PortDescriptor(mirrorToPort)};
       return utility::EcmpSetupAnyNPorts<AddrT>(
-                 in, getSw()->needL2EntryForNeighbor())
+                 in,
+                 getSw()->needL2EntryForNeighbor(),
+                 RouterID(0),
+                 ecmpPortTypes)
           .resolveNextHops(in, nhopPorts);
     });
     getSw()->getUpdateEvb()->runInFbossEventBaseThreadAndWait([] {});
@@ -872,16 +892,20 @@ TYPED_TEST(AgentErspanIngressSamplingTest, ErspanIngressSampling) {
     auto trafficPortPktsBefore = *trafficPortPktStatsBefore.outUnicastPkts_();
     auto mirroredPortPktsBefore = *mirrorPortPktStatsBefore.outUnicastPkts_();
 
-    this->sendPackets(3 * kSampleRate, 1000);
+    auto totalPackets = 300 * kSampleRate;
+    this->sendPackets(totalPackets, 64);
 
+    //  The probability that there are less than 200 packets with 300000 packets
+    //  sampled at 1/1000. is 3*10^-10, and the probability that there are more
+    //  than 400 packets is 1.6*10^-8.
     WITH_RETRIES({
       auto trafficPortPktStatsAfter = this->getLatestPortStats(trafficPort);
       auto trafficPortPktsAfter = *trafficPortPktStatsAfter.outUnicastPkts_();
       EXPECT_EVENTUALLY_EQ(
-          3 * kSampleRate, trafficPortPktsAfter - trafficPortPktsBefore);
+          totalPackets, trafficPortPktsAfter - trafficPortPktsBefore);
     });
 
-    auto expectedMirrorPackets = 2; /* expect at least 2 packets */
+    auto expectedMirrorPackets = 200; /* expect at least 200 packets */
     WITH_RETRIES({
       auto mirrorPortPktStatsAfter = this->getLatestPortStats(mirrorToPort);
       auto mirroredPortPktsAfter = *mirrorPortPktStatsAfter.outUnicastPkts_();
@@ -945,7 +969,7 @@ TYPED_TEST(AgentErspanIngressSamplingTest, SamplePacketFormat) {
         XLOG(INFO) << PktUtil::hexDump(buf.value().get());
         auto ensemble = this->getAgentEnsemble();
         auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+        if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
           folly::io::Cursor cursor(buf.value().get());
           cursor += 14; // skip ethernet header
           if (this->isV4()) {

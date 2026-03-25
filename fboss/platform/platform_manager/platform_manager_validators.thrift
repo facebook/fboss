@@ -50,6 +50,7 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "MINIPACK3_SCM",
   "MINIPACK3_SMB",
   // The BIOS infers the PlatformName from MCB EEPROM in these platforms
+  // This is for platforms reliant on NETLAKE BIOS.
   "MINIPACK3_MCB",
   "MINIPACK3BA_MCB",
   "MINIPACK3N_MCB",
@@ -67,3 +68,30 @@ const list<string> ALLOWED_PMUNIT_NAMES = [
   "SMB_FRU",
   "PSU_2GH",
 ];
+
+// List of platforms that are allowed to have chassisEepromDevicePath
+// pointing to an IDPROM device. This is a legacy exception list.
+// New platforms should NOT use IDPROM for chassisEepromDevicePath.
+const list<string> PLATFORMS_WITH_IDPROM_CHASSIS_EEPROM = [
+  "MERU800BFA",
+  "MERU800BIA",
+  "MORGAN800CC",
+  "JANGA800BIC",
+  "TAHAN800BC",
+];
+
+// List of platforms that are allowed to have logical EEPROMs.
+// Logical EEPROMs are formed when multiple EEPROMs in the platform
+// use the same physical EEPROM (bus and address).
+const list<string> PLATFORMS_WITH_LOGICAL_EEPROMS = [
+  "GLATH05A-64O",
+  "BLACKWOLF800BANW",
+];
+
+// Platforms where optics devices (xcvr, port LEDs) must NOT be managed
+// through platform_manager. On these platforms, qsfp_service and
+// led_service interact with the SCD FPGA directly using I2C transactions.
+// Managing them through platform_manager gives a false impression about
+// their management. Once we start managing these devices from PM, we can
+// add them to the PM config.
+const list<string> PLATFORMS_WITHOUT_PM_OPTICS = ["DARWIN", "DARWIN48V"];

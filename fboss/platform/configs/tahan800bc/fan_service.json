@@ -13,17 +13,13 @@
   "optics": [
     {
       "opticName": "qsfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
-      "portList": [],
       "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
@@ -31,7 +27,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
@@ -39,7 +35,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         },
@@ -47,7 +43,7 @@
           "kp": 2,
           "ki": 0.6,
           "kd": 0,
-          "setPoint": 76.0,
+          "setPoint": 65.0,
           "posHysteresis": 0.0,
           "negHysteresis": 2.0
         }
@@ -57,9 +53,6 @@
   "sensors": [
     {
       "sensorName": "SMB_U77_INLET_LEFT_BOT_LM75_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "25": 30,
@@ -92,9 +85,6 @@
     },
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "80": 20,
@@ -127,9 +117,6 @@
     },
     {
       "sensorName": "SMB_E1S_SSD_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "55": 20,
@@ -158,9 +145,6 @@
     },
     {
       "sensorName": "PDB_POWER_BRICK1_TEMP1",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "55": 20,
@@ -197,9 +181,6 @@
     },
     {
       "sensorName": "PDB_POWER_BRICK2_TEMP1",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "55": 20,

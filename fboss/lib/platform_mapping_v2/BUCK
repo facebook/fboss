@@ -63,6 +63,7 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/lib/phy:phy",
         "//fboss/qsfp_service/if:transceiver",
+        "//thrift/annotation:thrift",
     ],
 )
 
@@ -172,6 +173,7 @@ ci_sandcastle(
         "fbcode/fboss/lib/platform_mapping_v2/**",
     ],
     command = "SandcastleUniversalCommand",
+    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_optics_phy",
     schedules = [
         ci.diff,

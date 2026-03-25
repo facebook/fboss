@@ -27,6 +27,7 @@ class HwSwitchThriftClientTable {
   HwSwitchThriftClientTable(
       int16_t basePort,
       const std::map<int64_t, cfg::SwitchInfo>& switchIdToSwitchInfo);
+  virtual ~HwSwitchThriftClientTable() = default;
   apache::thrift::Client<FbossHwCtrl>* getClient(SwitchID switchId);
 
   std::optional<std::map<::std::int64_t, FabricEndpoint>> getFabricReachability(
@@ -56,6 +57,9 @@ class HwSwitchThriftClientTable {
   prbs::InterfacePrbsState getPortPrbsState(
       const SwitchID& switchId,
       const PortID& portId);
+
+  virtual state::SwitchState getProgrammedState(const SwitchID& switchId);
+  virtual SwitchRunState getHwSwitchRunState(const SwitchID& switchId);
 
  private:
   std::map<

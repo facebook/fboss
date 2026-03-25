@@ -7,6 +7,10 @@ namespace php fboss_hw
 
 include "fboss/mka_service/if/mka_structs.thrift"
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 const i64 STAT_UNINITIALIZED = -1;
 
@@ -377,6 +381,10 @@ struct HwSwitchDropStats {
   17: optional i64 rqpParityErrorDrops;
   18: optional i64 tc0RateLimitDrops;
   19: optional i64 dramDataPathPacketError;
+  // Switch debug counter drops
+  20: optional i64 switchL2InDrops;
+  21: optional i64 switchL3InDrops;
+  22: optional i64 switchTunnelInDrops;
 }
 
 struct HwSwitchDramStats {

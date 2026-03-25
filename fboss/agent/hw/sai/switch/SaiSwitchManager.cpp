@@ -10,6 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 
+#include "fboss/agent/DsfNodeUtils.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
@@ -17,6 +18,7 @@
 #include "fboss/agent/hw/sai/api/Types.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiBufferManager.h"
+#include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
@@ -62,7 +64,8 @@ sai_hash_algorithm_t toSaiHashAlgo(cfg::HashingAlgorithm algo) {
 
 bool isJerichoAsic(cfg::AsicType asicType) {
   return asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
-      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3;
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_JERICHO4;
 }
 
 void fillHwSwitchDropStats(
@@ -182,11 +185,11 @@ void fillHwSwitchTemperatureStats(
   for (auto attrIdAndValue : attrId2Value) {
     auto [attrId, value] = attrIdAndValue;
     if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
+      auto timeStamp =
+          std::chrono::system_clock::now().time_since_epoch().count();
       for (uint32_t i = 0; i < value.s32list.count; i++) {
         auto sensorName = std::to_string(i);
-        hwSwitchTemperatureStats.timeStamp()->insert(
-            {sensorName,
-             std::chrono::system_clock::now().time_since_epoch().count()});
+        hwSwitchTemperatureStats.timeStamp()->insert({sensorName, timeStamp});
         hwSwitchTemperatureStats.value()->insert(
             {sensorName, value.s32list.list[i]});
       }
@@ -235,7 +238,7 @@ SaiSwitchManager::SaiSwitchManager(
       // be a no-op if already set.
       switch_->setOptionalAttribute(
           SaiSwitchTraits::Attributes::MaxSwitchId{
-              platform->getAsic()->getMaxSwitchId()});
+              utility::getDsfVoqSwitchMaxSwitchId()});
 #endif
     }
   } else {
@@ -270,7 +273,8 @@ SaiSwitchManager::SaiSwitchManager(
   if (platform_->getAsic()->isSupported(HwAsic::Feature::CPU_PORT)) {
     initCpuPort();
   }
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // TODO (Q4D/J4/R4): Enable switch pipeline stats after SDK support in 15.x
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   // load switch pipeline sai ids
   int numPipelines = SaiApiTable::getInstance()->switchApi().getAttribute(
       switch_->adapterKey(), SaiSwitchTraits::Attributes::NumberOfPipes{});
@@ -812,7 +816,8 @@ sai_object_id_t SaiSwitchManager::getDefaultVlanAdapterKey() const {
 void SaiSwitchManager::setPtpTcEnabled(bool ptpEnable) {
   isPtpTcEnabled_ = ptpEnable;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     auto ptpMode = utility::getSaiPortPtpMode(ptpEnable);
     switch_->setOptionalAttribute(
         SaiSwitchTraits::Attributes::PtpMode{ptpMode});
@@ -822,6 +827,24 @@ void SaiSwitchManager::setPtpTcEnabled(bool ptpEnable) {
 
 std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
   return isPtpTcEnabled_;
+}
+
+void SaiSwitchManager::setSwitchingMode(cfg::PacketForwardingMode mode) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::CUT_THROUGH_FORWARDING)) {
+    throw FbossError("setSwitchingMode not supported on this ASIC");
+  }
+  sai_int32_t saiMode;
+  switch (mode) {
+    case cfg::PacketForwardingMode::CUT_THROUGH:
+      saiMode = SAI_SWITCH_SWITCHING_MODE_CUT_THROUGH;
+      break;
+    case cfg::PacketForwardingMode::STORE_AND_FORWARD:
+      saiMode = SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD;
+      break;
+  }
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SwitchingMode{saiMode});
 }
 
 bool SaiSwitchManager::isGlobalQoSMapSupported() const {
@@ -868,7 +891,9 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedDropStats() const {
           kJerichoConfigDropStats.end());
     }
     if (platform_->getAsic()->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_JERICHO3) {
+            cfg::AsicType::ASIC_TYPE_JERICHO3 ||
+        platform_->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_JERICHO4) {
       static const std::vector<sai_stat_id_t> kJericho3ConfigDropStats{
           // IN configured drop reasons
           SAI_SWITCH_STAT_IN_CONFIGURED_DROP_REASONS_0_DROPPED_PKTS,
@@ -1151,7 +1176,8 @@ const std::vector<sai_stat_id_t>& SaiSwitchManager::supportedPipelineStats()
 const HwSwitchPipelineStats SaiSwitchManager::getHwSwitchPipelineStats(
     bool updateWatermarks) const {
   HwSwitchPipelineStats switchPipelineStats;
-#if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
+  // TODO (Q4D/J4/R4): Enable switch pipeline stats after SDK support in 15.x
+#if defined(BRCM_SAI_SDK_DNX_GTE_12_0) && !defined(BRCM_SAI_SDK_DNX_GTE_15_0)
   auto watermarkStats = supportedPipelineWatermarkStats();
   if (updateWatermarks && watermarkStats.size() > 0) {
     for (const auto& pipeline : switchPipelines_) {
@@ -1178,23 +1204,43 @@ const HwSwitchTemperatureStats SaiSwitchManager::getHwSwitchTemperatureStats()
     const {
   // Get temperature stats
   HwSwitchTemperatureStats switchTemperatureStats;
+  static sai_int32_t NumTemperatureSensors = -1;
+  static auto lastReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+  // Read temperature stats is expensive, so read it as often as fsdb would
+  // stream stats to its client defined by FLAGS_fsdbStatsStreamIntervalSeconds
+  const uint64_t kReadInterval =
+      static_cast<int64_t>(FLAGS_fsdbStatsStreamIntervalSeconds) * 1000000000;
+
+  auto currReadTimestamp =
+      std::chrono::system_clock::now().time_since_epoch().count();
+
+  if (currReadTimestamp - lastReadTimestamp < kReadInterval) {
+    return switchTemperatureStats;
+  }
+  lastReadTimestamp = currReadTimestamp;
+
   if (!supportedTemperatureStats().empty()) {
     folly::F14FastMap<sai_attr_id_t, sai_attribute_value_t> attrValues;
     for (auto attrId : supportedTemperatureStats()) {
       try {
         if (attrId == SAI_SWITCH_ATTR_MAX_NUMBER_OF_TEMP_SENSORS) {
-          auto NumTemperatureSensors =
-              SaiApiTable::getInstance()->switchApi().getAttribute(
-                  switch_->adapterKey(),
-                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          if (NumTemperatureSensors < 0) {
+            NumTemperatureSensors =
+                SaiApiTable::getInstance()->switchApi().getAttribute(
+                    switch_->adapterKey(),
+                    SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          }
           sai_attribute_value_t value;
           value.u8 = NumTemperatureSensors;
           attrValues[attrId] = value;
         } else if (attrId == SAI_SWITCH_ATTR_TEMP_LIST) {
-          auto NumTemperatureSensors =
-              SaiApiTable::getInstance()->switchApi().getAttribute(
-                  switch_->adapterKey(),
-                  SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          if (NumTemperatureSensors < 0) {
+            NumTemperatureSensors =
+                SaiApiTable::getInstance()->switchApi().getAttribute(
+                    switch_->adapterKey(),
+                    SaiSwitchTraits::Attributes::NumTemperatureSensors{});
+          }
           std::vector<sai_int32_t> temperatureList;
           XLOG(DBG5) << "# temperature sensor: " << NumTemperatureSensors;
           temperatureList.resize(NumTemperatureSensors);
@@ -1307,7 +1353,30 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
         errorStats.dramDataPathPacketError().value_or(0);
   }
 
-  if (switchDropStats.size() || errorDropStats.size()) {
+  // Read switch debug counter stats (L2, L3, Tunnel drops)
+  auto& debugCounterMgr = managerTable_->debugCounterManager();
+  auto switchDebugStatIds = debugCounterMgr.getConfiguredSwitchDebugStatIds();
+  if (switchDebugStatIds.size()) {
+    std::vector<sai_stat_id_t> debugStatsVec(
+        switchDebugStatIds.begin(), switchDebugStatIds.end());
+    switch_->updateStats(debugStatsVec, SAI_STATS_MODE_READ);
+    auto debugStatValues = switch_->getStats(debugStatsVec);
+    for (const auto& [statId, value] : debugStatValues) {
+      if (statId == debugCounterMgr.getL2SwitchDropCounterStatId()) {
+        switchDropStats_.switchL2InDrops() =
+            switchDropStats_.switchL2InDrops().value_or(0) + value;
+      } else if (statId == debugCounterMgr.getL3SwitchDropCounterStatId()) {
+        switchDropStats_.switchL3InDrops() =
+            switchDropStats_.switchL3InDrops().value_or(0) + value;
+      } else if (statId == debugCounterMgr.getTunnelSwitchDropCounterStatId()) {
+        switchDropStats_.switchTunnelInDrops() =
+            switchDropStats_.switchTunnelInDrops().value_or(0) + value;
+      }
+    }
+  }
+
+  if (switchDropStats.size() || errorDropStats.size() ||
+      switchDebugStatIds.size()) {
     platform_->getHwSwitch()->getSwitchStats()->update(switchDropStats_);
   }
   auto switchDramStats = supportedDramStats();
@@ -1338,6 +1407,7 @@ void SaiSwitchManager::updateStats(bool updateWatermarks) {
     updateSramLowBufferLimitHitCounter();
   }
   switchTemperatureStats_ = getHwSwitchTemperatureStats();
+  publishSwitchTemperatureStats(switchTemperatureStats_);
   switchPipelineStats_ = getHwSwitchPipelineStats(updateWatermarks);
   publishSwitchPipelineStats(switchPipelineStats_);
 }
@@ -1373,15 +1443,16 @@ void SaiSwitchManager::updateSramLowBufferLimitHitCounter() {
 }
 
 void SaiSwitchManager::setSwitchIsolate(bool isolate) {
-  // Supported only for FABRIC switches!
-  // It is checked while applying thrift config
-  CHECK(
-      platform_->getAsic()->getSwitchType() == cfg::SwitchType::FABRIC ||
-      platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ);
-  XLOG(DBG2) << " Setting switch state to : "
-             << (isolate ? "DRAINED" : "UNDRAINED");
-  switch_->setOptionalAttribute(
-      SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SWITCH_ISOLATE)) {
+    XLOG(DBG2) << " Setting switch state to : "
+               << (isolate ? "DRAINED" : "UNDRAINED");
+    switch_->setOptionalAttribute(
+        SaiSwitchTraits::Attributes::SwitchIsolate{isolate});
+  } else {
+    XLOG(DBG2) << "Ignoring setSwitchIsolate for switch type "
+               << apache::thrift::util::enumNameSafe(
+                      platform_->getAsic()->getSwitchType());
+  }
 }
 
 std::vector<sai_object_id_t> SaiSwitchManager::getUdfGroupIds(
@@ -1578,7 +1649,8 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
   bool ptpTcEnabled =
       isPtpTcEnabled_.has_value() ? isPtpTcEnabled_.value() : false;
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
-  if (platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     ptpTcEnabled &=
         (GET_OPT_ATTR(Switch, PtpMode, switch_->attributes()) ==
          utility::getSaiPortPtpMode(true));
@@ -1586,6 +1658,13 @@ bool SaiSwitchManager::isPtpTcEnabled() const {
 #endif
   ptpTcEnabled &= managerTable_->portManager().isPtpTcEnabled();
   return ptpTcEnabled;
+}
+
+bool SaiSwitchManager::isMeasureCableLengthEnabled() const {
+  auto& attr = std::get<std::optional<
+      SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement>>(
+      switch_->attributes());
+  return attr.has_value() && attr->value();
 }
 
 void SaiSwitchManager::setPfcWatchdogTimerGranularity(

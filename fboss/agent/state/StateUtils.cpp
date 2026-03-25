@@ -11,6 +11,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
@@ -47,20 +48,31 @@ folly::MacAddress getInterfaceMac(
 }
 
 folly::MacAddress getMacForFirstInterfaceWithPorts(
-    const std::shared_ptr<SwitchState>& state) {
-  auto intfID = firstInterfaceIDWithPorts(state);
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<SwitchID> switchId) {
+  auto intfID = firstInterfaceIDWithPorts(state, switchId);
   return getInterfaceMac(state, intfID);
 }
 
 InterfaceID firstInterfaceIDWithPorts(
-    const std::shared_ptr<SwitchState>& state) {
-  const auto& intfMap = state->getInterfaces()->cbegin()->second;
-  for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
-    if (intf->isVirtual()) {
-      // virtual interfaces do not have associated ports
+    const std::shared_ptr<SwitchState>& state,
+    std::optional<SwitchID> switchId) {
+  for (const auto& [matcher, intfMap] :
+       std::as_const(*state->getInterfaces())) {
+    if (switchId.has_value() && !HwSwitchMatcher(matcher).has(*switchId)) {
       continue;
     }
-    return InterfaceID(intfID);
+    for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
+      if (intf->isVirtual()) {
+        // virtual interfaces do not have associated ports
+        continue;
+      }
+      return InterfaceID(intfID);
+    }
+  }
+  if (switchId.has_value()) {
+    throw FbossError(
+        "No interface found in state for switchId: ", switchId.value());
   }
   throw FbossError("No interface found in state");
 }
@@ -107,4 +119,40 @@ std::shared_ptr<Interface> firstInterfaceWithPorts(
   auto intfID = utility::firstInterfaceIDWithPorts(state);
   return state->getInterfaces()->getNodeIf(intfID);
 }
+
+std::vector<StateDelta> computeReversedDeltas(
+    const std::vector<fsdb::OperDelta>& operDeltas,
+    const std::shared_ptr<SwitchState>& currentState,
+    const std::shared_ptr<SwitchState>& intermediateState) {
+  std::vector<StateDelta> stateDeltas;
+  std::vector<StateDelta> reversedStateDeltas;
+
+  // Get a temporary StateDelta vector from operDelta vector
+  stateDeltas.reserve(operDeltas.size());
+  auto oldState = currentState;
+  for (const auto& delta : operDeltas) {
+    stateDeltas.emplace_back(oldState, delta);
+    oldState = stateDeltas.back().newState();
+  }
+
+  // Most often, there is just 1 delta
+  // if intermediateState is currentState, then failure is in 1st delta
+  // directly goto this initial state
+  //
+  // If failure is in the middle of the deltas
+  // Generate delta in reverse order up to the intermediate state delta
+  if (intermediateState != currentState) {
+    for (const auto& delta : stateDeltas) {
+      reversedStateDeltas.emplace(
+          reversedStateDeltas.begin(), delta.newState(), delta.oldState());
+      // perform a deep comparison
+      if (*delta.newState() == *intermediateState) {
+        break;
+      }
+    }
+  }
+
+  return reversedStateDeltas;
+}
+
 } // namespace facebook::fboss::utility

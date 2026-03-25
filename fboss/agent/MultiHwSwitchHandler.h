@@ -11,6 +11,7 @@
 #include "fboss/agent/HwSwitchConnectionStatusTable.h"
 #include "fboss/agent/HwSwitchHandler.h"
 #include "fboss/agent/if/gen-cpp2/MultiSwitchCtrl.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 
 namespace facebook::fboss {
 
@@ -59,12 +60,16 @@ class MultiHwSwitchHandler {
   std::shared_ptr<SwitchState> stateChanged(
       const StateDelta& delta,
       bool transaction,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   std::shared_ptr<SwitchState> stateChanged(
       const std::vector<StateDelta>& deltas,
       bool transaction,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size);
 
@@ -76,11 +81,19 @@ class MultiHwSwitchHandler {
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept;
+      PacketType packetType) noexcept;
 
-  bool sendPacketSwitchedSync(std::unique_ptr<TxPacket> pkt) noexcept;
+  // TODO Migrate all callsites to explicitly pass switchID and then make
+  // SwitchID non-optional
+  bool sendPacketSwitchedSync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<SwitchID> switchId = std::nullopt) noexcept;
 
-  bool sendPacketSwitchedAsync(std::unique_ptr<TxPacket> pkt) noexcept;
+  // TODO Migrate all callsites to explicitly pass switchID and then make
+  // SwitchID non-optional
+  bool sendPacketSwitchedAsync(
+      std::unique_ptr<TxPacket> pkt,
+      std::optional<SwitchID> switchId = std::nullopt) noexcept;
 
   bool transactionsSupported() const;
 
@@ -124,12 +137,16 @@ class MultiHwSwitchHandler {
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
       SwitchID switchId,
       const HwSwitchStateUpdate& update,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> stateChanged(
       const std::map<SwitchID, const std::vector<StateDelta>&>& deltas,
       bool transaction,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   std::map<SwitchID, HwSwitchStateUpdateResult> getStateUpdateResult(
       const std::vector<SwitchID>& switchIds,

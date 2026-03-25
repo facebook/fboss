@@ -9,6 +9,7 @@
 #include "fboss/agent/test/link_tests/gen-cpp2/link_test_production_features_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/qsfp_clients.h"
 
 DECLARE_string(config);
 DECLARE_bool(disable_neighbor_updates);
@@ -35,6 +36,11 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   void overrideL2LearningConfig(bool swLearning = false, int ageTimer = 300);
   void setupTtl0ForwardingEnable();
   void waitForAllCabledPorts(
+      bool up,
+      uint32_t retries = 60,
+      std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
+          std::chrono::milliseconds(1000)) const;
+  void waitForPortStateMachineState(
       bool up,
       uint32_t retries = 60,
       std::chrono::duration<uint32_t, std::milli> msBetweenRetry =
@@ -66,6 +72,14 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   const std::vector<PortID>& getCabledFabricPorts() const {
     return cabledFabricPorts_;
   }
+  /*
+   * Get cabled ports that are managed by qsfp_service (i.e., ports with
+   * TRANSCEIVER or XPHY chips). Ports connected directly to backplane
+   * without XPHY are not managed by qsfp_service.
+   */
+  const std::vector<PortID>& getQsfpServiceManagedPorts() const {
+    return qsfpServiceManagedPorts_;
+  }
 
   std::vector<PortID> getXphyCabledPorts() const {
     std::vector<PortID> xphyPorts;
@@ -78,12 +92,29 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
     return xphyPorts;
   }
 
+  /*
+   * Get Primary port names (e.g. eth1/1/1) from list of cabled ports
+   */
+  std::vector<std::string> getPrimaryPortNamesCabledPorts();
+
+  /*
+   * Dumps The transceiver I2c Logs at the end of a test run.
+   */
+  void dumpTransceiverI2cLogs(
+      apache::thrift::Client<facebook::fboss::QsfpService>& qsfpClient);
+
   void checkAgentMemoryInBounds() const;
 
   /*
    * Program default (v6) route over ports
    */
 
+  void programDefaultRoute(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      utility::EcmpSetupTargetedPorts6& ecmp6);
+  void programDefaultRouteWithDisableTTLDecrement(
+      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
+      utility::EcmpSetupTargetedPorts6& ecmp6);
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
       std::optional<folly::MacAddress> dstMac = std::nullopt);
@@ -127,9 +158,6 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   void printProductionFeatures() const;
 
  private:
-  void programDefaultRoute(
-      const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-      utility::EcmpSetupTargetedPorts6& ecmp6);
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
 
@@ -140,6 +168,7 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
   std::vector<PortID> cabledFabricPorts_;
   std::set<TransceiverID> cabledTransceivers_;
   std::vector<PortID> cabledTransceiverPorts_;
+  std::vector<PortID> qsfpServiceManagedPorts_;
 };
 int agentEnsembleLinkTestMain(
     int argc,

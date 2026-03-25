@@ -10,6 +10,8 @@ add_library(setup_thrift
 
 target_link_libraries(setup_thrift
   load_agent_config
+  thrift_method_rate_limit
+  thrift_service_utils
   Folly::folly
   FBThrift::thriftcpp2
 )
@@ -52,6 +54,7 @@ add_library(hw_switch_handler
 )
 
 target_link_libraries(hw_switch_handler
+  fboss_event_base
   load_agent_config
   switch_config_cpp2
   utils
@@ -96,6 +99,8 @@ target_link_libraries(switchinfo_utils
   ctrl_cpp2
   fboss_types
   agent_config_cpp2
+  fboss_error
+  load_agent_config
 )
 
 add_library(dsfnode_utils
@@ -144,18 +149,19 @@ add_library(utils
 target_link_libraries(utils
   agent_dir_util
   asic_utils
-  error
+  fboss_error
   ctrl_cpp2
+  hw_switch_fb303_stats
   load_agent_config
   state
   switchid_scope_resolver
   Folly::folly
-  meru400biu_platform_mapping
-  meru400bia_platform_mapping
-  meru400bfu_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
+  j4sim_platform_mapping
+  blackwolf800banw_platform_mapping
+  icecube800banw_platform_mapping
   icecube800bc_platform_mapping
   icetea800bc_platform_mapping
   tahansb800bc_platform_mapping
@@ -174,6 +180,7 @@ add_library(stats
 target_link_libraries(stats
   fboss_types
   agent_stats_cpp2
+  common_utils
   state
   Folly::folly
 )
@@ -218,7 +225,10 @@ add_library(ecmp_resource_manager
 
 target_link_libraries(ecmp_resource_manager
   fib_helpers
+  ref_map
   state
+  stats
+  utils
   Folly::folly
 )
 
@@ -234,7 +244,9 @@ target_link_libraries(shel_manager
 )
 
 add_library(fsdb_adapted_sub_manager
+  fboss/agent/FsdbAdaptedCowStorage.cpp
   fboss/agent/FsdbAdaptedSubManager.cpp
+  fboss/agent/FsdbAdaptedTemplateInstantiations.cpp
 )
 
 target_link_libraries(fsdb_adapted_sub_manager
@@ -242,6 +254,18 @@ target_link_libraries(fsdb_adapted_sub_manager
   fsdb_sub_mgr
   fsdb_model
   cow_storage
+)
+
+add_library(hw_switch_thrift_client_table
+  fboss/agent/HwSwitchThriftClientTable.cpp
+)
+
+target_link_libraries(hw_switch_thrift_client_table
+  fboss_error
+  fboss_types
+  hw_ctrl_cpp2
+  Folly::folly
+  FBThrift::thriftcpp2
 )
 
 add_library(core
@@ -264,7 +288,6 @@ add_library(core
   fboss/agent/HwAsicTable.cpp
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchConnectionStatusTable.cpp
-  fboss/agent/HwSwitchThriftClientTable.cpp
   fboss/agent/IPHeaderV4.cpp
   fboss/agent/IPv4Handler.cpp
   fboss/agent/IPv6Handler.cpp
@@ -292,26 +315,28 @@ add_library(core
   fboss/agent/NeighborUpdater.cpp
   fboss/agent/NeighborUpdaterImpl.cpp
   fboss/agent/NeighborUpdaterNoopImpl.cpp
+  fboss/agent/NextHopResolver.cpp
   fboss/agent/PortUpdateHandler.cpp
   fboss/agent/RemoteNeighborUpdater.cpp
   fboss/agent/ResolvedNexthopMonitor.cpp
   fboss/agent/ResolvedNexthopProbe.cpp
   fboss/agent/ResolvedNexthopProbeScheduler.cpp
-  fboss/agent/ResourceAccountant.cpp
   fboss/agent/RouteUpdateLogger.cpp
   fboss/agent/RouteUpdateLoggingPrefixTracker.cpp
+  fboss/agent/PacketStreamHandler.cpp
   fboss/agent/StaticL2ForNeighborObserver.cpp
   fboss/agent/StaticL2ForNeighborUpdater.cpp
   fboss/agent/StaticL2ForNeighborSwSwitchUpdater.cpp
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/SwSwitchMySidUpdater.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
+  fboss/agent/TamManager.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
   fboss/agent/TunIntf.cpp
   fboss/agent/TunManager.cpp
   fboss/agent/ndp/IPv6RouteAdvertiser.cpp
-  fboss/agent/oss/HwSwitch.cpp
   fboss/agent/oss/PacketLogger.cpp
   fboss/agent/oss/RouteUpdateLogger.cpp
   fboss/agent/oss/SwSwitch.cpp
@@ -357,6 +382,7 @@ set(core_libs
   lldp
   multiswitch_ctrl_cpp2
   packet
+  packet_factory
   product_info
   platform_base
   restart_time_tracker
@@ -400,21 +426,16 @@ set(core_libs
   build_info_wrapper
   ecmp_resource_manager
   thrift_method_rate_limit
+  thrift_service_utils
   shel_manager
   state_delta_logger
   dsfnode_utils
+  hw_switch_thrift_client_table
+  file_based_warmboot_utils
+  validate_state_update
 )
 
 target_link_libraries(core ${core_libs})
-
-add_library(error
-  fboss/agent/FbossError.h
-)
-
-target_link_libraries(error
-  ctrl_cpp2
-  Folly::folly
-)
 
 add_library(thrifthandler_utils
   fboss/agent/ThriftHandlerUtils.cpp
@@ -437,6 +458,7 @@ target_link_libraries(handler
   log_thrift_call
   Folly::folly
   thrifthandler_utils
+  hw_switch_thrift_client_table
 )
 
 add_library(setup_thrift_prod
@@ -459,17 +481,18 @@ add_library(fboss_event_base
 )
 
 target_link_libraries(fboss_event_base
+  agent_features
   Folly::folly
 )
 
 add_library(fboss_error
   fboss/agent/FbossError.h
+  fboss/agent/FbossHwUpdateError.h
   fboss/agent/SysError.h
 )
 
 target_link_libraries(fboss_error
   fboss_cpp2
-  fboss_types
   Folly::folly
 )
 
@@ -487,19 +510,21 @@ target_link_libraries(platform_base
   agent_config_cpp2
   agent_dir_util
   ctrl_cpp2
-  error
+  fboss_error
+  fboss_event_base
   fboss_types
   Folly::folly
   load_agent_config
   platform_mapping
+  product_info
   switchid_scope_resolver
   switchinfo_utils
+  utils
 )
 
 add_library(hw_switch
   fboss/agent/HwSwitch.cpp
   fboss/agent/HwSwitchRouteUpdateWrapper.cpp
-  fboss/agent/oss/HwSwitch.cpp
 )
 
 target_link_libraries(hw_switch
@@ -584,6 +609,7 @@ target_link_libraries(switchid_scope_resolver
   hwswitch_matcher
   state
   switchinfo_utils
+  Folly::folly
 )
 
 add_library(hwagent
@@ -751,21 +777,46 @@ target_link_libraries(fboss_sw_agent
   -Wl,--no-whole-archive
 )
 
+add_library(thrift_based_warmboot_utils
+  fboss/agent/ThriftBasedWarmbootUtils.cpp
+)
+
+target_link_libraries(thrift_based_warmboot_utils
+  hw_asic_table
+  hw_switch_thrift_client_table
+  switch_state_cpp2
+)
+
+add_library(file_based_warmboot_utils
+  fboss/agent/FileBasedWarmbootUtils.cpp
+)
+
+target_link_libraries(file_based_warmboot_utils
+  agent_dir_util
+  agent_features
+  hw_asic_table
+  switch_state_cpp2
+  standalone_rib
+  state
+  common_file_utils
+  Folly::folly
+)
+
 add_library(sw_switch_warmboot_helper
   fboss/agent/SwSwitchWarmBootHelper.cpp
 )
 
 target_link_libraries(sw_switch_warmboot_helper
+  agent_features
   async_logger
   fboss_error
   hw_asic_table
   state
-  standalone_rib
   utils
-  common_file_utils
   Folly::folly
-  switch_state_cpp2
   warm_boot_file_utils
+  file_based_warmboot_utils
+  thrift_based_warmboot_utils
 )
 
 add_library(sw_agent_initializer
@@ -787,7 +838,9 @@ add_library(agent_netwhoami
   fboss/agent/oss/AgentNetWhoAmI.cpp
 )
 
-target_link_libraries(agent_netwhoami)
+target_link_libraries(agent_netwhoami
+  common_file_utils
+)
 
 add_library(agent_features
   fboss/agent/AgentFeatures.cpp
@@ -826,4 +879,23 @@ target_link_libraries(test_utils
   load_agent_config
   common_file_utils
   Folly::folly
+)
+
+
+add_library(validate_state_update
+  fboss/agent/ValidateInterfaceDelta.cpp
+  fboss/agent/ValidateStateUpdate.cpp
+  fboss/agent/ResourceAccountant.cpp
+)
+
+target_link_libraries(validate_state_update
+  state
+  fboss_error
+  switchid_scope_resolver
+  hw_asic_table
+  hw_switch_handler
+  agent_features
+  fib_helpers
+  stats
+  ${GTEST}
 )

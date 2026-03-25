@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"LedServiceTest.testTcvrLos","janga800bic","PASSED"
+"LedServiceTest.checkLedColorChange","janga800bic","PASSED"
+"LedServiceTest.checkLedBlinking","janga800bic","PASSED"
+"LedServiceTest.checkForceLed","janga800bic","PASSED"

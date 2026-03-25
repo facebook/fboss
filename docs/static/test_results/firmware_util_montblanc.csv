@@ -1,0 +1,5 @@
+"Test Case","Platform","Status"
+"FwUtilHwTest.validateConfig","montblanc","PASSED"
+"FwUtilHwTest.listFirmwareNames","montblanc","PASSED"
+"FwUtilHwTest.GetEachFirmwareVersionInfo","montblanc","PASSED"
+"FwUtilHwTest.GetAllFirmwareVersionInfo","montblanc","PASSED"

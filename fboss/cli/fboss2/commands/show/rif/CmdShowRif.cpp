@@ -72,6 +72,7 @@ RetType CmdShowRif::createModel(
     if (*rif.vlanId() != ctrl_constants::NO_VLAN()) {
       rifEntry.vlanID() = *rif.vlanId();
     }
+    rifEntry.portNames() = *rif.portNames();
     rifEntry.routerID() = *rif.routerId();
     rifEntry.mac() = *rif.mac();
     rifEntry.mtu() = *rif.mtu();
@@ -97,7 +98,8 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
        "MTU",
        "TYPE",
        "Liveness",
-       "Scope"});
+       "Scope",
+       "Ports"});
 
   for (const auto& rif : model.get_rifs()) {
     outTable.addRow({
@@ -110,6 +112,8 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
         rif.get_remoteInterfaceType(),
         rif.get_remoteInterfaceLivenessStatus(),
         rif.get_scope(),
+        (rif.portNames()->size() > 0 ? folly::join("\n", *rif.portNames())
+                                     : ""),
     });
   }
 

@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 #include <folly/Subprocess.h>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
 #include "fboss/agent/test/link_tests/LinkTestUtils.h"
@@ -8,16 +9,16 @@
 #include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
-DEFINE_bool(
-    qsfp_port_manager_mode,
-    false,
-    "Set to true to enable Port Manager mode. This means PortManager object will manage all port-level logic and TransceiverManager object will only manage transceiver-level logic.");
-
 namespace facebook::fboss::utility {
 const std::vector<std::string> kRestartQsfpService = {
     "/bin/systemctl",
     "restart",
     "qsfp_service_for_testing"};
+
+const std::vector<std::string> kRestartQsfpServiceOss = {
+    "/bin/systemctl",
+    "restart",
+    "qsfp_service_oss"};
 
 const std::string kForceColdbootQsfpSvcFileName =
     "/dev/shm/fboss/qsfp_service/cold_boot_once_qsfp_service";
@@ -38,8 +39,12 @@ void restartQsfpService(bool coldboot) {
   } else {
     XLOG(DBG2) << "Restarting QSFP Service in warmboot mode";
   }
-
+#ifdef IS_OSS
+  folly::Subprocess(kRestartQsfpServiceOss).waitChecked();
+#else
   folly::Subprocess(kRestartQsfpService).waitChecked();
+
+#endif
 }
 
 // Retrieves the config validation status for all active transceivers. Strings
@@ -179,7 +184,8 @@ void includeLpoTransceivers(
   // Remove LPO modules from the map
   auto itr = infos.begin();
   while (itr != infos.end()) {
-    if (itr->second.tcvrState()->lpoModule().value()) {
+    if (itr->second.tcvrState()->moduleTechnology().value() ==
+        ModuleTechnology::LPO) {
       itr = infos.erase(itr);
     } else {
       itr++;
@@ -297,8 +303,9 @@ std::map<std::string, MediaInterfaceCode> getPortToMediaInterface() {
 const TransceiverSpec* getTransceiverSpec(const SwSwitch* sw, PortID portId) {
   auto& platformPort = sw->getPlatformMapping()->getPlatformPort(portId);
   const auto& chips = sw->getPlatformMapping()->getChips();
-  if (auto tcvrID = utility::getTransceiverId(platformPort, chips)) {
-    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(*tcvrID);
+  if (auto tcvrIds = utility::getTransceiverIds(platformPort, chips);
+      !tcvrIds.empty()) {
+    auto transceiver = sw->getState()->getTransceivers()->getNodeIf(tcvrIds[0]);
     return transceiver.get();
   }
   return nullptr;

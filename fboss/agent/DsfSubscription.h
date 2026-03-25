@@ -54,12 +54,15 @@ class DsfSubscription {
  private:
   struct DsfUpdate {
     bool isEmpty() const {
-      return switchId2SystemPorts.empty() && switchId2Intfs.empty();
+      return switchId2SystemPorts.empty() && switchId2Intfs.empty() &&
+          !grExpiry;
     }
     void clear() {
       switchId2SystemPorts.clear();
       switchId2Intfs.clear();
+      grExpiry = false;
     }
+    bool grExpiry{false};
     std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
     std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
   };
@@ -70,7 +73,8 @@ class DsfSubscription {
   void updateWithRollbackProtection(
       const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
           switchId2SystemPorts,
-      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs);
+      const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs,
+      bool grExpiry);
   void processGRHoldTimerExpired();
   void setupSubscription();
   void tearDownSubscription();
@@ -124,6 +128,26 @@ class DsfSubscription {
   FRIEND_TEST(DsfSubscriptionTest, RemoteEndpointString);
   template <typename T>
   FRIEND_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, GREventSeparatesUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdates);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, GRExpiryProcessedViaQueueDsfUpdate);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, GROverwritesPendingRegularUpdate);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, StopCancelsPendingDsfUpdate);
+  template <typename T>
+  FRIEND_TEST(DsfSubscriptionTest, NewUpdateAfterProcessingSchedulesNewLambda);
 };
 
 } // namespace facebook::fboss

@@ -1,9 +1,19 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace py neteng.fboss.lldp
 namespace py3 neteng.fboss.lldp
 namespace py.asyncio neteng.fboss.asyncio.lldp
 namespace cpp2 facebook.fboss.lldp
 namespace php facebook.fboss.lldp
 namespace go facebook.fboss.lldp
+
+// Facebook OUI: 0x48:57:DD
+const i32 FACEBOOK_OUI_BYTE1 = 0x48;
+const i32 FACEBOOK_OUI_BYTE2 = 0x57;
+const i32 FACEBOOK_OUI_BYTE3 = 0xDD;
 
 enum LinkProtocol {
   UNKNOWN = 0,
@@ -56,6 +66,9 @@ struct LinkNeighborFields {
   // seconds
   14: i64 receivedTTL;
   15: i64 expirationTime;
+
+  // Port drain state from the neighbor
+  16: optional bool portDrainState;
 }
 
 // neighbor key is a string "<portId>_<chassisId>_<portIdType>_<chassisIdType>"

@@ -174,3 +174,32 @@ TEST(UDP, parseError) {
   UDPHeader udp;
   EXPECT_THROW(udp.parse(&readCursor, &portStats), FbossError);
 }
+
+TEST(UDP, tryParseSuccess) {
+  UDPHeader udp;
+  udp.srcPort = 1234;
+  udp.dstPort = 4321;
+  udp.length = 1024;
+  udp.csum = 4242;
+  uint8_t udpSizeArr[UDPHeader::size()];
+  folly::IOBuf buf(IOBuf::WRAP_BUFFER, udpSizeArr, sizeof(udpSizeArr));
+  folly::io::RWPrivateCursor writeCursor(&buf);
+  udp.write(&writeCursor);
+
+  UDPHeader udp2;
+  Cursor readCursor(&buf);
+  SwitchStats swStats(1 /*numSwitches*/);
+  PortStats portStats(PortID(1), "port1", &swStats);
+  EXPECT_TRUE(udp2.tryParse(&readCursor, &portStats));
+  EXPECT_EQ(udp, udp2);
+}
+
+TEST(UDP, tryParseTooSmall) {
+  uint8_t udpSizeSmall[UDPHeader::size() - 1];
+  folly::IOBuf buf(IOBuf::WRAP_BUFFER, udpSizeSmall, sizeof(udpSizeSmall));
+  Cursor readCursor(&buf);
+  SwitchStats swStats(1 /*numSwitches*/);
+  PortStats portStats(PortID(1), "port1", &swStats);
+  UDPHeader udp;
+  EXPECT_FALSE(udp.tryParse(&readCursor, &portStats));
+}

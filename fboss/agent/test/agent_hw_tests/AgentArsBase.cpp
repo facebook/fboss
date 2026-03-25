@@ -53,7 +53,12 @@ cfg::SwitchConfig AgentArsBase::initialConfig(
 
 bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
   auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
-  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB);
+  return (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
+}
+
+bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
+  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3);
 }
 
 std::string AgentArsBase::getAclName(
@@ -97,8 +102,12 @@ std::string AgentArsBase::getCounterName(
   return getAclName(aclType, enableAlternateArsMembers) + "-stats";
 }
 
+std::vector<PortID> AgentArsBase::getTestPorts() const {
+  return masterLogicalInterfacePortIds();
+}
+
 void AgentArsBase::setup(int ecmpWidth) {
-  std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+  std::vector<PortID> portIds = getTestPorts();
   flat_set<PortDescriptor> portDescs;
   std::vector<PortDescriptor> tempPortDescs;
   for (size_t w = 0; w < ecmpWidth; ++w) {
@@ -188,7 +197,7 @@ void AgentArsBase::generateApplyConfig(AclType aclType) {
   utility::addNetworkAIQueueConfig(
       &newCfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
   utility::addNetworkAIQosMaps(newCfg, ensemble.getL3Asics());
-  if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     utility::addCpuQueueConfig(newCfg, ensemble.getL3Asics(), ensemble.isSai());
   }
 
@@ -412,8 +421,7 @@ void AgentArsBase::addRoceAcl(
   std::vector<cfg::CounterType> setCounterTypes{
       cfg::CounterType::PACKETS, cfg::CounterType::BYTES};
   acl->srcPort() =
-      PortDescriptor(masterLogicalInterfacePortIds()[kFrontPanelPortForTest])
-          .phyPortID();
+      PortDescriptor(getTestPorts()[kFrontPanelPortForTest]).phyPortID();
   if (udfTable.has_value()) {
     acl->udfTable() = udfTable.value();
   }
@@ -735,7 +743,7 @@ void AgentArsBase::addAclAndStat(
 }
 
 void AgentArsBase::generatePrefixes() {
-  std::vector<PortID> portIds = masterLogicalInterfacePortIds();
+  std::vector<PortID> portIds = getTestPorts();
   std::vector<PortDescriptor> portDescriptorIds;
   std::transform(
       portIds.begin(),
@@ -745,7 +753,7 @@ void AgentArsBase::generatePrefixes() {
 
   std::vector<std::vector<PortDescriptor>> allCombinations =
       utility::generateEcmpGroupScale(
-          portDescriptorIds, 512, portDescriptorIds.size());
+          portDescriptorIds, 1024, portDescriptorIds.size());
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
   }
@@ -781,6 +789,110 @@ uint32_t AgentArsBase::getMaxArsGroups() const {
   auto maxArsGroups = asic->getMaxArsGroups();
   CHECK(maxArsGroups.has_value());
   return maxArsGroups.value();
+}
+
+cfg::PortFlowletConfig AgentArsBase::getPortFlowletConfig(
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight) const {
+  cfg::PortFlowletConfig portFlowletConfig;
+  portFlowletConfig.scalingFactor() = scalingFactor;
+  portFlowletConfig.loadWeight() = loadWeight;
+  portFlowletConfig.queueWeight() = queueWeight;
+  return portFlowletConfig;
+}
+
+void AgentArsBase::updatePortFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight) const {
+  cfg.portFlowletConfigs() = {
+      {"default",
+       getPortFlowletConfig(scalingFactor, loadWeight, queueWeight)}};
+}
+
+void AgentArsBase::updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const {
+  for (const auto& portId : masterLogicalInterfacePortIds()) {
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    portCfg->flowletConfigName() = "default";
+  }
+}
+
+void AgentArsBase::updateFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    const cfg::SwitchingMode switchingMode,
+    int flowletTableSize,
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight,
+    const std::optional<cfg::SwitchingMode> backupSwitchingMode) const {
+  cfg.flowletSwitchingConfig()->switchingMode() = switchingMode;
+  cfg.flowletSwitchingConfig()->flowletTableSize() = flowletTableSize;
+  if (backupSwitchingMode.has_value()) {
+    cfg.flowletSwitchingConfig()->backupSwitchingMode() =
+        backupSwitchingMode.value();
+  }
+  updatePortFlowletConfigs(cfg, scalingFactor, loadWeight, queueWeight);
+}
+
+bool AgentArsBase::verifyPortFlowletConfig(
+    const folly::CIDRNetwork& ip,
+    cfg::PortFlowletConfig& portFlowletConfig,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+
+  return client->sync_verifyPortFlowletConfig(cidr, portFlowletConfig, true);
+}
+
+bool AgentArsBase::verifyEcmpForFlowletSwitching(
+    const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    bool flowletEnable,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+  state::SwitchSettingsFields settings;
+  settings.flowletSwitchingConfig() = flowletCfg;
+  return client->sync_verifyEcmpForFlowletSwitchingHandler(
+      cidr, settings, flowletEnable);
+}
+
+bool AgentArsBase::verifyEcmpForNonFlowlet(
+    const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    const bool expectFlowsetFree,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+  state::SwitchSettingsFields settings;
+  settings.flowletSwitchingConfig() = flowletCfg;
+  return client->sync_verifyEcmpForNonFlowlet(
+      cidr, settings, expectFlowsetFree);
+}
+
+void AgentArsBase::setupEcmpGroups(int numEcmp) {
+  generatePrefixes();
+  std::vector<RoutePrefixV6> testPrefixes = {
+      prefixes.begin(), prefixes.begin() + numEcmp};
+  std::vector<flat_set<PortDescriptor>> testNhopSets = {
+      nhopSets.begin(), nhopSets.begin() + numEcmp};
+  auto wrapper = getSw()->getRouteUpdater();
+  helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
 }
 
 } // namespace facebook::fboss

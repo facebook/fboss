@@ -18,10 +18,6 @@
   "optics": [
     {
       "opticName": "qsfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
-      "portList": [],
       "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {
@@ -62,9 +58,6 @@
   "sensors": [
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,
@@ -77,9 +70,6 @@
     },
     {
       "sensorName": "SCM_INLET_U36_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "31": 25,
@@ -108,9 +98,6 @@
     },
     {
       "sensorName": "SMB_TH5_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,

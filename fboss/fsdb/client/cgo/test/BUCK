@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_agent_push")
+
+cpp_unittest(
+    name = "fsdb_cgo_wrapper_test",
+    srcs = [
+        "FsdbCgoWrapperTest.cpp",
+    ],
+    deps = [
+        "//fboss/fsdb/client:fsdb_pub_sub",
+        "//fboss/fsdb/client/cgo:fsdb_cgo_pub_sub_wrapper",
+        "//fboss/fsdb/if:fsdb_oper-cpp2-types",
+        "//fboss/fsdb/tests/client:fsdb_test_clients",
+        "//fboss/fsdb/tests/utils:fsdb_test_server",
+        "//folly/logging:logging",
+    ],
+)

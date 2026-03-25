@@ -56,6 +56,7 @@ add_fbthrift_cpp_library(
     agent_config_cpp2
     agent_info_cpp2
     agent_stats_cpp2
+    fsdb_common_cpp2
     switch_reachability_cpp2
     switch_state_cpp2
     qsfp_state_cpp2
@@ -68,6 +69,7 @@ add_library(thriftpath_lib
 )
 
 target_link_libraries(thriftpath_lib
+  fsdb_utils
   switch_config_cpp2
   fsdb_oper_cpp2
   FBThrift::thriftcpp2

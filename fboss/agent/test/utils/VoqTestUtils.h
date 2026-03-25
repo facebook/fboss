@@ -84,9 +84,13 @@ void populateRemoteIntfAndSysPorts(
     std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Rifs,
     const cfg::SwitchConfig& config,
     bool useEncapIndex,
-    bool addNeighborToIntf = true);
+    bool addNeighborToIntf = true,
+    bool useHyperPort = false);
 
-void setupRemoteIntfAndSysPorts(SwSwitch* swSwitch, bool useEncapIndex);
+void setupRemoteIntfAndSysPorts(
+    SwSwitch* swSwitch,
+    bool useEncapIndex,
+    bool useHyperPort = false);
 
 struct QueueConfigAndName {
   std::string name;
@@ -102,5 +106,21 @@ uint8_t getGlobalRcyDefaultQueue();
 int getTrafficClassToVoqId(const HwAsic* hwAsic, int trafficClass);
 
 int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
+
+SwitchID getRemoteVoqSwitchId(SwSwitch* sw);
+
+void addRemoteSysPortAndInterface(
+    SwSwitch* sw,
+    const SwitchID& remoteSwitchID,
+    const SystemPortID& remoteSysPortId,
+    const InterfaceID& remoteIntfId,
+    const Interface::Addresses& intfAddrs);
+
+void resolveRouteToRemoteSysPort(
+    const std::shared_ptr<SwitchState>& state,
+    SwSwitch* sw,
+    TestEnsembleIf* ensemble,
+    const SystemPortID& remoteSysPortId,
+    const folly::IPAddressV6& dstIp);
 } // namespace utility
 } // namespace facebook::fboss

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
+#include <filesystem>
 #include "RackmonPlsManager.h"
 
 using namespace rackmonsvc;
@@ -263,4 +264,40 @@ TEST(PlsManagerTest, FailToOpenGpiochip) {
   RackmonPlsManager plsManager;
 
   EXPECT_THROW(plsManager.loadPlsConfig(jConfig), std::runtime_error);
+}
+
+class TempSymlinkTest : public ::testing::Test {
+ protected:
+  std::filesystem::path tempDir;
+  std::filesystem::path symlinkPath;
+
+  void SetUp() override {
+    char dirTemplate[] = "/tmp/plstest_XXXXXX";
+    char* result = mkdtemp(dirTemplate);
+    if (result == nullptr) {
+      throw std::runtime_error("Failed to create temp directory");
+    }
+    tempDir = result;
+    symlinkPath = tempDir / "test_symlink";
+  }
+
+  void TearDown() override {
+    std::filesystem::remove_all(tempDir);
+  }
+};
+
+TEST_F(TempSymlinkTest, SymlinkResolution) {
+  std::filesystem::path targetPath = "/dev/null";
+  std::filesystem::create_symlink(targetPath, symlinkPath);
+
+  GpioLine gLine = {
+      .gpioChip = symlinkPath.string(),
+      .offset = 1,
+      .name = "testGpio",
+  };
+
+  // open() should resolve symlink before calling parseOffset()
+  // parseOffset() will fail on /dev/null, but gpioChip should be resolved
+  EXPECT_THROW(gLine.open("rackmonTest"), std::runtime_error);
+  EXPECT_EQ(gLine.gpioChip, targetPath.string());
 }

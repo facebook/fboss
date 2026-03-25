@@ -28,7 +28,9 @@ ConfigApplier::ConfigApplier(
     folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange,
     folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange,
     folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange,
-    folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange)
+    folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange,
+    NextHopIDManager* nextHopIDManager,
+    MySidTable* mySidTable)
     : vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
@@ -40,14 +42,21 @@ ConfigApplier::ConfigApplier(
       staticIp2MplsRouteRange_(staticIp2MplsRouteRange),
       staticMplsRouteRange_(staticMplsRouteRange),
       staticMplsDropRouteRange_(staticMplsDropRouteRange),
-      staticMplsCpuRouteRange_(staticMplsCpuRouteRange) {
+      staticMplsCpuRouteRange_(staticMplsCpuRouteRange),
+      nextHopIDManager_(nextHopIDManager),
+      mySidTable_(mySidTable) {
   CHECK_NOTNULL(v4NetworkToRoute_);
   CHECK_NOTNULL(v6NetworkToRoute_);
   CHECK_NOTNULL(labelToRoute_);
 }
 
 void ConfigApplier::apply() {
-  RibRouteUpdater updater(v4NetworkToRoute_, v6NetworkToRoute_, labelToRoute_);
+  RibRouteUpdater updater(
+      v4NetworkToRoute_,
+      v6NetworkToRoute_,
+      labelToRoute_,
+      nextHopIDManager_,
+      mySidTable_);
 
   // Update static routes
   std::vector<RibRouteUpdater::RouteEntry> staticRoutes;

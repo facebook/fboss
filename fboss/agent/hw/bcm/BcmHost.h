@@ -17,6 +17,7 @@ extern "C" {
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 #include <folly/SpinLock.h>
+#include <folly/Utility.h>
 #include <folly/json/dynamic.h>
 #include "fboss/agent/hw/bcm/BcmEgress.h"
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
@@ -67,7 +68,7 @@ class BcmHostEgress : public boost::noncopyable {
 /**
  * BcmHostIf includes host entry API interfaces like programTo*
  */
-class BcmHostIf {
+class BcmHostIf : public folly::NonCopyableNonMovable {
  public:
   BcmHostIf(const BcmSwitchIf* hw, BcmHostKey key)
       : hw_(hw), key_(std::move(key)) {}
@@ -178,11 +179,6 @@ class BcmHostIf {
   int lookupClassId_{0}; // DST Lookup Class
   RouteForwardAction action_{RouteForwardAction::DROP};
   std::unique_ptr<BcmHostEgress> egress_;
-
- private:
-  // no copy or assignment
-  BcmHostIf(BcmHostIf const&) = delete;
-  BcmHostIf& operator=(BcmHostIf const&) = delete;
 };
 
 /**
@@ -197,14 +193,11 @@ class BcmHost : public BcmHostIf {
   static std::string l3HostToString(const bcm_l3_host_t& host);
 
  private:
-  // no copy or assignment
-  BcmHost(BcmHost const&) = delete;
-  BcmHost& operator=(BcmHost const&) = delete;
   void initHostCommon(bcm_l3_host_t* host) const;
 };
 
 // virtual base class to provide APIs to program hosts
-class BcmHostTableIf {
+class BcmHostTableIf : public folly::NonCopyableNonMovable {
  public:
   BcmHostTableIf() {}
   virtual ~BcmHostTableIf() = default;
@@ -230,11 +223,6 @@ class BcmHostTableIf {
   virtual std::shared_ptr<BcmHostIf> refOrEmplaceHost(
       const BcmHostKey& key) = 0;
   virtual void releaseHosts() = 0;
-
- private:
-  // no copy or assignment
-  BcmHostTableIf(BcmHostTableIf const&) = delete;
-  BcmHostTableIf& operator=(BcmHostTableIf const&) = delete;
 };
 
 class BcmHostTable : public BcmHostTableIf {

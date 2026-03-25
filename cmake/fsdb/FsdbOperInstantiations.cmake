@@ -141,6 +141,7 @@ add_library(fsdb_cow_stats_sub_mgr
 )
 
 target_link_libraries(fsdb_cow_stats_sub_mgr
+  fsdb_cow_state_sub_mgr
   fsdb_model
   fsdb_pub_sub
   fsdb_cow_storage

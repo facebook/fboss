@@ -23,6 +23,7 @@ const std::string kGpioChip = "gpiochip";
 const re2::RE2 kWatchdogNameRe{"watchdog(\\d+)"};
 const std::string kWatchdog = "watchdog";
 constexpr auto kWatchdogDevCreationWaitSecs = std::chrono::seconds(5);
+constexpr auto kMdioBusCharDevCreationWaitSecs = std::chrono::seconds(5);
 } // namespace
 
 namespace facebook::fboss::platform::platform_manager {
@@ -126,6 +127,24 @@ std::string Utils::resolveWatchdogCharDevPath(const std::string& sysfsPath) {
   return charDevPath;
 }
 
+std::string Utils::resolveMdioBusCharDevPath(uint32_t instanceId) {
+  auto failMsg = "Failed to resolve mdio_bus CharDevPath";
+  auto charDevPath = fmt::format("/dev/fb-mdio-{}", instanceId);
+  if (!Utils().checkDeviceReadiness(
+          [&]() -> bool { return fs::exists(charDevPath); },
+          fmt::format(
+              "MdioBus CharDevPath is not created. Waited for at most {}s",
+              kMdioBusCharDevCreationWaitSecs.count()),
+          kMdioBusCharDevCreationWaitSecs)) {
+    throw std::runtime_error(
+        fmt::format(
+            "{}. Reason: {} does not exist in the system",
+            failMsg,
+            charDevPath));
+  }
+  return charDevPath;
+}
+
 bool Utils::checkDeviceReadiness(
     std::function<bool()>&& isDeviceReadyFunc,
     const std::string& onWaitMsg,
@@ -183,7 +202,7 @@ std::string Utils::evaluateExpression(const std::string& expression) {
   if (!parser.compile(decimalExpression, expr)) {
     throw std::runtime_error(
         fmt::format(
-            "Failed to parse csrOffset expression: {}", decimalExpression));
+            "Failed to parse offset expression: {}", decimalExpression));
   }
 
   uint64_t value = static_cast<uint64_t>(expr.value());
@@ -228,6 +247,52 @@ std::string Utils::convertHexLiteralsToDecimal(const std::string& expression) {
   return result;
 }
 
+std::vector<I2cAdapterConfig> Utils::createI2cAdapterConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<I2cAdapterConfig> i2cAdapterConfigs;
+  const auto i2cAdapterBlockConfigs = pciDeviceConfig.i2cAdapterBlockConfigs();
+  for (const auto& i2cAdapterBlockConfig : *i2cAdapterBlockConfigs) {
+    int endAdapterIndex = *i2cAdapterBlockConfig.startAdapterIndex() +
+        *i2cAdapterBlockConfig.numAdapters();
+    for (int adapterIndex = *i2cAdapterBlockConfig.startAdapterIndex();
+         adapterIndex < endAdapterIndex;
+         ++adapterIndex) {
+      I2cAdapterConfig i2cAdapterConfig;
+      i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+          "{}_{}",
+          *i2cAdapterBlockConfig.pmUnitScopedNamePrefix(),
+          adapterIndex);
+      i2cAdapterConfig.fpgaIpBlockConfig()->deviceName() =
+          *i2cAdapterBlockConfig.deviceName();
+
+      std::string csrExpression = fmt::format(
+          fmt::runtime(*i2cAdapterBlockConfig.csrOffsetCalc()),
+          fmt::arg("adapterIndex", adapterIndex),
+          fmt::arg(
+              "startAdapterIndex", *i2cAdapterBlockConfig.startAdapterIndex()));
+      i2cAdapterConfig.fpgaIpBlockConfig()->csrOffset() =
+          Utils().evaluateExpression(csrExpression);
+
+      if (!i2cAdapterBlockConfig.iobufOffsetCalc()->empty()) {
+        std::string iobufExpression = fmt::format(
+            fmt::runtime(*i2cAdapterBlockConfig.iobufOffsetCalc()),
+            fmt::arg("adapterIndex", adapterIndex),
+            fmt::arg(
+                "startAdapterIndex",
+                *i2cAdapterBlockConfig.startAdapterIndex()));
+        i2cAdapterConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().evaluateExpression(iobufExpression);
+      }
+
+      i2cAdapterConfig.numberOfAdapters() =
+          *i2cAdapterBlockConfig.numBusesPerAdapter();
+
+      i2cAdapterConfigs.push_back(i2cAdapterConfig);
+    }
+  }
+  return i2cAdapterConfigs;
+}
+
 std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
     const PciDeviceConfig& pciDeviceConfig) {
   std::vector<XcvrCtrlConfig> xcvrCtrlConfigs;
@@ -249,9 +314,84 @@ std::vector<XcvrCtrlConfig> Utils::createXcvrCtrlConfigs(
               port,
               *xcvrCtrlBlockConfig.startPort());
       xcvrCtrlConfig.portNumber() = port;
+      if (!xcvrCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+        xcvrCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+            Utils().computeHexExpression(
+                *xcvrCtrlBlockConfig.iobufOffsetCalc(),
+                port,
+                *xcvrCtrlBlockConfig.startPort());
+      }
       xcvrCtrlConfigs.push_back(xcvrCtrlConfig);
     }
   }
   return xcvrCtrlConfigs;
+}
+
+std::vector<LedCtrlConfig> Utils::createLedCtrlConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<LedCtrlConfig> ledCtrlConfigs;
+  const auto ledCtrlBlockConfigs = pciDeviceConfig.ledCtrlBlockConfigs();
+  for (const auto& ledCtrlBlockConfig : *ledCtrlBlockConfigs) {
+    int endPort =
+        *ledCtrlBlockConfig.startPort() + *ledCtrlBlockConfig.numPorts();
+    for (int port = *ledCtrlBlockConfig.startPort(); port < endPort; ++port) {
+      for (int led = 1; led <= ledCtrlBlockConfig.ledPerPort(); ++led) {
+        LedCtrlConfig ledCtrlConfig;
+        ledCtrlConfig.fpgaIpBlockConfig()->pmUnitScopedName() = fmt::format(
+            "{}_PORT_{}_LED_{}",
+            *ledCtrlBlockConfig.pmUnitScopedNamePrefix(),
+            port,
+            led);
+        ledCtrlConfig.fpgaIpBlockConfig()->deviceName() =
+            *ledCtrlBlockConfig.deviceName();
+        ledCtrlConfig.fpgaIpBlockConfig()->csrOffset() =
+            Utils().computeHexExpression(
+                *ledCtrlBlockConfig.csrOffsetCalc(),
+                port,
+                *ledCtrlBlockConfig.startPort(),
+                led);
+        ledCtrlConfig.portNumber() = port;
+        ledCtrlConfig.ledId() = led;
+        if (!ledCtrlBlockConfig.iobufOffsetCalc()->empty()) {
+          ledCtrlConfig.fpgaIpBlockConfig()->iobufOffset() =
+              Utils().computeHexExpression(
+                  *ledCtrlBlockConfig.iobufOffsetCalc(),
+                  port,
+                  *ledCtrlBlockConfig.startPort(),
+                  led);
+        }
+        ledCtrlConfigs.push_back(ledCtrlConfig);
+      }
+    }
+  }
+  return ledCtrlConfigs;
+}
+
+std::vector<FpgaIpBlockConfig> Utils::createMdioBusConfigs(
+    const PciDeviceConfig& pciDeviceConfig) {
+  std::vector<FpgaIpBlockConfig> mdioBusConfigs;
+  const auto mdioBusBlockConfigs = pciDeviceConfig.mdioBusBlockConfigs();
+  for (const auto& mdioBusBlockConfig : *mdioBusBlockConfigs) {
+    int endBusIndex = *mdioBusBlockConfig.numBuses();
+    for (int busIndex = 0; busIndex < endBusIndex; ++busIndex) {
+      FpgaIpBlockConfig mdioBusConfig;
+      mdioBusConfig.pmUnitScopedName() = fmt::format(
+          "{}_{}", *mdioBusBlockConfig.pmUnitScopedNamePrefix(), busIndex + 1);
+      mdioBusConfig.deviceName() = *mdioBusBlockConfig.deviceName();
+
+      std::string iobufExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.iobufOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.iobufOffset() = Utils().evaluateExpression(iobufExpression);
+
+      std::string csrExpression = fmt::format(
+          fmt::runtime(*mdioBusBlockConfig.csrOffsetCalc()),
+          fmt::arg("busIndex", busIndex));
+      mdioBusConfig.csrOffset() = Utils().evaluateExpression(csrExpression);
+
+      mdioBusConfigs.push_back(mdioBusConfig);
+    }
+  }
+  return mdioBusConfigs;
 }
 } // namespace facebook::fboss::platform::platform_manager

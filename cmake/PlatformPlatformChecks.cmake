@@ -17,6 +17,7 @@ add_library(platform_check
 
 target_link_libraries(platform_check
   check_types_cpp2
+  platform_config_lib
   platform_manager_config_cpp2
 )
 
@@ -25,6 +26,7 @@ add_library(platform_checks
   fboss/platform/platform_checks/checks/PciDeviceCheck.cpp
   fboss/platform/platform_checks/checks/PowerResetCheck.cpp
   # Not including KernelVersionCheck since it relies on internal tools
+  fboss/platform/platform_checks/checks/i801SmbusTimeoutCheck.cpp
 )
 
 target_link_libraries(platform_checks

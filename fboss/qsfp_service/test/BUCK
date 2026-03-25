@@ -16,7 +16,7 @@ cpp_binary(
         "//common/init:init",
         "//fboss/qsfp_service:handler",
         "//fboss/qsfp_service:port-manager",
-        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",
+        "//fboss/qsfp_service/platforms/wedge:wedge-platform-credo-0.7.2",  # @manual
         "//folly:singleton",
         "//folly/executors:function_scheduler",
         "//thrift/lib/cpp2:server",
@@ -62,6 +62,7 @@ cpp_unittest(
     deps = [
         ":transceiver_manager_test_helper",
         "//fboss/lib:common_file_utils",
+        "//fboss/qsfp_service/module/tests:mock-headers",
     ],
 )
 
@@ -74,13 +75,12 @@ cpp_unittest(
     deps = [
         "//fboss/lib/bsp/icecube800bc:icecube800bc_bsp",
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
-        "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
-        "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
-        "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
+        "//fboss/lib/bsp/minipack3bta:minipack3bta_bsp",
         "//fboss/lib/bsp/minipack3n:minipack3n_bsp",
         "//fboss/lib/bsp/montblanc:montblanc_bsp",
         "//fboss/lib/bsp/tahansb800bc:tahansb800bc_bsp",
         "//fboss/lib/bsp/wedge800bact:wedge800bact_bsp",
+        "//fboss/lib/bsp/wedge800cact:wedge800cact_bsp",
         "//folly/testing:test_util",
     ],
 )
@@ -155,8 +155,7 @@ cpp_library(
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     exported_deps = [
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
-        "//fboss/lib/config:fboss_config_utils",
-        "//fboss/qsfp_service:slot-thread-helper",
+        "//fboss/qsfp_service:qsfp-service-threads",
     ],
 )
 
@@ -227,8 +226,7 @@ cpp_unittest(
         ":mock_port_manager",
         ":transceiver_manager_test_helper",
         "//fboss/agent/platforms/common/fake_test:fake_test_platform_mapping",
-        "//fboss/lib/config:fboss_config_utils",
-        "//fboss/qsfp_service:slot-thread-helper",
+        "//fboss/qsfp_service:qsfp-service-threads",
         "//fboss/qsfp_service/module:qsfp-module",
         "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
         "//fboss/qsfp_service/module/tests:mock-headers",

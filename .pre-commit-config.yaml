@@ -7,6 +7,16 @@ repos:
       - id: clang-format
         types_or: [c++, c]
         args: [--style=file, --verbose]
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x, --severity=warning]
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt
+        args: [-w, -s, -i, '2']
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -15,3 +25,13 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-merge-conflict
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.0
+    hooks:
+      # Ruff linter for all Python files in fboss/
+      - id: ruff-check
+        files: ^fboss/
+        args: [--fix]
+      # Ruff formatter for all Python files in fboss/
+      - id: ruff-format
+        files: ^fboss/

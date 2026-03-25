@@ -29,7 +29,9 @@
 
 #include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/HwSwitchMatcher.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/SflowCollector.h"
+#include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
@@ -251,6 +253,11 @@ MultiSwitchForwardingInformationBaseMapDelta StateDelta::getFibsDelta() const {
       old_->getFibs().get(), new_->getFibs().get());
 }
 
+MultiSwitchFibInfoMapDelta StateDelta::getFibsInfoDelta() const {
+  return MultiSwitchFibInfoMapDelta(
+      old_->getFibsInfoMap().get(), new_->getFibsInfoMap().get());
+}
+
 ThriftMapDelta<MultiSwitchSettings> StateDelta::getSwitchSettingsDelta() const {
   return ThriftMapDelta<MultiSwitchSettings>(
       old_->getSwitchSettings().get(), new_->getSwitchSettings().get());
@@ -298,6 +305,15 @@ ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
   return getFirstMapDelta<IpTunnelMap>(old_->getTunnels(), new_->getTunnels());
 }
 
+ThriftMapDelta<Srv6TunnelMap> StateDelta::getSrv6TunnelsDelta() const {
+  return getFirstMapDelta<Srv6TunnelMap>(
+      old_->getSrv6Tunnels(), new_->getSrv6Tunnels());
+}
+
+ThriftMapDelta<MySidMap> StateDelta::getMySidsDelta() const {
+  return getFirstMapDelta<MySidMap>(old_->getMySids(), new_->getMySids());
+}
+
 MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()
     const {
   return MultiSwitchMapDelta<MultiTeFlowTable>(
@@ -330,6 +346,7 @@ template struct ThriftMapDelta<ForwardingInformationBaseV6>;
 template struct ThriftMapDelta<LabelForwardingInformationBase>;
 template struct ThriftMapDelta<SystemPortMap>;
 template struct ThriftMapDelta<IpTunnelMap>;
+template struct ThriftMapDelta<Srv6TunnelMap>;
 template struct ThriftMapDelta<TeFlowTable>;
 
 template struct MultiSwitchMapDelta<MultiSwitchMirrorMap>;
@@ -337,6 +354,7 @@ template struct MultiSwitchMapDelta<MultiSwitchSflowCollectorMap>;
 template struct MultiSwitchMapDelta<MultiLabelForwardingInformationBase>;
 template struct MultiSwitchMapDelta<MultiSwitchQosPolicyMap>;
 template struct MultiSwitchMapDelta<MultiSwitchIpTunnelMap>;
+template struct MultiSwitchMapDelta<MultiSwitchSrv6TunnelMap>;
 template struct MultiSwitchMapDelta<MultiTeFlowTable>;
 template struct MultiSwitchMapDelta<MultiSwitchAggregatePortMap>;
 template struct MultiSwitchMapDelta<MultiSwitchLoadBalancerMap>;
@@ -348,34 +366,63 @@ template struct MultiSwitchMapDelta<MultiSwitchDsfNodeMap>;
 template struct MultiSwitchMapDelta<MultiSwitchSystemPortMap>;
 template struct MultiSwitchMapDelta<MultiSwitchAclMap>;
 
+bool StateDelta::hasRouteOrNeighborChanges() const {
+  // Check for FIB map changes within FibsInfo delta
+  for (const auto& fibInfoDelta : getFibsInfoDelta()) {
+    if (!DeltaFunctions::isEmpty(fibInfoDelta.getFibsMapDelta())) {
+      return true;
+    }
+  }
+
+  // Check if neighbors changed (affects MAC resolution)
+  for (const auto& entry : getVlansDelta()) {
+    if (!DeltaFunctions::isEmpty(entry.getArpDelta()) ||
+        !DeltaFunctions::isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+
+  for (const auto& entry : getIntfsDelta()) {
+    if (!DeltaFunctions::isEmpty(entry.getArpDelta()) ||
+        !DeltaFunctions::isEmpty(entry.getNdpDelta())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool isStateDeltaEmpty(const StateDelta& stateDelta) {
   bool empty{true};
-  SwitchState::Fields().forEachChildName(
-      [&empty, &stateDelta](auto* child, auto name) {
-        using ChildType = std::decay_t<std::remove_pointer_t<decltype(child)>>;
-        using Name = std::decay_t<decltype(name)>;
-        if constexpr (thrift_cow::ResolveMemberType<ChildType, Name>::value) {
-          bool isEmpty = true;
-          if constexpr (
-              std::is_same_v<Name, switch_state_tags::switchSettingsMap> ||
-              std::is_same_v<Name, switch_state_tags::controlPlaneMap>) {
-            isEmpty = (DeltaFunctions::isEmpty(
-                ThriftMapDelta<ChildType>(
-                    stateDelta.oldState()->get<Name>().get(),
-                    stateDelta.newState()->get<Name>().get())));
-          } else {
-            isEmpty = (DeltaFunctions::isEmpty(
-                MultiSwitchMapDelta<ChildType>(
-                    stateDelta.oldState()->get<Name>().get(),
-                    stateDelta.newState()->get<Name>().get())));
-          }
-          if (!isEmpty) {
-            XLOG(INFO) << "Delta for " << utility::TagName<Name>::value()
-                       << " is not empty";
-          }
-          empty &= isEmpty;
-        }
-      });
+  SwitchState::Fields().forEachChildName([&empty, &stateDelta](
+                                             auto* child, auto fieldId) {
+    using ChildType = std::decay_t<std::remove_pointer_t<decltype(child)>>;
+    using FieldIdTag = std::decay_t<decltype(fieldId)>;
+    using Name = apache::thrift::op::get_ident<state::SwitchState, FieldIdTag>;
+    if constexpr (thrift_cow::ResolveMemberType<ChildType, Name>::value) {
+      bool isEmpty = true;
+      if constexpr (
+          std::is_same_v<Name, switch_state_tags::switchSettingsMap> ||
+          std::is_same_v<Name, switch_state_tags::controlPlaneMap>) {
+        isEmpty = (DeltaFunctions::isEmpty(
+            ThriftMapDelta<ChildType>(
+                stateDelta.oldState()->get<Name>().get(),
+                stateDelta.newState()->get<Name>().get())));
+      } else {
+        isEmpty = (DeltaFunctions::isEmpty(
+            MultiSwitchMapDelta<ChildType>(
+                stateDelta.oldState()->get<Name>().get(),
+                stateDelta.newState()->get<Name>().get())));
+      }
+      if (!isEmpty) {
+        XLOG(INFO) << "Delta for "
+                   << apache::thrift::op::get_name_v<
+                          state::SwitchState,
+                          FieldIdTag> << " is not empty";
+      }
+      empty &= isEmpty;
+    }
+  });
   return empty;
 }
 

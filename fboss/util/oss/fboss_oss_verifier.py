@@ -157,9 +157,7 @@ class FBOSSOSSVerifier:
             datetime.now().timestamp(), pytz.timezone("US/Pacific")
         ).strftime("%m-%d-%Y %H:%M:%S")
         print(
-            f"RESULTS:\n"
-            f"Timestamp: {self._timestamp} PDT\n"
-            f"Build: {build_result.value}"
+            f"RESULTS:\nTimestamp: {self._timestamp} PDT\nBuild: {build_result.value}"
         )
         if build_result == ResultType.OK:
             stable_commit_result = (

@@ -10,10 +10,12 @@
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
 #include <folly/logging/Init.h>
-#include <folly/logging/LogLevel.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <thrift/lib/cpp2/op/Get.h>
+
+#include <utility>
 
 FOLLY_INIT_LOGGING_CONFIG("fboss=DBG5; default:async=true");
 
@@ -69,6 +71,31 @@ class TestAgentPublisher {
     ASSERT_TRUE(publisher_->write(std::move(patch)));
   }
 
+  template <typename PathT>
+  void publishDelete(const PathT& path) {
+    CHECK(publisher_);
+    auto tokens = path.idTokens();
+    // Extract the map key (last token) and build a MapPatch with a del child
+    auto mapKey = tokens.back();
+    tokens.pop_back();
+
+    Patch patch;
+    patch.basePath() = std::move(tokens);
+
+    thrift_cow::PatchNode delChild;
+    delChild.set_del();
+
+    thrift_cow::MapPatch mapPatch;
+    mapPatch.children() = {{mapKey, std::move(delChild)}};
+
+    thrift_cow::PatchNode rootPatch;
+    rootPatch.set_map_node(std::move(mapPatch));
+
+    patch.patch() = std::move(rootPatch);
+    patch.protocol() = OperProtocol::BINARY;
+    ASSERT_TRUE(publisher_->write(std::move(patch)));
+  }
+
  private:
   bool isStats_;
   std::unique_ptr<FsdbPatchPublisher> publisher_;
@@ -118,6 +145,30 @@ struct DataFactory<true /* IsStats */> {
   HwTrunkStats fetchData2(const FsdbOperStatsRoot& root) {
     return root.agent()->hwTrunkStats()->at(path2Key);
   }
+
+  auto mapKeyPath(std::string key) {
+    return root().agent().phyStats()[std::move(key)];
+  }
+
+  phy::PhyStats mapKeyData(int val) {
+    phy::PhyStats stats;
+    stats.timeCollected() = val;
+    return stats;
+  }
+
+  bool hasMapKey(const FsdbOperStatsRoot& root, const std::string& key) {
+    return root.agent()->phyStats()->count(key) > 0;
+  }
+
+  std::map<std::string, phy::PhyStats> mapData(
+      const std::map<std::string, int>& entries) {
+    std::map<std::string, phy::PhyStats> stats;
+    for (auto& [key, val] : entries) {
+      stats[key] = phy::PhyStats();
+      stats[key].timeCollected() = val;
+    }
+    return stats;
+  }
 };
 
 template <>
@@ -165,6 +216,27 @@ struct DataFactory<false /* IsStats */> {
         ->switchSettings()
         ->switchIdToSwitchInfo()
         ->at(path2Key);
+  }
+
+  auto mapKeyPath(std::string key) {
+    return root().agent().config().defaultCommandLineArgs()[std::move(key)];
+  }
+
+  std::string mapKeyData(int val) {
+    return folly::to<std::string>(val);
+  }
+
+  bool hasMapKey(const FsdbOperStateRoot& root, const std::string& key) {
+    return root.agent()->config()->defaultCommandLineArgs()->count(key) > 0;
+  }
+
+  std::map<std::string, std::string> mapData(
+      const std::map<std::string, int>& entries) {
+    std::map<std::string, std::string> cliArgs;
+    for (auto& [key, val] : entries) {
+      cliArgs[key] = folly::to<std::string>(val);
+    }
+    return cliArgs;
   }
 };
 
@@ -227,34 +299,75 @@ class FsdbSubManagerTest : public ::testing::Test,
 
   std::vector<ExtendedOperPath> extSubscriptionPaths() const {
     if constexpr (IsStats) {
-      using StatsRootMembers =
-          apache::thrift::reflect_struct<FsdbOperStatsRoot>::member;
-      using AgentStatsRootMembers =
-          apache::thrift::reflect_struct<AgentStats>::member;
-      using PhyStatsMembers =
-          apache::thrift::reflect_struct<phy::PhyStats>::member;
-      ExtendedOperPath path =
-          ext_path_builder::raw(StatsRootMembers::agent::id::value)
-              .raw(AgentStatsRootMembers::phyStats::id::value)
-              .any()
-              .raw(PhyStatsMembers::timeCollected::id::value)
-              .get();
+      ExtendedOperPath path = ext_path_builder::raw(
+                                  apache::thrift::op::get_field_id_v<
+                                      FsdbOperStatsRoot,
+                                      apache::thrift::ident::agent>)
+                                  .raw(
+                                      apache::thrift::op::get_field_id_v<
+                                          AgentStats,
+                                          apache::thrift::ident::phyStats>)
+                                  .any()
+                                  .raw(
+                                      apache::thrift::op::get_field_id_v<
+                                          phy::PhyStats,
+                                          apache::thrift::ident::timeCollected>)
+                                  .get();
       return {std::move(path)};
     } else {
-      using StateRootMembers =
-          apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
-      using AgentRootMembers =
-          apache::thrift::reflect_struct<AgentData>::member;
-      using AgentConfigRootMembers =
-          apache::thrift::reflect_struct<cfg::AgentConfig>::member;
       ExtendedOperPath path =
-          ext_path_builder::raw(StateRootMembers::agent::id::value)
-              .raw(AgentRootMembers::config::id::value)
-              .raw(AgentConfigRootMembers::defaultCommandLineArgs::id::value)
+          ext_path_builder::raw(
+              apache::thrift::op::get_field_id_v<
+                  FsdbOperStateRoot,
+                  apache::thrift::ident::agent>)
+              .raw(
+                  apache::thrift::op::
+                      get_field_id_v<AgentData, apache::thrift::ident::config>)
+              .raw(
+                  apache::thrift::op::get_field_id_v<
+                      cfg::AgentConfig,
+                      apache::thrift::ident::defaultCommandLineArgs>)
               .any()
               .get();
       return {std::move(path)};
     }
+  }
+
+  std::vector<ExtendedOperPath> mapKeyExtPaths(
+      const std::vector<std::string>& keys) const {
+    std::vector<ExtendedOperPath> paths;
+    for (const auto& key : keys) {
+      if constexpr (IsStats) {
+        paths.push_back(
+            ext_path_builder::raw(
+                apache::thrift::op::get_field_id_v<
+                    FsdbOperStatsRoot,
+                    apache::thrift::ident::agent>)
+                .raw(
+                    apache::thrift::op::get_field_id_v<
+                        AgentStats,
+                        apache::thrift::ident::phyStats>)
+                .raw(key)
+                .get());
+      } else {
+        paths.push_back(
+            ext_path_builder::raw(
+                apache::thrift::op::get_field_id_v<
+                    FsdbOperStateRoot,
+                    apache::thrift::ident::agent>)
+                .raw(
+                    apache::thrift::op::get_field_id_v<
+                        AgentData,
+                        apache::thrift::ident::config>)
+                .raw(
+                    apache::thrift::op::get_field_id_v<
+                        cfg::AgentConfig,
+                        apache::thrift::ident::defaultCommandLineArgs>)
+                .raw(key)
+                .get());
+      }
+    }
+    return paths;
   }
 
   std::unique_ptr<Subscriber> createExtendedSubscriber(
@@ -418,6 +531,50 @@ TYPED_TEST(FsdbSubManagerTest, subMultiPath) {
   WITH_RETRIES(EXPECT_EVENTUALLY_FALSE(this->isSubscribed("test")));
 }
 
+TYPED_TEST(FsdbSubManagerTest, subDeleteKeys) {
+  // Publish a map with 3 keys
+  auto allData = this->mapData({{"key1", 10}, {"key2", 20}, {"key3", 30}});
+  this->connectPublisherAndPublish(this->path1(), allData);
+
+  // Subscribe to only key1 and key2 using extended paths
+  auto subscriber = this->createExtendedSubscriber(
+      "test", this->mapKeyExtPaths({"key1", "key2"}));
+
+  auto boundData = subscriber->subscribeBound();
+
+  // Verify initial sync delivers key1 and key2
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_TRUE(*boundData.rlock());
+    ASSERT_EVENTUALLY_TRUE(
+        this->hasMapKey((*boundData.rlock())->toThrift(), "key1"));
+    ASSERT_EVENTUALLY_TRUE(
+        this->hasMapKey((*boundData.rlock())->toThrift(), "key2"));
+  });
+  // key3 not subscribed, should not be present
+  EXPECT_FALSE(this->hasMapKey((*boundData.rlock())->toThrift(), "key3"));
+
+  // Delete key1 and key2 (leave key3)
+  this->testPublisher().publishDelete(this->mapKeyPath("key1"));
+  this->testPublisher().publishDelete(this->mapKeyPath("key2"));
+
+  // Verify subscriber sees deletions
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_FALSE(
+        this->hasMapKey((*boundData.rlock())->toThrift(), "key1"));
+    EXPECT_EVENTUALLY_FALSE(
+        this->hasMapKey((*boundData.rlock())->toThrift(), "key2"));
+  });
+
+  // Delete key3 (unsubscribed) - subscriber should not be affected
+  this->testPublisher().publishDelete(this->mapKeyPath("key3"));
+
+  // key3 was never in subscriber's data and deleting it should not
+  // affect the subscriber's state
+  EXPECT_FALSE(this->hasMapKey((*boundData.rlock())->toThrift(), "key1"));
+  EXPECT_FALSE(this->hasMapKey((*boundData.rlock())->toThrift(), "key2"));
+  EXPECT_FALSE(this->hasMapKey((*boundData.rlock())->toThrift(), "key3"));
+}
+
 TYPED_TEST(FsdbSubManagerTest, subscribeExtended) {
   auto data1 = this->data1("foo");
   this->connectPublisherAndPublish(this->path1(), data1);
@@ -504,6 +661,54 @@ TYPED_TEST(FsdbSubManagerTest, verifyGR) {
     ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED);
     ASSERT_EVENTUALLY_EQ(numUpdates, 2);
   });
+}
+
+template <typename SubscriberT>
+class FsdbSubManagerHbTest : public FsdbSubManagerTest<SubscriberT> {
+ public:
+  void SetUp() override {
+    FLAGS_serveHeartbeats = true;
+    FLAGS_statsSubscriptionHeartbeat_s = 1;
+    FLAGS_stateSubscriptionHeartbeat_s = 1;
+    FsdbSubManagerTest<SubscriberT>::SetUp();
+  }
+};
+
+TYPED_TEST_SUITE(FsdbSubManagerHbTest, SubscriberTypes);
+
+TYPED_TEST(FsdbSubManagerHbTest, verifyHeartbeatCb) {
+  auto data1 = this->data1("foo");
+  this->connectPublisherAndPublish(this->path1(), data1);
+
+  std::optional<SubscriptionState> lastStateSeen;
+  std::optional<int64_t> lastPublishedAt;
+  int numHeartbeats{0};
+  auto subscriber = this->createSubscriber("test", this->root().agent());
+  subscriber->subscribe(
+      [&](auto update) {
+        if (update.lastPublishedAt.has_value()) {
+          lastPublishedAt = update.lastPublishedAt.value();
+        }
+      },
+      [&](auto, auto newState, std::optional<bool> initialSyncHasData) {
+        lastStateSeen = newState;
+      },
+      [&](std::optional<OperMetadata> md) { numHeartbeats++; });
+
+  WITH_RETRIES(
+      { ASSERT_EVENTUALLY_EQ(lastStateSeen, SubscriptionState::CONNECTED); });
+
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_TRUE(
+        lastPublishedAt.has_value() && lastPublishedAt.value() > 0);
+  });
+
+  // Verify heartbeat callback is called
+  WITH_RETRIES_N(100, { EXPECT_EVENTUALLY_GT(numHeartbeats, 0); });
+
+  // Verify heartbeat callback continues to be called
+  numHeartbeats = 0;
+  WITH_RETRIES_N(100, { EXPECT_EVENTUALLY_GT(numHeartbeats, 0); });
 }
 
 } // namespace facebook::fboss::fsdb::test

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "fboss/lib/fpga/Wedge400I2CBus.h"
 #include "fboss/qsfp_service/platforms/wedge/WedgeManager.h"
 
 namespace facebook::fboss {
@@ -11,8 +10,7 @@ class Wedge400CManager : public WedgeManager {
  public:
   explicit Wedge400CManager(
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   ~Wedge400CManager() override {}
   int getNumQsfpModules() const override {
     return 48;

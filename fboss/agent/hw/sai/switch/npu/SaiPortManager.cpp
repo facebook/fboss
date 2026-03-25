@@ -126,6 +126,9 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
         counterIds.emplace_back(SAI_PORT_STAT_IF_IN_LINK_DOWN_CELL_DROP);
       }
 #endif
+// TODO(daiweix): enable fabricControlRx|TxPacketStats after resolving
+// CS00012448723
+#if !defined(BRCM_SAI_SDK_DNX_GTE_14_0)
       if (platform_->getAsic()->isSupported(
               HwAsic::Feature::FABRIC_LINK_MONITORING)) {
         counterIds.insert(
@@ -137,6 +140,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             SaiPortTraits::fabricControlTxPacketStats().begin(),
             SaiPortTraits::fabricControlTxPacketStats().end());
       }
+#endif
       return counterIds;
     }
     if (getPortType(port) == cfg::PortType::RECYCLE_PORT) {
@@ -289,7 +293,11 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
             swPort->getName(),
             queueId2Name,
             allPfcPriorities(swPort->getPfc()),
-            swPort->getPfc()));
+            swPort->getPfc(),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
   }
 
   bool samplingMirror = swPort->getSampleDestination().has_value() &&
@@ -298,6 +306,7 @@ PortSaiId SaiPortManager::addPortImpl(const std::shared_ptr<Port>& swPort) {
       swPort->getIngressMirror(), swPort->getEgressMirror(), samplingMirror};
   handle->mirrorInfo = mirrorInfo;
   handles_.emplace(swPort->getID(), std::move(handle));
+  processPortBufferPoolConfigs(swPort);
   setQosPolicy(swPort->getID(), swPort->getQosPolicy());
 
   addSamplePacket(swPort);
@@ -387,6 +396,7 @@ void SaiPortManager::changePortImpl(
       updatePrbsStatsEntryRate(newPort);
     }
   }
+  processPortBufferPoolConfigs(newPort);
 
   changeMirror(oldPort, newPort);
   changeSamplePacket(oldPort, newPort);
@@ -406,7 +416,11 @@ void SaiPortManager::changePortImpl(
               newPort->getName(),
               queueId2Name,
               allPfcPriorities(newPort->getPfc()),
-              newPort->getPfc()));
+              newPort->getPfc(),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::INGRESS_PRIORITY_GROUP_DROPPED_PACKETS),
+              platform_->getAsic()->isSupported(
+                  HwAsic::Feature::SAI_PORT_PG_DROP_STATUS)));
     } else if (oldPort->getName() != newPort->getName()) {
       // Port was already enabled, but Port name changed - update stats
       portStats_.find(newPort->getID())
@@ -449,6 +463,7 @@ void SaiPortManager::changePortImpl(
     resetCableLength(newPort->getID());
   }
   changePortFlowletConfig(oldPort, newPort);
+  changeClm(oldPort, newPort);
 }
 
 void SaiPortManager::attributesFromSaiStore(
@@ -534,6 +549,15 @@ void SaiPortManager::attributesFromSaiStore(
         attributes,
         SaiPortTraits::Attributes::DisableTtlDecrement{});
   }
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  // FabricSystemPort is only applicable for fabric ports
+  if (GET_ATTR(Port, Type, attributes) == SAI_PORT_TYPE_FABRIC) {
+    getAndSetAttribute(
+        port->attributes(),
+        attributes,
+        SaiPortTraits::Attributes::FabricSystemPort{});
+  }
+#endif
 }
 
 SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
@@ -579,8 +603,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   }
   auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  auto loopbackMode =
-      utility::getSaiPortLoopbackMode(swPort->getLoopbackMode());
+  std::optional<int> loopbackMode;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    // hyper port member loopback mode should be determined by hyper port
+    loopbackMode = utility::getSaiPortLoopbackMode(swPort->getLoopbackMode());
+  }
 #else
   auto internalLoopbackMode =
       utility::getSaiPortInternalLoopbackMode(swPort->getLoopbackMode());
@@ -638,6 +665,18 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
           platform_->getInterfaceType(transmitterTech, speed)) {
     interfaceType = saiInterfaceType.value();
   }
+  std::optional<sai_port_media_type_t> propagationDelayMediaType;
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::CABLE_PROPOGATION_DELAY) &&
+      managerTable_->switchManager().isMeasureCableLengthEnabled()) {
+    if (swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER ||
+        swPort->getPortType() == cfg::PortType::INTERFACE_PORT) {
+      propagationDelayMediaType =
+          utility::getSaiCablePropagationDelayMediaType(transmitterTech);
+    }
+  }
+#endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
   std::optional<SaiPortTraits::Attributes::InterFrameGap> interFrameGap;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::MACSEC) &&
@@ -672,7 +711,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<bool> fdrEnable;
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  if (swPort->getPortType() == cfg::PortType::INTERFACE_PORT && adminState &&
+  if ((swPort->getPortType() == cfg::PortType::INTERFACE_PORT ||
+       swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) &&
+      adminState &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CODEWORDS_STATS)) {
     fdrEnable = true;
@@ -730,15 +771,17 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         swPort->getPortFlowletConfig().has_value()) {
       auto flowletCfgPtr = swPort->getPortFlowletConfig().value();
       arsEnable = true;
-      if (platform_->getAsic()->getAsicType() !=
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (platform_->getAsic()->getAsicVendor() !=
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         arsPortLoadScalingFactor = flowletCfgPtr->getScalingFactor();
         arsPortLoadPastWeight = flowletCfgPtr->getLoadWeight();
-        arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+        if (platform_->getAsic()->isSupported(
+                HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+          arsPortLoadFutureWeight = flowletCfgPtr->getQueueWeight();
+        }
       }
-      // exclude 14.0 until this attr is ported there by BCM
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
-    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+    defined(BRCM_SAI_SDK_GTE_13_0)
       if (swPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC) {
         arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
       }
@@ -859,6 +902,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // PfcMonitorDirection
         std::nullopt, // QosDot1pToTcMap
         std::nullopt, // QosTcAndColorToDot1pMap
+        std::nullopt, // QosIngressBufferProfileList
+        std::nullopt, // QosEgressBufferProfileList
+        std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -953,6 +1000,14 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // PfcMonitorDirection
       std::nullopt, // QosDot1pToTcMap
       std::nullopt, // QosTcAndColorToDot1pMap
+      std::nullopt, // QosIngressBufferProfileList
+      std::nullopt, // QosEgressBufferProfileList
+      propagationDelayMediaType, // CablePropagationDelayMediaType
+#if defined(CHENAB_SAI_SDK_VERSION_2505_34_0_32)
+      0xffff, // PfcPauseDurationOverride
+#else
+      std::nullopt, // PfcPauseDurationOverride
+#endif
   };
 }
 
@@ -965,7 +1020,11 @@ void SaiPortManager::programSerdes(
           HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING) ||
       swPort->getPortType() == cfg::PortType::RECYCLE_PORT ||
       swPort->getPortType() == cfg::PortType::EVENTOR_PORT ||
-      swPort->getPortType() == cfg::PortType::HYPER_PORT) {
+      swPort->getPortType() == cfg::PortType::HYPER_PORT
+#if defined(CHENAB_SAI_SDK)
+      || swPort->getPortType() == cfg::PortType::MANAGEMENT_PORT
+#endif
+  ) {
     return;
   }
 
@@ -1050,7 +1109,8 @@ void SaiPortManager::programSerdes(
           saiPort->adapterKey(),
           swPort->getPinConfigs(),
           serdes,
-          swPort->getZeroPreemphasis() && supportsZeroPreemphasis);
+          swPort->getZeroPreemphasis() && supportsZeroPreemphasis,
+          swPort->getSerdesCustomCollection());
   if (serdes &&
       checkPortSerdesAttributes(serdes->attributes(), serdesAttributes)) {
     portHandle->serdes = serdes;
@@ -1064,6 +1124,9 @@ void SaiPortManager::programSerdes(
           HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET) &&
       serdes) {
     // Give up all references to the serdes object to delete the serdes object.
+
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PrbsConfig{SAI_PORT_PRBS_CONFIG_DISABLE});
     portHandle->serdes.reset();
     serdes.reset();
   }
@@ -1117,6 +1180,56 @@ void SaiPortManager::programSerdes(
   // create if serdes doesn't exist or update existing serdes
   portHandle->serdes = store.setObject(serdesKey, serdesAttributes);
 
+  // Set RX Reach if ASIC supports and platform mapping has a rxReach
+  // setting
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_SERDES_RX_REACH)) {
+    std::vector<phy::RxReach> rxReachVals;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto rxReachOpt = rx->rxReach()) {
+          rxReachVals.push_back(rxReachOpt.value());
+        }
+      }
+    }
+    if (!rxReachVals.empty()) {
+      SaiPortSerdesTraits::Attributes::RxReach rxReach;
+      rxReach = getSaiRxReach(rxReachVals);
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxReach);
+    }
+  }
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  if (platform_->getAsic()->isSupported(
+          HwAsic::Feature::SAI_SERDES_PRECODING)) {
+    SaiPortSerdesTraits::Attributes::RxPrecoding::ValueType rxPrecoding;
+    SaiPortSerdesTraits::Attributes::TxPrecoding::ValueType txPrecoding;
+    for (const auto& pinConfig : swPort->getPinConfigs()) {
+      if (auto rx = pinConfig.rx()) {
+        if (auto precoding = rx->precoding()) {
+          rxPrecoding.push_back(precoding.value());
+        }
+      }
+      if (auto tx = pinConfig.tx()) {
+        if (auto precoding = tx->precoding()) {
+          txPrecoding.push_back(precoding.value());
+        }
+      }
+    }
+    if (!rxPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::RxPrecoding rxPrecodingAttr{rxPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), rxPrecodingAttr);
+    }
+    if (!txPrecoding.empty()) {
+      SaiPortSerdesTraits::Attributes::TxPrecoding txPrecodingAttr{txPrecoding};
+      SaiApiTable::getInstance()->portApi().setAttribute(
+          portHandle->serdes->adapterKey(), txPrecodingAttr);
+    }
+  }
+#endif
+
   if (platform_->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
       platform_->getHwSwitch()->getBootType() == BootType::COLD_BOOT &&
@@ -1141,7 +1254,8 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     PortSaiId portSaiId,
     const std::vector<phy::PinConfig>& pinConfigs,
     const std::shared_ptr<SaiPortSerdes>& serdes,
-    bool zeroPreemphasis) {
+    bool zeroPreemphasis,
+    const std::optional<std::string>& customCollection) {
   SaiPortSerdesTraits::CreateAttributes attrs;
 
   SaiPortSerdesTraits::Attributes::TxFirPre1::ValueType txPre1;
@@ -1212,13 +1326,15 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxFfeLmsDynamicGatingEn;
 
   // Now use pinConfigs from SW port as the source of truth
-  auto numExpectedTxLanes = 0;
+  [[maybe_unused]] auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
       if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_YUBA) {
+              cfg::AsicType::ASIC_TYPE_YUBA ||
+          platform_->getAsic()->getAsicType() ==
+              cfg::AsicType::ASIC_TYPE_G202X) {
         if (auto firPre1 = tx->firPre1()) {
           txPre1.push_back(zeroPreemphasis ? 0 : *firPre1);
         }
@@ -1392,16 +1508,9 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre2{}, txPre2);
-    if (platform_->getAsic()->getAsicType() !=
-        cfg::AsicType::ASIC_TYPE_CHENAB) {
-      // post2 and post3 are unsupported by chenab but fboss thrift model
-      // (phy.thrift) has them non-optional instead of passing them as zero,
-      // ignore them.
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
-      setTxRxAttr(
-          attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
-    }
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost2{}, txPost2);
+    setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPost3{}, txPost3);
+
     if (platform_->getAsic()->getAsicVendor() ==
         HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       setTxRxAttr(
@@ -1523,6 +1632,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre3{}, txPre3);
   }
 
+#if !defined(CHENAB_SAI_SDK)
   if (platform_->getAsic()->getPortSerdesPreemphasis().has_value() ||
       zeroPreemphasis) {
     SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preempahsis(
@@ -1533,8 +1643,11 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
+#endif
 
-  if (numExpectedRxLanes) {
+  if (numExpectedRxLanes &&
+      platform_->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::RxCtleCode{}, rxCtleCode);
 
@@ -1587,6 +1700,14 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
         SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{},
         rxAcCouplingByPass);
   }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+  if (customCollection.has_value()) {
+    std::get<std::optional<SaiPortSerdesTraits::Attributes::CustomCollection>>(
+        attrs) = SaiPortSerdesTraits::Attributes::CustomCollection{
+        customCollection.value()};
+  }
+#endif
   return attrs;
 }
 
@@ -1599,18 +1720,20 @@ void SaiPortManager::createSerdesWithZeroPreemphasis(
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attributes) =
       static_cast<sai_object_id_t>(portSaiId);
 
-  auto numExpectedTxLanes = 0;
+  [[maybe_unused]] auto numExpectedTxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
     }
   }
 
+#if !defined(CHENAB_SAI_SDK)
   SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
   preemphasis.resize(numExpectedTxLanes, 0);
   std::get<std::optional<
       std::decay_t<decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
       attributes) = preemphasis;
+#endif
   SaiPortSerdesTraits::AdapterHostKey serdesKey{portSaiId};
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
   portHandle->serdes = store.setObject(serdesKey, attributes);

@@ -8,6 +8,10 @@ namespace php fboss_platform_mapping_config
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // One of these is what is expected in the A/Z_CHIP_TYPE fields in the CSVs
 enum ChipType {
@@ -30,6 +34,8 @@ enum CoreType {
   J3_EVT = 7, // J3 Eventor Port
   CHENAB_NIF = 8,
   TH6_NIF = 9, // TH6
+  Q4D_NIF = 10, // Q4D
+  J4SIM_NIF = 11, // J4Sim
 
   // Transceivers
   OSFP = 100,
@@ -75,11 +81,15 @@ struct Port {
   8: switch_config.PortType port_type;
   9: switch_config.Scope scope;
   10: optional i32 parent_port_id;
+  // Optional explicit controlling port. If set, this value is used directly
+  // instead of computing based on pin overlap logic.
+  11: optional i32 controlling_port;
 }
 
 struct ChipSetting {
   1: ChipType chip_type;
   2: phy.InterfaceType chip_interface_type;
+  3: optional phy.FecMode chip_fec;
 }
 
 // Stores the information parsed from Profile Settings CSV
@@ -95,7 +105,6 @@ struct SpeedSetting {
 
 struct TransceiverOverrideSetting {
   1: transceiver.Vendor vendor;
-  2: transceiver.MediaInterfaceCode media_interface_code;
 }
 
 // Represents all the factors in the SI Settings CSV
@@ -117,6 +126,9 @@ struct SiSettingRow {
   2: SiSettingFactor factor;
   3: phy.TxSettings tx_setting;
   4: phy.RxSettings rx_setting;
+  5: optional map<string, i32> custom_tx_collection;
+  6: optional map<string, i32> custom_rx_collection;
+  7: optional i32 driver_peaking;
 }
 
 struct ConnectionEnd {
@@ -134,6 +146,9 @@ struct SiFactorAndSetting {
   1: phy.TxSettings tx_setting;
   2: phy.RxSettings rx_setting;
   3: optional SiSettingFactor factor;
+  4: optional map<string, i32> custom_tx_collection;
+  5: optional map<string, i32> custom_rx_collection;
+  6: optional map<i32, i32> driver_peaking;
 }
 
 struct TxRxLaneInfo {

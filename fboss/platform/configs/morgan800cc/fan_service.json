@@ -13,10 +13,6 @@
   "optics": [
     {
       "opticName": "qsfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
-      "portList": [],
       "aggregationType": "OPTIC_AGGREGATION_TYPE_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {
@@ -57,9 +53,6 @@
   "sensors": [
     {
       "sensorName": "SCM_INLET",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 18,

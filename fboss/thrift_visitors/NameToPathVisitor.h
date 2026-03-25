@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include <fatal/type/search.h>
-#include <fatal/type/trie.h>
+#include <cstdint>
+
 #include <folly/Conv.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <thrift/lib/cpp2/op/Get.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
 
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_visitors/gen-cpp2/results_types.h"
@@ -357,24 +356,29 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
     const auto& token = *curr++;
     auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
 
-    auto visitChild = [&]<class Tag>(Tag) {
-      using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
-      using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
-      using ChildTag = typename PathT::Tag;
-      result = NameToPathVisitor<ChildTag>::visit(
-          path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
-    };
-
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
-    if (!idTry.hasError()) {
-      fatal::scalar_search<
-          typename folly::remove_cvref_t<Path>::ChildrenById,
-          fatal::get_first>(idTry.value(), std::move(visitChild));
-    } else {
-      fatal::trie_find<
-          typename folly::remove_cvref_t<Path>::Children,
-          fatal::get_first>(token.begin(), token.end(), std::move(visitChild));
-    }
+    using StructType = typename folly::remove_cvref_t<Path>::DataT;
+    bool found = false;
+    auto idTry = folly::tryTo<std::int16_t>(token);
+    apache::thrift::op::for_each_field_id<StructType>(
+        [&]<class FieldId>(FieldId) {
+          if (found) {
+            return;
+          }
+          if (!idTry.hasError()) {
+            if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
+              return;
+            }
+          } else {
+            if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
+              return;
+            }
+          }
+          found = true;
+          auto childPath = path(FieldId{});
+          using ChildTag = typename decltype(childPath)::Tag;
+          result = NameToPathVisitor<ChildTag>::visit(
+              std::move(childPath), begin, curr, end, std::forward<Func>(f));
+        });
     return result;
   }
 
@@ -394,25 +398,29 @@ struct NameToPathVisitor<apache::thrift::type::union_t<T>> {
       const auto& token = *raw;
       auto result = NameToPathResult::INVALID_VARIANT_MEMBER;
 
-      auto visitChild = [&]<class Tag>(Tag) {
-        using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
-        using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
-        using ChildTag = typename PathT::Tag;
+      using StructType = typename folly::remove_cvref_t<Path>::DataT;
+      bool found = false;
+      auto idTry = folly::tryTo<std::int16_t>(token);
+      apache::thrift::op::for_each_field_id<StructType>([&]<class FieldId>(
+                                                            FieldId) {
+        if (found) {
+          return;
+        }
+        if (!idTry.hasError()) {
+          if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
+            return;
+          }
+        } else {
+          if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
+            return;
+          }
+        }
+        found = true;
+        auto childPath = path(FieldId{});
+        using ChildTag = typename decltype(childPath)::Tag;
         result = NameToPathVisitor<ChildTag>::visitExtended(
-            path(ChildKeyT()), curr, end, std::forward<Func>(f));
-      };
-
-      auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
-      if (!idTry.hasError()) {
-        fatal::scalar_search<
-            typename folly::remove_cvref_t<Path>::ChildrenById,
-            fatal::get_first>(idTry.value(), std::move(visitChild));
-      } else {
-        fatal::trie_find<
-            typename folly::remove_cvref_t<Path>::Children,
-            fatal::get_first>(
-            token.begin(), token.end(), std::move(visitChild));
-      }
+            std::move(childPath), curr, end, std::forward<Func>(f));
+      });
 
       return result;
     } else {
@@ -452,24 +460,29 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
     const auto& token = *curr++;
     auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
 
-    auto visitChild = [&]<class Tag>(Tag) {
-      using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
-      using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
-      using ChildTag = typename PathT::Tag;
-      result = NameToPathVisitor<ChildTag>::visit(
-          path(ChildKeyT()), begin, curr, end, std::forward<Func>(f));
-    };
-
-    auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
-    if (!idTry.hasError()) {
-      fatal::scalar_search<
-          typename folly::remove_cvref_t<Path>::ChildrenById,
-          fatal::get_first>(idTry.value(), std::move(visitChild));
-    } else {
-      fatal::trie_find<
-          typename folly::remove_cvref_t<Path>::Children,
-          fatal::get_first>(token.begin(), token.end(), std::move(visitChild));
-    }
+    using StructType = typename folly::remove_cvref_t<Path>::DataT;
+    bool found = false;
+    auto idTry = folly::tryTo<std::int16_t>(token);
+    apache::thrift::op::for_each_field_id<StructType>(
+        [&]<class FieldId>(FieldId) {
+          if (found) {
+            return;
+          }
+          if (!idTry.hasError()) {
+            if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
+              return;
+            }
+          } else {
+            if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
+              return;
+            }
+          }
+          found = true;
+          auto childPath = path(FieldId{});
+          using ChildTag = typename decltype(childPath)::Tag;
+          result = NameToPathVisitor<ChildTag>::visit(
+              std::move(childPath), begin, curr, end, std::forward<Func>(f));
+        });
     return result;
   }
 
@@ -489,24 +502,29 @@ struct NameToPathVisitor<apache::thrift::type::struct_t<T>> {
       const auto& token = *raw;
       auto result = NameToPathResult::INVALID_STRUCT_MEMBER;
 
-      auto visitChild = [&]<class Tag>(Tag) {
-        using PathT = typename folly::remove_cvref_t<Tag>::type::second_type;
-        using ChildKeyT = typename folly::remove_cvref_t<Tag>::type::first_type;
-        result = NameToPathVisitor<typename PathT::Tag>::visitExtended(
-            path(ChildKeyT()), curr, end, std::forward<Func>(f));
-      };
-
-      auto idTry = folly::tryTo<apache::thrift::field_id_t>(token);
-      if (!idTry.hasError()) {
-        fatal::scalar_search<
-            typename folly::remove_cvref_t<Path>::ChildrenById,
-            fatal::get_first>(idTry.value(), std::move(visitChild));
-      } else {
-        fatal::trie_find<
-            typename folly::remove_cvref_t<Path>::Children,
-            fatal::get_first>(
-            token.begin(), token.end(), std::move(visitChild));
-      }
+      using StructType = typename folly::remove_cvref_t<Path>::DataT;
+      bool found = false;
+      auto idTry = folly::tryTo<std::int16_t>(token);
+      apache::thrift::op::for_each_field_id<StructType>([&]<class FieldId>(
+                                                            FieldId) {
+        if (found) {
+          return;
+        }
+        if (!idTry.hasError()) {
+          if (static_cast<std::int16_t>(FieldId::value) != idTry.value()) {
+            return;
+          }
+        } else {
+          if (token != apache::thrift::op::get_name_v<StructType, FieldId>) {
+            return;
+          }
+        }
+        found = true;
+        auto childPath = path(FieldId{});
+        using ChildTag = typename decltype(childPath)::Tag;
+        result = NameToPathVisitor<ChildTag>::visitExtended(
+            std::move(childPath), curr, end, std::forward<Func>(f));
+      });
       return result;
     } else {
       // Regex/any matches are not allowed against structs

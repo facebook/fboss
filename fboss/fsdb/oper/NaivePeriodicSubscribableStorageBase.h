@@ -79,6 +79,26 @@ class NaivePeriodicSubscribableStorageBase {
       return *this;
     }
 
+    StorageParams& setDeltaSubscriptionQueueMemoryLimit(size_t val) {
+      deltaSubscriptionQueueMemoryLimit_ = val;
+      return *this;
+    }
+
+    /*
+     * deltaSubscriptionQueueMemoryLimit_ will be checked only if there
+     * are atleast deltaSubscriptionQueueFullMinSize_ number of pending
+     * updates for the subscription in queue.
+     * The reason for checking for number of updates in conjunction with
+     * total memory for updates is to prune scenarios where there is just
+     * 1-2 large update enqueued and subscriber is taking a while to process
+     * it. In such scenarios, fsdb can detect a genuinely slow subscriber
+     * by deferring the slow subscriber detection till next updates.
+     */
+    StorageParams& setDeltaSubscriptionQueueFullMinSize(size_t val) {
+      deltaSubscriptionQueueFullMinSize_ = val;
+      return *this;
+    }
+
     const std::chrono::milliseconds subscriptionServeInterval_;
     const std::chrono::milliseconds subscriptionHeartbeatInterval_;
     const bool trackMetadata_;
@@ -89,13 +109,15 @@ class NaivePeriodicSubscribableStorageBase {
     bool serveGetRequestsWithLastPublishedState_;
     const int32_t pathSubscriptionServeQueueSize_;
     const int32_t defaultSubscriptionServeQueueSize_;
+    size_t deltaSubscriptionQueueMemoryLimit_{0};
+    size_t deltaSubscriptionQueueFullMinSize_{0};
   };
 
   explicit NaivePeriodicSubscribableStorageBase(
       StorageParams params,
       std::optional<OperPathToPublisherRoot> pathToRootHelper = std::nullopt);
 
-  virtual ~NaivePeriodicSubscribableStorageBase() {}
+  virtual ~NaivePeriodicSubscribableStorageBase() = default;
 
   const StorageParams& params() const {
     return params_;
@@ -158,7 +180,8 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<OperDelta&&> subscribe_delta_impl(
+  SubscriptionStreamReader<SubscriptionServeQueueElement<OperDelta>>
+  subscribe_delta_impl(
       SubscriptionIdentifier&& subscriber,
       PathIter begin,
       PathIter end,
@@ -174,7 +197,8 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<std::vector<TaggedOperDelta>&&>
+  SubscriptionStreamReader<
+      SubscriptionServeQueueElement<std::vector<TaggedOperDelta>>>
   subscribe_delta_extended_impl(
       SubscriptionIdentifier&& subscriber,
       std::vector<ExtendedOperPath> paths,
@@ -182,13 +206,14 @@ class NaivePeriodicSubscribableStorageBase {
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<SubscriberMessage&&> subscribe_patch_impl(
+  SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
+  subscribe_patch_impl(
       SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, RawOperPath> rawPaths,
       std::optional<SubscriptionStorageParams> subscriptionParams =
           std::nullopt);
 
-  folly::coro::AsyncGenerator<SubscriberMessage&&>
+  SubscriptionStreamReader<SubscriptionServeQueueElement<SubscriberMessage>>
   subscribe_patch_extended_impl(
       SubscriptionIdentifier&& subscriber,
       std::map<SubscriptionKey, ExtendedOperPath> paths,
@@ -305,6 +330,10 @@ class NaivePeriodicSubscribableStorageBase {
       NaivePeriodicSubscribableStorageBase const&) = delete;
   NaivePeriodicSubscribableStorageBase& operator=(
       NaivePeriodicSubscribableStorageBase const&) = delete;
+  NaivePeriodicSubscribableStorageBase(NaivePeriodicSubscribableStorageBase&&) =
+      delete;
+  NaivePeriodicSubscribableStorageBase& operator=(
+      NaivePeriodicSubscribableStorageBase&&) = delete;
 };
 
 } // namespace facebook::fboss::fsdb

@@ -10,10 +10,16 @@
 
 #include "fboss/cli/fboss2/CmdList.h"
 
+#include "fboss/cli/fboss2/oss/CmdListShowConfig.h"
+
 namespace facebook::fboss {
 
 const CommandTree& kAdditionalCommandTree() {
-  static const CommandTree root = {};
+  static CommandTree root = []() {
+    CommandTree tree = kShowConfigCommandTree();
+    sort(tree.begin(), tree.end());
+    return tree;
+  }();
   return root;
 }
 

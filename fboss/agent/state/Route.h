@@ -104,7 +104,9 @@ struct RouteFields
   void forEachChild(Fn /*fn*/) {}
   bool operator==(const RouteFields& rf) const;
 
-  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
+  RouteDetails toRouteDetails(
+      const RouteNextHopSet& nhopSet,
+      bool normalizedNhopWeights = false) const;
   bool isHostRoute() const {
     if constexpr (
         std::is_same_v<folly::IPAddressV6, AddrT> ||
@@ -322,6 +324,8 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
     nexthopsmulti->update(clientId, entry);
   }
 
+  ~Route() = default;
+
   template <typename... Args>
   static ThriftFieldsT<AddrT> makeThrift(Args&&... args) {
     auto fields = LegacyFields(std::forward<Args>(args)...);
@@ -329,7 +333,9 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
   }
 
   // THRIFT_COPY
-  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
+  RouteDetails toRouteDetails(
+      const RouteNextHopSet& nhopSet,
+      bool normalizedNhopWeights = false) const;
 
   /*
    * clone and clear all forwarding info. Forwarding info will be recomputed
@@ -530,6 +536,8 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
   // no copy or assign operator
   Route(const Route&) = delete;
   Route& operator=(const Route&) = delete;
+  Route(Route&&) = delete;
+  Route& operator=(Route&&) = delete;
 
   // Inherit the constructors required for clone()
   using RouteBase::RouteBase;

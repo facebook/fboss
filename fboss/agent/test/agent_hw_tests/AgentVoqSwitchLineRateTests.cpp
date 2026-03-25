@@ -47,7 +47,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
 
   std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort() {
     std::vector<folly::IPAddressV6> ips{};
-    auto portIds = masterLogicalInterfacePortIds();
+    auto portIds = masterLogicalInterfaceOrHyperPortIds();
     for (int idx = 1; idx <= portIds.size(); idx++) {
       ips.emplace_back(folly::to<std::string>(2401, "::", idx));
     }
@@ -59,7 +59,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), getIntfMac());
     std::vector<PortDescriptor> portDescriptors;
     std::vector<flat_set<PortDescriptor>> portDescSets;
-    for (auto& portId : masterLogicalInterfacePortIds()) {
+    for (auto& portId : masterLogicalInterfaceOrHyperPortIds()) {
       portDescriptors.emplace_back(portId);
       portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
     }
@@ -82,7 +82,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
 
   auto createTrafficOnMultiplePorts(int numberOfPorts) {
     auto minPktsForLineRate = getAgentEnsemble()->getMinPktsForLineRate(
-        masterLogicalInterfacePortIds()[0]);
+        masterLogicalInterfaceOrHyperPortIds()[0]);
     auto hostIps = getOneRemoteHostIpPerInterfacePort();
     for (int idx = 0; idx < numberOfPorts; idx++) {
       for (int count = 0; count < minPktsForLineRate; count++) {
@@ -92,7 +92,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
     // Now, make sure that we have line rate traffic on these ports!
     for (int idx = 0; idx < numberOfPorts; idx++) {
       getAgentEnsemble()->waitForLineRateOnPort(
-          masterLogicalInterfacePortIds()[idx]);
+          masterLogicalInterfaceOrHyperPortIds()[idx]);
     }
   }
 };
@@ -192,7 +192,7 @@ TEST_F(AgentVoqSwitchLineRateTest, creditsDeleted) {
   auto setup = [=]() {};
   auto verify = [=, this]() {
     setupEcmpDataplaneLoopOnAllPorts();
-    const auto kPort = masterLogicalInterfacePortIds()[0];
+    const auto kPort = masterLogicalInterfaceOrHyperPortIds()[0];
     auto switchId = scopeResolver().scope(kPort).switchId();
     auto switchIndex =
         getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);

@@ -126,6 +126,8 @@ class AgentPreStartExecTests : public ::testing::Test {
         .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isTajoMorgan800ccPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));
+    ON_CALL(*netwhoami, isTajoWedge800cPlatform())
+        .WillByDefault(Return(!TestAttr::kBrcm));
     ON_CALL(*netwhoami, isBcmPlatform()).WillByDefault(Return(TestAttr::kBrcm));
     ON_CALL(*netwhoami, isTajoPlatform())
         .WillByDefault(Return(!TestAttr::kBrcm));

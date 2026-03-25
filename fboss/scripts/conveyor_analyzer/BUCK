@@ -1,0 +1,41 @@
+# (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+
+# pyre-strict
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
+
+oncall("fboss_agent_push")
+
+python_library(
+    name = "conveyor_analyzer_lib",
+    srcs = [
+        "__init__.py",
+        "cli.py",
+        "conveyor_api.py",
+        "parser.py",
+    ],
+    typing = True,
+    deps = [
+        "fbsource//third-party/pypi/click:click",
+    ],
+)
+
+python_binary(
+    name = "fboss_conveyor",
+    srcs = ["fboss_conveyor.py"],
+    main_function = "fboss.scripts.conveyor_analyzer.cli.main",
+    typing = True,
+    deps = [
+        ":conveyor_analyzer_lib",
+    ],
+)
+
+python_unittest(
+    name = "test_parser",
+    srcs = ["tests/test_parser.py"],
+    typing = True,
+    deps = [
+        ":conveyor_analyzer_lib",
+    ],
+)

@@ -1,9 +1,15 @@
 {
   "defaultCommandLineArgs": {
     "check_wb_handles": "true",
+    "classid_for_unresolved_routes": "true",
     "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
     "intf_nbr_tables": "true",
-    "skip_transceiver_programming": "true"
+    "log_variable_name": "true",
+    "sai_configure_six_tap": "true",
+    "set_classid_for_my_subnet_and_ip_routes": "true",
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
   },
   "sw": {
     "version": 0,
@@ -19,7 +25,7 @@
     "defaultVlan": 0,
     "interfaces": [
       {
-        "intfID": 101,
+        "intfID": 11,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -28,10 +34,11 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 2
+        "type": 2,
+        "scope": 1
       },
       {
-        "intfID": 138,
+        "intfID": 17,
         "routerID": 0,
         "vlanID": 0,
         "ipAddresses": [
@@ -40,7 +47,21 @@
         "mtu": 9000,
         "isVirtual": false,
         "isStateSyncDisabled": true,
-        "type": 2
+        "type": 2,
+        "scope": 1
+      },
+      {
+        "intfID": 16,
+        "routerID": 0,
+        "vlanID": 0,
+        "ipAddresses": [
+          
+        ],
+        "mtu": 9000,
+        "isVirtual": false,
+        "isStateSyncDisabled": true,
+        "type": 2,
+        "scope": 0
       }
     ],
     "arpTimeoutSeconds": 60,
@@ -69,6 +90,7 @@
       "1": 1,
       "2": 0,
       "3": 0,
+      "4": 0,
       "700": 255,
       "786": 10
     },
@@ -125,7 +147,7 @@
       "exactMatchTableConfigs": [
         
       ],
-      "switchIdToSwitchType": {
+      "switchIdToSwitchType_DEPRECATED": {
         
       },
       "switchDrainState": 0,
@@ -138,12 +160,19 @@
               "minimum": 0,
               "maximum": 2047
             },
-            "systemPortRange": {
-              "minimum": 100,
-              "maximum": 140
-            },
             "switchMac": "02:00:00:00:00:01",
-            "connectionHandle": "15:00"
+            "connectionHandle": "15:00",
+            "systemPortRanges": {
+              "systemPortRanges": [
+                {
+                  "minimum": 10,
+                  "maximum": 53
+                }
+              ]
+            },
+            "localSystemPortOffset": 10,
+            "globalSystemPortOffset": 10,
+            "inbandPortId": 1
         }
       },
       "vendorMacOuis": [
@@ -154,6 +183,32 @@
       ],
       "needL2EntryForNeighbor": true
     },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "sdkVersion": {
+      "asicSdk": "sdk",
+      "saiSdk": "sai"
+    },
     "dsfNodes": {
       "0": {
           "name": "intfNode0",
@@ -162,16 +217,51 @@
           "loopbackIps": [
             
           ],
-          "systemPortRange": {
-            "minimum": 100,
-            "maximum": 140
-          },
           "nodeMac": "02:00:00:00:0F:0B",
           "asicType": 14,
-          "platformType": 28
+          "platformType": 28,
+          "localSystemPortOffset": 10,
+          "globalSystemPortOffset": 10,
+          "systemPortRanges": {
+            "systemPortRanges": [
+              {
+                "minimum": 10,
+                "maximum": 53
+              }
+            ]
+          },
+          "inbandPortId": 1,
+          "scheduling": 1000
       }
     },
     "defaultVoqConfig": [
+      
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
+    ],
+    "mirrorOnDropReports": [
       
     ]
   },
@@ -180,17 +270,20 @@
       "asicConfig": {
         "common": {
           "config": {
+            "AI23_mode.BCM88897": "3",
             "appl_enable_oam.BCM8889X": "0",
-            "appl_param_rcy_mirror_ports_range.BCM8889X": "100-139",
+            "appl_param_rcy_mirror_ports_range.BCM8889X": "100-143",
             "bcm_stat_interval": "1000000",
             "custom_feature_adapter_do_collect_enable.BCM8889X_ADAPTER": "1",
             "custom_feature_cmicx_gen2_pdma_interface_optimization": "1",
             "custom_feature_fabric_cgm_ddc_th_tune.BCM8889X": "1",
             "custom_feature_programmability_standard_image_name.BCM8889X": "AI23",
+            "custom_feature_rx_fifo_monitoring_interval_ms": "200",
             "custom_feature_ser_event_generate": "1",
             "custom_feature_statdma_enable": "0",
             "custom_feature_use_new_access.BCM8889X": "1",
             "custom_feature_use_new_access.BCM8889X_ADAPTER": "1",
+            "custom_feature_vsqd_lossless_reject_enable": "1",
             "dpp_db_path": "/home/bcmsim/brcmsim/tools/sand/db",
             "dram_temperature_monitor_enable.BCM8889X_ADAPTER": "0",
             "dtm_flow_mapping_mode_region_65.BCM8889X": "3",
@@ -224,9 +317,12 @@
             "dtm_flow_mapping_mode_region_93.BCM8889X": "3",
             "dtm_flow_mapping_mode_region_94.BCM8889X": "3",
             "dtm_flow_nof_remote_cores_region.BCM8889X": "4",
+            "eventor_sbus_dma_channels.BCM8889X": "0,6,0,7",
             "fabric_connect_mode.BCM8889X": "FE",
             "fabric_connectivity_based_on_integrity": "0",
             "fabric_distributed_system_enable": "1",
+            "fabric_single_pipe_over_dual_pipe": "0",
+            "fail_on_unsupported_attribute": "1",
             "l3_ecmp_max_group_size": "512",
             "lane_to_serdes_map_fabric_lane0.BCM8889X": "rx0:tx5",
             "lane_to_serdes_map_fabric_lane1.BCM8889X": "rx1:tx3",
@@ -556,7 +652,6 @@
             "outlif_physical_phase_data_granularity_S1.BCM8889X": "60",
             "outlif_physical_phase_data_granularity_S2.BCM8889X": "60",
             "outlif_physical_phase_data_granularity_XL.BCM8889X": "60",
-            "pci_override_dev": "0x8890",
             "pcie_host_intf_timeout_purge_enable": "0",
             "perform_system_reset_when_needed": "1",
             "phy_rx_polarity_flip.BCM8889X": "0",
@@ -1169,6 +1264,7 @@
             "phy_tx_polarity_flip_phy97.BCM8889X": "0",
             "phy_tx_polarity_flip_phy98.BCM8889X": "1",
             "phy_tx_polarity_flip_phy99.BCM8889X": "0",
+            "pktio_driver_type": "0",
             "pmf_maps_payload_size.BCM8889X": "30",
             "pmf_nexem2_stage": "IPMF3",
             "polled_irq_delay.BCM8889X_ADAPTER": "200000",
@@ -1178,8 +1274,10 @@
             "port_init_speed_cd.BCM8889X": "400000",
             "port_init_speed_ce.BCM8889X": "100000",
             "port_init_speed_d3c.BCM8889X": "800000",
+            "port_init_speed_eventor.BCM8889X": "100000",
             "port_init_speed_fabric.BCM8889X": "106250",
             "port_init_speed_le.BCM8889X": "50000",
+            "port_init_speed_rcy.BCM8889X": "100000",
             "port_init_speed_sat.BCM8889X": "400000",
             "port_init_speed_xe.BCM8889X": "25000",
             "port_init_speed_xe13.BCM8889X": "10000",
@@ -1190,106 +1288,137 @@
             "port_priorities": "8",
             "port_priorities_0": "2",
             "port_priorities_1": "2",
-            "port_priorities_200": "2",
-            "port_priorities_201": "2",
-            "port_priorities_202": "2",
-            "port_priorities_203": "2",
-            "port_priorities_sch.BCM8886X": "8",
-            "port_priorities_sch_0": "8",
-            "port_priorities_sch_1": "8",
+            "port_priorities_2": "2",
+            "port_priorities_3": "2",
+            "port_priorities_4": "2",
+            "port_priorities_44": "2",
+            "port_priorities_45": "2",
+            "port_priorities_46": "2",
+            "port_priorities_5": "2",
+            "port_priorities_sch.BCM8889X": "8",
             "programmability_image_name.BCM8889X": "AI23",
             "programmability_ucode_relative_path.BCM8889X": "pemla/ucode/AI23/jr3native/u_code_db2pem.txt",
             "qos_map_multi_get_mode": "1",
+            "rcy_mirror_to_forward_port_map_107.BCM8889X": "7",
+            "rcy_mirror_to_forward_port_map_108.BCM8889X": "8",
+            "rcy_mirror_to_forward_port_map_110.BCM8889X": "10",
+            "rcy_mirror_to_forward_port_map_112.BCM8889X": "12",
+            "rcy_mirror_to_forward_port_map_114.BCM8889X": "14",
+            "rcy_mirror_to_forward_port_map_116.BCM8889X": "16",
+            "rcy_mirror_to_forward_port_map_118.BCM8889X": "18",
+            "rcy_mirror_to_forward_port_map_120.BCM8889X": "20",
+            "rcy_mirror_to_forward_port_map_122.BCM8889X": "22",
+            "rcy_mirror_to_forward_port_map_124.BCM8889X": "24",
+            "rcy_mirror_to_forward_port_map_126.BCM8889X": "26",
+            "rcy_mirror_to_forward_port_map_128.BCM8889X": "28",
+            "rcy_mirror_to_forward_port_map_130.BCM8889X": "30",
+            "rcy_mirror_to_forward_port_map_132.BCM8889X": "32",
+            "rcy_mirror_to_forward_port_map_134.BCM8889X": "34",
+            "rcy_mirror_to_forward_port_map_136.BCM8889X": "36",
+            "rcy_mirror_to_forward_port_map_138.BCM8889X": "38",
+            "rcy_mirror_to_forward_port_map_140.BCM8889X": "40",
+            "rcy_mirror_to_forward_port_map_142.BCM8889X": "42",
             "rif_id_max": "0x2000",
-            "sai_acl_qset_optimization": "0x1",
-            "sai_async_fdb_nbr_enable": "0x1",
-            "sai_common_hash_crc": "0x1",
             "sai_dis_ctr_incr_on_port_ln_dn": "0",
             "sai_disable_srcmacqedstmac_ctrl": "0x1",
+            "sai_eventor_port_lane_base": "500",
             "sai_global_scoped_rcy_port": "1",
-            "sai_ifp_enable_on_cpu_tx": "0x1",
             "sai_l3_max_ecmp_paths": "512",
-            "sai_macro_flow_based_hash": "1",
-            "sai_mmu_qgroups_default": "1",
-            "sai_optimize_acl_ipv6_addr_qual": "0",
-            "sai_optimized_mmu": "0x1",
+            "sai_ocb_fc_config": "2",
             "sai_pfc_defaults_disable": "0x1",
-            "sai_pkt_rx_cfg_ppc": "16",
-            "sai_pkt_rx_custom_cfg": "1",
-            "sai_pkt_rx_pkt_size": "16512",
             "sai_recycle_port_lane_base": "440",
-            "sai_trigger_linkscan_remote_local_faults": "0",
+            "sai_tc_mirror_buffer_size_bytes": "1",
+            "sai_trigger_linkscan_remote_local_faults": "1",
             "sai_uncached_port_stats": "0x1",
+            "sai_voq_wm_latency_enable": "1",
             "sat_enable.BCM8889X_ADAPTER": "1",
             "soc_family.BCM8889X": "BCM8889X",
-            "stable_filename": "/dev/shm/warmboot_data_0",
-            "stable_filename.1": "/dev/shm/warmboot_data_1",
-            "stable_filename.2": "/dev/shm/warmboot_data_2",
-            "stable_filename.BCM8889X_ADAPTER": "warmboot_data_0",
             "stable_location.BCM8889X": "4",
-            "stable_location.BCM8889X_ADAPTER": "3",
+            "stable_location.BCM8889X_ADAPTER": "4",
             "stable_size.BCM8889X": "1450000000",
             "stable_size.BCM8889X_ADAPTER": "1450000000",
             "sw_state_max_size.BCM8889X": "1400000000",
             "sw_state_max_size.BCM8889X_ADAPTER": "1400000000",
             "tm_port_header_type_in_0.BCM8889X": "INJECTED",
             "tm_port_header_type_in_1.BCM8889X": "ETH",
-            "tm_port_header_type_in_200.BCM8889X": "INJECTED_PP",
-            "tm_port_header_type_in_201.BCM8889X": "INJECTED_PP",
-            "tm_port_header_type_in_202.BCM8889X": "INJECTED_PP",
-            "tm_port_header_type_in_203.BCM8889X": "INJECTED_PP",
             "tm_port_header_type_in_218.BCM8889X_ADAPTER": "INJECTED",
-            "tm_port_header_type_in_230.BCM8889X": "INJECTED",
             "tm_port_header_type_in_240.BCM8889X": "INJECTED",
             "tm_port_header_type_in_241.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_44.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_45.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_46.BCM8889X": "INJECTED",
+            "tm_port_header_type_in_6.BCM8889X": "INJECTED",
             "tm_port_header_type_out_0.BCM8889X": "CPU",
             "tm_port_header_type_out_1.BCM8889X": "ETH",
-            "tm_port_header_type_out_200.BCM8889X": "ETH",
-            "tm_port_header_type_out_201.BCM8889X": "ETH",
-            "tm_port_header_type_out_202.BCM8889X": "ETH",
-            "tm_port_header_type_out_203.BCM8889X": "ETH",
             "tm_port_header_type_out_218.BCM8889X_ADAPTER": "CPU",
             "tm_port_header_type_out_240.BCM8889X": "ETH",
             "tm_port_header_type_out_241.BCM8889X": "ETH",
+            "tm_port_header_type_out_44.BCM8889X": "CPU",
+            "tm_port_header_type_out_45.BCM8889X": "CPU",
+            "tm_port_header_type_out_46.BCM8889X": "CPU",
             "ucode_port_0.BCM8889X": "CPU.0:core_0.0",
             "ucode_port_0.BCM8889X_ADAPTER": "CPU.0:core_0.0",
             "ucode_port_1.BCM8889X": "RCY.25:core_2.2",
-            "ucode_port_10.BCM8889X": "D3CE4:core_0.10",
-            "ucode_port_12.BCM8889X": "D3CE5:core_1.2",
-            "ucode_port_14.BCM8889X": "D3CE6:core_1.4",
-            "ucode_port_16.BCM8889X": "D3CE7:core_1.6",
-            "ucode_port_18.BCM8889X": "D3CE8:core_1.8",
-            "ucode_port_2.BCM8889X": "D3CE0:core_0.2",
-            "ucode_port_20.BCM8889X": "D3CE9:core_2.12",
-            "ucode_port_200.BCM8889X": "CPU.8:core_1.200",
-            "ucode_port_200.BCM8889X_ADAPTER": "CPU.8:core_0.200",
-            "ucode_port_201.BCM8889X": "CPU.16:core_0.201",
-            "ucode_port_201.BCM8889X_ADAPTER": "CPU.16:core_0.201",
-            "ucode_port_202.BCM8889X": "CPU.24:core_1.202",
-            "ucode_port_202.BCM8889X_ADAPTER": "CPU.24:core_0.202",
-            "ucode_port_203.BCM8889X": "CPU.32:core_0.203",
-            "ucode_port_203.BCM8889X_ADAPTER": "CPU.32:core_0.203",
+            "ucode_port_10.BCM8889X": "D3CE1:core_0.4",
+            "ucode_port_107.BCM8889X": "RCY_MIRROR.7:core_2.107",
+            "ucode_port_108.BCM8889X": "RCY_MIRROR.8:core_0.108",
+            "ucode_port_110.BCM8889X": "RCY_MIRROR.10:core_0.110",
+            "ucode_port_112.BCM8889X": "RCY_MIRROR.12:core_0.112",
+            "ucode_port_114.BCM8889X": "RCY_MIRROR.14:core_0.114",
+            "ucode_port_116.BCM8889X": "RCY_MIRROR.16:core_0.116",
+            "ucode_port_118.BCM8889X": "RCY_MIRROR.18:core_1.118",
+            "ucode_port_12.BCM8889X": "D3CE2:core_0.6",
+            "ucode_port_120.BCM8889X": "RCY_MIRROR.20:core_1.120",
+            "ucode_port_122.BCM8889X": "RCY_MIRROR.22:core_1.122",
+            "ucode_port_124.BCM8889X": "RCY_MIRROR.24:core_1.124",
+            "ucode_port_126.BCM8889X": "RCY_MIRROR.26:core_2.126",
+            "ucode_port_128.BCM8889X": "RCY_MIRROR.28:core_2.128",
+            "ucode_port_130.BCM8889X": "RCY_MIRROR.30:core_2.130",
+            "ucode_port_132.BCM8889X": "RCY_MIRROR.32:core_2.132",
+            "ucode_port_134.BCM8889X": "RCY_MIRROR.34:core_3.134",
+            "ucode_port_136.BCM8889X": "RCY_MIRROR.36:core_3.136",
+            "ucode_port_138.BCM8889X": "RCY_MIRROR.38:core_3.138",
+            "ucode_port_14.BCM8889X": "D3CE3:core_0.8",
+            "ucode_port_140.BCM8889X": "RCY_MIRROR.40:core_3.140",
+            "ucode_port_142.BCM8889X": "RCY_MIRROR.42:core_3.142",
+            "ucode_port_16.BCM8889X": "D3CE4:core_0.10",
+            "ucode_port_18.BCM8889X": "D3CE5:core_1.12",
+            "ucode_port_2.BCM8889X": "RCY.21:core_0.1",
+            "ucode_port_20.BCM8889X": "D3CE6:core_1.4",
             "ucode_port_218.BCM8889X_ADAPTER": "SAT:core_0.218",
-            "ucode_port_22.BCM8889X": "D3CE10:core_2.4",
-            "ucode_port_230.BCM8889X": "EVENTOR:core_0.230",
-            "ucode_port_24.BCM8889X": "D3CE11:core_2.6",
+            "ucode_port_22.BCM8889X": "D3CE7:core_1.6",
+            "ucode_port_24.BCM8889X": "D3CE8:core_1.8",
             "ucode_port_240.BCM8889X": "OLP0:core_0.240",
             "ucode_port_241.BCM8889X": "OLP1:core_0.241",
-            "ucode_port_26.BCM8889X": "D3CE12:core_2.8",
-            "ucode_port_28.BCM8889X": "D3CE13:core_3.2",
-            "ucode_port_30.BCM8889X": "D3CE14:core_3.4",
-            "ucode_port_32.BCM8889X": "D3CE15:core_3.6",
-            "ucode_port_34.BCM8889X": "D3CE16:core_3.8",
-            "ucode_port_36.BCM8889X": "D3CE17:core_3.10",
-            "ucode_port_38.BCM8889X": "CGE36:core_2.11",
-            "ucode_port_4.BCM8889X": "D3CE1:core_0.4",
-            "ucode_port_6.BCM8889X": "D3CE2:core_0.6",
-            "ucode_port_8.BCM8889X": "D3CE3:core_0.8",
+            "ucode_port_26.BCM8889X": "D3CE9:core_2.12",
+            "ucode_port_28.BCM8889X": "D3CE10:core_2.4",
+            "ucode_port_3.BCM8889X": "RCY.22:core_1.1",
+            "ucode_port_30.BCM8889X": "D3CE11:core_2.6",
+            "ucode_port_32.BCM8889X": "D3CE12:core_2.8",
+            "ucode_port_34.BCM8889X": "D3CE13:core_3.2",
+            "ucode_port_36.BCM8889X": "D3CE14:core_3.4",
+            "ucode_port_38.BCM8889X": "D3CE15:core_3.6",
+            "ucode_port_4.BCM8889X": "RCY.23:core_2.1",
+            "ucode_port_40.BCM8889X": "D3CE16:core_3.8",
+            "ucode_port_42.BCM8889X": "D3CE17:core_3.10",
+            "ucode_port_44.BCM8889X": "CPU.8:core_1.0",
+            "ucode_port_44.BCM8889X_ADAPTER": "CPU.8:core_1.0",
+            "ucode_port_45.BCM8889X": "CPU.16:core_2.0",
+            "ucode_port_45.BCM8889X_ADAPTER": "CPU.16:core_2.0",
+            "ucode_port_46.BCM8889X": "CPU.24:core_3.0",
+            "ucode_port_46.BCM8889X_ADAPTER": "CPU.24:core_3.0",
+            "ucode_port_5.BCM8889X": "RCY.24:core_3.1",
+            "ucode_port_6.BCM8889X": "EVENTOR:core_0.12",
+            "ucode_port_7.BCM8889X": "CGE36:core_2.11",
+            "ucode_port_8.BCM8889X": "D3CE0:core_0.2",
             "warmboot_support.BCM8889X": "on",
             "warmboot_support.BCM8889X_ADAPTER": "on"
           }
         }
       }
     }
+  },
+  "thriftApiToRateLimitInQps": {
+    
   }
 }

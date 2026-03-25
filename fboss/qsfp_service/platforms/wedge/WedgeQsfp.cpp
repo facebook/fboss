@@ -244,12 +244,13 @@ WedgeQsfp::futureGetTransceiverManagementInterface() {
     return managementInterface;
   }
 
-  return via(i2cEvb).thenValue([&](auto&&) mutable {
-    TransceiverManagementInterface mgmtInterface;
+  return via(i2cEvb).thenValue([this, moduleNum = getNum()](auto&&) mutable {
+    TransceiverManagementInterface mgmtInterface =
+        TransceiverManagementInterface::NONE;
     try {
       mgmtInterface = this->getTransceiverManagementInterface();
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "WedgeQsfp " << this->getNum()
+      XLOG(ERR) << "WedgeQsfp " << moduleNum
                 << ": Error calling getTransceiverManagementInterface(): "
                 << ex.what();
     }

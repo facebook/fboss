@@ -13,8 +13,10 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/MockTunManager.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -35,4 +37,88 @@ TEST(TunInterfacesTest, Initialization) {
   // passed to Tun manager. For MockTunManager this is always the background
   // event base. So wait for pending operations there to complete
   waitForBackgroundThread(sw.get());
+}
+
+/*
+ * Test that packet forwarding from TUN interfaces is suppressed during
+ * graceful exit. This validates the fix for a SIGSEGV crash where
+ * TunIntf::handlerReady continued processing packets after SwSwitch::stop()
+ * had begun tearing down members (ipv6_, hwAsicTable_, etc.).
+ *
+ * The crash scenario:
+ *  1. TunIntf::handlerReady is mid-execution on the EventBase thread
+ *  2. SIGTERM arrives, SwSwitch::stop() begins teardown on the main thread
+ *  3. handlerReady calls getVlanIDForTx/sendL3Packet on already-destroyed
+ * members
+ *
+ * The fix adds an isExiting() check at the top of handlerReady. This test
+ * verifies that during exit, the packet send path correctly drops packets
+ * and doesn't attempt to access torn-down SwSwitch members.
+ */
+TEST(TunInterfacesTest, NoPacketForwardingDuringExit) {
+  auto cfg = testConfigA();
+  auto handle = createTestHandle(&cfg);
+  auto sw = handle->getSw();
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  waitForStateUpdates(sw);
+
+  // Verify switch is fully initialized before exit
+  EXPECT_TRUE(sw->isFullyInitialized());
+  EXPECT_FALSE(sw->isExiting());
+
+  // Stop the switch to transition to EXITING state
+  sw->stop();
+  EXPECT_TRUE(sw->isExiting());
+  EXPECT_FALSE(sw->isFullyInitialized());
+
+  // Verify that sendL3Packet drops packets during exit without crashing.
+  // No HW calls should be made — sendL3Packet returns early because
+  // isFullyInitialized() is false in the EXITING state.
+  // This is the same code path that TunIntf::handlerReady exercises;
+  // the isExiting() guard we added in handlerReady prevents reaching
+  // this point, providing an additional layer of protection.
+  EXPECT_HW_CALL(sw, sendPacketSwitchedAsync_(_)).Times(0);
+  EXPECT_HW_CALL(sw, sendPacketOutOfPortAsync_(_, _, _)).Times(0);
+
+  // Call sendL3Packet during exit — must not crash
+  sw->sendL3Packet(
+      sw->allocateL3TxPacket(64, false /* tagged */), InterfaceID(1));
+}
+
+/*
+ * Test that TunManager::stopProcessing() synchronizes with the EventBase
+ * thread, ensuring no in-flight TunIntf::handlerReady callbacks can race
+ * with SwSwitch::stop() teardown.
+ *
+ * The root cause of the SIGSEGV crash was that stopProcessing() called
+ * TunIntf::stop() (unregisterHandler) from the main thread, which doesn't
+ * wait for an already-executing handlerReady callback on the EventBase
+ * thread. The fix runs stop() on the EventBase thread via
+ * runImmediatelyOrRunInFbossEventBaseThreadAndWait, guaranteeing that
+ * when stopProcessing() returns, no handler callbacks are in progress.
+ *
+ * This test verifies that graceful exit (which calls stopProcessing)
+ * completes without crashing, and that the EXITING state is properly set
+ * before any TUN packet processing would occur.
+ */
+TEST(TunInterfacesTest, StopProcessingSynchronizesWithEventBase) {
+  auto platform = createMockPlatform();
+  auto sw = setupMockSwitchWithoutHW(
+      platform.get(), nullptr, SwitchFlags::ENABLE_TUN);
+  auto tunMgr = dynamic_cast<MockTunManager*>(sw->getTunManager());
+  EXPECT_NE(nullptr, tunMgr);
+  EXPECT_CALL(*tunMgr, sync(_)).Times(1);
+  EXPECT_CALL(*tunMgr, startObservingUpdates()).Times(1);
+  sw->initialConfigApplied(std::chrono::steady_clock::now());
+  waitForBackgroundThread(sw.get());
+
+  EXPECT_TRUE(sw->isFullyInitialized());
+
+  // gracefulExit calls stop() which calls tunMgr_->stopProcessing()
+  // internally. The fix ensures stopProcessing() synchronizes with
+  // the EventBase thread before continuing with teardown.
+  // This must complete without deadlock or crash.
+  sw->gracefulExit();
+
+  EXPECT_TRUE(sw->isExiting());
 }

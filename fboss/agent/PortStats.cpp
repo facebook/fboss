@@ -26,6 +26,10 @@ const std::string kLoadBearingInErrors = "load_bearing_in_errors";
 const std::string kLoadBearingFecUncorrErrors =
     "load_bearing_fec_uncorrectable_errors";
 const std::string kLoadBearingLinkStateFlap = "load_bearing_link_state.flap";
+const std::string kFabricLinkMonitoringRxPackets =
+    "fabric_link_monitoring_rx_packets";
+const std::string kFabricLinkMonitoringTxPackets =
+    "fabric_link_monitoring_tx_packets";
 
 PortStats::PortStats(
     PortID portID,
@@ -35,6 +39,10 @@ PortStats::PortStats(
   if (!portName_.empty()) {
     tcData().addStatValue(getCounterKey(kLinkStateFlap), 0, SUM);
     tcData().addStatValue(getCounterKey(kLinkActiveStateFlap), 0, SUM);
+    tcData().addStatValue(
+        getCounterKey(kFabricLinkMonitoringRxPackets), 0, SUM);
+    tcData().addStatValue(
+        getCounterKey(kFabricLinkMonitoringTxPackets), 0, SUM);
   }
 }
 
@@ -205,6 +213,26 @@ void PortStats::pfcDeadlockRecoveryCount() const {
     tcData().addStatValue(getCounterKey(kPfcDeadlockRecoveryCount), 1, SUM);
   }
   switchStats_->PfcDeadlockRecoveryCount();
+}
+
+void PortStats::fabricLinkMonitoringRxPackets(int64_t count) {
+  if (!portName_.empty()) {
+    tcData().addStatValue(
+        getCounterKey(kFabricLinkMonitoringRxPackets),
+        count - curFabricLinkMonitoringRxPackets_,
+        SUM);
+  }
+  curFabricLinkMonitoringRxPackets_ = count;
+}
+
+void PortStats::fabricLinkMonitoringTxPackets(int64_t count) {
+  if (!portName_.empty()) {
+    tcData().addStatValue(
+        getCounterKey(kFabricLinkMonitoringTxPackets),
+        count - curFabricLinkMonitoringTxPackets_,
+        SUM);
+  }
+  curFabricLinkMonitoringTxPackets_ = count;
 }
 
 void PortStats::ipv4DstLookupFailure() const {

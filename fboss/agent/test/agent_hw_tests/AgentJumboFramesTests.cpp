@@ -11,12 +11,14 @@
 #include "fboss/agent/test/AgentHwTest.h"
 
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
 
+#include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/packet/EthHdr.h"
-#include "fboss/agent/packet/IPv4Hdr.h"
+
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
@@ -44,10 +46,10 @@ class AgentJumboFramesTest : public AgentHwTest {
         getVlanIDForTx(),
         mac,
         mac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-        8000,
-        8001,
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort,
         0,
         255,
         std::vector<uint8_t>(payloadSize, 0xff));
@@ -82,10 +84,12 @@ class AgentJumboFramesTest : public AgentHwTest {
           EXPECT_EVENTUALLY_EQ(bytesBefore, bytesAfter);
         } else {
           EXPECT_EVENTUALLY_EQ(pktsBefore + 1, pktsAfter);
-          EXPECT_EVENTUALLY_EQ(
-              bytesBefore + EthHdr::SIZE + IPv6Hdr::SIZE + UDPHeader::size() +
-                  payloadSize,
-              bytesAfter);
+          auto expectedBytes = bytesBefore + EthHdr::SIZE + IPv6Hdr::SIZE +
+              UDPHeader::size() + payloadSize;
+          if (FLAGS_hyper_port) {
+            expectedBytes += utility::EthFrame::HYPER_PORT_HEADER_SIZE;
+          }
+          EXPECT_EVENTUALLY_EQ(expectedBytes, bytesAfter);
         }
       });
     };

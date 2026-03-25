@@ -21,37 +21,37 @@ TEST_F(ConfigUtilsTest, InvalidConfigThrows) {
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromThrowsWhenNotFound) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   EXPECT_THROW(configUtils.getFruEeprom("NONEXISTENT"), std::runtime_error);
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListReturnsValid) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   auto fruEepromList = configUtils.getFruEepromList();
   EXPECT_FALSE(fruEepromList.empty());
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListContainsExpectedEeproms) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   auto fruEepromList = configUtils.getFruEepromList();
   EXPECT_TRUE(fruEepromList.count("CHASSIS") > 0);
 }
 
 TEST_F(ConfigUtilsTest, GetChassisEepromNameReturnsValid) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   std::string chassisName = configUtils.getChassisEepromName();
   EXPECT_FALSE(chassisName.empty());
   EXPECT_EQ(chassisName, "CHASSIS");
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromReturnsValidStruct) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   FruEeprom fruEeprom = configUtils.getFruEeprom("CHASSIS");
   EXPECT_GE(fruEeprom.offset, 0);
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListForMeru800bfaIncludesSCM) {
-  ConfigUtils configUtils("meru800bfa");
+  ConfigUtils configUtils("MERU800BFA");
   auto fruEepromList = configUtils.getFruEepromList();
   EXPECT_TRUE(fruEepromList.count("SCM") > 0);
   if (fruEepromList.count("SCM") > 0) {
@@ -60,7 +60,7 @@ TEST_F(ConfigUtilsTest, GetFruEepromListForMeru800bfaIncludesSCM) {
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListForMeru800biaIncludesSCM) {
-  ConfigUtils configUtils("meru800bia");
+  ConfigUtils configUtils("MERU800BIA");
   auto fruEepromList = configUtils.getFruEepromList();
   EXPECT_TRUE(fruEepromList.count("SCM") > 0);
   if (fruEepromList.count("SCM") > 0) {
@@ -69,7 +69,7 @@ TEST_F(ConfigUtilsTest, GetFruEepromListForMeru800biaIncludesSCM) {
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListForDarwinIncludesChassis) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   auto fruEepromList = configUtils.getFruEepromList();
   EXPECT_TRUE(fruEepromList.count("CHASSIS") > 0);
   if (fruEepromList.count("CHASSIS") > 0) {
@@ -79,12 +79,12 @@ TEST_F(ConfigUtilsTest, GetFruEepromListForDarwinIncludesChassis) {
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromWithValidNameSucceeds) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   EXPECT_NO_THROW(configUtils.getFruEeprom("CHASSIS"));
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListReturnsCorrectOffsets) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   auto fruEepromList = configUtils.getFruEepromList();
   for (const auto& [name, eeprom] : fruEepromList) {
     EXPECT_GE(eeprom.offset, 0);
@@ -92,7 +92,7 @@ TEST_F(ConfigUtilsTest, GetFruEepromListReturnsCorrectOffsets) {
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromListForDifferentPlatforms) {
-  std::vector<std::string> platforms = {"darwin", "meru800bfa", "meru800bia"};
+  std::vector<std::string> platforms = {"DARWIN", "MERU800BFA", "MERU800BIA"};
   for (const auto& platform : platforms) {
     ConfigUtils configUtils(platform);
     auto fruEepromList = configUtils.getFruEepromList();
@@ -101,21 +101,21 @@ TEST_F(ConfigUtilsTest, GetFruEepromListForDifferentPlatforms) {
 }
 
 TEST_F(ConfigUtilsTest, GetChassisEepromNameConsistentWithList) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   std::string chassisName = configUtils.getChassisEepromName();
   auto fruEepromList = configUtils.getFruEepromList();
   EXPECT_TRUE(fruEepromList.count(chassisName) > 0);
 }
 
 TEST_F(ConfigUtilsTest, FruEepromStructHasValidFields) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   FruEeprom fruEeprom = configUtils.getFruEeprom("CHASSIS");
   EXPECT_TRUE(!fruEeprom.path.empty() || fruEeprom.path == "");
   EXPECT_GE(fruEeprom.offset, 0);
 }
 
 TEST_F(ConfigUtilsTest, GetFruEepromThrowsWithMeaningfulMessage) {
-  ConfigUtils configUtils("darwin");
+  ConfigUtils configUtils("DARWIN");
   try {
     configUtils.getFruEeprom("INVALID_NAME");
     FAIL() << "Expected std::runtime_error";

@@ -106,7 +106,7 @@ void SaiSwitch::tamEventCallback(
     return;
   }
 #else
-  // >= 25.5.5210, eventDesc->type is type of sai_tam_event_type_extensions_t
+  // >= 25.5.X, eventDesc->type is type of sai_tam_event_type_extensions_t
   // including SAI_TAM_EVENT_TYPE_SWITCH
   if (eventDesc->type != SAI_TAM_EVENT_TYPE_SWITCH) {
     // not a switch type event
@@ -221,10 +221,16 @@ void SaiSwitch::checkAndSetSdkDowngradeVersion() const {
 
 void SaiSwitch::initTechSupport() {}
 
+PacketType getReceivedPacketType(int32_t packetType) {
+  throw FbossError(
+      "Received packet type conversion is unsupported for Tajo platform: ",
+      packetType);
+}
+
 bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> /*pkt*/,
     const PortID& /*portID*/,
-    TxPacketType /*packetType*/) {
+    PacketType /*packetType*/) {
   throw FbossError("Sending packet over fabric is unsupported for platform!");
 }
 } // namespace facebook::fboss

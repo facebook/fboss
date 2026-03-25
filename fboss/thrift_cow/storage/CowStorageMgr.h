@@ -72,7 +72,7 @@ class CowStorageMgr {
     XLOG(DBG2) << "[FSDB] # Pending updates "
                << pendingUpdates_.rlock()->size();
     updateEvbThread_.getEventBase()->runInEventBaseThread(
-        handlePendingUpdatesHelper, this);
+        [this] { this->handlePendingUpdates(); });
   }
   /**
    * Schedule an update to the CowState.
@@ -173,9 +173,6 @@ class CowStorageMgr {
     }
   }
 
-  static void handlePendingUpdatesHelper(CowStorageMgr<Root>* mgr) {
-    mgr->handlePendingUpdates();
-  }
   void handlePendingUpdates() {
     CowStateUpdateList updates;
     // Dequeue all queued updates

@@ -8,10 +8,10 @@
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/cli/fboss2/commands/show/aggregateport/CmdShowAggregatePort.h"
 #include "fboss/cli/fboss2/commands/show/aggregateport/gen-cpp2/model_types.h"
 #include "fboss/cli/fboss2/test/CmdHandlerTestBase.h"
-#include "nettools/common/TestUtils.h"
 
 using namespace ::testing;
 
@@ -29,11 +29,11 @@ std::vector<AggregatePortThrift> createAggregatePortEntries() {
   aggregatePortEntry1.minimumLinkCountToUp() = 2;
   AggregatePortMemberThrift member1, member2;
   member1.memberPortID() = 1;
-  member1.isForwarding() = true;
+  member1.isForwarding() = false;
   member1.rate() = LacpPortRateThrift::FAST;
   aggregatePortEntry1.memberPorts()->emplace_back(member1);
   member2.memberPortID() = 2;
-  member2.isForwarding() = true;
+  member2.isForwarding() = false;
   member2.rate() = LacpPortRateThrift::FAST;
   aggregatePortEntry1.memberPorts()->emplace_back(member2);
 
@@ -115,19 +115,21 @@ cli::ShowAggregatePortModel createAggregatePortModel() {
   cli::AggregatePortEntry entry1, entry2;
   entry1.name() = "Port-Channel1";
   entry1.description() = "Port Channel 1";
-  entry1.activeMembers() = 2;
+  entry1.activeMembers() = 0;
   entry1.configuredMembers() = 2;
   entry1.minMembers() = 2;
   entry1.minMembersToUp() = 2;
   cli::AggregateMemberPortEntry member1, member2;
   member1.name() = "eth1/5/1";
   member1.id() = 1;
-  member1.isUp() = true;
+  member1.isUp() = false;
+  member1.isLinkUp() = false;
   member1.lacpRate() = "Fast";
   entry1.members()->emplace_back(member1);
   member2.name() = "eth1/5/2";
   member2.id() = 2;
-  member2.isUp() = true;
+  member2.isUp() = false;
+  member2.isLinkUp() = false;
   member2.lacpRate() = "Fast";
   entry1.members()->emplace_back(member2);
 
@@ -140,11 +142,13 @@ cli::ShowAggregatePortModel createAggregatePortModel() {
   member3.name() = "eth1/5/3";
   member3.id() = 3;
   member3.isUp() = true;
+  member3.isLinkUp() = true;
   member3.lacpRate() = "Fast";
   entry2.members()->emplace_back(member3);
   member4.name() = "eth1/5/4";
   member4.id() = 4;
   member4.isUp() = true;
+  member4.isLinkUp() = true;
   member4.lacpRate() = "Fast";
   entry2.members()->emplace_back(member4);
   model.aggregatePortEntries() = {entry1, entry2};
@@ -187,15 +191,15 @@ TEST_F(CmdShowAggregatePortTestFixture, printOutput) {
   std::string expectOutput =
       "\nPort name: Port-Channel1"
       "\nDescription: Port Channel 1"
-      "\nActive members/Configured members/Min members: 2/2/[2, 2]"
-      "\n\t Member:   eth1/5/1, id:   1, Up:  True, Rate: Fast"
-      "\n\t Member:   eth1/5/2, id:   2, Up:  True, Rate: Fast"
+      "\nActive members/Configured members/Min members: 0/2/[2, 2]"
+      "\n\t Member:   eth1/5/1, id:   1, Link:  Down, Fwding: False, Rate: Fast"
+      "\n\t Member:   eth1/5/2, id:   2, Link:  Down, Fwding: False, Rate: Fast"
       "\n"
       "\nPort name: Port-Channel2"
       "\nDescription: Port Channel 2"
       "\nActive members/Configured members/Min members: 2/2/2"
-      "\n\t Member:   eth1/5/3, id:   3, Up:  True, Rate: Fast"
-      "\n\t Member:   eth1/5/4, id:   4, Up:  True, Rate: Fast\n";
+      "\n\t Member:   eth1/5/3, id:   3, Link:    Up, Fwding:  True, Rate: Fast"
+      "\n\t Member:   eth1/5/4, id:   4, Link:    Up, Fwding:  True, Rate: Fast\n";
   EXPECT_EQ(output, expectOutput);
 }
 

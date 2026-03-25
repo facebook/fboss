@@ -32,9 +32,12 @@ target_link_libraries(link_tests
   copp_test_utils
   packet_snooper
   hw_packet_utils
+  hw_qos_utils
+  hw_test_fabric_utils
   packet
   packet_snooper
   pkt_test_utils
+  trap_packet_utils
   link_test_production_features_cpp2
   trunk_utils
   ${GTEST}
@@ -56,10 +59,12 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleLinkSanityTests.cpp
   fboss/agent/test/link_tests/AgentEnsemblePhyInfoTest.cpp
   fboss/agent/test/link_tests/AgentEnsembleFabricLinkTests.cpp
+  fboss/agent/test/link_tests/AgentEnsembleQsfpFsdbTests.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
   agent_ensemble_test_lib
+  agent_test_utils
   ecmp_helper
   main
   config_factory
@@ -72,10 +77,18 @@ target_link_libraries(agent_ensemble_link_tests
   copp_test_utils
   packet_snooper
   pkt_test_utils
+  trap_packet_utils
   packet
   packet_snooper
   trunk_utils
+  hyper_port_test_utils
   link_test_production_features_cpp2
+  fsdb_pub_sub
+  fsdb_model
+  thrift_service_client
+  qsfp_config_cpp2
+  qsfp_state_cpp2
+  qsfp_stats_cpp2
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

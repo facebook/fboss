@@ -257,7 +257,11 @@ void cmisMediaInputLoopbackDirect(
 bool setTransceiverLoopback(
     DirectI2cInfo i2cInfo,
     std::vector<std::string> portList,
-    LoopbackMode mode);
+    LoopbackMode mode,
+    folly::EventBase& evb);
+
+std::map<std::string, std::vector<int32_t>> getPortTransceiverIDs(
+    folly::EventBase& evb);
 
 bool cliModulefirmwareUpgrade(
     DirectI2cInfo i2cInfo,
@@ -275,7 +279,10 @@ void get_module_fw_info(
 
 void doCdbCommand(DirectI2cInfo i2cInfo, unsigned int module);
 
-bool printVdmInfo(DirectI2cInfo i2cInfo, unsigned int port);
+bool printVdmInfo(
+    DirectI2cInfo i2cInfo,
+    unsigned int port,
+    folly::EventBase& evb);
 
 bool getEepromCsumStatus(const DOMDataUnion& domDataUnion);
 

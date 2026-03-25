@@ -11,6 +11,7 @@
 
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 
+#include <functional>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -46,6 +47,8 @@ struct FakePort {
   sai_port_media_type_t mediaType{SAI_PORT_MEDIA_TYPE_NOT_PRESENT};
   sai_vlan_id_t vlanId{0};
   std::vector<sai_object_id_t> queueIdList;
+  std::vector<sai_object_id_t> egressBufferProfileIdList;
+  std::vector<sai_object_id_t> ingressBufferProfileIdList;
   std::vector<uint32_t> preemphasis;
   sai_uint32_t mtu{1514};
   sai_object_id_t qosDscpToTcMap{SAI_NULL_OBJECT_ID};
@@ -89,6 +92,7 @@ struct FakePort {
   sai_uint8_t priorityFlowControlRx{0xff};
   sai_uint8_t priorityFlowControlTx{0xff};
   sai_port_err_status_list_t portError;
+  std::vector<sai_port_err_status_t> portErrStatusList;
   std::vector<sai_object_id_t> ingressPriorityGroupList;
   sai_uint32_t numberOfIngressPriorityGroups{0};
   sai_object_id_t qosTcToPriorityGroupMap{SAI_NULL_OBJECT_ID};
@@ -110,6 +114,9 @@ struct FakePort {
   sai_uint32_t staticModuleId{};
   bool resetQueueCreditBalance{false};
   sai_int32_t pfcMonitorDirection{0};
+  sai_int32_t cablePropagationDelayMediaType{0};
+  sai_uint16_t pfcPauseDurationOverride{0};
+  std::function<void()> onGetAttribute; // test-only hook
 };
 
 struct FakePortSerdes {
@@ -126,6 +133,7 @@ struct FakePortSerdes {
   std::vector<uint32_t> txFirPost2;
   std::vector<uint32_t> txFirPost3;
   std::vector<uint32_t> txLutMode;
+  std::vector<int32_t> rxReach;
   std::vector<int32_t> rxCtlCode;
   std::vector<int32_t> rxDspMode;
   std::vector<int32_t> rxAfeTrim;
@@ -163,6 +171,9 @@ struct FakePortSerdes {
   std::vector<int32_t> rxInstgEnableScan;
   std::vector<int32_t> rxFfeLengthBitmap;
   std::vector<int32_t> rxFfeLmsDynamicGatingEn;
+  std::vector<int32_t> txPrecoding;
+  std::vector<int32_t> rxPrecoding;
+  std::string serdesCustomCollection;
 };
 
 struct FakePortConnector {

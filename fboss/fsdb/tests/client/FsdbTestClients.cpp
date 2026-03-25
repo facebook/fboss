@@ -3,7 +3,9 @@
 #include "fboss/fsdb/tests/client/FsdbTestClients.h"
 #include <gtest/gtest.h>
 
+#include <folly/Utility.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace facebook::fboss::fsdb::test {
@@ -113,6 +115,13 @@ cfg::AgentConfig makeAgentConfig(
   return cfg;
 }
 
+cfg::AgentConfig
+makeLargeAgentConfig(const std::string& argName, uint32_t bytes, char val) {
+  std::map<std::string, std::string> cmdLineArgs;
+  cmdLineArgs[argName] = std::string(bytes, val);
+  return makeAgentConfig(cmdLineArgs);
+}
+
 folly::F14FastMap<std::string, HwPortStats> makePortStats(
     int64_t inBytes,
     const std::string& portName) {
@@ -123,36 +132,58 @@ folly::F14FastMap<std::string, HwPortStats> makePortStats(
   return portStats;
 }
 
+folly::F14FastMap<std::string, HwPortStats> makeLargePortStats(
+    int64_t counterValue,
+    int64_t numPorts) {
+  folly::F14FastMap<std::string, HwPortStats> portStats;
+  for (int i = 0; i < numPorts; i++) {
+    HwPortStats stats;
+    std::map<int16_t, int64_t> queueBytes;
+    for (int16_t queueId = 1; queueId <= 1024; queueId++) {
+      queueBytes[queueId] = counterValue;
+    }
+    stats.queueOutBytes_() = queueBytes;
+    std::string portName = folly::sformat("eth1/1/{}", i);
+    portStats[portName] = stats;
+  }
+  return portStats;
+}
+
 Patch makePatch(const cfg::AgentConfig& config) {
-  using AgentDataMembers = apache::thrift::reflect_struct<AgentData>::member;
-  using FsdbOperStateRootMembers =
-      apache::thrift::reflect_struct<FsdbOperStateRoot>::member;
   folly::IOBufQueue queue;
   apache::thrift::CompactSerializer::serialize(config, &queue);
   thrift_cow::PatchNode val;
   val.set_val(queue.moveAsValue());
 
   thrift_cow::StructPatch s;
-  s.children() = {{AgentDataMembers::config::id::value, std::move(val)}};
+  s.children() = {
+      {folly::to_underlying(
+           apache::thrift::op::
+               get_field_id_v<AgentData, apache::thrift::ident::config>),
+       std::move(val)}};
 
   thrift_cow::PatchNode root;
   root.set_struct_node(std::move(s));
   Patch p;
   p.patch() = std::move(root);
-  p.basePath() = {
-      folly::to<std::string>(FsdbOperStateRootMembers::agent::id::value)};
+  p.basePath() = {folly::to<std::string>(folly::to_underlying(
+      apache::thrift::op::
+          get_field_id_v<FsdbOperStateRoot, apache::thrift::ident::agent>))};
   return p;
 }
 
 Patch makePatch(const folly::F14FastMap<std::string, HwPortStats>& portStats) {
-  using AgentStatsMembers = apache::thrift::reflect_struct<AgentStats>::member;
   folly::IOBufQueue queue;
   apache::thrift::CompactSerializer::serialize(portStats, &queue);
   thrift_cow::PatchNode val;
   val.set_val(queue.moveAsValue());
 
   thrift_cow::StructPatch s;
-  s.children() = {{AgentStatsMembers::hwPortStats::id::value, std::move(val)}};
+  s.children() = {
+      {folly::to_underlying(
+           apache::thrift::op::
+               get_field_id_v<AgentStats, apache::thrift::ident::hwPortStats>),
+       std::move(val)}};
 
   thrift_cow::PatchNode root;
   root.set_struct_node(std::move(s));

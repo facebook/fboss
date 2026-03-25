@@ -5,7 +5,7 @@
 
 if(BUILD_SAI_FAKE)
 add_executable(switch_test
-    fboss/agent/test/oss/Main.cpp
+    fboss/util/oss/TestMain.cpp
     fboss/agent/hw/sai/switch/tests/AclTableGroupManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/AclTableManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/ArsManagerTest.cpp
@@ -31,6 +31,8 @@ add_executable(switch_test
     fboss/agent/hw/sai/switch/tests/VirtualRouterManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/VlanManagerTest.cpp
     fboss/agent/hw/sai/switch/tests/TunnelManagerTest.cpp
+    fboss/agent/hw/sai/switch/tests/Srv6TunnelManagerTest.cpp
+    fboss/agent/hw/sai/switch/tests/Srv6ManagerTest.cpp
 )
 
 target_link_libraries(switch_test
@@ -42,6 +44,8 @@ target_link_libraries(switch_test
     fake_sai
     hw_switch_fb303_stats
     manager_test_base
+    nexthop_id_test_utils
+    thrift_service_utils
     ${GTEST}
     ${LIBGMOCK_LIBRARIES}
 )
@@ -73,10 +77,11 @@ set_target_properties(switch_test PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
-# switch_test can't run on devservers because of some library loading error,
-# but gtest_discover_tests will attempt to execute the binary, so disable it.
-if(NOT DEFINED ENV{DEVSERVER})
-gtest_discover_tests(switch_test)
-endif()
+# switch_test segfaults when executed at build time (e.g. missing shared libs,
+# Python init from transitive sai_repl dep). Use PRE_TEST to defer test
+# discovery from build time to ctest execution time.
+gtest_discover_tests(switch_test
+  DISCOVERY_MODE PRE_TEST
+)
 
 endif()

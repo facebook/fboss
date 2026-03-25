@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -40,7 +41,10 @@ class AgentPfcTest : public AgentHwTest {
 
 TEST_F(AgentPfcTest, verifyPfcCounters) {
   std::vector<PortID> portIds = {
-      masterLogicalInterfacePortIds()[0], masterLogicalInterfacePortIds()[1]};
+      masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0],
+      masterLogicalPortIds(
+          {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[1]};
   std::vector<int> losslessPgIds = {2};
   std::vector<int> lossyPgIds = {0};
 
@@ -95,7 +99,8 @@ class AgentPfcWatchdogGranularityTest : public AgentPfcTest {
 };
 
 TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
-  auto portId = masterLogicalInterfacePortIds()[0];
+  auto portId = masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0];
 
   auto setup = [&]() {};
   auto verify = [&]() {
@@ -109,9 +114,13 @@ TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
     portCfg->pfc().ensure().watchdog() = pfcWatchdog;
 
     // Try different combinations of granularity and detection time.
-    cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;
-    portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 5;
-    applyNewConfig(cfg);
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    // TH3 does not support granularity of 1ms
+    if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
+      cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;
+      portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 5;
+      applyNewConfig(cfg);
+    }
 
     cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 10;
     portCfg->pfc().ensure().watchdog().ensure().detectionTimeMsecs() = 150;
@@ -136,7 +145,8 @@ class AgentPfcCaptureTest : public AgentPfcTest {
 };
 
 TEST_F(AgentPfcCaptureTest, verifyPfcLoopback) {
-  std::vector<PortID> portIds = {masterLogicalInterfacePortIds()[0]};
+  std::vector<PortID> portIds = {masterLogicalPortIds(
+      {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT})[0]};
   std::vector<int> losslessPgIds = {2};
   std::vector<int> lossyPgIds = {0};
 

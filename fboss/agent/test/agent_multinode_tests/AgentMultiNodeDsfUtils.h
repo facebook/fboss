@@ -57,4 +57,8 @@ std::set<std::string> getOneFabricSwitchForEachCluster(
 
 int32_t getFirstActiveFabricPort(const std::string& switchName);
 
+int64_t getSystemPortMin(
+    const std::unique_ptr<TopologyInfo>& topologyInfo,
+    const std::string& switchName);
+
 } // namespace facebook::fboss::utility

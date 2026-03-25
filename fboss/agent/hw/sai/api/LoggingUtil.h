@@ -78,6 +78,20 @@ struct formatter<folly::IPAddress> {
   }
 };
 
+// Formatting for folly::IPAddressV6
+template <>
+struct formatter<folly::IPAddressV6> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const folly::IPAddressV6& ip, FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", ip.str());
+  }
+};
+
 // Formatting for AdapterKeys which are SAI entry structs
 template <typename AdapterKeyType>
 struct formatter<
@@ -447,6 +461,24 @@ struct formatter<facebook::fboss::AclEntryAction<T>> {
     return format_to(ctx.out(), "{}", aclEntryAction.str());
   }
 };
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+// Formatting for SaiJsonString
+template <>
+struct formatter<facebook::fboss::SaiJsonString> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) const {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(
+      const facebook::fboss::SaiJsonString& jsonString,
+      FormatContext& ctx) const {
+    return format_to(ctx.out(), "{}", jsonString.str());
+  }
+};
+#endif
 
 // Formatting for sai_u32_range_t
 template <>

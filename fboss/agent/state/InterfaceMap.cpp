@@ -98,7 +98,7 @@ MultiSwitchInterfaceMap* MultiSwitchInterfaceMap::modify(
 std::shared_ptr<Interface> MultiSwitchInterfaceMap::getInterfaceInVlanIf(
     VlanID vlan) const {
   for (const auto& [_, intfMap] : *this) {
-    auto intf = intfMap->getInterfaceInVlan(vlan);
+    auto intf = intfMap->getInterfaceInVlanIf(vlan);
     if (intf) {
       return intf;
     }

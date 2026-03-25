@@ -58,12 +58,6 @@ inline std::string toString(PlatformType mode) {
       return "LASSEN";
     case PlatformType::PLATFORM_SANDIA:
       return "SANDIA";
-    case PlatformType::PLATFORM_MERU400BIU:
-      return "MERU400BIU";
-    case PlatformType::PLATFORM_MERU400BIA:
-      return "MERU400BIA";
-    case PlatformType::PLATFORM_MERU400BFU:
-      return "MERU400BFU";
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
       return "WEDGE400C_VOQ";
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
@@ -96,6 +90,8 @@ inline std::string toString(PlatformType mode) {
       return "TAHAN800BC";
     case PlatformType::PLATFORM_YANGRA:
       return "YANGRA";
+    case PlatformType::PLATFORM_MINIPACK3BTA:
+      return "MINIPACK3BTA";
     case PlatformType::PLATFORM_MINIPACK3N:
       return "MINIPACK3N";
     case PlatformType::PLATFORM_ICECUBE800BC:
@@ -110,6 +106,20 @@ inline std::string toString(PlatformType mode) {
       return "WEDGE800CACT";
     case PlatformType::PLATFORM_LADAKH800BCLS:
       return "LADAKH800BCLS";
+    case PlatformType::PLATFORM_ICECUBE800BANW:
+      return "ICECUBE800BANW";
+    case PlatformType::PLATFORM_J4SIM:
+      return "J4SIM";
+    case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      return "BLACKWOLF800BANW";
+    case PlatformType::PLATFORM_YANGRA2:
+      return "YANGRA2";
+    case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
+      return "MERU400BIU";
+    case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:
+      return "MERU400BFU";
+    case PlatformType::PLATFORM_MERU400BIA_DEPRECATED:
+      return "MERU400BIA";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

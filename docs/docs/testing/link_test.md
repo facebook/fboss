@@ -29,7 +29,6 @@ Link Tests include the following scenarios:
 2. **Generate Agent Config**: Create the agent configuration based on the cable connections.
 3. **Generate QSFP Config**: Prepare the QSFP configuration.
 4. **Build FBOSS qsfp_service and link_test Binaries**: Compile the `qsfp_service` and `link_test` binaries by following instructions on the [build page](/docs/build/building_fboss_on_docker_containers/).
-5. **Bring up QSFP Service on Standalone Device**: Start the QSFP service on the device.
-6. **Run Link Test Binary**: Execute the link test binary and verify that all tests pass.
+5. **Use run_test.py to properly bringup qsfp_service and run link_test**: Follow instructions on the [Link tests page](/docs/build/packaging_and_running_fboss_hw_tests_on_switch/#link-tests)
 
 By following these steps, you can ensure that the integration between the ASIC, transceivers, and the software services is functioning correctly and that the links are reliable.

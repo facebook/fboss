@@ -20,7 +20,6 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
-#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
@@ -77,7 +76,6 @@ struct TransceiverConfig {
  */
 class QsfpModule : public Transceiver {
  public:
-  static constexpr auto kSnapshotIntervalSeconds = 10;
   // Miniphoton module part number
   static constexpr auto kMiniphotonPartNumber = "LUX1626C4AD";
   using LengthAndGauge = std::pair<double, uint8_t>;
@@ -105,7 +103,7 @@ class QsfpModule : public Transceiver {
   std::string getNameString() const;
 
   virtual void refresh() override;
-  folly::Future<folly::Unit> futureRefresh() override;
+  folly::Future<bool> futureRefresh() override;
 
   void removeTransceiver() override;
 
@@ -225,24 +223,17 @@ class QsfpModule : public Transceiver {
   void clearTransceiverPrbsStats(const std::string& portName, phy::Side side)
       override;
 
-  SnapshotManager getTransceiverSnapshots() const {
-    // return a copy to avoid needing a lock in the caller
-    return snapshots_.copy();
-  }
-
   void programTransceiver(
       ProgramTransceiverState& programTcvrState,
       bool needResetDataPath) override;
 
-  bool readyTransceiver() override;
+  bool readyTransceiver(bool hasTunableOpticsConfig) override;
 
   portstate::PortState getPortState() override {
     return portState_;
   }
 
   virtual void triggerVdmStatsCapture() override {}
-
-  void publishSnapshots() override;
 
   /*
    * Try to remediate such Transceiver if needed.
@@ -338,6 +329,28 @@ class QsfpModule : public Transceiver {
     return tcvrName_;
   }
 
+  bool upgradeFirmware(
+      std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
+
+  /*
+   * Update the cached data with the information from the physical QSFP.
+   *
+   * The 'allPages' parameter determines which pages we refresh. Data
+   * on the first page holds most of the fields that actually change,
+   * so unless we have reason to believe the transceiver was unplugged
+   * there is not much point in refreshing static data on other pages.
+   */
+  virtual void updateQsfpData(bool allPages = true) = 0;
+
+  /*
+   * Gets the module media interface. This is the intended media interface
+   * application for this module. The module may be able to run in a different
+   * application (with lesser bandwidth). For example if a 200G-FR4 module is
+   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
+   * return 200G-FR4
+   */
+  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
+
  protected:
   /* Qsfp Internal Implementation */
   TransceiverImpl* qsfpImpl_;
@@ -348,7 +361,6 @@ class QsfpModule : public Transceiver {
    */
   uint64_t numRemediation_{0};
 
-  folly::Synchronized<SnapshotManager> snapshots_;
   folly::Synchronized<std::optional<TransceiverInfo>> info_;
   /*
    * qsfpModuleMutex_ is held around all the read and writes to the qsfpModule
@@ -382,13 +394,17 @@ class QsfpModule : public Transceiver {
    * Default speed is set to DEFAULT - this will prevent any speed specific
    * settings from being applied
    */
-  virtual void customizeTransceiverLocked(TransceiverPortState& portState) = 0;
+  virtual void customizeTransceiverLocked(
+      const TransceiverPortState& portState) = 0;
 
   /*
    * If the current power state is not same as desired one then change it and
    * return true when module is in ready state
+   * @param hasTunableOpticsConfig - indicates if tunable optics config is
+   *        present. For tunable optics modules without config, an exception
+   *        is thrown to prevent high power mode transition.
    */
-  virtual bool ensureTransceiverReadyLocked() = 0;
+  virtual bool ensureTransceiverReadyLocked(bool hasTunableOpticsConfig) = 0;
 
   /*
    * This function returns a pointer to the value in the static cached
@@ -507,6 +523,14 @@ class QsfpModule : public Transceiver {
     return false;
   }
 
+  virtual bool isAecModule() const {
+    return false;
+  }
+
+  virtual bool isTunableOptics() const {
+    return false;
+  }
+
   double mwToDb(double value);
 
   /*
@@ -539,16 +563,6 @@ class QsfpModule : public Transceiver {
   void periodicUpdateQsfpData();
 
   /*
-   * Update the cached data with the information from the physical QSFP.
-   *
-   * The 'allPages' parameter determines which pages we refresh. Data
-   * on the first page holds most of the fields that actually change,
-   * so unless we have reason to believe the transceiver was unplugged
-   * there is not much point in refreshing static data on other pages.
-   */
-  virtual void updateQsfpData(bool allPages = true) = 0;
-
-  /*
    * Helpers to parse DOM data for DAC cables. These incorporate some
    * extra fields that FB has vendors put in the 'Vendor specific'
    * byte range of the SFF spec.
@@ -570,15 +584,6 @@ class QsfpModule : public Transceiver {
   // set to low power and then back to original setting. This has
   // effect of restarting the transceiver state machine
   virtual void resetLowPowerMode() {}
-
-  /*
-   * Gets the module media interface. This is the intended media interface
-   * application for this module. The module may be able to run in a different
-   * application (with lesser bandwidth). For example if a 200G-FR4 module is
-   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
-   * return 200G-FR4
-   */
-  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
 
   /*
    * Returns true if getting the mediaInterfaceId is successful, false otherwise
@@ -749,9 +754,6 @@ class QsfpModule : public Transceiver {
   folly::Future<std::pair<int32_t, bool>> futureWriteTransceiver(
       TransceiverIOParameters param,
       const std::vector<uint8_t>& data) override;
-
-  bool upgradeFirmware(
-      std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
 
   bool upgradeFirmwareLocked(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList);

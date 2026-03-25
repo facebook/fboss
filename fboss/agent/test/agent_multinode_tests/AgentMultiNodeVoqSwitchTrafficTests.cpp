@@ -232,8 +232,9 @@ AgentMultiNodeVoqSwitchTrafficTest::configureRouteToRemoteRdswWithTwoNhops(
   return std ::make_pair(remoteRdsw, remoteNeighbors);
 }
 
-void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
-    const PortID& localPort) const {
+size_t AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
+    const PortID& localPort,
+    int64_t numPktsToSend) const {
   auto static kSrcIP = folly::IPAddressV6("2001:0db8:85a0::");
   auto [prefix, _] = kGetRoutePrefixAndPrefixLength();
 
@@ -250,18 +251,175 @@ void AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
       utility::kUdfL4DstPort,
       255, // hopLimit
       folly::MacAddress("00:02:00:00:01:01"), // srcMac
-      1000000, /* packetCount */
+      numPktsToSend,
       utility::kUdfRoceOpcodeAck,
       kReservedBytesWithRehashEnabled, /* reserved */
       std::nullopt, /* nextHdr */
       true /* sameDstQueue */);
 
   XLOG(DBG2) << "RoCE packet sent. Size: " << packetSize;
+
+  return packetSize * numPktsToSend;
 }
 
 bool AgentMultiNodeVoqSwitchTrafficTest::verifyShelAndConditionalEntropy(
     const std::unique_ptr<utility::TopologyInfo>& topologyInfo) const {
   XLOG(DBG2) << "Verifying SHEL(Self Healing ECMP LAG) and Conditional Entropy";
+  constexpr auto kNumPktsToSend = 1000000;
+
+  const auto& myHostname = topologyInfo->getMyHostname();
+  auto getLocalActivePort = [myHostname] {
+    auto upEthernetPortNameToPortInfo =
+        utility::getUpEthernetPortNameToPortInfo(myHostname);
+    CHECK(!upEthernetPortNameToPortInfo.empty());
+    const auto& [_, portInfo] = *upEthernetPortNameToPortInfo.begin();
+    return PortID(portInfo.portId().value());
+  };
+
+  auto getRemotePorts = [](const std::string& remoteRdsw,
+                           const std::vector<utility::Neighbor>& neighbors) {
+    auto portIdToPortInfo = utility::getPortIdToPortInfo(remoteRdsw);
+    CHECK(neighbors.size() == 2);
+    CHECK(portIdToPortInfo.find(neighbors[0].portID) != portIdToPortInfo.end());
+    CHECK(portIdToPortInfo.find(neighbors[1].portID) != portIdToPortInfo.end());
+
+    auto firstRemotePort = portIdToPortInfo[neighbors[0].portID].name().value();
+    auto secondRemotePort =
+        portIdToPortInfo[neighbors[1].portID].name().value();
+
+    return std::make_pair(firstRemotePort, secondRemotePort);
+  };
+
+  auto getRemotePortIDs = [](const std::string& remoteRdsw,
+                             const std::vector<utility::Neighbor>& neighbors) {
+    auto portIdToPortInfo = utility::getPortIdToPortInfo(remoteRdsw);
+    CHECK(neighbors.size() == 2);
+    CHECK(portIdToPortInfo.find(neighbors[0].portID) != portIdToPortInfo.end());
+    CHECK(portIdToPortInfo.find(neighbors[1].portID) != portIdToPortInfo.end());
+
+    return std::make_pair(neighbors[0].portID, neighbors[1].portID);
+  };
+
+  auto localActivePort = getLocalActivePort();
+  const auto& [remoteRdsw, neighbors] =
+      configureRouteToRemoteRdswWithTwoNhops(topologyInfo);
+  const auto& [firstRemotePort, secondRemotePort] =
+      getRemotePorts(remoteRdsw, neighbors);
+  const auto& [firstRemotePortID, secondRemotePortID] =
+      getRemotePortIDs(remoteRdsw, neighbors);
+  auto firstRemoteSystemPortID =
+      int32_t(utility::getSystemPortMin(topologyInfo, remoteRdsw)) +
+      firstRemotePortID;
+
+  // Conditional Entropy is enabled, so traffic should egress on both ports.
+  {
+    XLOG(DBG2) << "Verify Traffic on both remote ports, no drops";
+    auto firstPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, firstRemotePort);
+    auto secondPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, secondRemotePort);
+    auto sentBytes = pumpRoCETraffic(localActivePort, kNumPktsToSend);
+
+    // With conditional entropy enabled, at least 80% of the traffic should
+    // egress on each port.
+    auto portOutBytesIncrement = (sentBytes / 2) * 0.8;
+
+    if (!utility::verifyPortOutBytesIncrementByMinValue(
+            remoteRdsw,
+            {{firstRemotePort, firstPortOutBytes},
+             {secondRemotePort, secondPortOutBytes}},
+            portOutBytesIncrement)) {
+      XLOG(DBG2) << "Port out bytes increment verification failed";
+      return false;
+    }
+    if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
+      XLOG(DBG2) << "Unexpected reassembly errors";
+      return false;
+    }
+  }
+
+  // Admin disable one remote port, so traffic should egress on another port.
+  // Verify no reassembly drops.
+  {
+    XLOG(DBG2)
+        << "Disable one remote port, verify Traffic on one remote port, no drops";
+    utility::adminDisablePort(remoteRdsw, firstRemotePortID);
+    auto secondPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, secondRemotePort);
+    auto sentBytes = pumpRoCETraffic(localActivePort, kNumPktsToSend);
+    // All traffic should egress through the up port
+    if (!utility::verifyPortOutBytesIncrementByMinValue(
+            remoteRdsw, {{secondRemotePort, secondPortOutBytes}}, sentBytes)) {
+      XLOG(DBG2) << "Port out bytes increment verification failed";
+      return false;
+    }
+    if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
+      XLOG(DBG2) << "Unexpected reassembly errors";
+      return false;
+    }
+    // SHEL state for the admim disabled port should be sync'ed to every RDSW
+    // including the RDSW whose port was disabled.
+    if (!utility::checkForEachExcluding(
+            topologyInfo->getRdsws(),
+            {}, // exclude none
+            [firstRemoteSystemPortID](const std::string& switchName) {
+              return utility::verifyRemoteSystemPortShelState(
+                  switchName,
+                  firstRemoteSystemPortID,
+                  cfg::PortState::DISABLED);
+            })) {
+      XLOG(DBG2) << "SHEL port state mismatch for rdsw: " << remoteRdsw
+                 << " remotePort: " << firstRemotePortID
+                 << " remoteSystemPort: " << firstRemoteSystemPortID
+                 << " Port state should be DISABLED on every RDSW";
+      return false;
+    }
+  }
+
+  // Admin re-enable that remote port, so traffic should egress on both ports.
+  {
+    XLOG(DBG2)
+        << "Re-enable disabled remote port, verify Traffic on both remote ports, no drops";
+    utility::adminEnablePort(remoteRdsw, firstRemotePortID);
+    auto firstPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, firstRemotePort);
+    auto secondPortOutBytes =
+        utility::getPortOutBytes(remoteRdsw, secondRemotePort);
+    auto sentBytes = pumpRoCETraffic(localActivePort, kNumPktsToSend);
+
+    // With conditional entropy enabled, at least 80% of the traffic should
+    // egress on each port.
+    auto portOutBytesIncrement = (sentBytes / 2) * 0.8;
+
+    if (!utility::verifyPortOutBytesIncrementByMinValue(
+            remoteRdsw,
+            {{firstRemotePort, firstPortOutBytes},
+             {secondRemotePort, secondPortOutBytes}},
+            portOutBytesIncrement)) {
+      XLOG(DBG2) << "Port out bytes increment verification failed";
+      return false;
+    }
+    if (!utility::verifyNoReassemblyErrorsForAllSwitches(topologyInfo)) {
+      XLOG(DBG2) << "Unexpected reassembly errors";
+      return false;
+    }
+    // SHEL state for the admim re-enabled port should be sync'ed to every RDSW
+    // including the RDSW whose port was re-enabled.
+    if (!utility::checkForEachExcluding(
+            topologyInfo->getRdsws(),
+            {}, // exclude none
+            [firstRemoteSystemPortID](const std::string& switchName) {
+              return utility::verifyRemoteSystemPortShelState(
+                  switchName, firstRemoteSystemPortID, cfg::PortState::ENABLED);
+            })) {
+      XLOG(DBG2) << "SHEL port state mismatch for rdsw: " << remoteRdsw
+                 << " remotePort: " << firstRemotePortID
+                 << " remoteSystemPort: " << firstRemoteSystemPortID
+                 << " Port state should be ENABLED on every RDSW";
+      return false;
+    }
+  }
+
   return true;
 }
 

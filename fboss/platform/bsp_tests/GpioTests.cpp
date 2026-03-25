@@ -97,7 +97,7 @@ class GpioTest : public BspTest {
           deviceTestFn) {
     const auto adapters = getAllAdaptersWithGpios();
     if (adapters.empty()) {
-      GTEST_SKIP() << "No GPIOs found in test config";
+      GTEST_SKIP() << "No I2C GPIOs found in test config";
     }
 
     int id = 1;
@@ -126,6 +126,95 @@ class GpioTest : public BspTest {
     }
   }
 };
+
+// For top-level GPIO created from userspace, e.g pci.gpiochip
+TEST_F(GpioTest, GpioCreated) {
+  std::vector<std::string> errorMessages;
+
+  int id = 0;
+  for (const auto& device : *GetRuntimeConfig().devices()) {
+    for (const auto& auxDevice : *device.auxDevices()) {
+      if (*auxDevice.type() != fbiob::AuxDeviceType::GPIO) {
+        continue;
+      }
+
+      try {
+        id++;
+        auto initialDetectedGpios = GpioUtils::gpiodetect("");
+        CdevUtils::createNewDevice(*device.pciInfo(), auxDevice, id);
+        registerDeviceForCleanup(*device.pciInfo(), auxDevice, id);
+
+        // GPIO detection, check that the GPIO device is detected and verify the
+        // number of lines
+        auto detectedGpios = GpioUtils::gpiodetect("");
+        ASSERT_EQ(detectedGpios.size() - initialDetectedGpios.size(), 1)
+            << "Expected 1 new GPIO to be detected for " << *auxDevice.name();
+
+        // Find the newly added GPIO by comparing the two vectors
+        size_t newGpioIndex = 0;
+        std::string gpioName;
+        for (size_t i = 0; i < detectedGpios.size(); ++i) {
+          bool found = false;
+          for (const auto& initial : initialDetectedGpios) {
+            if (detectedGpios[i].name == initial.name) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            newGpioIndex = i;
+            gpioName = detectedGpios[i].name;
+            break;
+          }
+        }
+        ASSERT_FALSE(gpioName.empty())
+            << "Could not find newly added GPIO for " << *auxDevice.name();
+
+        if (detectedGpios[newGpioIndex].lines <=
+            0) { // Assuming > 0 is required
+          errorMessages.emplace_back(
+              fmt::format(
+                  "For {}: expected > 0 lines, but got {}",
+                  gpioName,
+                  detectedGpios[newGpioIndex].lines));
+          continue; // Continue to the next auxDevice
+        }
+        XLOG(INFO) << "GPIO detection: " << gpioName
+                   << " size: " << detectedGpios.size()
+                   << " lines: " << detectedGpios[newGpioIndex].lines;
+
+        // GPIO info, verify the number of lines
+        auto info = GpioUtils::gpioinfo(gpioName);
+        EXPECT_EQ(info.size(), detectedGpios[newGpioIndex].lines)
+            << "Line count mismatch for " << gpioName << ": gpiodetect reports "
+            << detectedGpios[newGpioIndex].lines
+            << " lines, but gpioinfo reports " << info.size() << " lines.";
+        XLOG(INFO) << "GPIO info: " << gpioName << " lines: " << info.size();
+
+        // GPIO get, show each line's value
+        for (size_t i = 0; i < info.size(); ++i) {
+          if (info[i].direction != "input") {
+            continue;
+          }
+          int val = GpioUtils::gpioget(gpioName, i);
+          XLOG(INFO) << "GPIO get: " << gpioName << " Line index: " << i
+                     << " Line value: " << val;
+        }
+      } catch (const std::exception& e) {
+        errorMessages.emplace_back(
+            fmt::format(
+                "Exception during GPIO creation for {}: {}",
+                *auxDevice.name(),
+                e.what()));
+      }
+    }
+  }
+
+  if (!errorMessages.empty()) {
+    FAIL() << "Found " << errorMessages.size() << " errors:\n"
+           << folly::join("\n", errorMessages);
+  }
+}
 
 // Test that GPIO devices are detectable
 TEST_F(GpioTest, GpioIsDetectable) {

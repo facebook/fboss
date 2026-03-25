@@ -133,7 +133,7 @@ bool PlatformPortProfileConfigMatcher::matchOverrideWithFactor(
       return false;
     }
   }
-  XLOGF(INFO, "Found override for matcher {}", toString());
+  XLOGF(DBG3, "Found override for matcher {}", toString());
   return true;
 }
 
@@ -333,6 +333,26 @@ cfg::Scope PlatformMapping::getPortScope(PortID portID) const {
   return *itPlatformPort->second.mapping()->scope();
 }
 
+std::optional<std::map<int32_t, int32_t>>
+PlatformMapping::getPortDriverPeakingOverrides(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto overrideFactor = matcher.getPortConfigOverrideFactorIf();
+  if (!overrideFactor) {
+    return std::nullopt;
+  }
+  // Check whether there's an override
+  for (const auto& portConfigOverride : portConfigOverrides_) {
+    if (!portConfigOverride.driverPeaking().has_value()) {
+      // The override does not have driver peaking. Skip
+      continue;
+    }
+    if (matcher.matchOverrideWithFactor(*portConfigOverride.factor())) {
+      return *portConfigOverride.driverPeaking();
+    }
+  }
+  return std::nullopt;
+}
+
 std::vector<phy::PinConfig> PlatformMapping::getPortIphyPinConfigs(
     PlatformPortProfileConfigMatcher matcher) const {
   std::optional<phy::DataPlanePhyChip> chip;
@@ -416,7 +436,7 @@ PlatformMapping::getPortTransceiverPinConfigs(
   auto portID = matcher.getPortIDIf();
   auto profileID = matcher.getProfileID();
   if (!portID.has_value()) {
-    throw FbossError("getPortIphyPinConfigs miss portID match factor");
+    throw FbossError("getPortTransceiverPinConfigs miss portID match factor");
   }
   const auto& platformPortConfig =
       getPlatformPortConfig(portID.value(), profileID);
@@ -424,6 +444,23 @@ PlatformMapping::getPortTransceiverPinConfigs(
   // no transceiver pin overrides
   if (auto transceiverPins = platformPortConfig.pins()->transceiver()) {
     return *transceiverPins;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> PlatformMapping::getPortSerdesCustomCollection(
+    PlatformPortProfileConfigMatcher matcher) const {
+  auto portID = matcher.getPortIDIf();
+  auto profileID = matcher.getProfileID();
+  if (!portID.has_value()) {
+    throw FbossError("getPortSerdesCustomCollection miss portID match factor");
+  }
+  const auto& platformPortConfig =
+      getPlatformPortConfig(portID.value(), profileID);
+
+  if (auto serdesCustomCollection =
+          platformPortConfig.pins()->serdesCustomCollection()) {
+    return *serdesCustomCollection;
   }
   return std::nullopt;
 }
@@ -457,12 +494,12 @@ int PlatformMapping::getTransceiverIdFromSwPort(PortID swPort) const {
     throw FbossError("Can't find Platform Port for portId ", swPort);
   }
 
-  auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-  if (!tcvrID.has_value()) {
+  auto tcvrIds = utility::getTransceiverIds(platformPortItr->second, chips);
+  if (tcvrIds.empty()) {
     throw FbossError("Can't find Tcvr ID for portId ", swPort);
   }
 
-  return tcvrID.value();
+  return tcvrIds[0];
 }
 
 std::vector<PortID> PlatformMapping::getSwPortListFromTransceiverId(

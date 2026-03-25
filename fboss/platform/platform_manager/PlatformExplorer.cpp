@@ -16,9 +16,11 @@
 
 #include "fboss/platform/helpers/PlatformFsUtils.h"
 #include "fboss/platform/helpers/PlatformUtils.h"
+#include "fboss/platform/platform_manager/CpldManager.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
+#include "fboss/platform/weutil/ParserUtils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -134,11 +136,12 @@ PlatformManagerStatus createPmStatus(
 
 PlatformExplorer::PlatformExplorer(
     const PlatformConfig& config,
+    DataStore& dataStore,
     std::shared_ptr<PlatformFsUtils> platformFsUtils)
-    : explorationSummary_(platformConfig_, dataStore_),
-      platformConfig_(config),
+    : platformConfig_(config),
+      dataStore_(dataStore),
+      explorationSummary_(platformConfig_),
       pciExplorer_(platformFsUtils),
-      dataStore_(platformConfig_),
       devicePathResolver_(dataStore_),
       presenceChecker_(devicePathResolver_),
       platformFsUtils_(std::move(platformFsUtils)) {
@@ -161,13 +164,16 @@ void PlatformExplorer::explore() {
        *platformConfig_.symbolicLinkToDevicePath()) {
     createDeviceSymLink(linkPath, devicePath);
   }
+  updateFirmwareVersions();
   XLOG(INFO) << "Publishing firmware versions ...";
   publishFirmwareVersions();
   XLOG(INFO) << "Generating human readable EEPROM contents ...";
   genHumanReadableEeproms();
   XLOG(INFO) << "Publishing hardware version of the unit ...";
   publishHardwareVersions();
-  auto explorationStatus = explorationSummary_.summarize();
+
+  auto explorationStatus = explorationSummary_.summarize(
+      dataStore_.getFirmwareVersions(), dataStore_.getHardwareVersions());
   updatePmStatus(createPmStatus(
       explorationStatus,
       std::chrono::duration_cast<std::chrono::seconds>(
@@ -180,8 +186,8 @@ void PlatformExplorer::explorePmUnit(
     const std::string& pmUnitName) {
   auto pmUnitConfig = dataStore_.resolvePmUnitConfig(slotPath);
   XLOG(INFO) << fmt::format("Exploring PmUnit {} at {}", pmUnitName, slotPath);
+  auto pmUnitExploreStart = std::chrono::steady_clock::now();
   dataStore_.updatePmUnitSuccessfullyExplored(slotPath, false);
-
   XLOG(INFO) << fmt::format(
       "Exploring PCI Devices for PmUnit {} at SlotPath {}. Count {}",
       pmUnitName,
@@ -210,6 +216,26 @@ void PlatformExplorer::explorePmUnit(
           *embeddedSensorConfig.sysfsPath());
     }
   }
+  auto pmUnitElapsedSeconds =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::steady_clock::now() - pmUnitExploreStart)
+          .count();
+  auto pmUnitTimeCounterKey =
+      fmt::format(kExplorePmUnitTime, slotPath + "." + pmUnitName);
+  try {
+    // Catch exception for this counter only since we included non-typical
+    // characters such as "/", in case they are ever unsupported by fb303
+    fb303::fbData->setCounter(pmUnitTimeCounterKey, pmUnitElapsedSeconds);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << fmt::format(
+        "Error setting counter {}: {}", pmUnitTimeCounterKey, ex.what());
+  }
+  XLOG(INFO) << fmt::format(
+      "Explored PmUnit {} at {} in {}s",
+      pmUnitName,
+      slotPath,
+      pmUnitElapsedSeconds);
+
   dataStore_.updatePmUnitSuccessfullyExplored(slotPath, true);
 
   XLOG(INFO) << fmt::format(
@@ -307,27 +333,38 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
 
     /*
     Because of upstream kernel issues, we have to manually read the
-    SCM EEPROM for the Meru800BFA/BIA platforms. It is read directly
-    with ioctl and written to the /run/devmap file.
-    See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
+    SCM EEPROM for the Meru800BFA/BIA & Icecube800banw platforms. It is read
+    directly with ioctl and written to the /run/devmap file. See:
+    https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
-    if ((platformConfig_.platformName().value() == "meru800bfa" ||
-         platformConfig_.platformName().value() == "meru800bia") &&
+    uint16_t eepromOffset = *idpromConfig.offset();
+    if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+         platformConfig_.platformName().value() == "MERU800BIA" ||
+         platformConfig_.platformName().value() == "ICECUBE800BANW" ||
+         platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
+      // ICECUBE800BANW has SMB at root level, others have SCM
+      std::string eepromName =
+          (platformConfig_.platformName().value() == "ICECUBE800BANW")
+          ? "SMB_EEPROM"
+          : "MERU_SCM_EEPROM";
       try {
         std::string eepromDir = "/run/devmap/eeproms/";
-        std::string eepromName = "MERU_SCM_EEPROM";
         eepromPath = eepromDir + eepromName;
         IoctlSmbusEepromReader::readEeprom(
             eepromDir,
             eepromName,
-            0,
+            eepromOffset,
             std::stoi(*idpromConfig.address(), nullptr, 16),
-            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()));
+            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()),
+            kMaxEepromDataRegionSize);
+        // The parsed file contains data starting at offset 0
+        eepromOffset = 0;
       } catch (const std::exception& e) {
         auto errMsg = fmt::format(
-            "Could not read MERU_SCM_EEPROM for {}: {}",
+            "Could not read EEPROM {} for {}: {}",
+            eepromName,
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
@@ -345,11 +382,14 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
       eepromPath = eepromPath + "/eeprom";
     }
     try {
+      auto idpromDevicePath = Utils().createDevicePath(slotPath, "IDPROM");
       dataStore_.updateEepromContents(
-          Utils().createDevicePath(slotPath, "IDPROM"),
-          FbossEepromInterface(eepromPath, *idpromConfig.offset()));
-      const auto& eepromContents = dataStore_.getEepromContents(
-          Utils().createDevicePath(slotPath, "IDPROM"));
+          idpromDevicePath, FbossEepromInterface(eepromPath, eepromOffset));
+      const auto& eepromContents =
+          dataStore_.getEepromContents(idpromDevicePath);
+      if (idpromDevicePath == *platformConfig_.chassisEepromDevicePath()) {
+        updateHardwareVersions(eepromContents);
+      }
       pmUnitNameInEeprom = eepromContents.getProductName();
       productionStateInEeprom = std::stoi(eepromContents.getProductionState());
       productVersionInEeprom =
@@ -487,10 +527,16 @@ void PlatformExplorer::exploreI2cDevices(
         auto i2cDevicePath = i2cExplorer_.getDeviceI2cPath(busNum, devAddr);
         try {
           auto eepromPath = i2cDevicePath + "/eeprom";
+          auto eepromOffset = i2cDeviceConfig.eepromOffset().value_or(0);
           dataStore_.updateEepromContents(
               Utils().createDevicePath(
                   slotPath, *i2cDeviceConfig.pmUnitScopedName()),
-              FbossEepromInterface(eepromPath, 0));
+              FbossEepromInterface(eepromPath, eepromOffset));
+          if (devicePath == *platformConfig_.chassisEepromDevicePath()) {
+            const auto& eepromContents =
+                dataStore_.getEepromContents(devicePath);
+            updateHardwareVersions(eepromContents);
+          }
         } catch (const std::exception& e) {
           auto errMsg = fmt::format(
               "Could not fetch contents of EEPROM device {} in {}. {}",
@@ -504,6 +550,13 @@ void PlatformExplorer::exploreI2cDevices(
               *i2cDeviceConfig.pmUnitScopedName(),
               errMsg);
         }
+      }
+      if (i2cDeviceConfig.cpldSysfsAttrs() &&
+          !i2cDeviceConfig.cpldSysfsAttrs()->empty()) {
+        setupCpldSysfsAttrs(
+            devicePath, busNum, devAddr, *i2cDeviceConfig.cpldSysfsAttrs());
+        dataStore_.updateCharDevPath(
+            devicePath, getCpldCharDevPath(busNum, devAddr));
       }
     } catch (const std::exception& ex) {
       auto errMsg = fmt::format(
@@ -532,32 +585,37 @@ void PlatformExplorer::explorePciDevices(
     dataStore_.updateSysfsPath(pciDevicePath, pciDevice.sysfsPath());
     dataStore_.updateCharDevPath(pciDevicePath, pciDevice.charDevPath());
 
+    auto createI2cAdapter = [&](const I2cAdapterConfig& i2cAdapterConfig) {
+      auto busNums =
+          pciExplorer_.createI2cAdapter(pciDevice, i2cAdapterConfig, instId++);
+      if (*i2cAdapterConfig.numberOfAdapters() > 1) {
+        CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
+        for (auto i = 0; i < busNums.size(); i++) {
+          dataStore_.updateI2cBusNum(
+              slotPath,
+              fmt::format(
+                  "{}@{}",
+                  *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+                  i),
+              busNums[i]);
+        }
+      } else {
+        CHECK_EQ(busNums.size(), 1);
+        dataStore_.updateI2cBusNum(
+            slotPath,
+            *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
+            busNums[0]);
+      }
+    };
+    auto i2cAdapterConfigs = Utils::createI2cAdapterConfigs(pciDeviceConfig);
+    if (i2cAdapterConfigs.size() == 0) {
+      i2cAdapterConfigs = *pciDeviceConfig.i2cAdapterConfigs();
+    }
     createPciSubDevices(
         slotPath,
-        *pciDeviceConfig.i2cAdapterConfigs(),
+        i2cAdapterConfigs,
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_I2C_ADAPTER,
-        [&](const auto& i2cAdapterConfig) {
-          auto busNums = pciExplorer_.createI2cAdapter(
-              pciDevice, i2cAdapterConfig, instId++);
-          if (*i2cAdapterConfig.numberOfAdapters() > 1) {
-            CHECK_EQ(busNums.size(), *i2cAdapterConfig.numberOfAdapters());
-            for (auto i = 0; i < busNums.size(); i++) {
-              dataStore_.updateI2cBusNum(
-                  slotPath,
-                  fmt::format(
-                      "{}@{}",
-                      *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
-                      i),
-                  busNums[i]);
-            }
-          } else {
-            CHECK_EQ(busNums.size(), 1);
-            dataStore_.updateI2cBusNum(
-                slotPath,
-                *i2cAdapterConfig.fpgaIpBlockConfig()->pmUnitScopedName(),
-                busNums[0]);
-          }
-        });
+        createI2cAdapter);
     createPciSubDevices(
         slotPath,
         *pciDeviceConfig.spiMasterConfigs(),
@@ -611,7 +669,7 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        pciExplorer_.createLedCtrlConfigs(pciDeviceConfig),
+        Utils::createLedCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
         [&](const auto& ledCtrlConfig) {
           pciExplorer_.createLedCtrl(pciDevice, ledCtrlConfig, instId++);
@@ -625,7 +683,14 @@ void PlatformExplorer::explorePciDevices(
         });
     createPciSubDevices(
         slotPath,
-        Utils().createXcvrCtrlConfigs(pciDeviceConfig),
+        *pciDeviceConfig.sysLedCtrlConfigs(),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_LED_CTRL,
+        [&](const auto& sysLedCtrlConfig) {
+          pciExplorer_.createFpgaIpBlock(pciDevice, sysLedCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        Utils::createXcvrCtrlConfigs(pciDeviceConfig),
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_XCVR_CTRL,
         [&](const auto& xcvrCtrlConfig) {
           auto devicePath = Utils().createDevicePath(
@@ -665,6 +730,26 @@ void PlatformExplorer::explorePciDevices(
         ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MISC_CTRL,
         [&](const auto& miscCtrlConfig) {
           pciExplorer_.createFpgaIpBlock(pciDevice, miscCtrlConfig, instId++);
+        });
+    createPciSubDevices(
+        slotPath,
+        Utils::createMdioBusConfigs(pciDeviceConfig),
+        ExplorationErrorType::PCI_SUB_DEVICE_CREATE_MDIO_BUS,
+        [&](const auto& mdioBusConfig) {
+          auto instanceId = instId;
+          auto mdioBusCharDevPath =
+              pciExplorer_.createMdioBus(pciDevice, mdioBusConfig, instId++);
+          dataStore_.updateCharDevPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusCharDevPath);
+
+          auto mdioBusSysfsPath = pciExplorer_.getMdioBusSysfsPath(
+              pciDevice, mdioBusConfig, instanceId);
+          dataStore_.updateSysfsPath(
+              Utils().createDevicePath(
+                  slotPath, *mdioBusConfig.pmUnitScopedName()),
+              mdioBusSysfsPath);
         });
   }
 }
@@ -727,6 +812,15 @@ void PlatformExplorer::createDeviceSymLink(
       if (re2::RE2::FullMatch(xcvrName, kLegacyXcvrName)) {
         targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
       }
+    } else if (linkParentPath.string() == "/run/devmap/mdio-busses") {
+      auto mdioBusName = linkPath.substr(linkParentPath.string().length() + 1);
+      if (mdioBusName.starts_with("mdio_bus_io")) {
+        targetPath =
+            devicePathResolver_.resolvePciSubDevCharDevPath(devicePath);
+      }
+      if (mdioBusName.starts_with("mdio_bus_ctrl")) {
+        targetPath = devicePathResolver_.resolvePciSubDevSysfsPath(devicePath);
+      }
     } else {
       throw std::runtime_error(
           fmt::format("Symbolic link {} is not supported.", linkPath));
@@ -755,7 +849,7 @@ void PlatformExplorer::createDeviceSymLink(
   }
 }
 
-void PlatformExplorer::publishFirmwareVersions() {
+void PlatformExplorer::updateFirmwareVersions() {
   for (const auto& [linkPath, _] :
        *platformConfig_.symbolicLinkToDevicePath()) {
     if (!linkPath.starts_with("/run/devmap/cplds") &&
@@ -792,6 +886,14 @@ void PlatformExplorer::publishFirmwareVersions() {
       versionString = PlatformExplorer::kFwVerErrorFileNotFound;
     }
 
+    dataStore_.updateFirmwareVersion(
+        std::string(deviceName.data(), deviceName.size()), versionString);
+  }
+}
+
+void PlatformExplorer::publishFirmwareVersions() {
+  auto firmwareVersions = dataStore_.getFirmwareVersions();
+  for (const auto& [deviceName, versionString] : firmwareVersions) {
     XLOGF(
         INFO,
         "Reporting firmware version for {} - version string:{}",
@@ -802,48 +904,65 @@ void PlatformExplorer::publishFirmwareVersions() {
   }
 }
 
-void PlatformExplorer::publishHardwareVersions() {
-  auto chassisDevicePath = *platformConfig_.chassisEepromDevicePath();
-  if (!dataStore_.hasEepromContents(chassisDevicePath)) {
-    XLOGF(
-        ERR,
-        "Failed to report hardware version. EEPROM contents not found for {}",
-        chassisDevicePath);
-    return;
-  }
-
-  auto chassisEepromContent = dataStore_.getEepromContents(chassisDevicePath);
-  auto version = chassisEepromContent.getVersion();
+void PlatformExplorer::updateHardwareVersions(
+    const FbossEepromInterface& chassisEepromContent) {
   auto prodState = chassisEepromContent.getProductionState();
   auto prodSubState = chassisEepromContent.getProductionSubState();
   auto variantVersion = chassisEepromContent.getVariantVersion();
 
-  // Report version
-  fb303::fbData->setCounter(fmt::format(kChassisEepromVersion, version), 1);
-
-  // Report production state
+  dataStore_.updateHardwareVersion(
+      kChassisEepromVersion, std::to_string(chassisEepromContent.getVersion()));
   if (!prodState.empty()) {
-    XLOG(INFO) << fmt::format("Reporting Production State: {}", prodState);
-    fb303::fbData->setCounter(fmt::format(kProductionState, prodState), 1);
+    dataStore_.updateHardwareVersion(kProductionState, prodState);
+  }
+  if (!prodSubState.empty()) {
+    dataStore_.updateHardwareVersion(kProductionSubState, prodSubState);
+  }
+  if (!variantVersion.empty()) {
+    dataStore_.updateHardwareVersion(kVariantVersion, variantVersion);
+  }
+}
+
+void PlatformExplorer::publishHardwareVersions() {
+  auto hardwareVersions = dataStore_.getHardwareVersions();
+
+  if (hardwareVersions.empty()) {
+    XLOG(ERR) << "Failed to report hardware versions. No versions available.";
+    return;
+  }
+  // Report chassis EEPROM version
+  auto versionIt = hardwareVersions.find(kChassisEepromVersion);
+  if (versionIt != hardwareVersions.end()) {
+    fb303::fbData->setCounter(
+        fmt::format(kChassisEepromVersionODS, versionIt->second), 1);
+  }
+  // Report production state
+  auto prodStateIt = hardwareVersions.find(kProductionState);
+  if (prodStateIt != hardwareVersions.end()) {
+    XLOG(INFO) << fmt::format(
+        "Reporting Production State: {}", prodStateIt->second);
+    fb303::fbData->setCounter(
+        fmt::format(kProductionStateODS, prodStateIt->second), 1);
   } else {
     XLOG(ERR) << "Production State not set";
   }
-
   // Report production sub-state
-  if (!prodSubState.empty()) {
+  auto prodSubStateIt = hardwareVersions.find(kProductionSubState);
+  if (prodSubStateIt != hardwareVersions.end()) {
     XLOG(INFO) << fmt::format(
-        "Reporting Production Sub-State: {}", prodSubState);
+        "Reporting Production Sub-State: {}", prodSubStateIt->second);
     fb303::fbData->setCounter(
-        fmt::format(kProductionSubState, prodSubState), 1);
+        fmt::format(kProductionSubStateODS, prodSubStateIt->second), 1);
   } else {
     XLOG(ERR) << "Production Sub-State not set";
   }
-
   // Report variant version
-  if (!variantVersion.empty()) {
+  auto variantIt = hardwareVersions.find(kVariantVersion);
+  if (variantIt != hardwareVersions.end()) {
     XLOG(INFO) << fmt::format(
-        "Reporting Variant Indicator: {}", variantVersion);
-    fb303::fbData->setCounter(fmt::format(kVariantVersion, variantVersion), 1);
+        "Reporting Variant Indicator: {}", variantIt->second);
+    fb303::fbData->setCounter(
+        fmt::format(kVariantVersionODS, variantIt->second), 1);
   } else {
     XLOG(ERR) << "Variant Indicator not set";
   }
@@ -890,6 +1009,20 @@ void PlatformExplorer::setupI2cDevice(
     XLOG(ERR) << ex.what();
     explorationSummary_.addError(
         ExplorationErrorType::I2C_DEVICE_REG_INIT, devicePath, ex.what());
+  }
+}
+
+void PlatformExplorer::setupCpldSysfsAttrs(
+    const std::string& devicePath,
+    uint16_t busNum,
+    const I2cAddr& addr,
+    const std::vector<CpldSysfsAttr>& cpldSysfsAttrs) {
+  try {
+    createCpldSysfsAttrs(busNum, addr, cpldSysfsAttrs);
+  } catch (const std::exception& ex) {
+    XLOG(ERR) << ex.what();
+    explorationSummary_.addError(
+        ExplorationErrorType::CPLD_SYSFS_ATTR_CREATE, devicePath, ex.what());
   }
 }
 
@@ -995,8 +1128,15 @@ void PlatformExplorer::genHumanReadableEeproms() {
   // Hence, the eeproms were created through custom utility and not listed under
   // `symbolicLinkToDevicePath()`
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-  if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
+  if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+       platformConfig_.platformName().value() == "MERU800BIA" ||
+       platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
+      std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
     writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
+  }
+  if (platformConfig_.platformName().value() == "ICECUBE800BANW" &&
+      std::filesystem::exists("/run/devmap/eeproms/SMB_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/SMB_EEPROM");
   }
 }
 } // namespace facebook::fboss::platform::platform_manager

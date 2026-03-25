@@ -245,27 +245,50 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
   }
 
   bool setPrbsOnAllInterfaces(prbs::InterfacePrbsState& state) {
+    // Group ASIC ports by polynomial for bulk set
+    std::map<prbs::PrbsPolynomial, std::vector<std::string>>
+        asicPortsByPolynomial;
+    for (const auto& testPort : portsToTest_) {
+      if (testPort.component == phy::PortComponent::ASIC) {
+        asicPortsByPolynomial[testPort.polynomial].push_back(testPort.portName);
+      }
+    }
+
+    // Bulk set PRBS on all ASIC ports grouped by polynomial
+    if (!asicPortsByPolynomial.empty()) {
+      // Setting ASIC PRBS requires generator and checker to be both enabled
+      // or both disabled.
+      if ((state.generatorEnabled() && state.generatorEnabled().value()) ||
+          (state.checkerEnabled() && state.checkerEnabled().value())) {
+        state.generatorEnabled() = true;
+        state.checkerEnabled() = true;
+      } else {
+        state.generatorEnabled() = false;
+        state.checkerEnabled() = false;
+      }
+      auto agentClient = utils::createWedgeAgentClient();
+      for (const auto& [polynomial, portNames] : asicPortsByPolynomial) {
+        state.polynomial() = polynomial;
+        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
+          try {
+            agentClient->sync_setInterfacesPrbs(
+                portNames, phy::PortComponent::ASIC, state);
+            EXPECT_EVENTUALLY_TRUE(true);
+          } catch (const std::exception& ex) {
+            XLOG(ERR) << "Setting PRBS on ASIC ports failed with " << ex.what();
+            EXPECT_EVENTUALLY_TRUE(false);
+          }
+        });
+      }
+    }
+
+    // Handle non-ASIC ports individually
     for (const auto& testPort : portsToTest_) {
       auto interfaceName = testPort.portName;
       auto component = testPort.component;
       state.polynomial() = testPort.polynomial;
       if (component == phy::PortComponent::ASIC) {
-        // Setting ASIC PRBS requires generator and checker to be both enabled
-        // or both disabled.
-        if ((state.generatorEnabled() && state.generatorEnabled().value()) ||
-            (state.checkerEnabled() && state.checkerEnabled().value())) {
-          state.generatorEnabled() = true;
-          state.checkerEnabled() = true;
-        } else {
-          state.generatorEnabled() = false;
-          state.checkerEnabled() = false;
-        }
-        auto agentClient = utils::createWedgeAgentClient();
-        WITH_RETRIES_N_TIMED(6, std::chrono::milliseconds(5000), {
-          EXPECT_EVENTUALLY_TRUE(
-              setPrbsOnInterface<apache::thrift::Client<FbossCtrl>>(
-                  agentClient.get(), interfaceName, component, state));
-        });
+        continue;
       } else if (
           component == phy::PortComponent::GB_LINE ||
           component == phy::PortComponent::GB_SYSTEM) {
@@ -324,10 +347,11 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       prbs::InterfacePrbsState& expectedState) {
     try {
       prbs::InterfacePrbsState state;
-      if (getSw()->isRunModeMonolithic()) {
-        client->sync_getInterfacePrbsState(state, interfaceName, component);
-      } else {
+      if (getSw()->isRunModeMultiSwitch() &&
+          component == phy::PortComponent::ASIC) {
         getInterfacePrbsStateMultiSwitch(state, interfaceName, component);
+      } else {
+        client->sync_getInterfacePrbsState(state, interfaceName, component);
       }
       if (expectedState.generatorEnabled().has_value() &&
           expectedState.generatorEnabled().value()) {
@@ -531,10 +555,11 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
                  << ", component: "
                  << apache::thrift::util::enumNameSafe(component);
       phy::PrbsStats stats;
-      if (getSw()->isRunModeMonolithic()) {
-        client->sync_getInterfacePrbsStats(stats, interfaceName, component);
-      } else {
+      if (getSw()->isRunModeMultiSwitch() &&
+          component == phy::PortComponent::ASIC) {
         getInterfacePrbsStatsMultiSwitch(stats, interfaceName, component);
+      } else {
+        client->sync_getInterfacePrbsStats(stats, interfaceName, component);
       }
 
       EXPECT_FALSE(stats.laneStats().value().empty())
@@ -602,7 +627,8 @@ class AgentEnsemblePrbsTest : public AgentEnsembleLinkTest {
       std::string& interfaceName,
       phy::PortComponent component) {
     try {
-      if (getSw()->isRunModeMultiSwitch()) {
+      if (getSw()->isRunModeMultiSwitch() &&
+          component == phy::PortComponent::ASIC) {
         clearInterfacePrbsStatsMultiSwitch(interfaceName, component);
       } else {
         client->sync_clearInterfacePrbsStats(interfaceName, component);
@@ -890,6 +916,8 @@ PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(CR8_800G, PRBS31Q);
 
 PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(FR8_800G, PRBS31Q);
 
+PRBS_TRANSCEIVER_LINE_TRANSCEIVER_LINE_TEST(DR4_800G, PRBS31Q);
+
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR1_100G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR4_200G, PRBS31, ASIC, PRBS31Q);
@@ -903,5 +931,7 @@ PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(CR4_400G, PRBS31, ASIC, PRBS31Q);
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(CR8_800G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(FR8_800G, PRBS31, ASIC, PRBS31Q);
+
+PRBS_PHY_TRANSCEIVER_SYSTEM_TEST(DR4_800G, PRBS31, ASIC, PRBS31Q);
 
 PRBS_ASIC_ASIC_TEST(PRBS31);

@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.fboss_common
 namespace php fboss_common
@@ -23,9 +28,9 @@ enum PlatformType {
   PLATFORM_DARWIN = 15,
   PLATFORM_LASSEN_DEPRECATED = 16,
   PLATFORM_SANDIA = 17,
-  PLATFORM_MERU400BIU = 18,
-  PLATFORM_MERU400BFU = 19,
-  PLATFORM_MERU400BIA = 20,
+  PLATFORM_MERU400BIU_DEPRECATED = 18,
+  PLATFORM_MERU400BFU_DEPRECATED = 19,
+  PLATFORM_MERU400BIA_DEPRECATED = 20,
   PLATFORM_WEDGE400C_VOQ = 21,
   PLATFORM_WEDGE400C_FABRIC = 22,
   PLATFORM_CLOUDRIPPER_VOQ_DEPRECATED = 23,
@@ -51,9 +56,12 @@ enum PlatformType {
   PLATFORM_TAHANSB800BC = 43,
   PLATFORM_WEDGE800CACT = 44,
   PLATFORM_LADAKH800BCLS = 45,
-
-  # Placeholder for unknown platform type
-  PLATFORM_UNKNOWN = 1000,
+  PLATFORM_MINIPACK3BTA = 46,
+  PLATFORM_ICECUBE800BANW = 47,
+  PLATFORM_BLACKWOLF800BANW = 48,
+  PLATFORM_J4SIM = 49,
+  PLATFORM_YANGRA2 = 50,
+  PLATFORM_UNKNOWN = 1000, # Placeholder for unknown platform type
 }
 
 enum SdkVersionRolloutType {

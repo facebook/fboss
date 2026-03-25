@@ -8,6 +8,7 @@
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/lib/CommonFileUtils.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/config/PlatformConfigUtils.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 
 using namespace ::testing;
@@ -46,27 +47,39 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
     qsfpServiceClient->sync_getAllPortSupportedProfiles(
         supportedProfiles, true /* checkOptics */);
 
+    std::vector<cfg::Port> ports;
+    std::unordered_map<PortID, TransceiverID> portToTcvrMap;
     std::vector<int32_t> transceiverIds;
     // Get all transceiverIDs for the ports
     for (const auto& port : *cfg.ports()) {
+      if (*port.state() == cfg::PortState::DISABLED) {
+        continue;
+      }
       PortID portID = PortID(*port.logicalID());
+      if (!utility::hasTransceiver(
+              getSw()->getPlatformMapping()->getPlatformPort(portID),
+              getSw()->getPlatformMapping()->getChips())) {
+        continue;
+      }
+      ports.push_back(port);
       auto tcvrId =
           getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(portID);
+      portToTcvrMap.emplace(portID, tcvrId);
       transceiverIds.push_back(tcvrId);
     }
 
     auto transceiverInfos = utility::waitForTransceiverInfo(transceiverIds);
     std::map<int, cfg::PortProfileID> eligiblePortsAndProfile;
-    for (const auto& port : *cfg.ports()) {
+    for (const auto& port : ports) {
       CHECK(port.name().has_value());
-      auto tcvrId = getSw()->getPlatformMapping()->getTransceiverIdFromSwPort(
-          PortID(*port.logicalID()));
+      PortID portID = PortID(*port.logicalID());
+      auto tcvrId = portToTcvrMap.at(portID);
       auto tcvrInfo = transceiverInfos.find(tcvrId);
       if (tcvrInfo != transceiverInfos.end()) {
         auto tcvrState = *tcvrInfo->second.tcvrState();
         if (TransmitterTechnology::OPTICAL ==
             tcvrState.cable().value_or({}).transmitterTech()) {
-          // Only consider optical ports
+          // We only have a prod use case for changing speed on optical ports.
           if (*port.speed() == fromSpeed &&
               supportedProfiles.find(*port.name()) != supportedProfiles.end()) {
             for (const auto& profile : supportedProfiles.at(*port.name())) {
@@ -91,7 +104,10 @@ class AgentEnsembleSpeedChangeTest : public AgentEnsembleLinkTest {
     // Iterate through ports to find eligible ports
     auto eligilePortsAndProfile =
         getEligibleOpticalPortsAndProfile(swConfig, fromSpeed, toSpeed);
-    CHECK_GT(eligilePortsAndProfile.size(), 0);
+    CHECK(!eligilePortsAndProfile.empty())
+        << "No eligible optical ports found for speed change from "
+        << apache::thrift::util::enumName(fromSpeed) << " to "
+        << apache::thrift::util::enumName(toSpeed);
 
     for (auto& port : *swConfig.ports()) {
       auto iter = eligilePortsAndProfile.find(*port.logicalID());

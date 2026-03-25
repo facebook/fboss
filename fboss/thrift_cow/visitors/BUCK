@@ -23,6 +23,9 @@ thrift_library(
     thrift_srcs = {
         "results.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 cpp_library(
@@ -56,6 +59,7 @@ cpp_library(
         "VisitorUtils.h",
     ],
     exported_deps = [
+        "fbsource//third-party/glog:glog",
         "fbsource//third-party/re2:re2",
         ":common",
         ":results-cpp2-types",
@@ -72,11 +76,11 @@ cpp_library(
         "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2:thrift-core",
         "//thrift/lib/cpp2:type_class",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
-        "//thrift/lib/cpp2/reflection:reflection",
+        "//thrift/lib/cpp2/type:field",
     ],
     exported_external_deps = [
         "boost",
-        "glog",
     ],
 )

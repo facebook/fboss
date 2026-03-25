@@ -67,12 +67,6 @@ void QsfpServiceHandler::init() {
 
   XLOG(INFO) << "Initializing TransceiverManager";
   tcvrManager_->init();
-  if (FLAGS_subscribe_to_state_from_fsdb) {
-    fsdbSubscriber_ = std::make_unique<QsfpFsdbSubscriber>();
-    fsdbSubscriber_->subscribeToSwitchStatePortMap(
-        getTransceiverManager(), getPortManager());
-  }
-
   if (FLAGS_port_manager_mode) {
     XLOG(INFO) << "Initializing PortManager";
     portManager_->init();
@@ -107,20 +101,33 @@ void QsfpServiceHandler::getPortStateMachineState(
     std::map<int32_t, PortStateMachineState>& info,
     std::unique_ptr<std::vector<int32_t>> ids) {
   auto log = LOG_THRIFT_CALL(INFO);
-  portManager_->getPortStates(info, std::move(ids));
+  if (FLAGS_port_manager_mode) {
+    // Only populate if port manager mode is enabled.
+    portManager_->getPortStates(info, std::move(ids));
+  }
+}
+
+void QsfpServiceHandler::getPortStateMachineStateFromPortNames(
+    std::map<std::string, PortStateMachineState>& info,
+    std::unique_ptr<std::vector<std::string>> portNames) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  if (FLAGS_port_manager_mode) {
+    // Only populate if port manager mode is enabled.
+    portManager_->getPortStates(info, std::move(portNames));
+  }
 }
 
 void QsfpServiceHandler::getPortMediaInterface(
     std::map<std::string, MediaInterfaceCode>& portMediaInterface) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
+  // Controlled by TransceiverManager even in Port Manager mode
   tcvrManager_->getPortMediaInterface(portMediaInterface);
 }
 
 void QsfpServiceHandler::getPortsRequiringOpticsFwUpgrade(
     std::map<std::string, FirmwareUpgradeData>& ports) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
+  // Controlled by TransceiverManager even in Port Manager mode
   ports = tcvrManager_->getPortsRequiringOpticsFwUpgrade();
 }
 
@@ -128,6 +135,19 @@ void QsfpServiceHandler::triggerAllOpticsFwUpgrade(
     std::map<std::string, FirmwareUpgradeData>& ports) {
   auto log = LOG_THRIFT_CALL(INFO);
   ports = tcvrManager_->triggerAllOpticsFwUpgrade();
+}
+
+void QsfpServiceHandler::triggerOpticsFwUpgrade(
+    std::map<std::string, FirmwareUpgradeData>& ports,
+    std::unique_ptr<std::vector<std::string>> interfaces) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  ports = tcvrManager_->triggerOpticsFwUpgrade(*interfaces);
+}
+
+void QsfpServiceHandler::getPortTransceiverIDs(
+    std::map<std::string, std::vector<int32_t>>& portTransceiverIds) {
+  auto log = LOG_THRIFT_CALL(INFO);
+  tcvrManager_->getPortTransceiverIDs(portTransceiverIds);
 }
 
 void QsfpServiceHandler::getTransceiverConfigValidationInfo(
@@ -196,7 +216,6 @@ void QsfpServiceHandler::getSymbolErrorHistogram(
     CdbDatapathSymErrHistogram& symErr,
     std::unique_ptr<std::string> portName) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
   tcvrManager_->getSymbolErrorHistogram(symErr, *portName);
 }
 
@@ -256,7 +275,7 @@ void QsfpServiceHandler::writeTransceiverRegister(
 
 QsfpServiceRunState QsfpServiceHandler::getQsfpServiceRunState() {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode if needed.
+  // Controlled by TransceiverManager even in Port Manager mode
   return tcvrManager_->getRunState();
 }
 
@@ -285,9 +304,13 @@ void QsfpServiceHandler::getSupportedPrbsPolynomials(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
-  tcvrManager_->getSupportedPrbsPolynomials(
-      prbsCapabilities, *portName, component);
+  if (FLAGS_port_manager_mode) {
+    portManager_->getSupportedPrbsPolynomials(
+        prbsCapabilities, *portName, component);
+  } else {
+    tcvrManager_->getSupportedPrbsPolynomials(
+        prbsCapabilities, *portName, component);
+  }
 }
 
 void QsfpServiceHandler::setInterfacePrbs(
@@ -307,16 +330,22 @@ void QsfpServiceHandler::getInterfacePrbsState(
     std::unique_ptr<std::string> portName,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
-  tcvrManager_->getInterfacePrbsState(prbsState, *portName, component);
+  if (FLAGS_port_manager_mode) {
+    portManager_->getInterfacePrbsState(prbsState, *portName, component);
+  } else {
+    tcvrManager_->getInterfacePrbsState(prbsState, *portName, component);
+  }
 }
 
 void QsfpServiceHandler::getAllInterfacePrbsStates(
     std::map<std::string, prbs::InterfacePrbsState>& prbsStates,
     phy::PortComponent component) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
-  tcvrManager_->getAllInterfacePrbsStates(prbsStates, component);
+  if (FLAGS_port_manager_mode) {
+    portManager_->getAllInterfacePrbsStates(prbsStates, component);
+  } else {
+    tcvrManager_->getAllInterfacePrbsStates(prbsStates, component);
+  }
 }
 
 void QsfpServiceHandler::getInterfacePrbsStats(
@@ -490,7 +519,7 @@ void QsfpServiceHandler::setInterfaceTxRx(
     std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
     std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests) {
   auto log = LOG_THRIFT_CALL(INFO);
-  // TODO(smenta) - Support in Port Manager mode
+  // Controlled by TransceiverManager even in Port Manager mode
   txRxEnableResponse = tcvrManager_->setInterfaceTxRx(*txRxEnableRequests);
 }
 

@@ -1,7 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/HwSwitchRouteUpdateWrapper.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/HwSwitch.h"
@@ -17,11 +19,19 @@ StateDelta hwSwitchFibUpdate(
     const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
     const std::shared_ptr<SwitchState> oldState) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
-      resolver, vrf, v4NetworkToRoute, v6NetworkToRoute, labelToRoute);
-  fibUpdater(oldState);
-  auto lastDelta = fibUpdater.getLastDelta();
+  facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
+      resolver,
+      vrf,
+      v4NetworkToRoute,
+      v6NetworkToRoute,
+      labelToRoute,
+      nextHopIDManager,
+      mySidTable);
+  ribToSwitchStateUpdater(oldState);
+  auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
   return StateDelta(lastDelta->oldState(), lastDelta->newState());
 }
@@ -39,6 +49,8 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
               const facebook::fboss::IPv4NetworkToRouteMap& v4NetworkToRoute,
               const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
               const facebook::fboss::LabelToRouteMap& labelToRoute,
+              const NextHopIDManager* nextHopIDManager,
+              const MySidTable& mySidTable,
               void* cookie) {
             auto hwSwitch = static_cast<HwSwitch*>(cookie);
             auto oldState = hwSwitch->getProgrammedState();
@@ -48,6 +60,8 @@ HwSwitchRouteUpdateWrapper::HwSwitchRouteUpdateWrapper(
                                 v4NetworkToRoute,
                                 v6NetworkToRoute,
                                 labelToRoute,
+                                nextHopIDManager,
+                                mySidTable,
                                 oldState)
                                 .newState();
             if (apply) {

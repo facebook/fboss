@@ -38,7 +38,6 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 import libfb.py.asyncio.tasks as task_api
-
 from analytics.bamboo import Bamboo as bb
 from libfb.py import employee
 from libfb.py.asyncio.await_utils import asyncio
@@ -65,6 +64,13 @@ USER_UNIX_ID = "prasoon"
 KNOWN_BAD_TEST = "known_bad_tests"
 FBOSS_KNOWN_BAD_TESTS = f"fboss_{KNOWN_BAD_TEST}"
 DEFAULT_LOG_TYPE = "stderr"
+
+_RE_PLATFORM = re.compile(r"_run_netcastle_([^_]+)")
+_RE_VARIANT_FAMILY = re.compile(r"_run_netcastle_{platform}_(.*?)_ensemble_link_")
+_RE_RUN_MODE = re.compile(r"_(mono|multi_switch)_test_")
+_RE_SDK_RAW = re.compile(
+    r"_(?:mono|multi_switch)_test_([^_]+(?:_[^_]+)*)_l2_known_bad_test"
+)
 
 
 @dataclass
@@ -199,7 +205,10 @@ class UserAndEmailHandler:
         )
 
     def HTTP_format_known_bad_list(
-        self, tests: Dict[str, int], known_bad_tests: Dict[str, int], job_name: str
+        self,
+        tests: List[Dict[str, str]],
+        known_bad_tests: Dict[str, int],
+        job_name: str,
     ) -> str:
         """Format the test data into a Workplace post."""
         html = (
@@ -207,17 +216,33 @@ class UserAndEmailHandler:
         )
         html += "<p>Here is the list of known bad tests passing 7 times in a row:</p>"
         html += "<p>Please remove them from known bad. </p>"
+
+        columns = [
+            "Test",
+            "Platform",
+            "Variant",
+            "Run Mode",
+            "SDK Version",
+            "Test Case",
+        ]
         html += "<table>"
-        html += "<tr><th>Test Name</th></tr>"
-        for test_name, _status in tests.items():
-            html += f"<tr><td>{test_name}</td></tr>"
+        html += "<tr>"
+        for col in columns:
+            html += f"<th>{col}</th>"
+        html += "</tr>"
+        for row in tests:
+            html += "<tr>"
+            for col in columns:
+                html += f"<td>{row.get(col, '')}</td>"
+            html += "</tr>"
         html += "</table>"
+
         html += "<h1>Total known bad tests</h1>"
         html += "<p>Here is the list of all known bad tests:</p>"
         html += "<table>"
-        html += "<tr><th>Test Name</th></tr>"
+        html += "<tr><th>Test Name</th><th>Count</th></tr>"
         for test_name, status in known_bad_tests.items():
-            html += f"<tr><td>{test_name}: {status}</td></tr>"
+            html += f"<tr><td>{test_name}</td><td>{status}</td></tr>"
         html += "</table>"
 
         return html
@@ -239,6 +264,176 @@ class UserAndEmailHandler:
 
         return text
 
+    def parse_known_bad_line(self, line: str) -> Optional[Dict[str, str]]:
+        """
+        Auto-detect the test format and dispatch to the appropriate parser.
+
+        Supported formats:
+        - ensemble_link: contains '::' and 'ensemble_link' in prefix
+        - sai_agent: contains '/' separators (e.g. netcastle_test/sai_agent_test/...)
+        - QSFP: contains '::' and 'qsfp' in prefix
+        """
+        if not line:
+            return None
+        s = line.strip()
+        if not s:
+            return None
+
+        # unescape underscores from chat formatting
+        s = s.replace(r"\_", "_")
+
+        if "/" in s and "sai_agent" in s:
+            return self._parse_sai_agent_line(s)
+        elif "::" in s and "qsfp" in s:
+            return self._parse_qsfp_line(s)
+        elif "::" in s:
+            return self._parse_ensemble_link_line(s)
+        return None
+
+    def _parse_ensemble_link_line(self, s: str) -> Optional[Dict[str, str]]:
+        """
+        Parse an ensemble_link line like:
+        netcastle_agent_ensemble_link_stress_run_netcastle_wedge400_ensemble_link_mono_test_preprod2trunk2preprod_10_2_0_10_2_0_l2_known_bad_test::cold_boot.TestClass.TestMethod
+        """
+        prefix, testpart = s.split("::", 1)
+
+        plat_m = _RE_PLATFORM.search(prefix)
+        platform = plat_m.group(1) if plat_m else ""
+
+        rm_m = _RE_RUN_MODE.search(prefix)
+        run_mode = rm_m.group(1) if rm_m else ""
+        run_mode = (
+            "Mono"
+            if run_mode == "mono"
+            else ("Multi" if run_mode == "multi_switch" else "")
+        )
+
+        # variant family: platform_(variant)_ensemble_link ; empty if none exists
+        vf_re = re.compile(
+            _RE_VARIANT_FAMILY.pattern.format(platform=re.escape(platform))
+        )
+        vf_m = vf_re.search(prefix)
+        variant_family = vf_m.group(1) if vf_m else ""
+
+        # sdk raw: everything after _<mono|multi_switch>_test_ up to _l2_known_bad_test
+        sdk_m = _RE_SDK_RAW.search(prefix)
+        sdk_version = sdk_m.group(1) if sdk_m else ""
+
+        return {
+            "Test": "ensemble_link",
+            "Platform": platform,
+            "Variant": variant_family,
+            "Run Mode": run_mode,
+            "SDK Version": sdk_version,
+            "Test Case": testpart,
+        }
+
+    def _parse_sai_agent_line(self, s: str) -> Optional[Dict[str, str]]:
+        """
+        Parse a sai_agent line like:
+        netcastle_test/sai_agent_test/brcm/10.2.0.0_odp/10.2.0.0_odp/tomahawk3/mono - ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic (cold_boot.AgentTrunkLoadBalancerTest)
+        """
+        # Split into path part and test part by ' - '
+        parts = s.split(" - ", 1)
+        if len(parts) != 2:
+            return None
+
+        path_part, test_info = parts
+        segments = path_part.split("/")
+        # Expected: [netcastle_test, sai_agent_test, asic_family, sdk, sdk, asic, run_mode]
+        if len(segments) < 7:
+            return None
+
+        asic_family = segments[2]
+        sdk_version = segments[3]
+        asic = segments[5]
+        run_mode = segments[6]
+        run_mode = (
+            "Mono"
+            if run_mode == "mono"
+            else ("Multi" if run_mode == "multi_switch" else run_mode)
+        )
+
+        # Parse test_method and (boot_type.TestClass) from test_info
+        # e.g. "ECMPFull... (cold_boot.AgentTrunkLoadBalancerTest)"
+        test_match = re.match(r"(.+?)\s+\((.+)\)", test_info)
+        if test_match:
+            test_method = test_match.group(1)
+            test_class = test_match.group(2)
+            test_case = f"{test_class}.{test_method}"
+        else:
+            test_case = test_info
+
+        return {
+            "Test": "sai_agent",
+            "Platform": asic_family,
+            "Variant": asic,
+            "Run Mode": run_mode,
+            "SDK Version": sdk_version,
+            "Test Case": test_case,
+        }
+
+    def _parse_qsfp_line(self, s: str) -> Optional[Dict[str, str]]:
+        """
+        Parse a QSFP line like:
+        netcastle_fboss_qsfp_stress_run_netcastle_fboss_qsfp_test_fuji_8x16q_barchetta2_5_2_barchetta2_5_2_known_bad_test::cold_boot.HwPortPrbsTest_LINE_PAM4_true.SetPrbs
+        """
+        if "::" not in s:
+            return None
+
+        prefix, test_case = s.split("::", 1)
+
+        # Strip known prefix and suffix
+        qsfp_prefix = "netcastle_fboss_qsfp_stress_run_netcastle_fboss_qsfp_test_"
+        qsfp_suffix = "_known_bad_test"
+        if not prefix.startswith(qsfp_prefix) or not prefix.endswith(qsfp_suffix):
+            return None
+
+        middle = prefix[len(qsfp_prefix) : -len(qsfp_suffix)]
+        # middle is e.g. "fuji_8x16q_barchetta2_5_2_barchetta2_5_2"
+        # SDK appears twice consecutively; find the repeated suffix
+        tokens = middle.split("_")
+        n = len(tokens)
+
+        platform = ""
+        variant = ""
+        sdk_version = ""
+
+        for k in range(1, (n // 2) + 1):
+            if tokens[n - 2 * k : n - k] == tokens[n - k : n]:
+                sdk_version = "_".join(tokens[n - 2 * k : n - k])
+                platform_variant_tokens = tokens[: n - 2 * k]
+                if platform_variant_tokens:
+                    platform = platform_variant_tokens[0]
+                    variant = "_".join(platform_variant_tokens[1:])
+                break
+
+        return {
+            "Test": "QSFP",
+            "Platform": platform,
+            "Variant": variant,
+            "SDK Version": sdk_version,
+            "Test Case": test_case,
+        }
+
+    def parse_known_bad(self, tests: t.Dict[str, int]) -> t.List[t.Dict[str, str]]:
+        """
+        Parse many known-bad test identifiers from a dict of tests.
+        Args:
+            tests: Dict whose keys are known-bad test identifiers (one per line in the old format).
+        Returns:
+            list[dict]: Parsed rows for each test key.
+        """
+        if not tests:
+            return []
+
+        rows: t.List[t.Dict[str, str]] = []
+        for test_key in tests.keys():
+            d = self.parse_known_bad_line(test_key)
+            if d:
+                rows.append(d)
+        return rows
+
 
 class ScubaQueryBuilder:
     """Class to build and execute Scuba queries for Chronos jobs."""
@@ -257,20 +452,21 @@ class ScubaQueryBuilder:
 
         sql_query = f"""
             SELECT
-                SUM(1, `weight`) AS `count`,
-                COUNT(1) AS `samples`,
-                `test_name`,
-                `status`
-            FROM `testinfra_db_results`
+                COUNT(1) AS `count`,
+                `Sandcastle Job Alias` as `sandcastle_alias`,
+                `Test Case` as `test_case`,
+                `Status` AS `status`
+            FROM `fboss_testing`
             WHERE
                 {consider_results_since} <= `time`
                 AND `time` <= {current_time}
-                AND `sandcastle_alias` RLIKE '{job_name_regex}'
-                AND ((`purpose`) IN ('stress-run'))
-                AND (status IS TRUE)
+                AND `Sandcastle Job Alias` RLIKE '{job_name_regex}'
+                AND (`Purpose` = 'STRESS_RUN')
+                AND (`Status` = 'PASSED')
             GROUP BY
-                `test_name`,
-                `status`
+                `Sandcastle Job Alias`,
+                `Test Case`,
+                `Status`
             ORDER BY
                 `count` DESC
             """
@@ -720,7 +916,7 @@ def main() -> Optional[int]:
         type=str,
         default="all",
         choices=list(TEST_CONFIGS.keys()) + ["all"],
-        help=f"Test class to query. Options: {', '.join(list(TEST_CONFIGS.keys()) + ["all"])}. Default: {"all"}",
+        help=f"Test class to query. Options: {', '.join(list(TEST_CONFIGS.keys()) + ['all'])}. Default: {'all'}",
     )
 
     args = parser.parse_args()
@@ -752,9 +948,10 @@ def main() -> Optional[int]:
             tests = {}
 
             for _, row in df.iterrows():
-                if row["status"] == PASSED and row["count"] == 7:
-                    if row["test_name"] not in tests:
-                        tests[row["test_name"]] = row["status"]
+                if row["status"] == "PASSED" and row["count"] == 7:
+                    test_key = f"{row['sandcastle_alias']}::{row['test_case']}"
+                    if test_key not in tests:
+                        tests[test_key] = row["status"]
 
             logger.info(f"Found {len(tests)} known bad tests passing 7 times in a row")
 
@@ -795,7 +992,9 @@ def main() -> Optional[int]:
             if args.send_email:
                 logger.info("Sending email...")
                 html = UserAndEmailHandler().HTTP_format_known_bad_list(
-                    tests, known_bad_jobs, test_config.name
+                    UserAndEmailHandler().parse_known_bad(tests),
+                    known_bad_jobs,
+                    test_config.name,
                 )
 
                 logger.info("html generated successfully for email body")
@@ -824,6 +1023,10 @@ def main() -> Optional[int]:
                 logger.info(f"Task created successfully: T{task.task_number}")
             else:
                 logger.info("No task created")
+
+            # # parse tests
+            # data = UserAndEmailHandler().parse_known_bad(tests)
+            # logger.info(f"Known bad Table: {data}")
 
         # Get monthly stats comparing today vs 1st of month.
         if args.get_monthly_stats:

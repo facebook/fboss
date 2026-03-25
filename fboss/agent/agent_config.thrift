@@ -4,13 +4,15 @@
 namespace py neteng.fboss.agent_config
 namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.agent_config
-namespace py3 neteng.fboss
 namespace cpp2 facebook.fboss.cfg
 namespace go neteng.fboss.agent_config
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 enum AgentRunMode {
   MONO = 0,

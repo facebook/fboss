@@ -19,17 +19,20 @@
 #include "fboss/lib/ThreadHeartbeat.h"
 #include "fboss/lib/firmware_storage/FbossFwStorage.h"
 #include "fboss/lib/i2c/gen-cpp2/i2c_controller_stats_types.h"
+#include "fboss/lib/link_snapshots/SnapshotManager.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 #include "fboss/lib/usb/TransceiverI2CApi.h"
 #include "fboss/lib/usb/TransceiverPlatformApi.h"
 #include "fboss/qsfp_service/QsfpConfig.h"
+#include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/SlotThreadHelper.h"
 #include "fboss/qsfp_service/StateMachineController.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
 #include "fboss/qsfp_service/TypedStateMachineUpdate.h"
+#include "fboss/qsfp_service/fsdb/QsfpFsdbSyncManager.h"
 #include "fboss/qsfp_service/if/gen-cpp2/port_state_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
@@ -96,13 +99,14 @@ class TransceiverManager {
       "agentConfigLastAppliedInMs";
   static constexpr const char* kAgentConfigLastColdbootAppliedInMsKey =
       "agentConfigLastColdbootAppliedInMs";
+  static constexpr auto kSnapshotIntervalSeconds = 10;
+
   using TcvrInfoMap = std::map<int32_t, TransceiverInfo>;
 
   explicit TransceiverManager(
       std::unique_ptr<TransceiverPlatformApi> api,
       const std::shared_ptr<const PlatformMapping> platformMapping,
-      const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-          threads);
+      const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads);
   virtual ~TransceiverManager();
   void gracefulExit();
   void setGracefulExitingFlag() {
@@ -175,6 +179,9 @@ class TransceiverManager {
     forceFirmwareUpgradeForTesting_ = enable;
   }
 
+  void getPortTransceiverIDs(
+      std::map<std::string, std::vector<int32_t>>& portTransceiverIds) const;
+
   /*
    * A function take a parameter representing number of seconds,
    * adding it to the time point of now and assign it to
@@ -246,7 +253,9 @@ class TransceiverManager {
    * TransceiverManager family won't call this function directly. Instead they
    * should use init() directly
    */
-  virtual bool initExternalPhyMap(bool forceWarmboot = false) = 0;
+  virtual bool initExternalPhyMap(
+      PhyManager* phyManager,
+      bool forceWarmboot = false) = 0;
 
   PhyManager* getPhyManager() {
     return phyManager_.get();
@@ -439,6 +448,36 @@ class TransceiverManager {
 
   void markLastDownTime(TransceiverID id) noexcept;
 
+  /*
+   * updateLastDownTimeFromPortStatus is a Port Manager mode-only function that
+   * provides information to TransceiverManager about aggregate port status for
+   * a specific transceiver, so that we properly update markLastDownTime to
+   * avoid early remediation.
+   *
+   * The input map (tcvrPortStatusChanges) should only contain transceivers that
+   * experienced a relevant port status change:
+   *
+   *   - TransceiverID not present in map:
+   *       No relevant port status change occurred for this transceiver.
+   *       No action is taken.
+   *
+   *   - TransceiverID -> true:
+   *       At least one port became active (equivalent to ACTIVE state entry)
+   * since last status check. Sets needMarkLastDownTime = true in the state
+   * machine, enabling lastDownTime to be marked on the next DOWN transition.
+   *
+   *   - TransceiverID -> false:
+   *       All ports went down (equivalent to INACTIVE state entry) since last
+   * status check. If needMarkLastDownTime is true, marks lastDownTime and sets
+   *       the flag to false. If flag is already false, does nothing
+   *       (prevents re-marking during failed remediation cycles).
+   *
+   * Replicates activeStateEntry and inactiveStateEntry logic from
+   * TransceiverStateMachine.h.
+   */
+  void updateLastDownTimeFromPortStatus(
+      const std::map<TransceiverID, bool>& tcvrPortStatusChanges) noexcept;
+
   // Calling thread MUST hold lock on transceivers_ while this function
   // executes.
   virtual bool verifyEepromChecksumsLocked(TransceiverID id);
@@ -502,6 +541,11 @@ class TransceiverManager {
       TransceiverID id,
       std::unique_ptr<Transceiver> overrideTcvr);
 
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>&
+  getSnapshotManagersForTesting() {
+    return snapshotManagers_;
+  }
+
   // If the transceiver doesn't exist, this will return std::nullopt.
   std::optional<TransceiverInfo> getTransceiverInfoOptional(
       TransceiverID id) const;
@@ -555,6 +599,7 @@ class TransceiverManager {
       bool removeTransceiver);
 
   void publishLinkSnapshots(std::string portName);
+  void publishLinkSnapshotsTransceiver(PortID portID);
 
   void getInterfacePhyInfo(
       std::map<std::string, phy::PhyInfo>& phyInfos,
@@ -650,9 +695,14 @@ class TransceiverManager {
     return {0, 0};
   }
 
+  virtual std::pair<size_t, size_t> dumpTransceiverI2cLog(int32_t) {
+    return {0, 0};
+  }
+
   virtual void publishPhyStateToFsdb(
       std::string&& /* portName */,
       std::optional<phy::PhyState>&& /* newState */) const {}
+
   virtual void publishPhyStatToFsdb(
       std::string&& /* portName */,
       phy::PhyStats&& /* stat */) const {}
@@ -719,6 +769,9 @@ class TransceiverManager {
       const;
 
   std::map<std::string, FirmwareUpgradeData> triggerAllOpticsFwUpgrade();
+
+  std::map<std::string, FirmwareUpgradeData> triggerOpticsFwUpgrade(
+      const std::vector<std::string>& interfaces);
 
   // portName to MediaInterfaceCode map
   void getPortMediaInterface(
@@ -810,6 +863,10 @@ class TransceiverManager {
 
   bool transceiverJustRemediated(const TransceiverID& id) const;
 
+  std::shared_ptr<QsfpFsdbSyncManager> getFsdbSyncManager() const {
+    return fsdbSyncManager_;
+  }
+
  protected:
   /*
    * Check to see if we can attempt a warm boot.
@@ -884,11 +941,17 @@ class TransceiverManager {
   // For platforms that needs to program xphy
   std::unique_ptr<PhyManager> phyManager_;
 
+  // Shared pointer to QsfpFsdbSyncManager for publishing to FSDB.
+  // Shared between WedgeManager and PortManager.
+  std::shared_ptr<QsfpFsdbSyncManager> fsdbSyncManager_;
+
   // Use the following bidirectional map to cache the static mapping so that
   // we don't have to search from PlatformMapping again and again
   PortNameIdMap portNameToPortID_;
 
   TcvrIdToTcvrNameMap tcvrIdToTcvrName_;
+
+  folly::Synchronized<std::unordered_set<TransceiverID>> erroredTransceivers_;
 
   struct SwPortInfo {
     std::optional<TransceiverID> tcvrID;
@@ -911,6 +974,15 @@ class TransceiverManager {
       const BlockingStateUpdateResultList& results);
 
   void setForceRemoveTransceiver(TransceiverID tcvrID);
+
+  /*
+   * If there are portConfigOverrides in the platform mapping, return
+   * the Driver Peaking values for a given port ID.
+   */
+  std::optional<std::map<uint8_t, uint8_t>> getDriverPeakingOverrides(
+      TransceiverID tcvrId,
+      cfg::PortProfileID profile,
+      size_t numberOfLanes);
 
   /*
    * This is the private class to capture all information a
@@ -971,7 +1043,6 @@ class TransceiverManager {
       std::unique_ptr<TransceiverStateMachineUpdate> update);
   void executeStateUpdates();
 
-  static void handlePendingUpdatesHelper(TransceiverManager* mgr);
   void handlePendingUpdates();
 
   void triggerAgentConfigChangeEvent();
@@ -1056,10 +1127,10 @@ class TransceiverManager {
   bool isSystemInitialized_{false};
 
   /*
-   * A map to maintain all threads for all transceivers
+   * QsfpServiceThreads contains the threading infrastructure for the service,
+   * including a map to maintain all threads for all transceivers.
    */
-  const std::shared_ptr<std::unordered_map<TransceiverID, SlotThreadHelper>>
-      threads_;
+  const std::shared_ptr<QsfpServiceThreads> qsfpServiceThreads_;
 
   /*
    * A map to maintain all transceivers(present and absent) programmed SW port
@@ -1154,6 +1225,13 @@ class TransceiverManager {
 
   folly::Synchronized<std::unordered_set<TransceiverID>>
       tcvrsReadyForProgramming_;
+
+  folly::Synchronized<std::unordered_map<TransceiverID, SnapshotManager>>
+      snapshotManagers_;
+
+  void updateSnapshots();
+
+  void ensureFwUpgradeAllowed() const;
 
   friend class TransceiverStateMachineTest;
 };

@@ -6,6 +6,10 @@ namespace py3 neteng.fboss
 namespace py.asyncio neteng.fboss.asyncio.asic_temp
 
 include "fboss/agent/if/fboss.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct AsicTempData {
   1: string name;

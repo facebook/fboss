@@ -55,6 +55,13 @@ switch_manager_unittest(
 )
 
 switch_manager_unittest(
+    name = "hash_manager_test",
+    srcs = [
+        "HashManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
     name = "hostif_manager_test",
     srcs = [
         "HostifManagerTest.cpp",
@@ -173,6 +180,27 @@ switch_manager_unittest(
     ],
 )
 
+switch_manager_unittest(
+    name = "srv6_tunnel_manager_test",
+    srcs = [
+        "Srv6TunnelManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "srv6_manager_test",
+    srcs = [
+        "Srv6ManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "mysid_manager_test",
+    srcs = [
+        "MySidManagerTest.cpp",
+    ],
+)
+
 phy_switch_manager_unittest(
     name = "phy_switch_manager_test",
     srcs = [
@@ -205,6 +233,41 @@ switch_manager_unittest(
     name = "vlan_manager_test",
     srcs = [
         "VlanManagerTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "managed_vlan_member_pubsub_test",
+    srcs = [
+        "ManagedVlanMemberPubSubTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "managed_fdb_entry_pubsub_test",
+    srcs = [
+        "ManagedFdbEntryPubSubTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "managed_vlan_rif_neighbor_pubsub_test",
+    srcs = [
+        "ManagedVlanRifNeighborPubSubTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "managed_next_hop_pubsub_test",
+    srcs = [
+        "ManagedNextHopPubSubTest.cpp",
+    ],
+)
+
+switch_manager_unittest(
+    name = "managed_next_hop_group_member_pubsub_test",
+    srcs = [
+        "ManagedNextHopGroupMemberPubSubTest.cpp",
     ],
 )
 

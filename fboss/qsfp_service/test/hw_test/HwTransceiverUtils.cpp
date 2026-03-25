@@ -40,6 +40,18 @@ void HwTransceiverUtils::verifyTempAndVccFlags(
   }
 }
 
+void HwTransceiverUtils::verifyTcvrErrorStates(
+    std::map<std::string, TransceiverInfo>& portToTransceiverInfoMap) {
+  for (auto& [_, transceiverInfo] : portToTransceiverInfoMap) {
+    auto& tcvrState = *transceiverInfo.tcvrState();
+    auto tcvrID = *tcvrState.port();
+    EXPECT_TRUE(tcvrState.errorStates()->empty()) << folly::sformat(
+        "{:d} has error states {:s}",
+        tcvrID,
+        folly::join(",", *tcvrState.errorStates()));
+  }
+}
+
 void HwTransceiverUtils::verifyPortNameToLaneMap(
     const std::vector<PortID>& portIDs,
     cfg::PortProfileID profile,
@@ -62,11 +74,11 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
     EXPECT_NE(hostLanesFromPlatformMapping.size(), 0);
     auto platformPortItr = platformPorts.find(static_cast<int32_t>(portID));
     ASSERT_NE(platformPortItr, platformPorts.end());
-    auto tcvrID = utility::getTransceiverId(platformPortItr->second, chips);
-    ASSERT_TRUE(tcvrID.has_value());
+    auto tcvrIds = utility::getTransceiverIds(platformPortItr->second, chips);
+    ASSERT_EQ(tcvrIds.size(), 1);
     auto portName = *platformPortItr->second.mapping()->name();
 
-    auto tcvrInfoItr = tcvrInfos.find(*tcvrID);
+    auto tcvrInfoItr = tcvrInfos.find(tcvrIds[0]);
     ASSERT_NE(tcvrInfoItr, tcvrInfos.end());
 
     auto& hostLaneMap = *tcvrInfoItr->second.tcvrState()->portNameToHostLanes();
@@ -309,6 +321,10 @@ void HwTransceiverUtils::verifyOpticsSettings(
   EXPECT_GT(relevantMediaLanes.size(), 0);
   EXPECT_GT(relevantHostLanes.size(), 0);
 
+  // Identify Tunable Module.
+  bool isTunableOptics =
+      tcvrState.moduleTechnology().value() == ModuleTechnology::TUNABLE;
+
   for (auto& mediaLane :
        apache::thrift::can_throw(*settings.mediaLaneSettings())) {
     if (std::find(
@@ -321,14 +337,17 @@ void HwTransceiverUtils::verifyOpticsSettings(
         << "Transceiver:" << *tcvrState.port() << ", Lane=" << *mediaLane.lane()
         << " txDisable doesn't match expected";
     if (*tcvrState.transceiver() == TransceiverType::QSFP) {
-      EXPECT_EQ(
-          *mediaLane.txSquelch(),
-          profile ==
-              cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
+      // For tunable optics (ZR modules), txSquelch disable should always be
+      // true
+      bool expectedTxSquelch = isTunableOptics ||
+          (profile ==
+           cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL);
+      EXPECT_EQ(*mediaLane.txSquelch(), expectedTxSquelch)
           << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *mediaLane.lane()
           << " txSquelch doesn't match expected." << " Profile was "
-          << apache::thrift::util::enumNameSafe(profile);
+          << apache::thrift::util::enumNameSafe(profile)
+          << ", isTunableOptics=" << isTunableOptics;
     }
   }
 
@@ -338,15 +357,13 @@ void HwTransceiverUtils::verifyOpticsSettings(
         *settings.powerControl() == PowerControlState::POWER_OVERRIDE ||
         *settings.powerControl() == PowerControlState::HIGH_POWER_OVERRIDE);
 
-    // TODO: T236126124 - Disable checking this in Molex AEC cables
-    // until we get EEPROM fix.
-    auto vendor = apache::thrift::can_throw(*tcvrState.vendor());
-    bool isMolex =
-        (vendor.name() == "Molex" && vendor.partNumber() == "2253611207");
-
+    // No need to Check CDR for AEC cables T234995630
+    bool isAec =
+        (tcvrState.moduleTechnology().value() == ModuleTechnology::AEC);
     // LPO Modules dont have a DSP, so we dont need to check for CDR.
-    bool isLpoModule = tcvrState.lpoModule().value();
-    if (!(isMolex || isLpoModule)) {
+    bool isLpoModule =
+        (tcvrState.moduleTechnology().value() == ModuleTechnology::LPO);
+    if (!(isAec || isLpoModule)) {
       EXPECT_EQ(*settings.cdrTx(), FeatureState::ENABLED);
       EXPECT_EQ(*settings.cdrRx(), FeatureState::ENABLED);
     }
@@ -359,13 +376,17 @@ void HwTransceiverUtils::verifyOpticsSettings(
               *hostLane.lane()) == relevantHostLanes.end()) {
         continue;
       }
-      EXPECT_EQ(
-          *hostLane.rxSquelch(),
-          profile ==
-              cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL)
+      // For tunable optics (ZR modules), rxSquelch disable should always be
+      // true
+      bool expectedRxSquelch = isTunableOptics ||
+          (profile ==
+           cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL);
+      EXPECT_EQ(*hostLane.rxSquelch(), expectedRxSquelch)
           << "Transceiver:" << *tcvrState.port()
           << ", Lane=" << *hostLane.lane()
-          << " rxSquelch doesn't match expected";
+          << " rxSquelch doesn't match expected."
+          << " Profile was " << apache::thrift::util::enumNameSafe(profile)
+          << ", isTunableOptics=" << isTunableOptics;
     }
   }
 }

@@ -13,7 +13,7 @@
 #include <fboss/thrift_cow/visitors/VisitorUtils.h>
 #include <thrift/lib/cpp2/Thrift.h>
 #include <thrift/lib/cpp2/TypeClass.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
+#include <thrift/lib/cpp2/op/Get.h>
 
 namespace facebook::fboss::thrift_cow {
 
@@ -29,17 +29,15 @@ using PathIter = typename std::vector<std::string>::const_iterator;
 // This base class should be the preferred way to use visitors. Operations
 // should subclass this and override the virtual methods but pass a pointer
 // to the base class to avoid extra unique instantiations
-typedef std::function<void(
+using SerializableVisitorFunc = std::function<void(
     Serializable& node,
     pv_detail::PathIter begin,
-    pv_detail::PathIter end)>
-    SerializableVisitorFunc;
+    pv_detail::PathIter end)>;
 
-typedef std::function<void(
+using ConstSerializableVisitorFunc = std::function<void(
     const Serializable& node,
     pv_detail::PathIter begin,
-    pv_detail::PathIter end)>
-    ConstSerializableVisitorFunc;
+    pv_detail::PathIter end)>;
 
 struct BasePathVisitorOperator {
   explicit BasePathVisitorOperator(SerializableVisitorFunc&& f)
@@ -279,6 +277,15 @@ ThriftTraverseResult visitNode(
       return ThriftTraverseResult(
           ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
+  } else if (
+      cursor == params.end && params.options.visitContainerForPrimitiveNode &&
+      !isContainerNode) {
+    // At the end of the path with visitContainerForPrimitiveNode enabled,
+    // but at a non-container node (e.g. a struct value inside a map).
+    // Return SKIPPING_PRIMITIVE_NODE so the nearest container ancestor
+    // handles the operation.
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
   }
 
   std::optional<ThriftTraverseResult> result;
@@ -821,21 +828,13 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
 
     // iterate over all members and find the one with the matching key
     auto key = *cursor++;
-    using descriptors = typename apache::thrift::reflect_variant<
-        folly::remove_cvref_t<Fields>>::traits::descriptors;
-    fatal::foreach<descriptors>([&](auto tag) {
-      using descriptor = decltype(fatal::tag_type(tag));
-      using member_name = typename descriptor::metadata::name;
-      using member_tc = typename descriptor::metadata::type_class;
-
-      const std::string fieldNameStr =
-          fatal::to_instance<std::string, member_name>();
-      if (fieldNameStr != key) {
-        return;
-      }
+    using T = folly::remove_cvref_t<Fields>;
+    visitMember<T>(key, [&]<class Id>(Id) {
+      using TC_ = typename TypeTagToTypeClass<
+          apache::thrift::op::get_type_tag<T, Id>>::type;
 
       if (folly::to_underlying(fields.getType()) !=
-          descriptor::metadata::id::value) {
+          folly::to_underlying(apache::thrift::op::get_field_id_v<T, Id>)) {
         std::string err = folly::to<std::string>(
             "Thrift path: ",
             folly::join("/", params.begin, params.end),
@@ -846,8 +845,8 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
         return;
       }
 
-      auto& child = typename descriptor::getter()(fields);
-      result = PathVisitorImpl<member_tc>::visit(child, params, cursor);
+      auto& child = *apache::thrift::op::get<Id>(fields);
+      result = PathVisitorImpl<TC_>::visit(child, params, cursor);
     });
 
     if (!result.has_value()) {
@@ -870,20 +869,20 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using MemberTypes = typename Fields::MemberTypes;
+    using MemberTypes = typename Fields::ThriftType;
 
     std::optional<ThriftTraverseResult> result;
 
     // Get key
     auto key = *cursor++;
 
-    visitMember<MemberTypes>(key, [&](auto tag) {
-      using descriptor = typename decltype(fatal::tag_type(tag))::member;
-      using name = typename descriptor::metadata::name;
-      using tc = typename descriptor::metadata::type_class;
+    visitMember<MemberTypes>(key, [&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
 
       if (folly::to_underlying(fields.type()) !=
-          descriptor::metadata::id::value) {
+          folly::to_underlying(
+              apache::thrift::op::get_field_id_v<MemberTypes, Id>)) {
         std::string message = folly::to<std::string>(
             "path: ",
             folly::join("/", params.begin, params.end),
@@ -894,15 +893,15 @@ struct PathVisitorImpl<apache::thrift::type_class::variant> {
         return;
       }
 
-      auto& child = fields.template ref<name>();
+      auto& child = fields.template ref<Id>();
 
       // ensure we propagate constness, since children will have type
       // const shared_ptr<T>, not shared_ptr<const T>.
       if constexpr (std::is_const_v<Fields>) {
         const auto& next = *child;
-        result = PathVisitorImpl<tc>::visit(next, params, cursor);
+        result = PathVisitorImpl<TC_>::visit(next, params, cursor);
       } else {
-        result = PathVisitorImpl<tc>::visit(*child, params, cursor);
+        result = PathVisitorImpl<TC_>::visit(*child, params, cursor);
       }
     });
 
@@ -965,16 +964,12 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     auto key = *cursor++;
     // Perform linear search over all members for key
     std::optional<ThriftTraverseResult> result;
-    using Members = typename apache::thrift::reflect_struct<T>::members;
-    visitMember<Members>(key, [&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using tc = typename member::type_class;
-      using getter = typename member::getter;
-      const std::string fieldNameStr =
-          fatal::to_instance<std::string, typename member::name>();
-      if constexpr (
-          member::optional::value == apache::thrift::optionality::optional) {
-        if (!member::is_set(tObj)) {
+    visitMember<T>(key, [&]<class Id>(Id) {
+      using TC_ = typename TypeTagToTypeClass<
+          apache::thrift::op::get_type_tag<T, Id>>::type;
+
+      if constexpr (apache::thrift::type::is_optional_or_union_field_v<T, Id>) {
+        if (!apache::thrift::op::get<Id>(tObj).has_value()) {
           std::string message = folly::to<std::string>(
               "path: ",
               folly::join("/", params.begin, params.end),
@@ -986,8 +981,8 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
         }
       }
       // Recurse further
-      auto& child = getter{}(tObj);
-      result = PathVisitorImpl<tc>::visit(child, params, cursor);
+      auto& child = *apache::thrift::op::get<Id>(tObj);
+      result = PathVisitorImpl<TC_>::visit(child, params, cursor);
     });
 
     if (!result.has_value()) {
@@ -1030,17 +1025,13 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
     auto key = *cursor++;
     // Perform linear search over all members for key
     std::optional<ThriftTraverseResult> result;
-    using Members =
-        typename apache::thrift::reflect_struct<std::remove_cv_t<Obj>>::members;
-    visitMember<Members>(key, [&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using tc = typename member::type_class;
-      using getter = typename member::getter;
-      const std::string fieldNameStr =
-          fatal::to_instance<std::string, typename member::name>();
-      if constexpr (
-          member::optional::value == apache::thrift::optionality::optional) {
-        if (!member::is_set(tObj)) {
+    using T = std::remove_cv_t<Obj>;
+    visitMember<T>(key, [&]<class Id>(Id) {
+      using TC_ = typename TypeTagToTypeClass<
+          apache::thrift::op::get_type_tag<T, Id>>::type;
+
+      if constexpr (apache::thrift::type::is_optional_or_union_field_v<T, Id>) {
+        if (!apache::thrift::op::get<Id>(tObj).has_value()) {
           std::string message = folly::to<std::string>(
               "path: ",
               folly::join("/", params.begin, params.end),
@@ -1052,8 +1043,8 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
         }
       }
       // Recurse further
-      auto& child = getter{}(tObj);
-      result = PathVisitorImpl<tc>::visit(child, params, cursor);
+      auto& child = *apache::thrift::op::get<Id>(tObj);
+      result = PathVisitorImpl<TC_>::visit(child, params, cursor);
     });
 
     if (!result.has_value()) {
@@ -1077,20 +1068,19 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
         is_field_type_v<Fields> &&
         std::is_same_v<typename Fields::CowType, FieldsType>)
   {
-    using Members = typename Fields::Members;
+    using TType = typename Fields::ThriftType;
 
     // Get key
     auto key = *cursor++;
 
     std::optional<ThriftTraverseResult> result;
 
-    visitMember<Members>(key, [&](auto indexed) {
-      using member = decltype(fatal::tag_type(indexed));
-      using name = typename member::name;
-      using tc = typename member::type_class;
+    visitMember<TType>(key, [&]<class Id>(Id) {
+      using Traits = typename Fields::template FieldTraits<Id>;
+      using TC_ = typename Traits::TC;
 
       // Recurse further
-      auto& child = fields.template ref<name>();
+      auto& child = fields.template ref<Id>();
 
       if (!child) {
         // child is unset, cannot traverse through missing optional child
@@ -1108,9 +1098,9 @@ struct PathVisitorImpl<apache::thrift::type_class::structure> {
       // const shared_ptr<T>, not shared_ptr<const T>.
       if constexpr (std::is_const_v<Fields>) {
         const auto& next = *child;
-        result = PathVisitorImpl<tc>::visit(next, params, cursor);
+        result = PathVisitorImpl<TC_>::visit(next, params, cursor);
       } else {
-        result = PathVisitorImpl<tc>::visit(*child, params, cursor);
+        result = PathVisitorImpl<TC_>::visit(*child, params, cursor);
       }
     });
 

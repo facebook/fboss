@@ -71,6 +71,16 @@ SaiVirtualRouterHandle* SaiVirtualRouterManager::getVirtualRouterHandleImpl(
   return itr->second.get();
 }
 
+RouterID SaiVirtualRouterManager::getRouterID(
+    const sai_object_id_t vrId) const {
+  for (const auto& [routerId, handle] : handles_) {
+    if (handle.get()->virtualRouter->adapterKey() == vrId) {
+      return routerId;
+    }
+  }
+  throw FbossError("No RouterID found for virtual router SAI id ", vrId);
+}
+
 std::shared_ptr<SaiMplsRouterInterface>
 SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
   auto asicType = platform_->getAsic()->getAsicType();
@@ -79,7 +89,9 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
       return saiStore_->get<SaiMplsRouterInterfaceTraits>().setObject(
           SaiMplsRouterInterfaceTraits::AdapterHostKey{vrId},
@@ -92,14 +104,18 @@ SaiVirtualRouterManager::createMplsRouterInterface(VirtualRouterSaiId vrId) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_RAMON3:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
       // TODO(pshaikh): mpls support required
       break;
   }

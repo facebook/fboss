@@ -176,6 +176,14 @@
   },
   "transceiverFirmwareVersions": {
     "versionsMap": {
+      "DP08SFP8-ZRB-29B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "10.30"
+            }
+          ]
+      },
       "EOLO-138HG-5H-1B": {
           "versions": [
             {
@@ -224,11 +232,19 @@
             }
           ]
       },
+      "EOLO-13T-5H-1B": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "3.2"
+            }
+          ]
+      },
       "EOLO-13T-5H-1T": {
           "versions": [
             {
               "fwType": 1,
-              "version": "3.1"
+              "version": "3.2"
             }
           ]
       },
@@ -236,7 +252,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "3.1"
+              "version": "3.2"
             }
           ]
       },
@@ -372,7 +388,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.16"
+              "version": "1.17"
             }
           ]
       },
@@ -380,7 +396,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.16"
+              "version": "1.17"
             }
           ]
       },
@@ -388,7 +404,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "1.16"
+              "version": "1.17"
             }
           ]
       },
@@ -396,7 +412,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "2.4"
+              "version": "2.5"
             }
           ]
       },
@@ -412,11 +428,19 @@
             }
           ]
       },
+      "SPQ28E28FOCOAFB1": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "0.11"
+            }
+          ]
+      },
       "SPTSHP3CLCK2": {
           "versions": [
             {
               "fwType": 1,
-              "version": "1.1"
+              "version": "1.2"
             }
           ]
       },
@@ -425,30 +449,6 @@
             {
               "fwType": 1,
               "version": "2.6"
-            }
-          ]
-      },
-      "T-DQ4CNT-NF2": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
-            }
-          ]
-      },
-      "T-DQ4CNT-NFB": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
-            }
-          ]
-      },
-      "T-DQ4CNT-NFM": {
-          "versions": [
-            {
-              "fwType": 1,
-              "version": "234.147"
             }
           ]
       },
@@ -616,7 +616,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "86.245"
+              "version": "86.147"
             }
           ]
       },
@@ -624,7 +624,7 @@
           "versions": [
             {
               "fwType": 1,
-              "version": "86.245"
+              "version": "86.147"
             }
           ]
       }

@@ -25,6 +25,7 @@ add_library(fan_service_config_validator
 )
 
 target_link_libraries(fan_service_config_validator
+  fan_service_cpp2
   fan_service_config_types_cpp2
   Folly::folly
   range-v3
@@ -51,6 +52,7 @@ target_link_libraries(fan_service_lib
   platform_utils
   fan_service_config_validator
   gpiod_line
+  structured_logger
   sensor_service_cpp2
   fan_service_cpp2
   qsfp_service_client
@@ -84,6 +86,8 @@ add_executable(fan_service_sw_test
 
 target_link_libraries(fan_service_sw_test
   fan_service_lib
+  platform_config_lib
+  structured_logger
   Folly::folly
   ${LIBGPIOD}
   gpiod_line
@@ -99,6 +103,8 @@ add_executable(fan_service_hw_test
 
 target_link_libraries(fan_service_hw_test
   fan_service_lib
+  thrift_service_utils
+  structured_logger
   Folly::folly
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}

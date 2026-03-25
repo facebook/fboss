@@ -19,6 +19,7 @@
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/thrift/gen-cpp2/metadata_types.h>
 
 namespace facebook::fboss {
 
@@ -169,6 +170,8 @@ class CmdHandler {
     RetType result;
     try {
       result = queryClientHelper(hostInfo);
+    } catch (std::invalid_argument const& err) {
+      errStr = folly::to<std::string>("Invalid argument: ", err.what());
     } catch (std::exception const& err) {
       errStr = folly::to<std::string>("Thrift call failed: '", err.what(), "'");
     }

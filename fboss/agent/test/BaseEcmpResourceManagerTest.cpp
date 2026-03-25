@@ -10,7 +10,10 @@
 
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/SwSwitchWarmBootHelper.h"
+#include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/FileBasedWarmbootUtils.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
 
@@ -137,11 +140,116 @@ BaseEcmpResourceManagerTest::makeResourceMgrWithEcmpLimit(
             ecmpGroupLimit, getEcmpCompressionThresholdPct());
 }
 
+std::shared_ptr<SwitchState> BaseEcmpResourceManagerTest::copyNextHopIdsToState(
+    const std::shared_ptr<SwitchState>& targetState,
+    const std::shared_ptr<SwitchState>& srcState) {
+  if (!FLAGS_resolve_nexthops_from_id) {
+    return targetState;
+  }
+  // Check if any routes need IDs copied before cloning.
+  auto needsIdCopy = [&](const auto& targetFib, const auto& srcFib) {
+    for (const auto& [_, targetRoute] : std::as_const(*targetFib)) {
+      auto srcRoute = srcFib->getRouteIf(targetRoute->prefix());
+      if (!srcRoute) {
+        continue;
+      }
+      const auto& srcFwd = srcRoute->getForwardInfo();
+      const auto& targetFwd = targetRoute->getForwardInfo();
+      if (srcFwd.getResolvedNextHopSetID() !=
+              targetFwd.getResolvedNextHopSetID() ||
+          srcFwd.getNormalizedResolvedNextHopSetID() !=
+              targetFwd.getNormalizedResolvedNextHopSetID()) {
+        return true;
+      }
+    }
+    return false;
+  };
+  bool needsCopy = needsIdCopy(cfib(targetState), cfib(srcState)) ||
+      needsIdCopy(cfib4(targetState), cfib4(srcState));
+  // Check if FibInfo ID maps differ
+  if (!needsCopy) {
+    for (const auto& [matcherStr, srcFibInfo] :
+         std::as_const(*srcState->getFibsInfoMap())) {
+      auto targetFibInfo = targetState->getFibsInfoMap()->getNodeIf(matcherStr);
+      if (!targetFibInfo) {
+        continue;
+      }
+      if (srcFibInfo->getIdToNextHopMap() !=
+              targetFibInfo->getIdToNextHopMap() ||
+          srcFibInfo->getIdToNextHopIdSetMap() !=
+              targetFibInfo->getIdToNextHopIdSetMap()) {
+        needsCopy = true;
+        break;
+      }
+    }
+  }
+  if (!needsCopy) {
+    return targetState;
+  }
+  // Clone and copy IDs
+  auto clonedState = targetState->clone();
+  auto copyRouteIds = [&](auto targetFib, const auto& srcFib) {
+    for (const auto& [_, targetRoute] : std::as_const(*targetFib)) {
+      auto srcRoute = srcFib->getRouteIf(targetRoute->prefix());
+      if (!srcRoute) {
+        continue;
+      }
+      const auto& srcFwd = srcRoute->getForwardInfo();
+      const auto& targetFwd = targetRoute->getForwardInfo();
+      auto resolvedId = srcFwd.getResolvedNextHopSetID();
+      auto normalizedId = srcFwd.getNormalizedResolvedNextHopSetID();
+      if (resolvedId == targetFwd.getResolvedNextHopSetID() &&
+          normalizedId == targetFwd.getNormalizedResolvedNextHopSetID()) {
+        continue;
+      }
+      RouteNextHopEntry updatedFwd;
+      updatedFwd.fromThrift(targetFwd.toThrift());
+      updatedFwd.setResolvedNextHopSetID(resolvedId);
+      updatedFwd.setNormalizedResolvedNextHopSetID(normalizedId);
+      auto clonedRoute = targetRoute->clone();
+      clonedRoute->setResolved(updatedFwd);
+      clonedRoute->publish();
+      targetFib->updateNode(clonedRoute);
+    }
+  };
+  auto fib6 = fibImpl<folly::IPAddressV6>(clonedState);
+  auto fib4 = fibImpl<folly::IPAddressV4>(clonedState);
+  copyRouteIds(fib6, cfib(srcState));
+  copyRouteIds(fib4, cfib4(srcState));
+  for (const auto& [matcherStr, srcFibInfo] :
+       std::as_const(*srcState->getFibsInfoMap())) {
+    auto fibInfoMap = clonedState->getFibsInfoMap()->modify(&clonedState);
+    auto targetFibInfo = fibInfoMap->getNodeIf(matcherStr);
+    if (!targetFibInfo) {
+      continue;
+    }
+    auto modifiedFibInfo = targetFibInfo->clone();
+    if (auto idToNextHopMap = srcFibInfo->getIdToNextHopMap()) {
+      modifiedFibInfo->setIdToNextHopMap(idToNextHopMap);
+    }
+    if (auto idToNextHopIdSetMap = srcFibInfo->getIdToNextHopIdSetMap()) {
+      modifiedFibInfo->setIdToNextHopIdSetMap(idToNextHopIdSetMap);
+    }
+    fibInfoMap->updateNode(matcherStr, modifiedFibInfo);
+  }
+  clonedState->publish();
+  return clonedState;
+}
+
 std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     const std::shared_ptr<SwitchState>& state) {
   state->publish();
+  // Run SwSwitch path first so routes get NextHop IDs assigned
+  XLOG(DBG2) << " SwSwitch update start";
+  updateFlowletSwitchingConfig(state);
+  updateRoutes(state);
+  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
+  XLOG(DBG2) << " SwSwitch update done";
+  // Copy nexthop IDs from sw_->getState() to the new state so that
+  // assertResourceMgrCorrectness can resolve nexthops via IDs.
+  auto consolidatorNewState = copyNextHopIdsToState(state, sw_->getState());
   XLOG(DBG2) << " Consolidator update start";
-  StateDelta delta(state_, state);
+  StateDelta delta(state_, consolidatorNewState);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateDone();
   if (deltas.size()) {
@@ -150,18 +258,16 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     assertResourceMgrCorrectness(*consolidator_, deltas.back().newState());
   }
   XLOG(DBG2) << " Consolidator update done";
-  XLOG(DBG2) << " SwSwitch update start";
-  updateFlowletSwitchingConfig(state);
-  updateRoutes(state);
-  assertResourceMgrCorrectness(*sw_->getEcmpResourceManager(), sw_->getState());
-  XLOG(DBG2) << " SwSwitch update done";
   CHECK(state_->isPublished());
   state_ = sw_->getState();
   /*
    * GE since some tests add v4 routes
    */
   EXPECT_GE(
-      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
+      state_->getFibsInfoMap()
+          ->getFibContainer(RouterID(0))
+          ->getFibV4()
+          ->size(),
       kNumIntfs + 1);
   /*
    * Assert that EcmpResourceMgr leaves the ports state untouched
@@ -201,7 +307,15 @@ void BaseEcmpResourceManagerTest::failUpdate(
 void BaseEcmpResourceManagerTest::failUpdate(
     const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<SwitchState>& failTo) {
-  StateDelta delta(state_, state);
+  state->publish();
+  // Push routes through SwSwitch to get NextHop IDs assigned,
+  // then revert SwSwitch so it doesn't retain the failed update.
+  auto savedSwState = sw_->getState();
+  updateRoutes(state);
+  auto consolidatorNewState = copyNextHopIdsToState(state, sw_->getState());
+  updateRoutes(savedSwState);
+  state_ = sw_->getState();
+  StateDelta delta(state_, consolidatorNewState);
   auto deltas = consolidator_->consolidate(delta);
   consolidator_->updateFailed(failTo);
 }
@@ -293,8 +407,7 @@ void BaseEcmpResourceManagerTest::TearDown() {
   {
     auto wbState = sw_->gracefulExitState();
     auto [reconstructedState, reconstructedRib] =
-        sw_->getWarmBootHelper()->reconstructStateAndRib(
-            wbState, true /*hasL3*/);
+        reconstructStateAndRib(wbState, true /*hasL3*/);
     // Assert reconstructed RIB matches both reconstructed
     // state and current SwitchState. The above APIs will
     // be used on WB to reconstruct both rib and switch
@@ -402,7 +515,8 @@ void BaseEcmpResourceManagerTest::updateRoutes(
 std::unique_ptr<std::vector<UnicastRoute>>
 BaseEcmpResourceManagerTest::getClientRoutes(ClientID client) const {
   auto fibContainer =
-      sw_->getState()->getFibs()->getAllNodes()->getFibContainerIf(RouterID(0));
+      sw_->getState()->getFibsInfoMap()->getAllFibNodes()->getFibContainerIf(
+          RouterID(0));
   auto unicastRoutes = std::make_unique<std::vector<UnicastRoute>>();
   auto fillInRoutes = [&unicastRoutes](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
@@ -443,7 +557,7 @@ BaseEcmpResourceManagerTest::getPostConfigResolvedRoutes(
   std::vector<std::shared_ptr<RouteV6>> routes;
   for (const auto& [_, route] : std::as_const(*cfib(in))) {
     if (!route->isResolved() || route->isConnected() ||
-        route->getForwardInfo().getNextHopSet().empty()) {
+        facebook::fboss::getNextHops(in, route->getForwardInfo()).empty()) {
       continue;
     }
     routes.emplace_back(route);
@@ -473,7 +587,10 @@ void BaseEcmpResourceManagerTest::assertTargetState(
    * GE since some tests add v4 routes
    */
   EXPECT_GE(
-      state_->getFibs()->getNode(RouterID(0))->getFibV4()->size(),
+      state_->getFibsInfoMap()
+          ->getFibContainer(RouterID(0))
+          ->getFibV4()
+          ->size(),
       kNumIntfs + 1);
   std::set<RouteNextHopSet> primaryEcmpGroups, backupEcmpGroups,
       mergedEcmpGroups;
@@ -486,7 +603,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
       auto consolidatorGrpInfo = consolidatorToCheck->getGroupInfo(
           RouterID(0), inRoute->prefix().toCidrNetwork());
       bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().getNextHopSet().size() > 1;
+          facebook::fboss::getNextHops(targetState, route->getForwardInfo())
+                  .size() > 1;
       if (isEcmpRoute) {
         ASSERT_NE(consolidatorGrpInfo, nullptr);
         if (!route->getForwardInfo().getOverrideEcmpSwitchingMode()) {
@@ -591,7 +709,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
             << " expected route " << route->str()
             << " to NOT have override ECMP group type or ecmp nhops";
         bool isEcmpRoute = route->isResolved() &&
-            route->getForwardInfo().getNextHopSet().size() > 1;
+            facebook::fboss::getNextHops(targetState, route->getForwardInfo())
+                    .size() > 1;
         if (isEcmpRoute) {
           EXPECT_FALSE(consolidatorGrpInfo->isBackupEcmpGroupType());
           EXPECT_FALSE(consolidatorGrpInfo->hasOverrideNextHops());
@@ -742,7 +861,7 @@ TEST_F(BaseEcmpResourceManagerTest, addCounterId) {
   const auto& nhopEntry = newRoute->getForwardInfo();
   std::optional<RouteCounterID> counterId("42");
   RouteNextHopEntry newNhopEntry(
-      nhopEntry.getNextHopSet(),
+      facebook::fboss::getNextHops(state_, nhopEntry),
       nhopEntry.getAdminDistance(),
       counterId,
       nhopEntry.getClassID());
@@ -788,5 +907,88 @@ TEST_F(BaseEcmpResourceManagerTest, reloadInvalidConfigs) {
         onePortPerIntfConfig(getEcmpCompressionThresholdPct(), std::nullopt);
     EXPECT_THROW(sw_->applyConfig("Invalid config", newCfg), FbossError);
   }
+}
+
+TEST_F(BaseEcmpResourceManagerTest, maxArsVirtualGroupsFromConfig) {
+  FLAGS_flowletSwitchingEnable = true;
+  auto asic = sw_->getHwAsicTable()->getHwAsic(SwitchID(0));
+  auto maxArsGroupsFromAsic = asic->getMaxArsGroups();
+  ASSERT_TRUE(maxArsGroupsFromAsic.has_value());
+
+  auto computeExpectedMaxGroups = [](uint32_t maxGroups) {
+    auto percentage =
+        static_cast<double>(FLAGS_ars_resource_percentage) / 100.0;
+    return static_cast<uint32_t>(std::floor(maxGroups * percentage)) -
+        FLAGS_ecmp_resource_manager_make_before_break_buffer;
+  };
+
+  // Without maxArsVirtualGroups set, should use ASIC's maxArsGroups
+  {
+    auto ecmpMgr = makeEcmpResourceManager(state_, asic);
+    ASSERT_NE(ecmpMgr, nullptr);
+    EXPECT_EQ(
+        ecmpMgr->getMaxPrimaryEcmpGroups(),
+        computeExpectedMaxGroups(maxArsGroupsFromAsic.value()));
+  }
+
+  // With maxArsVirtualGroups set in config, primary groups should still come
+  // from ASIC, and virtual groups should use config value
+  {
+    auto newState = state_->clone();
+    auto flowletConfig = std::make_shared<FlowletSwitchingConfig>();
+    flowletConfig->setMaxArsVirtualGroups(128);
+    flowletConfig->setBackupSwitchingMode(
+        cfg::SwitchingMode::PER_PACKET_RANDOM);
+    auto switchSettings = newState->getSwitchSettings()
+                              ->getNode(hwMatcher().matcherString())
+                              ->modify(&newState);
+    switchSettings->setFlowletSwitchingConfig(flowletConfig);
+    newState->publish();
+
+    auto ecmpMgr = makeEcmpResourceManager(newState, asic);
+    ASSERT_NE(ecmpMgr, nullptr);
+    EXPECT_EQ(
+        ecmpMgr->getMaxPrimaryEcmpGroups(),
+        computeExpectedMaxGroups(maxArsGroupsFromAsic.value()));
+  }
+}
+
+TEST_F(BaseEcmpResourceManagerTest, virtualGroupConfigAndLimits) {
+  FLAGS_ecmp_resource_manager_make_before_break_buffer = 2;
+
+  // Test config with virtual group settings
+  EcmpResourceManagerConfig config(
+      10, // maxNonVirtual (effective = 8 after buffer)
+      cfg::SwitchingMode::PER_PACKET_RANDOM,
+      std::make_optional<uint32_t>(5), // maxVirtual (effective = 3)
+      std::make_optional<int32_t>(65), // minWidthForVirtualGroup
+      std::make_optional<int32_t>(512), // maxVirtualGroupWidth
+      std::make_optional<int32_t>(64)); // maxEcmpWidth
+
+  // Verify buffer applied to both limits
+  EXPECT_EQ(config.getMaxPrimaryEcmpGroups(), 8);
+  EXPECT_EQ(config.getMaxVirtualEcmpGroups().value(), 3);
+
+  // Verify virtual group config values stored correctly
+  EXPECT_EQ(config.getMinWidthForVirtualGroup().value(), 65);
+  EXPECT_EQ(config.getMaxVirtualGroupWidth().value(), 512);
+  EXPECT_EQ(config.getMaxEcmpWidth().value(), 64);
+
+  // Verify limit checking with virtual count
+  EXPECT_FALSE(config.ecmpLimitReached(5, 100, 2)); // Neither reached
+  EXPECT_TRUE(config.ecmpLimitReached(8, 100, 2)); // Non-virtual reached
+  EXPECT_TRUE(config.ecmpLimitReached(5, 100, 3)); // Virtual reached
+
+  // Verify limit checking without virtual count
+  EXPECT_FALSE(config.ecmpLimitReached(5, 100));
+  EXPECT_TRUE(config.ecmpLimitReached(8, 100));
+
+  // Test config without virtual groups falls back to standard behavior
+  EcmpResourceManagerConfig configNoVirtual(
+      10, cfg::SwitchingMode::PER_PACKET_RANDOM);
+  EXPECT_FALSE(configNoVirtual.getMaxVirtualEcmpGroups().has_value());
+  EXPECT_FALSE(configNoVirtual.getMinWidthForVirtualGroup().has_value());
+  // High virtual count ignored when not configured
+  EXPECT_FALSE(configNoVirtual.ecmpLimitReached(5, 100, 1000));
 }
 } // namespace facebook::fboss

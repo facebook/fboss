@@ -38,7 +38,7 @@ class CmdShowNdp : public CmdHandler<CmdShowNdp, CmdShowNdpTraits> {
   void printOutput(const RetType& model, std::ostream& out = std::cout);
 
   RetType createModel(
-      std::vector<facebook::fboss::NdpEntryThrift> ndpEntries,
+      const std::vector<facebook::fboss::NdpEntryThrift>& ndpEntries,
       const ObjectArgType& queriedNdpEntries,
       std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries,
       const std::map<int64_t, cfg::DsfNode>& dsfNodes);

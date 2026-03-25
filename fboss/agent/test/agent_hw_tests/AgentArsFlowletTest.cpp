@@ -71,13 +71,15 @@ class AgentArsFlowletTest : public AgentArsBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
+    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
         ensemble.isSai(),
         cfg::SwitchingMode::FLOWLET_QUALITY,
         ensemble.isSai() ? cfg::SwitchingMode::FIXED_ASSIGNMENT
-                         : cfg::SwitchingMode::PER_PACKET_RANDOM);
+                         : cfg::SwitchingMode::PER_PACKET_RANDOM,
+        hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD));
     return cfg;
   }
 
@@ -110,14 +112,13 @@ class AgentArsFlowletTest : public AgentArsBase {
   }
 
   void updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const {
-    auto allPorts = masterLogicalInterfacePortIds();
-    std::vector<PortID> ports(
-        allPorts.begin(), allPorts.begin() + allPorts.size());
-    for (const auto& portId : ports) {
-      auto portCfg = utility::findCfgPort(cfg, portId);
-      portCfg->flowletConfigName() = "default";
-    }
+    AgentArsBase::updatePortFlowletConfigName(cfg);
   }
+  bool supportsFuturePortLoad() const {
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    return hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD);
+  }
+
   cfg::FlowletSwitchingConfig getFlowletSwitchingConfig(
       cfg::SwitchingMode switchingMode,
       uint16_t inactivityIntervalUsecs,
@@ -127,7 +128,9 @@ class AgentArsFlowletTest : public AgentArsBase {
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
     flowletCfg.dynamicEgressLoadExponent() = 3;
-    flowletCfg.dynamicQueueExponent() = 3;
+    if (supportsFuturePortLoad()) {
+      flowletCfg.dynamicQueueExponent() = 3;
+    }
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = samplingRate;
@@ -139,28 +142,8 @@ class AgentArsFlowletTest : public AgentArsBase {
     return flowletCfg;
   }
 
-  cfg::PortFlowletConfig getPortFlowletConfig(
-      int scalingFactor,
-      int loadWeight,
-      int queueWeight) const {
-    cfg::PortFlowletConfig portFlowletConfig;
-    portFlowletConfig.scalingFactor() = scalingFactor;
-    portFlowletConfig.loadWeight() = loadWeight;
-    portFlowletConfig.queueWeight() = queueWeight;
-    return portFlowletConfig;
-  }
-
-  void updatePortFlowletConfigs(
-      cfg::SwitchConfig& cfg,
-      int scalingFactor,
-      int loadWeight,
-      int queueWeight) const {
-    std::map<std::string, cfg::PortFlowletConfig> portFlowletCfgMap;
-    auto portFlowletConfig =
-        getPortFlowletConfig(scalingFactor, loadWeight, queueWeight);
-    portFlowletCfgMap.insert(std::make_pair("default", portFlowletConfig));
-    cfg.portFlowletConfigs() = portFlowletCfgMap;
-  }
+  // getPortFlowletConfig and updatePortFlowletConfigs are now inherited from
+  // AgentArsBase
 
   void updateFlowletConfigs(
       cfg::SwitchConfig& cfg,
@@ -187,48 +170,21 @@ class AgentArsFlowletTest : public AgentArsBase {
     return client->sync_validateFlowSetTable(expectFlowsetSizeZero);
   }
 
-  bool verifyEcmpForFlowletSwitching(
-      const folly::CIDRNetwork& ip,
-      const cfg::FlowletSwitchingConfig& flowletCfg,
-      const bool flowletEnable) {
-    AgentEnsemble* ensemble = getAgentEnsemble();
-    const auto port = ensemble->masterLogicalPortIds()[0];
-    auto switchId = ensemble->scopeResolver().scope(port).switchId();
-    auto client = ensemble->getHwAgentTestClient(switchId);
-    facebook::fboss::utility::CIDRNetwork cidr;
-    cidr.IPAddress() = ip.first.str();
-    cidr.mask() = ip.second;
-    state::SwitchSettingsFields settings;
-    settings.flowletSwitchingConfig() = flowletCfg;
-    return client->sync_verifyEcmpForFlowletSwitchingHandler(
-        cidr, settings, flowletEnable);
-  }
-
-  bool verifyPortFlowletConfig(
-      const folly::CIDRNetwork& ip,
-      cfg::PortFlowletConfig& portFlowletConfig) {
-    AgentEnsemble* ensemble = getAgentEnsemble();
-    auto switchId = SwitchID(0);
-    auto client = ensemble->getHwAgentTestClient(switchId);
-
-    facebook::fboss::utility::CIDRNetwork cidr;
-    cidr.IPAddress() = ip.first.str();
-    cidr.mask() = ip.second;
-
-    return client->sync_verifyPortFlowletConfig(cidr, portFlowletConfig, true);
-  }
+  // verifyEcmpForFlowletSwitching and verifyPortFlowletConfig are now inherited
+  // from AgentArsBase
 
   void verifyConfig(
       const RoutePrefixV6& testPrefix,
       const cfg::FlowletSwitchingConfig& flowletConfig,
+      const PortID& port,
       bool flowletEnable = true) {
     auto portFlowletConfig =
         getPortFlowletConfig(kScalingFactor1(), kLoadWeight1, kQueueWeight1);
-    EXPECT_TRUE(
-        verifyPortFlowletConfig(testPrefix.toCidrNetwork(), portFlowletConfig));
+    EXPECT_TRUE(verifyPortFlowletConfig(
+        testPrefix.toCidrNetwork(), portFlowletConfig, port));
 
     EXPECT_TRUE(verifyEcmpForFlowletSwitching(
-        testPrefix.toCidrNetwork(), flowletConfig, flowletEnable));
+        testPrefix.toCidrNetwork(), flowletConfig, flowletEnable, port));
   }
 
   void modifyFlowletSwitchingConfig(cfg::SwitchConfig& cfg) const {
@@ -243,6 +199,7 @@ class AgentArsFlowletTest : public AgentArsBase {
 
   void verifyEcmpGroups(
       std::vector<RoutePrefixV6> testPrefixes,
+      std::vector<flat_set<PortDescriptor>> testNhopSets,
       const cfg::SwitchConfig& cfg,
       int numEcmp) {
     for (int i = 0; i < numEcmp; i++) {
@@ -250,7 +207,8 @@ class AgentArsFlowletTest : public AgentArsBase {
       EXPECT_TRUE(verifyEcmpForFlowletSwitching(
           currentIp.toCidrNetwork(),
           *cfg.flowletSwitchingConfig(),
-          true /* flowletEnable */));
+          true /* flowletEnable */,
+          testNhopSets[i].begin()->phyPortID()));
     }
   }
 
@@ -284,11 +242,16 @@ class AgentArsFlowletTest : public AgentArsBase {
       setupEcmpGroups(testPrefixes, testNhopSets, preEcmpScale);
     };
 
-    auto verify = [this, &testPrefixes, preMode, preMaxFlows, preEcmpScale]() {
+    auto verify = [this,
+                   &testPrefixes,
+                   &testNhopSets,
+                   preMode,
+                   preMaxFlows,
+                   preEcmpScale]() {
       auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
       updateFlowletConfigs(cfg, preMode, preMaxFlows);
       updatePortFlowletConfigName(cfg);
-      verifyEcmpGroups(testPrefixes, cfg, preEcmpScale);
+      verifyEcmpGroups(testPrefixes, testNhopSets, cfg, preEcmpScale);
     };
 
     auto setupPostWarmboot = [this,
@@ -304,13 +267,17 @@ class AgentArsFlowletTest : public AgentArsBase {
       setupEcmpGroups(testPrefixes, testNhopSets, postEcmpScale);
     };
 
-    auto verifyPostWarmboot =
-        [this, &testPrefixes, postMode, postMaxFlows, postEcmpScale]() {
-          auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
-          updateFlowletConfigs(cfg, postMode, postMaxFlows);
-          updatePortFlowletConfigName(cfg);
-          verifyEcmpGroups(testPrefixes, cfg, postEcmpScale);
-        };
+    auto verifyPostWarmboot = [this,
+                               &testPrefixes,
+                               &testNhopSets,
+                               postMode,
+                               postMaxFlows,
+                               postEcmpScale]() {
+      auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
+      updateFlowletConfigs(cfg, postMode, postMaxFlows);
+      updatePortFlowletConfigName(cfg);
+      verifyEcmpGroups(testPrefixes, testNhopSets, cfg, postEcmpScale);
+    };
 
     verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
   }
@@ -390,8 +357,12 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetExceed) {
         cfg::SwitchingMode::FIXED_ASSIGNMENT);
     applyNewConfig(cfg);
     initialConfig(*getAgentEnsemble());
+    auto port = testNhopSets[0].begin()->phyPortID();
     EXPECT_FALSE(verifyEcmpForFlowletSwitching(
-        testPrefixes[0].toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+        testPrefixes[0].toCidrNetwork(),
+        *cfg.flowletSwitchingConfig(),
+        true,
+        port));
 
     // Now modify the config to go back to dynamic mode
     updateFlowletConfigs(
@@ -404,7 +375,10 @@ TEST_F(AgentArsFlowletTest, ValidateFlowsetExceed) {
 
     // Verify that the prefix is now in dynamic mode
     EXPECT_TRUE(verifyEcmpForFlowletSwitching(
-        testPrefixes[0].toCidrNetwork(), *cfg.flowletSwitchingConfig(), true));
+        testPrefixes[0].toCidrNetwork(),
+        *cfg.flowletSwitchingConfig(),
+        true,
+        port));
     EXPECT_TRUE(validateFlowSetTable(true));
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -448,7 +422,8 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
   auto verify = [&]() {
     // switchingMode starts out as FLOWLET_QUALITY
     auto cfg = initialConfig(*getAgentEnsemble());
-    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    auto port = testNhopSets[0].begin()->phyPortID();
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig(), port);
     XLOG(INFO) << "Verified config change";
     // Modify the flowlet config switching mode to PER_PACKET_QUALITY
     modifyFlowletSwitchingConfig(cfg);
@@ -456,11 +431,11 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigChange) {
     updatePortFlowletConfigs(
         cfg, kScalingFactor2(), kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
-    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig(), port);
     XLOG(INFO) << "Verified modified config change";
     cfg = initialConfig(*getAgentEnsemble());
     applyNewConfig(cfg);
-    verifyConfig(prefixes[0], *cfg.flowletSwitchingConfig());
+    verifyConfig(prefixes[0], *cfg.flowletSwitchingConfig(), port);
     XLOG(INFO) << "Verified config change";
   };
 
@@ -482,7 +457,8 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigRemoval) {
   auto verify = [&]() {
     // switchingMode starts out as FLOWLET_QUALITY
     auto cfg = initialConfig(*getAgentEnsemble());
-    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    auto port = testNhopSets[0].begin()->phyPortID();
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig(), port);
     XLOG(INFO) << "Verified inital config";
     // Modify the flowlet config
     modifyFlowletSwitchingConfig(cfg);
@@ -490,7 +466,7 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigRemoval) {
     updatePortFlowletConfigs(
         cfg, kScalingFactor2(), kLoadWeight2, kQueueWeight2);
     applyNewConfig(cfg);
-    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig(), port);
     XLOG(INFO) << "Verified modified config";
     // Remove the flowlet configs
     auto removedCfg = AgentArsBase::initialConfig(*getAgentEnsemble());
@@ -498,7 +474,7 @@ TEST_F(AgentArsFlowletTest, VerifyFlowletConfigRemoval) {
         cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
     applyNewConfig(removedCfg);
     XLOG(INFO) << "Applied removed config";
-    verifyConfig(testPrefixes[0], expectedFlowletSetting, false);
+    verifyConfig(testPrefixes[0], expectedFlowletSetting, port, false);
     XLOG(INFO) << "Verified config removal";
     // Modify to initial config to verify after warmboot applyNewConfig(
     applyNewConfig(initialConfig(*getAgentEnsemble()));
@@ -527,22 +503,26 @@ TEST_F(AgentArsFlowletTest, VerifyEcmpFlowletSwitchingEnable) {
   auto verify = [&]() {
     auto expectedFlowletSetting = getFlowletSwitchingConfig(
         cfg::SwitchingMode::FIXED_ASSIGNMENT, 0, 0, 0);
+    auto port = testNhopSets[0].begin()->phyPortID();
     // 1. setup static ECMP
     auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
     applyNewConfig(cfg);
-    verifyConfig(testPrefixes[0], expectedFlowletSetting, false);
+    verifyConfig(testPrefixes[0], expectedFlowletSetting, port, false);
     XLOG(INFO) << "Verified inital config";
     // 2. update the static ECMP to DLB ECMP
     updateFlowletConfigs(cfg);
     updatePortFlowletConfigName(cfg);
     applyNewConfig(cfg);
-    verifyConfig(testPrefixes[1], *cfg.flowletSwitchingConfig());
+    verifyConfig(
+        testPrefixes[1],
+        *cfg.flowletSwitchingConfig(),
+        testNhopSets[1].begin()->phyPortID());
     XLOG(INFO) << "Verified modified config";
     // 3. revert the DLB ECMP to static ECMP
     auto defaultCfg = AgentArsBase::initialConfig(*getAgentEnsemble());
 
     applyNewConfig(defaultCfg);
-    verifyConfig(testPrefixes[0], expectedFlowletSetting, false);
+    verifyConfig(testPrefixes[0], expectedFlowletSetting, port, false);
     XLOG(INFO) << "Verified config removal";
   };
   verifyAcrossWarmBoots(setup, verify);
@@ -573,7 +553,10 @@ TEST_F(AgentArsFlowletTest, VerifySkipEcmpFlowletSwitchingEnable) {
     auto cfg = AgentArsBase::initialConfig(*getAgentEnsemble());
     updateFlowletConfigs(cfg);
     applyNewConfig(cfg);
-    verifyConfig(testPrefixes[0], *cfg.flowletSwitchingConfig());
+    verifyConfig(
+        testPrefixes[0],
+        *cfg.flowletSwitchingConfig(),
+        testNhopSets[0].begin()->phyPortID());
   };
   verifyAcrossWarmBoots(setup, verify);
 }

@@ -17,7 +17,7 @@
                 "devicePool": "fboss.autotest",
                 "asic": "jericho3"
               },
-              "numJobs": 4,
+              "numJobs": 1,
               "regex": "addRemoveNeighbor"
             }
           }
@@ -34,7 +34,7 @@
                 "devicePool": "fboss.autotest",
                 "asic": "ramon3"
               },
-              "numJobs": 4,
+              "numJobs": 1,
               "regex": "collectStats"
             }
           }

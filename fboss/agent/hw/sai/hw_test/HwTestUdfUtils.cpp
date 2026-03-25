@@ -36,8 +36,8 @@ void validateUdfConfig(
           udfApi.getAttribute(
               saiUdfGroup->adapterKey(), SaiUdfGroupTraits::Attributes::Type{}),
           SAI_UDF_GROUP_TYPE_HASH);
-      if (hw->getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (hw->getPlatform()->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         EXPECT_EQ(
             udfApi.getAttribute(
                 saiUdfGroup->adapterKey(),
@@ -53,8 +53,8 @@ void validateUdfConfig(
 
       // Verify Udf attributes
       auto saiUdf = udfGroupIter->second->udfs[udfPacketMatcherName]->udf;
-      if (hw->getPlatform()->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (hw->getPlatform()->getAsic()->getAsicVendor() ==
+          HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         EXPECT_EQ(
             udfApi.getAttribute(
                 saiUdf->adapterKey(), SaiUdfTraits::Attributes::Offset{}),

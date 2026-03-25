@@ -5,6 +5,10 @@ namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "fboss/platform/platform_manager/platform_manager_presence.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 //            +-+-+-+ +-+-+-+ +-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+-+
 //            |I|2|C| |B|u|s| |N|a|m|i|n|g| |C|o|n|v|e|n|t|i|o|n|
@@ -149,6 +153,38 @@ struct I2cRegData {
   2: list<byte> ioBuf;
 }
 
+// Defines a sysfs attribute to create on a CPLD device via the
+// fbcpld_generic kernel driver.
+//
+// `name`: Name of the sysfs file to create.
+//
+// `mode`: Access mode - "ro" (read-only, 0444), "rw" (read-write, 0644),
+// or "wo" (write-only, 0200). Defaults to "ro".
+//
+// `regAddr`: Register address as hex string (e.g., "0x10").
+//
+// `bitOffset`: Starting bit position in the register (0-7). Defaults to 0.
+//
+// `numBits`: Number of bits (1-8). E.g., bitOffset=4 numBits=4 selects
+// bits [7:4]. Defaults to 1.
+//
+// `flags`: Optional list of behavior flags:
+//   "negate"     - Invert value (active-low signals)
+//   "decimal"    - Show as decimal (default is hex)
+//   "show_notes" - Include register info in output
+//   "log_write"  - Log writes to kernel log
+//
+// `description`: Help text for the attribute.
+struct CpldSysfsAttr {
+  1: string name;
+  2: string mode = "ro";
+  3: string regAddr;
+  4: i32 bitOffset = 0;
+  5: i32 numBits = 1;
+  6: list<string> flags;
+  7: string description;
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -179,6 +215,8 @@ struct I2cRegData {
 // `isWatchdog`: Whether this I2C Device is a Watchdog device
 //
 // `isEeprom`: Whether this I2C Device is an EEPROM device
+//
+// `eepromOffset`: offset for eeprom content.  Applies only to EEPROM device
 //
 // For example, the three i2c devices in the below Sample PmUnit will be modeled
 // as follows
@@ -219,6 +257,8 @@ struct I2cDeviceConfig {
   11: optional list<I2cRegData> initRegSettings;
   12: bool isWatchdog;
   13: bool isEeprom;
+  14: optional i16 eepromOffset;
+  15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
@@ -285,6 +325,57 @@ struct I2cAdapterConfig {
   2: i32 numberOfAdapters;
 }
 
+// Defines generic I2C Adapter block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: SMB_I2C_ADAPTER, the expanded form would be
+//  SMB_I2C_ADAPTER_1, SMB_I2C_ADAPTER_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should be one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address and an adapter index.
+//  Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x1000 + {({adapterIndex} - {startAdapterIndex})}*0x100"
+//  adapterIndex=1, startAdapterIndex=1:
+//    csrOffsetCalc: "0x1000 + 0*0x100"
+//    csrOffsetCalc: "0x1000"
+//  adapterIndex=2, startAdapterIndex=1:
+//    csrOffsetCalc: "0x1000 + 1*0x100"
+//    csrOffsetCalc: "0x1100"
+//
+// `startAdapterIndex`: Starting adapter index for calculation for each block config
+//
+// `numAdapters`: Number of I2C adapters for this block
+//
+// `numBusesPerAdapter`: Number of I2C buses created per adapter for this block
+//  This is equivalent to `numberOfAdapters` in I2cAdapterConfig.
+//  The default value is 1 bus per adapter.
+//
+// `iobufOffsetCalc`: Calculation to get the iobuf offset for fpga block
+//  This expression includes a base start address and an adapter index.
+//  Final offset result is in hex format.
+//  Example:
+//  iobufOffsetCalc: "0x2000 + {({adapterIndex} - {startAdapterIndex})}*0x100"
+//  adapterIndex=1, startAdapterIndex=1:
+//    iobufOffsetCalc: "0x2000 + 0*0x100"
+//    iobufOffsetCalc: "0x2000"
+//  adapterIndex=2, startAdapterIndex=1:
+//    iobufOffsetCalc: "0x2000 + 1*0x100"
+//    iobufOffsetCalc: "0x2100"
+struct I2cAdapterBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 startAdapterIndex;
+  5: i32 numAdapters;
+  6: i32 numBusesPerAdapter = 1;
+  7: string iobufOffsetCalc;
+}
+
 // Defines a Spi Device in FPGAs.
 //
 // `pmUnitScopedName`: The name used to refer to this device. It should be be
@@ -331,6 +422,7 @@ struct FanPwmCtrlConfig {
 // `fpgaIpBlockConfig`: See FgpaIpBlockConfig above
 //
 // `portNumber`: Port number which is associated with this config.
+// Deprecated: do not use
 struct XcvrCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -361,12 +453,25 @@ struct XcvrCtrlConfig {
 // `numPorts`: Number of ports for this block config
 //
 // `startPort`: Starting port for calculation for each block config
+//
+// `iobufOffsetCalc`: Calculation to iobuf register hex offset of the SPI Master in
+//  the FPGA. This expression includes a base start address, port, a starting port
+//  number or index. Final offset result is in hex format.
+//  Example
+//  iobufOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x4"
+//  portNum=1, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x4"
+//    iobufOffsetCalc: "0x1000"
+//  portNum=2, startPort=1::
+//    iobufOffsetCalc: "0x1000 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x1004"
 struct XcvrCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
   3: string csrOffsetCalc;
   4: i32 numPorts;
   6: i32 startPort;
+  7: string iobufOffsetCalc;
 }
 
 // Defines the LED Controller block in FPGAs.
@@ -377,6 +482,8 @@ struct XcvrCtrlBlockConfig {
 // for port LEDs
 //
 // `ledId`: Led ID for this config.
+//
+// Deprecated: do not use
 struct LedCtrlConfig {
   1: FpgaIpBlockConfig fpgaIpBlockConfig;
   2: i32 portNumber;
@@ -397,7 +504,7 @@ struct LedCtrlConfig {
 //  This expression includes a base start address, port, a starting port number
 //  or index, and a led number. Final offset result is in hex format.
 //  Example:
-//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x4"
+//  csrOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4"
 //  portNum=1, ledNum=1, startPort=1:
 //    csrOffsetCalc: "0x1000 + (1 - 1)*0x8 + (1 - 1)*0x4"
 //    csrOffsetCalc: "0x1000"
@@ -408,12 +515,26 @@ struct LedCtrlConfig {
 //    csrOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
 //    csrOffsetCalc: "0x100c"
 //
-//
 // `numPorts`: Number of ports for this block config
 //
 // `ledPerPort`: Number of LEDs per port
 //
 // `startPort`: Starting port for calculation for each block config
+//
+// `iobufOffsetCalc`: Calculation to iobuf register hex offset of the SPI Master in
+//  the FPGA. This expression includes a base start address, port, a starting port number
+//  or index, and a led number. Final offset result is in hex format.
+// Example
+//  iobufOffsetCalc: "0x1000 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4"
+//  portNum=1, ledNum=1, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x8 + (1 - 1)*0x4"
+//    iobufOffsetCalc: "0x1000"
+//  portNum=1, ledNum=2, startPort=1::
+//    iobufOffsetCalc: "0x1000 + (1 - 1)*0x8 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x1004"
+//  portNum=2, ledNum=2, startPort=1:
+//    iobufOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
+//    iobufOffsetCalc: "0x100c"
 struct LedCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -421,6 +542,52 @@ struct LedCtrlBlockConfig {
   4: i32 numPorts;
   5: i32 ledPerPort;
   6: i32 startPort;
+  7: string iobufOffsetCalc;
+}
+
+// Defines generic MDIO BUS Controller block in FPGAs.
+//
+// `pmUnitScopedNamePrefix`: The prefix used to refer to this device
+//  Example: pmUnitScopedNamePrefix: RTM_L_MDIO_BUS, the expanded form would be
+//  RTM_L_MDIO_BUS_1, RTM_L_MDIO_BUS_2, etc.
+//
+// `deviceName`: It is the name used in the ioctl system call to create the
+// corresponding device. It should one of the compatible strings specified in
+// the kernel driver.
+//
+// `csrOffsetCalc`: Calculation to get the csr offset for fpga block
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
+//  Example:
+//  csrOffsetCalc: "0x200 + {busIndex}*0x20"
+//  busIndex=0:
+//    csrOffsetCalc: "0x200 + 0*0x20"
+//    csrOffsetCalc: "0x200"
+//  busIndex=1:
+//    csrOffsetCalc: "0x200 + 1*0x20"
+//    csrOffsetCalc: "0x220"
+//
+//
+// `numBuses`: Number of buses for this block config
+//
+//
+// `iobufOffsetCalc`: Calculation to get the iobuf offset for fpga block
+//  This expression includes a base start address, busIndex
+//  Final offset result is in hex format.
+//  Example:
+//  iobufOffsetCalc: "0x200 + {busIndex}*0x4"
+//  busIndex=0:
+//    iobufOffsetCalc: "0x200 + 0*0x4"
+//    iobufOffsetCalc: "0x200"
+//  busIndex=1:
+//    iobufOffsetCalc: "0x200 + 1*0x4"
+//    iobufOffsetCalc: "0x204"
+struct MdioBusBlockConfig {
+  1: string pmUnitScopedNamePrefix;
+  2: string deviceName;
+  3: string csrOffsetCalc;
+  4: i32 numBuses;
+  5: string iobufOffsetCalc;
 }
 
 // Defines PCI Devices in the PmUnits. A new PciDeviceConfig should be created
@@ -467,18 +634,22 @@ struct PciDeviceConfig {
   3: string deviceId;
   4: string subSystemVendorId;
   5: string subSystemDeviceId;
-  6: list<I2cAdapterConfig> i2cAdapterConfigs;
+  6: list<I2cAdapterConfig> i2cAdapterConfigs; // Deprecated: do not use
   7: list<SpiMasterConfig> spiMasterConfigs;
   8: list<FpgaIpBlockConfig> gpioChipConfigs;
   9: list<FpgaIpBlockConfig> watchdogConfigs;
   10: list<FanPwmCtrlConfig> fanTachoPwmConfigs;
-  11: list<LedCtrlConfig> ledCtrlConfigs;
-  12: list<XcvrCtrlConfig> xcvrCtrlConfigs;
+  11: list<LedCtrlConfig> ledCtrlConfigs; // Deprecated: do not use
+  12: list<XcvrCtrlConfig> xcvrCtrlConfigs; // Deprecated: do not use
   13: list<FpgaIpBlockConfig> infoRomConfigs;
   14: list<FpgaIpBlockConfig> miscCtrlConfigs;
   15: optional string desiredDriver;
   16: list<LedCtrlBlockConfig> ledCtrlBlockConfigs;
   17: list<XcvrCtrlBlockConfig> xcvrCtrlBlockConfigs;
+  18: list<FpgaIpBlockConfig> mdioBusConfigs; // Deprecated: do not use
+  19: list<FpgaIpBlockConfig> sysLedCtrlConfigs;
+  20: list<MdioBusBlockConfig> mdioBusBlockConfigs;
+  21: list<I2cAdapterBlockConfig> i2cAdapterBlockConfigs;
 }
 
 // These are the PmUnit slot types. Examples: "PIM_SLOT", "PSU_SLOT" and
@@ -604,10 +775,18 @@ struct PlatformConfig {
   // List of PmUnits which the platform can support. Key is the PmUnit name.
   12: map<string, PmUnitConfig> pmUnitConfigs;
 
-  // List of the i2c buses created from the CPU.  We are assuming the i2c
-  // Adapter name (content of /sys/bus/i2c/devices/i2c-N/name) is unique for
-  // buses directly coming of CPU. We have to revisit this logic if this
-  // assumption changes.
+  // List of the i2c buses created from the CPU.  Entries can use either:
+  //  (a) Virtual names "CPU_BUS@N" — resolved at runtime by detecting the
+  //      CPU vendor (via folly::CpuId) and scanning sysfs for the
+  //      corresponding adapter:
+  //        - Intel: matches "SMBus I801 adapter at <offset>" by adapter
+  //          name.  Only CPU_BUS@0 is supported today.
+  //        - AMD: identifies DesignWare I2C buses via ACPI
+  //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
+  //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
+  //      (e.g. "SMBus I801 adapter at 5000").
+  // All entries in a single config must use the same style.
   13: list<string> i2cAdaptersFromCpu;
 
   // Global mapping from an application friendly path (symbolic link) to

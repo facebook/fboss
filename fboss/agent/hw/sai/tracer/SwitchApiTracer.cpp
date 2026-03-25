@@ -102,6 +102,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
 #endif
     SAI_ATTR_MAP(Switch, AsicTemperatureList),
     SAI_ATTR_MAP(Switch, NumTemperatureSensors),
+    SAI_ATTR_MAP(Switch, SwitchingMode),
 
 };
 
@@ -170,6 +171,7 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Switch, TechSupportType)
   SAI_EXT_ATTR_MAP(Switch, ModuleIdFabricPortList)
   SAI_EXT_ATTR_MAP(Switch, PfcMonitorEnable);
+  SAI_EXT_ATTR_MAP(Switch, CablePropagationDelayMeasurement);
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   SAI_EXT_ATTR_MAP(Switch, LocalSystemPortIdRangeList)
 #endif

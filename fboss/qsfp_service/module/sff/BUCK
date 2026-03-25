@@ -27,6 +27,9 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"sff.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -54,4 +57,7 @@ thrift_library(
         "serde",
     ],
     thrift_srcs = {"sff8472.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )

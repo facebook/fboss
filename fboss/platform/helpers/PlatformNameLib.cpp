@@ -40,6 +40,10 @@ std::string sanitizePlatformName(const std::string& platformNameFromBios) {
     return "MERU800BIA";
   }
 
+  if (platformNameUpper == "MINIPACK3BTA") {
+    return "MINIPACK3BA";
+  }
+
   return platformNameUpper;
 }
 
@@ -57,7 +61,8 @@ std::string PlatformNameLib::getPlatformNameFromBios(bool writeToCache) const {
   auto [exitStatus, standardOut] =
       platformUtils_->execCommand(dmidecodeCommand);
   if (exitStatus != 0) {
-    XLOG(ERR) << "Failed to get platform name from bios: " << stdout;
+    XLOG(ERR) << fmt::format(
+        "Failed to get platform name from bios: {}", standardOut);
     fb303::fbData->setCounter(kPlatformNameBiosReadFailures, 1);
     throw std::runtime_error("Failed to get platform name from bios");
   }

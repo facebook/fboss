@@ -7,6 +7,7 @@
 #include "fboss/platform/fan_service/PidLogic.h"
 #include "fboss/platform/fan_service/SensorData.h"
 #include "fboss/platform/fan_service/if/gen-cpp2/fan_service_types.h"
+#include "fboss/platform/helpers/StructuredLogger.h"
 
 namespace facebook::fboss::platform::fan_service {
 
@@ -16,7 +17,7 @@ struct SensorReadCache {
   // This is the last read value from the sensor which is yet to be processed.
   float lastReadValue{0};
   float targetPwmCache{0};
-  uint64_t lastUpdatedTime;
+  uint64_t lastUpdatedTime{0
   bool sensorFailed{false};
 };
 
@@ -56,23 +57,20 @@ class ControlLogic {
 
  private:
   const FanServiceConfig config_;
+  helpers::StructuredLogger structuredLogger_;
   OvertempCondition overtempCondition_;
   std::vector<std::string> overtempWatchList_;
   std::shared_ptr<Bsp> pBsp_;
-  std::shared_ptr<SensorData> pSensor_;
-  // Internal variable storing the number of failed sensors and fans
-  int numFanFailed_ = 0;
-  int numSensorFailed_ = 0;
   // The timestamp of the last PWM control logic execution
   uint64_t lastControlExecutionTimeSec_{0};
   // The timestamp of the last sensor data fetch
   uint64_t lastSensorFetchTimeSec_{0};
 
   void setupPidLogics();
-  void getSensorUpdate();
+  int updateSensorPwms(const SensorData& sensorData, int numFanFailed);
   std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
   readFanRpm(const Fan& fan);
-  void getOpticsUpdate();
+  void updateOpticsPwms(SensorData& sensorData);
   bool /* pwm update fail */
   programFan(const Zone& zone, const Fan& fan, float fanPwm);
   float calculateZonePwm(const Zone& zone, bool boostMode);
@@ -90,5 +88,6 @@ class ControlLogic {
   std::map<std::string /* sensorName */, std::unique_ptr<PidLogicBase>>
       pidLogics_;
   std::shared_ptr<SensorData> pSensorData_{nullptr};
+  bool boostMode_{false};
 };
 } // namespace facebook::fboss::platform::fan_service

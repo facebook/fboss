@@ -3,11 +3,14 @@
 #pragma once
 
 #include <folly/IPAddress.h>
+#include "configerator/structs/neteng/fboss/bgp/if/gen-cpp2/bgp_attr_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/gen-cpp2-thriftpath/thriftpath_test.h" // @manual=//fboss/fsdb/tests:thriftpath_test_thrift-cpp2-thriftpath
+#include "fboss/thrift_cow/storage/tests/SwitchStateBuilders.h"
+#include "neteng/fboss/bgp/if/gen-cpp2/bgp_thrift_types.h"
 
 namespace {
 constexpr int kDefaultMapSize = 1 * 1000;
@@ -48,6 +51,12 @@ using facebook::fboss::phy::PmdStats;
 using facebook::fboss::phy::RsFecInfo;
 using facebook::fboss::phy::Side;
 
+// Import BGP types
+using TRibEntry = neteng::fboss::bgp::thrift::TRibEntry;
+
+// Import SwitchStateScale from SwitchStateBuilders
+using facebook::fboss::fsdb::test::SwitchStateScale;
+
 enum RoleSelector {
   Minimal = 0,
   MaxScale = 1,
@@ -64,21 +73,37 @@ enum RoleSelector {
   FDSW = 12,
   SDSW = 13,
   EDSW = 14,
-};
-
-struct SwitchStateScale {
-  int fibV4Size;
-  int fibV6Size;
-  int v4Nexthops;
-  int v6Nexthops;
-  int remoteSystemPortMapSize;
-  int remoteInterfaceMapSize;
+  RUSW = 15,
+  RGSW = 16,
 };
 
 struct AgentStatsScale {
-  int hwPortStatsCount;
-  int phyStatsCount;
-  int sysPortStatsCount;
+  int hwPortStatsCount{0};
+  int phyStatsCount{0};
+  int sysPortStatsCount{0};
+
+  // NEW fields
+  int asicCount{1};
+  int sysPortShelStateCount{0};
+  int asicTempCount{0};
+  bool hasHwResourceStats{true};
+  bool hasHwAsicErrors{true};
+  bool hasCpuPortStats{true};
+  bool hasSwitchDropStats{true};
+  bool hasSwitchWatermarkStats{true};
+  bool hasFabricReachabilityStats{true};
+  bool hasSwitchPipelineStats{true};
+  bool hasFabricOverdrainPct{false};
+  bool hasFlowletStats{false};
+};
+
+struct BgpRibMapScale {
+  int ribV4EntryCount;
+  int ribV6EntryCount;
+  int bestPathsPerEntry;
+  int communitiesPerPath;
+  int asPathSegments;
+  int extCommunitiesPerPath;
 };
 
 class IDataGenerator {
@@ -86,6 +111,16 @@ class IDataGenerator {
   virtual ~IDataGenerator() = default;
 
   virtual TaggedOperState getStateUpdate(int version, bool minimal) = 0;
+
+  // Set a path filter to only populate the subtree at the given path.
+  // Path tokens should be the FSDB path components, e.g.
+  // {"agent", "switchState", "fibsMap"}.
+  void setPathFilter(std::vector<std::string> pathTokens) {
+    pathFilter_ = std::move(pathTokens);
+  }
+
+ protected:
+  std::vector<std::string> pathFilter_;
 };
 
 class TestDataFactory : public IDataGenerator {
@@ -175,6 +210,42 @@ class FsdbStatsDataFactory : public IDataGenerator {
   PmdStats createPmdStats(int portIndex);
   LaneStats createLaneStats(int16_t laneId, int portIndex);
   IOStats createIOStats();
+
+  RoleSelector selector_;
+  OperProtocol protocol_{OperProtocol::COMPACT};
+};
+
+class BgpRibMapDataGenerator : public IDataGenerator {
+ public:
+  using RootT = fsdb::FsdbOperStateRoot;
+
+  explicit BgpRibMapDataGenerator(RoleSelector selector)
+      : selector_(selector) {}
+
+  TaggedOperState getStateUpdate(int version, bool minimal) override;
+
+ protected:
+  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot(int version);
+  fsdb::BgpData buildBgpData(int version);
+  BgpRibMapScale getScale(RoleSelector role);
+
+  // Helper methods to create BGP structures
+  TRibEntry buildTRibEntry(
+      const BgpRibMapScale& scale,
+      int index,
+      bool isV6,
+      int version);
+  facebook::neteng::fboss::bgp_attr::TIpPrefix
+  createPrefix(int index, bool isV6, int keySet);
+  neteng::fboss::bgp::thrift::TBgpPath createBgpPath(
+      int entryIndex,
+      int pathIndex,
+      int numCommunities,
+      int numAsPathSegments,
+      int numExtCommunities,
+      int asPathVersion);
+  std::string createPrefixKey(
+      const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix);
 
   RoleSelector selector_;
   OperProtocol protocol_{OperProtocol::COMPACT};

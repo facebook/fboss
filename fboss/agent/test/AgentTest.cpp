@@ -25,7 +25,6 @@ DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
-DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 
@@ -110,15 +109,10 @@ void AgentTest::resolveNeighbor(
     auto intfId = vlan->getInterfaceID();
 
     NeighborTableT* nbrTable;
-    if (FLAGS_intf_nbr_tables) {
-      nbrTable = outputState->getInterfaces()
-                     ->getNode(intfId)
-                     ->template getNeighborEntryTable<AddrT>()
-                     ->modify(intfId, &outputState);
-    } else {
-      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-          vlanId, &outputState);
-    }
+    nbrTable = outputState->getInterfaces()
+                   ->getNode(intfId)
+                   ->template getNeighborEntryTable<AddrT>()
+                   ->modify(intfId, &outputState);
 
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(

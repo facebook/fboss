@@ -69,27 +69,14 @@ Use the forwarding stack Docker container from the [Setup](./#setup-1) step.
 ```bash file=./static/code_snips/enter_docker_container.sh
 ```
 
-#### Step 1.2: Run the Build Helper
+#### Step 1.2: Build Agent Benchmark Binaries
 
-```bash file=./static/code_snips/build_helper.sh
-```
+The `run-getdeps.py` script accepts flags to configure the SAI implementation
+and SDK version. Run `./fboss/oss/scripts/run-getdeps.py -h` to see all options
+and Meta supported values. Note the `--benchmark-install` flag which is required
+to install benchmark binaries.
 
-#### Step 1.3: Set Important Environment Variables
-
-```bash file=./static/code_snips/important_environment_variables.sh
-```
-
-For Agent benchmark binaries, you also need to set another env variable:
-
-```bash
-export BENCHMARK_INSTALL=1
-```
-
-#### Step 1.4: Build Agent Benchmark Binaries
-
-Remember to set the `BENCHMARK_INSTALL` env variable from the previous step.
-
-```bash file=./static/code_snips/build_forwarding_stack.sh
+```bash file=./static/code_snips/build_benchmark_binaries.sh
 ```
 
 ### Step 2: Send Build Artifacts to the Switch

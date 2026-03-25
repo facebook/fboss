@@ -34,13 +34,14 @@ const std::array<IPAddressV6, 2> kNexthopsV6{
 
 namespace facebook::fboss {
 
-template <bool enableIntfNbrTable>
+template <bool enableIntfNbrTable, bool enablePortRif = false>
 struct EnableIntfNbrTable {
   static constexpr auto intfNbrTable = enableIntfNbrTable;
+  static constexpr auto portRif = enablePortRif;
 };
 
 using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
+    ::testing::Types<EnableIntfNbrTable<true>, EnableIntfNbrTable<true, true>>;
 
 template <typename EnableIntfNbrTableT>
 class ResolvedNexthopMonitorTest : public ::testing::Test {
@@ -48,15 +49,36 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   using StateUpdateFn = SwSwitch::StateUpdateFn;
   using Func = folly::Function<void()>;
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
+  static auto constexpr portRif = EnableIntfNbrTableT::portRif;
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
-    auto cfg = testConfigA();
+    auto cfg = usePortRif() ? testConfigAWithPortInterfaces() : testConfigA();
+    if constexpr (portRif) {
+      cfg.interfaces()[0].intfID() = 1;
+      cfg.interfaces()[0].routerID() = 0;
+      cfg.interfaces()[0].mac() = "00:02:00:00:00:01";
+      cfg.interfaces()[0].mtu() = 9000;
+      cfg.interfaces()[0].ipAddresses()->resize(4);
+      cfg.interfaces()[0].ipAddresses()[0] = "10.0.0.1/24";
+      cfg.interfaces()[0].ipAddresses()[1] = "192.168.0.1/24";
+      cfg.interfaces()[0].ipAddresses()[2] = "2401:db00:2110:3001::0001/64";
+      cfg.interfaces()[0].ipAddresses()[3] = "fe80::/64"; // link local
+
+      cfg.interfaces()[1].intfID() = 55;
+      cfg.interfaces()[1].routerID() = 0;
+      cfg.interfaces()[1].mac() = "00:02:00:00:00:55";
+      cfg.interfaces()[1].mtu() = 9000;
+      cfg.interfaces()[1].ipAddresses()->resize(4);
+      cfg.interfaces()[1].ipAddresses()[0] = "10.0.55.1/24";
+      cfg.interfaces()[1].ipAddresses()[1] = "192.168.55.1/24";
+      cfg.interfaces()[1].ipAddresses()[2] = "2401:db00:2110:3055::0001/64";
+      cfg.interfaces()[1].ipAddresses()[3] = "169.254.0.0/16"; // link local
+    }
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
   }
 
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
+  bool usePortRif() const {
+    return portRif == true;
   }
 
   void TearDown() override {
@@ -352,87 +374,101 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
-  if (this->isIntfNbrTable()) {
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    EXPECT_EQ(entry, nullptr);
-  }
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(55))
+                   ->getArpTable()
+                   ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
+  EXPECT_EQ(entry, nullptr);
 
-  EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
-    const auto* buf = pkt->buf();
-    EXPECT_EQ(68, buf->computeChainDataLength());
-    folly::io::Cursor cursor(buf);
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor), folly::MacAddress("ff:ff:ff:ff:ff:ff"));
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor),
-        folly::MacAddress("00:02:00:00:00:01")); // sender mac
-    EXPECT_EQ(
-        PktUtil::readIPv4(&cursor),
-        folly::IPAddressV4("10.0.0.1")); // sender ip
-    EXPECT_EQ(PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
-    EXPECT_EQ(
-        PktUtil::readIPv4(&cursor),
-        folly::IPAddressV4("10.0.0.22")); // target ip
-  });
-  RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
+  if (this->usePortRif()) {
+    EXPECT_OUT_OF_PORT_PKT(
+        this->sw_,
+        "ARP request",
+        [](const TxPacket* pkt) {
+          const auto* buf = pkt->buf();
+          EXPECT_EQ(68, buf->computeChainDataLength());
+          folly::io::Cursor cursor(buf);
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:55"));
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag 55
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:55")); // sender mac
+          EXPECT_EQ(
+              PktUtil::readIPv4(&cursor),
+              folly::IPAddressV4("10.0.55.1")); // sender ip
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
+          EXPECT_EQ(
+              PktUtil::readIPv4(&cursor),
+              folly::IPAddressV4("10.0.55.22")); // target ip
+        },
+        PortID(2),
+        std::optional<uint8_t>(7));
+
+  } else {
+    EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
+      const auto* buf = pkt->buf();
+      EXPECT_EQ(68, buf->computeChainDataLength());
+      folly::io::Cursor cursor(buf);
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:55"));
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0037); // vlan tag 55
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor),
+          folly::MacAddress("00:02:00:00:00:55")); // sender mac
+      EXPECT_EQ(
+          PktUtil::readIPv4(&cursor),
+          folly::IPAddressV4("10.0.55.1")); // sender ip
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
+      EXPECT_EQ(
+          PktUtil::readIPv4(&cursor),
+          folly::IPAddressV4("10.0.55.22")); // target ip
+    });
+  }
+  RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.55.22"), 1)};
   this->addRoute(kPrefixV4, nhops);
   this->schedulePendingStateUpdates();
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
 
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for inf neighbors
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is created for vlan neighbors
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for inf neighbors
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(55))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   this->updateState(
-      "add neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "add neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         ArpTable* arpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
 
         arpTable->addEntry(
             folly::IPAddressV4("10.0.0.22"),
@@ -443,82 +479,96 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
         return newState;
       });
 
-  if (this->isIntfNbrTable()) {
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-  } else {
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-  }
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(1))
+                   ->getArpTable()
+                   ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
 
   RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
   this->addRoute(kPrefixV4, nhops);
 
-  if (this->isIntfNbrTable()) {
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), false); // no probe
+
+  if (this->usePortRif()) {
+    EXPECT_OUT_OF_PORT_PKT(
+        this->sw_,
+        "ARP request",
+        [](const TxPacket* pkt) {
+          const auto* buf = pkt->buf();
+          EXPECT_EQ(68, buf->computeChainDataLength());
+          folly::io::Cursor cursor(buf);
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:01"));
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag 55
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:01")); // sender mac
+          EXPECT_EQ(
+              PktUtil::readIPv4(&cursor),
+              folly::IPAddressV4("10.0.0.1")); // sender ip
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
+          EXPECT_EQ(
+              PktUtil::readIPv4(&cursor),
+              folly::IPAddressV4("10.0.0.22")); // target ip
+        },
+        PortID(1),
+        std::optional<uint8_t>(7));
   } else {
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
+    EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
+      const auto* buf = pkt->buf();
+      EXPECT_EQ(68, buf->computeChainDataLength());
+      folly::io::Cursor cursor(buf);
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress("ff:ff:ff:ff:ff:ff"));
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor),
+          folly::MacAddress("00:02:00:00:00:01")); // sender mac
+      EXPECT_EQ(
+          PktUtil::readIPv4(&cursor),
+          folly::IPAddressV4("10.0.0.1")); // sender ip
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
+      EXPECT_EQ(
+          PktUtil::readIPv4(&cursor),
+          folly::IPAddressV4("10.0.0.22")); // target ip
+    });
   }
 
-  EXPECT_SWITCHED_PKT(this->sw_, "ARP request", [](const TxPacket* pkt) {
-    const auto* buf = pkt->buf();
-    EXPECT_EQ(68, buf->computeChainDataLength());
-    folly::io::Cursor cursor(buf);
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor), folly::MacAddress("ff:ff:ff:ff:ff:ff"));
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0806); // arp proto
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // ethernet
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0800); // ipv4
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0604); // hal, pal
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // arp req
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor),
-        folly::MacAddress("00:02:00:00:00:01")); // sender mac
-    EXPECT_EQ(
-        PktUtil::readIPv4(&cursor),
-        folly::IPAddressV4("10.0.0.1")); // sender ip
-    EXPECT_EQ(PktUtil::readMac(&cursor), folly::MacAddress::ZERO); // target mac
-    EXPECT_EQ(
-        PktUtil::readIPv4(&cursor),
-        folly::IPAddressV4("10.0.0.22")); // target ip
-  });
-
   this->updateState(
-      "remove neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "remove neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         ArpTable* arpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
 
         arpTable->removeEntry(folly::IPAddressV4("10.0.0.22"));
         return newState;
@@ -528,121 +578,139 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
 
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for intf neighbors
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is created for vlan neighbors
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for intf neighbors
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   std::shared_ptr<NdpTable> ndpTable;
-  if (this->isIntfNbrTable()) {
-    ndpTable = this->sw_->getState()
-                   ->getInterfaces()
-                   ->getNode(InterfaceID(1))
-                   ->getNdpTable();
-  } else {
-    ndpTable =
-        this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
-  }
+  ndpTable = this->sw_->getState()
+                 ->getInterfaces()
+                 ->getNode(InterfaceID(55))
+                 ->getNdpTable();
 
   EXPECT_EQ(
-      ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22")),
+      ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3055::22")),
       nullptr);
 
-  EXPECT_SWITCHED_PKT(this->sw_, "NDP request", [](const TxPacket* pkt) {
-    folly::io::Cursor cursor(pkt->buf());
+  if (this->usePortRif()) {
+    EXPECT_OUT_OF_PORT_PKT(
+        this->sw_,
+        "NDP request",
+        [](const TxPacket* pkt) {
+          folly::io::Cursor cursor(pkt->buf());
 
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor),
-        folly::MacAddress("33:33:ff:00:00:22")); // dest mac
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor),
-        folly::MacAddress("00:02:00:00:00:01")); // src mac
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("33:33:ff:00:00:22")); // dest mac
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:55")); // src mac
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
 
-    IPv6Hdr v6Hdr(cursor); // v6 hdr
-    EXPECT_EQ(
-        v6Hdr.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
-    EXPECT_EQ(
-        v6Hdr.srcAddr,
-        folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0001"));
-    EXPECT_EQ(
-        v6Hdr.dstAddr,
-        folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
+          IPv6Hdr v6Hdr(cursor); // v6 hdr
+          EXPECT_EQ(
+              v6Hdr.nextHeader,
+              static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
+          EXPECT_EQ(
+              v6Hdr.srcAddr,
+              folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0055"));
+          EXPECT_EQ(
+              v6Hdr.dstAddr,
+              folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
 
-    ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
-    EXPECT_EQ(
-        icmp6Hdr.type,
-        static_cast<uint8_t>(
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
-    EXPECT_EQ(icmp6Hdr.code, 0);
-    cursor.read<uint32_t>(); // reserved
-    EXPECT_EQ(
-        PktUtil::readIPv6(&cursor),
-        folly::IPAddressV6("2401:db00:2110:3001::22"));
-    EXPECT_EQ(1, cursor.read<uint8_t>()); // source link layer address option
-    EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
-  });
+          ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
+          EXPECT_EQ(
+              icmp6Hdr.type,
+              static_cast<uint8_t>(
+                  ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
+          EXPECT_EQ(icmp6Hdr.code, 0);
+          cursor.read<uint32_t>(); // reserved
+          EXPECT_EQ(
+              PktUtil::readIPv6(&cursor),
+              folly::IPAddressV6("2401:db00:2110:3055::22"));
+          EXPECT_EQ(
+              1, cursor.read<uint8_t>()); // source link layer address option
+          EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:55"));
+        },
+        PortID(2),
+        std::optional<uint8_t>(7));
+
+  } else {
+    EXPECT_SWITCHED_PKT(this->sw_, "NDP request", [](const TxPacket* pkt) {
+      folly::io::Cursor cursor(pkt->buf());
+
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor),
+          folly::MacAddress("33:33:ff:00:00:22")); // dest mac
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor),
+          folly::MacAddress("00:02:00:00:00:55")); // src mac
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0037); // vlan tag
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
+
+      IPv6Hdr v6Hdr(cursor); // v6 hdr
+      EXPECT_EQ(
+          v6Hdr.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
+      EXPECT_EQ(
+          v6Hdr.srcAddr,
+          folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0055"));
+      EXPECT_EQ(
+          v6Hdr.dstAddr,
+          folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
+
+      ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
+      EXPECT_EQ(
+          icmp6Hdr.type,
+          static_cast<uint8_t>(
+              ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
+      EXPECT_EQ(icmp6Hdr.code, 0);
+      cursor.read<uint32_t>(); // reserved
+      EXPECT_EQ(
+          PktUtil::readIPv6(&cursor),
+          folly::IPAddressV6("2401:db00:2110:3055::22"));
+      EXPECT_EQ(1, cursor.read<uint8_t>()); // source link layer address option
+      EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:55"));
+    });
+  }
   RouteNextHopSet nhops{
-      UnresolvedNextHop(folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
+      UnresolvedNextHop(folly::IPAddressV6("2401:db00:2110:3055::22"), 1)};
   this->addRoute(kPrefixV6, nhops);
 
   this->schedulePendingStateUpdates();
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
 
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for intf neighbors
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is not created for vlan neighbors
-    auto vlanNdpTable =
-        this->sw_->getState()->getVlans()->getNode(VlanID(1))->getNdpTable();
-    auto entry =
-        vlanNdpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for intf neighbors
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(55))
+                   ->getNdpTable()
+                   ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3055::22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   this->updateState(
-      "add neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "add neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         NdpTable* ndpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
 
         ndpTable->addEntry(
             folly::IPAddressV6("2401:db00:2110:3001::22"),
@@ -653,99 +721,121 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
         return newState;
       });
 
-  if (this->isIntfNbrTable()) {
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-  } else {
-    auto entry =
-        this->sw_->getState()
-            ->getVlans()
-            ->getNode(VlanID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-  }
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(1))
+                   ->getNdpTable()
+                   ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
 
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
   this->addRoute(kPrefixV6, nhops);
 
-  if (this->isIntfNbrTable()) {
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getNdpTable()
+              ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), false); // no probe
+
+  if (this->usePortRif()) {
+    EXPECT_OUT_OF_PORT_PKT(
+        this->sw_,
+        "NDP request",
+        [](const TxPacket* pkt) {
+          folly::io::Cursor cursor(pkt->buf());
+
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("33:33:ff:00:00:22")); // dest mac
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:01")); // src mac
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+          EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
+
+          IPv6Hdr v6Hdr(cursor); // v6 hdr
+          EXPECT_EQ(
+              v6Hdr.nextHeader,
+              static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
+          EXPECT_EQ(
+              v6Hdr.srcAddr,
+              folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0001"));
+          EXPECT_EQ(
+              v6Hdr.dstAddr,
+              folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
+
+          ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
+          EXPECT_EQ(
+              icmp6Hdr.type,
+              static_cast<uint8_t>(
+                  ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
+          EXPECT_EQ(icmp6Hdr.code, 0);
+          cursor.read<uint32_t>(); // reserved
+          EXPECT_EQ(
+              PktUtil::readIPv6(&cursor),
+              folly::IPAddressV6("2401:db00:2110:3001::22"));
+          EXPECT_EQ(
+              1, cursor.read<uint8_t>()); // source link layer address option
+          EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
+          EXPECT_EQ(
+              PktUtil::readMac(&cursor),
+              folly::MacAddress("00:02:00:00:00:01"));
+        },
+        PortID(1),
+        std::optional<uint8_t>(7));
+
   } else {
-    auto entry =
-        this->sw_->getState()
-            ->getVlans()
-            ->getNode(VlanID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
+    EXPECT_SWITCHED_PKT(this->sw_, "NDP request", [](const TxPacket* pkt) {
+      folly::io::Cursor cursor(pkt->buf());
+
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor),
+          folly::MacAddress("33:33:ff:00:00:22")); // dest mac
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor),
+          folly::MacAddress("00:02:00:00:00:01")); // src mac
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
+      EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
+
+      IPv6Hdr v6Hdr(cursor); // v6 hdr
+      EXPECT_EQ(
+          v6Hdr.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
+      EXPECT_EQ(
+          v6Hdr.srcAddr,
+          folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0001"));
+      EXPECT_EQ(
+          v6Hdr.dstAddr,
+          folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
+
+      ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
+      EXPECT_EQ(
+          icmp6Hdr.type,
+          static_cast<uint8_t>(
+              ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
+      EXPECT_EQ(icmp6Hdr.code, 0);
+      cursor.read<uint32_t>(); // reserved
+      EXPECT_EQ(
+          PktUtil::readIPv6(&cursor),
+          folly::IPAddressV6("2401:db00:2110:3001::22"));
+      EXPECT_EQ(1, cursor.read<uint8_t>()); // source link layer address option
+      EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
+      EXPECT_EQ(
+          PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
+    });
   }
 
-  EXPECT_SWITCHED_PKT(this->sw_, "NDP request", [](const TxPacket* pkt) {
-    folly::io::Cursor cursor(pkt->buf());
-
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor),
-        folly::MacAddress("33:33:ff:00:00:22")); // dest mac
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor),
-        folly::MacAddress("00:02:00:00:00:01")); // src mac
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x8100); // tagged frame
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x0001); // vlan tag
-    EXPECT_EQ(cursor.readBE<uint16_t>(), 0x86dd); // ipv6 proto
-
-    IPv6Hdr v6Hdr(cursor); // v6 hdr
-    EXPECT_EQ(
-        v6Hdr.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP));
-    EXPECT_EQ(
-        v6Hdr.srcAddr,
-        folly::IPAddressV6("fe80:0000:0000:0000:0202:00ff:fe00:0001"));
-    EXPECT_EQ(
-        v6Hdr.dstAddr,
-        folly::IPAddressV6("ff02:0000:0000:0000:0000:0001:ff00:0022"));
-
-    ICMPHdr icmp6Hdr(cursor); // v6 icmp hdr
-    EXPECT_EQ(
-        icmp6Hdr.type,
-        static_cast<uint8_t>(
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION));
-    EXPECT_EQ(icmp6Hdr.code, 0);
-    cursor.read<uint32_t>(); // reserved
-    EXPECT_EQ(
-        PktUtil::readIPv6(&cursor),
-        folly::IPAddressV6("2401:db00:2110:3001::22"));
-    EXPECT_EQ(1, cursor.read<uint8_t>()); // source link layer address option
-    EXPECT_EQ(1, cursor.read<uint8_t>()); // option length
-    EXPECT_EQ(
-        PktUtil::readMac(&cursor), folly::MacAddress("00:02:00:00:00:01"));
-  });
-
   this->updateState(
-      "remove neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "remove neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         NdpTable* ndpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
 
         ndpTable->removeEntry(folly::IPAddressV6("2401:db00:2110:3001::22"));
         return newState;
@@ -754,26 +844,13 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   this->schedulePendingStateUpdates();
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for intf neighbors
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is not created for vlan neighbors
-    auto entry =
-        this->sw_->getState()
-            ->getVlans()
-            ->getNode(VlanID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for intf neighbors
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getNdpTable()
+              ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 } // namespace facebook::fboss

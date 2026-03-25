@@ -1,4 +1,6 @@
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
 load("//fboss/agent/hw/sai/tracer/run:run.bzl", "all_replayer_binaries")
 
 oncall("fboss_agent_push")
@@ -9,4 +11,17 @@ cpp_library(
     name = "recursive_glob_headers",
     headers = ["SaiLog.h"],
     labels = ["noautodeps"],
+)
+
+python_library(
+    name = "postProcess",
+    srcs = ["postProcess.py"],
+)
+
+python_unittest(
+    name = "test_postProcess",
+    srcs = ["test_postProcess.py"],
+    deps = [
+        ":postProcess",
+    ],
 )

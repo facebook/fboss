@@ -66,9 +66,9 @@ std::optional<OperMetadata> getChunkMetadata(const SubscriberChunk& chunk) {
   std::optional<OperMetadata> metadata;
   if (chunk.patchGroups()->size() > 0) {
     for (const auto& [key, patchGroup] : *chunk.patchGroups()) {
-      for (const auto& patch : patchGroup) {
+      if (!patchGroup.empty()) {
+        const auto& patch = patchGroup.front();
         metadata = *patch.metadata();
-        break;
       }
     }
   }
@@ -152,7 +152,7 @@ FsdbPatchSubscriberImpl<MessageType, SubUnit, PathElement>::serveStream(
       case SubscriberMessage::Type::heartbeat:
         if (message->get_heartbeat().metadata().has_value()) {
           this->onChunkReceived(
-              false, message->get_heartbeat().metadata().value());
+              true, message->get_heartbeat().metadata().value());
         } else {
           this->onChunkReceived(true, std::nullopt);
         }

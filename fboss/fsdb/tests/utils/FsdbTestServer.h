@@ -19,16 +19,17 @@ class FsdbTestServerImpl {
   virtual void startServer(uint16_t& fsdbPort) = 0;
   virtual void stopServer() = 0;
 
+  std::unique_ptr<apache::thrift::Client<FsdbService>> getClient();
+
  protected:
   std::shared_ptr<apache::thrift::ThriftServer> createServer(
       std::shared_ptr<ServiceHandler> handler,
       uint16_t port);
 
-  void checkServerStart(
-      std::shared_ptr<apache::thrift::ThriftServer> server,
-      uint16_t& fsdbPort);
+  void checkServerStart(uint16_t& fsdbPort);
 
   std::shared_ptr<ServiceHandler> handler_;
+  std::shared_ptr<apache::thrift::ThriftServer> server_;
   uint16_t port_;
 };
 

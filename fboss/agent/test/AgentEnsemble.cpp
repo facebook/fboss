@@ -62,12 +62,20 @@ void AgentEnsemble::setupEnsemble(
     bool disableLinkStateToggler,
     AgentEnsemblePlatformConfigFn platformConfigFn,
     uint32_t hwFeaturesDesired,
-    bool failHwCallsOnWarmboot) {
+    const TestEnsembleInitInfo& initInfo) {
   FLAGS_verify_apply_oper_delta = true;
 
   if (bootType_ == BootType::COLD_BOOT || FLAGS_prod_invariant_config_test) {
     auto inputAgentConfig =
         AgentConfig::fromFile(AgentEnsemble::getInputConfigFile())->thrift;
+    // If overrideDsfNodes is provided in initInfo, use it to update the
+    // dsfNodes in the config. This is useful for tests that need specific
+    // DSF configuration (e.g., L2 fabric level) before the HwSwitch is
+    // created.
+    if (initInfo.overrideDsfNodes.has_value()) {
+      inputAgentConfig.sw()->dsfNodes() = *initInfo.overrideDsfNodes;
+    }
+
     if (platformConfigFn) {
       platformConfigFn(
           *(inputAgentConfig.sw()), *(inputAgentConfig.platform()));
@@ -106,6 +114,12 @@ void AgentEnsemble::setupEnsemble(
         FLAGS_hide_management_ports) {
       continue;
     }
+    if (*platformPorts.find(static_cast<int32_t>(port.first))
+                ->second.mapping()
+                ->portType() == cfg::PortType::INTERFACE_PORT &&
+        FLAGS_hide_interface_ports) {
+      continue;
+    }
     masterLogicalPortIds_.push_back(port.first);
     auto switchId = getSw()->getScopeResolver()->scope(port.first).switchId();
     switchId2PortIds_[switchId].push_back(port.first);
@@ -139,7 +153,7 @@ void AgentEnsemble::setupEnsemble(
       disableLinkStateToggler == false) {
     setupLinkStateToggler();
   }
-  startAgent(failHwCallsOnWarmboot);
+  startAgent(initInfo.failHwCallsOnWarmboot);
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     ensureHwSwitchConnected(switchId);
@@ -149,7 +163,9 @@ void AgentEnsemble::setupEnsemble(
 void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
   auto* initializer = agentInitializer();
   auto hwWriteBehavior = HwWriteBehavior::WRITE;
-  if (getSw()->getWarmBootHelper()->canWarmBoot()) {
+  if (getSw()->getWarmBootHelper()->canWarmBoot(
+          getSw()->isRunModeMultiSwitch(),
+          getSw()->getHwSwitchThriftClientTable())) {
     hwWriteBehavior = HwWriteBehavior::LOG_FAIL;
     if (getSw()->getHwAsicTable()->isFeatureSupportedOnAllAsic(
             HwAsic::Feature::ZERO_SDK_WRITE_WARMBOOT)) {
@@ -237,7 +253,7 @@ void AgentEnsemble::applyNewConfig(
 }
 
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds() const {
-  return masterLogicalPortIds_;
+  return masterLogicalPortIds(SwitchID(FLAGS_switch_id_for_testing));
 }
 
 void AgentEnsemble::switchRunStateChanged(SwitchRunState runState) {}
@@ -502,6 +518,15 @@ bool AgentEnsemble::waitForRateOnPort(
     XLOG(WARNING) << "Setting wait time to 1 second for tests!";
   }
 
+  if (FLAGS_hyper_port) {
+    XLOG(DBG2)
+        << "enable SRAM only through diag to achieve 3.2Tbps linerate for hyper port";
+    std::string out;
+    this->runDiagCommand(
+        "w CGM_VOQ_SRAM_DRAM_MODE 0 128 1\n", out, SwitchID(0));
+    XLOG(DBG2) << "diag output: " << out;
+  }
+
   const auto portSpeedBps =
       static_cast<uint64_t>(
           getProgrammedState()->getPorts()->getNodeIf(port)->getSpeed()) *
@@ -587,7 +612,8 @@ void AgentEnsemble::bringDownPorts(const std::vector<PortID>& ports) {
 
 std::vector<PortID> AgentEnsemble::masterLogicalPortIds(
     SwitchID switchId) const {
-  return switchId2PortIds_.at(switchId);
+  auto it = switchId2PortIds_.find(switchId);
+  return it != switchId2PortIds_.end() ? it->second : std::vector<PortID>{};
 }
 
 void AgentEnsemble::clearPortStats() {
@@ -626,7 +652,9 @@ bool AgentEnsemble::ensureSendPacketSwitched(std::unique_ptr<TxPacket> pkt) {
   return utility::ensureSendPacketSwitched(
       this,
       std::move(pkt),
-      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      masterLogicalPortIds(
+          std::set<cfg::PortType>{
+              cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT}),
       getPortStats,
       masterLogicalSysPortIds(),
       getSysPortStats,
@@ -646,7 +674,11 @@ bool AgentEnsemble::ensureSendPacketOutOfPort(
       this,
       std::move(pkt),
       portID,
-      masterLogicalPortIds({cfg::PortType::INTERFACE_PORT}),
+      masterLogicalPortIds(
+          std::set<cfg::PortType>{
+              cfg::PortType::INTERFACE_PORT,
+              cfg::PortType::HYPER_PORT,
+              cfg::PortType::HYPER_PORT_MEMBER}),
       getPortStats,
       queue,
       kMsWaitForStatsRetry);
@@ -689,6 +721,7 @@ AgentEnsemble::getHwAgentTestClient(SwitchID switchId) {
  * and for some warmboot tests.
  */
 void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
+  XLOG(DBG2) << "Creating overridden agent config";
   CHECK(initialConfig_ != cfg::SwitchConfig());
   auto testConfig = AgentConfig::fromFile(configFile_);
 
@@ -697,8 +730,8 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
   std::vector<gflags::CommandLineFlagInfo> flags;
   gflags::GetAllFlags(&flags);
   for (const auto& flag : flags) {
-    // Skip writing flags if 1) default value, and 2) config itself.
-    if (!flag.is_default && flag.name != kConfig) {
+    // Skip writing flags if config is itself.
+    if (flag.name != kConfig) {
       defaultCommandLineArgs.emplace(flag.name, flag.current_value);
     }
   }
@@ -713,18 +746,21 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
 
   // Create directory and dump ensemble config
   utilCreateDir(AgentDirectoryUtil().agentEnsembleConfigDir());
-  agentConfig.dumpConfig(
-      AgentDirectoryUtil().agentEnsembleConfigDir() +
-      kOverriddenAgentConfigFile);
+  auto ensembleConfigPath = AgentDirectoryUtil().agentEnsembleConfigDir() +
+      kOverriddenAgentConfigFile;
+  agentConfig.dumpConfig(ensembleConfigPath);
+  XLOG(DBG2) << "Dumped ensemble config to " << ensembleConfigPath;
 
   // Handle hardware agent config for multi-switch setups
   if (FLAGS_multi_switch ||
       folly::get_default(defaultCommandLineArgs, kMultiSwitch, "") == "true") {
     for (const auto& [_, switchInfo] :
          *newAgentConf.sw()->switchSettings()->switchIdToSwitchInfo()) {
-      agentConfig.dumpConfig(
-          AgentDirectoryUtil().getTestHwAgentConfigFile(
-              *switchInfo.switchIndex()));
+      auto hwAgentConfigPath = AgentDirectoryUtil().getTestHwAgentConfigFile(
+          *switchInfo.switchIndex());
+      agentConfig.dumpConfig(hwAgentConfigPath);
+      XLOG(DBG2) << "Dumped hw_agent config for switch index "
+                 << *switchInfo.switchIndex() << " to " << hwAgentConfigPath;
     }
   }
 }

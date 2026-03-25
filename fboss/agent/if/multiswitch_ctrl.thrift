@@ -14,6 +14,9 @@ include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/thrift.thrift"
 include "fboss/agent/switch_config.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 @cpp.Type{name = "std::unique_ptr<folly::IOBuf>"}
 typedef binary fbbinary
 
@@ -31,6 +34,10 @@ struct LinkActiveEvent {
   3: optional i32 numActiveFabricPortsAtFwIsolate;
 }
 
+struct LinkFwDisableEvent {
+  1: list<i32> portIds;
+}
+
 struct FabricConnectivityDelta {
   1: optional ctrl.FabricEndpoint oldConnectivity;
   2: optional ctrl.FabricEndpoint newConnectivity;
@@ -45,6 +52,7 @@ enum LinkChangeEventType {
   LINK_STATE = 1,
   LINK_ACTIVE = 2,
   LINK_CONNECTIVITY = 3,
+  LINK_DISABLED_BY_FIRMWARE = 4,
 }
 
 struct LinkChangeEvent {
@@ -52,6 +60,7 @@ struct LinkChangeEvent {
   2: LinkActiveEvent linkActiveEvents;
   3: LinkConnectivityEvent linkConnectivityEvents;
   4: LinkChangeEventType eventType;
+  5: LinkFwDisableEvent linkFwDisableEvent;
 }
 
 struct SwitchReachabilityChangeEvent {
@@ -68,7 +77,7 @@ struct TxPacket {
   2: optional i32 port;
   3: optional i32 queue;
   4: i32 length;
-  5: common.TxPacketType packetType;
+  5: common.PacketType packetType;
 }
 
 struct RxPacket {
@@ -88,6 +97,7 @@ struct StateOperDelta {
   4: bool isFullState;
   5: common.HwWriteBehavior hwWriteBehavior = common.HwWriteBehavior.WRITE;
   6: list<fsdb_oper.OperDelta> operDeltas;
+  7: common.StateDeltaApplication deltaApplicationBehavior;
 }
 
 struct HwSwitchStats {

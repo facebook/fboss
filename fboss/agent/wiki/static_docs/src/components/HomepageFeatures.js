@@ -6,17 +6,7 @@ import React from 'react';
 import clsx from 'clsx';
 import styles from './HomepageFeatures.module.css';
 
-const FeatureList = [
-  {
-    title: 'Mission',
-    src: require('@site/static/img/Agent.png').default,
-    description: (
-      <>
-        Develop, deploy and maintain FBOSS Agent services for ASIC accelerated network switching functions to support FBNetInfra's goals.
-      </>
-    ),
-  },
-];
+const FeatureList = [];
 
 function Feature({src, title, description}) {
   return (

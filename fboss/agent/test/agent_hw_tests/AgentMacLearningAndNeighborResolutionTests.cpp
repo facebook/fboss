@@ -28,8 +28,6 @@
 #include "fboss/agent/test/utils/PacketTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 namespace {
 constexpr auto kHundredPercentage = 100;
@@ -41,58 +39,31 @@ const cfg::AclLookupClass kLookupClass{
 
 template <
     cfg::L2LearningMode mode = cfg::L2LearningMode::HARDWARE,
-    bool trunk = false,
-    bool intfNbrTable = false>
+    bool trunk = false>
 struct LearningModeAndPortTypesT {
   static constexpr auto kLearningMode = mode;
   static constexpr auto kIsTrunk = trunk;
-  static auto constexpr isIntfNbrTable = intfNbrTable;
 
   static cfg::SwitchConfig initialConfig(cfg::SwitchConfig config) {
     config.switchSettings()->l2LearningMode() = kLearningMode;
-    if (kIsTrunk) {
-      auto addTrunk = [&config](auto aggId, auto startIdx) {
-        std::vector<int> ports;
-        auto configPorts = config.vlanPorts();
-        for (auto i = startIdx; i < startIdx + 2; ++i) {
-          ports.push_back(*(configPorts[i].logicalPort()));
-        }
-        utility::addAggPort(aggId, ports, &config);
-      };
-      addTrunk(kAggID, 0);
-      addTrunk(kAggID2, 2);
-    }
     return config;
   }
 };
 
-using SwLearningModeAndTrunkVlanNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true, false>;
-using SwLearningModeAndPortVlanNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false, false>;
-using HwLearningModeAndTrunkVlanNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true, false>;
-using HwLearningModeAndPortVlanNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false, false>;
-
-using SwLearningModeAndTrunkIntfNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true, true>;
-using SwLearningModeAndPortIntfNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false, true>;
-using HwLearningModeAndTrunkIntfNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true, true>;
-using HwLearningModeAndPortIntfNbrTable =
-    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false, true>;
+using SwLearningModeAndTrunk =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, true>;
+using SwLearningModeAndPort =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::SOFTWARE, false>;
+using HwLearningModeAndTrunk =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, true>;
+using HwLearningModeAndPort =
+    LearningModeAndPortTypesT<cfg::L2LearningMode::HARDWARE, false>;
 
 using LearningAndPortTypes = ::testing::Types<
-    SwLearningModeAndTrunkVlanNbrTable,
-    SwLearningModeAndPortVlanNbrTable,
-    HwLearningModeAndTrunkVlanNbrTable,
-    HwLearningModeAndPortVlanNbrTable,
-    SwLearningModeAndTrunkIntfNbrTable,
-    SwLearningModeAndPortIntfNbrTable,
-    HwLearningModeAndTrunkIntfNbrTable,
-    HwLearningModeAndPortIntfNbrTable>;
+    SwLearningModeAndTrunk,
+    SwLearningModeAndPort,
+    HwLearningModeAndTrunk,
+    HwLearningModeAndPort>;
 
 } // namespace
 
@@ -105,18 +76,16 @@ class AgentNeighborResolutionTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = ensemble.getSw()
-                        ->getScopeResolver()
-                        ->scope(ensemble.masterLogicalPortIds())
-                        .switchId();
+    auto switchId = getSwitchIdUnderTest(ensemble);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     auto cfg = utility::oneL3IntfTwoPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
+        ensemble.getPlatformMapping(),
         asic,
         ensemble.masterLogicalPortIds()[0],
         ensemble.masterLogicalPortIds()[1],
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        ensemble.getSw()->getPlatformType());
     return cfg;
   }
 
@@ -139,7 +108,6 @@ class AgentNeighborResolutionTest : public AgentHwTest {
       const PortDescriptor& port,
       const AddrT& addr,
       const folly::MacAddress& mac,
-      const bool isIntfNbrTable,
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     using NeighborTableT = typename std::conditional_t<
         std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -147,17 +115,10 @@ class AgentNeighborResolutionTest : public AgentHwTest {
         NdpTable>;
     auto state = in->clone();
     NeighborTableT* neighborTable;
-    if (isIntfNbrTable) {
-      neighborTable = state->getInterfaces()
-                          ->getNode(kIntfID)
-                          ->template getNeighborEntryTable<AddrT>()
-                          ->modify(kIntfID, &state);
-    } else {
-      neighborTable = state->getVlans()
-                          ->getNode(kVlanID)
-                          ->template getNeighborEntryTable<AddrT>()
-                          ->modify(kVlanID, &state);
-    }
+    neighborTable = state->getInterfaces()
+                        ->getNode(kIntfID)
+                        ->template getNeighborEntryTable<AddrT>()
+                        ->modify(kIntfID, &state);
 
     auto reachableNeighborState = NeighborState::REACHABLE;
     if (auto existingEntry = neighborTable->getEntryIf(addr)) {
@@ -185,15 +146,9 @@ class AgentNeighborResolutionTest : public AgentHwTest {
   const std::shared_ptr<TableT> getNeighborTable() {
     std::shared_ptr<TableT> neighborTable;
     auto state = getProgrammedState();
-    if (FLAGS_intf_nbr_tables) {
-      neighborTable = state->getInterfaces()
-                          ->getNode(kIntfID)
-                          ->template getNeighborEntryTable<AddrT>();
-    } else {
-      neighborTable = state->getVlans()
-                          ->getNode(kVlanID)
-                          ->template getNeighborEntryTable<AddrT>();
-    }
+    neighborTable = state->getInterfaces()
+                        ->getNode(kIntfID)
+                        ->template getNeighborEntryTable<AddrT>();
     return neighborTable;
   }
 
@@ -208,23 +163,20 @@ class AgentMacLearningAndNeighborResolutionTest
  public:
   static auto constexpr kLearningMode = LearningModeAndPortT::kLearningMode;
   static auto constexpr kIsTrunk = LearningModeAndPortT::kIsTrunk;
-  static auto constexpr isIntfNbrTable = LearningModeAndPortT::isIntfNbrTable;
 
  protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     // enable neighbor update failure protection
     FLAGS_enable_hw_update_protection = true;
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    std::vector<ProductionFeature> features = {ProductionFeature::MAC_LEARNING};
+    std::vector<ProductionFeature> features = {
+        ProductionFeature::MAC_LEARNING,
+        ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
 
-    if (isIntfNbrTable) {
-      features.push_back(ProductionFeature::INTERFACE_NEIGHBOR_TABLE);
-    }
     if (kIsTrunk) {
       features.push_back(ProductionFeature::LAG);
     }
@@ -233,14 +185,31 @@ class AgentMacLearningAndNeighborResolutionTest
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(hwAsics);
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto configPorts = allConfigPorts(ensemble);
     auto inConfig = utility::oneL3IntfNPortConfig(
-        ensemble.getSw()->getPlatformMapping(),
+        ensemble.getPlatformMapping(),
         asic,
-        allConfigPorts(ensemble),
+        configPorts,
         ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes());
+        asic->desiredLoopbackModes(),
+        true,
+        utility::kBaseVlanId,
+        true,
+        true,
+        ensemble.getSw()->getPlatformType());
+    if (kIsTrunk) {
+      auto addTrunk = [&inConfig, &configPorts](auto aggId, auto startIdx) {
+        std::vector<int> ports;
+        for (auto i = startIdx; i < startIdx + 2; ++i) {
+          ports.push_back(configPorts[i]);
+        }
+        utility::addAggPort(aggId, ports, &inConfig);
+      };
+      addTrunk(kAggID, 0);
+      addTrunk(kAggID2, 2);
+    }
     return LearningModeAndPortT::initialConfig(inConfig);
   }
   PortDescriptor portDescriptor() const {
@@ -391,15 +360,13 @@ class AgentMacLearningAndNeighborResolutionTest
     getAgentEnsemble()->ensureSendPacketOutOfPort(std::move(txPacket), phyPort);
   }
   void verifySentPacket(const folly::IPAddress& dstIp) {
-    auto firstVlanID = getProgrammedState()->getVlans()->getFirstVlanID();
-
-    auto intfMac = utility::getInterfaceMac(getProgrammedState(), firstVlanID);
+    auto intfMac = utility::getInterfaceMac(getProgrammedState(), kVlanID);
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto srcIp =
         dstIp.isV6() ? folly::IPAddress("1::3") : folly::IPAddress("1.1.1.3");
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
-        firstVlanID,
+        kVlanID,
         srcMac, // src mac
         intfMac, // dst mac
         srcIp,
@@ -429,8 +396,7 @@ class AgentMacLearningAndNeighborResolutionTest
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     applyNewStateWithProtectionIfSupported(
         [&](const std::shared_ptr<SwitchState>& in) {
-          return updateNeighborEntry(
-              in, port, addr, kNeighborMac, isIntfNbrTable, lookupClass);
+          return updateNeighborEntry(in, port, addr, kNeighborMac, lookupClass);
         },
         "program neighbor");
   }
@@ -446,17 +412,10 @@ class AgentMacLearningAndNeighborResolutionTest
     WITH_RETRIES({
       NeighborTableT* neighborTable;
       auto state = getProgrammedState();
-      if (isIntfNbrTable) {
-        neighborTable = state->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborEntryTable<AddrT>()
-                            ->modify(kIntfID, &state);
-      } else {
-        neighborTable = state->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborEntryTable<AddrT>()
-                            ->modify(kVlanID, &state);
-      }
+      neighborTable = state->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborEntryTable<AddrT>()
+                          ->modify(kIntfID, &state);
       auto entry = neighborTable->getEntryIf(addr);
       EXPECT_EVENTUALLY_TRUE(entry);
       if (entry) {
@@ -477,17 +436,10 @@ class AgentMacLearningAndNeighborResolutionTest
         [&](const std::shared_ptr<SwitchState>& in) {
           auto newState = in->clone();
           NeighborTableT* neighborTable;
-          if (isIntfNbrTable) {
-            neighborTable = newState->getInterfaces()
-                                ->getNode(kIntfID)
-                                ->template getNeighborEntryTable<AddrT>()
-                                ->modify(kIntfID, &newState);
-          } else {
-            neighborTable = newState->getVlans()
-                                ->getNode(kVlanID)
-                                ->template getNeighborEntryTable<AddrT>()
-                                ->modify(kVlanID, &newState);
-          }
+          neighborTable = newState->getInterfaces()
+                              ->getNode(kIntfID)
+                              ->template getNeighborEntryTable<AddrT>()
+                              ->modify(kIntfID, &newState);
 
           // Prune MAC entry accordingly
           auto oldEntry = neighborTable->getEntryIf(ip);
@@ -508,7 +460,6 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
  protected:
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
-    FLAGS_intf_nbr_tables = false;
     // Enable neighbor cache so that class id is set
     FLAGS_disable_neighbor_updates = false;
     // enable neighbor update failure protection
@@ -637,23 +588,13 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     for (int i = getBulkProgramCount(); i < ipAddresses.size(); i++) {
       XLOG(DBG2) << "Programming neighbor " << i << ": "
                  << ipAddresses[i].str();
-      if (FLAGS_intf_nbr_tables) {
-        getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
-            kIntfID,
-            ipAddresses[i],
-            kNeighborMac,
-            port,
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-            0);
-      } else {
-        getSw()->getNeighborUpdater()->receivedNdpMine(
-            kVlanID,
-            ipAddresses[i],
-            kNeighborMac,
-            port,
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-            0);
-      }
+      getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
+          kIntfID,
+          ipAddresses[i],
+          kNeighborMac,
+          port,
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+          0);
 
       // wait for neighbor update to complete before enqueuing next neighbor
       // update
@@ -682,12 +623,7 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     CHECK_LE(startIndex + count, ipAddressesV6.size());
     for (int i = startIndex; i < startIndex + count; i++) {
       state = updateNeighborEntry<AddrT>(
-          state,
-          port,
-          ipAddressesV6[i],
-          kNeighborMac,
-          FLAGS_intf_nbr_tables,
-          lookupClass);
+          state, port, ipAddressesV6[i], kNeighborMac, lookupClass);
     }
     return state;
   }

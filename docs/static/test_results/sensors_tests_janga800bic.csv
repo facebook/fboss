@@ -1,0 +1,7 @@
+"Test Case","Platform","Status"
+"SensorServiceHwTest.SensorFetchODSCheck","janga800bic","PASSED"
+"SensorServiceHwTest.GetSomeSensorsViaThrift","janga800bic","PASSED"
+"SensorServiceHwTest.GetSomeSensors","janga800bic","PASSED"
+"SensorServiceHwTest.GetBogusSensor","janga800bic","PASSED"
+"SensorServiceHwTest.GetAllSensors","janga800bic","PASSED"
+"SensorServiceHwTest.CheckAllSensors","janga800bic","PASSED"

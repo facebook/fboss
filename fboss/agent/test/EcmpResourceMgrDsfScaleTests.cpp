@@ -10,8 +10,12 @@
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
+#include "fboss/agent/HwSwitchMatcher.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
 #include <gtest/gtest.h>
 
@@ -45,11 +49,15 @@ class EcmpResourceManagerDsfScaleTest : public ::testing::Test {
   std::unique_ptr<EcmpResourceManager> ecmpResourceMgr_;
   std::shared_ptr<SwitchState> state_;
   RouteNextHopSet allNextHops_;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
 };
 
 std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
     const std::shared_ptr<SwitchState>& newState) {
-  auto deltas = ecmpResourceMgr_->consolidate(StateDelta(state_, newState));
+  auto stateWithIds = newState->clone();
+  assignNextHopIdsToAllRoutes(nextHopIDManager_.get(), stateWithIds);
+  stateWithIds->publish();
+  auto deltas = ecmpResourceMgr_->consolidate(StateDelta(state_, stateWithIds));
   state_ = deltas.back().newState();
   ecmpResourceMgr_->updateDone();
   assertResourceMgrCorrectness(*ecmpResourceMgr_, state_);
@@ -61,6 +69,9 @@ std::vector<StateDelta> EcmpResourceManagerDsfScaleTest::consolidate(
 
 void EcmpResourceManagerDsfScaleTest::SetUp() {
   FLAGS_ecmp_width = kEcmpWidth;
+  if (FLAGS_enable_nexthop_id_manager) {
+    nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+  }
   ecmpResourceMgr_ = makeResourceMgr();
   state_ = std::make_shared<SwitchState>();
   addSwitchInfo(state_);
@@ -155,6 +166,8 @@ TEST_F(EcmpResourceManagerDsfScaleTest, maxScaleInterfaceRoutes) {
   // Reconstruct from switch state with maximal scale + 20K
   // interface routes. This simulates what happens
   // during warm boot
+  assignNextHopIdsToAllRoutes(nextHopIDManager_.get(), newState);
+  newState->publish();
   auto resourceMgr = makeResourceMgr();
   resourceMgr->reconstructFromSwitchState(newState);
 }

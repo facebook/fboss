@@ -79,9 +79,6 @@ class PkgManagerTest : public testing::Test {
 };
 
 TEST_F(PkgManagerTest, EnablePkgMgmnt) {
-  FLAGS_enable_pkg_mgmnt = true;
-  FLAGS_reload_kmods = false;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   // Case 1: When new rpm installed
   {
@@ -93,7 +90,10 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
   // Case 2: When rpm is already installed
   {
     InSequence seq;
@@ -103,13 +103,13 @@ TEST_F(PkgManagerTest, EnablePkgMgmnt) {
   }
   EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
-  FLAGS_enable_pkg_mgmnt = true;
-  FLAGS_reload_kmods = true;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   // Case 1: When new rpm installed and expect to reload kmods twice.
   {
@@ -121,9 +121,12 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
   // Case 2: When rpm is already installed and still expect to unload kmods
-  // once because of FLAGS_reload_kmods being true.
+  // once because reloadKmods is true.
   {
     InSequence seq;
     EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_))
@@ -132,25 +135,25 @@ TEST_F(PkgManagerTest, EnablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/true, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, DisablePkgMgmnt) {
-  FLAGS_enable_pkg_mgmnt = false;
-  FLAGS_reload_kmods = false;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_)).Times(0);
   EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
   EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/false, /*reloadKmods=*/false));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
-  FLAGS_enable_pkg_mgmnt = false;
-  FLAGS_reload_kmods = true;
-
   EXPECT_CALL(mockPkgManager_, processLocalRpms()).Times(0);
   EXPECT_CALL(*mockSystemInterface_, isRpmInstalled(_)).Times(0);
   EXPECT_CALL(mockPkgManager_, processRpms()).Times(0);
@@ -159,7 +162,10 @@ TEST_F(PkgManagerTest, DisablePkgMgmntWithReloadKmods) {
     EXPECT_CALL(mockPkgManager_, unloadBspKmods()).Times(1);
     EXPECT_CALL(mockPkgManager_, loadRequiredKmods()).Times(1);
   }
-  EXPECT_NO_THROW(mockPkgManager_.processAll());
+  EXPECT_NO_THROW(mockPkgManager_.processAll(
+      /*enablePkgMgmnt=*/false, /*reloadKmods=*/true));
+  EXPECT_GE(
+      facebook::fb303::fbData->getCounter(PkgManager::kProcessAllTime), 0);
 }
 
 TEST_F(PkgManagerTest, processRpms) {
@@ -301,9 +307,12 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
               *platformConfig_.bspKmodsRpmName())))
       .WillOnce(Return(std::vector<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, lsmod()).Times(0);
+  EXPECT_FALSE(pkgManager_.wereKmodsUnloaded());
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_FALSE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
+
   // No kmods.json when it should exist
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(std::nullopt));
@@ -317,8 +326,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           std::vector<std::string>{
               "fboss_bsp_kmods-6.4.3-0_fbk1_755_ga25447393a1d-2.4.0-1"}));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  EXPECT_FALSE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);
+
   // kmods.json exist and all kmods are loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -333,8 +344,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           bspKmodsFile_.bspKmods()->size())
       .WillRepeatedly(Return(true));
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_TRUE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
+
   // kmods.json exists but unload fails
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -345,8 +358,10 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
           ranges::to<std::set<std::string>>));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).WillOnce(Return(false));
   EXPECT_THROW(pkgManager_.unloadBspKmods(), std::runtime_error);
+  EXPECT_TRUE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 1);
+
   // kmods.json exist and all kmods aren't loaded
   EXPECT_CALL(*mockPlatformFsUtils_, getStringFileContent(_))
       .WillOnce(Return(jsonBspKmodsFile_));
@@ -354,6 +369,7 @@ TEST_F(PkgManagerTest, unloadBspKmods) {
       .WillOnce(Return(std::set<std::string>{}));
   EXPECT_CALL(*mockSystemInterface_, unloadKmod(_)).Times(0);
   EXPECT_NO_THROW(pkgManager_.unloadBspKmods());
+  EXPECT_TRUE(pkgManager_.wereKmodsUnloaded());
   EXPECT_EQ(
       facebook::fb303::fbData->getCounter(PkgManager::kUnloadKmodsFailure), 0);
 }

@@ -1,3 +1,5 @@
+package "facebook.com/fboss/cli"
+
 namespace cpp2 facebook.fboss.cli
 
 struct ShowAggregatePortModel {
@@ -19,4 +21,5 @@ struct AggregateMemberPortEntry {
   2: i32 id;
   3: bool isUp;
   4: string lacpRate;
+  5: bool isLinkUp;
 }

@@ -485,13 +485,28 @@ void HwPortFb303Stats::updateStats(
     }
   }
 
-  // PG stats
-  for (const auto& [pgId, discards] : *curPortStats.pgInCongestionDiscards_()) {
-    updatePgStat(timeRetrieved_, kInCongestionDiscards(), pgId, discards);
+  // Update PG stats if applicable.
+  // Note: There is a 1:1 mapping between priority and PG id.
+  if (curPortStats.pgInCongestionDiscards_()->size()) {
+    for (const auto& pgId : getEnabledPfcPriorities()) {
+      auto pgStatsIter = curPortStats.pgInCongestionDiscards_()->find(pgId);
+      if (pgStatsIter != curPortStats.pgInCongestionDiscards_()->end()) {
+        updatePgStat(
+            timeRetrieved_, kInCongestionDiscards(), pgId, pgStatsIter->second);
+      }
+    }
   }
-  for (const auto& [pgId, discardSeen] :
-       *curPortStats.pgInCongestionDiscardSeen_()) {
-    setPgCounter(timeRetrieved_, kInCongestionDiscardSeen(), pgId, discardSeen);
+  if (curPortStats.pgInCongestionDiscardSeen_()->size()) {
+    for (const auto& pgId : getEnabledPfcPriorities()) {
+      auto pgStatsIter = curPortStats.pgInCongestionDiscardSeen_()->find(pgId);
+      if (pgStatsIter != curPortStats.pgInCongestionDiscardSeen_()->end()) {
+        setPgCounter(
+            timeRetrieved_,
+            kInCongestionDiscardSeen(),
+            pgId,
+            pgStatsIter->second);
+      }
+    }
   }
 
   portStats_ = curPortStats;

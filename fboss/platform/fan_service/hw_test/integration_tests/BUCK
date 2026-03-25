@@ -9,6 +9,7 @@ cpp_binary(
     ],
     deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fb303:service_data",
         "//fboss/lib:common_utils",
         "//fboss/platform/config_lib:config_lib",
         "//fboss/platform/fan_service:core",

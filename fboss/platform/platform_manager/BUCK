@@ -15,6 +15,9 @@ thrift_library(
         "platform_manager_config.thrift": [],
         "platform_manager_presence.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -27,6 +30,9 @@ thrift_library(
     thrift_srcs = {
         "platform_manager_snapshot.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -65,6 +71,8 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
+        ":cpld_manager",
+        ":fbcpld_ioctl_h",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":platform_manager_validators-cpp2-types",
@@ -87,6 +95,7 @@ cpp_library(
         ":utils",
         "//fboss/lib/i2c:i2c_ctrl",
         "//fboss/platform/helpers:platform_fs_utils",
+        "//folly:cpu_id",
         "//folly:file_util",
         "//folly:string",
         "//folly/logging:logging",
@@ -154,6 +163,21 @@ cpp_library(
 )
 
 cpp_library(
+    name = "exploration_errors",
+    srcs = [
+        "ExplorationErrors.cpp",
+    ],
+    headers = [
+        "ExplorationErrors.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/re2:re2",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
+    ],
+)
+
+cpp_library(
     name = "platform_explorer",
     srcs = [
         "ExplorationSummary.cpp",
@@ -161,35 +185,24 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
+        ":cpld_manager",
         ":data_store",
         ":device_path_resolver",
+        ":exploration_errors",
         ":i2c_explorer",
         ":pci_explorer",
         ":platform_manager_config-cpp2-types",
         ":platform_manager_service-cpp2-types",
         ":presence_checker",
-        ":scuba_logger",
         ":utils",
         "//fb303:service_data",
         "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_utils",
+        "//fboss/platform/helpers:structured_logger",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//fboss/platform/weutil:ioctl_smbus_eeprom_reader",
         "//folly:file_util",
         "//folly/logging:logging",
-    ],
-)
-
-cpp_library(
-    name = "scuba_logger",
-    srcs = [
-        "ScubaLogger.cpp",
-    ],
-    exported_deps = [
-        "//common/network:util",
-        "//folly/json:dynamic",
-        "//folly/logging:logging",
-        "//scribe/client:scribe_client_no_sr",
     ],
 )
 
@@ -215,11 +228,25 @@ cpp_library(
     srcs = [
         "ConfigUtils.cpp",
     ],
+    # Prevent other libraries from depending on this one. This is to prevent
+    # BIOS access from other binaries. Only platform_manager should read from
+    # BIOS to determine platform name and populate cache file.
+    visibility = [
+        "//fboss/platform/platform_hw_test:platform_hw_test",
+        "//fboss/platform/platform_manager:platform_manager",
+        "//fboss/platform/platform_manager/hw_test:platform_manager_hw_test",
+        "//fboss/platform/platform_manager/tests:config_utils_test",
+    ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":config_validator",
         ":platform_manager_config-cpp2-types",
         "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:platform_fs_utils",
         "//fboss/platform/helpers:platform_name_lib",
+        "//folly:string",
+        "//folly/hash:hash",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
@@ -267,18 +294,42 @@ cpp_binary(
     deps = [
         ":config_utils",
         ":pkg_manager",
+        ":platform_explorer",
         ":platform_manager_handler",
-        ":scuba_logger",
         "//fb303:logging",
         "//fb303:service_data",
         "//fboss/platform/helpers:init",
+        "//fboss/platform/helpers:structured_logger",
     ],
     external_deps = [("systemd", None, "systemd")],
+)
+
+cpp_library(
+    name = "fbcpld_ioctl_h",
+    headers = [
+        "uapi/fbcpld-ioctl.h",
+    ],
 )
 
 cpp_library(
     name = "fbiob_ioctl_h",
     headers = [
         "uapi/fbiob-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "cpld_manager",
+    srcs = ["CpldManager.cpp"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fbcpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
+        "//folly:conv",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
 )

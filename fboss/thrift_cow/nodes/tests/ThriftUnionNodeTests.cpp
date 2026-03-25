@@ -10,8 +10,6 @@
 
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
-#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
@@ -22,8 +20,7 @@
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
 
-using k = test_tags::strings;
-using sk = cfg::switch_config_tags::strings;
+namespace sk = apache::thrift::ident;
 
 namespace {
 

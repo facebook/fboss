@@ -14,7 +14,6 @@
 #include "fboss/qsfp_service/test/hw_test/HwPortUtils.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
-#include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 namespace facebook::fboss {
 
@@ -194,6 +193,14 @@ class HwXphyPortInfoTest : public HwExternalPhyPortTest {
         }
         EXPECT_GT(portInfo.state()->get_timeCollected(), 0);
         EXPECT_GT(portInfo.stats()->get_timeCollected(), 0);
+      }
+
+      // Verify that there are no PIM errors since all getPortInfo calls above
+      // should have succeeded
+      auto pimStates = getHwQsfpEnsemble()->getWedgeManager()->getPimStates();
+      for (const auto& [pimId, pimState] : pimStates) {
+        EXPECT_TRUE(pimState.errors()->empty())
+            << "PIM " << pimId << " should not have any errors";
       }
     };
     verifyAcrossWarmBoots(setup, verify);

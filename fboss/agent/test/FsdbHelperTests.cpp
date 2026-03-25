@@ -51,7 +51,7 @@ TEST(FsdbHelperTests, VerifyOperDelta) {
     members.insert(tokens[2]);
   }
   // route updates will lead to fib programming
-  EXPECT_NE(members.find("fibsMap"), members.end());
+  EXPECT_NE(members.find("fibsInfoMap"), members.end());
 }
 
 } // namespace facebook::fboss

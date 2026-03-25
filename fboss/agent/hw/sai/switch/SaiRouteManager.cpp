@@ -12,12 +12,14 @@
 #include "fboss/agent/Utils.h"
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -158,7 +160,8 @@ void SaiRouteManager::addOrUpdateRoute(
     SaiRouteHandle* routeHandle,
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& oldRoute,
-    const std::shared_ptr<Route<AddrT>>& newRoute) {
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const std::shared_ptr<SwitchState>& state) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, newRoute);
   const auto& fwd = newRoute->getForwardInfo();
   sai_int32_t packetAction;
@@ -186,6 +189,7 @@ void SaiRouteManager::addOrUpdateRoute(
 
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
+    const auto nhops = getNextHops(state, fwd);
     /*
      * A Route which satisfies isConnected() is an interface subnet route.
      * It will have one NextHop with the ip configured for the interface
@@ -195,8 +199,8 @@ void SaiRouteManager::addOrUpdateRoute(
      * (see sairoute.h for an explanation of router_interface_id as next hop)
      */
     if (newRoute->isConnected()) {
-      CHECK_EQ(fwd.getNextHopSet().size(), 1);
-      InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
+      CHECK_EQ(nhops.size(), 1);
+      InterfaceID interfaceId{nhops.begin()->intf()};
 
       /*
        * For VOQ switches with multiple asics, set connected routes to drop
@@ -209,17 +213,29 @@ void SaiRouteManager::addOrUpdateRoute(
         CHECK(!systemPortRanges.systemPortRanges()->empty());
         if (!withinRange(systemPortRanges, interfaceId)) {
           packetAction = SAI_PACKET_ACTION_DROP;
-#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-          attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
-#else
-          attributes = SaiRouteTraits::CreateAttributes{
-              packetAction, SAI_NULL_OBJECT_ID, metadata};
-#endif
+        }
+      } else if (
+          platform_->getAsic()->getSwitchType() == cfg::SwitchType::NPU) {
+        /* Set connected routes to drop if the interface is not on the same
+         * asic for multi-NPU switches.
+         * TODO - Selectively add routes with nexthop interfaces on the same
+         * asic, associate different ranges of interfaceIDs with each NPU.
+         */
+        if (!managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+                interfaceId)) {
+          packetAction = SAI_PACKET_ACTION_DROP;
         }
       }
 
-      if (packetAction != SAI_PACKET_ACTION_DROP) {
+      if (packetAction == SAI_PACKET_ACTION_DROP) {
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+#else
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata};
+#endif
+      } else {
         const SaiRouterInterfaceHandle* routerInterfaceHandle =
             managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
                 interfaceId);
@@ -282,7 +298,7 @@ void SaiRouteManager::addOrUpdateRoute(
         XLOG(DBG3) << "Connected route: " << newRoute->str()
                    << " routerInterfaceId: " << routerInterfaceId;
       }
-    } else if (fwd.getNextHopSet().size() > 1) {
+    } else if (nhops.size() > 1) {
       /*
        * A Route which has more than one NextHops will create or reference an
        * existing SaiNextHopGroup corresponding to ECMP over those next hops.
@@ -309,107 +325,148 @@ void SaiRouteManager::addOrUpdateRoute(
       XLOG(DBG3) << "Route nhops > 1: " << newRoute->str()
                  << " nextHopGroupId: " << nextHopGroupId;
     } else {
-      CHECK_EQ(fwd.getNextHopSet().size(), 1);
+      CHECK_EQ(nhops.size(), 1);
       /* A route which has only one next hop, create a subscriber for next hop
        * to make route point back and forth next hop or CPU
        */
-      auto swNextHop =
-          folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
+      auto swNextHop = folly::poly_cast<ResolvedNextHop>(*(nhops.begin()));
 
-      InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
+      InterfaceID interfaceId{nhops.begin()->intf()};
       const SaiRouterInterfaceHandle* routerInterfaceHandle =
           managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
               interfaceId);
       if (!routerInterfaceHandle) {
-        throw FbossError(
-            "cannot create route resolved but without a sai_router_interface "
-            "for InterfaceID: ",
-            interfaceId);
-      }
-      bool localNexthop = routerInterfaceHandle->isLocal();
-
-      auto managedSaiNextHop =
-          managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
-      sai_object_id_t nextHopId{};
-
-      /* claim the next hop first */
-      std::visit(
-          [&](auto& managedNextHop) {
-            using SharedPtrType = std::decay_t<decltype(managedNextHop)>;
-            using NextHopTraits =
-                typename SharedPtrType::element_type::ObjectTraits;
-
-            auto managedRouteNextHop =
-                refOrCreateManagedRouteNextHop<NextHopTraits>(
-                    routeHandle, entry, managedNextHop, metadata, localNexthop);
-
-            nextHopId = managedRouteNextHop->adapterKey();
-            nextHopHandle = managedRouteNextHop;
-          },
-          managedSaiNextHop);
-
-      /*
-       * Refer S390808 for more details.
-       *
-       * FBOSS behaviour:
-       * Routes that uses single nexthop and are unresolved points to
-       * cpu port as the nexthop to trigger neighbor resolution. This is
-       * by setting the nexthop ID of the route to CPU port.
-       *
-       * SAI spec expectation:
-       * Based on the SAI spec, any route that points to CPU port should
-       * be treated as MYIP. As there is no way to differentiate between
-       * interface routes and VIp/ILA routes, both the routes are
-       * programmed with CPU port as the nexthop. NOTE that we configure
-       * a hostif trap for MYIP which will send packets to mid pri queue.
-       *
-       * BCM SAI behavior:
-       * Any /32 or /128 routes that points to CPU port will be
-       * treated as MYIP. BCM SAI ensures that only host routes
-       * are treated as IP2ME routes. For unresolved subnet routes, even
-       * though nexthop is set to CPU port, the class ID is set
-       * SUBNET_CLASS_ID which defaults to queue 0. For all unreoslved host
-       * routes, the class ID is set to IP2ME class ID which will be
-       * sent to mid pri queue due to IP2ME hostif trap. However, brcm-sai
-       * is also implicitly programming route classID underlyingly, which
-       * could cause conflict with our programming. So, do nothing on
-       * brcm sai switches for now, until brcm-sai is enhanced to support it.
-       *
-       * TAJO SDK behavior:
-       * For Tajo, any route (host route or subnet route) that points to
-       * CPU port will be treated as MYIP. Both host and subnet routes
-       * that are unresolved will be sent to mid pri queue due to the
-       * IP2ME hostif trap. So, FLAGS_classid_for_unresolved_routes is
-       * currently only enabled on tajo switches.
-       *
-       * Fix for the issue:
-       * In order to send these not MYIP routes to default queue,
-       * 1) Program unresolved routes that points to CPU port to a class ID
-       * CLASS_UNRESOLVED_ROUTE_TO_CPU
-       * 2) Add an ACL with qualifer as CLASS_UNRESOLVED_ROUTE_TO_CPU and
-       * action as low pri queue.
-       */
-      if (FLAGS_classid_for_unresolved_routes &&
-          platform_->getAsic()->isSupported(HwAsic::Feature::ROUTE_METADATA)) {
-        if (nextHopId == managerTable_->switchManager().getCpuPort()) {
-          XLOG(DBG2) << "set route class id to 2";
-          metadata =
-              static_cast<uint32_t>(cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
-        }
-      }
-
+        if ((platform_->getAsic()->getSwitchType() == cfg::SwitchType::NPU)) {
+          /* Set non-connected routes to drop if the interface is not on the
+           * same asic for multi-NPU switches. as above connected branch.
+           */
+          packetAction = SAI_PACKET_ACTION_DROP;
+          XLOG(DBG3)
+              << "cannot create managed nexthop without a sai_router_interface "
+                 "for InterfaceID: "
+              << interfaceId << ", drop it";
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, nextHopId, metadata, counterID};
+          attributes = SaiRouteTraits::CreateAttributes{
+              packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
 #else
-      attributes =
-          SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
+          attributes = SaiRouteTraits::CreateAttributes{
+              packetAction, SAI_NULL_OBJECT_ID, metadata};
+#endif
+        } else {
+          XLOG(ERR)
+              << "cannot create managed nexthop without a sai_router_interface "
+              << "for InterfaceID: " << interfaceId;
+          CHECK_EQ(platform_->getAsic()->getSwitchType(), cfg::SwitchType::VOQ);
+          throw FbossError(
+              "cannot create managed nexthop without a sai_router_interface "
+              "for InterfaceID: ",
+              interfaceId);
+        }
+      } else {
+        bool localNexthop = routerInterfaceHandle->isLocal();
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+        std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle;
+        if (!swNextHop.srv6SegmentList().empty()) {
+          auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+              routerInterfaceHandle->adapterKey(), swNextHop);
+          srv6SidListHandle =
+              managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
+                  sidListKey, sidListAttrs);
+        }
+        auto managedSaiNextHop =
+            managerTable_->nextHopManager().addManagedSaiNextHop(
+                swNextHop, std::move(srv6SidListHandle));
+#else
+        auto managedSaiNextHop =
+            managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
+#endif
+        sai_object_id_t nextHopId{};
+
+        /* claim the next hop first */
+        std::visit(
+            [&](auto& managedNextHop) {
+              using SharedPtrType = std::decay_t<decltype(managedNextHop)>;
+              using NextHopTraits =
+                  typename SharedPtrType::element_type::ObjectTraits;
+
+              auto managedRouteNextHop =
+                  refOrCreateManagedRouteNextHop<NextHopTraits>(
+                      routeHandle,
+                      entry,
+                      managedNextHop,
+                      metadata,
+                      localNexthop);
+
+              nextHopId = managedRouteNextHop->adapterKey();
+              nextHopHandle = managedRouteNextHop;
+            },
+            managedSaiNextHop);
+
+        /*
+         * Refer S390808 for more details.
+         *
+         * FBOSS behaviour:
+         * Routes that uses single nexthop and are unresolved points to
+         * cpu port as the nexthop to trigger neighbor resolution. This is
+         * by setting the nexthop ID of the route to CPU port.
+         *
+         * SAI spec expectation:
+         * Based on the SAI spec, any route that points to CPU port should
+         * be treated as MYIP. As there is no way to differentiate between
+         * interface routes and VIp/ILA routes, both the routes are
+         * programmed with CPU port as the nexthop. NOTE that we configure
+         * a hostif trap for MYIP which will send packets to mid pri queue.
+         *
+         * BCM SAI behavior:
+         * Any /32 or /128 routes that points to CPU port will be
+         * treated as MYIP. BCM SAI ensures that only host routes
+         * are treated as IP2ME routes. For unresolved subnet routes, even
+         * though nexthop is set to CPU port, the class ID is set
+         * SUBNET_CLASS_ID which defaults to queue 0. For all unreoslved host
+         * routes, the class ID is set to IP2ME class ID which will be
+         * sent to mid pri queue due to IP2ME hostif trap. However, brcm-sai
+         * is also implicitly programming route classID underlyingly, which
+         * could cause conflict with our programming. So, do nothing on
+         * brcm sai switches for now, until brcm-sai is enhanced to support it.
+         *
+         * TAJO SDK behavior:
+         * For Tajo, any route (host route or subnet route) that points to
+         * CPU port will be treated as MYIP. Both host and subnet routes
+         * that are unresolved will be sent to mid pri queue due to the
+         * IP2ME hostif trap. So, FLAGS_classid_for_unresolved_routes is
+         * currently only enabled on tajo switches.
+         *
+         * Fix for the issue:
+         * In order to send these not MYIP routes to default queue,
+         * 1) Program unresolved routes that points to CPU port to a class ID
+         * CLASS_UNRESOLVED_ROUTE_TO_CPU
+         * 2) Add an ACL with qualifer as CLASS_UNRESOLVED_ROUTE_TO_CPU and
+         * action as low pri queue.
+         */
+        if (FLAGS_classid_for_unresolved_routes &&
+            platform_->getAsic()->isSupported(
+                HwAsic::Feature::ROUTE_METADATA)) {
+          if (nextHopId == managerTable_->switchManager().getCpuPort()) {
+            XLOG(DBG2) << "set route class id to 2";
+            metadata = static_cast<uint32_t>(
+                cfg::AclLookupClass::DST_CLASS_L3_LOCAL_2);
+          }
+        }
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, nextHopId, metadata, counterID};
+#else
+        attributes =
+            SaiRouteTraits::CreateAttributes{packetAction, nextHopId, metadata};
 #endif
 
-      XLOG(DBG3) << "Route nhops == 1: " << newRoute->str()
-                 << " nextHopId: " << nextHopId
-                 << " localNextHop: " << localNexthop;
+        XLOG(DBG3) << "Route nhops == 1: " << newRoute->str()
+                   << " nextHopId: " << nextHopId
+                   << " localNextHop: " << localNexthop;
+      }
     }
+
   } else if (fwd.getAction() == RouteForwardAction::TO_CPU) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
     PortSaiId cpuPortId = managerTable_->switchManager().getCpuPort();
@@ -455,7 +512,8 @@ template <typename AddrT>
 void SaiRouteManager::changeRoute(
     const std::shared_ptr<Route<AddrT>>& oldSwRoute,
     const std::shared_ptr<Route<AddrT>>& newSwRoute,
-    RouterID routerId) {
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state) {
   SaiRouteTraits::RouteEntry entry =
       routeEntryFromSwRoute(routerId, newSwRoute);
 
@@ -471,7 +529,7 @@ void SaiRouteManager::changeRoute(
         "Failure to update route. Route does not exist ",
         newSwRoute->prefix().str());
   }
-  addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute);
+  addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute, state);
   swRoutes_.erase(entry);
   swRoutes_.emplace(entry, newSwRoute);
 }
@@ -479,7 +537,8 @@ void SaiRouteManager::changeRoute(
 template <typename AddrT>
 void SaiRouteManager::addRoute(
     const std::shared_ptr<Route<AddrT>>& swRoute,
-    RouterID routerId) {
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   auto itr = handles_.find(entry);
   if (itr != handles_.end()) {
@@ -493,7 +552,11 @@ void SaiRouteManager::addRoute(
   }
   auto routeHandle = std::make_unique<SaiRouteHandle>();
   addOrUpdateRoute(
-      routeHandle.get(), routerId, std::shared_ptr<Route<AddrT>>{}, swRoute);
+      routeHandle.get(),
+      routerId,
+      std::shared_ptr<Route<AddrT>>{},
+      swRoute,
+      state);
   handles_.emplace(entry, std::move(routeHandle));
   swRoutes_.emplace(entry, swRoute);
 }
@@ -867,6 +930,9 @@ ManagedRouteNextHop<NextHopTraitsT>::~ManagedRouteNextHop() {
 
 template class ManagedRouteNextHop<SaiIpNextHopTraits>;
 template class ManagedRouteNextHop<SaiMplsNextHopTraits>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+template class ManagedRouteNextHop<SaiSrv6SidlistNextHopTraits>;
+#endif
 
 template SaiRouteTraits::RouteEntry
 SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV6>(
@@ -880,18 +946,22 @@ SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV4>(
 template void SaiRouteManager::changeRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& oldSwEntry,
     const std::shared_ptr<Route<folly::IPAddressV6>>& newSwEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 template void SaiRouteManager::changeRoute<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& oldSwEntry,
     const std::shared_ptr<Route<folly::IPAddressV4>>& newSwEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 
 template void SaiRouteManager::addRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 template void SaiRouteManager::addRoute<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 
 template void SaiRouteManager::removeRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,

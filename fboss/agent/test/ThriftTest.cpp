@@ -11,6 +11,7 @@
 #include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
@@ -18,6 +19,8 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
+#include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -132,16 +135,11 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-template <typename SwitchTypeAndEnableIntfNbrTableT>
+template <typename SwitchTypeT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:
-  static auto constexpr switchType =
-      SwitchTypeAndEnableIntfNbrTableT::switchType;
-  static auto constexpr intfNbrTable =
-      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
-  ;
+  static auto constexpr switchType = SwitchTypeT::switchType;
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     FLAGS_dsf_num_parallel_sessions_per_remote_interface_node =
         std::numeric_limits<uint32_t>::max();
     auto config = testConfigA(switchType);
@@ -182,7 +180,7 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeAndEnableIntfNbrTable);
+TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeTestTypes);
 
 TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
   auto switchInfoTable = this->sw_->getSwitchInfoTable();
@@ -297,6 +295,9 @@ TEST(ThriftEnum, assertPortSpeeds) {
       case PortSpeed::EIGHTHUNDREDG:
         EXPECT_EQ(static_cast<int>(key), 800000);
         break;
+      case PortSpeed::ONEPOINTSIXT:
+        EXPECT_EQ(static_cast<int>(key), 1600000);
+        break;
       case PortSpeed::THREEPOINTTWOT:
         EXPECT_EQ(static_cast<int>(key), 3200000);
         break;
@@ -335,6 +336,127 @@ TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
         handler.flushNeighborEntry(std::move(v4Addr), 1001), FbossError);
     EXPECT_THROW(
         handler.flushNeighborEntry(std::move(v6Addr), 1001), FbossError);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesEmpty) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+  EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighborEntries) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+  IfAndIP v4Entry;
+  v4Entry.interfaceID() = 1;
+  v4Entry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+  entries->push_back(v4Entry);
+
+  IfAndIP v6Entry;
+  v6Entry.interfaceID() = 1;
+  v6Entry.ip() = toBinaryAddress(IPAddress("100::100"));
+  entries->push_back(v6Entry);
+
+  if (this->isNpu()) {
+    // Non-existent entries on a valid vlan return 0 flushed
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+  } else {
+    // On non-NPU switches, flushNeighborEntry throws for each entry,
+    // but flushNeighborEntries catches exceptions and continues
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesWithInvalidVlan) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+  // Entry with invalid vlan - flushNeighborEntry will throw,
+  // but flushNeighborEntries should catch and continue
+  IfAndIP invalidEntry;
+  invalidEntry.interfaceID() = 9999;
+  invalidEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+  entries->push_back(invalidEntry);
+
+  // Should not throw, failures are caught internally
+  EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesMixedValidity) {
+  ThriftHandler handler(this->sw_);
+
+  if (this->isNpu()) {
+    // Add actual neighbor entries so they can be flushed
+    this->sw_->getNeighborUpdater()->receivedArpMineForIntf(
+        InterfaceID(1),
+        folly::IPAddressV4("10.0.0.22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        ArpOpCode::ARP_OP_REPLY);
+
+    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        InterfaceID(1),
+        folly::IPAddressV6("2401:db00:2110:3001::22"),
+        folly::MacAddress("02:09:00:00:00:23"),
+        PortDescriptor(PortID(1)),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+
+    auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+    // Existing ARP entry - should flush successfully
+    IfAndIP existingArpEntry;
+    existingArpEntry.interfaceID() = 1;
+    existingArpEntry.ip() = toBinaryAddress(IPAddress("10.0.0.22"));
+    entries->push_back(existingArpEntry);
+
+    // Invalid vlan - will throw inside flushNeighborEntry, caught internally
+    IfAndIP invalidVlanEntry;
+    invalidVlanEntry.interfaceID() = 9999;
+    invalidVlanEntry.ip() = toBinaryAddress(IPAddress("200.200.200.1"));
+    entries->push_back(invalidVlanEntry);
+
+    // Existing NDP entry - should flush successfully
+    IfAndIP existingNdpEntry;
+    existingNdpEntry.interfaceID() = 1;
+    existingNdpEntry.ip() =
+        toBinaryAddress(IPAddress("2401:db00:2110:3001::22"));
+    entries->push_back(existingNdpEntry);
+
+    // Non-existent neighbor on valid vlan - returns 0
+    IfAndIP nonExistentEntry;
+    nonExistentEntry.interfaceID() = 1;
+    nonExistentEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+    entries->push_back(nonExistentEntry);
+
+    // 2 entries flushed (ARP + NDP), invalid vlan caught, non-existent is 0
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 2);
+  } else {
+    // On non-NPU switches, all entries throw but are caught
+    auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+    IfAndIP validVlanEntry;
+    validVlanEntry.interfaceID() = 1;
+    validVlanEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+    entries->push_back(validVlanEntry);
+
+    IfAndIP invalidVlanEntry;
+    invalidVlanEntry.interfaceID() = 9999;
+    invalidVlanEntry.ip() = toBinaryAddress(IPAddress("200.200.200.1"));
+    entries->push_back(invalidVlanEntry);
+
+    IfAndIP anotherValidEntry;
+    anotherValidEntry.interfaceID() = 1;
+    anotherValidEntry.ip() = toBinaryAddress(IPAddress("100::100"));
+    entries->push_back(anotherValidEntry);
+
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
   }
 }
 
@@ -748,27 +870,28 @@ TYPED_TEST(ThriftTestAllSwitchTypes, multipleClientSyncFib) {
   addRoutesForClient(prefixA4, prefixA6, bgpClient, bgpClientAdmin);
   addRoutesForClient(prefixB4, prefixB6, openrClient, openrClientAdmin);
 
-  auto verifyPrefixesPresent = [&](const auto& prefix4,
-                                   const auto& prefix6,
-                                   AdminDistance distance) {
-    if (this->isFabric()) {
-      return;
-    }
-    auto state = this->sw_->getState();
-    auto rtA4 = findRoute<folly::IPAddressV4>(
-        rid, IPAddress::createNetwork(prefix4), state);
-    EXPECT_NE(nullptr, rtA4);
-    EXPECT_EQ(
-        rtA4->getForwardInfo(),
-        RouteNextHopEntry(makeResolvedNextHops({{kIntf1, nhop4}}), distance));
+  auto verifyPrefixesPresent =
+      [&](const auto& prefix4, const auto& prefix6, AdminDistance distance) {
+        if (this->isFabric()) {
+          return;
+        }
+        auto state = this->sw_->getState();
+        auto rtA4 = findRoute<folly::IPAddressV4>(
+            rid, IPAddress::createNetwork(prefix4), state);
+        EXPECT_NE(nullptr, rtA4);
+        EXPECT_EQ(
+            rtA4->getForwardInfo(),
+            makeExpectedRouteNextHopEntry(
+                this->sw_, makeResolvedNextHops({{kIntf1, nhop4}}), distance));
 
-    auto rtA6 = findRoute<folly::IPAddressV6>(
-        rid, IPAddress::createNetwork(prefix6), state);
-    EXPECT_NE(nullptr, rtA6);
-    EXPECT_EQ(
-        rtA6->getForwardInfo(),
-        RouteNextHopEntry(makeResolvedNextHops({{kIntf1, nhop6}}), distance));
-  };
+        auto rtA6 = findRoute<folly::IPAddressV6>(
+            rid, IPAddress::createNetwork(prefix6), state);
+        EXPECT_NE(nullptr, rtA6);
+        EXPECT_EQ(
+            rtA6->getForwardInfo(),
+            makeExpectedRouteNextHopEntry(
+                this->sw_, makeResolvedNextHops({{kIntf1, nhop6}}), distance));
+      };
   verifyPrefixesPresent(prefixA4, prefixA6, AdminDistance::EBGP);
   verifyPrefixesPresent(prefixB4, prefixB6, AdminDistance::OPENR);
 
@@ -1149,7 +1272,8 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_NE(nullptr, rtA4);
     EXPECT_EQ(
         rtA4->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
 
@@ -1158,7 +1282,8 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_NE(nullptr, rtA6);
     EXPECT_EQ(
         rtA6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     // Random client and BGP routes - bgp should win
@@ -1167,15 +1292,18 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_NE(nullptr, rtB4);
     EXPECT_EQ(
         rtB4->getForwardInfo(),
-        RouteNextHopEntry(
-            makeResolvedNextHops({{kIntf1, cli2_nhop4}}), AdminDistance::EBGP));
+        makeExpectedRouteNextHopEntry(
+            sw_,
+            makeResolvedNextHops({{kIntf1, cli2_nhop4}}),
+            AdminDistance::EBGP));
     // Random client, bgp, static routes. Static shouold win
     auto rtC6 = findRoute<folly::IPAddressV6>(
         rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
             AdminDistance::STATIC_ROUTE));
     auto [v4Routes, v6Routes] = getRouteCount(state);
@@ -1231,7 +1359,8 @@ TEST_F(ThriftTest, syncFib) {
     // random client and bgp routes. Bgp should continue to win
     auto rtB4 = findRoute<folly::IPAddressV4>(
         rid, IPAddress::createNetwork(prefixB4), state);
-    EXPECT_TRUE(rtB4->getForwardInfo().isSame(RouteNextHopEntry(
+    EXPECT_TRUE(rtB4->getForwardInfo().isSame(makeExpectedRouteNextHopEntry(
+        sw_,
         makeResolvedNextHops({{InterfaceID(1), cli2_nhop4}}),
         AdminDistance::EBGP)));
 
@@ -1241,7 +1370,8 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
             AdminDistance::STATIC_ROUTE));
     // D6 and D4 should now be found and resolved by random client nhops
@@ -1250,7 +1380,8 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_NE(nullptr, rtD4);
     EXPECT_EQ(
         rtD4->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     auto rtD6 = findRoute<folly::IPAddressV6>(
@@ -1258,7 +1389,8 @@ TEST_F(ThriftTest, syncFib) {
     EXPECT_NE(nullptr, rtD6);
     EXPECT_EQ(
         rtD6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     // A4, A6 removed, D4, D6 added. Count should remain same
@@ -1365,7 +1497,8 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_NE(nullptr, rtA4);
     EXPECT_EQ(
         rtA4->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
 
@@ -1374,7 +1507,8 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_NE(nullptr, rtA6);
     EXPECT_EQ(
         rtA6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     // Random client and BGP routes - bgp should win
@@ -1383,15 +1517,18 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_NE(nullptr, rtB4);
     EXPECT_EQ(
         rtB4->getForwardInfo(),
-        RouteNextHopEntry(
-            makeResolvedNextHops({{kIntf1, cli2_nhop4}}), AdminDistance::EBGP));
+        makeExpectedRouteNextHopEntry(
+            sw_,
+            makeResolvedNextHops({{kIntf1, cli2_nhop4}}),
+            AdminDistance::EBGP));
     // Random client, bgp, static routes. Static should win
     auto rtC6 = findRoute<folly::IPAddressV6>(
         rid, IPAddress::createNetwork(prefixC6), state);
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
             AdminDistance::STATIC_ROUTE));
     auto [v4Routes, v6Routes] = getRouteCount(state);
@@ -1453,7 +1590,8 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     // random client and bgp routes. Bgp should continue to win
     auto rtB4 = findRoute<folly::IPAddressV4>(
         rid, IPAddress::createNetwork(prefixB4), state);
-    EXPECT_TRUE(rtB4->getForwardInfo().isSame(RouteNextHopEntry(
+    EXPECT_TRUE(rtB4->getForwardInfo().isSame(makeExpectedRouteNextHopEntry(
+        sw_,
         makeResolvedNextHops({{InterfaceID(1), cli2_nhop4}}),
         AdminDistance::EBGP)));
 
@@ -1463,7 +1601,8 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_NE(nullptr, rtC6);
     EXPECT_EQ(
         rtC6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli3_nhop6}}),
             AdminDistance::STATIC_ROUTE));
     // D6 and D4 should now be found and resolved by random client nhops
@@ -1472,7 +1611,8 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_NE(nullptr, rtD4);
     EXPECT_EQ(
         rtD4->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop4}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     auto rtD6 = findRoute<folly::IPAddressV6>(
@@ -1480,7 +1620,8 @@ TEST_F(ThriftTest, addDelUnicastRoutes) {
     EXPECT_NE(nullptr, rtD6);
     EXPECT_EQ(
         rtD6->getForwardInfo(),
-        RouteNextHopEntry(
+        makeExpectedRouteNextHopEntry(
+            sw_,
             makeResolvedNextHops({{kIntf1, cli1_nhop6}}),
             AdminDistance::MAX_ADMIN_DISTANCE));
     // A4, A6 removed, D4, D6 added. Count should remain same
@@ -1581,6 +1722,131 @@ TEST_F(ThriftTest, addUnicastRoutesWithOverrides) {
       FbossError);
 }
 
+TEST_F(ThriftTest, addUnicastRoutesRejectsMplsAndSrv6) {
+  ThriftHandler handler(sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto prefix = "7.1.0.0/16";
+  auto nhopAddr = "10.0.0.11";
+
+  // Helper: create a route with a NextHopThrift that has both mplsAction and
+  // srv6SegmentList set
+  auto makeBothRoute = [&]() {
+    auto route = makeEcmpUnicastRoute(prefix, {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    MplsAction mplsAction;
+    mplsAction.action() = MplsActionCode::PUSH;
+    mplsAction.pushLabels() = {101};
+    nh.mplsAction() = mplsAction;
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelType() = TunnelType::SRV6_ENCAP;
+    nh.tunnelId() = "tunnel1";
+    route->nextHops() = {nh};
+    return route;
+  };
+
+  // Single route with both should be rejected
+  EXPECT_THROW(handler.addUnicastRoute(bgpClient, makeBothRoute()), FbossError);
+
+  // Batch route with both should be rejected
+  auto routes = std::make_unique<std::vector<UnicastRoute>>();
+  routes->emplace_back(*makeBothRoute());
+  EXPECT_THROW(
+      handler.addUnicastRoutes(bgpClient, std::move(routes)), FbossError);
+
+  // Route with only mplsAction should be accepted
+  auto mplsOnlyRoute = makeEcmpUnicastRoute(prefix, {nhopAddr}, bgpAdmin);
+  NextHopThrift mplsNh;
+  mplsNh.address() = toBinaryAddress(IPAddress(nhopAddr));
+  MplsAction mplsAction;
+  mplsAction.action() = MplsActionCode::PUSH;
+  mplsAction.pushLabels() = {101};
+  mplsNh.mplsAction() = mplsAction;
+  mplsOnlyRoute->nextHops() = {mplsNh};
+  EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(mplsOnlyRoute)));
+
+  // Route with only srv6SegmentList should be accepted
+  auto srv6OnlyRoute = makeEcmpUnicastRoute("8.1.0.0/16", {nhopAddr}, bgpAdmin);
+  NextHopThrift srv6Nh;
+  srv6Nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+  srv6Nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+  srv6Nh.tunnelType() = TunnelType::SRV6_ENCAP;
+  srv6Nh.tunnelId() = "tunnel1";
+  srv6OnlyRoute->nextHops() = {srv6Nh};
+  EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(srv6OnlyRoute)));
+}
+
+TEST_F(ThriftTest, addUnicastRoutesRejectsSrv6WithInvalidTunnelType) {
+  ThriftHandler handler(sw_);
+
+  auto bgpClient = static_cast<int16_t>(ClientID::BGPD);
+  auto bgpAdmin = sw_->clientIdToAdminDistance(bgpClient);
+  auto nhopAddr = "10.0.0.11";
+
+  // Next hop with srv6SegmentList and wrong tunnelType should be rejected
+  {
+    auto route = makeEcmpUnicastRoute("9.1.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    nh.tunnelType() = TunnelType::IP_IN_IP;
+    route->nextHops() = {nh};
+    EXPECT_THROW(
+        handler.addUnicastRoute(bgpClient, std::move(route)), FbossError);
+  }
+
+  // Next hop with srv6SegmentList, tunnelId, and SRV6_ENCAP tunnelType should
+  // be accepted
+  {
+    auto route = makeEcmpUnicastRoute("9.2.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    nh.tunnelId() = "tunnel1";
+    nh.tunnelType() = TunnelType::SRV6_ENCAP;
+    route->nextHops() = {nh};
+    EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(route)));
+  }
+
+  // Next hop with srv6SegmentList, no tunnelId, and no SRV6_ENCAP tunnel in
+  // config should be rejected
+  {
+    auto route = makeEcmpUnicastRoute("9.3.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    // tunnelId not set and no SRV6_ENCAP tunnel in config
+    route->nextHops() = {nh};
+    EXPECT_THROW(
+        handler.addUnicastRoute(bgpClient, std::move(route)), FbossError);
+  }
+
+  // Next hop with srv6SegmentList and no tunnelId should default to first
+  // SRV6_ENCAP tunnel from config
+  {
+    // Add an SRv6 tunnel to the config so the defaulting logic can find it
+    auto config = sw_->getConfig();
+    cfg::Srv6Tunnel srv6Tunnel;
+    srv6Tunnel.srv6TunnelId() = "srv6Tunnel0";
+    srv6Tunnel.underlayIntfID() = 1;
+    srv6Tunnel.tunnelType() = TunnelType::SRV6_ENCAP;
+    srv6Tunnel.srcIp() = "2001:db8::100";
+    config.srv6Tunnels() = {srv6Tunnel};
+    sw_->applyConfig("Add SRv6 tunnel", config);
+
+    auto route = makeEcmpUnicastRoute("9.4.0.0/16", {nhopAddr}, bgpAdmin);
+    NextHopThrift nh;
+    nh.address() = toBinaryAddress(IPAddress(nhopAddr));
+    nh.srv6SegmentList() = {toBinaryAddress(IPAddress("2001:db8::1"))};
+    // tunnelId not set — should default to "srv6Tunnel0" from config
+    route->nextHops() = {nh};
+    EXPECT_NO_THROW(handler.addUnicastRoute(bgpClient, std::move(route)));
+  }
+}
+
 TEST_F(ThriftTest, delUnicastRoutes) {
   RouterID rid = RouterID(0);
 
@@ -1628,23 +1894,22 @@ TEST_F(ThriftTest, delUnicastRoutes) {
       bgpClient, makeUnicastRoute(prefixC6, cli2_nhop6, bgpAdmin));
   handler.addUnicastRoute(
       staticClient, makeUnicastRoute(prefixC6, cli3_nhop6, staticAdmin));
-
-  auto assertRoute = [rid, prefixC6, this](
-                         bool expectPresent,
-                         const std::string& nhop,
-                         AdminDistance distance) {
-    auto kIntf1 = InterfaceID(1);
-    auto rtC6 = findRoute<folly::IPAddressV6>(
-        rid, IPAddress::createNetwork(prefixC6), sw_->getState());
-    if (!expectPresent) {
-      EXPECT_EQ(nullptr, rtC6);
-      return;
-    }
-    ASSERT_NE(nullptr, rtC6);
-    EXPECT_EQ(
-        rtC6->getForwardInfo(),
-        RouteNextHopEntry(makeResolvedNextHops({{kIntf1, nhop}}), distance));
-  };
+  auto assertRoute =
+      [rid, prefixC6, this](
+          bool expectPresent, const std::string& nhop, AdminDistance distance) {
+        auto kIntf1 = InterfaceID(1);
+        auto rtC6 = findRoute<folly::IPAddressV6>(
+            rid, IPAddress::createNetwork(prefixC6), sw_->getState());
+        if (!expectPresent) {
+          EXPECT_EQ(nullptr, rtC6);
+          return;
+        }
+        ASSERT_NE(nullptr, rtC6);
+        EXPECT_EQ(
+            rtC6->getForwardInfo(),
+            makeExpectedRouteNextHopEntry(
+                sw_, makeResolvedNextHops({{kIntf1, nhop}}), distance));
+      };
   // Random client, bgp, static routes. Static should win
   assertRoute(true, cli3_nhop6, AdminDistance::STATIC_ROUTE);
   std::vector<IpPrefix> delRoutes = {
@@ -1697,7 +1962,7 @@ TEST_F(ThriftTest, syncFibIsHwProtected) {
   UnicastRoute nr2 = *makeUnicastRoute("bbbb::/64", "42::42").get();
   newRoutes->push_back(nr2);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .Times(::testing::AtLeast(1))
       .WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
@@ -1727,7 +1992,7 @@ TEST_F(ThriftTest, addUnicastRoutesIsHwProtected) {
   UnicastRoute nr1 = *makeUnicastRoute("aaaa::/64", "42::42").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_)).WillOnce(Return(sw_->getState()));
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _)).WillOnce(Return(sw_->getState()));
   EXPECT_THROW(
       {
         try {
@@ -1766,6 +2031,19 @@ TEST_F(ThriftTest, getRouteDetails) {
   EXPECT_EQ(10, routeDetails.size());
 }
 
+TEST_F(ThriftTest, getRouteTableSize) {
+  ThriftHandler handler(sw_);
+  auto [expectedV4, expectedV6] = getRouteCount(sw_->getState());
+
+  RouteCount routeCount;
+  handler.getRouteTableSize(routeCount);
+
+  EXPECT_EQ(*routeCount.v4Count(), expectedV4);
+  EXPECT_EQ(*routeCount.v6Count(), expectedV6);
+  // 7 intf routes + 2 default routes + 1 link local route
+  EXPECT_EQ(10, *routeCount.v4Count() + *routeCount.v6Count());
+}
+
 TEST_F(ThriftTest, getRouteTableByClient) {
   ThriftHandler handler(sw_);
   std::vector<UnicastRoute> routeTable;
@@ -1790,6 +2068,31 @@ std::unique_ptr<MplsRoute> makeMplsRoute(
   return nr;
 }
 
+TEST_F(ThriftTest, addMplsRoutesRejectsSrv6SegmentList) {
+  ThriftHandler handler(sw_);
+
+  auto mplsRoute = makeMplsRoute(101, "10.0.0.2");
+  // Add a srv6SegmentList to the next hop — should be rejected
+  mplsRoute->nextHops()[0].srv6SegmentList() = {
+      toBinaryAddress(IPAddress("2001:db8::1"))};
+  mplsRoute->nextHops()[0].tunnelType() = TunnelType::SRV6_ENCAP;
+  mplsRoute->nextHops()[0].tunnelId() = "tunnel1";
+
+  auto routes = std::make_unique<std::vector<MplsRoute>>();
+  routes->emplace_back(*mplsRoute);
+  EXPECT_THROW(
+      handler.addMplsRoutes(
+          static_cast<int16_t>(ClientID::BGPD), std::move(routes)),
+      FbossError);
+
+  // Route without srv6SegmentList should be accepted
+  auto validRoute = makeMplsRoute(102, "10.0.0.3");
+  auto validRoutes = std::make_unique<std::vector<MplsRoute>>();
+  validRoutes->emplace_back(*validRoute);
+  EXPECT_NO_THROW(handler.addMplsRoutes(
+      static_cast<int16_t>(ClientID::BGPD), std::move(validRoutes)));
+}
+
 TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   // Create a mock SwSwitch using the config, and wrap it in a ThriftHandler
   ThriftHandler handler(sw_);
@@ -1798,7 +2101,7 @@ TEST_F(ThriftTest, syncMplsFibIsHwProtected) {
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
@@ -1825,7 +2128,7 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
   MplsRoute nr1 = *makeMplsRoute(101, "10.0.0.2").get();
   newRoutes->push_back(nr1);
   // Fail HW update by returning current state
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .WillRepeatedly(Return(sw_->getState()));
   EXPECT_THROW(
       {
@@ -1846,29 +2149,32 @@ TEST_F(ThriftTest, addMplsRoutesIsHwProtected) {
 
 TEST_F(ThriftTest, hwUpdateErrorAfterPartialUpdate) {
   ThriftHandler handler(sw_);
-  std::vector<UnicastRoute>();
   UnicastRoute nr1 =
       *makeUnicastRoute("aaaa::/64", "2401:db00:2110:3001::1").get();
-  std::vector<UnicastRoute> routes;
-  routes.push_back(nr1);
-  EXPECT_STATE_UPDATE_TIMES(sw_, 2);
-  handler.addUnicastRoutes(
-      10, std::make_unique<std::vector<UnicastRoute>>(routes));
-  auto oneRouteAddedState = sw_->getState();
-  std::vector<IpPrefix> delRoutes = {
-      ipPrefix(IPAddress::createNetwork("aaaa::/64")),
-  };
-  // Delete added route so we revert back to starting state
-  handler.deleteUnicastRoutes(
-      10, std::make_unique<std::vector<IpPrefix>>(delRoutes));
-  // Now try to add 2 routes, have the HwSwitch fail after adding one route
   UnicastRoute nr2 =
       *makeUnicastRoute("bbbb::/64", "2401:db00:2110:3001::1").get();
+  std::vector<UnicastRoute> routes;
+  routes.push_back(nr1);
   routes.push_back(nr2);
-  // Fail HW update by returning one route added state.
-  EXPECT_HW_CALL(sw_, stateChangedImpl(_))
+  // Simulate partial HW update: HW only programs aaaa::/64, not bbbb::/64.
+  // Derive the applied state from the desired state by removing bbbb::/64.
+  // This ensures aaaa::/64's internal state (including resolvedNextHopSetID
+  // when NextHopID generation is enabled) matches the desired state exactly,
+  // so only bbbb::/64 is reported as a failed prefix.
+  EXPECT_HW_CALL(sw_, stateChangedImpl(_, _))
       .Times(::testing::AtLeast(1))
-      .WillOnce(Return(oneRouteAddedState));
+      .WillOnce(
+          ::testing::WithArg<0>(
+              ::testing::Invoke([](const std::vector<StateDelta>& deltas) {
+                auto partialState = deltas.back().newState()->clone();
+                auto* fib = partialState->getFibsInfoMap()
+                                ->getFibContainer(RouterID(0))
+                                ->getFibV6()
+                                ->modify(RouterID(0), &partialState);
+                fib->removeNode("bbbb::/64");
+                partialState->publish();
+                return partialState;
+              })));
   EXPECT_THROW(
       {
         try {
@@ -2653,25 +2959,9 @@ TEST_F(ThriftTest, getCurrentStateJSONForPaths) {
       FbossError);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class ThriftTeFlowTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     cfg::ExactMatchTableConfig tableConfig;
     tableConfig.name() = "TeFlowTable";
@@ -2681,42 +2971,21 @@ class ThriftTeFlowTest : public ::testing::Test {
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
 
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
+    sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
 
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
-
+    sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceB,
+        folly::IPAddressV6(kNhopAddrB),
+        kMacAddress,
+        PortDescriptor(kPortIDB),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
     waitForStateUpdates(sw_);
@@ -2724,3 +2993,140 @@ class ThriftTeFlowTest : public ::testing::Test {
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
 };
+
+namespace {
+
+MySidEntry makeMySidEntry(
+    const std::string& addr,
+    uint8_t len,
+    MySidType type = MySidType::DECAPSULATE_AND_LOOKUP) {
+  MySidEntry entry;
+  entry.type() = type;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  entry.mySid() = prefix;
+  return entry;
+}
+
+IpPrefix toMySidIpPrefix(const std::string& addr, uint8_t len) {
+  IpPrefix prefix;
+  prefix.ip() = facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  return prefix;
+}
+
+} // namespace
+
+TEST_F(ThriftTest, addMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_NE(nullptr, mySids);
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, deleteMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  // First add entries
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Delete one
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_EQ(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsNonDecapsulateType) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(
+      makeMySidEntry("2001:db8::1", 64, MySidType::NODE_MICRO_SID));
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsEntryWithNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  entry.nextHops()->push_back(nhop);
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addAndDeleteMySidEntriesInSequence) {
+  ThriftHandler handler(sw_);
+
+  // Add
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+
+  // Delete
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  state = sw_->getState();
+  EXPECT_EQ(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
+
+TEST_F(ThriftTest, deleteNonExistentMySidEntryIsNoOp) {
+  ThriftHandler handler(sw_);
+
+  auto stateBefore = sw_->getState();
+
+  // Delete a prefix that doesn't exist
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::99", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto stateAfter = sw_->getState();
+  // MySids map should be the same (both empty)
+  EXPECT_EQ(
+      stateBefore->getMySids()->toThrift(),
+      stateAfter->getMySids()->toThrift());
+}
+
+TEST_F(ThriftTest, mySidEntryReflectedInRib) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Verify RIB has the entry
+  auto rib = sw_->getRib();
+  auto ribMySidTable = rib->getMySidTableCopy();
+  auto cidr = std::make_pair(folly::IPAddressV6("2001:db8::1"), 64);
+  EXPECT_EQ(ribMySidTable.count(cidr), 1);
+
+  // Verify SwitchState has the entry
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}

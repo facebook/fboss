@@ -19,10 +19,13 @@
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/types.h"
 
 namespace facebook::fboss {
+
+class NextHopIDManager;
 
 class RibRouteUpdater;
 
@@ -60,7 +63,9 @@ class ConfigApplier {
       folly::Range<StaticIp2MplsRouteIterator> staticIp2MplsRouteRange,
       folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange,
       folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange,
-      folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange);
+      folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange,
+      NextHopIDManager* nextHopIDManager,
+      MySidTable* mySidTable);
 
   void apply();
 
@@ -77,6 +82,8 @@ class ConfigApplier {
   folly::Range<StaticMplsRouteWithNextHopsIterator> staticMplsRouteRange_;
   folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsDropRouteRange_;
   folly::Range<StaticMplsRouteNoNextHopsIterator> staticMplsCpuRouteRange_;
+  NextHopIDManager* nextHopIDManager_{nullptr};
+  MySidTable* mySidTable_{nullptr};
 };
 
 } // namespace facebook::fboss

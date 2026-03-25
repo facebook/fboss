@@ -34,6 +34,11 @@ SaiStaticBufferProfileTraits::Attributes::AttributeSramDynamicTh::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
+    AttributePgPipelineLatencyBytes::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
     AttributeSharedFadtMaxTh::operator()() {
   return std::nullopt;
@@ -64,8 +69,18 @@ std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
+    AttributePgPipelineLatencyBytes::operator()() {
+  return std::nullopt;
+}
+
 std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
     AttributeLosslessEnable::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
+SaiBufferPoolTraits::Attributes::AttributeReservedBytes::operator()() {
   return std::nullopt;
 }
 

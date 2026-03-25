@@ -11,8 +11,6 @@
 #include <fboss/thrift_cow/visitors/tests/VisitorTestUtils.h>
 #include <thrift/lib/cpp2/folly_dynamic/folly_dynamic.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
-#include <thrift/lib/cpp2/reflection/reflection.h>
-#include <thrift/lib/cpp2/reflection/testing.h>
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/thrift_cow/nodes/Serializer.h"
 #include "fboss/thrift_cow/nodes/Types.h"
@@ -23,8 +21,7 @@
 using namespace facebook::fboss;
 using namespace facebook::fboss::thrift_cow;
 
-using k = test_tags::strings;
-using sk = cfg::switch_config_tags::strings;
+namespace sk = apache::thrift::ident;
 
 namespace {
 
@@ -38,18 +35,9 @@ cfg::L4PortRange buildPortRange(int min, int max) {
 } // namespace
 
 TEST(ThriftStructNodeTests, ReadThriftStructAnnotation) {
-  static_assert(
-      read_type_annotation_allow_skip_thrift_cow<
-          apache::thrift::type_class::structure,
-          TestStruct3>::value == true);
-  static_assert(
-      read_type_annotation_allow_skip_thrift_cow<
-          apache::thrift::type_class::structure,
-          ParentTestStruct>::value == false);
-  static_assert(
-      read_type_annotation_allow_skip_thrift_cow<
-          apache::thrift::type_class::integral,
-          int>::value == false);
+  static_assert(type_allow_skip_thrift_cow<TestStruct3> == true);
+  static_assert(type_allow_skip_thrift_cow<ParentTestStruct> == false);
+  static_assert(type_allow_skip_thrift_cow<int> == false);
 }
 
 TEST(ThriftStructNodeTests, ThriftStructFieldsSimple) {

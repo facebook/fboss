@@ -123,6 +123,9 @@ struct SaiPortHandle {
       IngressPriorityGroupID,
       SaiIngressPriorityGroupHandleAndProfile>
       configuredIngressPriorityGroups;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>>
+      ingressPortBufferProfiles;
+  std::vector<std::shared_ptr<SaiBufferProfileHandle>> egressPortBufferProfiles;
 };
 
 class SaiPortManager {
@@ -165,7 +168,8 @@ class SaiPortManager {
       PortSaiId portSaid,
       const std::vector<phy::PinConfig>& pinConfigs,
       const std::shared_ptr<SaiPortSerdes>& serdes,
-      bool zeroPreemphasis = false);
+      bool zeroPreemphasis = false,
+      const std::optional<std::string>& customCollection = std::nullopt);
 
   const SaiPortHandle* getPortHandle(PortID swId) const;
   SaiPortHandle* getPortHandle(PortID swId);
@@ -268,6 +272,10 @@ class SaiPortManager {
       PortSerdesSaiId serdesSaiPortId,
       const PortID& swPortID,
       uint8_t numPmdLanes) const;
+  std::vector<phy::TxSettings> getTxSettings(
+      PortSerdesSaiId serdesSaiPortId,
+      PortID swPortID,
+      uint8_t numPmdLanes) const;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
       PortSaiId saiPortId,
@@ -275,7 +283,8 @@ class SaiPortManager {
       PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getRxLockStatus(
       PortSaiId saiPortId,
-      uint8_t numPmdLanes) const;
+      uint8_t numPmdLanes,
+      PortID portID) const;
   std::vector<sai_port_lane_latch_status_t> getFecAlignmentLockStatus(
       PortSaiId saiPortId,
       uint8_t numFecLanes) const;
@@ -302,6 +311,8 @@ class SaiPortManager {
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
   cfg::PortType getPortType(PortID portId) const;
+  void setClm(PortID portId, bool clmEnabled);
+  bool isClmEnabled(PortID portId) const;
   bool fecCorrectedBitsSupported(PortID portID) const;
   bool rxFrequencyRPMSupported() const;
   bool rxSerdesParametersSupported() const;
@@ -334,6 +345,7 @@ class SaiPortManager {
       const PortID& portId,
       sai_object_id_t sysPortObj);
   void resetFabricLinkMonitoringSystemPortId(const PortID& portId);
+  void processPortBufferPoolConfigs(const std::shared_ptr<Port>& swPort);
 
  private:
   PortSaiId addPortImpl(const std::shared_ptr<Port>& swPort);
@@ -353,6 +365,20 @@ class SaiPortManager {
   void setQosMapsOnPort(
       PortID portID,
       std::vector<std::pair<sai_qos_map_type_t, QosMapSaiId>>& qosMaps);
+  template <typename SaiPortAttribute>
+  void setPortQosBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles,
+      const char* direction);
+  void setPortQosEgressBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles);
+  void setPortQosIngressBufferProfiles(
+      const PortID& portID,
+      const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+          bufferProfileHandles);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
   bool fecStatsSupported(PortID portID) const;
@@ -480,11 +506,16 @@ class SaiPortManager {
   void changePortFlowletConfig(
       const std::shared_ptr<Port>& oldPort,
       const std::shared_ptr<Port>& newPort);
+  void changeClm(
+      const std::shared_ptr<Port>& oldPort,
+      const std::shared_ptr<Port>& newPort);
   void clearPortFlowletConfig(const PortID& portId);
   void programPfcDurationCounterEnable(
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,
       const std::optional<cfg::PortPfc>& oldPfc);
+  SaiPortSerdesTraits::Attributes::RxReach::ValueType getSaiRxReach(
+      const std::vector<phy::RxReach>& rxReaches) const;
   void programPfcDurationCounter(
       const std::shared_ptr<Port>& swPort,
       const std::optional<cfg::PortPfc>& newPfc,
@@ -526,6 +557,7 @@ class SaiPortManager {
 
   std::optional<SaiPortTraits::Attributes::PtpMode> getPtpMode() const;
   std::unordered_map<PortID, cfg::PortType> port2PortType_;
+  std::unordered_map<PortID, bool> port2ClmEnabled_;
   std::unordered_map<PortID, std::vector<sai_stat_id_t>> port2SupportedStats_;
   std::unordered_map<PortID, std::shared_ptr<Port>> pendingNewPorts_;
   bool hwLaneListIsPmdLaneList_;

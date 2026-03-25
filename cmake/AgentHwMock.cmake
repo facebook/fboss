@@ -22,6 +22,7 @@ add_library(hw_mock
 
 target_link_libraries(hw_mock
   core
+  handler
   pkt
   Folly::folly
   ${GTEST}

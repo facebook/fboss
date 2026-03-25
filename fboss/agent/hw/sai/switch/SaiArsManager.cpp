@@ -27,6 +27,7 @@ SaiArsManager::SaiArsManager(
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   arsHandle_ = std::make_unique<SaiArsHandle>();
   alternateMemberArsHandle_ = std::make_unique<SaiArsHandle>();
+  virtualArsGroupHandle_ = std::make_unique<SaiArsHandle>();
 #endif
 }
 
@@ -56,6 +57,9 @@ void SaiArsManager::removeArs(
   if (alternateMemberArsHandle_->ars) {
     alternateMemberArsHandle_->ars.reset();
   }
+  if (virtualArsGroupHandle_->ars) {
+    virtualArsGroupHandle_->ars.reset();
+  }
 }
 
 void SaiArsManager::changeArs(
@@ -71,6 +75,11 @@ SaiArsHandle* SaiArsManager::getArsHandle() const {
 SaiArsHandle* SaiArsManager::getAlternateMemberArsHandle() const {
   return alternateMemberArsHandle_.get();
 }
+
+SaiArsHandle* SaiArsManager::getVirtualArsGroupHandle() const {
+  return virtualArsGroupHandle_.get();
+}
+
 #endif
 
 } // namespace facebook::fboss

@@ -34,10 +34,19 @@ SaiTamEventTraits::Attributes::AttributePacketDropTypeMmu::operator()() {
 }
 
 std::optional<sai_attr_id_t>
+SaiTamEventTraits::Attributes::AttributePacketDropTypeIngress::operator()() {
+  return std::nullopt;
+}
+
+std::optional<sai_attr_id_t>
 SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiTamEventTraits::Attributes::
+    AttributeIngressSamplepacketEnable::operator()() {
+  return std::nullopt;
+}
 std::optional<sai_attr_id_t>
 SaiTamTransportTraits::Attributes::AttributeSrcMacAddress::operator()() {
   return std::nullopt;

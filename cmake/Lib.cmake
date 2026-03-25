@@ -59,47 +59,6 @@ target_link_libraries(function_call_time_reporter
   Folly::folly
 )
 
-add_library(fboss_i2c_lib
-  fboss/lib/usb/GalaxyI2CBus.cpp
-  fboss/lib/usb/BaseWedgeI2CBus.cpp
-  fboss/lib/usb/BaseWedgeI2CBus.h
-  fboss/lib/RestClient.cpp
-  fboss/lib/BmcRestClient.cpp
-  fboss/lib/usb/CP2112.cpp
-  fboss/lib/usb/CP2112.h
-  fboss/lib/usb/PCA9548.cpp
-  fboss/lib/usb/PCA9548MultiplexedBus.cpp
-  fboss/lib/usb/PCA9548MuxedBus.cpp
-  fboss/lib/i2c/PCA9541.cpp
-  fboss/lib/i2c/PCA9541.h
-  fboss/lib/usb/TransceiverI2CApi.h
-  fboss/lib/usb/UsbDevice.cpp
-  fboss/lib/usb/UsbDevice.h
-  fboss/lib/usb/UsbError.h
-  fboss/lib/usb/UsbHandle.cpp
-  fboss/lib/usb/UsbHandle.h
-  fboss/lib/usb/Wedge100I2CBus.cpp
-  fboss/lib/usb/Wedge100I2CBus.h
-  fboss/lib/usb/WedgeI2CBus.cpp
-  fboss/lib/usb/WedgeI2CBus.h
-)
-
-target_link_libraries(fboss_i2c_lib
-  agent_config_cpp2
-  switch_config_cpp2
-  hardware_stats_cpp2
-  i2c_controller_stats_cpp2
-  qsfp_cpp2
-  Folly::folly
-  fb303::fb303
-  FBThrift::thriftcpp2
-  ${USB}
-  ${CURL}
-  wedge40_platform_mapping
-  wedge100_platform_mapping
-  galaxy_platform_mapping
-)
-
 add_library(common_file_utils
   fboss/lib/CommonFileUtils.cpp
 )
@@ -121,6 +80,7 @@ add_library(common_utils
 )
 
 target_link_libraries(common_utils
+  common_file_utils
   fboss_error
   fb303::fb303
 )
@@ -159,19 +119,6 @@ target_link_libraries(physical_memory
   Folly::folly
 )
 
-add_library(fpga_device
-  fboss/lib/fpga/FpgaDevice.cpp
-  fboss/lib/fpga/HwMemoryRegion.h
-  fboss/lib/fpga/HwMemoryRegister.h
-)
-
-target_link_libraries(fpga_device
-  pci_device
-  physical_memory
-  fboss_types
-  Folly::folly
-)
-
 add_library(pci_access
   fboss/lib/PciAccess.cpp
 )
@@ -192,6 +139,7 @@ add_library(common_thrift_utils
 target_link_libraries(common_thrift_utils
   Folly::folly
   fb303::fb303
+  thrift_service_client
 )
 
 add_library(gpiod_line
@@ -223,4 +171,32 @@ target_link_libraries(warm_boot_file_utils
   utils
   state
   Folly::folly
+)
+
+add_library(rest_client
+  fboss/lib/RestClient.cpp
+)
+
+target_link_libraries(rest_client
+  fboss_error
+  Folly::folly
+  ${CURL}
+)
+
+add_library(bmc_rest_client
+  fboss/lib/BmcRestClient.cpp
+)
+
+target_link_libraries(bmc_rest_client
+  rest_client
+  Folly::folly
+)
+
+add_library(thrift_service_utils
+  fboss/lib/oss/ThriftServiceUtils.cpp
+)
+
+target_link_libraries(thrift_service_utils
+  Folly::folly
+  FBThrift::thriftcpp2
 )

@@ -2,6 +2,8 @@
 
 #include "fboss/platform/platform_manager/PkgManager.h"
 
+#include <chrono>
+
 #include <fb303/ServiceData.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
@@ -164,7 +166,7 @@ PkgManager::PkgManager(
       systemInterface_(systemInterface),
       platformFsUtils_(platformFsUtils) {}
 
-void PkgManager::processAll() const {
+void PkgManager::processAll(bool enablePkgMgmnt, bool reloadKmods) const {
   SCOPE_SUCCESS {
     fb303::fbData->setCounter(kProcessAllFailure, 0);
   };
@@ -172,10 +174,19 @@ void PkgManager::processAll() const {
     fb303::fbData->setCounter(kProcessAllFailure, 1);
   };
 
+  auto processAllStart = std::chrono::steady_clock::now();
+  SCOPE_EXIT {
+    auto elapsedSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - processAllStart)
+            .count();
+    fb303::fbData->setCounter(kProcessAllTime, elapsedSeconds);
+  };
+
   if (FLAGS_local_rpm_path.size()) {
     fb303::fbData->setExportedValue(
         kBspKmodsRpmName, "local_rpm: " + FLAGS_local_rpm_path);
-  } else if (FLAGS_enable_pkg_mgmnt) {
+  } else if (enablePkgMgmnt) {
     fb303::fbData->setExportedValue(kBspKmodsRpmName, getKmodsRpmName());
     fb303::fbData->setCounter(
         fmt::format(
@@ -195,7 +206,7 @@ void PkgManager::processAll() const {
     loadRequiredKmods();
     return;
   }
-  if (FLAGS_enable_pkg_mgmnt) {
+  if (enablePkgMgmnt) {
     auto bspKmodsRpmName = getKmodsRpmName();
     if (!systemInterface_->isRpmInstalled(bspKmodsRpmName)) {
       XLOG(INFO) << fmt::format(
@@ -208,7 +219,14 @@ void PkgManager::processAll() const {
       processRpms();
       // In cases where kmods.json from previous BSP installation is absent
       // (like provisioning, where this is the first run of PM), the kmods might
-      // be present in the initramfs OR ramdisk image
+      // be present in the initramfs OR ramdisk image.
+      // This also helps in catching early the cases where a new BSP upgrade is
+      // attempted with an ill-formatted kmods.json. TODO: figure out better
+      // gate-keepers for this.
+      XLOG(INFO)
+          << "Re-attempting unloading of BSP kmods. This is to handle the cases "
+          << "where this is the first run of PM, and the kmods are present in "
+          << "the initramfs OR ramdisk image";
       unloadBspKmods();
       // Load required kmods from PM config.
       loadRequiredKmods();
@@ -219,7 +237,7 @@ void PkgManager::processAll() const {
   }
   // Kmods management.
   // Only when no BSP management happened.
-  if (FLAGS_reload_kmods) {
+  if (reloadKmods) {
     unloadBspKmods();
   }
   try {
@@ -329,7 +347,7 @@ void PkgManager::closeWatchdogs() const {
   if (!fs::exists(watchdogsDir)) {
     return;
   }
-  XLOG(INFO) << "Closing Watchdogs";
+  XLOG(INFO) << "Closing Watchdogs to prevent watchdogs holding kmods";
   try {
     for (const auto& entry : fs::directory_iterator(watchdogsDir)) {
       const std::string filePath = entry.path().string();
@@ -389,14 +407,15 @@ void PkgManager::unloadBspKmods() const {
             bspKmodsFilePath,
             fmt::format("dnf install {} --assumeyes", getKmodsRpmName())));
   }
+  BspKmodsFile bspKmodsFile;
+  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
+      *jsonBspKmodsFile, bspKmodsFile);
+  XLOG(INFO)
+      << "kmods.json file found. Unloading kernel modules based on kmods.json";
   // Watchdogs would prevent module unloading if they are not stopped correctly.
   // Try to close all of them before proceeding. This will help in cases where
   // the watchdog managing service crashed.
   closeWatchdogs();
-  BspKmodsFile bspKmodsFile;
-  apache::thrift::SimpleJSONSerializer::deserialize<BspKmodsFile>(
-      *jsonBspKmodsFile, bspKmodsFile);
-  XLOG(INFO) << "Unloading kernel modules based on kmods.json";
   const auto loadedKmods = systemInterface_->lsmod();
   for (const auto& kmod : *bspKmodsFile.bspKmods()) {
     if (loadedKmods.contains(kmod)) {
@@ -421,6 +440,7 @@ void PkgManager::unloadBspKmods() const {
           "Skipping to unload {}. Reason: Already unloaded", kmod);
     }
   }
+  kmodsUnloaded_ = true;
 }
 
 void PkgManager::loadRequiredKmods() const {
@@ -493,5 +513,9 @@ std::string PkgManager::getKmodsRpmBaseWithKernelName() const {
       "{}-{}",
       *platformConfig_.bspKmodsRpmName(),
       systemInterface_->getHostKernelVersion());
+}
+
+bool PkgManager::wereKmodsUnloaded() const {
+  return kmodsUnloaded_;
 }
 } // namespace facebook::fboss::platform::platform_manager

@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiArsManager.h"
+#include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 #include "fboss/agent/hw/sai/switch/SaiHostifManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
@@ -318,6 +319,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::LLDP:
     case cfg::EtherType::ARP:
     case cfg::EtherType::LACP:
+    case cfg::EtherType::AIFM:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases
@@ -1115,27 +1117,23 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       sendToCpu = setTc.second;
     }
 
-    auto setCopyOrTrap = [&aclActionPacketAction](
-                             bool supportCopyToCpu,
-                             const MatchAction& matchAction) {
-      if (matchAction.getToCpuAction()) {
-        switch (matchAction.getToCpuAction().value()) {
-          case cfg::ToCpuAction::COPY:
-            if (!supportCopyToCpu) {
-              throw FbossError("COPY_TO_CPU is not supported on this ASIC");
+    auto setCopyOrTrap =
+        [&aclActionPacketAction](const MatchAction& matchAction) {
+          if (matchAction.getToCpuAction()) {
+            switch (matchAction.getToCpuAction().value()) {
+              case cfg::ToCpuAction::COPY:
+                aclActionPacketAction =
+                    SaiAclEntryTraits::Attributes::ActionPacketAction{
+                        SAI_PACKET_ACTION_COPY};
+                break;
+              case cfg::ToCpuAction::TRAP:
+                aclActionPacketAction =
+                    SaiAclEntryTraits::Attributes::ActionPacketAction{
+                        SAI_PACKET_ACTION_TRAP};
+                break;
             }
-            aclActionPacketAction =
-                SaiAclEntryTraits::Attributes::ActionPacketAction{
-                    SAI_PACKET_ACTION_COPY};
-            break;
-          case cfg::ToCpuAction::TRAP:
-            aclActionPacketAction =
-                SaiAclEntryTraits::Attributes::ActionPacketAction{
-                    SAI_PACKET_ACTION_TRAP};
-            break;
-        }
-      }
-    };
+          }
+        };
 
     if (tc != std::nullopt) {
       if (!sendToCpu) {
@@ -1154,9 +1152,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
          * Tajo claims to map TC i to Queue i by default as well.
          * However, explicitly set the QoS Map and associate with the CPU port.
          */
-        setCopyOrTrap(
-            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
-            matchAction);
+        setCopyOrTrap(matchAction);
         aclActionSetTC = SaiAclEntryTraits::Attributes::ActionSetTC{
             AclEntryActionU8(tc.value())};
       }
@@ -1183,9 +1179,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             managerTable_->hostifManager().ensureHostifUserDefinedTrap(queueId);
         aclActionSetUserTrap = SaiAclEntryTraits::Attributes::ActionSetUserTrap{
             AclEntryActionSaiObjectIdT(userDefinedTrap->trap->adapterKey())};
-        setCopyOrTrap(
-            platform_->getAsic()->isSupported(HwAsic::Feature::ACL_COPY_TO_CPU),
-            matchAction);
+        setCopyOrTrap(matchAction);
       }
 #endif
     }
@@ -1299,6 +1293,14 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
             aclActionDisableArsForwarding =
                 SaiAclEntryTraits::Attributes::ActionDisableArsForwarding{
                     false};
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
+            auto arsProfileHandle =
+                managerTable_->arsProfileManager().getArsProfileHandle();
+            if (arsProfileHandle && arsProfileHandle->arsVirtualGroupsEnabled) {
+              aclActionL3SwitchCancel =
+                  SaiAclEntryTraits::Attributes::ActionL3SwitchCancel{true};
+            }
+#endif
 #endif
           } break;
           case cfg::FlowletAction::DISABLE:
@@ -1686,10 +1688,16 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO2;
   bool isJericho3 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3;
+  bool isJericho4 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
+  bool isQumran4d =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
-  bool isChenab =
-      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+  bool isTomahawk6 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
+  bool isChenab = platform_->getAsic()->getAsicVendor() ==
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
   if (isTajo) {
     std::set<cfg::AclTableQualifier> tajoQualifiers = {
@@ -1738,7 +1746,7 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
         cfg::AclTableQualifier::TTL,
     };
     return jericho2Qualifiers;
-  } else if (isJericho3) {
+  } else if (isJericho3 || isJericho4 || isQumran4d) {
     std::set<cfg::AclTableQualifier> jericho3Qualifiers = {
         cfg::AclTableQualifier::ETHER_TYPE,
         cfg::AclTableQualifier::SRC_IPV6,
@@ -1835,6 +1843,10 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // CS00012342272
     if (isTomahawk5) {
       bcmQualifiers.erase(cfg::AclTableQualifier::OUTER_VLAN);
+    }
+    // ETHER_TYPE required for Aifm controller packets using 0x88B6
+    if (isTomahawk6) {
+      bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
     }
 
     return bcmQualifiers;

@@ -54,14 +54,8 @@ std::string flushNeighborEntries(
         entry.get_interfaceID());
 
     /*
-     * Always pass interfaceID, because:
-     *
-     * NPU / VOQ  switch, FLAGS_intf_nbr_tables = true
-     *  => Agent deletes neighbor from interface's neighbor table.
-     *
-     *  NPU switch, FLAGS_intf_nbr_tables = false
-     *  => Agent treats supplied interfaceID as vlanID (vlanID always equals
-     *     interfaceID) and deletes neighbor from vlan's neighbor table.
+     * Always pass interfaceID - Agent deletes neighbor from interface's
+     * neighbor table.
      */
     agent->sync_flushNeighborEntry(entry.get_ip(), entry.get_interfaceID());
   }

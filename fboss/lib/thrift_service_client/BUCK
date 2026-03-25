@@ -34,4 +34,7 @@ cpp_library(
         "//security/ca/lib:cert_path_picker",
         "//thrift/lib/cpp2/async:rocket_client_channel",
     ],
+    exported_external_deps = [
+        "gflags",
+    ],
 )

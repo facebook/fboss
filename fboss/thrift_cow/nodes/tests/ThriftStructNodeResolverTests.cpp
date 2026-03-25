@@ -1,7 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/thrift_cow/nodes/Types.h"
-#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_fatal_types.h"
+#include "fboss/thrift_cow/nodes/tests/gen-cpp2/test_types.h"
 
 #include "fboss/agent/state/DeltaFunctions.h"
 
@@ -9,7 +9,7 @@
 
 namespace facebook::fboss {
 
-using k = test_tags::strings;
+namespace k = apache::thrift::ident;
 
 ADD_THRIFT_RESOLVER_MAPPING(TestStruct, DerivedTestStructNode);
 class DerivedTestStructNode : public thrift_cow::ThriftStructNode<TestStruct> {

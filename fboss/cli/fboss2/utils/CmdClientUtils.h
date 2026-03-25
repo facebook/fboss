@@ -14,6 +14,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossHwCtrl.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/led_service/if/gen-cpp2/LedService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
@@ -46,6 +47,9 @@ std::unique_ptr<facebook::fboss::QsfpServiceAsyncClient> createQsfpClient(
 std::unique_ptr<
     apache::thrift::Client<facebook::fboss::led_service::LedService>>
 createLedClient(const HostInfo& hostInfo);
+
+std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
+createFsdbClient(const HostInfo& hostInfo);
 
 int getNumHwSwitches(const HostInfo& hostInfo);
 bool isMultiSwitchEnabled(const HostInfo& hostInfo);

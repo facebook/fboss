@@ -6,6 +6,10 @@ namespace py.asyncio neteng.fboss.asyncio.hw_ctrl
 namespace py3 neteng.fboss
 
 include "thrift/annotation/cpp.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // Configure the scheduler settings for high frequency stats collection.
 // A pair of stats will be collected after waiting for statsWaitDurationInMicroseconds.

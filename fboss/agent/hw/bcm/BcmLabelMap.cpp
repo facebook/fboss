@@ -9,7 +9,11 @@ namespace facebook::fboss {
 
 BcmLabelMap::BcmLabelMap(BcmSwitch* hw) : hw_(hw) {}
 
-BcmLabelMap::~BcmLabelMap() {}
+BcmLabelMap::~BcmLabelMap() = default;
+
+BcmLabelMap::BcmLabelMap(BcmLabelMap&&) noexcept = default;
+
+BcmLabelMap& BcmLabelMap::operator=(BcmLabelMap&&) noexcept = default;
 
 void BcmLabelMap::processAddedLabelSwitchAction(
     BcmLabel topLabel,

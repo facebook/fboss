@@ -15,6 +15,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -64,7 +65,8 @@ void AgentSendPacketToQueueTest::checkSendPacket(
     // id 7
     auto sw = getAgentEnsemble()->getSw();
     auto asic = utility::getAsic(*sw, port);
-    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB && isOutOfPort) {
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB &&
+        isOutOfPort) {
       queueID = kChenabTxQueue;
     }
 
@@ -80,10 +82,10 @@ void AgentSendPacketToQueueTest::checkSendPacket(
         vlanId,
         intfMac,
         intfMac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-        8000,
-        8001);
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort);
 
     if (isOutOfPort) {
       if (ucQueue) {
@@ -179,10 +181,10 @@ TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
           vlanId,
           intfMac,
           randomMac,
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-          folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-          8000,
-          8001,
+          folly::IPAddressV6(kTestSrcIpV6),
+          folly::IPAddressV6(kTestDstIpV6),
+          kTestSrcPort,
+          kTestDstPort,
           kDscp << 2);
       ensemble->sendPacketAsync(
           std::move(pkt),

@@ -9,6 +9,8 @@ extern "C" {
 #include <sai.h>
 }
 
+#include <folly/IPAddress.h>
+
 namespace facebook::fboss {
 
 class FakeSaiTunnel {
@@ -33,6 +35,10 @@ class FakeSaiTunnel {
   std::optional<sai_tunnel_ttl_mode_t> ttlMode;
   std::optional<sai_tunnel_dscp_mode_t> dscpMode;
   std::optional<sai_tunnel_decap_ecn_mode_t> ecnMode;
+  std::optional<sai_ip_address_t> encapSrcIp;
+  std::optional<sai_int32_t> encapTtlMode;
+  std::optional<sai_int32_t> encapDscpMode;
+  std::optional<sai_int32_t> encapEcnMode;
 };
 
 class FakeSaiTunnelTerm {

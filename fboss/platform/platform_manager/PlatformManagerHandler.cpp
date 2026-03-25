@@ -79,4 +79,11 @@ void PlatformManagerHandler::getEepromContents(
     throw error;
   }
 }
+
+void PlatformManagerHandler::getFirmwareVersions(
+    FirmwareVersionsResponse& response) {
+  auto versions = dataStore_.getFirmwareVersions();
+  response.firmwareVersions() =
+      std::map<std::string, std::string>(versions.begin(), versions.end());
+}
 } // namespace facebook::fboss::platform::platform_manager

@@ -32,8 +32,15 @@ int getRdswPerCluster(std::optional<PlatformType> platformType = std::nullopt) {
   return rdswCount;
 }
 
-int getDsfInterfaceNodeCount() {
-  return getMaxRdsw() + getMaxEdsw();
+int getDsfInterfaceNodeCount(std::optional<PlatformType> platformType) {
+  // Janga MTIA topology doesn't use EDSWs in production
+  // It uses only 256 RDSWs in single-stage mode
+  if (platformType.has_value() &&
+      platformType.value() == PlatformType::PLATFORM_JANGA800BIC) {
+    return getMaxRdsw(platformType); // 256 RDSWs only, no EDSWs
+  }
+  // Other DSF platforms use traditional RDSW + EDSW topology
+  return getMaxRdsw(platformType) + getMaxEdsw();
 }
 
 } // namespace
@@ -93,26 +100,27 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
   }
 
   int numCores = myAsic->getNumCores();
+  std::optional<PlatformType> platformType{*firstDsfNode.platformType()};
+
   CHECK(
       !numRemoteNodes.has_value() ||
-      numRemoteNodes.value() < getDsfInterfaceNodeCount());
+      numRemoteNodes.value() < getDsfInterfaceNodeCount(platformType));
   int totalNodes = numRemoteNodes.has_value()
       ? numRemoteNodes.value() + curDsfNodes.size()
-      : getDsfInterfaceNodeCount();
+      : getDsfInterfaceNodeCount(platformType);
   auto lastDsfNode = dsfNodes.rbegin()->second;
   int remoteNodeStart = *lastDsfNode.switchId() + numCores;
   auto firstDsfNodeSysPortRanges =
       *firstDsfNode.systemPortRanges()->systemPortRanges();
 
   std::string testSwitchNamePrefix = "hwTestSwitch";
-  std::optional<PlatformType> platformType{*firstDsfNode.platformType()};
   for (int remoteSwitchId = remoteNodeStart;
        remoteSwitchId < totalNodes * numCores;
        remoteSwitchId += numCores) {
     std::optional<int> clusterId;
     HwAsic& hwAsic = *myAsic;
     if (isDualStage3Q2QMode()) {
-      if (remoteSwitchId < getMaxRdsw() * numCores) {
+      if (remoteSwitchId < getMaxRdsw(platformType) * numCores) {
         clusterId = remoteSwitchId / numCores / getRdswPerCluster(platformType);
         CHECK(dualStageRdswAsic);
         hwAsic = *dualStageRdswAsic;
@@ -128,7 +136,7 @@ std::optional<std::map<int64_t, cfg::DsfNode>> addRemoteIntfNodeCfg(
     auto remoteDsfNodeCfg = dsfNodeConfig(
         hwAsic,
         SwitchID(remoteSwitchId),
-        *firstDsfNode.platformType(),
+        platformType, // Pass the optional platformType variable
         clusterId,
         testSwitchNamePrefix);
     dsfNodes.insert({remoteSwitchId, remoteDsfNodeCfg});

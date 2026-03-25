@@ -1,3 +1,5 @@
+package "facebook.com/fboss/cli"
+
 namespace cpp2 facebook.fboss.cli
 
 /* These CLi option error codes have been defined to

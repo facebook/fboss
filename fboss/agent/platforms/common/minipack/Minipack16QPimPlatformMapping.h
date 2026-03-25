@@ -18,11 +18,15 @@ class Minipack16QPimPlatformMapping : public MultiPimPlatformMapping {
  public:
   explicit Minipack16QPimPlatformMapping(ExternalPhyVersion xphyVersion);
   explicit Minipack16QPimPlatformMapping(const std::string& platformMappingStr);
+  ~Minipack16QPimPlatformMapping() = default;
 
  private:
   // Forbidden copy constructor and assignment operator
   Minipack16QPimPlatformMapping(Minipack16QPimPlatformMapping const&) = delete;
   Minipack16QPimPlatformMapping& operator=(
       Minipack16QPimPlatformMapping const&) = delete;
+  Minipack16QPimPlatformMapping(Minipack16QPimPlatformMapping&&) = delete;
+  Minipack16QPimPlatformMapping& operator=(Minipack16QPimPlatformMapping&&) =
+      delete;
 };
 } // namespace facebook::fboss

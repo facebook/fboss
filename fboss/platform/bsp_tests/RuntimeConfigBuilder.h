@@ -43,6 +43,8 @@ class RuntimeConfigBuilder {
       const FpgaIpBlockConfig& auxDev,
       fbiob::AuxDeviceType deviceType);
   fbiob::AuxData createLedAuxData(const LedCtrlConfig& ledCtrl);
+  fbiob::AuxData createSysLedAuxData(const FpgaIpBlockConfig& sysLedCtrl);
+  fbiob::AuxData createGpioAuxData(const FpgaIpBlockConfig& gpioChipConf);
   fbiob::AuxData createXcvrAuxData(const XcvrCtrlConfig& xcvrCtrl);
   fbiob::AuxData createFanAuxData(const FanPwmCtrlConfig& fanCtrl);
   fbiob::AuxData createSpiAuxData(const SpiMasterConfig& spiMaster);

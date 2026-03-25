@@ -2,10 +2,21 @@
 
 #include "fboss/platform/bsp_tests/BspTestEnvironment.h"
 
+#include <folly/FileUtil.h>
 #include <folly/logging/xlog.h>
 
 #include "fboss/platform/bsp_tests/RuntimeConfigBuilder.h"
 #include "fboss/platform/config_lib/ConfigLib.h"
+#include "fboss/platform/helpers/PlatformNameLib.h"
+
+DEFINE_string(
+    bsp_tests_config_file,
+    "",
+    "[OSS-Only] Path to bsp_tests.json file.");
+DEFINE_string(
+    platform_manager_config_file,
+    "",
+    "[OSS-Only] Path to platform_manager.json file.");
 
 namespace facebook::fboss::platform::bsp_tests {
 
@@ -14,43 +25,62 @@ BspTestEnvironment* BspTestEnvironment::instance_ = nullptr;
 
 BspTestEnvironment::~BspTestEnvironment() {}
 
-void BspTestEnvironment::SetUp() {}
+void BspTestEnvironment::SetUp() {
+  if (platform_.empty()) {
+    platform_ =
+        helpers::PlatformNameLib().getPlatformName().value_or("unknown");
+    XLOG(INFO) << "Platform: " << platform_;
+  }
+
+  if (!testConfig_.has_value()) {
+    std::string bspTestsConfigJson;
+    if (FLAGS_bsp_tests_config_file.empty()) {
+      bspTestsConfigJson = ConfigLib().getBspTestConfig();
+    } else {
+      folly::readFile(FLAGS_bsp_tests_config_file.c_str(), bspTestsConfigJson);
+    }
+    // Load bsp test config
+    testConfig_ = loadTestConfig(platform_, bspTestsConfigJson);
+  }
+
+  std::string pmConfigJson;
+  if (!platformManagerConfig_.has_value()) {
+    if (FLAGS_platform_manager_config_file.empty()) {
+      pmConfigJson = ConfigLib().getPlatformManagerConfig();
+    } else {
+      folly::readFile(FLAGS_platform_manager_config_file.c_str(), pmConfigJson);
+    }
+    // Load platform manager configuration
+    platformManagerConfig_ = loadPlatformManagerConfig(platform_, pmConfigJson);
+  }
+
+  if (!pkgManager_) {
+    pkgManager_ =
+        std::make_unique<platform_manager::PkgManager>(*platformManagerConfig_);
+    kmods_ = pkgManager_->readKmodsFile();
+  }
+
+  if (!runtimeConfig_.has_value()) {
+    // Build runtime configuration using RuntimeConfigBuilder
+    RuntimeConfigBuilder configBuilder;
+    runtimeConfig_ = configBuilder.buildRuntimeConfig(
+        *testConfig_, *platformManagerConfig_, kmods_, platform_);
+  }
+}
 
 void BspTestEnvironment::TearDown() {}
 
-BspTestEnvironment::BspTestEnvironment(
-    const std::string& platform,
-    const std::string& bspTestsConfigJson,
-    const std::string& pmConfigJson) {
-  platform_ = platform;
-
-  // Load bsp test config
-  testConfig_ = loadTestConfig(platform_, bspTestsConfigJson);
-
-  // Load platform manager configuration
-  platformManagerConfig_ = loadPlatformManagerConfig(platform, pmConfigJson);
-
-  pkgManager_ =
-      std::make_unique<platform_manager::PkgManager>(platformManagerConfig_);
-  kmods_ = pkgManager_->readKmodsFile();
-
-  // Build runtime configuration using RuntimeConfigBuilder
-  RuntimeConfigBuilder configBuilder;
-  runtimeConfig_ = configBuilder.buildRuntimeConfig(
-      testConfig_, platformManagerConfig_, kmods_, platform_);
-}
-
 const platform_manager::PlatformConfig&
 BspTestEnvironment::getPlatformManagerConfig() const {
-  return platformManagerConfig_;
+  return *platformManagerConfig_;
 }
 
 const BspTestsConfig& BspTestEnvironment::getTestConfig() const {
-  return testConfig_;
+  return *testConfig_;
 }
 
 const RuntimeConfig& BspTestEnvironment::getRuntimeConfig() const {
-  return runtimeConfig_;
+  return *runtimeConfig_;
 }
 
 platform_manager::PlatformConfig BspTestEnvironment::loadPlatformManagerConfig(

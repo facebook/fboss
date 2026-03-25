@@ -76,6 +76,17 @@ int getEepromOffset(
       }
     }
   }
+
+  for (const auto& [__, pmUnitConfig] : *platformConfig.pmUnitConfigs()) {
+    for (const auto& i2cDeviceConfig : *pmUnitConfig.i2cDeviceConfigs()) {
+      if (*i2cDeviceConfig.pmUnitScopedName() == eepromName + "_EEPROM" &&
+          *i2cDeviceConfig.isEeprom() && i2cDeviceConfig.eepromOffset()) {
+        eepromOffset = *i2cDeviceConfig.eepromOffset();
+        break;
+      }
+    }
+  }
+
   return eepromOffset;
 }
 
@@ -136,20 +147,27 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
   }
 
   // Because of upstream kernel issues, we have to manually read the
-  // SCM EEPROM for the Meru800BFA/BIA platforms. It is read directly
+  // SCM/SMB EEPROM for certain platforms. It is read directly
   // with ioctl and written to the /run/devmap file.
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-  // The SCM EEPROM is not a symlink created by PlatformManager (instead it is
+  // The EEPROM is not a symlink created by PlatformManager (instead it is
   // a regular file). So it is not present in `symbolicLinkToDevicePath`, and we
   // have to add it explicitly. ```
-  if (config_.platformName().value() == "meru800bfa" ||
-      config_.platformName().value() == "meru800bia") {
+  if (config_.platformName().value() == "MERU800BFA" ||
+      config_.platformName().value() == "MERU800BIA" ||
+      config_.platformName().value() == "BLACKWOLF800BANW") {
     std::string eepromName = "SCM";
     FruEeprom fruEeprom;
     fruEeprom.path = "/run/devmap/eeproms/MERU_SCM_EEPROM";
-    fruEeprom.offset = getEepromOffset(config_, eepromName);
+    fruEeprom.offset = 0;
     fruEepromList[eepromName] = fruEeprom;
-  } else if (config_.platformName().value() == "darwin") {
+  } else if (config_.platformName().value() == "ICECUBE800BANW") {
+    std::string eepromName = "SMB";
+    FruEeprom fruEeprom;
+    fruEeprom.path = "/run/devmap/eeproms/SMB_EEPROM";
+    fruEeprom.offset = 0;
+    fruEepromList[eepromName] = fruEeprom;
+  } else if (config_.platformName().value() == "DARWIN") {
     // Darwin Platform special case that doesn't have a chassis EEPROM path
     std::string eepromName = "CHASSIS";
     FruEeprom fruEeprom;
@@ -164,7 +182,7 @@ std::unordered_map<std::string, FruEeprom> ConfigUtils::getFruEepromList() {
 std::string ConfigUtils::getChassisEepromName() {
   // Get Chassis Eeprom Device Name
   // Darwin Platform special case that doesn't have a chassis EEPROM path
-  if (config_.platformName().value() == "darwin") {
+  if (config_.platformName().value() == "DARWIN") {
     return "CHASSIS";
   } else if (!config_.chassisEepromDevicePath()->empty()) {
     std::string chassisEepromPath =

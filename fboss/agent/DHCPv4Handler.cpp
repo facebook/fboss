@@ -178,9 +178,10 @@ void DHCPv4Handler::handlePacket(
   DHCPv4Packet dhcpPkt;
   try {
     dhcpPkt.parse(&cursor);
-  } catch (const FbossError&) {
+  } catch (const FbossError& ex) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
-    throw; // Rethrow
+    XLOG(ERR) << "Failed to parse DHCPv4 packet: " << ex.what();
+    return;
   }
   if (dhcpPkt.hasDhcpCookie()) {
     switch (dhcpPkt.op) {
@@ -283,9 +284,15 @@ void DHCPv4Handler::processRequest(
 
   auto switchIp = state->getDhcpV4RelaySrc();
   if (switchIp.isZero()) {
-    auto interfaceID = sw->getState()->getInterfaceIDForPort(
+    auto interfaceIDOpt = sw->getState()->getInterfaceIDForPortIf(
         PortDescriptor(pkt->getSrcPort()));
-    auto interface = state->getInterfaces()->getNodeIf(interfaceID);
+    if (!interfaceIDOpt) {
+      sw->stats()->dhcpV4DropPkt();
+      XLOG(ERR) << "No interface for port " << pkt->getSrcPort()
+                << ", DHCP packet dropped";
+      return;
+    }
+    auto interface = state->getInterfaces()->getNodeIf(interfaceIDOpt.value());
 
     for (auto iter : std::as_const(*interface->getAddresses())) {
       auto address =

@@ -21,6 +21,7 @@
 #include <boost/functional/hash.hpp>
 #include <fmt/ranges.h>
 
+#include <cstring>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -181,6 +182,9 @@ DEFINE_extract(
     portfrequencyoffsetppmlist);
 DEFINE_extract(std::vector<sai_port_snr_values_t>, portsnrlist);
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+DEFINE_extract(facebook::fboss::SaiJsonString, json);
+#endif
 DEFINE_extract(facebook::fboss::AclEntryFieldU8, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU16, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU32, aclfield);
@@ -206,6 +210,7 @@ DEFINE_extract(sai_acl_capability_t, aclcapability);
 DEFINE_extract(sai_acl_resource_list_t, aclresource);
 DEFINE_extract(sai_tlv_list_t, tlvlist);
 DEFINE_extract(sai_segment_list_t, segmentlist);
+DEFINE_extract(std::vector<folly::IPAddressV6>, segmentlist);
 DEFINE_extract(sai_ip_address_list_t, ipaddrlist);
 DEFINE_extract(sai_system_port_config_t, sysportconfig);
 DEFINE_extract(sai_fabric_port_reachability_t, reachability);
@@ -280,6 +285,42 @@ void _fill(const SaiListT& src, std::vector<T>& dst) {
   dst.resize(src.count);
   std::copy(src.list, src.list + src.count, std::begin(dst));
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+// sai_json_t contains a sai_s8_list_t json member
+inline void _fill(facebook::fboss::SaiJsonString& src, sai_json_t& dst) {
+  dst.json.count = src.value.size();
+  dst.json.list = reinterpret_cast<sai_int8_t*>(src.value.data());
+}
+
+inline void _fill(const sai_json_t& src, facebook::fboss::SaiJsonString& dst) {
+  if (src.json.count == 0) {
+    dst.value.clear();
+    return;
+  }
+  dst.value.resize(src.json.count);
+  std::copy(
+      src.json.list, src.json.list + src.json.count, std::begin(dst.value));
+}
+
+inline void _realloc(
+    const sai_json_t& src,
+    facebook::fboss::SaiJsonString& dst) {
+  dst.value.resize(src.json.count);
+}
+#endif
+
+} // namespace
+
+void _fill(std::vector<folly::IPAddressV6>& src, sai_segment_list_t& dst);
+
+void _fill(const sai_segment_list_t& src, std::vector<folly::IPAddressV6>& dst);
+
+void _realloc(
+    const sai_segment_list_t& src,
+    std::vector<folly::IPAddressV6>& dst);
+
+namespace {
 
 inline bool compareQosMap(const sai_qos_map_t& lhs, const sai_qos_map_t& rhs) {
   if (lhs.key.tc != rhs.key.tc) {
@@ -526,7 +567,7 @@ inline void _fill(
       src.parameter.objlist.list + src.parameter.objlist.count,
       std::begin(dstData));
 
-  dst.setData(dstData);
+  dst.setData(std::move(dstData));
 }
 
 inline void _fill(
@@ -548,7 +589,7 @@ inline void _realloc(
     facebook::fboss::AclEntryActionSaiObjectIdList& dst) {
   std::vector<sai_object_id_t> dstData(src.parameter.objlist.count);
   dstData.resize(src.parameter.objlist.count);
-  dst.setData(dstData);
+  dst.setData(std::move(dstData));
 }
 
 inline void _realloc(
@@ -716,12 +757,13 @@ class SaiAttribute<
    * }
    * a2.value() // uh-oh
    */
-  SaiAttribute(const SaiAttribute& other) {
-    // NOTE: use copy assignment to implement copy ctor
-    *this = other;
+  SaiAttribute(const SaiAttribute& other) : SaiAttribute() {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(other.value());
   }
-  SaiAttribute(SaiAttribute&& other) {
-    *this = std::move(other);
+  SaiAttribute(SaiAttribute&& other) : SaiAttribute() {
+    saiAttr_.id = other.saiAttr_.id;
+    setValue(std::move(other).value());
   }
   SaiAttribute& operator=(const SaiAttribute& other) {
     saiAttr_.id = other.saiAttr_.id;
@@ -1057,6 +1099,20 @@ struct hash<
   size_t operator()(
       const facebook::fboss::SaiExtensionAttribute<T, SaiExtensionAttributeId>&
           attr) const {
+    size_t seed = 0;
+    boost::hash_combine(seed, attr.value());
+    return seed;
+  }
+};
+
+template <typename T, typename SaiExtensionAttributeId, typename DefaultGetterT>
+struct hash<
+    facebook::fboss::
+        SaiExtensionAttribute<T, SaiExtensionAttributeId, DefaultGetterT>> {
+  size_t operator()(
+      const facebook::fboss::
+          SaiExtensionAttribute<T, SaiExtensionAttributeId, DefaultGetterT>&
+              attr) const {
     size_t seed = 0;
     boost::hash_combine(seed, attr.value());
     return seed;

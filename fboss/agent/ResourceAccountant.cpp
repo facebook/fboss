@@ -12,6 +12,7 @@
 
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FlowletSwitchingConfig.h"
 #include "fboss/agent/state/SwitchState.h"
 
 namespace {
@@ -34,6 +35,13 @@ ResourceAccountant::ResourceAccountant(
   checkRouteUpdate_ = shouldCheckRouteUpdate();
 }
 
+bool ResourceAccountant::isVirtualArsGroup(
+    const RouteNextHopEntry::NextHopSet& nhSet) const {
+  return FLAGS_dlbResourceCheckEnable &&
+      minWidthForArsVirtualGroup_.has_value() &&
+      nhSet.size() >= static_cast<size_t>(minWidthForArsVirtualGroup_.value());
+}
+
 bool ResourceAccountant::isEcmp(const RouteNextHopEntry& fwd) const {
   for (const auto& nhop : fwd.normalizedNextHops()) {
     if (nhop.weight() && nhop.weight() > 1) {
@@ -54,6 +62,7 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
       // For TH5, UCMP members take 4x of ECMP members in the same table.
       return 4 * fwd.normalizedNextHops().size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       // Yuba asic natively supports UCMP members with no extra cost.
       return fwd.normalizedNextHops().size();
     default:
@@ -70,6 +79,10 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
 
 size_t ResourceAccountant::getMemberCountForEcmpGroup(
     const RouteNextHopEntry& fwd) const {
+  // Virtual ARS groups do not use ECMP member objects individually.
+  if (isVirtualArsGroup(fwd.normalizedNextHops())) {
+    return 0;
+  }
   if (isEcmp(fwd)) {
     return fwd.normalizedNextHops().size();
   }
@@ -123,11 +136,19 @@ bool ResourceAccountant::checkEcmpResource(bool intermediateState) const {
                  << " ASIC limit: " << *ecmpGroupEnforcedLimit;
       return false;
     }
+    // Virtual ARS groups collectively use minWidthForArsVirtualGroup_ ECMP
+    // members (shared across all virtual groups)
+    auto virtualArsEcmpMemberUsage =
+        (virtualArsGroupCount_ > 0 && minWidthForArsVirtualGroup_.has_value())
+        ? static_cast<uint32_t>(minWidthForArsVirtualGroup_.value())
+        : 0;
+    auto totalEcmpMemberUsage = ecmpMemberUsage_ + virtualArsEcmpMemberUsage;
     if (ecmpMemberEnforcedLimit.has_value() &&
-        ecmpMemberUsage_ > *ecmpMemberEnforcedLimit) {
+        totalEcmpMemberUsage > *ecmpMemberEnforcedLimit) {
       XLOG(DBG2)
           << " Ecmp member limit exceeded. Ecmp demand from this update: "
-          << ecmpMemberUsage_ << " ASIC Limit: " << *ecmpMemberEnforcedLimit;
+          << totalEcmpMemberUsage
+          << " ASIC Limit: " << *ecmpMemberEnforcedLimit;
       return false;
     }
   }
@@ -141,11 +162,46 @@ bool ResourceAccountant::checkArsResource(bool intermediateState) const {
 
     for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
       const auto arsGroupLimit = hwAsic->getMaxArsGroups();
-      if (arsGroupLimit.has_value() &&
-          arsEcmpGroupRefMap_.size() >
-              (arsGroupLimit.value() * resourcePercentage) /
-                  kHundredPercentage) {
-        return false;
+      if (arsGroupLimit.has_value()) {
+        uint32_t enforcedLimit =
+            (arsGroupLimit.value() * resourcePercentage) / kHundredPercentage;
+        // Non-virtual groups each use one DLB entry.
+        // Virtual groups collectively use maxArsVirtualGroupWidth_/maxArsWidth
+        // DLB entries.
+        uint32_t virtualArsDlbUsage = 0;
+        if (virtualArsGroupCount_ > 0 && maxArsVirtualGroupWidth_.has_value()) {
+          auto maxArsWidth = hwAsic->getMaxArsWidth();
+          if (maxArsWidth.has_value() && maxArsWidth.value() > 0) {
+            virtualArsDlbUsage = static_cast<uint32_t>(
+                maxArsVirtualGroupWidth_.value() / maxArsWidth.value());
+          }
+        }
+        uint32_t totalDlbUsage =
+            arsEcmpGroupRefMap_.size() + virtualArsDlbUsage;
+        if (totalDlbUsage > enforcedLimit) {
+          XLOG(DBG2) << " ARS group limit exceeded. ARS groups: "
+                     << arsEcmpGroupRefMap_.size()
+                     << ", virtual ARS groups: " << virtualArsGroupCount_
+                     << ", total DLB usage: " << totalDlbUsage
+                     << " ASIC limit: " << arsGroupLimit.value()
+                     << ", resource percentage: " << resourcePercentage;
+          return false;
+        }
+      }
+
+      if (maxArsVirtualGroups_.has_value()) {
+        uint32_t enforcedVirtualArsLimit =
+            (static_cast<uint32_t>(maxArsVirtualGroups_.value()) *
+             resourcePercentage) /
+            kHundredPercentage;
+        if (virtualArsGroupCount_ > enforcedVirtualArsLimit) {
+          XLOG(DBG2)
+              << " Virtual ARS group limit exceeded. Virtual ARS groups: "
+              << virtualArsGroupCount_
+              << " max: " << maxArsVirtualGroups_.value()
+              << ", resource percentage: " << resourcePercentage;
+          return false;
+        }
       }
     }
   }
@@ -167,6 +223,9 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
       if (!add && it->second == 0) {
         ecmpGroupRefMap_.erase(it);
         ecmpMemberUsage_ -= getMemberCountForEcmpGroup(fwd);
+        if (isVirtualArsGroup(nhSet)) {
+          virtualArsGroupCount_--;
+        }
       }
       return true;
     }
@@ -175,6 +234,9 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     CHECK(add);
     ecmpGroupRefMap_[nhSet] = 1;
     ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd);
+    if (isVirtualArsGroup(nhSet)) {
+      virtualArsGroupCount_++;
+    }
     return checkEcmpResource(true /* intermediateState */);
   }
   return true;
@@ -197,6 +259,10 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
       if (FLAGS_enable_ecmp_resource_manager &&
           fwd.getOverrideEcmpSwitchingMode().has_value()) {
         return true;
+      }
+      if (isVirtualArsGroup(nhSet)) {
+        return checkArsResource(true /* intermediateState */) &&
+            checkEcmpResource(true /* intermediateState */);
       }
       if (auto it = arsEcmpGroupRefMap_.find(nhSet);
           it != arsEcmpGroupRefMap_.end()) {
@@ -250,6 +316,8 @@ bool ResourceAccountant::checkAndUpdateRouteResource(bool add) {
     for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
       const auto routeLimit = hwAsic->getMaxRoutes();
       if (routeLimit.has_value() && routeUsage_ > routeLimit.value()) {
+        XLOG(DBG2) << "Route limit exceeded. Route demand from this update: "
+                   << routeUsage_ << " ASIC Limit: " << routeLimit.value();
         return false;
       }
     }
@@ -316,20 +384,22 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
 
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable &&
       !validRouteUpdate) {
-    XLOG(WARNING)
-        << "Invalid route update - exceeding DLB resource limits. New state consumes "
-        << arsEcmpGroupRefMap_.size() << " DLB ECMP groups";
     for (const auto& [switchId, hwAsic] : asicTable_->getHwAsics()) {
       const auto dlbGroupLimit = hwAsic->getMaxArsGroups();
-      XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
-                    << ": max DLB groups="
-                    << (dlbGroupLimit.has_value()
-                            ? folly::to<std::string>(dlbGroupLimit.value())
-                            : "None");
-    }
-    return validRouteUpdate;
-  }
+      if (dlbGroupLimit && arsEcmpGroupRefMap_.size() > dlbGroupLimit.value()) {
+        XLOG(WARNING)
+            << "Invalid route update - exceeding DLB resource limits. New state consumes "
+            << arsEcmpGroupRefMap_.size() << " DLB ECMP groups";
 
+        XLOG(WARNING) << "DLB ECMP resource limits for Switch " << switchId
+                      << ": max DLB groups="
+                      << (dlbGroupLimit.has_value()
+                              ? folly::to<std::string>(dlbGroupLimit.value())
+                              : "None");
+        return validRouteUpdate;
+      }
+    }
+  }
   if (!validRouteUpdate) {
     XLOG(WARNING)
         << "Invalid route update - exceeding route or ECMP resource limits. New state consumes "
@@ -538,18 +608,9 @@ void ResourceAccountant::neighborStateChangedImpl(const StateDelta& delta) {
         });
   };
 
-  if (FLAGS_intf_nbr_tables) {
-    for (auto& intfDelta : delta.getIntfsDelta()) {
-      processDelta(
-          intfDelta.getNeighborDelta<TableT>(),
-          getNeighborEntriesMap<TableT>());
-    }
-  } else {
-    for (auto& vlanDelta : delta.getVlansDelta()) {
-      processDelta(
-          vlanDelta.getNeighborDelta<TableT>(),
-          getNeighborEntriesMap<TableT>());
-    }
+  for (auto& intfDelta : delta.getIntfsDelta()) {
+    processDelta(
+        intfDelta.getNeighborDelta<TableT>(), getNeighborEntriesMap<TableT>());
   }
 }
 
@@ -625,8 +686,22 @@ bool ResourceAccountant::checkNeighborResource() {
   return true;
 }
 
+void ResourceAccountant::updateArsVirtualGroupConfig(const StateDelta& delta) {
+  if (auto flowletConfig = delta.newState()->getFlowletSwitchingConfig()) {
+    minWidthForArsVirtualGroup_ =
+        flowletConfig->getMinWidthForArsVirtualGroup();
+    maxArsVirtualGroups_ = flowletConfig->getMaxArsVirtualGroups();
+    maxArsVirtualGroupWidth_ = flowletConfig->getMaxArsVirtualGroupWidth();
+  } else {
+    minWidthForArsVirtualGroup_ = std::nullopt;
+    maxArsVirtualGroups_ = std::nullopt;
+    maxArsVirtualGroupWidth_ = std::nullopt;
+  }
+}
+
 // stateChanged is called when the ResourceAccountant needs to be updated
 void ResourceAccountant::stateChanged(const StateDelta& delta) {
+  updateArsVirtualGroupConfig(delta);
   routeAndEcmpStateChangedImpl(delta);
 
   if (FLAGS_enable_hw_update_protection) {
@@ -638,6 +713,7 @@ void ResourceAccountant::stateChanged(const StateDelta& delta) {
 
 // check if the resource is available for the update as per fboss limits
 bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
+  updateArsVirtualGroupConfig(delta);
   bool isValidUpdate = isValidRouteUpdate(delta);
 
   if (FLAGS_enable_hw_update_protection) {
@@ -648,6 +724,21 @@ bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
   }
 
   return isValidUpdate;
+}
+
+void ResourceAccountant::setMinWidthForArsVirtualGroup(
+    std::optional<int32_t> minWidthForArsVirtualGroup) {
+  minWidthForArsVirtualGroup_ = minWidthForArsVirtualGroup;
+}
+
+void ResourceAccountant::setMaxArsVirtualGroups(
+    std::optional<int32_t> maxArsVirtualGroups) {
+  maxArsVirtualGroups_ = maxArsVirtualGroups;
+}
+
+void ResourceAccountant::setMaxArsVirtualGroupWidth(
+    std::optional<int32_t> maxArsVirtualGroupWidth) {
+  maxArsVirtualGroupWidth_ = maxArsVirtualGroupWidth;
 }
 
 } // namespace facebook::fboss

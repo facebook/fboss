@@ -9,6 +9,7 @@ namespace go neteng.fboss.switch_state
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "fboss/agent/if/common.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
@@ -16,8 +17,12 @@ include "fboss/agent/if/ctrl.thrift"
 include "fboss/mka_service/if/mka_structs.thrift"
 include "thrift/annotation/thrift.thrift"
 
+@thrift.AllowLegacyMissingUris
+package;
+
 struct VlanInfo {
   1: bool tagged;
+  2: bool priorityTagged;
 }
 
 struct PortPgFields {
@@ -122,17 +127,28 @@ struct PortFields {
   47: bool rxLaneSquelch = false;
   48: bool zeroPreemphasis = false;
 
-  // Set only for ASICs that distinguish UP from ACTIVE e.g. J2, J3 etc.
-  // On those ASICs, an UP port is ACTIVE only if bi-directional connectivity
-  // is established and ports on both sides are ready to send data traffic.
+  // Indicates whether a port is ACTIVE (ready for data traffic) vs merely UP.
   //
-  // When set, portActiveState::
-  //  false => port is INACTIVE
-  //  true => port is ACTIVE
+  // This field serves two purposes:
   //
-  // When portActiveState is set,
-  //  - if portOperState is DOWN, portActiveState is always INACTIVE
-  //  - if portOperState is UP, portActiveState is either ACTIVE or INACTIVE.
+  // 1. Local port readiness (hardware-determined):
+  //    - Set by ASICs that distinguish UP from ACTIVE (e.g., J2, J3)
+  //    - ACTIVE means bi-directional connectivity is established and both
+  //      sides are ready to send data traffic
+  //    Constraints:
+  //      - When portOperState is DOWN, portActiveState must be INACTIVE
+  //      - When portOperState is UP, portActiveState may be ACTIVE or INACTIVE
+  //
+  // 2. Remote neighbor port state (LLDP-learned):
+  //    - Tracks drain state of remote/neighbor port via LLDP TLV
+  //    - LLDP drain state is inverted: drained=true -> active=false
+  //    - Allows traffic engineering based on neighbor readiness
+  //
+  // Semantics:
+  //   true  => Port is ACTIVE (ready for traffic)
+  //   false => Port is INACTIVE (up but not ready, or neighbor is drained)
+  //   unset => Active state is not tracked for this port
+  //
   49: optional bool portActiveState;
   50: optional bool disableTTLDecrement;
   51: optional bool txEnable;
@@ -156,6 +172,10 @@ struct PortFields {
   62: optional bool resetQueueCreditBalance;
   // Switch ID for use with fabric links in Fabric Link Monitoring
   63: optional i32 portSwitchId;
+  // Serdes custom collection JSON string
+  64: optional string serdesCustomCollection;
+  // Cable Length Measurement (CLM) enable configuration for this port
+  65: optional bool clmEnable;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -295,12 +315,13 @@ struct VlanFields {
   5: string dhcpV6Relay = "::";
   6: map<string, string> dhcpRelayOverridesV4;
   7: map<string, string> dhcpRelayOverridesV6;
-  8: map<i16, bool> ports;
+  8: map<i16, bool> ports_DEPRECATED;
   9: NeighborEntries arpTable;
   10: map<string, NeighborResponseEntryFields> arpResponseTable;
   11: NeighborEntries ndpTable;
   12: map<string, NeighborResponseEntryFields> ndpResponseTable;
   13: map<string, MacEntryFields> macTable;
+  14: map<i16, VlanInfo> portsInfo;
 }
 
 struct LoadBalancerFields {
@@ -363,6 +384,12 @@ struct MirrorOnDropReportFields {
     switch_config.MirrorOnDropAgingGroup,
     i32
   > agingGroupAgingIntervalUsecs;
+  // Resolved fields - populated by TamManager when collector IP is resolved
+  16: bool isResolved = false;
+  17: optional string resolvedCollectorMac;
+  18: optional switch_config.PortDescriptor resolvedEgressPort;
+  // Optional sampling rate for MOD packets
+  19: optional i32 samplingRate;
 }
 
 struct ControlPlaneFields {
@@ -466,6 +493,7 @@ struct SwitchSettingsFields {
   59: optional i32 ecmpCompressionThresholdPct;
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
+  61: optional switch_config.PacketForwardingMode packetForwardingMode;
 }
 
 struct RoutePrefix {
@@ -489,6 +517,7 @@ struct RouteNextHopEntry {
   // exhausted.
   7: optional list<common.NextHopThrift> overrideNextHops;
   8: optional i64 normalizedResolvedNextHopSetID;
+  9: optional i64 resolvedNextHopSetID;
 }
 
 struct RouteNextHopsMulti {
@@ -518,14 +547,25 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
+  @fboss_common.AllowSkipThriftCow
   2: map<string, RouteFields> fibV4;
-  @thrift.DeprecatedUnvalidatedAnnotations{
-    items = {"allow_skip_thrift_cow": "1"},
-  }
+  @fboss_common.AllowSkipThriftCow
   3: map<string, RouteFields> fibV6;
+}
+
+// NextHopID and NextHopSetID
+typedef i64 NextHopIdType
+
+typedef i64 NextHopSetIdType
+
+struct FibInfoFields {
+  1: map<i16, FibContainerFields> fibsMap;
+  // Map from NextHop ID to NextHop
+  2: map<NextHopIdType, common.NextHopThrift> idToNextHop;
+  // Map from NextHopSetID to set of NextHopIDs
+  3: map<NextHopSetIdType, set<NextHopIdType>> idToNextHopIdSet;
+  // Map from named next-hop group name to NextHopSetID
+  4: map<string, NextHopSetIdType> nameToNextHopSetId;
 }
 
 struct TrafficClassToQosAttributeEntry {
@@ -553,6 +593,27 @@ struct IpTunnelFields {
   12: optional string srcIpMask;
 }
 
+struct Srv6TunnelFields {
+  1: string srv6TunnelId;
+  2: i32 underlayIntfId;
+  3: optional string srcIp;
+  4: optional string dstIp;
+  5: optional switch_config.TunnelMode ttlMode;
+  6: optional switch_config.TunnelMode dscpMode;
+  7: optional switch_config.TunnelMode ecnMode;
+  8: optional switch_config.TunnelTerminationType tunnelTermType;
+  9: common.TunnelType tunnelType;
+}
+
+struct MySidFields {
+  1: common.MySidType type;
+  # MySid entry in ip/mask format. 32 bits of this are
+  # locator block len and 32-maskLen are sid bits
+  2: Address.IPPrefix mySid;
+  3: optional RouteNextHopEntry unresolveNextHop;
+  4: optional RouteNextHopEntry resolvedNextHop;
+}
+
 struct QosPolicyFields {
   1: string name;
   2: TrafficClassToQosAttributeMap dscpMap;
@@ -576,7 +637,7 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
-@thrift.DeprecatedUnvalidatedAnnotations{items = {"allow_skip_thrift_cow": "1"}}
+@fboss_common.AllowSkipThriftCow
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
@@ -753,6 +814,9 @@ struct SwitchState {
     SwitchIdList,
     map<string, MirrorOnDropReportFields>
   > mirrorOnDropReportMaps;
+  124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
+  125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
+  126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

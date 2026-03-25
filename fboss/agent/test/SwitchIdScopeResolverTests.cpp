@@ -1,10 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/state/Srv6Tunnel.h" // must precede SwSwitch.h to avoid template conflicts
+
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -14,13 +18,10 @@
 
 using namespace facebook::fboss;
 
-template <typename SwitchTypeAndEnableIntfNbrTableT>
+template <typename SwitchTypeT>
 class SwitchIdScopeResolverTest : public ::testing::Test {
  public:
-  static auto constexpr switchType =
-      SwitchTypeAndEnableIntfNbrTableT::switchType;
-  static auto constexpr intfNbrTable =
-      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
+  static auto constexpr switchType = SwitchTypeT::switchType;
 
   void addMirrorConfig(cfg::SwitchConfig* cfg) {
     cfg::Mirror mirror;
@@ -33,7 +34,6 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     auto config = testConfigA(switchType);
     addMirrorConfig(&config);
     handle_ = createTestHandle(&config);
@@ -103,7 +103,7 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeAndEnableIntfNbrTable);
+TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeTestTypes);
 
 TYPED_TEST(SwitchIdScopeResolverTest, mirrorScope) {
   if (this->isFabric()) {
@@ -188,7 +188,12 @@ TYPED_TEST(SwitchIdScopeResolverTest, sysPortScope) {
 
 TYPED_TEST(SwitchIdScopeResolverTest, vlanScope) {
   auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("Vlan1"));
-  vlan1->setPorts({{0, true}});
+  Vlan::MemberPorts ports;
+  state::VlanInfo vlanInfo;
+  *vlanInfo.tagged() = true;
+  *vlanInfo.priorityTagged() = false;
+  ports.insert(std::make_pair(0, vlanInfo));
+  vlan1->setPortsInfo(ports);
   this->expectSwitchId(vlan1);
   auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("Vlan2"));
   this->expectAll(vlan2);
@@ -256,7 +261,8 @@ TYPED_TEST(SwitchIdScopeResolverTest, qosPolicyScope) {
 
 TYPED_TEST(SwitchIdScopeResolverTest, controlPlaneScope) {
   if (this->isFabric()) {
-    this->expectThrow(std::shared_ptr<ControlPlane>{});
+    // Fabric switches supports CPU port and use allSwitchMatcher
+    this->expectAll(std::shared_ptr<ControlPlane>{});
   } else {
     this->expectL3(std::shared_ptr<ControlPlane>());
   }
@@ -340,5 +346,115 @@ TYPED_TEST(SwitchIdScopeResolverTest, portIntfScope) {
 
     auto matcher4 = resolver.scope(intf6001, cfg);
     EXPECT_EQ(matcher3, matcher4);
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelCfgScope) {
+  if (this->isFabric()) {
+    return;
+  }
+  // Create a cfg::Srv6Tunnel referencing a valid interface
+  cfg::Srv6Tunnel tunnel;
+  tunnel.srv6TunnelId() = "tunnel0";
+  tunnel.underlayIntfID() = 1;
+
+  auto config = this->sw_->getConfig();
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, config);
+
+  // The scope should match that of the underlay interface
+  for (const auto& intf : *config.interfaces()) {
+    if (*intf.intfID() == 1) {
+      auto intfMatcher = resolver.scope(*intf.type(), InterfaceID(1), config);
+      EXPECT_EQ(tunnelMatcher, intfMatcher);
+      break;
+    }
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelCfgScopePortIntf) {
+  if (this->switchType != cfg::SwitchType::NPU) {
+    return;
+  }
+  auto config = testConfigAWithPortInterfaces();
+  this->addMirrorConfig(&config);
+  this->sw_->applyConfig("applyConfig", config);
+
+  cfg::Srv6Tunnel tunnel;
+  tunnel.srv6TunnelId() = "tunnel0";
+  tunnel.underlayIntfID() = 6001;
+
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, config);
+  auto portMatcher = resolver.scope(PortID(1));
+  EXPECT_EQ(tunnelMatcher, portMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelStateScope) {
+  if (this->isFabric()) {
+    return;
+  }
+  auto state = this->sw_->getState();
+  auto allIntfs = state->getInterfaces();
+  auto intf = allIntfs->getAllNodes()->cbegin()->second;
+
+  // Create Srv6Tunnel with underlay pointing to existing interface
+  state::Srv6TunnelFields tunnelFields;
+  tunnelFields.srv6TunnelId() = "tunnel0";
+  tunnelFields.underlayIntfId() = static_cast<int>(intf->getID());
+  auto tunnel = std::make_shared<Srv6Tunnel>(std::move(tunnelFields));
+
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, state);
+  auto intfMatcher = resolver.scope(intf, state);
+  EXPECT_EQ(tunnelMatcher, intfMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelCfgScopeInvalidIntf) {
+  if (this->isFabric()) {
+    return;
+  }
+  cfg::Srv6Tunnel tunnel;
+  tunnel.srv6TunnelId() = "tunnel0";
+  tunnel.underlayIntfID() = 99999;
+
+  auto config = this->sw_->getConfig();
+  const auto& resolver = this->scopeResolver();
+  EXPECT_THROW(resolver.scope(tunnel, config), FbossError);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelStateScopeCfg) {
+  if (this->isFabric()) {
+    return;
+  }
+  auto state = this->sw_->getState();
+  auto allIntfs = state->getInterfaces();
+  auto intf = allIntfs->getAllNodes()->cbegin()->second;
+
+  state::Srv6TunnelFields tunnelFields;
+  tunnelFields.srv6TunnelId() = "tunnel0";
+  tunnelFields.underlayIntfId() = static_cast<int>(intf->getID());
+  auto tunnel = std::make_shared<Srv6Tunnel>(std::move(tunnelFields));
+
+  auto config = this->sw_->getConfig();
+  const auto& resolver = this->scopeResolver();
+  auto tunnelMatcher = resolver.scope(tunnel, config);
+  auto intfMatcher = resolver.scope(intf, config);
+  EXPECT_EQ(tunnelMatcher, intfMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, mySidScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<MySid>{});
+  } else {
+    this->expectL3(std::shared_ptr<MySid>());
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, mySidMapScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<MySidMap>{});
+  } else {
+    this->expectL3(std::shared_ptr<MySidMap>());
   }
 }

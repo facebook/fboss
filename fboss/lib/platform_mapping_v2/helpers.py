@@ -1,13 +1,16 @@
 # pyre-strict
 import copy
+import json
 import re
-from typing import Any, List, Optional
+from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
 from neteng.fboss.phy.ttypes import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
+    FecMode,
     Pin,
     PinConfig,
     PinConnection,
@@ -18,7 +21,6 @@ from neteng.fboss.phy.ttypes import (
     RxSettings,
     TxSettings,
 )
-
 from neteng.fboss.platform_config.ttypes import (
     PlatformPortConfigFactor,
     PlatformPortConfigOverride,
@@ -35,9 +37,7 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SiSettingPinConnection,
     SpeedSetting,
 )
-
 from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
-
 from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
 
 
@@ -235,12 +235,41 @@ def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
     )
 
 
+def _create_xphy_profile_side_config(
+    speed_setting: SpeedSetting,
+    use_a_chip_settings: bool,
+) -> ProfileSideConfig:
+    """Create a ProfileSideConfig for XPHY line or system side.
+
+    Args:
+        speed_setting: The speed setting containing lane/modulation/media info
+        use_a_chip_settings: If True, use a_chip_settings; else use z_chip_settings
+
+    Returns:
+        Configured ProfileSideConfig object
+    """
+    chip_settings = (
+        speed_setting.a_chip_settings
+        if use_a_chip_settings
+        else speed_setting.z_chip_settings
+    )
+
+    config = ProfileSideConfig()
+    config.numLanes = speed_setting.num_lanes
+    config.modulation = speed_setting.modulation
+    config.fec = chip_settings.chip_fec
+    config.interfaceType = chip_settings.chip_interface_type
+    config.medium = speed_setting.media_type
+    return config
+
+
 # Creates a PlatformPortProfileConfigEntry for a given profileID, numlanes,
 # modulation, fec mode and interface type
 def get_platform_config_entry(
     profile: PortProfileID,
     npu_speed_setting: SpeedSetting,
-    xphy_speed_setting: Optional[SpeedSetting] = None,
+    xphy_line_speed_setting: Optional[SpeedSetting] = None,
+    xphy_system_speed_setting: Optional[SpeedSetting] = None,
 ) -> Optional[PlatformPortProfileConfigEntry]:
     factor = PlatformPortConfigFactor()
     profile_config = PortProfileConfig()
@@ -255,7 +284,7 @@ def get_platform_config_entry(
     ):
         npu_profile_side_config.numLanes = npu_speed_setting.num_lanes
         npu_profile_side_config.modulation = npu_speed_setting.modulation
-        npu_profile_side_config.fec = npu_speed_setting.fec
+        npu_profile_side_config.fec = npu_speed_setting.a_chip_settings.chip_fec
         if is_npu(npu_speed_setting.a_chip_settings.chip_type):
             npu_profile_side_config.interfaceType = (
                 npu_speed_setting.a_chip_settings.chip_interface_type
@@ -267,28 +296,18 @@ def get_platform_config_entry(
         npu_profile_side_config.medium = npu_speed_setting.media_type
         profile_config.iphy = npu_profile_side_config
 
-        # Configure XPHY side if available
-        if xphy_speed_setting is not None:
-            xphy_profile_side_config = ProfileSideConfig()
-            if is_xphy(xphy_speed_setting.a_chip_settings.chip_type) or is_xphy(
-                xphy_speed_setting.z_chip_settings.chip_type
-            ):
-                xphy_profile_side_config.numLanes = xphy_speed_setting.num_lanes
-                xphy_profile_side_config.modulation = xphy_speed_setting.modulation
-                xphy_profile_side_config.fec = xphy_speed_setting.fec
-                if is_xphy(xphy_speed_setting.a_chip_settings.chip_type):
-                    xphy_profile_side_config.interfaceType = (
-                        xphy_speed_setting.a_chip_settings.chip_interface_type
-                    )
-                else:
-                    xphy_profile_side_config.interfaceType = (
-                        xphy_speed_setting.z_chip_settings.chip_interface_type
-                    )
-                xphy_profile_side_config.medium = xphy_speed_setting.media_type
+        if xphy_line_speed_setting is not None:
+            # XPHY Line side config (from XPHY→BACKPLANE row, XPHY is A-end)
+            profile_config.xphyLine = _create_xphy_profile_side_config(
+                xphy_line_speed_setting, use_a_chip_settings=True
+            )
 
-                # Set both xphyLine and xphySystem to the same config
-                profile_config.xphyLine = xphy_profile_side_config
-                profile_config.xphySystem = xphy_profile_side_config
+        if xphy_system_speed_setting is not None:
+            # XPHY System side config (from NPU→XPHY row, XPHY is Z-end)
+            profile_config.xphySystem = _create_xphy_profile_side_config(
+                xphy_system_speed_setting,
+                use_a_chip_settings=False,
+            )
 
         return PlatformPortProfileConfigEntry(factor=factor, profile=profile_config)
     return None
@@ -304,7 +323,10 @@ def _convert_xphy_core_type(
 
     target_core_type_name = from_core_type_name.replace(suffix_from, suffix_to)
 
-    for core_type_value, core_type_name in CoreType._VALUES_TO_NAMES.items():
+    for (
+        core_type_value,
+        core_type_name,
+    ) in CoreType._VALUES_TO_NAMES.items():
         if core_type_name == target_core_type_name:
             return core_type_value
 
@@ -316,7 +338,29 @@ def _find_matching_xphy_connection_in_pairs(
     target_core_type: CoreType,
     connection_pairs: List[ConnectionPair],
 ) -> Optional[ConnectionEnd]:
-    """Find XPHY connection in ConnectionPairs matching reference with different core type."""
+    """
+    For XPHY chips, SYSTEM lane = LINE lane + 8
+    - When matching from SYSTEM to LINE: expected_line_lane = system_lane - 8
+    - When matching from LINE to SYSTEM: expected_system_lane = line_lane + 8
+    """
+    reference_core_type_name = CoreType._VALUES_TO_NAMES[
+        reference_connection.chip.core_type
+    ]
+    target_core_type_name = CoreType._VALUES_TO_NAMES[target_core_type]
+
+    reference_lane = reference_connection.lane.logical_id
+    if reference_core_type_name.endswith("_SYSTEM") and target_core_type_name.endswith(
+        "_LINE"
+    ):
+        expected_lane = reference_lane - 8
+    elif reference_core_type_name.endswith("_LINE") and target_core_type_name.endswith(
+        "_SYSTEM"
+    ):
+        expected_lane = reference_lane + 8
+    else:
+        # Same type or unknown, use same lane
+        expected_lane = reference_lane
+
     for connection_pair in connection_pairs:
         for connection_end in [connection_pair.a, connection_pair.z]:
             if (
@@ -328,8 +372,7 @@ def _find_matching_xphy_connection_in_pairs(
                 and connection_end.chip.slot_id == reference_connection.chip.slot_id
                 and connection_end.chip.chip_id == reference_connection.chip.chip_id
                 and connection_end.chip.core_id == reference_connection.chip.core_id
-                and connection_end.lane.logical_id
-                == reference_connection.lane.logical_id
+                and connection_end.lane.logical_id == expected_lane
             ):
                 return connection_end
     return None
@@ -505,7 +548,6 @@ def _create_override_from_si_setting(
         ports=[port_id],
         profiles=[profile],
         transceiverManagementInterface=None,
-        mediaInterfaceCode=si_setting_and_factor.factor.tcvr_override_setting.media_interface_code,
         vendor=vendor,
     )
 
@@ -516,7 +558,50 @@ def _create_override_from_si_setting(
         xphyLine=None,
     )
 
-    return PlatformPortConfigOverride(factor=override_factor, pins=port_pin_config)
+    driver_peaking = si_setting_and_factor.driver_peaking
+    return PlatformPortConfigOverride(
+        factor=override_factor, pins=port_pin_config, driverPeaking=driver_peaking
+    )
+
+
+def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> str:
+    return json.dumps(
+        {
+            "attributes": [
+                {
+                    key: {
+                        "sai_metadata": {
+                            "sai_attr_value_type": "SAI_ATTR_VALUE_TYPE_INT32_LIST",
+                        },
+                        "value": value,
+                    }
+                    for key, value in custom_collection.items()
+                }
+            ]
+        }
+    )
+
+
+def _aggregate_custom_collection_attributes(
+    custom_tx_collection: List[Dict[str, int]],
+    custom_rx_collection: List[Dict[str, int]],
+) -> Optional[str]:
+    tx_collection = defaultdict(list)
+    for lane_collection in custom_tx_collection:
+        for attribute, value in lane_collection.items():
+            tx_collection[attribute].append(value)
+
+    rx_collection = defaultdict(list)
+    for lane_collection in custom_rx_collection:
+        for attribute, value in lane_collection.items():
+            rx_collection[attribute].append(value)
+
+    custom_collection = tx_collection.copy()
+    custom_collection.update(rx_collection)
+
+    return (
+        _format_custom_collection_json(custom_collection) if custom_collection else None
+    )
 
 
 def _process_connection_with_si_settings(
@@ -525,7 +610,12 @@ def _process_connection_with_si_settings(
     profile: PortProfileID,
     lane_speed: PortSpeed,
     port_id: Optional[int] = None,
-) -> tuple[List[PinConfig], List[PlatformPortConfigOverride]]:
+) -> tuple[
+    List[PinConfig],
+    List[PlatformPortConfigOverride],
+    List[Dict[str, int]],
+    List[Dict[str, int]],
+]:
     """Generic connection processing that applies SI settings and handles overrides."""
     pin_config = get_pin_config(connection_end=connection)
     pin_connection = SiSettingPinConnection(
@@ -539,17 +629,24 @@ def _process_connection_with_si_settings(
     )
 
     if len(si_setting_and_factor_list) == 0:
-        return [pin_config], []
+        return [pin_config], [], [], []
 
     configured_pins = []
     overrides = []
+
+    custom_tx_collection_list = []
+    custom_rx_collection_list = []
 
     for si_setting_and_factor in si_setting_and_factor_list:
         pin_conf = copy.deepcopy(pin_config)
         if si_setting_and_factor.tx_setting != TxSettings():
             pin_conf.tx = si_setting_and_factor.tx_setting
+        if si_setting_and_factor.custom_tx_collection:
+            custom_tx_collection_list.append(si_setting_and_factor.custom_tx_collection)
         if si_setting_and_factor.rx_setting != RxSettings():
             pin_conf.rx = si_setting_and_factor.rx_setting
+        if si_setting_and_factor.custom_rx_collection:
+            custom_rx_collection_list.append(si_setting_and_factor.custom_rx_collection)
 
         if si_setting_and_factor.factor is None:
             configured_pins.append(pin_conf)
@@ -564,7 +661,12 @@ def _process_connection_with_si_settings(
                 )
                 overrides.append(override)
 
-    return configured_pins, overrides
+    return (
+        configured_pins,
+        overrides,
+        custom_tx_collection_list,
+        custom_rx_collection_list,
+    )
 
 
 def _process_xphy_connection(
@@ -572,19 +674,26 @@ def _process_xphy_connection(
     si_settings: SiSettings,
     profile: PortProfileID,
     lane_speed: PortSpeed,
-) -> tuple[List[PinConfig], List[PinConfig]]:
+) -> tuple[
+    List[PinConfig],
+    List[PinConfig],
+    List[Dict[str, int]],
+    List[Dict[str, int]],
+]:
     """Process XPHY connection and return (sys_pins, line_pins)."""
-    configured_pins, _ = _process_connection_with_si_settings(
-        connection, si_settings, profile, lane_speed
+    configured_pins, _, custom_tx_collection_list, custom_rx_collection_list = (
+        _process_connection_with_si_settings(
+            connection, si_settings, profile, lane_speed
+        )
     )
 
     core_type_name = CoreType._VALUES_TO_NAMES[connection.chip.core_type]
     if core_type_name.endswith("_SYSTEM"):
-        return configured_pins, []
+        return configured_pins, [], custom_tx_collection_list, custom_rx_collection_list
     elif core_type_name.endswith("_LINE"):
-        return [], configured_pins
+        return [], configured_pins, custom_tx_collection_list, custom_rx_collection_list
     else:
-        return [], []
+        return [], [], [], []
 
 
 def _process_npu_connection(
@@ -593,7 +702,12 @@ def _process_npu_connection(
     profile: PortProfileID,
     lane_speed: PortSpeed,
     port_id: int,
-) -> tuple[List[PinConfig], List[PlatformPortConfigOverride]]:
+) -> tuple[
+    List[PinConfig],
+    List[PlatformPortConfigOverride],
+    List[Dict[str, int]],
+    List[Dict[str, int]],
+]:
     """Process NPU connection and return (iphy_pins, overrides)."""
     return _process_connection_with_si_settings(
         connection, si_settings, profile, lane_speed, port_id
@@ -602,7 +716,7 @@ def _process_npu_connection(
 
 # Helper function that creates a PortPinConfig from the types that store
 # the parsed information from the CSVs
-def get_pins_from_connections(
+def get_pin_data_from_connections(
     connections: List[ConnectionPair],
     si_settings: SiSettings,
     profile: PortProfileID,
@@ -615,6 +729,9 @@ def get_pins_from_connections(
     port_pin_config_xphy_line = []
     port_pin_config_overrides = []
 
+    port_custom_tx_collection_list = []
+    port_custom_rx_collection_list = []
+
     for connection_pair in connections:
         for connection in [connection_pair.a, connection_pair.z]:
             if not connection:
@@ -623,25 +740,41 @@ def get_pins_from_connections(
             if is_terminal_chip(connection.chip.chip_type):
                 port_pin_config_tcvr.append(get_pin_config(connection_end=connection))
             elif is_xphy(connection.chip.chip_type):
-                sys_pins, line_pins = _process_xphy_connection(
+                sys_pins, line_pins, _, _ = _process_xphy_connection(
                     connection, si_settings, profile, lane_speed
                 )
                 port_pin_config_xphy_sys.extend(sys_pins)
                 port_pin_config_xphy_line.extend(line_pins)
             elif is_npu(connection.chip.chip_type):
-                iphy_pins, overrides = _process_npu_connection(
+                (
+                    iphy_pins,
+                    overrides,
+                    custom_tx_collection_list,
+                    custom_rx_collection_list,
+                ) = _process_npu_connection(
                     connection, si_settings, profile, lane_speed, port_id
                 )
                 port_pin_config_iphy.extend(iphy_pins)
                 port_pin_config_overrides.extend(overrides)
+                port_custom_tx_collection_list.extend(custom_tx_collection_list)
+                port_custom_rx_collection_list.extend(custom_rx_collection_list)
+
+    custom_collection_str = _aggregate_custom_collection_attributes(
+        port_custom_tx_collection_list, port_custom_rx_collection_list
+    )
 
     port_pin_config_ret = PortPinConfig(
         iphy=port_pin_config_iphy,
         transceiver=port_pin_config_tcvr or None,
         xphySys=port_pin_config_xphy_sys or None,
         xphyLine=port_pin_config_xphy_line or None,
+        serdesCustomCollection=custom_collection_str or None,
     )
-    return port_pin_config_ret, port_pin_config_overrides
+
+    return (
+        port_pin_config_ret,
+        port_pin_config_overrides,
+    )
 
 
 def _find_corresponding_xphy_line_and_terminal(
@@ -845,6 +978,99 @@ def transmitter_tech_from_profile(
     if profile in [PortProfileID.PROFILE_DEFAULT]:
         return [TransmitterTechnology.UNKNOWN]
     raise Exception("Can't figure out transmitter tech for profile ", profile)
+
+
+def fec_from_profile(profile: PortProfileID) -> FecMode:
+    # NOFEC profiles
+    if profile in [
+        PortProfileID.PROFILE_10G_1_NRZ_NOFEC,
+        PortProfileID.PROFILE_10G_1_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_10G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_20G_2_NRZ_NOFEC,
+        PortProfileID.PROFILE_20G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_20G_2_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_25G_1_NRZ_NOFEC_COPPER_RACK_YV3_T1,
+        PortProfileID.PROFILE_40G_4_NRZ_NOFEC,
+        PortProfileID.PROFILE_40G_4_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_40G_4_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_NOFEC_OPTICAL,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC,
+        PortProfileID.PROFILE_100G_4_NRZ_NOFEC_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_NOFEC_COPPER,
+    ]:
+        return FecMode.NONE
+    # CL74 profiles
+    if profile in [
+        PortProfileID.PROFILE_25G_1_NRZ_CL74_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_CL74_COPPER,
+    ]:
+        return FecMode.CL74
+    # CL91 profiles
+    if profile in [
+        PortProfileID.PROFILE_100G_4_NRZ_CL91,
+        PortProfileID.PROFILE_100G_4_NRZ_CL91_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_CL91_OPTICAL,
+        PortProfileID.PROFILE_100G_4_NRZ_CL91_COPPER_RACK_YV3_T1,
+    ]:
+        return FecMode.CL91
+    # RS528 profiles
+    if profile in [
+        PortProfileID.PROFILE_25G_1_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_50G_2_NRZ_RS528_OPTICAL,
+        PortProfileID.PROFILE_100G_4_NRZ_RS528,
+        PortProfileID.PROFILE_100G_4_NRZ_RS528_COPPER,
+        PortProfileID.PROFILE_100G_4_NRZ_RS528_OPTICAL,
+    ]:
+        return FecMode.RS528
+    # RS544 profiles
+    if profile in [
+        PortProfileID.PROFILE_50G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_106POINT25G_1_PAM4_RS544_OPTICAL,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
+    ]:
+        return FecMode.RS544
+    # RS544_2N profiles
+    if profile in [
+        PortProfileID.PROFILE_100G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_100G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544X2N,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_8_PAM4_RS544X2N,
+        PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_8_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_800G_4_PAM4_RS544X2N_OPTICAL,
+    ]:
+        return FecMode.RS544_2N
+    # RS545 profiles
+    if profile in [
+        PortProfileID.PROFILE_53POINT125G_1_PAM4_RS545_COPPER,
+        PortProfileID.PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL,
+    ]:
+        return FecMode.RS545
+    if profile in [PortProfileID.PROFILE_DEFAULT]:
+        return FecMode.NONE
+    raise Exception("Can't figure out FEC mode for profile ", profile)
 
 
 def get_unique_connection_pairs(

@@ -50,6 +50,8 @@ add_library(state
   fboss/agent/state/ControlPlane.cpp
   fboss/agent/state/DsfNode.cpp
   fboss/agent/state/DsfNodeMap.cpp
+  fboss/agent/state/FibInfo.cpp
+  fboss/agent/state/FibInfoMap.cpp
   fboss/agent/state/FlowletSwitchingConfig.cpp
   fboss/agent/state/ForwardingInformationBase.cpp
   fboss/agent/state/ForwardingInformationBaseContainer.cpp
@@ -69,6 +71,8 @@ add_library(state
   fboss/agent/state/MirrorMap.cpp
   fboss/agent/state/MirrorOnDropReport.cpp
   fboss/agent/state/MirrorOnDropReportMap.cpp
+  fboss/agent/state/MySid.cpp
+  fboss/agent/state/MySidMap.cpp
   fboss/agent/state/NdpEntry.cpp
   fboss/agent/state/NdpResponseEntry.cpp
   fboss/agent/state/NdpResponseTable.cpp
@@ -90,6 +94,8 @@ add_library(state
   fboss/agent/state/RouteTypes.cpp
   fboss/agent/state/SflowCollector.cpp
   fboss/agent/state/SflowCollectorMap.cpp
+  fboss/agent/state/Srv6Tunnel.cpp
+  fboss/agent/state/Srv6TunnelMap.cpp
   fboss/agent/state/StateDelta.cpp
   fboss/agent/state/StateDelta-computeOperDelta.cpp
   fboss/agent/state/StateUtils.cpp
@@ -115,7 +121,9 @@ add_library(state
 )
 
 target_link_libraries(state
-  error
+  address_utils
+  agent_features
+  fboss_error
   platform_config_cpp2
   switch_config_cpp2
   switch_state_cpp2
@@ -140,8 +148,10 @@ add_library(state_utils
 )
 
 target_link_libraries(state_utils
-  error
+  fboss_error
   fboss_types
+  hwswitch_matcher
+  state
   switch_state_cpp2
   thrift_cow_serializer
 )
@@ -151,7 +161,8 @@ add_library(label_forwarding_action
 )
 
 target_link_libraries(label_forwarding_action
-  error
+  ctrl_cpp2
+  fboss_error
   fboss_cpp2
   Folly::folly
 )

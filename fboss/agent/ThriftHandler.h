@@ -98,6 +98,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::vector<UnicastRoute>> routes,
       int32_t vrf) override;
 
+  /* MySid entries */
+  void addMySidEntries(
+      std::unique_ptr<std::vector<MySidEntry>> mySidEntries) override;
+  void deleteMySidEntries(
+      std::unique_ptr<std::vector<IpPrefix>> prefixes) override;
+
   /* MPLS routes */
   void addMplsRoutes(
       int16_t clientId,
@@ -130,17 +136,38 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
     return sw_;
   }
 
-  void sendPkt(int32_t port, int32_t vlan, std::unique_ptr<fbstring> data)
-      override;
-  void sendPktHex(int32_t port, int32_t vlan, std::unique_ptr<fbstring> hex)
-      override;
+  void sendPkt(
+      int32_t port,
+      int32_t vlan,
+      std::unique_ptr<fbstring> data,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
+  void sendPktHex(
+      int32_t port,
+      int32_t vlan,
+      std::unique_ptr<fbstring> hex,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
 
-  void txPkt(int32_t port, std::unique_ptr<fbstring> data) override;
-  void txPktL2(std::unique_ptr<fbstring> data) override;
-  void txPktL3(std::unique_ptr<fbstring> payload) override;
+  void txPkt(
+      int32_t port,
+      std::unique_ptr<fbstring> data,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
+  void txPktL2(
+      std::unique_ptr<fbstring> data,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
+  void txPktL3(
+      std::unique_ptr<fbstring> payload,
+      int32_t numOfPkts,
+      int32_t intervalInMs) override;
 
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip, int32_t vlan)
       override;
+
+  int32_t flushNeighborEntries(
+      std::unique_ptr<std::vector<IfAndIP>> entries) override;
 
   void getVlanAddresses(Addresses& addrs, int32_t vlan) override;
   void getVlanAddressesByName(
@@ -168,6 +195,8 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::vector<UnicastRoute>& routeTable,
       int16_t clientId) override;
   void getRouteTableDetails(std::vector<RouteDetails>& routeTable) override;
+
+  void getRouteTableSize(RouteCount& routeCount) override;
 
   void getPortStatus(
       std::map<int32_t, PortStatus>& status,
@@ -213,6 +242,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void clearInterfacePrbsStats(
       std::unique_ptr<std::string> portName,
       phy::PortComponent component) override;
+  void setInterfacesPrbs(
+      std::unique_ptr<std::vector<std::string>> portNames,
+      phy::PortComponent component,
+      std::unique_ptr<prbs::InterfacePrbsState> state) override;
   void setInterfaceTxRx(
       std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
       std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests)
@@ -426,6 +459,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::map<int64_t, cfg::SwitchDrainState>& switchId2ActualSwitchDrainState)
       override;
   void getMultiSwitchRunState(MultiSwitchRunState& runState) override;
+  void getAllFabricLinkMonitoringStats(
+      std::map<int32_t, FabricLinkMonPortStats>& stats) override;
+  void getFabricMonitoringDetails(
+      std::vector<FabricMonitoringDetail>& details) override;
 
  protected:
   void addMplsRoutesImpl(
@@ -459,6 +496,28 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       const std::unique_ptr<std::vector<UnicastRoute>>& routes,
       const std::string& updType,
       bool sync);
+
+  void buildFabricMonitoringLookupMaps(
+      const cfg::SwitchConfig& config,
+      const std::shared_ptr<SwitchState>& swState,
+      cfg::SwitchType switchType,
+      std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      std::map<SwitchID, std::string>& switchIdToSystemPort);
+
+  int determineVirtualDevice(
+      const std::shared_ptr<Port>& swPort,
+      const cfg::SwitchConfig& config,
+      cfg::SwitchType switchType,
+      const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      const cfg::PortNeighbor& neighbor);
+
+  void populateFabricPortDetail(
+      const std::shared_ptr<Port>& swPort,
+      const cfg::SwitchConfig& config,
+      cfg::SwitchType switchType,
+      const std::map<std::string, SwitchID>& switchNameToSwitchIds,
+      const std::map<SwitchID, std::string>& switchIdToSystemPort,
+      FabricMonitoringDetail& detail);
 
   void fillPortStats(PortInfoThrift& portInfo, int numPortQs = 0);
 

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #pragma once
+#include <limits>
 #include <memory>
 #include <unordered_map>
 
@@ -39,7 +40,10 @@ class BspSystemContainer {
   const BspPimContainer* getPimContainerFromPimID(int pimID) const;
   const BspPimContainer* getPimContainerFromTcvrID(int tcvrID) const;
   BspDeviceMdioController* getMdioController(int pimID, int controllerID) const;
-  std::map<uint32_t, LedIO*> getLedController(int tcvrID) const;
+  // Gets the <led_id, pair(ledController, set<lane_ids>)> for given
+  // transceiver.
+  std::map<uint32_t, std::pair<LedIO*, std::set<int>>> getLedController(
+      int tcvrID) const;
   int getNumTransceivers() const;
   int getPimIDFromTcvrID(int tcvrID) const;
   int getNumPims() const;
@@ -61,9 +65,8 @@ class BspSystemContainer {
       const TransceiverAccessParameter& param,
       const uint8_t* buf) const;
 
-  virtual bool isPimPresent(int /* pimID */) const {
-    // Platforms that need this, should implement this function.
-    CHECK(false);
+  virtual bool isPimPresent(int pimID) const {
+    return pimContainers_.find(pimID) != pimContainers_.end();
   }
 
   virtual uint32_t getPimOffset(int /* pim */) const {
@@ -72,8 +75,18 @@ class BspSystemContainer {
   }
 
   virtual uint8_t getPimStartNum() const {
-    // Platforms that need this, should implement this function.
-    CHECK(false);
+    if (pimContainers_.empty()) {
+      // If no PIMs configured, default to 1 for BSP platforms
+      return 1;
+    }
+
+    uint8_t minPimID = std::numeric_limits<uint8_t>::max();
+    for (const auto& [pimID, _] : pimContainers_) {
+      if (pimID < minPimID) {
+        minPimID = pimID;
+      }
+    }
+    return minPimID;
   }
 
   virtual void initHW(bool forceReset = false) {}

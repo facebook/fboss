@@ -13,8 +13,10 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
@@ -30,17 +32,34 @@ DECLARE_bool(mpls_rib);
 namespace facebook::fboss {
 class SwitchState;
 class MultiSwitchForwardingInformationBaseMap;
+class MultiSwitchFibInfoMap;
+class MultiSwitchMySidMap;
 class SwitchIdScopeResolver;
 class StateDelta;
 
-using FibUpdateFunction = std::function<StateDelta(
+template <typename AddressT, typename FibType>
+void reconstructRibFromFib(
+    const std::shared_ptr<FibType>& fib,
+    NetworkToRouteMap<AddressT>* addrToRoute);
+
+void reconstructMySidTableFromSwitchState(
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    MySidTable* mySidTable);
+
+using RibToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
     void* cookie)>;
 
+using RibMySidToSwitchStateFunction = std::function<StateDelta(
+    const SwitchIdScopeResolver* resolver,
+    const MySidTable& mySidTable,
+    void* cookie)>;
 /*
  * RibRouteTables provides a thread safe abstraction for maintaining Rib data
  * structures and programming them down to the FIB. Its designed to abstract
@@ -49,6 +68,14 @@ using FibUpdateFunction = std::function<StateDelta(
  */
 class RibRouteTables {
  public:
+  RibRouteTables() = default;
+  explicit RibRouteTables(NextHopIDManager* nextHopIDManager)
+      : nextHopIDManager_(nextHopIDManager) {}
+
+  const NextHopIDManager* getNextHopIDManager() const {
+    return nextHopIDManager_;
+  }
+
   template <typename RouteType, typename RouteIdType>
   void update(
       const SwitchIdScopeResolver* resolver,
@@ -59,14 +86,21 @@ class RibRouteTables {
       const std::vector<RouteIdType>& toDelPrefixes,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
+      void* cookie);
+
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidEntry>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
 
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie);
   void setOverrideEcmpMode(
@@ -105,7 +139,7 @@ class RibRouteTables {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   void updateRemoteInterfaceRoutes(
@@ -114,7 +148,7 @@ class RibRouteTables {
       const boost::container::flat_map<
           facebook::fboss::RouterID,
           std::vector<folly::CIDRNetwork>>& toDel,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
   /*
@@ -125,13 +159,20 @@ class RibRouteTables {
    */
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
-      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      NextHopIDManager* nextHopIDManager);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
   std::vector<RouteDetails> getRouteTableDetails(RouterID rid) const;
   std::vector<MplsRouteDetails> getMplsRouteTableDetails() const;
+
+  // Returns a copy of the MySidTable as thrift fields.
+  // This is expensive and should only be used in tests.
+  std::unordered_map<folly::CIDRNetworkV6, state::MySidFields>
+  getMySidTableCopy() const;
 
   template <typename AddressT>
   std::shared_ptr<Route<AddressT>> longestMatch(
@@ -140,22 +181,23 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&);
+      const std::map<int32_t, state::RouteTableFields>&,
+      NextHopIDManager* nextHopIDManager);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
 
  private:
-  struct RouteTable {
+  struct VrfRouteTable {
     IPv4NetworkToRouteMap v4NetworkToRoute;
     IPv6NetworkToRouteMap v6NetworkToRoute;
     LabelToRouteMap labelToRoute;
 
-    bool operator==(const RouteTable& other) const {
+    bool operator==(const VrfRouteTable& other) const {
       return v4NetworkToRoute == other.v4NetworkToRoute &&
           v6NetworkToRoute == other.v6NetworkToRoute;
     }
-    bool operator!=(const RouteTable& other) const {
+    bool operator!=(const VrfRouteTable& other) const {
       return !(*this == other);
     }
     std::shared_ptr<Route<folly::IPAddressV4>> longestMatch(
@@ -169,18 +211,28 @@ class RibRouteTables {
       return it == v6NetworkToRoute.end() ? nullptr : it->value();
     }
     state::RouteTableFields toThrift() const;
-    static RouteTable fromThrift(const state::RouteTableFields&);
+    static VrfRouteTable fromThrift(const state::RouteTableFields&);
     state::RouteTableFields warmBootState() const;
   };
 
   void updateFib(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
   template <typename RibUpdateFn>
   void updateRib(RouterID vrf, const RibUpdateFn& updateRib);
   void updateEcmpOverrides(RouterID vrf, const StateDelta& delta);
+
+  /*
+   * MySid updates
+   */
+  void updateFib(
+      const SwitchIdScopeResolver* resolver,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+  template <typename RibUpdateFn>
+  void updateRib(const RibUpdateFn& updateRib);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
@@ -189,12 +241,19 @@ class RibRouteTables {
    * route updates across VRFs. This can be accomplished simply by associating
    * the mutex implicit in folly::Synchronized with an individual RouteTable.
    */
-  using RouterIDToRouteTable = boost::container::flat_map<RouterID, RouteTable>;
-  using SynchronizedRouteTables = folly::Synchronized<RouterIDToRouteTable>;
+  using RouterIDToRouteTable =
+      boost::container::flat_map<RouterID, VrfRouteTable>;
+
+  struct RouteTables {
+    RouterIDToRouteTable routerIDToRouteTable;
+    std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>> mySidTable;
+  };
+
+  using SynchronizedRouteTables = folly::Synchronized<RouteTables>;
 
   void importFibs(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
-      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs);
 
   RouterIDToRouteTable constructRouteTables(
@@ -203,12 +262,18 @@ class RibRouteTables {
           configRouterIDToInterfaceRoutes) const;
 
   SynchronizedRouteTables synchronizedRouteTables_;
+
+  // Non-owning pointer to NextHopIDManager
+  // Set by RoutingInformationBase after construction
+  NextHopIDManager* nextHopIDManager_{nullptr};
 };
 
 class RoutingInformationBase {
  public:
   RoutingInformationBase(const RoutingInformationBase& o) = delete;
   RoutingInformationBase& operator=(const RoutingInformationBase& o) = delete;
+  RoutingInformationBase(RoutingInformationBase&&) = delete;
+  RoutingInformationBase& operator=(RoutingInformationBase&&) = delete;
   RoutingInformationBase();
   ~RoutingInformationBase();
 
@@ -254,7 +319,7 @@ class RoutingInformationBase {
       const std::vector<IpPrefix>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   UpdateStatistics update(
@@ -266,9 +331,18 @@ class RoutingInformationBase {
       const std::vector<MplsLabel>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
-
+  /*
+   * Update mySids in RIB and switchState
+   */
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidEntry>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
+      void* cookie);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -293,7 +367,7 @@ class RoutingInformationBase {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   void updateRemoteInterfaceRoutes(
@@ -302,29 +376,29 @@ class RoutingInformationBase {
       const boost::container::flat_map<
           facebook::fboss::RouterID,
           std::vector<folly::CIDRNetwork>>& toDel,
-      const FibUpdateFunction& fibUpdateCallback,
+      const RibToSwitchStateFunction& ribToSwitchStateFunc,
       void* cookie);
 
   void setClassID(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
     setClassIDImpl(
-        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, false);
+        resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie, false);
   }
 
   void setClassIDAsync(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie) {
     setClassIDImpl(
-        resolver, rid, prefixes, fibUpdateCallback, classId, cookie, true);
+        resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie, true);
   }
   void updateEcmpOverrides(const StateDelta& delta);
   void updateStateInRibThread(const std::function<void()>& fn);
@@ -337,8 +411,9 @@ class RoutingInformationBase {
    */
   static std::unique_ptr<RoutingInformationBase> fromThrift(
       const std::map<int32_t, state::RouteTableFields>& ribJson,
-      const std::shared_ptr<MultiSwitchForwardingInformationBaseMap>& fibs,
-      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
 
   void ensureVrf(RouterID rid) {
     ribTables_.ensureVrf(rid);
@@ -351,6 +426,10 @@ class RoutingInformationBase {
   }
   std::vector<MplsRouteDetails> getMplsRouteTableDetails() const {
     return ribTables_.getMplsRouteTableDetails();
+  }
+  std::unordered_map<folly::CIDRNetworkV6, state::MySidFields>
+  getMySidTableCopy() const {
+    return ribTables_.getMySidTableCopy();
   }
   void waitForRibUpdates() {
     ensureRunning();
@@ -371,13 +450,18 @@ class RoutingInformationBase {
       const std::map<int32_t, state::RouteTableFields>&);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
+  // Getter for NextHopIDManager
+  const NextHopIDManager* getNextHopIDManager() const {
+    return nextHopIDManager_.get();
+  }
+
  private:
   void ensureRunning() const;
   void setClassIDImpl(
       const SwitchIdScopeResolver* resolver,
       RouterID rid,
       const std::vector<folly::CIDRNetwork>& prefixes,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
       void* cookie,
       bool async);
@@ -392,11 +476,12 @@ class RoutingInformationBase {
       const std::vector<typename TraitsType::ThriftRouteId>& toDelete,
       bool resetClientsRoutes,
       folly::StringPiece updateType,
-      FibUpdateFunction fibUpdateCallback,
+      RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
   std::unique_ptr<std::thread> ribUpdateThread_;
   FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
   RibRouteTables ribTables_;
 };
 

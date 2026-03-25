@@ -10,9 +10,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
-#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
-#include "fboss/agent/hw/sai/switch/SaiMirrorManager.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiUdfManager.h"
@@ -100,8 +98,10 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         cfg::AsicType::ASIC_TYPE_JERICHO2;
     bool isJericho3 = platform_->getAsic()->getAsicType() ==
         cfg::AsicType::ASIC_TYPE_JERICHO3;
-    bool isChenab =
-        platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB;
+    bool isJericho4 = platform_->getAsic()->getAsicType() ==
+        cfg::AsicType::ASIC_TYPE_JERICHO4;
+    bool isChenab = platform_->getAsic()->getAsicVendor() ==
+        HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
     std::vector<sai_int32_t> actionTypeList{
         SAI_ACL_ACTION_TYPE_PACKET_ACTION,
@@ -110,7 +110,7 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
         SAI_ACL_ACTION_TYPE_SET_DSCP,
         SAI_ACL_ACTION_TYPE_MIRROR_INGRESS};
 
-    if (!(isTajo || isJericho2 || isJericho3 || isChenab)) {
+    if (!(isTajo || isJericho2 || isJericho3 || isJericho4 || isChenab)) {
       // Chenab supports egress mirror action in egress table
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_MIRROR_EGRESS);
     }
@@ -140,7 +140,8 @@ std::vector<sai_int32_t> SaiAclTableManager::getActionTypeList(
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
     if (platform_->getAsic()->isSupported(
-            HwAsic::Feature::ARS_ALTERNATE_MEMBERS)) {
+            HwAsic::Feature::ARS_ALTERNATE_MEMBERS) ||
+        platform_->getAsic()->isSupported(HwAsic::Feature::VIRTUAL_ARS_GROUP)) {
       actionTypeList.push_back(SAI_ACL_ACTION_TYPE_L3_SWITCH_CANCEL);
     }
 #endif

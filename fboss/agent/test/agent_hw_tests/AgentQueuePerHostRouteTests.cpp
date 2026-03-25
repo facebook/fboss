@@ -13,6 +13,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -52,10 +53,6 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     FLAGS_disable_neighbor_updates = false;
   }
 
-  bool isIntfNbrTable() const {
-    return FLAGS_intf_nbr_tables;
-  }
-
   RouterID kRouterID() const {
     return RouterID(0);
   }
@@ -75,11 +72,10 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   }
 
   void addRoutes(const std::vector<RoutePrefix<AddrT>>& routePrefixes) {
-    auto kEcmpWidth = 1;
     utility::EcmpSetupAnyNPorts<AddrT> ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), kRouterID());
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, kEcmpWidth, routePrefixes);
+    ecmpHelper.programRoutes(&wrapper, kDefaultEcmpWidth, routePrefixes);
   }
 
   void resolveNeighborAndVerifyClassID(
@@ -87,30 +83,16 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
       MacAddress macAddress,
       PortID port) {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      if (isIntfNbrTable()) {
-        getSw()->getNeighborUpdater()->receivedArpMineForIntf(
-            InterfaceID(kInterfaceID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ArpOpCode::ARP_OP_REPLY);
-      } else {
-        getSw()->getNeighborUpdater()->receivedArpMine(
-            VlanID(kVlanID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ArpOpCode::ARP_OP_REPLY);
-      }
+      getSw()->getNeighborUpdater()->receivedArpMineForIntf(
+          InterfaceID(kInterfaceID),
+          ipAddress,
+          macAddress,
+          PortDescriptor(port),
+          ArpOpCode::ARP_OP_REPLY);
+
       WITH_RETRIES({
         std::list<facebook::fboss::ArpEntryThrift> entries;
-
-        if (isIntfNbrTable()) {
-          entries =
-              getSw()->getNeighborUpdater()->getArpCacheDataForIntf().get();
-        } else {
-          entries = getSw()->getNeighborUpdater()->getArpCacheData().get();
-        }
+        entries = getSw()->getNeighborUpdater()->getArpCacheDataForIntf().get();
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {
@@ -121,31 +103,17 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
         EXPECT_EVENTUALLY_TRUE(found);
       });
     } else {
-      if (isIntfNbrTable()) {
-        getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
-            InterfaceID(kInterfaceID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            0);
-      } else {
-        getSw()->getNeighborUpdater()->receivedNdpMine(
-            VlanID(kVlanID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            0);
-      }
+      getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
+          InterfaceID(kInterfaceID),
+          ipAddress,
+          macAddress,
+          PortDescriptor(port),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+
       WITH_RETRIES({
         std::list<facebook::fboss::NdpEntryThrift> entries;
-        if (isIntfNbrTable()) {
-          entries =
-              getSw()->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-        } else {
-          entries = getSw()->getNeighborUpdater()->getNdpCacheData().get();
-        }
+        entries = getSw()->getNeighborUpdater()->getNdpCacheDataForIntf().get();
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {

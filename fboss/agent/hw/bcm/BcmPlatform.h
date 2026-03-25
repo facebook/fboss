@@ -43,6 +43,11 @@ class BcmPlatform : public Platform {
   using BcmPlatformPortMap = std::map<bcm_port_t, BcmPlatformPort*>;
 
   using Platform::Platform;
+  ~BcmPlatform() override = default;
+  BcmPlatform(BcmPlatform const&) = delete;
+  BcmPlatform& operator=(BcmPlatform const&) = delete;
+  BcmPlatform(BcmPlatform&&) = delete;
+  BcmPlatform& operator=(BcmPlatform&&) = delete;
 
   /*
    * onUnitCreate() will be called by the BcmSwitch code immediately after
@@ -145,11 +150,6 @@ class BcmPlatform : public Platform {
 
  protected:
   std::unique_ptr<BcmWarmBootHelper> warmBootHelper_;
-
- private:
-  // Forbidden copy constructor and assignment operator
-  BcmPlatform(BcmPlatform const&) = delete;
-  BcmPlatform& operator=(BcmPlatform const&) = delete;
 };
 
 } // namespace facebook::fboss

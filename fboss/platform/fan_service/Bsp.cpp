@@ -2,9 +2,11 @@
 
 #include "fboss/platform/fan_service/Bsp.h"
 
-#include <fstream>
+#include <ctime>
 #include <string>
 
+#include <fmt/chrono.h>
+#include <folly/String.h>
 #include <folly/logging/xlog.h>
 #include <folly/system/ThreadName.h>
 
@@ -19,7 +21,6 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
-using namespace folly::literals::shell_literals;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
@@ -27,6 +28,46 @@ DEFINE_bool(
     subscribe_to_qsfp_data_from_fsdb,
     false,
     "For subscribing to qsfp state and stats from FSDB");
+
+namespace {
+auto constexpr kDefaultMaxBrightness = 255;
+auto constexpr kSensordThriftPort = 5970;
+auto constexpr kAgentTempThriftPort = 5972;
+
+std::optional<std::string> getOpticTypeFromMediaCode(
+    std::optional<facebook::fboss::MediaInterfaceCode> mediaInterfaceCode,
+    const std::string& unknownFallback) {
+  using facebook::fboss::MediaInterfaceCode;
+  if (!mediaInterfaceCode ||
+      *mediaInterfaceCode == MediaInterfaceCode::UNKNOWN) {
+    return unknownFallback;
+  }
+  switch (*mediaInterfaceCode) {
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::CR4_100G:
+    case MediaInterfaceCode::FR1_100G:
+      return constants::OPTIC_TYPE_100_GENERIC();
+    case MediaInterfaceCode::FR4_200G:
+      return constants::OPTIC_TYPE_200_GENERIC();
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+    case MediaInterfaceCode::DR4_400G:
+      return constants::OPTIC_TYPE_400_GENERIC();
+    case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
+    case MediaInterfaceCode::FR4_LPO_2x400G:
+    case MediaInterfaceCode::DR4_2x400G:
+    case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
+    case MediaInterfaceCode::ZR_800G:
+    case MediaInterfaceCode::CR8_800G:
+      return constants::OPTIC_TYPE_800_GENERIC();
+    default:
+      return std::nullopt;
+  }
+}
+
+} // namespace
 
 namespace facebook::fboss::platform::fan_service {
 
@@ -49,40 +90,29 @@ Bsp::Bsp(const FanServiceConfig& config) : config_(config) {
 }
 
 void Bsp::getSensorData(std::shared_ptr<SensorData> pSensorData) {
-  bool fetchOverThrift = false;
-  bool fetchFromFsdb = false;
-
-  for (const auto& sensor : *config_.sensors()) {
-    auto sensorAccessType = *sensor.access()->accessType();
-    if (sensorAccessType == constants::ACCESS_TYPE_THRIFT()) {
-      if (FLAGS_subscribe_to_stats_from_fsdb) {
-        fetchFromFsdb = true;
-      } else {
-        fetchOverThrift = true;
-      }
-    } else {
-      throw facebook::fboss::FbossError(
-          "Invalid way for fetching sensor data!");
-    }
-  }
-
-  if (fetchOverThrift) {
-    getSensorDataThrift(pSensorData);
-  }
-
-  if (fetchFromFsdb) {
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
     auto subscribedData = fsdbSensorSubscriber_->getSensorData();
-    for (const auto& [sensorName, sensorData] : subscribedData) {
-      // Skip adding an entry for this sensor if either the value or timestamp
-      // fields are not set
-      if (sensorData.value().has_value() &&
-          sensorData.timeStamp().has_value()) {
-        pSensorData->updateSensorEntry(
-            *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+    bool fallbackToThrift =
+        subscribedData.empty() || fsdbSensorSubscriber_->isSensorDataStale();
+    if (fallbackToThrift) {
+      XLOG(WARNING) << "FSDB sensor data is empty or stale, falling back to "
+                       "thrift from sensor_service";
+      fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 1);
+      getSensorDataThrift(pSensorData);
+    } else {
+      fb303::fbData->setCounter(kFsdbSensorDataThriftFallback, 0);
+      for (const auto& [sensorName, sensorData] : subscribedData) {
+        if (sensorData.value().has_value() &&
+            sensorData.timeStamp().has_value()) {
+          pSensorData->updateSensorEntry(
+              *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+        }
       }
+      XLOG(INFO) << fmt::format(
+          "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
     }
-    XLOG(INFO) << fmt::format(
-        "Got sensor data from fsdb.  Item count: {}", subscribedData.size());
+  } else {
+    getSensorDataThrift(pSensorData);
   }
 
   if (!initialSensorDataRead_) {
@@ -97,14 +127,13 @@ int Bsp::emergencyShutdown(bool enable) {
   int rc = 0;
   bool currentState = getEmergencyState();
   if (enable && !currentState) {
-    if (*config_.shutdownCmd() == "NOT_DEFINED") {
-      facebook::fboss::FbossError(
-          "Emergency Shutdown Was Called But Not Defined!");
-    } else {
-      auto [exitStatus, standardOut] =
-          PlatformUtils().execCommand(*config_.shutdownCmd());
-      rc = exitStatus;
+    if (config_.shutdownCmd()->empty()) {
+      XLOG(ERR) << "Emergency shutdown called but shutdownCmd is empty!";
+      return -1;
     }
+    auto [exitStatus, standardOut] =
+        PlatformUtils().execCommand(*config_.shutdownCmd());
+    rc = exitStatus;
     setEmergencyState(enable);
   }
   return rc;
@@ -136,7 +165,14 @@ void Bsp::closeWatchdog() {
 }
 
 bool Bsp::writeToWatchdog(const std::string& value) {
-  std::string cmdLine;
+  auto writeFd = [](int fd, const std::string& val) {
+    auto ret = write(fd, val.c_str(), val.size());
+    if (ret < 0) {
+      XLOG(ERR) << "Failed to write to file descriptor " << fd << ": "
+                << folly::errnoStr(errno);
+    }
+    return ret > 0;
+  };
   if (!config_.watchdog().has_value()) {
     return false;
   }
@@ -161,18 +197,28 @@ bool Bsp::writeToWatchdog(const std::string& value) {
   return res;
 }
 
-std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
+std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
     const Optic& opticsGroup,
     uint64_t& currentQsfpSvcTimestamp,
     const std::map<int32_t, TransceiverInfo>& transceiverInfoMap) {
-  std::vector<std::pair<std::string, float>> data{};
+  std::map<std::string, std::vector<OpticData>> data{};
+  std::vector<int32_t> txvrsIdsWithNoData;
+
+  if (opticsGroup.tempToPwmMaps()->empty() &&
+      opticsGroup.pidSettings()->empty()) {
+    XLOG(ERR) << "Optic group has no tempToPwmMaps or pidSettings";
+    return data;
+  }
+  const auto& unknownFallback = !opticsGroup.tempToPwmMaps()->empty()
+      ? opticsGroup.tempToPwmMaps()->begin()->first
+      : opticsGroup.pidSettings()->begin()->first;
+
   for (const auto& [xvrId, transceiverInfo] : transceiverInfoMap) {
     const TcvrState& tcvrState = *transceiverInfo.tcvrState();
     const TcvrStats& tcvrStats = *transceiverInfo.tcvrStats();
 
     if (!tcvrStats.sensor()) {
-      XLOG(ERR) << fmt::format(
-          "Transceiver id {} has no sensor data. Ignoring.", xvrId);
+      txvrsIdsWithNoData.push_back(xvrId);
       continue;
     }
 
@@ -181,67 +227,49 @@ std::vector<std::pair<std::string, float>> Bsp::processOpticEntries(
     }
 
     float temp = static_cast<float>(*(tcvrStats.sensor()->temp()->value()));
-    // In the following two cases, do not process the entries and move on
-    // 1. temperature from QSFP service is 0.0 - meaning the port is
-    //    not populated in qsfp_service or read failure occured. So skip this.
-    // 2. Config file specified the port entries we care, but this port
-    //    does not belong to the ports we care.
-    if (((temp == 0.0)) ||
-        ((!opticsGroup.portList()->empty()) &&
-         (std::find(
-              opticsGroup.portList()->begin(),
-              opticsGroup.portList()->end(),
-              xvrId) != opticsGroup.portList()->end()))) {
+    // Skip entries where temperature is 0.0 - meaning the port is
+    // not populated in qsfp_service or read failure occured.
+    if (temp == 0.0) {
       continue;
     }
 
-    auto mediaInterfaceCode = tcvrState.moduleMediaInterface()
-        ? *tcvrState.moduleMediaInterface()
-        : MediaInterfaceCode::UNKNOWN;
-
-    // Parse using the definition in qsfp_service/if/transceiver.thrift
-    std::string opticType{};
-    switch (mediaInterfaceCode) {
-      case MediaInterfaceCode::UNKNOWN:
-        // Use the first table's type for unknown/missing media type
-        opticType = opticsGroup.tempToPwmMaps()->begin()->first;
-        break;
-      case MediaInterfaceCode::CWDM4_100G:
-      case MediaInterfaceCode::CR4_100G:
-      case MediaInterfaceCode::FR1_100G:
-        opticType = constants::OPTIC_TYPE_100_GENERIC();
-        break;
-      case MediaInterfaceCode::FR4_200G:
-        opticType = constants::OPTIC_TYPE_200_GENERIC();
-        break;
-      case MediaInterfaceCode::FR4_400G:
-      case MediaInterfaceCode::LR4_400G_10KM:
-      case MediaInterfaceCode::DR4_400G:
-        opticType = constants::OPTIC_TYPE_400_GENERIC();
-        break;
-      case MediaInterfaceCode::FR4_2x400G:
-      case MediaInterfaceCode::FR4_LITE_2x400G:
-      case MediaInterfaceCode::FR4_LPO_2x400G:
-      case MediaInterfaceCode::DR4_2x400G:
-      case MediaInterfaceCode::FR8_800G:
-      case MediaInterfaceCode::LR4_2x400G_10KM:
-      case MediaInterfaceCode::ZR_800G:
-      case MediaInterfaceCode::CR8_800G:
-        opticType = constants::OPTIC_TYPE_800_GENERIC();
-        break;
-      default:
-        XLOG(INFO) << fmt::format(
-            "Transceiver id {} has unsupported media type {}. Ignoring.",
-            xvrId,
-            int(mediaInterfaceCode));
-        break;
+    auto opticType = getOpticTypeFromMediaCode(
+        tcvrState.moduleMediaInterface().to_optional(), unknownFallback);
+    if (!opticType) {
+      auto mediaCode = tcvrState.moduleMediaInterface().to_optional();
+      XLOG(INFO) << fmt::format(
+          "Transceiver id {} has unsupported media type {}. Ignoring.",
+          xvrId,
+          mediaCode ? static_cast<int>(*mediaCode) : -1);
+      continue;
     }
-    data.emplace_back(opticType, temp);
+    data[*opticType].push_back(OpticData{xvrId, temp});
   }
+
+  if (!txvrsIdsWithNoData.empty()) {
+    XLOG(INFO) << fmt::format(
+        "Transceivers with no data (ignored): {}",
+        folly::join(", ", txvrsIdsWithNoData));
+  }
+  if (!data.empty()) {
+    for (const auto& [opticType, transceivers] : data) {
+      std::vector<std::string> tempStrings;
+      tempStrings.reserve(transceivers.size());
+      for (const auto& opticData : transceivers) {
+        tempStrings.push_back(
+            fmt::format("{}({:.1f}C)", opticData.txvrId, opticData.temp));
+      }
+      XLOG(INFO) << fmt::format(
+          "Transceivers with data [{}]: {}",
+          opticType,
+          folly::join(", ", tempStrings));
+    }
+  }
+
   return data;
 }
 
-void Bsp::getOpticsDataFromQsfpSvc(
+void Bsp::getOpticData(
     const Optic& opticsGroup,
     std::shared_ptr<SensorData> pSensorData) {
   std::map<int32_t, TransceiverInfo> transceiverInfoMap{};
@@ -296,28 +324,24 @@ void Bsp::getOpticsDataFromQsfpSvc(
     pSensorData->updateOpticEntry(
         *opticsGroup.opticName(), data, currentQsfpSvcTimestamp);
   }
+  auto qsfpTimestamp = static_cast<time_t>(currentQsfpSvcTimestamp);
+  std::tm qsfpTm{};
+  localtime_r(&qsfpTimestamp, &qsfpTm);
   XLOG(INFO) << fmt::format(
-      "Got optics data from Qsfp. Data Size: {}. QsfpSvcTimestamp: {}",
+      "Got optics data from Qsfp. OpticTypes: {}. QsfpSvcTimestamp: {} ({:%Y-%m-%d %H:%M:%S})",
       data.size(),
-      currentQsfpSvcTimestamp);
+      currentQsfpSvcTimestamp,
+      qsfpTm);
 }
 
 void Bsp::getOpticsData(std::shared_ptr<SensorData> pSensorData) {
   for (const auto& optic : *config_.optics()) {
-    auto accessType = *optic.access()->accessType();
-    if (accessType == constants::ACCESS_TYPE_QSFP() ||
-        accessType == constants::ACCESS_TYPE_THRIFT()) {
-      getOpticsDataFromQsfpSvc(optic, pSensorData);
-    } else {
-      throw facebook::fboss::FbossError(
-          "Invalid way for fetching optics temperature!");
-    }
+    getOpticData(optic, pSensorData);
   }
 }
 
 void Bsp::getAsicTempData(const std::shared_ptr<SensorData>& pSensorData) {
-  bool useFsdb = FLAGS_subscribe_to_stats_from_fsdb ? true : false;
-  if (useFsdb) {
+  if (FLAGS_subscribe_to_stats_from_fsdb) {
     getAsicTempThroughFsdb(pSensorData);
   } else {
     getAsicTempDataOverThrift(pSensorData);
@@ -350,7 +374,7 @@ void Bsp::getAsicTempDataOverThrift(
     const std::shared_ptr<SensorData>& pSensorData) {
   try {
     auto agentReadResponse =
-        getAsicTempThroughThrift(agentTempThriftPort_, evbSensor_);
+        getAsicTempThroughThrift(kAgentTempThriftPort, evbSensor_);
     for (auto& asicTempData : *agentReadResponse.asicTempData()) {
       // Again, for Thrift too, only honor the entry with value and timestamp.
       if (asicTempData.value() && asicTempData.timeStamp()) {
@@ -382,18 +406,27 @@ void Bsp::setEmergencyState(bool state) {
 }
 
 void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
-  auto sensorReadResponse =
-      getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+  sensor_service::SensorReadResponse sensorReadResponse;
+  try {
+    sensorReadResponse =
+        getSensorValueThroughThrift(kSensordThriftPort, evbSensor_);
+  } catch (std::exception& e) {
+    XLOG(ERR) << "Failed to get sensor data from sensor_service: " << e.what();
+    return;
+  }
   for (auto& sensorData : *sensorReadResponse.sensorData()) {
-    // Value and Timestamp are not set for failed sensors. Skip them
     if (sensorData.value() && sensorData.timeStamp()) {
       pSensorData->updateSensorEntry(
           *sensorData.name(), *sensorData.value(), *sensorData.timeStamp());
+      auto timestamp = static_cast<time_t>(*sensorData.timeStamp());
+      std::tm sensorTm{};
+      localtime_r(&timestamp, &sensorTm);
       XLOG(DBG1) << fmt::format(
-          "Storing sensor {} with value {} timestamp {}",
+          "Storing sensor {} with value {} timestamp {} ({:%Y-%m-%d %H:%M:%S})",
           *sensorData.name(),
           *sensorData.value(),
-          *sensorData.timeStamp());
+          *sensorData.timeStamp(),
+          sensorTm);
     }
   }
   XLOG(INFO) << fmt::format(
@@ -403,13 +436,12 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
 
 float Bsp::readSysfs(const std::string& path) const {
   float retVal;
-  std::ifstream juicejuice(path);
   std::string buf = facebook::fboss::readSysfs(path);
   try {
     retVal = std::stof(buf);
-  } catch (std::exception& e) {
+  } catch (const std::exception&) {
     XLOG(ERR) << "Failed to convert sysfs read to float!! ";
-    throw e;
+    throw;
   }
   return retVal;
 }
@@ -427,7 +459,8 @@ bool Bsp::turnOnLedSysfs(const std::string& path) {
   auto max_brightness = getLedMaxBrightness(path);
   return writeSysfs(
       path + "/brightness",
-      max_brightness.has_value() ? max_brightness.value() : 255);
+      max_brightness.has_value() ? max_brightness.value()
+                                 : kDefaultMaxBrightness);
 }
 
 std::optional<int> Bsp::getLedMaxBrightness(const std::string& path) const {

@@ -58,6 +58,7 @@ def _setup_qsfp_service(
     qsfp_service_config_path: t.Optional[str] = None,
     platform_mapping_override_path: t.Optional[str] = None,
     bsp_platform_mapping_override_path: t.Optional[str] = None,
+    is_fsdb_disabled: bool = False,
 ) -> None:
     print(f"Setting up {_QSFP_SERVICE_OSS}")
 
@@ -83,7 +84,7 @@ def _setup_qsfp_service(
     if platform_mapping_override_path:
         if not os.path.exists(platform_mapping_override_path):
             raise Exception(
-                "platform_mapping override path: {platform_mapping_override_path} does not exist"
+                f"platform_mapping override path: {platform_mapping_override_path} does not exist"
             )
         extra_args += (
             f"{_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {platform_mapping_override_path}"
@@ -91,9 +92,13 @@ def _setup_qsfp_service(
     if bsp_platform_mapping_override_path:
         if not os.path.exists(bsp_platform_mapping_override_path):
             raise Exception(
-                "bsp_platform_mapping override path: {bsp_platform_mapping_override_path} does not exist"
+                f"bsp_platform_mapping override path: {bsp_platform_mapping_override_path} does not exist"
             )
-        extra_args += f"{_BSP_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {bsp_platform_mapping_override_path}"
+        extra_args += f" {_BSP_PLATFORM_MAPPING_OVERRIDE_PATH_ARG} {bsp_platform_mapping_override_path}"
+
+    if not is_fsdb_disabled:
+        extra_args += " --fsdb_client_ssl_preferred=false --publish_stats_to_fsdb=true --publish_state_to_fsdb=true "
+
     qsfp_service_cmd = (
         f"{qsfp_service_bin_path} --qsfp-config {qsfp_service_config_path} {extra_args}"
     )
@@ -138,6 +143,7 @@ def setup_and_start_qsfp_service(
     qsfp_service_config_path: t.Optional[str] = None,
     platform_mapping_override_path: t.Optional[str] = None,
     bsp_platform_mapping_override_path: t.Optional[str] = None,
+    is_fsdb_disabled: bool = False,
     is_warm_boot: bool = False,
 ) -> None:
     # First setup qsfp_service unit file for systemd and rsyslog config for logging
@@ -146,6 +152,7 @@ def setup_and_start_qsfp_service(
         qsfp_service_config_path,
         platform_mapping_override_path,
         bsp_platform_mapping_override_path,
+        is_fsdb_disabled,
     )
 
     # Then start qsfp_service using systemctl

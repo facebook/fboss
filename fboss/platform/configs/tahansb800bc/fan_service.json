@@ -17,9 +17,6 @@
   "sensors": [
     {
       "sensorName": "NETLAKE_U1_CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,
@@ -32,9 +29,6 @@
     },
     {
       "sensorName": "MCB_PS108_XP12R0V_PB1_TEMPARTURES",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,
@@ -47,9 +41,6 @@
     },
     {
       "sensorName": "MCB_PS109_XP12R0V_PB2_TEMPARTURES",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,
@@ -62,9 +53,6 @@
     },
     {
       "sensorName": "MCB_U61_MCB_COME_INLET_TSENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "30": 50,
@@ -105,9 +93,6 @@
     },
     {
       "sensorName": "MCB_U62_PB_INLET_TSENSOR",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "30": 50,
@@ -154,7 +139,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -165,7 +150,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm1",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan1_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -176,7 +161,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -187,7 +172,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm2",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan2_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -198,7 +183,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -209,7 +194,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm3",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan3_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -220,7 +205,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105
@@ -231,7 +216,7 @@
       "pwmSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/pwm4",
       "presenceSysfsPath": "/run/devmap/sensors/MCB_FAN_CPLD/fan4_present",
       "pwmMin": 0,
-      "pwmMax": 40,
+      "pwmMax": 64,
       "fanPresentVal": 1,
       "fanMissingVal": 0,
       "rpmMin": 3105

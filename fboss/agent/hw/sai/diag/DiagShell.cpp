@@ -140,6 +140,13 @@ std::unique_ptr<Repl> DiagShell::makeRepl() const {
     case HwAsic::AsicVendor::ASIC_VENDOR_BCM:
       return std::make_unique<SaiRepl>(hw_->getSaiSwitchId());
     case HwAsic::AsicVendor::ASIC_VENDOR_TAJO:
+#if defined(TAJO_SDK_VERSION_1_42_8)
+      return std::make_unique<PythonRepl>(ptys_->file.fd());
+#else
+      throw FbossError(
+          "The Python REPL shell is no longer available through diag_shell "
+          "for this SDK version. Please use the fboss_leaba_shell tool instead.");
+#endif
     case HwAsic::AsicVendor::ASIC_VENDOR_CHENAB:
       return std::make_unique<PythonRepl>(ptys_->file.fd());
     default:
@@ -184,7 +191,12 @@ bool DiagShell::tryConnect() {
    */
   try {
     if (diagShellLock_.try_lock()) {
-      initTerminal();
+      try {
+        initTerminal();
+      } catch (...) {
+        diagShellLock_.unlock();
+        throw;
+      }
       return true;
     }
   } catch (const std::system_error&) {

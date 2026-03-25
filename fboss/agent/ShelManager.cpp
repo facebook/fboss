@@ -79,7 +79,8 @@ void ShelManager::routeAdded(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  const auto& routeNhops = newRoute->getForwardInfo().normalizedNextHops();
+  const auto routeNhops =
+      getNormalizedNextHops(origState, newRoute->getForwardInfo());
   if (routeNhops.size() > 1) {
     updateRefCount(routeNhops, origState, true /*add*/);
   }
@@ -93,8 +94,11 @@ void ShelManager::routeDeleted(
   CHECK_EQ(rid, RouterID(0));
   CHECK(removedRoute->isResolved());
   CHECK(removedRoute->isPublished());
-  const auto& routeNhops = removedRoute->getForwardInfo().normalizedNextHops();
+  const auto routeNhops =
+      getNormalizedNextHops(origState, removedRoute->getForwardInfo());
   if (routeNhops.size() > 1) {
+    // CAUTION: origState is delta.oldState() here. This is okay since state is
+    // unused in updateRefCount
     updateRefCount(routeNhops, origState, false /*add*/);
   }
 }
@@ -107,7 +111,7 @@ void ShelManager::processRouteUpdates(const StateDelta& delta) {
           return;
         }
         if (oldRoute->isResolved() && !newRoute->isResolved()) {
-          routeDeleted(rid, oldRoute, delta.newState());
+          routeDeleted(rid, oldRoute, delta.oldState());
           return;
         }
         if (!oldRoute->isResolved() && newRoute->isResolved()) {
@@ -116,7 +120,7 @@ void ShelManager::processRouteUpdates(const StateDelta& delta) {
         }
         // Both old and new are resolved
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
-        routeDeleted(rid, oldRoute, delta.newState());
+        routeDeleted(rid, oldRoute, delta.oldState());
         routeAdded(rid, newRoute, delta.newState());
       },
       [this, &delta](RouterID rid, const auto& newRoute) {
@@ -126,7 +130,7 @@ void ShelManager::processRouteUpdates(const StateDelta& delta) {
       },
       [this, &delta](RouterID rid, const auto& oldRoute) {
         if (oldRoute->isResolved()) {
-          routeDeleted(rid, oldRoute, delta.newState());
+          routeDeleted(rid, oldRoute, delta.oldState());
         }
       });
 }

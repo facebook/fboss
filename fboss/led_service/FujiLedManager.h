@@ -23,11 +23,13 @@ namespace facebook::fboss {
 class FujiLedManager : public MinipackBaseLedManager {
  public:
   FujiLedManager();
-  virtual ~FujiLedManager() override {}
+  virtual ~FujiLedManager() override = default;
 
   // Forbidden copy constructor and assignment operator
   FujiLedManager(FujiLedManager const&) = delete;
   FujiLedManager& operator=(FujiLedManager const&) = delete;
+  FujiLedManager(FujiLedManager&&) = delete;
+  FujiLedManager& operator=(FujiLedManager&&) = delete;
 
  protected:
   virtual void setLedState(

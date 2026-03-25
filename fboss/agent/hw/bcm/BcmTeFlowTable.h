@@ -35,6 +35,10 @@ class BcmTeFlowTable {
  public:
   explicit BcmTeFlowTable(BcmSwitch* hw) : hw_(hw) {}
   ~BcmTeFlowTable();
+  BcmTeFlowTable(const BcmTeFlowTable&) = delete;
+  BcmTeFlowTable& operator=(const BcmTeFlowTable&) = delete;
+  BcmTeFlowTable(BcmTeFlowTable&&) = delete;
+  BcmTeFlowTable& operator=(BcmTeFlowTable&&) = delete;
   void processTeFlowConfigChanged(
       const std::shared_ptr<SwitchSettings>& switchSettings);
   void createTeFlowGroup(int dstIpPrefixLength);

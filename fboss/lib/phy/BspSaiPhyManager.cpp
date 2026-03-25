@@ -12,6 +12,7 @@
 
 #include <folly/logging/xlog.h>
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiApiLock.h"
 #include "fboss/agent/platforms/sai/SaiPhyPlatform.h"
 #include "fboss/lib/bsp/BspPimContainer.h"
 #include "fboss/lib/phy/SaiPhyRetimer.h"
@@ -50,6 +51,10 @@ phy::PhyIDInfo BspSaiPhyManager::getPhyIDInfo(GlobalXphyID xphyID) const {
       info.pimID = pimID;
       info.controllerID = *phyMapping.phyIOControllerId();
       info.phyAddr = *phyMapping.phyAddr();
+      XLOG(DBG5) << __func__ << " Found xphyID=" << xphyID
+                 << " in pimID=" << info.pimID
+                 << " controllerID=" << info.controllerID
+                 << " phyAddr=" << info.phyAddr;
       return info;
     }
   }
@@ -70,6 +75,7 @@ GlobalXphyID BspSaiPhyManager::getGlobalXphyID(
     if (MdioControllerID(*phyMapping.phyIOControllerId()) ==
             phyIDInfo.controllerID &&
         PhyAddr(*phyMapping.phyAddr()) == phyIDInfo.phyAddr) {
+      XLOG(DBG5) << __func__ << ": Found matching phyID=" << phyID;
       return GlobalXphyID(phyID);
     }
   }
@@ -84,7 +90,23 @@ GlobalXphyID BspSaiPhyManager::getGlobalXphyID(
 }
 
 bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
+  XLOG(DBG5) << __func__ << ": Starting with warmboot=" << warmboot;
   std::optional<GlobalXphyID> firstXphy;
+
+  // Reset all PHY IO controllers and PHYs during coldboot only
+  if (!warmboot) {
+    XLOG(INFO) << "Coldboot: Resetting all PHY IO controllers and PHYs";
+    for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
+      auto pimContainer = systemContainer_->getPimContainerFromPimID(pimID);
+
+      // 1. Reset MDIO bus controllers first
+      pimContainer->initAllPhyIOControllers();
+
+      // 2. Then reset individual PHY retimers
+      pimContainer->initAllPhys();
+    }
+    XLOG(INFO) << "Coldboot: All PHY resets complete";
+  }
 
   // Iterate through all PIMs in the BSP mapping
   for (const auto& [pimID, pimMapping] : bspMapping_->getPimMappings()) {
@@ -103,10 +125,16 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
       phyIDInfo.pimID = pimID;
       phyIDInfo.controllerID = *phyMapping.phyIOControllerId();
       phyIDInfo.phyAddr = *phyMapping.phyAddr();
+      XLOG(DBG5) << __func__ << ": PhyIDInfo created with"
+                 << " pimID=" << phyIDInfo.pimID
+                 << " controllerID=" << phyIDInfo.controllerID
+                 << " phyAddr=" << phyIDInfo.phyAddr;
 
       // Create ExternalPhy (SaiPhyRetimer) object
       createExternalPhy(
           phyIDInfo, const_cast<BspPimContainer*>(bspPimContainer));
+      XLOG(DBG5) << __func__
+                 << ": Completed createExternalPhy for xphyID=" << xphyID;
 
       XLOG(INFO) << "Created SaiPhyRetimer and setup threading for xphy "
                  << xphyID << " in PIM " << pimID;
@@ -114,8 +142,16 @@ bool BspSaiPhyManager::initExternalPhyMap(bool warmboot) {
   }
 
   if (firstXphy) {
+    XLOG(DBG5) << __func__
+               << ": Calling preHwInitialized for firstXphy=" << *firstXphy;
     // Initialize SAI APIs once
     getSaiPlatform(*firstXphy)->preHwInitialized(warmboot);
+
+    // Mark the SAI adaptor as thread-safe to enable parallel XPHY
+    // initialization.
+    SaiApiLock::getInstance()->setAdaptorIsThreadSafe(true);
+    XLOG(INFO) << "Enabled parallel XPHY initialization by marking SAI adaptor "
+               << "as thread-safe";
   }
 
   return true;
@@ -125,7 +161,8 @@ void BspSaiPhyManager::initializeXphy(GlobalXphyID xphyID, bool warmboot) {
   auto phyIDInfo = getPhyIDInfo(xphyID);
   auto pimID = phyIDInfo.pimID;
 
-  XLOG(DBG2) << "Initializing xphy " << xphyID << " in PIM " << pimID;
+  XLOG(DBG2) << __func__ << ": Initializing xphy " << xphyID << " in PIM "
+             << pimID << " warmboot=" << warmboot;
 
   initializeXphyImpl<SaiPhyPlatform, phy::SaiPhyRetimer>(
       pimID, xphyID, warmboot);
@@ -145,6 +182,11 @@ void BspSaiPhyManager::initializeSlotPhys(PimID pimID, bool /* warmboot */) {
 void BspSaiPhyManager::createExternalPhy(
     const phy::PhyIDInfo& phyIDInfo,
     MultiPimPlatformPimContainer* pimContainer) {
+  XLOG(DBG5) << __func__ << ": Starting for phyIDInfo"
+             << " pimID=" << phyIDInfo.pimID
+             << " controllerID=" << phyIDInfo.controllerID
+             << " phyAddr=" << phyIDInfo.phyAddr;
+
   auto xphyID = getGlobalXphyID(phyIDInfo);
 
   // Create SaiPhyPlatform for this xphy
@@ -172,6 +214,7 @@ void BspSaiPhyManager::createExternalPhy(
       bspPhyIO,
       getPlatformMapping(),
       saiPlatform);
+  XLOG(DBG5) << __func__ << ": Created SaiPhyRetimer";
 
   XLOG(INFO) << "Created SaiPhyRetimer for xphy " << xphyID << " in PIM "
              << phyIDInfo.pimID;
@@ -189,6 +232,8 @@ int BspSaiPhyManager::getPimStartNum() {
 
 folly::EventBase* BspSaiPhyManager::getXphyEventBase(
     const GlobalXphyID& xphyID) const {
+  XLOG(DBG5) << __func__ << ": Getting event base for xphyID=" << xphyID;
+
   auto phyIDInfo = getPhyIDInfo(xphyID);
 
   auto bspPimContainer =

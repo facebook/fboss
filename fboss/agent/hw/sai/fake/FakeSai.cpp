@@ -66,6 +66,10 @@ void FakeSai::clear() {
   fs->tamCollectorManager.clear();
   fs->tunnelManager.clear();
   fs->tunnelTermManager.clear();
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  fs->srv6SidListManager.clear();
+  fs->mySidEntryManager.clear();
+#endif
   fs->systemPortManager.clear();
 }
 
@@ -277,6 +281,12 @@ sai_status_t sai_api_query(sai_api_t sai_api_id, void** api_method_table) {
           (sai_tunnel_api_t**)api_method_table);
       res = SAI_STATUS_SUCCESS;
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_API_SRV6:
+      facebook::fboss::populate_srv6_api((sai_srv6_api_t**)api_method_table);
+      res = SAI_STATUS_SUCCESS;
+      break;
+#endif
     case SAI_API_MACSEC:
       facebook::fboss::populate_macsec_api(
           (sai_macsec_api_t**)api_method_table);

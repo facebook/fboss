@@ -8,7 +8,6 @@
 
 #include <fboss/fsdb/oper/NaivePeriodicSubscribableStorage.h>
 #include <fboss/lib/CommonUtils.h>
-#include <folly/Random.h>
 #include <folly/coro/AsyncGenerator.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/coro/Collect.h>
@@ -34,21 +33,25 @@ folly::coro::Task<typename Gen::value_type> consumeOne(Gen& generator) {
   co_return std::move(value);
 }
 
-using PatchGenerator = folly::coro::AsyncGenerator<SubscriberMessage&&>;
-using DeltaGenerator = folly::coro::AsyncGenerator<OperDelta&&>;
+using PatchGenerator = folly::coro::AsyncGenerator<
+    SubscriptionServeQueueElement<SubscriberMessage>&&>;
+using DeltaGenerator =
+    folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>;
 
 OperDelta awaitDelta(DeltaGenerator& deltaSubStream) {
-  OperDelta deltaVal = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(
           consumeOne(deltaSubStream), std::chrono::seconds(5)));
+  OperDelta deltaVal = std::move(element.val);
   EXPECT_EQ(deltaVal.changes()->size(), 1);
   return deltaVal;
 }
 
 Patch awaitPatch(PatchGenerator& patchSubStream, bool isInitial = false) {
-  SubscriberMessage patchMsg = folly::coro::blockingWait(
+  auto element = folly::coro::blockingWait(
       folly::coro::timeout(
           consumeOne(patchSubStream), std::chrono::seconds(5)));
+  SubscriberMessage patchMsg = std::move(element.val);
   auto patchGroups = *patchMsg.get_chunk().patchGroups();
   EXPECT_EQ(patchGroups.size(), 1);
   auto patches = patchGroups.begin()->second;
@@ -385,9 +388,10 @@ TYPED_TEST(FsdbNsdbPipelineTests, FsdbToSwitchAgentPatchSubscription) {
   TestStruct emptyInitialData;
   auto tgtStorage = this->initStorage(emptyInitialData);
 
-  PatchGenerator genPatch = srcStorage.subscribe_patch(
+  auto streamReader = srcStorage.subscribe_patch(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       factory.subscriptionPath());
+  PatchGenerator genPatch = std::move(streamReader.generator_);
 
   // 1. initial sync: patch initial sync, and verify target storage state
   Patch patch = awaitPatch(genPatch, true);
@@ -425,10 +429,11 @@ TYPED_TEST(FsdbNsdbPipelineTests, SwitchAgentToNsdbDeltaPublish) {
   TestStruct emptyInitialData;
   auto tgtStorage = this->initStorage(emptyInitialData);
 
-  DeltaGenerator generator = srcStorage.subscribe_delta(
+  auto streamReader = srcStorage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       factory.subscriptionPath(),
       OperProtocol::SIMPLE_JSON);
+  DeltaGenerator generator = std::move(streamReader.generator_);
 
   // 1. initial sync: patch initial sync, and verify target storage state
   OperDelta deltaVal = awaitDelta(generator);
@@ -461,10 +466,11 @@ TYPED_TEST(FsdbNsdbPipelineTests, verifyNsdbDeltaSubscriptionGranularity) {
   TestDataFactory<decltype(srcStorage), TypeParam::dataType> factory(
       srcStorage);
 
-  auto generator = srcStorage.subscribe_delta(
+  auto streamReader = srcStorage.subscribe_delta(
       std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
       factory.subscriptionPath(),
       OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
 
   // 1. verify initial sync
   auto deltaMsg = awaitDelta(generator);

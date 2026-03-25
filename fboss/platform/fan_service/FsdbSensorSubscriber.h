@@ -9,9 +9,6 @@
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 
 namespace facebook::fboss {
-namespace fsdb {
-class FsdbPubSubManager;
-}
 
 class FsdbSensorSubscriber {
  public:
@@ -36,6 +33,8 @@ class FsdbSensorSubscriber {
   uint64_t getSensorStatsLastUpdatedTime() const {
     return sensorStatsLastUpdatedTime.load();
   }
+
+  bool isSensorDataStale() const;
 
   std::map<std::string, fboss::platform::sensor_service::SensorData>
   getSensorData() const;

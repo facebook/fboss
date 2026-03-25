@@ -1,0 +1,154 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_platform")
+
+# Core utility library
+cpp_library(
+    name = "updater_utils",
+    srcs = [
+        "UpdaterUtils.cpp",
+    ],
+    headers = [
+        "UpdaterUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":rackmon_client",
+        ":updater_exceptions",
+        "//fboss/platform/rackmon/if:rackmonsvc-cpp2-services",
+        "//folly/io/async:async_socket",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
+
+# Exception hierarchy library
+cpp_library(
+    name = "updater_exceptions",
+    srcs = [
+        "UpdaterExceptions.cpp",
+    ],
+    headers = [
+        "UpdaterExceptions.h",
+    ],
+)
+
+# Rackmon thrift client wrapper
+cpp_library(
+    name = "rackmon_client",
+    srcs = [
+        "RackmonClient.cpp",
+    ],
+    headers = [
+        "RackmonClient.h",
+    ],
+    exported_deps = [
+        ":updater_exceptions",
+        "//fboss/platform/rackmon/if:rackmonsvc-cpp2-clients",
+        "//fboss/platform/rackmon/if:rackmonsvc-cpp2-types",
+        "//folly/io/async:async_base",
+        "//folly/io/async:async_socket",
+        "//thrift/lib/cpp2/async:rocket_client_channel",
+    ],
+)
+
+# Intel HEX file parser
+cpp_library(
+    name = "hex_file_parser",
+    srcs = [
+        "HexFileParser.cpp",
+    ],
+    headers = [
+        "HexFileParser.h",
+    ],
+    exported_deps = [
+        ":updater_exceptions",
+    ],
+)
+
+# Base firmware updater class
+cpp_library(
+    name = "rack_firmware_updater",
+    srcs = [
+        "FirmwareUpdater.cpp",
+    ],
+    headers = [
+        "FirmwareUpdater.h",
+    ],
+    exported_deps = [
+        ":rackmon_client",
+    ],
+)
+
+# MEI firmware updater (Delta ORv3)
+cpp_library(
+    name = "mei_rack_firmware_updater",
+    srcs = [
+        "MEIFirmwareUpdater.cpp",
+    ],
+    headers = [
+        "MEIFirmwareUpdater.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":hex_file_parser",
+        ":rack_firmware_updater",
+        ":updater_exceptions",
+        ":updater_utils",
+    ],
+)
+
+# Mailbox firmware updater (Panasonic, Delta, HPR, etc.)
+cpp_library(
+    name = "mailbox_rack_firmware_updater",
+    srcs = [
+        "MailboxFirmwareUpdater.cpp",
+    ],
+    headers = [
+        "MailboxFirmwareUpdater.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":rack_firmware_updater",
+        ":updater_exceptions",
+        ":updater_utils",
+    ],
+)
+
+# Delta ORv3 PSU Update Tool
+cpp_binary(
+    name = "psu_update_delta_orv3",
+    srcs = [
+        "psu_update_delta_orv3.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":mei_rack_firmware_updater",
+        ":rackmon_client",
+        ":updater_exceptions",
+        ":updater_utils",
+        "//folly/init:init",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)
+
+# Mailbox-based Device Update Tool (BBU and other PSUs)
+cpp_binary(
+    name = "device_update_mailbox",
+    srcs = [
+        "device_update_mailbox.cpp",
+    ],
+    deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":mailbox_rack_firmware_updater",
+        ":rackmon_client",
+        ":updater_exceptions",
+        ":updater_utils",
+        "//folly/init:init",
+    ],
+    external_deps = [
+        "gflags",
+    ],
+)

@@ -123,7 +123,7 @@ class TestExecutor:
                     result = future.result()
                     results.append(result)
                     print(
-                        f"Completed: {' '.join(cmd[:5])}... - Status: {result['status']}"
+                        f"Completed: {' '.join(cmd)} ... - Status: {result['status']}\n"
                     )
                 except Exception as exc:
                     error_result = {
@@ -134,7 +134,7 @@ class TestExecutor:
                         "return_code": -1,
                     }
                     results.append(error_result)
-                    print(f"Error executing {' '.join(cmd[:5])}...: {exc}")
+                    print(f"Error executing {' '.join(cmd)}...: {exc}")
 
         # Summary
         successful = sum(1 for r in results if r["status"] == "success")
@@ -174,7 +174,7 @@ class TestExecutor:
                     stdout=log_file,
                     stderr=subprocess.STDOUT,
                     text=True,
-                    timeout=3600,
+                    timeout=3600 * 12,
                 )
 
             return {
@@ -212,6 +212,7 @@ class TestExecutor:
 
         commands.extend(self._generate_hw_test_commands(test_specs))
         commands.extend(self._generate_agent_test_commands(test_specs))
+        commands.extend(self._generate_agent_scale_test_commands(test_specs))
         commands.extend(self._generate_warmboot_test_commands(test_specs))
         commands.extend(self._generate_link_test_commands(test_specs))
         commands.extend(self._generate_config_test_commands(test_specs))
@@ -247,6 +248,26 @@ class TestExecutor:
                     ) in agent_test.common_test_spec.asic_test_options.items():
                         test_commands = self.test_runner.build_agent_test_commands(
                             agent_test, asic_type, asic_options
+                        )
+                        commands.extend(test_commands)
+        return commands
+
+    def _generate_agent_scale_test_commands(
+        self, test_specs
+    ) -> List[Tuple[List[str], str]]:
+        """Generate agent scale test commands"""
+        commands = []
+        if test_specs.agent_scale_tests:
+            for agent_scale_test in test_specs.agent_scale_tests:
+                if agent_scale_test.common_test_spec.asic_test_options:
+                    for (
+                        asic_type,
+                        asic_options,
+                    ) in agent_scale_test.common_test_spec.asic_test_options.items():
+                        test_commands = (
+                            self.test_runner.build_agent_scale_test_commands(
+                                agent_scale_test, asic_type, asic_options
+                            )
                         )
                         commands.extend(test_commands)
         return commands

@@ -11,16 +11,29 @@
 #include "fboss/lib/phy/SaiPhyRetimer.h"
 
 #include <folly/logging/xlog.h>
+#include <thrift/lib/cpp/util/EnumUtils.h>
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
+#include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiSwitch.h"
+#include "fboss/agent/platforms/sai/SaiPlatform.h"
 
 #include <fmt/format.h>
 
 namespace facebook::fboss::phy {
 
 namespace {
-constexpr uint32_t kPmdDeviceAddr = 1;
+
+FecMode getFecMode(sai_port_fec_mode_t fec, cfg::PortSpeed /* speed */) {
+  if (fec == SAI_PORT_FEC_MODE_NONE) {
+    return FecMode::NONE;
+  }
+  throw FbossError(
+      "Unsupported FEC mode: ",
+      static_cast<int>(fec),
+      ". Only SAI_PORT_FEC_MODE_NONE is supported for now");
+}
 /*
  * This is a static function for reading a Phy register. This function will be
  * passed to the SAI layer. The SAI driver will use this function to read a
@@ -32,19 +45,19 @@ constexpr uint32_t kPmdDeviceAddr = 1;
  */
 sai_status_t saiPhyRetimerSwitchRegisterRead(
     uint64_t platform_context,
-    uint32_t device_addr,
+    uint32_t /*device_addr*/,
     uint32_t start_reg_addr,
     uint32_t number_of_registers,
     uint32_t* reg_val) {
-  if (device_addr != kPmdDeviceAddr) {
-    XLOG(ERR)
-        << "saiPhyRetimerSwitchRegisterRead failed, bad device address passed";
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
   SaiPhyRetimer* retimerObj =
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
+
+  XLOG(DBG5) << __func__ << ":"
+             << " phyAddr=" << retimerObj->getPhyAddr()
+             << " deviceAddr=" << SaiPhyRetimer::getDeviceAddress()
+             << " start_reg_addr=" << start_reg_addr
+             << " number_of_registers=" << number_of_registers;
 
   // Finally call that object's XphyIO read register function
   for (uint32_t i = 0; i < number_of_registers; i++) {
@@ -69,21 +82,20 @@ sai_status_t saiPhyRetimerSwitchRegisterRead(
  */
 sai_status_t saiPhyRetimerSwitchRegisterWrite(
     uint64_t platform_context,
-    uint32_t device_addr,
+    uint32_t /*device_addr*/,
     uint32_t start_reg_addr,
     uint32_t number_of_registers,
     const uint32_t* reg_val) {
-  if (device_addr != kPmdDeviceAddr) {
-    XLOG(ERR)
-        << "saiPhyRetimerSwitchRegisterWrite failed, bad device address passed";
-    return SAI_STATUS_INVALID_PARAMETER;
-  }
-
   // Find the SaiPhyRetimer object from platform context passed by SAI
   SaiPhyRetimer* retimerObj =
       reinterpret_cast<SaiPhyRetimer*>(platform_context);
   CHECK(retimerObj);
 
+  XLOG(DBG5) << __func__ << ":"
+             << " phyAddr=" << retimerObj->getPhyAddr()
+             << " deviceAddr=" << SaiPhyRetimer::getDeviceAddress()
+             << " start_reg_addr=" << start_reg_addr
+             << " number_of_registers=" << number_of_registers;
   // Finally call that object's XphyIO write register function
   for (uint32_t i = 0; i < number_of_registers; i++) {
     retimerObj->getXphyIO()->writeRegister(
@@ -132,9 +144,7 @@ PhyFwVersion SaiPhyRetimer::fwVersionImpl() const {
   phy::PhyFwVersion fw;
   fw.version() = SaiApiTable::getInstance()->switchApi().getAttribute(
       switchId, SaiSwitchTraits::Attributes::FirmwareMajorVersion{});
-  fw.minorVersion() = SaiApiTable::getInstance()->switchApi().getAttribute(
-      switchId, SaiSwitchTraits::Attributes::FirmwareMinorVersion{});
-  fw.versionStr() = fmt::format("{}.{}", *fw.version(), *fw.minorVersion());
+  fw.versionStr() = fmt::format("{}", *fw.version());
   if (auto versionStr = fw.versionStr()) {
     XLOG(DBG5) << "fwVersionImpl switchId=" << switchId
                << ", version=" << *versionStr;
@@ -143,17 +153,30 @@ PhyFwVersion SaiPhyRetimer::fwVersionImpl() const {
 }
 
 void* SaiPhyRetimer::getRegisterReadFuncPtr() {
+  XLOG(DBG5) << __func__ << ": Returning read function pointer";
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterRead);
 }
 
 void* SaiPhyRetimer::getRegisterWriteFuncPtr() {
+  XLOG(DBG5) << __func__ << ": Returning write function pointer";
   return reinterpret_cast<void*>(saiPhyRetimerSwitchRegisterWrite);
 }
 
 SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
+  XLOG(DBG5) << __func__ << ": Starting for xphyID=" << xphyID_;
+
   SaiSwitchTraits::Attributes::InitSwitch initSwitch(true);
 
-  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo = std::nullopt;
+  // Set HwInfo as XPHY ID
+  // Encoding as 4-byte little-endian integer
+  std::vector<int8_t> hwInfoVec(4);
+  uint32_t phyId = static_cast<uint32_t>(xphyID_);
+  hwInfoVec[0] = phyId & 0xFF;
+  hwInfoVec[1] = (phyId >> 8) & 0xFF;
+  hwInfoVec[2] = (phyId >> 16) & 0xFF;
+  hwInfoVec[3] = (phyId >> 24) & 0xFF;
+  XLOG(DBG2) << __func__ << ": Encoded phyId=" << phyId << " into hwInfoVec";
+  std::optional<SaiSwitchTraits::Attributes::HwInfo> hwInfo(hwInfoVec);
 
   // Pass the static register read function
   std::optional<SaiSwitchTraits::Attributes::RegisterReadFn> regReadFn(
@@ -186,6 +209,12 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 
   std::optional<SaiSwitchTraits::Attributes::SwitchType> switchType(
       SAI_SWITCH_TYPE_PHY);
+
+  // Set profile ID to XPHY ID so each retimer gets unique profile id
+  uint32_t profileIdValue = static_cast<uint32_t>(xphyID_);
+  XLOG(DBG5) << __func__ << ": Setting profileId=" << profileIdValue;
+  std::optional<SaiSwitchTraits::Attributes::SwitchProfileId> profileId(
+      profileIdValue);
 
   // Mandatory attributes for Sai
   std::optional<SaiSwitchTraits::Attributes::SwitchId> switchId(0);
@@ -226,7 +255,7 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       fwLoadType, // Firmware load type
       hwAccessBus, // Hardware access bus
       context, // Platform context
-      std::nullopt, // Switch profile id
+      profileId, // Switch profile id (set to XPHY ID)
       switchId, // Switch id
       maxSysCores, // Max system cores
       sysPortConfigList, // System port config list
@@ -258,7 +287,9 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       std::nullopt, // ArsProfile
 #endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 0)
       std::nullopt, // Port PTP mode
+#endif
       std::nullopt, // Reachability Group List
       std::nullopt, // Delay Drop Cong Threshold
       std::nullopt, // Fabric link level control threshold
@@ -289,7 +320,311 @@ SaiSwitchTraits::CreateAttributes SaiPhyRetimer::getSwitchAttributes() {
       std::nullopt, // range list of local scope system port ids
 #endif
       std::nullopt, // enable PFC monitoring for the switch
+      std::nullopt, // enable cable propagation delay measurement
+      std::nullopt, // switching mode
   };
+}
+
+namespace {
+
+// Convert LaneID vector to uint32_t vector for SAI
+std::vector<uint32_t> toLaneVector(const std::vector<LaneID>& lanes) {
+  std::vector<uint32_t> saiLanes;
+  saiLanes.reserve(lanes.size());
+  for (auto lane : lanes) {
+    saiLanes.push_back(lane);
+  }
+  return saiLanes;
+}
+
+// Format lane vector as string for logging
+std::string formatLanes(const std::vector<uint32_t>& lanes) {
+  return fmt::format("{}", fmt::join(lanes, " "));
+}
+
+// Extract optional vector attribute from serdes
+template <typename AttrType>
+std::vector<sai_uint32_t> extractSerdesAttr(
+    const SaiPortSerdesTraits::CreateAttributes& attrs) {
+  const auto& opt = std::get<std::optional<AttrType>>(attrs);
+  if (opt.has_value()) {
+    return opt.value().value();
+  }
+  return {};
+}
+
+// Build TxSettings for a specific lane index from serdes TX values
+std::optional<TxSettings> buildTxSettings(
+    size_t laneIdx,
+    const std::vector<sai_uint32_t>& txPre1,
+    const std::vector<sai_uint32_t>& txPre2,
+    const std::vector<sai_uint32_t>& txPre3,
+    const std::vector<sai_uint32_t>& txMain,
+    const std::vector<sai_uint32_t>& txPost1,
+    const std::vector<sai_uint32_t>& txPost2,
+    const std::vector<sai_uint32_t>& txPost3) {
+  TxSettings tx;
+  // Initialize all fields to 0
+  tx.pre() = 0;
+  tx.pre2() = 0;
+  tx.pre3() = 0;
+  tx.main() = 0;
+  tx.post() = 0;
+  tx.post2() = 0;
+  tx.post3() = 0;
+
+  // Fill with actual values from serdes
+  if (laneIdx < txPre1.size()) {
+    tx.pre() = static_cast<int16_t>(txPre1[laneIdx]);
+  }
+  if (laneIdx < txPre2.size()) {
+    tx.pre2() = static_cast<int16_t>(txPre2[laneIdx]);
+  }
+  if (laneIdx < txPre3.size()) {
+    tx.pre3() = static_cast<int16_t>(txPre3[laneIdx]);
+  }
+  if (laneIdx < txMain.size()) {
+    tx.main() = static_cast<int16_t>(txMain[laneIdx]);
+  }
+  if (laneIdx < txPost1.size()) {
+    tx.post() = static_cast<int16_t>(txPost1[laneIdx]);
+  }
+  if (laneIdx < txPost2.size()) {
+    tx.post2() = static_cast<int16_t>(txPost2[laneIdx]);
+  }
+  if (laneIdx < txPost3.size()) {
+    tx.post3() = static_cast<int16_t>(txPost3[laneIdx]);
+  }
+  return tx;
+}
+
+// Get FEC mode from port attributes, defaulting to NONE if not set
+sai_port_fec_mode_t getSaiFecFromPort(
+    const SaiPortTraits::CreateAttributes& attrs) {
+  const auto& fecOpt =
+      std::get<std::optional<SaiPortTraits::Attributes::FecMode>>(attrs);
+  if (fecOpt.has_value()) {
+    return static_cast<sai_port_fec_mode_t>(fecOpt.value().value());
+  }
+  return SAI_PORT_FEC_MODE_NONE;
+}
+
+IpModulation getModulation(cfg::PortSpeed speed, size_t numLanes) {
+  auto perLaneSpeed = static_cast<int>(speed) / numLanes;
+  return (perLaneSpeed >= 50000) ? IpModulation::PAM4 : IpModulation::NRZ;
+}
+
+// Helper to get serdes TX attributes directly from SAI hardware
+std::vector<sai_uint32_t> getSerdesAttrFromHw(
+    const PortSerdesSaiId& serdesSaiId,
+    sai_port_serdes_attr_t attrId,
+    size_t numLanes) {
+  std::vector<sai_uint32_t> result(numLanes);
+  try {
+    switch (attrId) {
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE1:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPre1{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE2:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPre2{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_PRE3:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPre3{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_MAIN:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirMain{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST1:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPost1{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST2:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPost2{result});
+      case SAI_PORT_SERDES_ATTR_TX_FIR_POST3:
+        return SaiApiTable::getInstance()->portApi().getAttribute(
+            serdesSaiId, SaiPortSerdesTraits::Attributes::TxFirPost3{result});
+      default:
+        return {};
+    }
+  } catch (const SaiApiError& e) {
+    XLOG(DBG3) << "Failed to get serdes attribute " << attrId
+               << " from HW: " << e.what();
+    return {};
+  }
+}
+
+} // namespace
+
+PhyPortConfig SaiPhyRetimer::getConfigOnePort(
+    const std::vector<LaneID>& sysLanes,
+    const std::vector<LaneID>& lineLanes,
+    bool readFromHw) {
+  if (!platform_) {
+    throw FbossError("Platform is null for xphyID=", xphyID_);
+  }
+  auto* saiSwitch = static_cast<SaiSwitch*>(platform_->getHwSwitch());
+  if (!saiSwitch) {
+    throw FbossError("SaiSwitch is null for xphyID=", xphyID_);
+  }
+
+  auto* saiStore = saiSwitch->getSaiStore();
+  auto& portStore = saiStore->get<SaiPortTraits>();
+  auto& serdesStore = saiStore->get<SaiPortSerdesTraits>();
+
+  auto sysSaiLanes = toLaneVector(sysLanes);
+  auto lineSaiLanes = toLaneVector(lineLanes);
+
+  auto sysPort = portStore.get(SaiPortTraits::AdapterHostKey{sysSaiLanes});
+  if (!sysPort) {
+    throw FbossError(
+        "System port not found for xphyID=",
+        xphyID_,
+        ", lanes=[",
+        formatLanes(sysSaiLanes),
+        "]");
+  }
+
+  auto linePort = portStore.get(SaiPortTraits::AdapterHostKey{lineSaiLanes});
+  if (!linePort) {
+    throw FbossError(
+        "Line port not found for xphyID=",
+        xphyID_,
+        ", lanes=[",
+        formatLanes(lineSaiLanes),
+        "]");
+  }
+
+  cfg::PortSpeed sysSpeed, lineSpeed;
+  if (readFromHw) {
+    sysSpeed = static_cast<cfg::PortSpeed>(
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            sysPort->adapterKey(), SaiPortTraits::Attributes::Speed{}));
+    lineSpeed = static_cast<cfg::PortSpeed>(
+        SaiApiTable::getInstance()->portApi().getAttribute(
+            linePort->adapterKey(), SaiPortTraits::Attributes::Speed{}));
+  } else {
+    sysSpeed = static_cast<cfg::PortSpeed>(
+        GET_ATTR(Port, Speed, sysPort->attributes()));
+    lineSpeed = static_cast<cfg::PortSpeed>(
+        GET_ATTR(Port, Speed, linePort->attributes()));
+  }
+
+  CHECK(sysSpeed == lineSpeed)
+      << "System/line speed mismatch: " << static_cast<int>(sysSpeed) << " vs "
+      << static_cast<int>(lineSpeed);
+
+  PhyPortConfig config;
+  config.profile.speed = sysSpeed;
+
+  // Helper to build PhySideConfig (lane configs with TX settings)
+  auto buildPhySideConfig =
+      [&serdesStore, readFromHw](
+          std::shared_ptr<SaiObject<SaiPortTraits>> portObj,
+          const std::vector<uint32_t>& lanes) -> PhySideConfig {
+    PhySideConfig side;
+
+    auto serdes = serdesStore.get(
+        SaiPortSerdesTraits::AdapterHostKey{portObj->adapterKey()});
+
+    std::vector<sai_uint32_t> txPre1, txPre2, txPre3, txMain, txPost1, txPost2,
+        txPost3;
+    if (serdes) {
+      if (readFromHw) {
+        auto serdesSaiId = serdes->adapterKey();
+        size_t numLanes = lanes.size();
+        txPre1 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_PRE1, numLanes);
+        txPre2 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_PRE2, numLanes);
+        txPre3 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_PRE3, numLanes);
+        txMain = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_MAIN, numLanes);
+        txPost1 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST1, numLanes);
+        txPost2 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST2, numLanes);
+        txPost3 = getSerdesAttrFromHw(
+            serdesSaiId, SAI_PORT_SERDES_ATTR_TX_FIR_POST3, numLanes);
+      } else {
+        const auto& attrs = serdes->attributes();
+        txPre1 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre1>(
+            attrs);
+        txPre2 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre2>(
+            attrs);
+        txPre3 = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPre3>(
+            attrs);
+        txMain = extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirMain>(
+            attrs);
+        txPost1 =
+            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost1>(
+                attrs);
+        txPost2 =
+            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost2>(
+                attrs);
+        txPost3 =
+            extractSerdesAttr<SaiPortSerdesTraits::Attributes::TxFirPost3>(
+                attrs);
+      }
+    }
+
+    for (size_t i = 0; i < lanes.size(); ++i) {
+      LaneConfig laneConfig;
+      if (auto tx = buildTxSettings(
+              i, txPre1, txPre2, txPre3, txMain, txPost1, txPost2, txPost3)) {
+        laneConfig.tx = *tx;
+      }
+      side.lanes[LaneID(lanes[i])] = laneConfig;
+    }
+    return side;
+  };
+
+  config.config.system = buildPhySideConfig(sysPort, sysSaiLanes);
+  config.config.line = buildPhySideConfig(linePort, lineSaiLanes);
+
+  // Helper to build ProfileSideConfig (FEC, numLanes, modulation)
+  auto buildProfileSideConfig =
+      [&config, readFromHw](
+          std::shared_ptr<SaiObject<SaiPortTraits>> portObj,
+          cfg::PortSpeed speed) -> ProfileSideConfig {
+    ProfileSideConfig side;
+
+    sai_port_fec_mode_t fecValue;
+    size_t numLanes;
+
+    if (readFromHw) {
+      fecValue = static_cast<sai_port_fec_mode_t>(
+          SaiApiTable::getInstance()->portApi().getAttribute(
+              portObj->adapterKey(), SaiPortTraits::Attributes::FecMode{}));
+      auto expectedLanes =
+          GET_ATTR(Port, HwLaneList, portObj->adapterHostKey());
+      std::vector<uint32_t> hwLanes(expectedLanes.size());
+      hwLanes = SaiApiTable::getInstance()->portApi().getAttribute(
+          portObj->adapterKey(),
+          SaiPortTraits::Attributes::HwLaneList{hwLanes});
+      numLanes = hwLanes.size();
+    } else {
+      fecValue = getSaiFecFromPort(portObj->attributes());
+      numLanes = GET_ATTR(Port, HwLaneList, portObj->adapterHostKey()).size();
+    }
+
+    side.fec() = getFecMode(fecValue, config.profile.speed);
+    side.numLanes() = numLanes;
+    side.modulation() = getModulation(speed, numLanes);
+
+    return side;
+  };
+
+  config.profile.system = buildProfileSideConfig(sysPort, sysSpeed);
+  config.profile.line = buildProfileSideConfig(linePort, lineSpeed);
+
+  XLOG(DBG2) << "getConfigOnePort" << (readFromHw ? "FromHw" : "")
+             << " completed: speed="
+             << apache::thrift::util::enumNameSafe(config.profile.speed)
+             << ", sys.lanes=" << config.profile.system.numLanes().value()
+             << ", line.lanes=" << config.profile.line.numLanes().value();
+
+  return config;
 }
 
 } // namespace facebook::fboss::phy

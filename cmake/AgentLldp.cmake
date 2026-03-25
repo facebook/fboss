@@ -18,6 +18,8 @@ add_library(lldp
 )
 
 target_link_libraries(lldp
+  agent_features
+  cow_storage
   fboss_types
   lldp_structs_cpp2
   Folly::folly

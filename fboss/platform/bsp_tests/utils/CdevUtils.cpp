@@ -99,6 +99,12 @@ struct fbiob_aux_data getFbiobAuxData(const AuxData& auxDevice, int32_t id) {
         auxData.xcvr_data.port_num = *auxDevice.xcvrData()->portNumber();
       }
       break;
+    case AuxDeviceType::GPIO:
+      // Do nothing
+      break;
+    case AuxDeviceType::SYSLED:
+      // Do nothing
+      break;
   }
 
   return auxData;

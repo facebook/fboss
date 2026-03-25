@@ -58,6 +58,7 @@ class BroadcomAsic : public HwAsic {
       case cfg::MMUScalingFactor::FOUR:
         return 2;
       case cfg::MMUScalingFactor::ONE_32768TH:
+      case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
         // Unsupported
         throw FbossError(
             "Unsupported scaling factor : ",

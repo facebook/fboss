@@ -52,7 +52,8 @@ using namespace facebook::fboss::utility;
 TEST(CosQueueBcmConvertors, cfgAlphaToFromBcm) {
   for (auto cfgAlpha :
        apache::thrift::TEnumTraits<cfg::MMUScalingFactor>::values) {
-    if (cfgAlpha == cfg::MMUScalingFactor::ONE_32768TH) {
+    if (cfgAlpha == cfg::MMUScalingFactor::ONE_32768TH ||
+        cfgAlpha == cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT) {
       // Unsupported on XGS
       continue;
     }

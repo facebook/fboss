@@ -89,6 +89,10 @@ std::vector<PortID> HwTest::masterLogicalInterfacePortIds() const {
       {cfg::PortType::INTERFACE_PORT});
 }
 
+std::vector<PortID> HwTest::masterLogicalHyperPortIds() const {
+  return hwSwitchEnsemble_->masterLogicalPortIds({cfg::PortType::HYPER_PORT});
+}
+
 std::vector<PortID> HwTest::masterLogicalFabricPortIds() const {
   return hwSwitchEnsemble_->masterLogicalPortIds({cfg::PortType::FABRIC_PORT});
 }
@@ -111,7 +115,7 @@ void HwTest::SetUp() {
   // Each test then sets up its own state as needed.
   folly::SingletonVault::singleton()->destroyInstances();
   folly::SingletonVault::singleton()->reenableInstances();
-  HwSwitchEnsemble::HwSwitchEnsembleInitInfo initInfo;
+  TestEnsembleInitInfo initInfo;
   initInfo.overrideTransceiverInfo = overrideTransceiverInfo();
   // Set watermark stats update interval to 0 so we always refresh BST stats
   // in each updateStats call

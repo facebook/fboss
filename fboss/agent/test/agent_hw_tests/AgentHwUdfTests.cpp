@@ -146,7 +146,7 @@ TEST_F(AgentHwUdfTest, deleteUdfHashConfig) {
           utility::kUdfL4UdpRocePktMatcherName, udfPacketMatcherId));
     });
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 // This test is to verify that UdfGroup(roceOpcode) for UdfAcl and associated
@@ -204,7 +204,7 @@ TEST_F(AgentHwUdfTest, deleteUdfAclConfig) {
           false));
     });
   };
-  verifyAcrossWarmBoots([] {}, verify);
+  verifyAcrossWarmBoots(verify);
 }
 
 TEST_F(AgentHwUdfTest, addAclConfig) {

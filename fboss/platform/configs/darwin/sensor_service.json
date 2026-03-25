@@ -517,30 +517,44 @@
       ]
     }
   ],
-  "powerConsumptionConfigs": [
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "__comment__": [
+          "For darwin, there is only one PEM, but the calculation is different than other BMC-lite platforms,",
+          "as PIN = PEM_ADC_VIN * (PEM_ECB_IOUT_CH1 + PEM_ECB_IOUT_CH2). Thus, we separate the calculation into two",
+          "PEM1: PEM_ADC_VIN * PEM_ECB_IOUT_CH1",
+          "PEM2: PEM_ADC_VIN * PEM_ECB_IOUT_CH2",
+          "PIN = PEM1 + PEM2"
+        ],
+        "name": "PEM1",
+        "voltageSensorName": "PEM_ADC_VIN",
+        "currentSensorName": "PEM_ECB_IOUT_CH1"
+      },
+      {
+        "__comment__": [
+          "For darwin, there is only one PEM, but the calculation is different than other BMC-lite platforms,",
+          "as PIN = PEM_ADC_VIN * (PEM_ECB_IOUT_CH1 + PEM_ECB_IOUT_CH2). Thus, we separate the calculation into two",
+          "PEM1: PEM_ADC_VIN * PEM_ECB_IOUT_CH1",
+          "PEM2: PEM_ADC_VIN * PEM_ECB_IOUT_CH2",
+          "PIN = PEM1 + PEM2"
+        ],
+        "name": "PEM2",
+        "voltageSensorName": "PEM_ADC_VIN",
+        "currentSensorName": "PEM_ECB_IOUT_CH2"
+      }
+    ],
+    "inputVoltageSensors": [
+      "PEM_ADC_VIN"
+    ]
+  },
+  "temperatureConfigs": [
     {
-      "__comment__": [
-        "For darwin, there is only one PEM, but the calculation is different than other BMC-lite platforms,",
-        "as PIN = PEM_ADC_VIN * (PEM_ECB_IOUT_CH1 + PEM_ECB_IOUT_CH2). Thus, we separate the calculation into two",
-        "PEM1: PEM_ADC_VIN * PEM_ECB_IOUT_CH1",
-        "PEM2: PEM_ADC_VIN * PEM_ECB_IOUT_CH2",
-        "PIN = PEM1 + PEM2"
-      ],
-      "name": "PEM1",
-      "voltageSensorName": "PEM_ADC_VIN",
-      "currentSensorName": "PEM_ECB_IOUT_CH1"
-    },
-    {
-      "__comment__": [
-        "For darwin, there is only one PEM, but the calculation is different than other BMC-lite platforms,",
-        "as PIN = PEM_ADC_VIN * (PEM_ECB_IOUT_CH1 + PEM_ECB_IOUT_CH2). Thus, we separate the calculation into two",
-        "PEM1: PEM_ADC_VIN * PEM_ECB_IOUT_CH1",
-        "PEM2: PEM_ADC_VIN * PEM_ECB_IOUT_CH2",
-        "PIN = PEM1 + PEM2"
-      ],
-      "name": "PEM2",
-      "voltageSensorName": "PEM_ADC_VIN",
-      "currentSensorName": "PEM_ECB_IOUT_CH2"
+      "name": "ASIC",
+      "temperatureSensorNames": [
+        "SC_TH3_DIODE1_TEMP",
+        "SC_TH3_DIODE2_TEMP"
+      ]
     }
   ]
 }

@@ -46,6 +46,7 @@ class ProdInvariantTest : public ProdAgentTests {
   std::vector<PortID> getEcmpPortIds();
   void setCmdLineFlagOverrides() const override {
     ProdAgentTests::setCmdLineFlagOverrides();
+    FLAGS_enable_lacp = false;
     FLAGS_prod_invariant_config_test = true;
   }
 

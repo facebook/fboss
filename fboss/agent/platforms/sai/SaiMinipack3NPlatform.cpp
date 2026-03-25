@@ -34,7 +34,13 @@ SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
     // no auto discovery of ports for minipack3n
     kv_map.erase(itr);
   }
-  kv_map.insert(std::make_pair("SAI_INDEPENDENT_MODULE_MODE", "2"));
+  // Independent module mode is governed by the board design
+  // 0 :- DEPENDENT_MODULE_MODE - firmware owns programming the transcievers -
+  // 1 :- INDEPENDENT_MODULE_MODE - if external component like (qsfp) programs
+  // the transcievers  but firmware acts as relay.
+  // 2 :- STANDALONE_MODULE_MODE if external component like (qsfp) programs the
+  // transcievers without involvement of firmware.
+  kv_map.insert_or_assign("SAI_INDEPENDENT_MODULE_MODE", "2");
   kv_map.insert(std::make_pair("SAI_KEY_PORT_CREATE_INITIAL_PRECODING", "2"));
   return kv_map;
 }

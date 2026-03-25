@@ -32,14 +32,17 @@ class MockHwSwitch : public HwSwitch {
   explicit MockHwSwitch(MockPlatform* platform);
 
   MOCK_METHOD3(initImpl, HwInitResult(Callback*, BootType, bool));
-  MOCK_METHOD1(
-      stateChangedImpl,
-      std::shared_ptr<SwitchState>(const std::vector<StateDelta>& deltas));
   MOCK_METHOD2(
+      stateChangedImpl,
+      std::shared_ptr<SwitchState>(
+          const std::vector<StateDelta>& deltas,
+          const std::optional<StateDeltaApplication>&));
+  MOCK_METHOD3(
       stateChangedTransaction,
       std::shared_ptr<SwitchState>(
           const std::vector<StateDelta>& deltas,
-          const HwWriteBehaviorRAII&));
+          const HwWriteBehaviorRAII&,
+          const std::optional<StateDeltaApplication>&));
   MOCK_CONST_METHOD0(reconstructSwitchState, std::shared_ptr<SwitchState>());
 
   std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const override;
@@ -71,11 +74,11 @@ class MockHwSwitch : public HwSwitch {
 
   MOCK_METHOD3(
       sendPacketOutOfPortSyncForPktType_,
-      bool(TxPacket*, facebook::fboss::PortID, facebook::fboss::TxPacketType));
+      bool(TxPacket*, facebook::fboss::PortID, facebook::fboss::PacketType));
   bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const facebook::fboss::PortID& portID,
-      facebook::fboss::TxPacketType packetType) noexcept override;
+      facebook::fboss::PacketType packetType) noexcept override;
 
   MOCK_CONST_METHOD0(transactionsSupported, bool());
   MOCK_METHOD0(updateStatsImpl, void());

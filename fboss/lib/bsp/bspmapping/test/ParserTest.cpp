@@ -14,16 +14,12 @@ TEST(ParserTest, GetNameForTests) {
       "montblanc");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_MINIPACK3BTA),
+      "minipack3bta");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_MINIPACK3N),
       "minipack3n");
-  EXPECT_EQ(
-      facebook::fboss::Parser::getNameFor(
-          facebook::fboss::PlatformType::PLATFORM_MERU400BFU),
-      "meru400bfu");
-  EXPECT_EQ(
-      facebook::fboss::Parser::getNameFor(
-          facebook::fboss::PlatformType::PLATFORM_MERU400BIU),
-      "meru400biu");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_MERU800BIA),
@@ -70,8 +66,16 @@ TEST(ParserTest, GetNameForTests) {
       "wedge800bact");
   EXPECT_EQ(
       facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_WEDGE800CACT),
+      "wedge800cact");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
           facebook::fboss::PlatformType::PLATFORM_LADAKH800BCLS),
       "ladakh800bcls");
+  EXPECT_EQ(
+      facebook::fboss::Parser::getNameFor(
+          facebook::fboss::PlatformType::PLATFORM_ICECUBE800BANW),
+      "icecube800banw");
 }
 
 TEST(ParserTest, GetTransceiverConfigRowFromCsvLine) {

@@ -78,8 +78,20 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
     // if L2 entry is in pending state, these packets would be dropped
     auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
     auto switchId = scope(ecmpPorts);
-    programDefaultRoute(ecmpPorts, getSw()->getLocalMac(switchId));
-    utility::disableTTLDecrements(getSw(), ecmpPorts);
+    utility::EcmpSetupTargetedPorts6 ecmp6(
+        getSw()->getState(),
+        getSw()->needL2EntryForNeighbor(),
+        getSw()->getLocalMac(switchId),
+        RouterID(0),
+        false,
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
+    if (getSw()->getHwAsicTable()->isFeatureSupported(
+            switchId, HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+      programDefaultRouteWithDisableTTLDecrement(ecmpPorts, ecmp6);
+    } else {
+      programDefaultRoute(ecmpPorts, ecmp6);
+      utility::disableTTLDecrements(getSw(), ecmpPorts);
+    }
     // wait long enough for all L2 entries learned/validated, port stats updated
     // sleep override
     sleep(5);

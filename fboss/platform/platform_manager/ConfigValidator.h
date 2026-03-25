@@ -2,9 +2,19 @@
 
 #pragma once
 
+#include <optional>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_config_types.h"
 
 namespace facebook::fboss::platform::platform_manager {
+
+struct LogicalEeprom {
+  std::string pmUnitScopedName;
+  int16_t offset;
+  std::string kernelDeviceName;
+};
 
 class ConfigValidator {
  public:
@@ -19,8 +29,13 @@ class ConfigValidator {
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidXcvrCtrlBlockConfig(
       const XcvrCtrlBlockConfig& xcvrCtrlBlockConfig);
+  bool isValidI2cAdapterBlockConfig(
+      const I2cAdapterBlockConfig& i2cAdapterBlockConfig);
+  bool isValidI2cAdaptersFromCpu(
+      const std::vector<std::string>& i2cAdaptersFromCpu);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
+  bool isValidCpldSysfsAttrs(const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);
@@ -43,8 +58,26 @@ class ConfigValidator {
       const int16_t& portNum,
       const int16_t& startPort,
       std::optional<int16_t> ledNum = std::nullopt);
+  bool isValidIobufOffsetCalc(
+      const std::string& iobufOffsetCalc,
+      const int16_t& portNum,
+      const int16_t& startPort,
+      std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
+  bool isValidChassisEepromDevicePath(
+      const PlatformConfig& platformConfig,
+      const std::string& chassisEepromDevicePath);
+  bool isValidLogicalEeprom(
+      const PlatformConfig& config,
+      const std::string& pmUnitName,
+      const PmUnitConfig& pmUnitConfig);
+  bool isValidPlatformWithoutPmOptics(const PlatformConfig& config);
+  std::map<std::pair<std::string, std::string>, std::vector<LogicalEeprom>>
+  getLogicalEeproms(
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
+      const std::string& slotType,
+      const PmUnitConfig& pmUnitConfig);
 
   // Used by other platform services config validation.
   virtual bool isValidSlotPath(
@@ -59,6 +92,14 @@ class ConfigValidator {
       const std::string& slotPath,
       const std::string& pmUnitName);
   int16_t numXcvrs_ = 0;
+
+ private:
+  void buildDeviceNameCache(const PlatformConfig& platformConfig);
+
+  // Cache: SlotType -> set of valid device names for that slot type
+  std::optional<
+      std::unordered_map<std::string, std::unordered_set<std::string>>>
+      deviceNamesBySlotType_;
 };
 
 } // namespace facebook::fboss::platform::platform_manager

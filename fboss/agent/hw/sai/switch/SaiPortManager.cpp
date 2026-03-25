@@ -108,6 +108,8 @@ uint16_t getPriorityFromPfcPktCounterId(sai_stat_id_t counterId) {
 }
 
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
+// TODO(nivinl): Retire the extension attribute based support once the
+// standard SAI stats IDs are supported in XGS/DNX.
 uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
   switch (counterId) {
     case SAI_PORT_STAT_PFC_0_XOFF_TOTAL_DURATION:
@@ -125,6 +127,40 @@ uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
     case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
       return 6;
     case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION:
+      return 7;
+    default:
+      break;
+  }
+  throw FbossError("Got unexpected PFC duration counter id: ", counterId);
+}
+#elif defined(CHENAB_SAI_SDK)
+// TODO(nivinl): This is the standard SAI model, retire the extension attribute
+// based support once the standard SAI stats IDs are supported in XGS/DNX.
+uint16_t getPriorityFromPfcDurationCounterId(sai_stat_id_t counterId) {
+  switch (counterId) {
+    case SAI_PORT_STAT_PFC_0_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_0_TX_PAUSE_DURATION_US:
+      return 0;
+    case SAI_PORT_STAT_PFC_1_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_1_TX_PAUSE_DURATION_US:
+      return 1;
+    case SAI_PORT_STAT_PFC_2_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_2_TX_PAUSE_DURATION_US:
+      return 2;
+    case SAI_PORT_STAT_PFC_3_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_3_TX_PAUSE_DURATION_US:
+      return 3;
+    case SAI_PORT_STAT_PFC_4_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_4_TX_PAUSE_DURATION_US:
+      return 4;
+    case SAI_PORT_STAT_PFC_5_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_5_TX_PAUSE_DURATION_US:
+      return 5;
+    case SAI_PORT_STAT_PFC_6_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_6_TX_PAUSE_DURATION_US:
+      return 6;
+    case SAI_PORT_STAT_PFC_7_RX_PAUSE_DURATION_US:
+    case SAI_PORT_STAT_PFC_7_TX_PAUSE_DURATION_US:
       return 7;
     default:
       break;
@@ -387,6 +423,8 @@ void fillHwPortStats(
       case SAI_PORT_STAT_PFC_5_XOFF_TOTAL_DURATION:
       case SAI_PORT_STAT_PFC_6_XOFF_TOTAL_DURATION:
       case SAI_PORT_STAT_PFC_7_XOFF_TOTAL_DURATION: {
+        // TODO(nivinl): Retire the extension attribute based support once the
+        // standard SAI stats IDs are supported in XGS/DNX.
         auto priority = getPriorityFromPfcDurationCounterId(counterId);
         // PFC duration counters are clear on read and only one of
         // RX / TX is expected to be enabled per port at a time.
@@ -396,6 +434,31 @@ void fillHwPortStats(
         if (txPfcDurationStatsEnabled) {
           hwPortStats.txPfcDurationUsec_()[priority] += value;
         }
+        break;
+      }
+#elif defined(CHENAB_SAI_SDK)
+      case SAI_PORT_STAT_PFC_0_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_1_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_2_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_3_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_4_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_5_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_6_RX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_7_RX_PAUSE_DURATION_US: {
+        auto priority = getPriorityFromPfcDurationCounterId(counterId);
+        hwPortStats.rxPfcDurationUsec_()[priority] = value;
+        break;
+      }
+      case SAI_PORT_STAT_PFC_0_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_1_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_2_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_3_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_4_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_5_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_6_TX_PAUSE_DURATION_US:
+      case SAI_PORT_STAT_PFC_7_TX_PAUSE_DURATION_US: {
+        auto priority = getPriorityFromPfcDurationCounterId(counterId);
+        hwPortStats.txPfcDurationUsec_()[priority] = value;
         break;
       }
 #endif
@@ -522,32 +585,50 @@ TransmitterTechnology fromSaiMediaType(sai_port_media_type_t saiMediaType) {
  * we will report shorter cable lens. But short of getting
  * real-time optics delay, this is the best agent can do.
  */
-int getWorstCaseAssumedOpticsDelayNS(const HwAsic& asic) {
+[[maybe_unused]] int getWorstCaseAssumedOpticsDelayNS(
+    const HwAsic& asic,
+    const cfg::PortType& portType) {
   switch (asic.getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
+    case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
     case cfg::AsicType::ASIC_TYPE_MOCK:
     case cfg::AsicType::ASIC_TYPE_TRIDENT2:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
     case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
     case cfg::AsicType::ASIC_TYPE_EBRO:
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_CHENAB:
+    case cfg::AsicType::ASIC_TYPE_CHENAB2:
     case cfg::AsicType::ASIC_TYPE_JERICHO2:
     case cfg::AsicType::ASIC_TYPE_RAMON:
     case cfg::AsicType::ASIC_TYPE_GARONNE:
     case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
     case cfg::AsicType::ASIC_TYPE_AGERA3:
+    case cfg::AsicType::ASIC_TYPE_G202X:
       break;
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+    case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+    case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+    case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      return 0;
+    // The below value of 110 was from FR4 optics and assumed to be used
+    // everywhere. This assumption does not hold anymore.
+    // TODO: get optics type info from qsfp svc and export a
+    // accurate number for optics delay based on type
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      if (portType == cfg::PortType::FABRIC_PORT) {
+        return 110;
+      } else {
+        // TODO(daiweix): get tuned values for hyper port member
+        // and interface port CS00012425717
+        return 0;
+      }
     case cfg::AsicType::ASIC_TYPE_RAMON3:
       // For J3-R3, we measured max optics delay to
       // be 110ns.
-      // TODO: get optics type info from qsfp svc and export a
-      // accurate number for optics delay based on type
       return 110;
   }
   throw FbossError(
@@ -597,6 +678,11 @@ SaiPortManager::SaiPortManager(
 }
 
 SaiPortHandle::~SaiPortHandle() {
+#if CHENAB_SAI_SDK
+  // disable PRBS before deleting port or port serdes
+  port->setOptionalAttribute(
+      SaiPortTraits::Attributes::PrbsConfig(SAI_PORT_PRBS_CONFIG_DISABLE));
+#endif
   if (ingressSamplePacket) {
     port->setOptionalAttribute(
         SaiPortTraits::Attributes::IngressSamplePacketEnable{
@@ -606,6 +692,19 @@ SaiPortHandle::~SaiPortHandle() {
     port->setOptionalAttribute(
         SaiPortTraits::Attributes::EgressSamplePacketEnable{
             SAI_NULL_OBJECT_ID});
+  }
+  // Clear buffer profiles before port destruction
+  if (!ingressPortBufferProfiles.empty()) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosIngressBufferProfileList{
+            std::vector<sai_object_id_t>{}});
+    ingressPortBufferProfiles.clear();
+  }
+  if (!egressPortBufferProfiles.empty()) {
+    port->setOptionalAttribute(
+        SaiPortTraits::Attributes::QosEgressBufferProfileList{
+            std::vector<sai_object_id_t>{}});
+    egressPortBufferProfiles.clear();
   }
 }
 
@@ -1046,6 +1145,20 @@ void SaiPortManager::setPortType(PortID port, cfg::PortType type) {
              << apache::thrift::TEnumTraits<cfg::PortType>::findName(type);
 }
 
+void SaiPortManager::setClm(PortID portId, bool clmEnabled) {
+  port2ClmEnabled_[portId] = clmEnabled;
+  XLOG(DBG2) << " Port : " << portId
+             << " CLM set to : " << (clmEnabled ? "enabled" : "disabled");
+}
+
+bool SaiPortManager::isClmEnabled(PortID portId) const {
+  auto pitr = port2ClmEnabled_.find(portId);
+  if (pitr != port2ClmEnabled_.end()) {
+    return pitr->second;
+  }
+  return false;
+}
+
 std::vector<IngressPriorityGroupSaiId>
 SaiPortManager::getIngressPriorityGroupSaiIds(
     const std::shared_ptr<Port>& swPort) {
@@ -1126,6 +1239,70 @@ void SaiPortManager::changePfcBuffers(
   }
 }
 
+void SaiPortManager::processPortBufferPoolConfigs(
+    const std::shared_ptr<Port>& swPort) {
+  if (!platform_->getAsic()->isSupported(HwAsic::Feature::BUFFER_POOL) ||
+      !platform_->getAsic()->isSupported(
+          HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT)) {
+    return;
+  }
+
+  // Process port PG configs for ingress buffer pools
+  const auto& portPgCfgs = swPort->getPortPgConfigs();
+  if (portPgCfgs) {
+    for (const auto& portPgCfg : *portPgCfgs) {
+      // THRIFT_COPY
+      auto portPgCfgThrift = portPgCfg->toThrift();
+      // Handle ingress or ingress-egress buffer pool creation
+      managerTable_->bufferManager().setupBufferPool(portPgCfgThrift);
+    }
+  }
+
+  // Process port queue configs for egress buffer pools
+  const auto& portQueues = swPort->getPortQueues();
+  if (portQueues) {
+    for (const auto& portQueue : *portQueues) {
+      // Handle egress buffer pool creation
+      managerTable_->bufferManager().setupBufferPool(*portQueue);
+    }
+  }
+
+  // Currently only supported in Chenab. The various scaling factors
+  // and min guarantees configured per profile is capture in the google
+  // sheet https://fburl.com/gsheet/jahz9e6m
+  const cfg::MMUScalingFactor kIngressPortPoolScalingFactor{
+      cfg::MMUScalingFactor::EIGHT};
+  const cfg::MMUScalingFactor kEgressPortLossyPoolScalingFactor{
+      cfg::MMUScalingFactor::EIGHT};
+  const cfg::MMUScalingFactor kEgressPortLosslessPoolScalingFactor{
+      cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT};
+  const int kPoolPortReservedBytes{0};
+  auto portHandle = getPortHandle(swPort->getID());
+  if (!portHandle) {
+    XLOG(ERR) << "Port handle not found for port " << swPort->getID()
+              << ", skipping buffer profile configuration";
+    return;
+  }
+
+  // Get ingress port buffer profiles and set it per port
+  const auto ingressPortBufferProfiles =
+      managerTable_->bufferManager().getIngressPortBufferProfiles(
+          kIngressPortPoolScalingFactor, kPoolPortReservedBytes);
+  setPortQosIngressBufferProfiles(swPort->getID(), ingressPortBufferProfiles);
+  // Store the buffer profiles in the port handle
+  portHandle->ingressPortBufferProfiles = ingressPortBufferProfiles;
+
+  // Get egress port buffer profiles and set it per port
+  const auto egressPortBufferProfiles =
+      managerTable_->bufferManager().getEgressPortBufferProfiles(
+          kEgressPortLosslessPoolScalingFactor,
+          kEgressPortLossyPoolScalingFactor,
+          kPoolPortReservedBytes);
+  setPortQosEgressBufferProfiles(swPort->getID(), egressPortBufferProfiles);
+  // Store the buffer profiles in the port handle
+  portHandle->egressPortBufferProfiles = egressPortBufferProfiles;
+}
+
 prbs::InterfacePrbsState SaiPortManager::getPortPrbsState(PortID portId) {
   prbs::InterfacePrbsState portPrbsState;
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
@@ -1203,6 +1380,7 @@ void SaiPortManager::initAsicPrbsStats(const std::shared_ptr<Port>& swPort) {
 
 PortSaiId SaiPortManager::addPort(const std::shared_ptr<Port>& swPort) {
   setPortType(swPort->getID(), swPort->getPortType());
+  setClm(swPort->getID(), swPort->getClmEnable().value_or(false));
   auto portSaiId = addPortImpl(swPort);
   concurrentIndices_->portSaiId2PortInfo.emplace(
       portSaiId,
@@ -1240,6 +1418,9 @@ void SaiPortManager::changePort(
     const std::shared_ptr<Port>& newPort) {
   if (oldPort->getPortType() != newPort->getPortType()) {
     setPortType(newPort->getID(), newPort->getPortType());
+  }
+  if (oldPort->getClmEnable() != newPort->getClmEnable()) {
+    setClm(newPort->getID(), newPort->getClmEnable().value_or(false));
   }
   changePortImpl(oldPort, newPort);
 }
@@ -1355,6 +1536,7 @@ void SaiPortManager::removePort(const std::shared_ptr<Port>& swPort) {
   portStats_.erase(swId);
   port2SupportedStats_.erase(swId);
   port2PortType_.erase(swId);
+  port2ClmEnabled_.erase(swId);
   auto portAsicPrbsStatsItr = portAsicPrbsStats_.find(swId);
   if (portAsicPrbsStatsItr != portAsicPrbsStats_.end()) {
     portAsicPrbsStats_.erase(swId);
@@ -1722,6 +1904,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
   port->resetPinConfigs(
       platform_->getPlatformMapping()->getPortIphyPinConfigs(matcher));
   port->setSpeed(speed);
+  port->setSerdesCustomCollection(
+      platform_->getPlatformMapping()->getPortSerdesCustomCollection(matcher));
 
   // admin state
   bool isEnabled = GET_OPT_ATTR(Port, AdminState, attributes);
@@ -1779,7 +1963,8 @@ std::shared_ptr<Port> SaiPortManager::swPortFromAttributes(
 
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_0)
   if (port->getPortType() == cfg::PortType::INTERFACE_PORT ||
-      port->getPortType() == cfg::PortType::MANAGEMENT_PORT) {
+      port->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
+      port->getPortType() == cfg::PortType::HYPER_PORT) {
     auto shelEnable = GET_OPT_ATTR(Port, ShelEnable, attributes);
     port->setSelfHealingECMPLagEnable(shelEnable);
   }
@@ -1864,24 +2049,30 @@ SaiQueueHandle* SaiPortManager::getQueueHandle(PortID swId, uint8_t queueId)
 }
 
 bool SaiPortManager::fecStatsSupported(PortID portId) const {
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK6) &&
       getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
-    // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
-    // SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES
+#if !defined(BRCM_SAI_SDK_GTE_14_0)
+    // CS00012443185
     return false;
+#endif
   }
   return platform_->getAsic()->isSupported(HwAsic::Feature::SAI_FEC_COUNTERS) &&
       utility::isReedSolomonFec(getFECMode(portId));
 }
 
 bool SaiPortManager::fecCorrectedBitsSupported(PortID portId) const {
-  if (platform_->getAsic()->getAsicType() ==
-          cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
+  if ((platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK5 ||
+       platform_->getAsic()->getAsicType() ==
+           cfg::AsicType::ASIC_TYPE_TOMAHAWK6) &&
       getPortType(portId) == cfg::PortType::MANAGEMENT_PORT) {
-    // TODO(daiweix): follow up why not supported on TH5 mgmt port, e.g.
-    // SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS
+#if !defined(BRCM_SAI_SDK_GTE_14_0)
+    // CS00012443185
     return false;
+#endif
   }
   if (platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CORRECTED_BITS) &&
@@ -2111,6 +2302,52 @@ void SaiPortManager::updateFabricMacTransmitQueueStuck(
   }
 }
 
+#if defined(CHENAB_SAI_SDK)
+// TODO(nivinl): This is the standard SAI model, retire the extension attribute
+// based support once the standard SAI stats IDs are supported in XGS/DNX.
+const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
+    const PortID& portId) {
+  SaiPortHandle* portHandle = getPortHandle(portId);
+  CHECK(portHandle) << "Port handle uninitialized for portID " << portId;
+  static const std::vector<sai_stat_id_t> rxStats{
+      SAI_PORT_STAT_PFC_0_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_1_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_2_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_3_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_4_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_5_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_6_RX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_7_RX_PAUSE_DURATION_US};
+  static const std::vector<sai_stat_id_t> txStats{
+      SAI_PORT_STAT_PFC_0_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_1_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_2_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_3_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_4_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_5_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_6_TX_PAUSE_DURATION_US,
+      SAI_PORT_STAT_PFC_7_TX_PAUSE_DURATION_US};
+  // Precompute combined stats only once
+  static const std::vector<sai_stat_id_t> rxTxStats([] {
+    std::vector<sai_stat_id_t> stats;
+    stats.reserve(rxStats.size() + txStats.size());
+    stats.insert(stats.end(), rxStats.begin(), rxStats.end());
+    stats.insert(stats.end(), txStats.begin(), txStats.end());
+    return stats;
+  }());
+  static const std::vector<sai_stat_id_t> emptyStats;
+  if (portHandle->txPfcDurationStatsEnabled &&
+      portHandle->rxPfcDurationStatsEnabled) {
+    return rxTxStats;
+  } else if (portHandle->txPfcDurationStatsEnabled) {
+    return txStats;
+  } else if (portHandle->rxPfcDurationStatsEnabled) {
+    return rxStats;
+  }
+  return emptyStats;
+}
+#endif
+
 void SaiPortManager::updateStats(
     PortID portId,
     bool updateWatermarks,
@@ -2170,14 +2407,6 @@ void SaiPortManager::updateStats(
 
   auto supportedPfcDurationStats = getSupportedPfcDurationStats(portId);
   if (supportedPfcDurationStats.size()) {
-    // PFC duration counters are clear on read. Also, optimize to
-    // include the stats ID to be read if the PFC duration counter
-    // is enabled for the port.
-    // TODO(nivinl): get_port_stats_ext() is failing for these stats,
-    // however, get_port_stats() works. Given these are COR counters,
-    // expect to use SAI_STATS_MODE_READ_AND_CLEAR and hence need the
-    // support, working with Broadcom in CS00012427949 to figure how
-    // to proceed here. For now, using SAI_STATS_MODE_READ instead.
     handle->port->updateStats(supportedPfcDurationStats, SAI_STATS_MODE_READ);
   }
 
@@ -2206,7 +2435,7 @@ void SaiPortManager::updateStats(
       // SAI_PORT_ATTR_MAX_FEC_SYMBOL_ERRORS_DETECTABLE but this attribute
       // isn't supported yet
       sai_stat_id_t maxFecCounterId = getFECMode(portId) == phy::FecMode::RS528
-          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S8
+          ? SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S7
           : SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S15;
       std::vector<sai_stat_id_t> fecCodewordsToRead;
       for (int counterId = SAI_PORT_STAT_IF_IN_FEC_CODEWORD_ERRORS_S0;
@@ -2265,13 +2494,20 @@ void SaiPortManager::updateStats(
   const auto& asic = platform_->getAsic();
   if (updateCableLengths && isPortUp(portId) &&
       (portType == cfg::PortType::FABRIC_PORT ||
-       portType == cfg::PortType::HYPER_PORT_MEMBER) &&
+       portType == cfg::PortType::HYPER_PORT_MEMBER
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_GTE_13_0)
+       || portType == cfg::PortType::INTERFACE_PORT
+#endif
+       ) &&
       asic->isSupported(HwAsic::Feature::CABLE_PROPOGATION_DELAY)) {
     bool cableLenAvailableOnPort = true;
     if (asic->getSwitchType() == cfg::SwitchType::FABRIC &&
         asic->getFabricNodeRole() == HwAsic::FabricNodeRole::DUAL_STAGE_L1) {
       cableLenAvailableOnPort =
           asic->getL1FabricPortsToConnectToL2().contains(portId);
+    }
+    if (asic->getSwitchType() == cfg::SwitchType::NPU) {
+      cableLenAvailableOnPort = isClmEnabled(portId);
     }
 
     /*
@@ -2294,20 +2530,27 @@ void SaiPortManager::updateStats(
     if (cableLenAvailableOnPort &&
         !curPortStats.cableLengthMeters().has_value()) {
       try {
+#if (defined(BRCM_SAI_SDK_DNX_GTE_11_0) && defined(BRCM_SAI_SDK_DNX)) || \
+    (defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS))
         int32_t cablePropogationDelayNS =
             SaiApiTable::getInstance()->portApi().getAttribute(
                 handle->port->adapterKey(),
                 SaiPortTraits::Attributes::CablePropogationDelayNS{});
         cablePropogationDelayNS = std::max(
             cablePropogationDelayNS -
-                getWorstCaseAssumedOpticsDelayNS(*platform_->getAsic()),
+                getWorstCaseAssumedOpticsDelayNS(
+                    *platform_->getAsic(), portType),
             0);
         // In fiber it takes about 5ns for light to travel 1 meter
         curPortStats.cableLengthMeters() =
             std::ceil(cablePropogationDelayNS / 5.0);
+        XLOG(DBG2) << "Cable propogation delay in ns for port " << portId
+                   << ": " << cablePropogationDelayNS;
+#endif
       } catch (const SaiApiError& e) {
-        XLOG(ERR) << "Failed to get cable propogation delay for port " << portId
-                  << ": " << e.what();
+        XLOG_EVERY_MS(ERR, 10000)
+            << "Failed to get cable propogation delay for port " << portId
+            << ": " << e.what();
       }
     }
   }
@@ -2381,6 +2624,18 @@ void SaiPortManager::clearStats(PortID port) {
       statsToClear.end());
   portHandle->port->clearStats(statsToClear);
   managerTable_->queueManager().clearStats(portHandle->configuredQueues);
+
+  // Reset accumulated inDiscards counter in portStats_.
+  // inDiscards_ is a software-accumulated counter (+=) that is not
+  // automatically cleared when the HW counters are reset above.
+  auto portStatItr = portStats_.find(port);
+  if (portStatItr != portStats_.end()) {
+    auto curPortStats = portStatItr->second->portStats();
+    curPortStats.inDiscards_() = 0;
+    portStatItr->second->clearStat(kInDiscards());
+    auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
+    portStatItr->second->updateStats(curPortStats, now);
+  }
 }
 
 void SaiPortManager::clearInterfacePhyCounters(const PortID& portId) {
@@ -2425,6 +2680,56 @@ std::shared_ptr<MultiSwitchPortMap> SaiPortManager::reconstructPortsFromStore(
     portMap->addNode(port, scopeResolver->scope(port));
   }
   return portMap;
+}
+
+template <typename SaiPortAttribute>
+void SaiPortManager::setPortQosBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles,
+    const char* direction) {
+  auto portHandle = getPortHandle(portID);
+  if (!portHandle) {
+    XLOG(ERR) << "Port handle not found for port " << portID << ", skipping "
+              << direction << " buffer profile configuration";
+    return;
+  }
+  if (!portHandle->port) {
+    XLOG(ERR) << "Port object is null for port " << portID << ", skipping "
+              << direction << " buffer profile configuration";
+    return;
+  }
+  std::vector<sai_object_id_t> bufferProfileIds;
+  bufferProfileIds.reserve(bufferProfileHandles.size());
+  for (const auto& handle : bufferProfileHandles) {
+    if (!handle) {
+      XLOG(ERR) << "Null buffer profile handle found for port " << portID
+                << ", skipping";
+      continue;
+    }
+    bufferProfileIds.push_back(handle->adapterKey());
+  }
+  if (!bufferProfileIds.empty()) {
+    portHandle->port->setOptionalAttribute(SaiPortAttribute{bufferProfileIds});
+  }
+}
+
+void SaiPortManager::setPortQosEgressBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles) {
+  setPortQosBufferProfiles<
+      SaiPortTraits::Attributes::QosEgressBufferProfileList>(
+      portID, bufferProfileHandles, "egress");
+}
+
+void SaiPortManager::setPortQosIngressBufferProfiles(
+    const PortID& portID,
+    const std::vector<std::shared_ptr<SaiBufferProfileHandle>>&
+        bufferProfileHandles) {
+  setPortQosBufferProfiles<
+      SaiPortTraits::Attributes::QosIngressBufferProfileList>(
+      portID, bufferProfileHandles, "ingress");
 }
 
 void SaiPortManager::setQosMapsOnPort(
@@ -2680,11 +2985,12 @@ void SaiPortManager::programSampling(
     uint64_t sampleRate,
     std::optional<cfg::SampleDestination> sampleDestination) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming Sampling is only supported for Interface Ports; PortID: ",
+        "Programming Sampling is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
   auto destination = sampleDestination.has_value()
@@ -2731,11 +3037,12 @@ void SaiPortManager::programMirror(
     MirrorAction action,
     std::optional<std::string> mirrorId) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming mirroring is only supported for Interface Ports; PortID: ",
+        "Programming mirroring is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
 
@@ -2772,11 +3079,12 @@ void SaiPortManager::programSamplingMirror(
     MirrorAction action,
     std::optional<std::string> mirrorId) {
   auto portType = getPortType(portId);
-  if (portType != cfg::PortType::INTERFACE_PORT) {
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::HYPER_PORT) {
     throw FbossError(
-        "Programming sampling mirror is only supported for Interface Ports; PortID: ",
+        "Programming sampling mirror is only supported for Interface Ports and Hyper Ports; PortID: ",
         portId,
-        " has type",
+        " has type ",
         apache::thrift::util::enumNameSafe(portType));
   }
   auto portHandle = getPortHandle(portId);
@@ -3092,7 +3400,8 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
   // FABRIC_PORT
   auto portType = getPortType(swPortID);
   if (portType != cfg::PortType::INTERFACE_PORT &&
-      portType != cfg::PortType::FABRIC_PORT) {
+      portType != cfg::PortType::FABRIC_PORT &&
+      portType != cfg::PortType::HYPER_PORT_MEMBER) {
     return std::vector<phy::SerdesParameters>();
   }
 
@@ -3141,6 +3450,20 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
           std::vector<sai_uint32_t>(numPmdLanes)},
       [](auto& param, auto val) { param.rxPf() = val; });
 
+#if defined(SAI_VERSION_14_0_EA_ODP)
+  getSerdesParam(
+      "RxPfLfq",
+      SaiPortSerdesTraits::Attributes::RxPfLfq{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPfLfq() = val; });
+
+  getSerdesParam(
+      "RxPfHfq",
+      SaiPortSerdesTraits::Attributes::RxPfHfq{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.rxPfHfq() = val; });
+#endif
+
   getSerdesParam(
       "RxTap2",
       SaiPortSerdesTraits::Attributes::RxTap2{
@@ -3172,6 +3495,78 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
       [](auto& param, auto val) { param.tpChn0() = val; });
 
   return serdesParams;
+}
+
+std::vector<phy::TxSettings> SaiPortManager::getTxSettings(
+    PortSerdesSaiId serdesSaiPortId,
+    PortID swPortID,
+    uint8_t numPmdLanes) const {
+  auto portType = getPortType(swPortID);
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::FABRIC_PORT &&
+      portType != cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<phy::TxSettings>();
+  }
+
+  std::vector<phy::TxSettings> txSettings(numPmdLanes);
+
+  auto getTxParam =
+      [&](const char* paramName, auto attributeType, auto&& setter) {
+        try {
+          auto values = SaiApiTable::getInstance()->portApi().getAttribute(
+              serdesSaiPortId, attributeType);
+          for (int l = 0; l < numPmdLanes; l++) {
+            setter(txSettings[l], values[l]);
+          }
+        } catch (const SaiApiError& e) {
+          XLOG(DBG2) << "Failed to get " << paramName
+                     << " TX parameter: " << e.what();
+        }
+      };
+
+  getTxParam(
+      "TxFirPre1",
+      SaiPortSerdesTraits::Attributes::TxFirPre1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPre2",
+      SaiPortSerdesTraits::Attributes::TxFirPre2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre2() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPre3",
+      SaiPortSerdesTraits::Attributes::TxFirPre3{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre3() = static_cast<int32_t>(val); });
+
+  getTxParam(
+      "TxFirMain",
+      SaiPortSerdesTraits::Attributes::TxFirMain{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.main() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost1",
+      SaiPortSerdesTraits::Attributes::TxFirPost1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost2",
+      SaiPortSerdesTraits::Attributes::TxFirPost2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post2() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost3",
+      SaiPortSerdesTraits::Attributes::TxFirPost3{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post3() = static_cast<int16_t>(val); });
+
+  return txSettings;
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
@@ -3233,7 +3628,8 @@ std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxSignalDetect(
 
 std::vector<sai_port_lane_latch_status_t> SaiPortManager::getRxLockStatus(
     PortSaiId saiPortId,
-    uint8_t numPmdLanes) const {
+    uint8_t numPmdLanes,
+    PortID portID) const {
   if (!platform_->getAsic()->isSupported(HwAsic::Feature::PMD_RX_LOCK_STATUS)) {
     return std::vector<sai_port_lane_latch_status_t>();
   }
@@ -3378,7 +3774,8 @@ void SaiPortManager::changeRxLaneSquelch(
     // the remote side and bring down the local link
     if ((newPort->getPortType() == cfg::PortType::FABRIC_PORT ||
          newPort->getPortType() == cfg::PortType::MANAGEMENT_PORT ||
-         newPort->getPortType() == cfg::PortType::INTERFACE_PORT) &&
+         newPort->getPortType() == cfg::PortType::INTERFACE_PORT ||
+         newPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::RX_LANE_SQUELCH_ENABLE)) {
       auto portHandle = getPortHandle(newPort->getID());
@@ -3472,7 +3869,8 @@ void SaiPortManager::changeZeroPreemphasis(
         portHandle->port->adapterKey(),
         newPort->getPinConfigs(),
         portHandle->serdes,
-        newPort->getZeroPreemphasis());
+        newPort->getZeroPreemphasis(),
+        newPort->getSerdesCustomCollection());
     if (platform_->isSerdesApiSupported() &&
         platform_->getAsic()->isSupported(
             HwAsic::Feature::SAI_PORT_SERDES_PROGRAMMING)) {

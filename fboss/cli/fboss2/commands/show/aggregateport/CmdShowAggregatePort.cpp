@@ -54,9 +54,10 @@ void CmdShowAggregatePort::printOutput(
     }
     for (const auto& member : entry.members().value()) {
       out << fmt::format(
-          "\t Member: {:>10}, id: {:>3}, Up: {:>5}, Rate: {}\n",
+          "\t Member: {:>10}, id: {:>3}, Link: {:>5}, Fwding: {:>5}, Rate: {}\n",
           member.name().value(),
           folly::copy(member.id().value()),
+          folly::copy(member.isLinkUp().value()) ? "Up" : "Down",
           folly::copy(member.isUp().value()) ? "True" : "False",
           member.lacpRate().value());
     }
@@ -89,6 +90,8 @@ RetType CmdShowAggregatePort::createModel(
         memberDetails.id() = *subport.memberPortID();
         memberDetails.name() = *portInfo[*subport.memberPortID()].name();
         memberDetails.isUp() = *subport.isForwarding();
+        memberDetails.isLinkUp() =
+            *portInfo[*subport.memberPortID()].operState() == PortOperState::UP;
         memberDetails.lacpRate() =
             *subport.rate() == LacpPortRateThrift::FAST ? "Fast" : "Slow";
         if (*subport.isForwarding()) {

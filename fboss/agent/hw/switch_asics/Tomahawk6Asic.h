@@ -35,25 +35,23 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 9;
   }
   uint64_t getMMUSizeBytes() const override {
-    return 2 * 341080 * 254;
+    return 500000 * getMMUCellSize();
   }
   uint64_t getSramSizeBytes() const override {
     // No HBM!
     return getMMUSizeBytes();
   }
   uint32_t getMMUCellSize() const {
-    return 254;
+    return 420;
   }
   std::optional<uint64_t> getDefaultReservedBytes(
       cfg::StreamType /*streamType*/,
       cfg::PortType portType) const override {
-    /* TODO: Mimicking TH3 size here*/
-    return portType == cfg::PortType::CPU_PORT ? 1778 : 0;
+    return portType == cfg::PortType::CPU_PORT ? (24 * getMMUCellSize()) : 0;
   }
   std::optional<cfg::MMUScalingFactor> getDefaultScalingFactor(
       cfg::StreamType /*streamType*/,
       bool /*cpu*/) const override {
-    /* TODO: Mimicking TH3 size here*/
     return cfg::MMUScalingFactor::TWO;
   }
 
@@ -73,8 +71,7 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 64;
   }
   uint32_t getPacketBufferUnitSize() const override {
-    // TODO: update numbers if necessary
-    return 254;
+    return 420;
   }
   uint32_t getPacketBufferDescriptorSize() const override {
     // TODO: update numbers if necessary
@@ -96,15 +93,17 @@ class Tomahawk6Asic : public BroadcomXgsAsic {
     return 32000;
   }
   uint32_t getStaticQueueLimitBytes() const override {
-    // TODO: update numbers if necessary
-    return getMMUSizeBytes() / 2;
+    return getMMUSizeBytes();
   }
   uint32_t getNumMemoryBuffers() const override {
-    // TODO: update numbers if necessary
-    return 2;
+    return 1;
+  }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
   }
   std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;
+  std::optional<uint32_t> getMaxArsWidth() const override;
 };
 
 } // namespace facebook::fboss

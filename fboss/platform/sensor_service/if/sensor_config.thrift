@@ -6,6 +6,10 @@ namespace py3 neteng.fboss.platform.sensor_config
 namespace py.asyncio neteng.fboss.platform.asyncio.sensor_config
 
 include "thrift/annotation/hack.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 // `SensorType` :  SensorType represents the type of sensor being measured.
 //  For Power, should be Watt (W)
@@ -14,6 +18,7 @@ include "thrift/annotation/hack.thrift"
 //  For Temperature, should be celsius (C)
 //  For Fan, should be RPM
 //  For PWM, should be Percent(%)
+//  For Status, should be Boolean
 @hack.Attributes{
   attributes = [
     "Oncalls('fboss_platform')",
@@ -27,9 +32,10 @@ enum SensorType {
   POWER = 0,
   VOLTAGE = 1,
   CURRENT = 2,
-  TEMPERTURE = 3,
+  TEMPERATURE = 3,
   FAN = 4,
   PWM = 5,
+  STATUS = 6,
 }
 
 // `Threshold`: defined the various threshold below for various sensors
@@ -121,9 +127,10 @@ struct AsicCommand {
   3: SensorType sensorType;
 }
 
-// `PowerConsumptionConfig`: Describes power consumption of components.
+// `PerSlotPowerConfig`: Describes power consumption of individual slots.
+// This is used for PSU/PEM/HSC which are useful to monitor individually.
 //
-// `name`: Unique name of the power component (e.g., PSU1, PSU2, PEM1, HSC).
+// `name`: Unique name of the power component (e.g., PSU1, PSU2, PEM1, PEM2, HSC).
 //
 // `powerSensorName`: Name of the power sensor if available. This should be set
 //                    if the component has a direct power measurement sensor.
@@ -135,11 +142,31 @@ struct AsicCommand {
 // `currentSensorName`: Name of the current sensor. This should be set if no
 //                      direct power sensor is available and power needs to be
 //                      calculated from voltage and current.
-struct PowerConsumptionConfig {
+struct PerSlotPowerConfig {
   1: string name;
   2: optional string powerSensorName;
   3: optional string voltageSensorName;
   4: optional string currentSensorName;
+}
+
+// `PowerConfig`: Consolidates all power-related configurations.
+//
+// `perSlotPowerConfigs`: List of per-slot power configurations for PSU/PEM/HSC.
+//
+// `otherPowerSensorNames`: List of other power sensor names that are not part
+//                          of per-slot configurations (e.g., FANx power sensors).
+//
+// `powerDelta`: A fixed wattage value that is added to the total power consumption.
+//               Example: some switches have standby power consumption that is not
+//               measured by sensors. In this case, we can add a fixed value to
+//               the total power consumption.
+//
+// `inputVoltageSensors`: List of input voltage sensor names for monitoring input voltage.
+struct PowerConfig {
+  1: list<PerSlotPowerConfig> perSlotPowerConfigs;
+  2: list<string> otherPowerSensorNames;
+  3: double powerDelta;
+  4: list<string> inputVoltageSensors;
 }
 
 // `TemperatureConfig`: Describes temperature of components.
@@ -158,6 +185,6 @@ struct TemperatureConfig {
 struct SensorConfig {
   1: list<PmUnitSensors> pmUnitSensorsList;
   2: optional AsicCommand asicCommand;
-  11: list<PowerConsumptionConfig> powerConsumptionConfigs;
+  11: PowerConfig powerConfig;
   12: list<TemperatureConfig> temperatureConfigs;
 }

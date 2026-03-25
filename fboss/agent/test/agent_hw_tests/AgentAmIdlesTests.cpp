@@ -41,7 +41,7 @@ TEST_F(AgentAmIdlesTest, VerifyAmIdles) {
     auto newCfg{initialConfig(*(this->getAgentEnsemble()))};
 
     // Get the first two interface ports for testing
-    auto masterPorts = masterLogicalInterfacePortIds();
+    auto masterPorts = masterLogicalInterfaceOrHyperPortIds();
     EXPECT_GE(masterPorts.size(), 2) << "Need at least 2 ports for this test";
 
     const auto& firstPortId = masterPorts[0];
@@ -64,7 +64,7 @@ TEST_F(AgentAmIdlesTest, VerifyAmIdles) {
   };
 
   auto verify = [=, this]() {
-    auto masterPorts = masterLogicalInterfacePortIds();
+    auto masterPorts = masterLogicalInterfaceOrHyperPortIds();
 
     // Verify first port has AM idles enabled
     auto firstPort =

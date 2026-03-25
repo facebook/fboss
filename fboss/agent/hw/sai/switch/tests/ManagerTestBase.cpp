@@ -21,13 +21,17 @@
 #include "fboss/agent/hw/sai/switch/SaiVlanManager.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatform.h"
 #include "fboss/agent/state/AggregatePort.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/MacEntry.h"
 #include "fboss/agent/state/MacTable.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/QosPolicy.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
 #include <folly/Singleton.h>
 
@@ -202,6 +206,9 @@ void ManagerTestBase::setupSaiPlatform() {
     }
   }
   applyNewState(setupState);
+  if (FLAGS_enable_nexthop_id_manager) {
+    nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+  }
 }
 
 void ManagerTestBase::TearDown() {
@@ -245,7 +252,7 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
   VlanID vlan(testPort.id / 10);
   swPort->setIngressVlan(vlan);
   PortFields::VlanMembership vlanMemberShip{
-      {vlan, PortFields::VlanInfo{false}}};
+      {vlan, PortFields::VlanInfo{false, false}}};
   swPort->setVlans(vlanMemberShip);
   swPort->setSpeed(expectedSpeed ? *expectedSpeed : testPort.portSpeed);
   switch (swPort->getSpeed()) {
@@ -253,9 +260,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
       swPort->setProfileId(cfg::PortProfileID::PROFILE_DEFAULT);
       break;
     case cfg::PortSpeed::GIGE:
+    case cfg::PortSpeed::ONEPOINTSIXT:
     case cfg::PortSpeed::THREEPOINTTWOT:
-      throw FbossError("profile gig and 3.2T ethernet is not available");
-      break;
+      throw FbossError("profile gig, 1.6T and 3.2T ethernet is not available");
     case cfg::PortSpeed::XG:
       swPort->setProfileId(cfg::PortProfileID::PROFILE_10G_1_NRZ_NOFEC_OPTICAL);
       break;
@@ -320,6 +327,9 @@ std::shared_ptr<Port> ManagerTestBase::makePort(
     swPort->setProfileConfig(*profileConfig->iphy());
     swPort->resetPinConfigs(
         saiPlatform->getPlatformMapping()->getPortIphyPinConfigs(matcher));
+    swPort->setSerdesCustomCollection(
+        saiPlatform->getPlatformMapping()->getPortSerdesCustomCollection(
+            matcher));
   }
   phy::PortPrbsState prbsState;
   prbsState.enabled() = true;
@@ -335,10 +345,12 @@ std::shared_ptr<Vlan> ManagerTestBase::makeVlan(
   Vlan::MemberPorts mps;
   for (const auto& remoteHost : testInterface.remoteHosts) {
     PortID portId(remoteHost.port.id);
-    bool portInfo(false);
+    state::VlanInfo portInfo;
+    *portInfo.tagged() = false;
+    *portInfo.priorityTagged() = false;
     mps.insert(std::make_pair(portId, portInfo));
   }
-  swVlan->setPorts(mps);
+  swVlan->setPortsInfo(mps);
   return swVlan;
 }
 
@@ -381,7 +393,6 @@ InterfaceID ManagerTestBase::getIntfID(int id, cfg::InterfaceType type) const {
       return InterfaceID(getSysPortId(id));
     case cfg::InterfaceType::PORT:
       return InterfaceID(id);
-      break;
   }
   XLOG(FATAL) << "Unhandled interface type";
 }
@@ -559,7 +570,7 @@ ResolvedNextHop ManagerTestBase::makeMplsNextHop(
 }
 
 std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
-    const TestRoute& route) const {
+    const TestRoute& route) {
   RouteFields<folly::IPAddressV4>::Prefix destination(
       route.destination.first.asV4(), route.destination.second);
   RouteNextHopEntry::NextHopSet swNextHops{};
@@ -570,6 +581,7 @@ std::shared_ptr<Route<folly::IPAddressV4>> ManagerTestBase::makeRoute(
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       Route<folly::IPAddressV4>::makeThrift(destination));
   r->update(ClientID{42}, entry);
+  facebook::fboss::allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   return r;
 }
@@ -648,6 +660,13 @@ void ManagerTestBase::applyNewState(
   saiPlatform->getHwSwitch()->stateChanged(deltas);
   programmedState = newState;
   programmedState->publish();
+}
+
+std::shared_ptr<SwitchState> ManagerTestBase::getProgrammedState() {
+  auto state = saiPlatform->getHwSwitch()->getProgrammedState()->clone();
+  facebook::fboss::populateFibInfoIdMaps(nextHopIDManager_.get(), state);
+  state->publish();
+  return state;
 }
 
 const SwitchIdScopeResolver& ManagerTestBase::scopeResolver() const {

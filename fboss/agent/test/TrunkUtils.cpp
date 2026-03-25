@@ -31,14 +31,22 @@ void addAggPort(
     const std::vector<int32_t>& ports,
     cfg::SwitchConfig* config,
     cfg::LacpPortRate rate,
-    double minLinkPercentage) {
+    double minLinkPercentage,
+    cfg::AggregatePortType aggregatePortType,
+    std::optional<std::string> aggPortName) {
   // Create agg port with requisite members
   static constexpr auto kAggPortName = "AGG";
   cfg::AggregatePort aggPort;
   aggPort.key() = key;
-  aggPort.name() = folly::to<std::string>(kAggPortName, "-", key);
-  aggPort.description() = kAggPortName;
+  if (aggPortName.has_value()) {
+    aggPort.name() = *aggPortName;
+    aggPort.description() = *aggPortName;
+  } else {
+    aggPort.name() = folly::to<std::string>(kAggPortName, "-", key);
+    aggPort.description() = kAggPortName;
+  }
   aggPort.minimumCapacity()->set_linkPercentage(minLinkPercentage);
+  aggPort.aggregatePortType() = aggregatePortType;
   for (auto port : ports) {
     aggPort.memberPorts()->push_back(makePortMember(port, rate));
   }
@@ -54,13 +62,16 @@ void addAggPort(
       vlanPort.vlanID() = *aggVlan;
     }
   }
-  // Set ingress VLAN for all members to be the same
-  for (auto& port : *config->ports()) {
-    if (memberPorts.contains(port.logicalID().value())) {
-      if (!aggVlan) {
-        throw FbossError("No VLAN found for aggregate port in addAggPort");
+
+  if (aggregatePortType == cfg::AggregatePortType::LAG_PORT) {
+    // Set ingress VLAN for all members to be the same
+    for (auto& port : *config->ports()) {
+      if (memberPorts.contains(port.logicalID().value())) {
+        if (!aggVlan) {
+          throw FbossError("No VLAN found for aggregate port in addAggPort");
+        }
+        port.ingressVlan() = *aggVlan;
       }
-      port.ingressVlan() = *aggVlan;
     }
   }
 }

@@ -180,16 +180,12 @@ void WeutilDarwin::printInfo() {
 }
 
 folly::dynamic WeutilDarwin::getInfoJson() {
-  folly::dynamic wedgeInfo = folly::dynamic::object;
+  folly::dynamic wedgeJsonInfo = folly::dynamic::object;
 
-  wedgeInfo["Actions"] = folly::dynamic::array();
-  wedgeInfo["Resources"] = folly::dynamic::array();
-  wedgeInfo["Information"] = folly::dynamic::object;
-
-  for (auto item : weFields_) {
+  for (const auto& item : weFields_) {
     if (item.first != "Wedge EEPROM") {
       auto it = kMapping.find(item.first);
-      wedgeInfo["Information"][item.first] =
+      wedgeJsonInfo[item.first] =
           (it == kMapping.end() ? item.second
                                 : eepromParser_->getField(it->second));
     }
@@ -198,13 +194,12 @@ folly::dynamic WeutilDarwin::getInfoJson() {
   // For Darwin BMC-less, we need to fill empty field "Extended MAC Address
   // Size" and "Extended MAC Base" (same as "Local MAC") as a workaround for
   // creating /var/facebook/fboss/fruid.json (T110038028)
-  if (wedgeInfo["Information"]["Extended MAC Base"] == "") {
-    wedgeInfo["Information"]["Extended MAC Base"] =
-        wedgeInfo["Information"]["Local MAC"];
-    wedgeInfo["Information"]["Extended MAC Address Size"] = "1";
+  if (wedgeJsonInfo["Extended MAC Base"] == "") {
+    wedgeJsonInfo["Extended MAC Base"] = wedgeJsonInfo["Local MAC"];
+    wedgeJsonInfo["Extended MAC Address Size"] = "1";
   }
 
-  return wedgeInfo;
+  return wedgeJsonInfo;
 }
 
 } // namespace facebook::fboss::platform

@@ -17,6 +17,11 @@ void HwTransceiverTest::SetUp() {
   HwTest::SetUp();
   if (!IsSkipped()) {
     auto qsfpServiceHandler = getHwQsfpEnsemble()->getQsfpServiceHandler();
+    if (FLAGS_port_manager_mode) {
+      // Pause remediation in port manager mode to ensure normal test behavior.
+      getHwQsfpEnsemble()->getWedgeManager()->setPauseRemediation(
+          1800, nullptr);
+    }
 
     // Set override agent port status so that we can update the active state
     // via refreshStateMachines()

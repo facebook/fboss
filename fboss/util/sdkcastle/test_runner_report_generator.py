@@ -114,6 +114,10 @@ class NetcastleSummaryReportGenerator(BaseTestRunnerSummaryReportGenerator):
         """Get the output summary report file name for netcastle test runner."""
         return "netcastle_test_summary_report.txt"
 
+    def _get_failed_tests_filename(self) -> str:
+        """Get the failed tests report file name for netcastle test runner."""
+        return "netcastle_failed_tests.txt"
+
     def generate_summary_report(self, log_dir: Path) -> None:
         """
         Generate netcastle test summary report from log files.
@@ -169,8 +173,81 @@ class NetcastleSummaryReportGenerator(BaseTestRunnerSummaryReportGenerator):
 
             print(f"Generated summary report: {output_file}")
 
+            # Generate failed tests report
+            self._generate_failed_tests_report(log_dir, command_log_pairs)
+
         except Exception as e:
             print(f"Error generating summary report: {e}")
+
+    def _generate_failed_tests_report(
+        self, log_dir: Path, command_log_pairs: List[Tuple[str, str]]
+    ) -> None:
+        """
+        Generate netcastle failed tests report from log files.
+
+        This report lists all FAILED and TIMEOUT test cases for each command,
+        making it easy to identify problematic tests across all test runs.
+
+        Args:
+            log_dir: Directory containing the netcastle log files
+            command_log_pairs: List of (command, log_filename) tuples
+        """
+        failed_tests_file = log_dir / self._get_failed_tests_filename()
+
+        print("\n=== Generating Netcastle Failed Tests Report ===")
+
+        try:
+            with open(failed_tests_file, "w") as f:
+                f.write("=" * 80 + "\n")
+                f.write("Netcastle Failed and Timeout Tests Report\n")
+                f.write("=" * 80 + "\n\n")
+
+                for i, (command, log_filename) in enumerate(command_log_pairs, 1):
+                    f.write(f"Command {i}:\n")
+                    f.write(f"{command}\n")
+                    f.write(f"Log file: {log_filename}\n\n")
+
+                    # Parse the log file to extract failed and timeout tests
+                    log_file_path = log_dir / log_filename
+                    failed_tests = self._extract_failed_tests_from_log(log_file_path)
+
+                    # Write failed test cases list
+                    f.write("Failed test cases list:\n")
+                    if failed_tests:
+                        for test_name in failed_tests:
+                            f.write(f"  - {test_name}\n")
+                    else:
+                        f.write("  No FAILED/TIMEOUT test cases\n")
+
+                    f.write("\n" + "-" * 80 + "\n\n")
+
+            print(f"Generated failed tests report: {failed_tests_file}")
+
+        except Exception as e:
+            print(f"Error generating failed tests report: {e}")
+
+    def _extract_failed_tests_from_log(self, log_file_path: Path) -> List[str]:
+        """
+        Extract failed and timeout test cases from a netcastle log file.
+
+        Args:
+            log_file_path: Path to the netcastle log file
+
+        Returns:
+            List of failed and timeout test case names
+        """
+        if not log_file_path.exists():
+            return []
+
+        try:
+            with open(log_file_path, "r") as f:
+                lines = f.readlines()
+
+            return self._extract_failed_and_timeout_tests(lines)
+
+        except Exception as e:
+            print(f"Error extracting failed tests from {log_file_path}: {e}")
+            return []
 
     def _parse_log_file(self, log_file_path: Path) -> Dict[str, Optional[str]]:
         """
@@ -283,6 +360,66 @@ class NetcastleSummaryReportGenerator(BaseTestRunnerSummaryReportGenerator):
                         break
 
         return "\n".join(summary_lines) if summary_lines else None
+
+    @staticmethod
+    def _extract_failed_and_timeout_tests(lines: List[str]) -> List[str]:
+        """
+        Extract FAILED and TIMEOUT test cases from the "Test Results for Config:" section.
+
+        In netcastle logs, the test results section starts with "Test Results for Config:"
+        and lists FAILED tests first (starting with "[  FAILED] "), then TIMEOUT tests
+        (starting with "[ TIMEOUT]"), followed by other test results.
+
+        Args:
+            lines: List of lines from the log file
+
+        Returns:
+            List of failed and timeout test case names
+        """
+        failed_and_timeout_tests = []
+        in_test_results_section = False
+        test_results_pattern = re.compile(r"Test Results for Config:")
+        failed_pattern = re.compile(r"^\[\s*FAILED\s*\]\s+(.+)$")
+        timeout_pattern = re.compile(r"^\[\s*TIMEOUT\s*\]\s+(.+)$")
+        # Pattern to detect when we've moved past FAILED/TIMEOUT to other results
+        other_result_pattern = re.compile(r"^\[\s*(PASSED|ERROR|SKIPPED|OMITTED)\s*\]")
+        # Pattern to detect the summary section (which comes after test results)
+        ran_pattern = re.compile(r"^Ran\s+\d+\s+tests")
+
+        for line in lines:
+            stripped = line.strip()
+
+            # Check if we're entering the test results section
+            if test_results_pattern.search(stripped):
+                in_test_results_section = True
+                continue
+
+            # If we're in the test results section
+            if in_test_results_section:
+                # Check if we've reached the summary section (end of test results)
+                if ran_pattern.match(stripped):
+                    break
+
+                # Check for FAILED test
+                failed_match = failed_pattern.match(stripped)
+                if failed_match:
+                    test_name = failed_match.group(1).strip()
+                    failed_and_timeout_tests.append(test_name)
+                    continue
+
+                # Check for TIMEOUT test
+                timeout_match = timeout_pattern.match(stripped)
+                if timeout_match:
+                    test_name = timeout_match.group(1).strip()
+                    failed_and_timeout_tests.append(test_name)
+                    continue
+
+                # If we hit other result types (PASSED, ERROR, etc.), we're done
+                # with FAILED/TIMEOUT section
+                if other_result_pattern.match(stripped):
+                    break
+
+        return failed_and_timeout_tests
 
 
 class OSSSummaryReportGenerator(BaseTestRunnerSummaryReportGenerator):

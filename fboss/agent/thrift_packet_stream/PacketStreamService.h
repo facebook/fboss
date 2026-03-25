@@ -3,15 +3,23 @@
 #pragma once
 
 #include <common/fb303/cpp/FacebookBase2.h>
+#include <folly/CancellationToken.h>
 #include <fboss/agent/if/gen-cpp2/PacketStream.tcc>
 namespace facebook {
 namespace fboss {
 class PacketStreamService : virtual public PacketStreamSvIf,
                             public facebook::fb303::FacebookBase2 {
  public:
-  explicit PacketStreamService(const std::string& serviceName)
-      : facebook::fb303::FacebookBase2(serviceName.c_str()) {}
+  explicit PacketStreamService(
+      const std::string& serviceName,
+      bool portRegistration)
+      : facebook::fb303::FacebookBase2(serviceName.c_str()),
+        portRegistration_(portRegistration) {}
   virtual ~PacketStreamService() override;
+  PacketStreamService(const PacketStreamService&) = delete;
+  PacketStreamService& operator=(const PacketStreamService&) = delete;
+  PacketStreamService(PacketStreamService&&) = delete;
+  PacketStreamService& operator=(PacketStreamService&&) = delete;
 
   // helper functions.
   void send(const std::string& clientId, TPacket&& packet);
@@ -32,6 +40,11 @@ class PacketStreamService : virtual public PacketStreamSvIf,
       std::unique_ptr<std::string> l2Port) override;
   void disconnect(std::unique_ptr<std::string> clientId) override;
 
+#if FOLLY_HAS_COROUTINES
+  folly::coro::Task<apache::thrift::SinkConsumer<TPacket, bool>> co_packetSink(
+      std::unique_ptr<std::string> clientId) override;
+#endif
+
  protected:
   // Service extending the PacketStreamService should implement the
   // following methods.
@@ -44,6 +57,12 @@ class PacketStreamService : virtual public PacketStreamSvIf,
       const std::string& clientId,
       const std::string& l2Port) = 0;
 
+  // Subclasses override to process received packets from sink.
+  // Default implementation drops the packet with a log message.
+  virtual void processReceivedPacket(
+      const std::string& clientId,
+      TPacket&& packet);
+
  private:
   struct ClientInfo {
     explicit ClientInfo(apache::thrift::ServerStreamPublisher<TPacket> pub)
@@ -55,6 +74,13 @@ class PacketStreamService : virtual public PacketStreamSvIf,
   };
   using ClientMap = std::unordered_map<std::string, ClientInfo>;
   folly::Synchronized<ClientMap> clientMap_;
+  bool portRegistration_ = true;
+
+#if FOLLY_HAS_COROUTINES
+  folly::Synchronized<
+      std::unordered_map<std::string, folly::CancellationSource>>
+      rxCancellationSources_;
+#endif
 };
 
 } // namespace fboss

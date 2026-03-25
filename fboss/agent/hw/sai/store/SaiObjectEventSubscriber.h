@@ -3,7 +3,6 @@
 #pragma once
 
 #include <algorithm>
-#include <any>
 #include <memory>
 
 #include "fboss/agent/hw/sai/store/Traits.h"
@@ -46,7 +45,7 @@ struct SaiObjectEventSubscriber {
   virtual void beforeRemove() = 0;
   virtual void linkDown() = 0;
 
-  void saveSubscription(std::any subscription) {
+  void saveSubscription(std::shared_ptr<void> subscription) {
     subscription_ = std::move(subscription);
   }
 
@@ -56,10 +55,11 @@ struct SaiObjectEventSubscriber {
  private:
   typename PublisherKey<PublisherObjectTraits>::type publisherAttrs_;
   PublisherObjectWeakPtr publisherObject_;
-  // TODO(pshaikh): this is currently maintained as any to break circular
-  // dependencies in object, publisher, and subscriber types investigate and
-  // eliminate this any type with proper type
-  std::any subscription_;
+  // Type-erased subscription handle. Stored as shared_ptr<void> to break
+  // circular dependencies between object, publisher, and subscriber types.
+  // The shared_ptr<void> deleter correctly destroys the underlying
+  // Subscription.
+  std::shared_ptr<void> subscription_;
 };
 
 /* A single subscriber for a publisher using particular published object trait.
@@ -160,6 +160,10 @@ class SaiObjectEventAggregateSubscriber
       : detail::SaiObjectEventSingleSubscriber<Class, PublishedObjectTraits>(
             attrs)... {}
 
+  ~SaiObjectEventAggregateSubscriber() {
+    resetObject();
+  }
+
   template <typename PublishedObjectTrait>
   void afterCreateNotifyAggregateSubscriber() {
     auto index = TupleIndex<AggregateType, PublishedObjectTrait>::value;
@@ -190,6 +194,10 @@ class SaiObjectEventAggregateSubscriber
     auto* subscriber = static_cast<SubscriberImpl*>(this);
     subscriber->handleLinkDown();
   }
+
+  /* Default no-op for subscribers that don't need link down handling.
+   * Concrete subscribers can shadow this via CRTP when they need real logic. */
+  void handleLinkDown() {}
 
   bool allPublishedObjectsAlive() const {
     return std::all_of(

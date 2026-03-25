@@ -8,6 +8,8 @@
 #include <folly/io/Cursor.h>
 #include <folly/logging/xlog.h>
 #include <glog/logging.h>
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/lldp/gen-cpp2/lldp_constants.h"
 
 using folly::ByteRange;
 using folly::IPAddressV4;
@@ -31,6 +33,7 @@ enum class LinkNeighbor::LldpTlvType : uint8_t {
   SYSTEM_DESC = 6,
   SYSTEM_CAPS = 7,
   MGMT_ADDR = 8,
+  CUSTOM = 127,
 };
 
 enum class LinkNeighbor::CdpTlvType : uint16_t {
@@ -197,6 +200,9 @@ LinkNeighbor::LldpTlvType LinkNeighbor::parseLldpTlv(Cursor* cursor) {
     case LldpTlvType::SYSTEM_CAPS:
       parseLldpSystemCaps(cursor, length);
       break;
+    case LldpTlvType::CUSTOM:
+      parseLldpOrgSpecific(cursor, length);
+      break;
     default:
       // We ignore any other TLV types for now, including
       // LldpTlvType::MGMT_ADDR.
@@ -353,6 +359,53 @@ bool LinkNeighbor::parseCdpPayload(
   }
 
   return true;
+}
+
+void LinkNeighbor::parseLldpOrgSpecific(Cursor* cursor, uint16_t length) {
+  // Organizationally-specific TLV must have at least OUI (3 bytes) + subtype (1
+  // byte)
+  if (length < 4) {
+    cursor->skip(length);
+    return;
+  }
+
+  // Read OUI (3 bytes)
+  uint8_t oui1 = cursor->read<uint8_t>();
+  uint8_t oui2 = cursor->read<uint8_t>();
+  uint8_t oui3 = cursor->read<uint8_t>();
+
+  // Check if this is a Facebook OUI (0x48:57:DD)
+  if (oui1 == lldp::lldp_constants::FACEBOOK_OUI_BYTE1_ &&
+      oui2 == lldp::lldp_constants::FACEBOOK_OUI_BYTE2_ &&
+      oui3 == lldp::lldp_constants::FACEBOOK_OUI_BYTE3_) {
+    // Read subtype (1 byte)
+    uint8_t subtype = cursor->read<uint8_t>();
+
+    // Parse based on Facebook-specific subtype
+    switch (subtype) {
+      case static_cast<uint8_t>(FacebookLldpSubtype::PORT_DRAIN_STATE):
+        // Only parse port drain state TLV if the flag is enabled
+        if (FLAGS_lldp_port_drain_state) {
+          if (length == PORT_DRAIN_STATE_TLV_LENGTH) {
+            setPortDrainState(cursor->read<uint8_t>() != 0);
+          } else {
+            // Invalid length for this subtype, skip remaining bytes
+            cursor->skip(length - 4);
+          }
+        } else {
+          // Flag is disabled, skip the TLV value
+          cursor->skip(length - 4);
+        }
+        break;
+      default:
+        // Unknown Facebook subtype, skip remaining bytes
+        cursor->skip(length - 4);
+        break;
+    }
+  } else {
+    // Not a Facebook OUI, skip remaining bytes
+    cursor->skip(length - 3);
+  }
 }
 
 } // namespace facebook::fboss

@@ -16,11 +16,11 @@ jobs:
       - name: Clean workspace
         run: sudo rm -rf ${{ github.workspace }}/*
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build & Save debian docker image
         run: ./fboss/oss/docker/prefetch/build_image.sh ${{ github.workspace }}/fboss_debian_docker_image.tar.zst debian
       - name: Upload docker image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fboss_debian_docker_image.tar.zst
           path: ${{ github.workspace }}/fboss_debian_docker_image.tar.zst

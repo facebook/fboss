@@ -22,7 +22,6 @@ char** argVec{nullptr};
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
-DECLARE_bool(intf_nbr_tables);
 DEFINE_bool(
     enable_sdk_dump,
     false,
@@ -52,7 +51,7 @@ void AgentEnsembleTest::setupAgentEnsemble(bool disableLinkStateToggler) {
       platformConfigFn_,
       (HwSwitch::FeaturesDesired::PACKET_RX_DESIRED |
        HwSwitch::FeaturesDesired::LINKSCAN_DESIRED),
-      false /* failHwCallsOnWarmboot*/);
+      TestEnsembleInitInfo{.failHwCallsOnWarmboot = false});
   XLOG(DBG2) << "Agent has been setup and ready for the test";
 }
 
@@ -70,10 +69,6 @@ void AgentEnsembleTest::TearDown() {
       (::testing::Test::HasFailure() && FLAGS_run_forever_on_failure)) {
     runForever();
   }
-  if (FLAGS_enable_sdk_dump) {
-    agentEnsemble_->getHwDebugDump();
-  }
-
   if (FLAGS_setup_for_warmboot &&
       isSupportedOnAllAsics(HwAsic::Feature::WARMBOOT)) {
     XLOG(DBG2) << "tearDownAgentEnsemble() for warmboot";
@@ -86,6 +81,9 @@ void AgentEnsembleTest::TearDown() {
 void AgentEnsembleTest::tearDownAgentEnsemble(bool doWarmboot) {
   if (!agentEnsemble_) {
     return;
+  }
+  if (FLAGS_enable_sdk_dump) {
+    agentEnsemble_->getHwDebugDump();
   }
 
   if (::testing::Test::HasFailure()) {
@@ -171,9 +169,9 @@ void AgentEnsembleTest::resolveNeighbor(
 
 template <typename AddrT>
 void AgentEnsembleTest::resolveNeighbor(
-    PortDescriptor port,
+    const PortDescriptor& port,
     const AddrT& ip,
-    VlanID vlanId,
+    const VlanID& vlanId,
     folly::MacAddress mac) {
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -186,14 +184,9 @@ void AgentEnsembleTest::resolveNeighbor(
     auto vlan = outputState->getVlans()->getNode(vlanId);
     auto intfId = vlan->getInterfaceID();
     NeighborTableT* nbrTable;
-    if (FLAGS_intf_nbr_tables) {
-      auto intf = outputState->getInterfaces()->getNode(intfId);
-      nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-          intfId, &outputState);
-    } else {
-      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-          vlanId, &outputState);
-    }
+    auto intf = outputState->getInterfaces()->getNode(intfId);
+    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+        intfId, &outputState);
 
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(

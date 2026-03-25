@@ -33,12 +33,14 @@
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/VoqTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 DEFINE_int32(sflow_test_rate, 90000, "sflow sampling rate for hw test");
@@ -251,12 +253,17 @@ device:
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
 
-    auto port0 = ensemble.masterLogicalInterfacePortIds()[0];
+    std::vector<PortID> allPorts;
+    if (FLAGS_hyper_port) {
+      allPorts = ensemble.masterLogicalHyperPortIds();
+    } else {
+      allPorts = ensemble.masterLogicalInterfacePortIds();
+    }
+    auto port0 = allPorts[0];
     auto port0Switch =
         ensemble.getSw()->getScopeResolver()->scope(port0).switchId();
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(port0Switch);
-    auto ports =
-        getPortsForSampling(ensemble.masterLogicalInterfacePortIds(), asic);
+    auto ports = getPortsForSampling(allPorts, asic);
     if (asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
       utility::addEventorVoqConfig(&cfg, cfg::StreamType::UNICAST);
       for (auto& port : *cfg.ports()) {
@@ -333,20 +340,27 @@ device:
         : cfg::PortType::INTERFACE_PORT;
   }
 
+  std::vector<PortID> getAllPorts() const {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   std::vector<PortID> getPortsForSampling() const {
-    auto allIntfPorts = masterLogicalInterfacePortIds();
+    std::vector<PortID> allPorts = getAllPorts();
     auto nonSampledPort = getNonSflowSampledInterfacePort();
     // Ports with sampling enabled are all interface ports except any
     // on which we are sending the sampled packets out!
     std::vector<PortID> sampledPorts;
     std::copy_if(
-        allIntfPorts.begin(),
-        allIntfPorts.end(),
+        allPorts.begin(),
+        allPorts.end(),
         std::back_inserter(sampledPorts),
         [nonSampledPort](const auto& portId) {
           return portId != nonSampledPort;
         });
-    auto switchID = switchIdForPort(allIntfPorts[0]);
+    auto switchID = switchIdForPort(allPorts[0]);
     auto asic = getSw()->getHwAsicTable()->getHwAsic(switchID);
     return getPortsForSampling(sampledPorts, asic);
   }
@@ -373,7 +387,8 @@ device:
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
     auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       return std::nullopt;
     }
     return getSw()->getHwLogicalPortId(port);
@@ -412,7 +427,8 @@ device:
      */
     auto asic = checkSameAndGetAsic();
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
-        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        asic->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       auto systemPortId = sflowPayload[0] << 8 | sflowPayload[1];
       expectedSrcPortId =
           static_cast<PortID>(systemPortId - asic->getSflowPortIDOffset());
@@ -507,9 +523,9 @@ device:
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
@@ -752,6 +768,8 @@ device:
     if (checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_EBRO &&
         checkSameAndGetAsic()->getAsicType() != cfg::AsicType::ASIC_TYPE_YUBA &&
         checkSameAndGetAsic()->getAsicType() !=
+            cfg::AsicType::ASIC_TYPE_G202X &&
+        checkSameAndGetAsic()->getAsicType() !=
             cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // Call parseSflowShim here. And verify
       // 1. Src port is correct
@@ -855,24 +873,32 @@ device:
     }
   }
 
-  uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    const auto& portStats = stats.at(getNonSflowSampledInterfacePort());
-    return *portStats.outUnicastPkts_();
+  uint64_t getSampleCount(
+      const std::map<PortID, HwPortStats>& newStats,
+      const std::map<PortID, HwPortStats>& oldStats) {
+    const auto& newPortStats = newStats.at(getNonSflowSampledInterfacePort());
+    const auto& oldPortStats = oldStats.at(getNonSflowSampledInterfacePort());
+    return *newPortStats.outUnicastPkts_() - *oldPortStats.outUnicastPkts_();
   }
 
   const PortID getDataTrafficPort() {
     return getPortsForSampling()[kDataTrafficPortIndex];
   }
 
-  uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    uint64_t expectedSampleCount = 0;
+  uint64_t getExpectedSampleCount(
+      const std::map<PortID, HwPortStats>& newStats,
+      const std::map<PortID, HwPortStats>& oldStats) {
     auto port = getDataTrafficPort();
-    const auto& portStats = stats.at(port);
+    const auto& newPortStats = newStats.at(port);
+    const auto& oldPortStats = oldStats.at(port);
     // In theory it's more correct to calcuate this based on inUnicastPkts, but
     // Rx counters are not supported on TH5 in EDB loopback, so use Tx.
-    expectedSampleCount =
-        (*portStats.outUnicastPkts_() / FLAGS_sflow_test_rate);
-    XLOG(DBG2) << "total packets tx " << *portStats.outUnicastPkts_();
+    uint64_t expectedSampleCount =
+        (*newPortStats.outUnicastPkts_() - *oldPortStats.outUnicastPkts_()) /
+        FLAGS_sflow_test_rate;
+    XLOG(DBG2) << "total packets tx delta: "
+               << (*newPortStats.outUnicastPkts_() -
+                   *oldPortStats.outUnicastPkts_());
     return expectedSampleCount;
   }
 
@@ -892,28 +918,43 @@ device:
         1000 * 1000 * 0.99; // 99% is good enough
     getAgentEnsemble()->waitForSpecificRateOnPort(trafficPort, portSpeedBps);
 
-    auto ports = getPortsForSampling();
-    getAgentEnsemble()->bringDownPorts(
-        std::vector<PortID>(ports.begin() + 1, ports.end()));
-    ports.push_back(getNonSflowSampledInterfacePort());
+    auto samplingPorts = getPortsForSampling();
+    auto mirrorPort = getNonSflowSampledInterfacePort();
+    // Bring down all sampling ports except the data traffic port.
+    std::vector<PortID> portsToDown;
+    for (const auto& port : samplingPorts) {
+      if (port != trafficPort) {
+        portsToDown.push_back(port);
+      }
+    }
+    getAgentEnsemble()->bringDownPorts(portsToDown);
+    // Collect stats from the data traffic port and mirror egress port.
+    std::vector<PortID> statsPorts = {trafficPort, mirrorPort};
     int percentError = 100;
+    std::map<PortID, HwPortStats> lastStats;
     WITH_RETRIES({
-      auto stats = getLatestPortStats(ports);
-      auto actualSampleCount = getSampleCount(stats);
-      auto expectedSampleCount = getExpectedSampleCount(stats);
+      auto stats = getLatestPortStats(statsPorts);
+      if (lastStats.empty()) {
+        lastStats = stats;
+        continue;
+      }
+      auto actualSampleCount = getSampleCount(stats, lastStats);
+      auto expectedSampleCount = getExpectedSampleCount(stats, lastStats);
+      lastStats = stats;
       XLOG(DBG2) << "Number of sflow samples expected: " << expectedSampleCount
                  << ", samples seen: " << actualSampleCount;
+      if (expectedSampleCount == 0 || actualSampleCount == 0) {
+        // Not enough traffic in this interval, retry.
+        continue;
+      }
       auto difference = (expectedSampleCount > actualSampleCount)
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
-      if (actualSampleCount) {
-        percentError = (difference * 100) / actualSampleCount;
-      }
+      percentError = (difference * 100) / actualSampleCount;
       EXPECT_EVENTUALLY_LE(percentError, kDefaultPercentErrorThreshold);
     });
 
-    getAgentEnsemble()->bringUpPorts(
-        std::vector<PortID>(ports.begin() + 1, ports.end()));
+    getAgentEnsemble()->bringUpPorts(portsToDown);
     getAgentEnsemble()->clearPortStats();
   }
 
@@ -1142,9 +1183,14 @@ class AgentSflowMirrorWithLineRateTrafficTest
 
   static const int kLosslessPriority{2};
   void testSflowEgressCongestion(int iterations) {
-    constexpr int kNumDataTrafficPorts{6};
+    int kNumDataTrafficPorts;
+    if (FLAGS_hyper_port) {
+      kNumDataTrafficPorts = 4;
+    } else {
+      kNumDataTrafficPorts = 6;
+    }
     auto setup = [=, this]() {
-      auto allPorts = masterLogicalInterfacePortIds();
+      auto allPorts = getAllPorts();
       std::vector<PortID> portIds(
           allPorts.begin(), allPorts.begin() + kNumDataTrafficPorts);
       std::vector<int> losslessPgIds = {kLosslessPriority};
@@ -1400,6 +1446,186 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
   }
 };
 
+// Test class for sflow mirror with remote system port as destination
+// This tests that sflow packets are correctly sent to a remote system port
+// via the VOQ infrastructure.
+class AgentSflowMirrorRemoteSystemPortTest
+    : public AgentSflowMirrorTruncateTest<folly::IPAddressV6> {
+ public:
+  static constexpr auto kRemotePortId = 401;
+  const SystemPortID kRemoteSysPortId{kRemotePortId};
+  const InterfaceID kRemoteIntfId{kRemotePortId};
+  const folly::IPAddressV6 kRemoteIntfIpV6{"100::1"};
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SFLOWv6_SAMPLING,
+        ProductionFeature::MIRROR_PACKET_TRUNCATION,
+        ProductionFeature::VOQ};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentSflowMirrorTruncateTest<folly::IPAddressV6>::initialConfig(
+        ensemble);
+    // Add remote interface node to DSF config
+    cfg.dsfNodes() = *utility::addRemoteIntfNodeCfg(*cfg.dsfNodes(), 1);
+    return cfg;
+  }
+
+  // Helper to get port name from port ID
+  std::string getPortName(PortID portId) {
+    auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
+    return port ? port->getName()
+                : folly::sformat("unknown({})", static_cast<int>(portId));
+  }
+
+  // Helper to log port statistics for debugging
+  void logPortStats(const std::string& context, const PortID& portId) {
+    auto portStats = getLatestPortStats(portId);
+    auto portName = getPortName(portId);
+    XLOG(DBG2) << context << " - Port " << portName
+               << " stats: outUnicastPkts=" << *portStats.outUnicastPkts_()
+               << ", inUnicastPkts=" << *portStats.inUnicastPkts_();
+  }
+
+  // Sflow mirrored packets are sent to queue 0
+  static constexpr int kSflowMirrorQueue = 0;
+
+  // Helper to log system port VOQ queue 0 statistics for debugging
+  void logSysPortStats(const std::string& context, SystemPortID sysPortId) {
+    auto sysPortStats = getLatestSysPortStats(sysPortId);
+    auto queue0Bytes = sysPortStats.queueOutBytes_()->at(kSflowMirrorQueue);
+    XLOG(DBG2) << context << " - System port " << sysPortId << " VOQ queue "
+               << kSflowMirrorQueue << ": outBytes=" << queue0Bytes;
+  }
+
+  // Set up route for traffic to be forwarded when sent to a specific destIp
+  void setupTrafficRoute(const PortID& egressPort) {
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    // Use a different MAC to avoid looping - add 10 to the last byte
+    auto nbrMac = folly::MacAddress::fromHBO(intfMac.u64HBO() + 10);
+
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), nbrMac};
+
+    const PortDescriptor port(egressPort);
+    RoutePrefixV6 route{folly::IPAddressV6(getTrafficDestinationIp(1)), 128};
+
+    XLOG(DBG2) << "Setting up route for dest IP " << route.network() << "/"
+               << static_cast<int>(route.mask()) << " to egress "
+               << getPortName(egressPort)
+               << " with neighbor MAC: " << nbrMac.toString();
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
+  }
+
+  // Send packets and verify they are queued on the VOQ for the remote system
+  // port. Sflow mirrored packets are sent to queue 0.
+  void sendPacketsAndVerifyVoqCounters(
+      const PortID& ingressPort,
+      SystemPortID remoteSysPortId,
+      int numPackets = 100) {
+    auto beforeSysPortStats = getLatestSysPortStats(remoteSysPortId);
+    auto beforeQueueBytes =
+        beforeSysPortStats.queueOutBytes_()->at(kSflowMirrorQueue);
+
+    XLOG(DBG2) << "Sending " << numPackets
+               << " packets to trigger sflow sampling...";
+    for (int i = 0; i < numPackets; ++i) {
+      auto pkt = genPacket(1, 256);
+      getAgentEnsemble()->sendPacketAsync(
+          std::move(pkt), PortDescriptor(ingressPort), std::nullopt);
+    }
+
+    WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(1000), {
+      auto afterSysPortStats = getLatestSysPortStats(remoteSysPortId);
+      auto afterQueueBytes =
+          afterSysPortStats.queueOutBytes_()->at(kSflowMirrorQueue);
+
+      XLOG(DBG2) << "Remote system port " << remoteSysPortId << " VOQ queue "
+                 << kSflowMirrorQueue
+                 << ": Bytes - before: " << beforeQueueBytes
+                 << ", after: " << afterQueueBytes;
+
+      EXPECT_EVENTUALLY_GT(afterQueueBytes, beforeQueueBytes);
+    });
+  }
+  // Override testSampledPacket to set up remote system port for mirror
+
+  void testSampledPacket() override {
+    auto setup = [=, this]() {
+      auto config = initialConfig(*getAgentEnsemble());
+      configureMirrorWithSampling(config, 1 /*sampleRate*/);
+      applyNewConfig(config);
+
+      // Add remote system port and interface
+      auto remoteSwitchID = utility::getRemoteVoqSwitchId(getSw());
+      XLOG(DBG2) << "Adding remote system port " << kRemoteSysPortId
+                 << " and interface " << kRemoteIntfId << " on remote switch "
+                 << remoteSwitchID << " with IP: " << kRemoteIntfIpV6.str();
+      utility::addRemoteSysPortAndInterface(
+          getSw(),
+          remoteSwitchID,
+          kRemoteSysPortId,
+          kRemoteIntfId,
+          {{folly::IPAddress(kRemoteIntfIpV6), 64}});
+
+      // Resolve route to remote system port for mirror destination
+      auto mirrorDestIp = utility::getSflowMirrorDestination(false /* isV4 */);
+      XLOG(DBG2) << "Resolving route for sflow collector " << mirrorDestIp.str()
+                 << " to remote system port " << kRemoteSysPortId;
+      utility::resolveRouteToRemoteSysPort(
+          getProgrammedState(),
+          getSw(),
+          getAgentEnsemble(),
+          kRemoteSysPortId,
+          folly::IPAddressV6(mirrorDestIp.str()));
+
+      // Set up route for traffic to egress
+      auto ports = getPortsForSampling();
+      setupTrafficRoute(ports[0]);
+    };
+    auto verify = [=, this]() {
+      // Get the mirror destination IP (sflow collector)
+      auto mirrorDestIp = utility::getSflowMirrorDestination(false /* isV4 */);
+
+      // Get ports for sampling
+      auto ports = getPortsForSampling();
+      getAgentEnsemble()->bringDownPorts(
+          std::vector<PortID>(ports.begin() + 2, ports.end()));
+
+      // Log test configuration
+      XLOG(DBG2) << "Traffic destination port: " << getPortName(ports[0])
+                 << ", ingress port: " << getPortName(ports[1])
+                 << ", sflow collector IP: " << mirrorDestIp.str()
+                 << ", remote system port: " << kRemoteSysPortId
+                 << " on remote switch "
+                 << utility::getRemoteVoqSwitchId(getSw());
+
+      // Log initial statistics, send packets, and verify VOQ counters
+      logPortStats("Before traffic", ports[0]);
+      logPortStats("Before traffic", ports[1]);
+      logSysPortStats("Before traffic", kRemoteSysPortId);
+
+      sendPacketsAndVerifyVoqCounters(ports[1], kRemoteSysPortId);
+
+      // Log final port statistics for comparison
+      logPortStats("After traffic", ports[0]);
+      logPortStats("After traffic", ports[1]);
+      logSysPortStats("After traffic", kRemoteSysPortId);
+    };
+    verifyAcrossWarmBoots(setup, verify);
+  }
+};
+
 using AgentSflowMirrorUntruncateTestV4 =
     AgentSflowMirrorUntruncateTest<folly::IPAddressV4>;
 using AgentSflowMirrorUntruncateTestV6 =
@@ -1458,6 +1684,10 @@ SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacket, {
 SFLOW_SAMPLING_TRUNK_TEST_V4_V6(VerifySampledPacketRate, {
   this->testSampledPacketRate();
 })
+
+TEST_F(AgentSflowMirrorRemoteSystemPortTest, VerifySflowWithRemoteSystemPort) {
+  this->testSampledPacket();
+}
 
 TEST_F(AgentSflowMirrorWithLineRateTrafficTest, VerifySflowEgressCongestion) {
   this->testSflowEgressCongestion(6);
@@ -1532,13 +1762,13 @@ class AgentSflowMirrorEventorTest
         getAgentEnsemble()->getProgrammedState(),
         getAgentEnsemble()->getSw()->needL2EntryForNeighbor(),
         intfMac);
-    for (auto portId : masterLogicalInterfacePortIds()) {
+    for (auto portId : getAllPorts()) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.unresolveNextHops(in, {PortDescriptor(portId)});
       });
     }
-    verifyNoTrafficOnPort(masterLogicalInterfacePortIds()[0], 3 /*iterations*/);
-    for (auto portId : masterLogicalInterfacePortIds()) {
+    verifyNoTrafficOnPort(getAllPorts()[0], 3 /*iterations*/);
+    for (auto portId : getAllPorts()) {
       applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.resolveNextHops(in, {PortDescriptor(portId)});
       });
@@ -1548,7 +1778,7 @@ class AgentSflowMirrorEventorTest
 
 TEST_F(AgentSflowMirrorEventorTest, VerifyEventorMtu) {
   constexpr int kNumPorts = 1;
-  const PortID trafficLoopPortId = masterLogicalInterfacePortIds()[0];
+  const PortID trafficLoopPortId = getAllPorts()[0];
   const PortID eventorPortId =
       masterLogicalPortIds({cfg::PortType::EVENTOR_PORT})[0];
 

@@ -21,12 +21,12 @@ namespace facebook::fboss {
 namespace {
 const std::shared_ptr<ForwardingInformationBaseV6> cfib(
     const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV6();
+  return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV6();
 }
 
 const std::shared_ptr<ForwardingInformationBaseV4> cfib4(
     const std::shared_ptr<SwitchState>& newState) {
-  return newState->getFibs()->getNode(RouterID(0))->getFibV4();
+  return newState->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4();
 }
 
 std::map<RouteNextHopSet, EcmpResourceManager::NextHopGroupId>
@@ -237,7 +237,7 @@ void assertFibAndGroupsMatch(
       }
       ASSERT_NE(route, nullptr);
       bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().getNextHopSet().size() > 1;
+          getNextHops(state, route->getForwardInfo()).size() > 1;
       if (!isEcmpRoute) {
         continue;
       }
@@ -264,7 +264,7 @@ void assertFibAndGroupsMatch(
       // Non override nhops must map to a entry in nhops2Id. Confirming
       // that nhops map to a existing group in resourceMgr
       auto nonOverrideNormalizedHops =
-          route->getForwardInfo().nonOverrideNormalizedNextHops();
+          getNonOverrideNormalizedNextHops(state, route->getForwardInfo());
       auto nitr = nhops2Id.find(nonOverrideNormalizedHops);
       ASSERT_NE(nitr, nhops2Id.end());
       auto umGroupRefItr =
@@ -304,7 +304,7 @@ void assertResourceMgrCorrectness(
   };
   auto ecmpMembers = countEcmpMembers(primaryEcmpTypeGroups2RefCnt) +
       countEcmpMembers(backupEcmpTypeGroups2RefCnt);
-  auto [mgrPrimaryEcmpGroups, mgrEcmpMembers] =
+  auto [mgrPrimaryEcmpGroups, mgrVirtualEcmpGroups, mgrEcmpMembers] =
       resourceMgr.getPrimaryEcmpAndMemberCounts();
   EXPECT_EQ(mgrPrimaryEcmpGroups, primaryEcmpTypeGroups2RefCnt.size());
   EXPECT_EQ(mgrEcmpMembers, ecmpMembers);
@@ -512,7 +512,9 @@ void assertRibFibEquivalence(
     }
   };
 
-  validateFib(state->getFibs()->getNode(RouterID(0))->getFibV6());
-  validateFib(state->getFibs()->getNode(RouterID(0))->getFibV4());
+  validateFib(
+      state->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV6());
+  validateFib(
+      state->getFibsInfoMap()->getFibContainer(RouterID(0))->getFibV4());
 }
 } // namespace facebook::fboss

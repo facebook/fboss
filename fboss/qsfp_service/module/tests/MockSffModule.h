@@ -44,7 +44,7 @@ class MockSffModule : public SffModule {
             std::move(tcvrName)) {
     ON_CALL(*this, updateQsfpData(testing::_))
         .WillByDefault(testing::Assign(&dirty_, false));
-    ON_CALL(*this, ensureTransceiverReadyLocked())
+    ON_CALL(*this, ensureTransceiverReadyLocked(testing::_))
         .WillByDefault(testing::Return(true));
     ON_CALL(*this, numHostLanes()).WillByDefault(testing::Return(4));
     ON_CALL(*this, getTransceiverInfo())
@@ -70,7 +70,7 @@ class MockSffModule : public SffModule {
 
   MOCK_METHOD0(ensureTxEnabled, void());
   MOCK_METHOD0(resetLowPowerMode, void());
-  MOCK_METHOD0(ensureTransceiverReadyLocked, bool());
+  MOCK_METHOD1(ensureTransceiverReadyLocked, bool(bool));
   MOCK_CONST_METHOD0(customizationSupported, bool());
   MOCK_METHOD0(getModuleStatus, ModuleStatus());
   MOCK_CONST_METHOD0(getVendorInfo, Vendor());

@@ -1,3 +1,8 @@
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss
 namespace go neteng.fboss.cmis
 namespace php fboss
@@ -229,6 +234,11 @@ enum CmisField {
   // Datapath Init / Deinit max time
   MAX_DPINIT_TIME = 193,
 
+  // Page 23h (VDM Group 4 Config)
+  PAGE_UPPER23H = 194,
+  // Page 27h (VDM Group 4 Data)
+  PAGE_UPPER27H = 195,
+
   // Custom Fields
   // These are fields that are custom to specific transceivers
   //
@@ -287,4 +297,31 @@ enum CmisField {
   APP_SEL_LANE_7_8 = 442,
   APP_SEL_LANE_1_4 = 443,
   APP_SEL_LANE_5_8 = 444,
+
+  RX_CONTROL_PRE_CURSOR_LANE_01 = 445,
+  RX_CONTROL_PRE_CURSOR_LANE_23 = 446,
+  RX_CONTROL_PRE_CURSOR_LANE_45 = 447,
+  RX_CONTROL_PRE_CURSOR_LANE_67 = 448,
+
+  RX_CONTROL_POST_CURSOR_LANE_01 = 449,
+  RX_CONTROL_POST_CURSOR_LANE_23 = 450,
+  RX_CONTROL_POST_CURSOR_LANE_45 = 451,
+  RX_CONTROL_POST_CURSOR_LANE_67 = 452,
+
+  RX_CONTROL_MAIN_LANE_01 = 453,
+  RX_CONTROL_MAIN_LANE_23 = 454,
+  RX_CONTROL_MAIN_LANE_45 = 455,
+  RX_CONTROL_MAIN_LANE_67 = 456,
+
+  # Page 10 Input Equilizer settig
+  INPUT_EQ_TX_1_2 = 457,
+  INPUT_EQ_TX_3_4 = 458,
+  INPUT_EQ_TX_5_6 = 459,
+  INPUT_EQ_TX_7_8 = 460,
+
+  // C-CMIS Performance Monitoring Pages
+  // Page 34h - Lane FEC Performance Monitoring
+  PAGE_UPPER34H = 461,
+  // Page 35h - Lane Link Performance Monitoring
+  PAGE_UPPER35H = 462,
 }

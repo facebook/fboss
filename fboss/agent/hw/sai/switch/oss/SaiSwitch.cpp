@@ -27,10 +27,15 @@ void SaiSwitch::hardResetSwitchEventNotificationCallback(
 
 void SaiSwitch::initTechSupport() {}
 
+PacketType getReceivedPacketType(int32_t packetType) {
+  throw FbossError(
+      "Received packet type conversion is unsupported : ", packetType);
+}
+
 bool SaiSwitch::sendPacketOutOfPortSyncForPktType(
     std::unique_ptr<TxPacket> /*pkt*/,
     const PortID& /*portID*/,
-    TxPacketType /*packetType*/) {
+    PacketType /*packetType*/) {
   throw FbossError("Sending packet over fabric is unsupported for platform!");
 }
 

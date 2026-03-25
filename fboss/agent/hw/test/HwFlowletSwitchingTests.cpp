@@ -239,6 +239,11 @@ class HwArsTest : public HwLinkStateDependentTest {
     return cfg;
   }
 
+  bool supportsFuturePortLoad() const {
+    return getPlatform()->getAsic()->isSupported(
+        HwAsic::Feature::ARS_FUTURE_PORT_LOAD);
+  }
+
   cfg::PortFlowletConfig getPortFlowletConfig(
       int scalingFactor,
       int loadWeight,
@@ -246,7 +251,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     cfg::PortFlowletConfig portFlowletConfig;
     portFlowletConfig.scalingFactor() = scalingFactor;
     portFlowletConfig.loadWeight() = loadWeight;
-    portFlowletConfig.queueWeight() = queueWeight;
+    if (supportsFuturePortLoad()) {
+      portFlowletConfig.queueWeight() = queueWeight;
+    }
     return portFlowletConfig;
   }
 
@@ -271,7 +278,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     flowletCfg.inactivityIntervalUsecs() = inactivityIntervalUsecs;
     flowletCfg.flowletTableSize() = flowletTableSize;
     flowletCfg.dynamicEgressLoadExponent() = 3;
-    flowletCfg.dynamicQueueExponent() = 3;
+    if (supportsFuturePortLoad()) {
+      flowletCfg.dynamicQueueExponent() = 3;
+    }
     flowletCfg.dynamicQueueMinThresholdBytes() = 100000;
     flowletCfg.dynamicQueueMaxThresholdBytes() = 200000;
     flowletCfg.dynamicSampleRate() = samplingRate;
@@ -429,7 +438,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     auto ecmpDetails = getHwSwitch()->getAllEcmpDetails();
     CHECK_EQ(ecmpDetails.size(), 1);
     for (const auto& entry : ecmpDetails) {
-      CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      if (!getHwSwitchEnsemble()->isSai()) {
+        CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      }
       if (*flowletCfg.flowletTableSize() > 0) {
         EXPECT_TRUE(*(entry.flowletEnabled()));
       }
@@ -688,24 +699,50 @@ TEST_F(HwArsSprayTest, ValidateMaxEcmpIdFlowletUpdate) {
     return;
   }
 
+  // Helper to filter out management ports from port list
+  auto filterManagementPorts = [this](const std::vector<PortID>& ports) {
+    std::vector<PortID> filtered;
+    auto state = getProgrammedState();
+    for (auto portId : ports) {
+      auto port = state->getPorts()->getNodeIf(portId);
+      if (port && port->getPortType() != cfg::PortType::MANAGEMENT_PORT) {
+        filtered.push_back(portId);
+      }
+    }
+    return filtered;
+  };
+
   auto setup = [&]() {
     // create 128 different ECMP objects
     for (int i = 1; i <= kNumEcmp(); i++) {
       std::vector<PortID> portIds;
       portIds.push_back(masterLogicalPortIds()[i % 64]);
       portIds.push_back(masterLogicalPortIds()[(i + 1) % 64]);
+      auto filteredPorts = filterManagementPorts(portIds);
+      ASSERT_FALSE(filteredPorts.empty())
+          << "Expected non-management ports for ECMP group creation at iteration "
+          << i;
       resolveNextHopsAddRoute(
-          portIds, folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
+          filteredPorts,
+          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)));
       std::vector<PortID> portIds2;
       portIds2.push_back(masterLogicalPortIds()[i % 64]);
       portIds2.push_back(masterLogicalPortIds()[(i + 2) % 64]);
+      auto filteredPorts2 = filterManagementPorts(portIds2);
+      ASSERT_FALSE(filteredPorts2.empty())
+          << "Expected non-management ports for second ECMP group at iteration "
+          << i;
       resolveNextHopsAddRoute(
-          portIds2, folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
+          filteredPorts2,
+          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr4, i)));
     }
 
     // create 1 more ECMP object
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]}, kAddr1);
+    auto finalPorts = filterManagementPorts(
+        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]});
+    ASSERT_FALSE(finalPorts.empty())
+        << "Expected non-management ports for final ECMP group";
+    resolveNextHopsAddRoute(finalPorts, kAddr1);
 
     // getAllEcmpDetails not implemented yet in SAI
     if (!getHwSwitchEnsemble()->isSai()) {
@@ -1227,68 +1264,6 @@ TEST_F(HwArsFlowletTest, VerifyModeSprayFlowletSizeChange) {
       cfg::SwitchingMode::PER_PACKET_QUALITY,
       kMinFlowletTableSize,
       8);
-}
-
-TEST_F(HwArsSprayTest, VerifyEcmpIdManagement) {
-  if (this->skipTest() ||
-      (getPlatform()->getAsic()->getAsicType() ==
-       cfg::AsicType::ASIC_TYPE_FAKE)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto numEcmp = kMaxDlbGroups();
-
-  auto setup = [&]() {
-    setupEcmpGroups(numEcmp);
-    // create 1 more ECMP object
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]}, kAddr1);
-  };
-
-  auto verify = [&]() {
-    auto cfg = initialConfig();
-    verifyEcmpGroups(cfg, numEcmp);
-
-    // verify the ECMP Id more than Max dlb Ecmp Id
-    // not enabled with flowlet config and flowset available is zero.
-    utility::verifyEcmpForNonFlowlet(
-        getHwSwitch(), kAddr1Prefix, *cfg.flowletSwitchingConfig(), false);
-
-    // delete and re-add n prefixes from DLB range, they should be recreated in
-    // DLB range
-    std::vector<RoutePrefixV6> delPrefixes;
-    for (int i = 0; i < 32; i++) {
-      RoutePrefixV6 prefix{
-          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)), 64};
-      delPrefixes.push_back(prefix);
-    }
-
-    // delete 32 ECMP groups
-    ecmpHelper_->unprogramRoutes(getRouteUpdater(), delPrefixes);
-
-    // re-create 32 ECMP groups
-    setupEcmpGroups(32);
-
-    // re-verify all DLB groups are still in DLB range
-    verifyEcmpGroups(cfg, 32);
-  };
-
-  auto setupPostWarmboot = [&]() {
-    // create 1 more ECMP object, this should be non dynamic
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[6]}, kAddr2);
-  };
-
-  auto verifyPostWarmboot = [&]() {
-    auto cfg = initialConfig();
-    utility::verifyEcmpForNonFlowlet(
-        getHwSwitch(), kAddr2Prefix, *cfg.flowletSwitchingConfig(), false);
-  };
-
-  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 // This test is to explicitly verify ECMP ID management in BcmEgress

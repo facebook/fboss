@@ -786,7 +786,7 @@
         },
         {
           "name": "SMB_U327_TPS25990_COME_P12V_VOUT",
-          "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in2_input",
+          "sysfsPath": "/run/devmap/sensors/SMB_U327_TPS25990_COME/in3_input",
           "type": 1,
           "thresholds": {
             "maxAlarmVal": 13.2,
@@ -956,7 +956,7 @@
           "type": 5,
           "thresholds": {
             "upperCriticalVal": 255,
-            "lowerCriticalVal": 140
+            "lowerCriticalVal": 25
           }
         },
         {
@@ -1053,7 +1053,7 @@
           "type": 5,
           "thresholds": {
             "upperCriticalVal": 255,
-            "lowerCriticalVal": 140
+            "lowerCriticalVal": 25
           }
         },
         {
@@ -7458,19 +7458,24 @@
       ]
     }
   ],
+  "powerConfig": {
+    "perSlotPowerConfigs": [
+      {
+        "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
+        "name": "HSC",
+        "powerSensorName": "SMB_HOTSWAP_PIN"
+      }
+    ],
+    "inputVoltageSensors": [
+      "SMB_HOTSWAP_VIN"
+    ]
+  },
   "temperatureConfigs": [
     {
       "name": "ASIC",
       "temperatureSensorNames": [
         "SMB_TH5_TEMP"
       ]
-    }
-  ],
-  "powerConsumptionConfigs": [
-    {
-      "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
-      "name": "HSC",
-      "powerSensorName": "SMB_HOTSWAP_PIN"
     }
   ]
 }

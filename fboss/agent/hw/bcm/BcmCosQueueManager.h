@@ -200,6 +200,8 @@ class BcmCosQueueManager {
   // Forbidden copy constructor and assignment operator
   BcmCosQueueManager(BcmCosQueueManager const&) = delete;
   BcmCosQueueManager& operator=(BcmCosQueueManager const&) = delete;
+  BcmCosQueueManager(BcmCosQueueManager&&) = delete;
+  BcmCosQueueManager& operator=(BcmCosQueueManager&&) = delete;
 
   virtual std::unique_ptr<PortQueue> getCurrentQueueSettings(
       cfg::StreamType streamType,

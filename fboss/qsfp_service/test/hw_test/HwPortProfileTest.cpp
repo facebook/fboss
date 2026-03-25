@@ -28,28 +28,29 @@ class HwPortProfileTest : public HwTest {
       const std::vector<std::pair<PortID, cfg::PortProfileID>>& xphyPorts,
       const std::map<int32_t, TransceiverInfo>& transceivers) {
     const auto* platformMapping = getHwQsfpEnsemble()->getPlatformMapping();
-    for (auto& [portID, profile] : xphyPorts) {
+    for (auto& [port, profile] : xphyPorts) {
       // Check whether transceiver exist, which will affect xphy config
       // Get the transceiver id for the given port id
-      auto platformPortEntry = platformMapping->getPlatformPorts().find(portID);
+      auto platformPortEntry = platformMapping->getPlatformPorts().find(port);
       if (platformPortEntry == platformMapping->getPlatformPorts().end()) {
         throw FbossError(
             "Can't find the platform port entry in platform mapping for port:",
-            portID);
+            port);
       }
-      auto tcvrID = utility::getTransceiverId(
+      auto tcvrIds = utility::getTransceiverIds(
           platformPortEntry->second, platformMapping->getChips());
-      if (!tcvrID) {
+      if (tcvrIds.empty()) {
         throw FbossError(
             "Can't find the transceiver id in platform mapping for port:",
-            portID);
+            port);
       }
       std::optional<TransceiverInfo> tcvrOpt;
-      if (auto tcvr = transceivers.find(*tcvrID); tcvr != transceivers.end()) {
+      if (auto tcvr = transceivers.find(tcvrIds[0]);
+          tcvr != transceivers.end()) {
         tcvrOpt = tcvr->second;
       }
 
-      utility::verifyXphyPort(portID, profile, tcvrOpt, getHwQsfpEnsemble());
+      utility::verifyXphyPort(port, profile, tcvrOpt, getHwQsfpEnsemble());
     }
   }
 
@@ -126,6 +127,8 @@ class HwPortProfileTest : public HwTest {
           getHwQsfpEnsemble()->getPlatformMapping(),
           transceivers);
       utility::HwTransceiverUtils::verifyTempAndVccFlags(
+          portToTransceiverInfoMap);
+      utility::HwTransceiverUtils::verifyTcvrErrorStates(
           portToTransceiverInfoMap);
     };
     verifyAcrossWarmBoots(setup, verify);

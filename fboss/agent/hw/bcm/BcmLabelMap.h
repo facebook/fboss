@@ -14,6 +14,10 @@ class BcmLabelMap {
   using BcmLabel = uint32_t;
   BcmLabelMap(BcmSwitch* hw);
   ~BcmLabelMap();
+  BcmLabelMap(const BcmLabelMap&) = delete;
+  BcmLabelMap& operator=(const BcmLabelMap&) = delete;
+  BcmLabelMap(BcmLabelMap&&) noexcept;
+  BcmLabelMap& operator=(BcmLabelMap&&) noexcept;
   void processAddedLabelSwitchAction(
       BcmLabel topLabel,
       const LabelNextHopEntry& nexthops);

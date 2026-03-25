@@ -17,8 +17,12 @@ namespace facebook::fboss {
  */
 class Wedge400TransceiverApi : public TransceiverPlatformApi {
  public:
-  Wedge400TransceiverApi() {}
-  ~Wedge400TransceiverApi() override {}
+  Wedge400TransceiverApi() = default;
+  ~Wedge400TransceiverApi() override = default;
+  Wedge400TransceiverApi(const Wedge400TransceiverApi&) = delete;
+  Wedge400TransceiverApi& operator=(const Wedge400TransceiverApi&) = delete;
+  Wedge400TransceiverApi(Wedge400TransceiverApi&&) = delete;
+  Wedge400TransceiverApi& operator=(Wedge400TransceiverApi&&) = delete;
 
   /* Trigger the QSFP hard reset for a given QSFP module in the wedge400
    * chassis switch. For that module, this function getsthe PIM module id,

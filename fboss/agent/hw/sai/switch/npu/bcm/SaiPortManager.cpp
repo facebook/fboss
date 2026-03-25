@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/sai/switch/SaiBridgeManager.h"
 #include "fboss/agent/hw/sai/switch/SaiDebugCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
+#include "fboss/agent/hw/sai/switch/SaiPortUtils.h"
 #include "fboss/agent/hw/sai/switch/SaiQueueManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -131,6 +132,7 @@ void SaiPortManager::changePortByRecreate(
     // Port Macro and re-create the removed ports with the new speed.
     removePort(oldPort);
     pendingNewPorts_[newPort->getID()] = newPort;
+    setPortType(newPort->getID(), newPort->getPortType());
     bool allPortsInGroupRemoved = true;
     auto& platformPortEntry =
         platform_->getPort(oldPort->getID())->getPlatformPortEntry();
@@ -213,8 +215,11 @@ void SaiPortManager::changePortFlowletConfig(
        */
       portHandle->port->setOptionalAttribute(
           SaiPortTraits::Attributes::ArsPortLoadPastWeight{0});
-      portHandle->port->setOptionalAttribute(
-          SaiPortTraits::Attributes::ArsPortLoadFutureWeight{0});
+      if (platform_->getAsic()->isSupported(
+              HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+        portHandle->port->setOptionalAttribute(
+            SaiPortTraits::Attributes::ArsPortLoadFutureWeight{0});
+      }
 
       auto newPortFlowletCfgPtr = newPortFlowletCfg.value();
       arsEnable = true;
@@ -228,11 +233,14 @@ void SaiPortManager::changePortFlowletConfig(
         SaiPortTraits::Attributes::ArsPortLoadScalingFactor{scalingFactor});
     portHandle->port->setOptionalAttribute(
         SaiPortTraits::Attributes::ArsPortLoadPastWeight{loadPastWeight});
-    portHandle->port->setOptionalAttribute(
-        SaiPortTraits::Attributes::ArsPortLoadFutureWeight{loadFutureWeight});
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::ARS_FUTURE_PORT_LOAD)) {
+      portHandle->port->setOptionalAttribute(
+          SaiPortTraits::Attributes::ArsPortLoadFutureWeight{loadFutureWeight});
+    }
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 0) && defined(BRCM_SAI_SDK_XGS) && \
-    defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0)
+    defined(BRCM_SAI_SDK_GTE_13_0)
     // for test purposes, BCM ARS requires the link state to force up
     if (newPort->getLoopbackMode() == cfg::PortLoopbackMode::MAC && arsEnable) {
       int arsLinkState = SAI_PORT_ARS_LINK_STATE_UP;
@@ -306,6 +314,23 @@ void SaiPortManager::programPfcDurationCounterEnable(
 #endif
 }
 
+SaiPortSerdesTraits::Attributes::RxReach::ValueType
+SaiPortManager::getSaiRxReach(
+    const std::vector<phy::RxReach>& rxReaches) const {
+  SaiPortSerdesTraits::Attributes::RxReach::ValueType rxReach;
+#if defined(BRCM_SAI_SDK_GTE_13_0)
+  for (auto& phyRxReach : rxReaches) {
+    rxReach.push_back(
+        phyRxReach == phy::RxReach::RX_NORMAL_REACH
+            ? SAI_PORT_SERDES_REACH_MODE_NR
+            : SAI_PORT_SERDES_REACH_MODE_ER);
+  }
+#else
+  throw FbossError("RxReach is not supported in this SAI version");
+#endif
+  return rxReach;
+}
+
 const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
     const PortID& portId) {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)
@@ -321,5 +346,57 @@ const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
 }
 
 void SaiPortManager::clearPortFlowletConfig(const PortID& /* unused */) {}
+
+void SaiPortManager::changeClm(
+    const std::shared_ptr<Port>& oldPort,
+    const std::shared_ptr<Port>& newPort) {
+  // Per port CLM is not supported on DNX. The clmEnable port config only
+  // applies to XGS
+#if defined(BRCM_SAI_SDK_GTE_13_0) && !defined(BRCM_SAI_SDK_GTE_14_0) && \
+    defined(BRCM_SAI_SDK_XGS)
+  // no change in config
+  if (oldPort->getClmEnable().has_value() &&
+      newPort->getClmEnable().has_value() &&
+      oldPort->getClmEnable().value() == newPort->getClmEnable().value()) {
+    return;
+  }
+
+  // Check if CLM is enabled
+  if (!newPort->getClmEnable().has_value()) {
+    XLOG(DBG4) << "CLM not enabled for " << newPort->getName();
+    return;
+  }
+
+  if (newPort->getPortType() != cfg::PortType::INTERFACE_PORT) {
+    return;
+  }
+
+  auto portHandle = getPortHandle(newPort->getID());
+  if (!portHandle) {
+    throw FbossError(
+        "Cannot change CLM config on non existent port: ", newPort->getID());
+  }
+
+  // Get the transmitter technology from the new profile config
+  auto newProfileConfig = newPort->getProfileConfig();
+  auto transmitterTech = newProfileConfig.medium();
+  if (!transmitterTech.has_value()) {
+    XLOG(ERR) << "No medium specified in profile config for "
+              << newPort->getName();
+    return;
+  }
+
+  // Convert to SAI media type
+  auto saiMediaType =
+      utility::getSaiPortMediaType(*transmitterTech, newPort->getSpeed());
+
+  XLOG(DBG2) << "Setting CablePropagationDelayMediaType for "
+             << newPort->getName() << " to " << static_cast<int>(saiMediaType);
+
+  portHandle->port->setOptionalAttribute(
+      SaiPortTraits::Attributes::CablePropagationDelayMediaType{
+          static_cast<sai_int32_t>(saiMediaType)});
+#endif
+}
 
 } // namespace facebook::fboss

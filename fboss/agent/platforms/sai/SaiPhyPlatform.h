@@ -24,6 +24,10 @@ class SaiPhyPlatform : public SaiPlatform {
       uint8_t pimId,
       int phyId);
   ~SaiPhyPlatform() override;
+  SaiPhyPlatform(const SaiPhyPlatform&) = delete;
+  SaiPhyPlatform& operator=(const SaiPhyPlatform&) = delete;
+  SaiPhyPlatform(SaiPhyPlatform&&) = delete;
+  SaiPhyPlatform& operator=(SaiPhyPlatform&&) = delete;
 
   uint8_t getPimId() const {
     return pimId_;

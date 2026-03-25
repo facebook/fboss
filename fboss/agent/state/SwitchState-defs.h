@@ -13,8 +13,6 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/state/VlanMap.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 template <typename EntryClassT, typename NTableT>
@@ -30,18 +28,9 @@ void SwitchState::revertNewNeighborEntry(
 
   NTableT* neighborTablePtr;
   // In this call, we also modify appliedState
-  if (FLAGS_intf_nbr_tables) {
-    auto intf =
-        (*appliedState)->getInterfaces()->getNode(newEntry->getIntfID());
-    neighborTablePtr = intf->template getNeighborTable<NTableT>()->modify(
-        newEntry->getIntfID(), appliedState);
-  } else {
-    // We are assuming here that vlan is equal to interface always.
-    VlanID vlanId = static_cast<VlanID>(newEntry->getIntfID());
-    auto vlan = (*appliedState)->getVlans()->getNode(vlanId);
-    neighborTablePtr = vlan->template getNeighborTable<NTableT>()->modify(
-        vlanId, appliedState);
-  }
+  auto intf = (*appliedState)->getInterfaces()->getNode(newEntry->getIntfID());
+  neighborTablePtr = intf->template getNeighborTable<NTableT>()->modify(
+      newEntry->getIntfID(), appliedState);
 
   // Check that the entry exists
   entry = neighborTablePtr->getNodeIf(ip.str());
@@ -61,8 +50,8 @@ void SwitchState::revertNewRouteEntry(
     const std::shared_ptr<Route<AddressT>>& oldRoute,
     std::shared_ptr<SwitchState>* appliedState) {
   auto clonedFib = (*appliedState)
-                       ->getFibs()
-                       ->getNode(id)
+                       ->getFibsInfoMap()
+                       ->getFibContainer(id)
                        ->template getFib<AddressT>()
                        ->modify(id, appliedState);
   if (oldRoute) {

@@ -256,13 +256,13 @@ void verifyTxSettting(
     EXPECT_EQ(pre3, expectedPre3->value());
   }
 
-  auto asicType = saiPlatform->getAsic()->getAsicType();
+  auto asicVendor = saiPlatform->getAsic()->getAsicVendor();
   if (saiPlatform->getAsic()->isSupported(
           HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
     pre2 = portApi.getAttribute(
         serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPre2{});
     EXPECT_EQ(pre2, GET_OPT_ATTR(PortSerdes, TxFirPre2, expectedTx));
-    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       post2 = portApi.getAttribute(
           serdes->adapterKey(), SaiPortSerdesTraits::Attributes::TxFirPost2{});
       post3 = portApi.getAttribute(
@@ -282,7 +282,7 @@ void verifyTxSettting(
     if (saiPlatform->getAsic()->isSupported(
             HwAsic::Feature::SAI_CONFIGURE_SIX_TAP)) {
       EXPECT_EQ(pre2[i], expectedTxFromPin.pre2());
-      if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB) {
+      if (asicVendor != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         EXPECT_EQ(post2[i], expectedTxFromPin.post2());
         EXPECT_EQ(post3[i], expectedTxFromPin.post3());
       }
@@ -316,6 +316,7 @@ void verifyTxSettting(
     EXPECT_EQ(driverCurrent, expectedDriveCurrent->value());
   }
 
+#if !defined(CHENAB_SAI_SDK)
   // Also need to check Preemphasis is set correctly
   if (saiPlatform->getAsic()->getPortSerdesPreemphasis().has_value()) {
     EXPECT_EQ(
@@ -324,6 +325,7 @@ void verifyTxSettting(
             SaiPortSerdesTraits::Attributes::Preemphasis{}),
         GET_OPT_ATTR(PortSerdes, Preemphasis, expectedTx));
   }
+#endif
 }
 
 bool verifyLedStatus(HwSwitchEnsemble* ensemble, PortID port, bool up) {

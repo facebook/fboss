@@ -51,6 +51,10 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
     ],
   ],
 
+  plugins: [
+    require.resolve('./src/plugins/changelog'),
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -67,7 +71,10 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           {label: 'Develop', position: 'left', docId: 'developing/platform_mapping', type: 'doc'},
           {label: 'Test', position: 'left', docId: 'testing/test_categories', type: 'doc'},
           {label: 'Debug', position: 'left', docId: 'debugging/clis_for_l1_debugging', type: 'doc'},
+          {label: 'Lab Distro', position: 'left', docId: 'lab_distro/distro_image_manifest', type: 'doc'},
           {label: 'Architecture', position: 'left', docId: 'architecture/meta_switch_architecture', type: 'doc'},
+          {label: 'Test Results', position: 'left', docId: 'test_results/test_results', type: 'doc'},
+          {label: 'Changelog', to: '/changelog', position: 'left'},
           {
             href: 'https://github.com/facebook/fboss',
             label: 'GitHub',

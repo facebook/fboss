@@ -1,0 +1,28 @@
+# /usr/lib/systemd/system/wedge_agent.service
+[Unit]
+Description=FBOSS Wedge Agent
+After=platform_manager.service
+After=qsfp_service.service
+After=rc-local.service
+
+[Service]
+Type=simple
+LimitNOFILE=10000000
+LimitCORE=32G
+MemoryMax=3.75G
+MemorySwapMax=0
+
+Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
+WorkingDirectory=/opt/fboss
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/wedge_agent-sai_impl'
+
+Restart=always
+RestartSec=30
+TimeoutStartSec=180s
+
+StandardOutput=append:/var/facebook/logs/fboss/wedge_agent.log
+StandardError=append:/var/facebook/logs/fboss/wedge_agent.log
+
+[Install]
+WantedBy=multi-user.target

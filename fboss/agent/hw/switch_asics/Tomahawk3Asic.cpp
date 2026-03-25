@@ -21,7 +21,6 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::BLACKHOLE_ROUTE_DROP_COUNTER:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
     case HwAsic::Feature::OBJECT_KEY_CACHE:
-    case HwAsic::Feature::ACL_COPY_TO_CPU:
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::HOSTTABLE:
     case HwAsic::Feature::OBM_COUNTERS:
@@ -44,6 +43,7 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TRAFFIC_HASHING:
     case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
+    case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
     case HwAsic::Feature::SAI_HASH_FIELDS_CLEAR_BEFORE_SET:
     case HwAsic::Feature::SWITCH_ATTR_INGRESS_ACL:
@@ -101,6 +101,8 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::EGRESS_POOL_AVAILABLE_SIZE_ATTRIBUTE_SUPPORTED:
     case HwAsic::Feature::PFC_WATCHDOG_TIMER_GRANULARITY:
     case HwAsic::Feature::RESERVED_BYTES_FOR_BUFFER_POOL:
+    case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
+    case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return true;
     case HwAsic::Feature::QCM:
     case HwAsic::Feature::SMAC_EQUALS_DMAC_CHECK_ENABLED:
@@ -161,11 +163,13 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::CREDIT_WATCHDOG:
     case HwAsic::Feature::SAI_FEC_CODEWORDS_STATS:
     case HwAsic::Feature::LINK_INACTIVE_BASED_ISOLATE:
+    case HwAsic::Feature::SWITCH_ISOLATE:
     case HwAsic::Feature::RX_SNR:
     case HwAsic::Feature::MANAGEMENT_PORT:
     case HwAsic::Feature::ANY_ACL_DROP_COUNTER:
     case HwAsic::Feature::EGRESS_FORWARDING_DROP_COUNTER:
     case HwAsic::Feature::ANY_TRAP_DROP_COUNTER:
+    case HwAsic::Feature::SWITCH_DROP_DEBUG_COUNTER:
     case HwAsic::Feature::RCI_WATERMARK_COUNTER:
     case HwAsic::Feature::DTL_WATERMARK_COUNTER:
     case HwAsic::Feature::LINK_ACTIVE_INACTIVE_NOTIFY:
@@ -221,6 +225,12 @@ bool Tomahawk3Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::MAC_TRANSMIT_DATA_QUEUE_WATERMARK:
     case HwAsic::Feature::FABRIC_LINK_MONITORING:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
+    case HwAsic::Feature::INGRESS_BUFFER_POOL_SIZE_EXCLUDES_HEADROOM:
+    case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
+    case HwAsic::Feature::SAI_SERDES_RX_REACH:
+    case HwAsic::Feature::SAI_SERDES_PRECODING:
+    case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::CUT_THROUGH_FORWARDING:
       return false;
   }
   return false;
@@ -251,7 +261,7 @@ int Tomahawk3Asic::getDefaultNumPortQueues(
 
 std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
   if (FLAGS_use_full_dlb_scale) {
-    return 128;
+    return 16;
   } else {
     // CS00012344837, CS00012328553
     return 64;
@@ -259,7 +269,11 @@ std::optional<uint32_t> Tomahawk3Asic::getMaxArsGroups() const {
 }
 
 std::optional<uint32_t> Tomahawk3Asic::getArsBaseIndex() const {
-  return std::nullopt;
+  return getMaxEcmpGroups().value() - 128;
+}
+
+std::optional<uint32_t> Tomahawk3Asic::getMaxArsWidth() const {
+  return 64;
 }
 
 } // namespace facebook::fboss

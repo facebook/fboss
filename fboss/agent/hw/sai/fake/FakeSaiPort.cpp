@@ -532,6 +532,20 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_QOS_TC_TO_QUEUE_MAP:
       port.qosTcToQueueMap = attr->value.oid;
       break;
+    case SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST: {
+      auto& egressBufferProfileIdList = port.egressBufferProfileIdList;
+      egressBufferProfileIdList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        egressBufferProfileIdList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
+    case SAI_PORT_ATTR_QOS_INGRESS_BUFFER_PROFILE_LIST: {
+      auto& ingressBufferProfileIdList = port.ingressBufferProfileIdList;
+      ingressBufferProfileIdList.clear();
+      for (int j = 0; j < attr->value.objlist.count; ++j) {
+        ingressBufferProfileIdList.push_back(attr->value.objlist.list[j]);
+      }
+    } break;
     case SAI_PORT_ATTR_DISABLE_DECREMENT_TTL:
       port.disableTtlDecrement = attr->value.booldata;
       break;
@@ -799,6 +813,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
       port.pfcMonitorDirection = attr->value.s32;
       break;
+    case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
+      port.cablePropagationDelayMediaType = attr->value.s32;
+      break;
+    case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
+      port.pfcPauseDurationOverride = attr->value.u16;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -811,8 +831,11 @@ sai_status_t get_port_attribute_fn(
     uint32_t attr_count,
     sai_attribute_t* attr) {
   auto fs = FakeSai::getInstance();
-  const auto& port = fs->portManager.get(port_id);
+  auto& port = fs->portManager.get(port_id);
   for (int i = 0; i < attr_count; ++i) {
+    if (port.onGetAttribute) {
+      port.onGetAttribute();
+    }
     switch (attr[i].id) {
       case SAI_PORT_ATTR_ADMIN_STATE:
         attr[i].value.booldata = port.adminState;
@@ -844,6 +867,32 @@ sai_status_t get_port_attribute_fn(
         for (int j = 0; j < port.queueIdList.size(); ++j) {
           attr[i].value.objlist.list[j] = port.queueIdList[j];
         }
+        break;
+      case SAI_PORT_ATTR_QOS_EGRESS_BUFFER_PROFILE_LIST:
+        if (port.egressBufferProfileIdList.size() >
+            attr[i].value.objlist.count) {
+          attr[i].value.objlist.count =
+              static_cast<uint32_t>(port.egressBufferProfileIdList.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.egressBufferProfileIdList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.egressBufferProfileIdList[j];
+        }
+        attr[i].value.objlist.count =
+            static_cast<uint32_t>(port.egressBufferProfileIdList.size());
+        break;
+      case SAI_PORT_ATTR_QOS_INGRESS_BUFFER_PROFILE_LIST:
+        if (port.ingressBufferProfileIdList.size() >
+            attr[i].value.objlist.count) {
+          attr[i].value.objlist.count =
+              static_cast<uint32_t>(port.ingressBufferProfileIdList.size());
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.ingressBufferProfileIdList.size(); ++j) {
+          attr[i].value.objlist.list[j] = port.ingressBufferProfileIdList[j];
+        }
+        attr[i].value.objlist.count =
+            static_cast<uint32_t>(port.ingressBufferProfileIdList.size());
         break;
       case SAI_PORT_ATTR_FEC_MODE:
         attr[i].value.s32 = static_cast<int32_t>(port.fecMode);
@@ -1040,6 +1089,16 @@ sai_status_t get_port_attribute_fn(
       case SAI_PORT_ATTR_PRIORITY_FLOW_CONTROL_TX:
         attr[i].value.u8 = port.priorityFlowControlTx;
         break;
+      case SAI_PORT_ATTR_ERR_STATUS_LIST:
+        if (port.portErrStatusList.size() > attr[i].value.porterror.count) {
+          attr[i].value.porterror.count = port.portErrStatusList.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        for (int j = 0; j < port.portErrStatusList.size(); ++j) {
+          attr[i].value.porterror.list[j] = port.portErrStatusList[j];
+        }
+        attr[i].value.porterror.count = port.portErrStatusList.size();
+        break;
       case SAI_PORT_ATTR_INGRESS_PRIORITY_GROUP_LIST: {
         if (port.ingressPriorityGroupList.size() >
             attr[i].value.objlist.count) {
@@ -1165,6 +1224,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_PFC_MONITOR_DIRECTION:
         attr[i].value.s32 = port.pfcMonitorDirection;
+        break;
+      case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
+        attr[i].value.s32 = port.cablePropagationDelayMediaType;
+        break;
+      case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
+        attr[i].value.u16 = port.pfcPauseDurationOverride;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;
@@ -1359,6 +1424,16 @@ sai_status_t set_port_serdes_attribute_fn(
           attr->value.s32list.list,
           attr->value.u32list.count);
       if (!checkLanes(portSerdes.txLutMode)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+
+    case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH:
+      fillVec(
+          portSerdes.rxReach,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxReach)) {
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
@@ -1690,6 +1765,33 @@ sai_status_t set_port_serdes_attribute_fn(
         return SAI_STATUS_INVALID_ATTRIBUTE_0;
       }
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    case SAI_PORT_SERDES_ATTR_TX_PRECODING:
+      fillVec(
+          portSerdes.txPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.txPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+    case SAI_PORT_SERDES_ATTR_RX_PRECODING:
+      fillVec(
+          portSerdes.rxPrecoding,
+          attr->value.s32list.list,
+          attr->value.s32list.count);
+      if (!checkLanes(portSerdes.rxPrecoding)) {
+        return SAI_STATUS_INVALID_ATTRIBUTE_0;
+      }
+      break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+    case SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION:
+      portSerdes.serdesCustomCollection = std::string(
+          reinterpret_cast<const char*>(attr->value.json.json.list),
+          attr->value.json.json.count);
+      break;
+#endif
     default:
       return SAI_STATUS_NOT_SUPPORTED;
   }
@@ -1788,6 +1890,13 @@ sai_status_t get_port_serdes_attribute_fn(
           return SAI_STATUS_BUFFER_OVERFLOW;
         }
         copyVecToList(portSerdes.txLutMode, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_REACH:
+        if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxReach)) {
+          attr_list[i].value.s32list.count = portSerdes.rxReach.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxReach, attr_list[i].value.s32list);
         break;
       case SAI_PORT_SERDES_ATTR_EXT_FAKE_RX_CTLE_CODE:
         if (!checkListSize(attr_list[i].value.s32list, portSerdes.rxCtlCode)) {
@@ -2110,6 +2219,40 @@ sai_status_t get_port_serdes_attribute_fn(
         copyVecToList(
             portSerdes.rxFfeLmsDynamicGatingEn, attr_list[i].value.s32list);
         break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+      case SAI_PORT_SERDES_ATTR_TX_PRECODING:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.txPrecoding)) {
+          attr_list[i].value.s32list.count = portSerdes.txPrecoding.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.txPrecoding, attr_list[i].value.s32list);
+        break;
+      case SAI_PORT_SERDES_ATTR_RX_PRECODING:
+        if (!checkListSize(
+                attr_list[i].value.s32list, portSerdes.rxPrecoding)) {
+          attr_list[i].value.s32list.count = portSerdes.rxPrecoding.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        copyVecToList(portSerdes.rxPrecoding, attr_list[i].value.s32list);
+        break;
+#endif
+#if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
+      case SAI_PORT_SERDES_ATTR_CUSTOM_COLLECTION:
+        if (portSerdes.serdesCustomCollection.size() >
+            attr_list[i].value.json.json.count) {
+          attr_list[i].value.json.json.count =
+              portSerdes.serdesCustomCollection.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        std::copy(
+            portSerdes.serdesCustomCollection.begin(),
+            portSerdes.serdesCustomCollection.end(),
+            attr_list[i].value.json.json.list);
+        attr_list[i].value.json.json.count =
+            portSerdes.serdesCustomCollection.size();
+        break;
+#endif
       default:
         return SAI_STATUS_NOT_IMPLEMENTED;
     }

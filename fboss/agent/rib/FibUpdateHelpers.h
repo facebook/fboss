@@ -11,6 +11,8 @@
 #include "fboss/agent/types.h"
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <memory>
@@ -26,6 +28,8 @@ StateDelta ribToSwitchStateUpdate(
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
     void* cookie);
 
 StateDelta noopFibUpdate(
@@ -34,5 +38,7 @@ StateDelta noopFibUpdate(
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
     const LabelToRouteMap& labelToRoute,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
     void* cookie);
 } // namespace facebook::fboss

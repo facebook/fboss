@@ -7,6 +7,7 @@
 #include "fboss/agent/HwSwitchCallback.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/HwWriteBehavior.h"
@@ -61,7 +62,9 @@ class HwSwitchHandler {
 
   folly::Future<HwSwitchStateUpdateResult> stateChanged(
       HwSwitchStateUpdate update,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   virtual std::unique_ptr<TxPacket> allocatePacket(uint32_t size) const = 0;
 
@@ -79,7 +82,7 @@ class HwSwitchHandler {
   virtual bool sendPacketOutOfPortSyncForPktType(
       std::unique_ptr<TxPacket> pkt,
       const PortID& portID,
-      TxPacketType packetType) noexcept = 0;
+      PacketType packetType) noexcept = 0;
 
   virtual bool transactionsSupported(
       std::optional<cfg::SdkVersion> sdkVersion) const = 0;
@@ -89,7 +92,9 @@ class HwSwitchHandler {
       bool transaction,
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE) = 0;
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt) = 0;
 
   virtual std::map<PortID, FabricEndpoint> getFabricConnectivity() const = 0;
 
@@ -118,6 +123,8 @@ class HwSwitchHandler {
 
   virtual state::SwitchState reconstructSwitchState() = 0;
 
+  virtual bool isValidStateUpdate(const StateDelta& delta) const = 0;
+
   const cfg::SwitchInfo& getSwitchInfo() const {
     return info_;
   }
@@ -129,14 +136,18 @@ class HwSwitchHandler {
  private:
   HwSwitchStateUpdateResult stateChangedImpl(
       const HwSwitchStateUpdate& update,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   HwSwitchStateOperUpdateResult stateChangedImpl(
       const std::vector<fsdb::OperDelta>& deltas,
       bool transaction,
       const std::shared_ptr<SwitchState>& oldState,
       const std::shared_ptr<SwitchState>& newState,
-      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE);
+      const HwWriteBehavior& hwWriteBehavior = HwWriteBehavior::WRITE,
+      const std::optional<StateDeltaApplication>& deltaApplicationBehavior =
+          std::nullopt);
 
   void run();
 

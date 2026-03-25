@@ -3,6 +3,7 @@
     "check_wb_handles": "true",
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
+    "ecmp_width": "128",
     "enable_acl_table_group": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
@@ -6678,14 +6679,6 @@
         },
         {
           "rxReason": 22,
-          "queueId": 0
-        },
-        {
-          "rxReason": 6,
-          "queueId": 0
-        },
-        {
-          "rxReason": 14,
           "queueId": 0
         },
         {

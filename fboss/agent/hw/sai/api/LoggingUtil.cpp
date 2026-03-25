@@ -110,6 +110,10 @@ folly::StringPiece saiApiTypeToString(sai_api_t apiType) {
       return "udf";
     case SAI_API_TUNNEL:
       return "tunnel";
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_API_SRV6:
+      return "srv6";
+#endif
     case SAI_API_L2MC:
       return "l2mc";
     case SAI_API_IPMC:
@@ -279,6 +283,12 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
       return "tunnel";
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       return "tunnel-term";
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_OBJECT_TYPE_SRV6_SIDLIST:
+      return "srv6-sidlist";
+    case SAI_OBJECT_TYPE_MY_SID_ENTRY:
+      return "my-sid-entry";
+#endif
     case SAI_OBJECT_TYPE_SAMPLEPACKET:
       return "sample-packet";
     case SAI_OBJECT_TYPE_MACSEC:

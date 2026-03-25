@@ -36,8 +36,8 @@ bool verifyArs(
               << switchingMode << ", actual: " << mode;
     return false;
   }
-  if (hw->getPlatform()->getAsic()->getAsicType() !=
-      cfg::AsicType::ASIC_TYPE_CHENAB) {
+  if (hw->getPlatform()->getAsic()->getAsicVendor() !=
+      HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     auto idleTime =
         arsApi.getAttribute(arsSaiId, SaiArsTraits::Attributes::IdleTime());
     if (*cfg.inactivityIntervalUsecs() != idleTime) {
@@ -120,6 +120,31 @@ bool verifyEcmpForFlowletSwitching(
   return isVerified;
 }
 
+bool verifyEcmpForNonFlowlet(
+    const HwSwitch* hw,
+    const folly::CIDRNetwork& ip,
+    const bool flowletEnable) {
+  bool isVerified = true;
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  const auto saiSwitch = static_cast<const SaiSwitch*>(hw);
+  auto nextHopGroupSaiId = getNextHopGroupSaiId(saiSwitch, ip);
+  auto arsId = SaiApiTable::getInstance()->nextHopGroupApi().getAttribute(
+      nextHopGroupSaiId, SaiNextHopGroupTraits::Attributes::ArsObjectId());
+
+  if (flowletEnable) {
+    isVerified = (arsId != SAI_NULL_OBJECT_ID);
+  } else {
+    isVerified = (arsId == SAI_NULL_OBJECT_ID);
+  }
+#else
+  (void)hw;
+  (void)ip;
+  (void)flowletEnable;
+#endif
+  return isVerified;
+}
+
 bool HwTestThriftHandler::verifyEcmpForFlowletSwitchingHandler(
     std::unique_ptr<CIDRNetwork> ip,
     std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
@@ -150,6 +175,26 @@ bool HwTestThriftHandler::validateFlowSetTable(
     const bool expectFlowsetSizeZero) {
   // Not applicable for SAI
   return true;
+}
+
+bool HwTestThriftHandler::verifyEcmpForNonFlowlet(
+    std::unique_ptr<CIDRNetwork> prefix,
+    std::unique_ptr<
+        ::facebook::fboss::state::SwitchSettingsFields> /*settings*/,
+    bool expectFlowsetFree) {
+  // Convert CIDRNetwork to folly::CIDRNetwork
+  folly::CIDRNetwork follyPrefix{
+      folly::IPAddress(*prefix->IPAddress()),
+      static_cast<uint8_t>(*prefix->mask())};
+
+  // expectFlowsetFree=true means ECMP is NOT using DLB (flowset entries are
+  // free). For SAI, this means arsId should be SAI_NULL_OBJECT_ID.
+  // The utility function uses flowletEnable where:
+  //   flowletEnable=true  -> expect arsId != NULL (ARS attached)
+  //   flowletEnable=false -> expect arsId == NULL (no ARS)
+  // So we invert: flowletEnable = !expectFlowsetFree
+  return ::facebook::fboss::utility::verifyEcmpForNonFlowlet(
+      hwSwitch_, follyPrefix, !expectFlowsetFree);
 }
 
 } // namespace facebook::fboss::utility

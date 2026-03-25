@@ -5,8 +5,10 @@
 #include <optional>
 
 #include <folly/IPAddress.h>
+#include <folly/MacAddress.h>
 
 #include <fboss/agent/state/Thrifty.h>
+#include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
 
@@ -35,7 +37,8 @@ class MirrorOnDropReport : public ThriftStructNode<
       std::string firstInterfaceMac,
       std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap,
       std::map<cfg::MirrorOnDropAgingGroup, int32_t>
-          agingGroupAgingIntervalUsecs);
+          agingGroupAgingIntervalUsecs,
+      std::optional<int32_t> samplingRate = std::nullopt);
 
   std::string getID() const;
   PortID getMirrorPortId() const;
@@ -52,6 +55,15 @@ class MirrorOnDropReport : public ThriftStructNode<
   std::map<int8_t, cfg::MirrorOnDropEventConfig> getModEventToConfigMap() const;
   std::map<cfg::MirrorOnDropAgingGroup, int32_t>
   getAgingGroupAgingIntervalUsecs() const;
+  std::optional<int32_t> getSamplingRate() const;
+
+  // Resolved fields accessors
+  bool isResolved() const;
+  void setIsResolved(bool resolved);
+  std::optional<folly::MacAddress> getResolvedCollectorMac() const;
+  void setResolvedCollectorMac(folly::MacAddress mac);
+  std::optional<cfg::PortDescriptor> getResolvedEgressPort() const;
+  void setResolvedEgressPort(const cfg::PortDescriptor& portDesc);
 
  private:
   // Inherit the constructors required for clone()

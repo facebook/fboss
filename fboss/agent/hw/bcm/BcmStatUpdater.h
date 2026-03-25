@@ -19,6 +19,7 @@
 
 #include <boost/container/flat_map.hpp>
 #include <folly/Synchronized.h>
+#include <folly/Utility.h>
 #include <queue>
 
 extern "C" {
@@ -36,12 +37,11 @@ using std::chrono::steady_clock;
 class BcmSwitch;
 class StateDelta;
 
-class BcmStatUpdater {
+class BcmStatUpdater : public folly::NonCopyableNonMovable {
  public:
   using PrbsStatsTable = std::vector<PrbsStatsEntry>;
 
   explicit BcmStatUpdater(BcmSwitch* hw);
-  ~BcmStatUpdater() {}
 
   /* Thread safety:
    *  Accessing Bcm* data structures from stats and update thread is racy:

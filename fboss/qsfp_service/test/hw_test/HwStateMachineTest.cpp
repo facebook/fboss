@@ -106,8 +106,9 @@ class HwStateMachineTest : public HwTest {
     return absentTransceivers_;
   }
   void setPauseRemediation(bool paused) {
+    // Pausing remediation for 30 minutes. This is reset after every test.
     getHwQsfpEnsemble()->getWedgeManager()->setPauseRemediation(
-        paused ? 600 : 0, nullptr);
+        paused ? 1800 : 0, nullptr);
   }
 
   bool meetAllExpectedState(
@@ -203,13 +204,23 @@ class HwStateMachineTest : public HwTest {
       return true;
     } else if (curState == portExpectedStates.front()) {
       portExpectedStates.pop();
+      std::vector<PortID> xphyPorts;
+      if (auto phyManager = getHwQsfpEnsemble()->getPhyManager()) {
+        xphyPorts = phyManager->getXphyPorts();
+      }
 
       if (curState == PortStateMachineState::IPHY_PORTS_PROGRAMMED) {
         // Check port is up
         EXPECT_EQ(portMgr->getXphyNeedResetDataPath(portId), isAgentColdboot);
       } else if (curState == PortStateMachineState::XPHY_PORTS_PROGRAMMED) {
         // Check xphy programmed correctly
-        auto tcvrId = portMgr->getLowestIndexedTransceiverForPort(portId);
+        auto tcvrIdOpt =
+            portMgr->getLowestIndexedStaticTransceiverForPort(portId);
+        EXPECT_TRUE(tcvrIdOpt.has_value());
+        if (!tcvrIdOpt) {
+          return false;
+        }
+        auto tcvrId = *tcvrIdOpt;
         const auto programmedPortToPortInfo =
             wedgeMgr->getProgrammedIphyPortToPortInfo(tcvrId);
         const auto& transceiver = wedgeMgr->getTransceiverInfo(tcvrId);
@@ -217,6 +228,11 @@ class HwStateMachineTest : public HwTest {
           if (currPortId != portId) {
             continue;
           }
+          if (std::find(xphyPorts.begin(), xphyPorts.end(), portId) ==
+              xphyPorts.end()) {
+            continue;
+          }
+
           utility::verifyXphyPort(
               portId, portInfo.profile, transceiver, getHwQsfpEnsemble());
         }
@@ -251,6 +267,18 @@ class HwStateMachineTest : public HwTest {
     for (auto& idToExpectStates : expectedStates) {
       auto id = idToExpectStates.first;
       auto curState = wedgeMgr->getCurrentState(id);
+
+      // Verify remediation state matches expectation. This check must happen
+      // during the refresh cycle (before TRANSCEIVER_PROGRAMMED clears the
+      // flag) to catch unexpected remediation.
+      if (!isRemediated) {
+        EXPECT_FALSE(wedgeMgr->transceiverJustRemediated(id))
+            << "Transceiver:" << id
+            << " should NOT be remediated but transceiverJustRemediated is "
+               "true. Current state: "
+            << apache::thrift::util::enumNameSafe(curState);
+      }
+
       if (!meetAllExpectedState(
               id,
               curState,
@@ -399,6 +427,28 @@ TEST_F(HwStateMachineTest, CheckPortsProgrammed) {
 
     checkTransceiverProgrammed(getPresentTransceivers());
     checkTransceiverProgrammed(getAbsentTransceivers());
+
+    // Also verify backplane XPHY ports (XPHY ports without transceivers)
+    // These ports are not associated with any transceiver, so they won't be
+    // covered by the transceiver-based verification above.
+    auto* phyManager = getHwQsfpEnsemble()->getPhyManager();
+    if (phyManager) {
+      auto xphyPorts = phyManager->getXphyPorts();
+
+      for (const auto& portId : xphyPorts) {
+        // Check if this port has a transceiver - if so, it was already
+        // verified in the transceiver loop above
+        auto tcvrId = utility::getTranscieverIdx(portId, getHwQsfpEnsemble());
+        if (tcvrId.has_value()) {
+          continue;
+        }
+        auto programmedProfile = phyManager->getProgrammedProfile(portId);
+        if (programmedProfile.has_value()) {
+          utility::verifyXphyPort(
+              portId, *programmedProfile, std::nullopt, getHwQsfpEnsemble());
+        }
+      }
+    }
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
@@ -649,9 +699,14 @@ TEST_F(HwStateMachineTest, CheckTransceiverRemediated) {
 
 TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
   auto verify = [this]() {
-    auto verifyConfigChanged = [this](bool isAgentColdboot) {
+    auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
+
+    // Enable remediation to verify it doesn't incorrectly trigger during
+    // config changes when ports are up
+    setPauseRemediation(false);
+
+    auto verifyConfigChanged = [this, &wedgeMgr](bool isAgentColdboot) {
       std::time_t testStartTime = std::time(nullptr);
-      auto wedgeMgr = getHwQsfpEnsemble()->getWedgeManager();
       // Prepare expected states
       std::
           unordered_map<TransceiverID, std::queue<TransceiverStateMachineState>>
@@ -707,7 +762,6 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
 
       // Verify datapath reset happened on a config change that involved agent
       // cold boot and didn't happen for warmboot
-
       for (auto id : getPresentTransceivers()) {
         auto tcvrInfo = wedgeMgr->getTransceiverInfo(id);
         auto& tcvrState = tcvrInfo.tcvrState().value();
@@ -722,6 +776,14 @@ TEST_F(HwStateMachineTest, CheckAgentConfigChanged) {
               testStartTime,
               isAgentColdboot);
         }
+
+        // Verify remediation was NOT triggered during config change.
+        // With ports up, remediation should never be triggered even though
+        // it's enabled.
+        EXPECT_FALSE(wedgeMgr->transceiverJustRemediated(id))
+            << "Transceiver:" << id
+            << " should NOT be remediated during config change (coldboot="
+            << isAgentColdboot << ")";
       }
     };
 

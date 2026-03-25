@@ -9,7 +9,9 @@
 namespace facebook::fboss::platform::sensor_service {
 class PmClientFactory {
  public:
-  std::unique_ptr<
+  virtual ~PmClientFactory() = default;
+
+  virtual std::unique_ptr<
       apache::thrift::Client<platform_manager::PlatformManagerService>>
   create() const;
 

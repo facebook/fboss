@@ -3,6 +3,20 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 oncall("fboss_agent_push")
 
 cpp_library(
+    name = "srv6_test_utils",
+    srcs = [
+        "Srv6TestUtils.cpp",
+    ],
+    exported_deps = [
+        ":config_utils",
+        ":load_balancer_test_utils",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/test:agent_ensemble",
+    ],
+)
+
+cpp_library(
     name = "acl_test_utils",
     srcs = ["AclTestUtils.cpp"],
     headers = ["AclTestUtils.h"],
@@ -161,11 +175,26 @@ cpp_library(
     ],
     headers = ["PortTestUtils.h"],
     exported_deps = [
+        "fbsource//third-party/googletest:gtest",
         "//fboss/agent:fboss-error",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/lib:common_utils",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "hyper_port_test_utils",
+    srcs = [
+        "HyperPortTestUtils.cpp",
+    ],
+    headers = ["HyperPortTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:agent_features",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent/state:state",
     ],
 )
 
@@ -191,6 +220,7 @@ cpp_library(
     headers = ["MacTestUtils.h"],
     exported_deps = [
         "//fboss/agent:core",
+        "//fboss/agent:hw_switch_thrift_client_table",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
@@ -218,6 +248,7 @@ cpp_library(
         "//fboss/agent/platforms/common:platform_mapping",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:trunk_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly:format",
         "//folly:network_address",
@@ -790,6 +821,35 @@ cpp_library(
     headers = ["NeighborTestUtils.h"],
     exported_deps = [
         "//fboss/agent:core",
+        "//fboss/agent/state:state",
+    ],
+)
+
+cpp_library(
+    name = "tunnel_mgr_test_utils",
+    srcs = ["TunnelMgrTestUtils.cpp"],
+    headers = ["TunnelMgrTestUtils.h"],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:core",
+        "//fboss/agent:fboss-types",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent:utils",
+        "//fboss/agent/state:state",
+        "//folly:conv",
+        "//folly:network_address",
+        "//folly:string",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
+    name = "nexthop_id_test_utils",
+    srcs = ["NextHopIdTestUtils.cpp"],
+    headers = ["NextHopIdTestUtils.h"],
+    exported_deps = [
+        "//fboss/agent:hwswitch_matcher",
+        "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/state:state",
     ],
 )

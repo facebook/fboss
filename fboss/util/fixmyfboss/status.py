@@ -3,7 +3,6 @@ from subprocess import CompletedProcess
 from typing import List, Optional
 
 from fboss.util.fixmyfboss.remediation import Remediation
-
 from fboss.util.fixmyfboss.utils import Color
 
 

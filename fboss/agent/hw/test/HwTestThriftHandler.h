@@ -53,6 +53,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::vector<cfg::CounterType>> types,
       std::unique_ptr<std::string> tableName) override;
 
+  void getDefaultAclTableStatCountInfo(AclStatCountInfo& info) override;
+
+  bool isAclStatDeleted(std::unique_ptr<std::string> statName) override;
+
   bool isMirrorProgrammed(std::unique_ptr<state::MirrorFields> mirror) override;
 
   bool isPortMirrored(
@@ -192,6 +196,11 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       bool flowletEnable) override;
 
   bool validateFlowSetTable(const bool expectFlowsetSizeZero) override;
+
+  bool verifyEcmpForNonFlowlet(
+      std::unique_ptr<CIDRNetwork> prefix,
+      std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
+      bool expectFlowsetFree) override;
 
  private:
   HwSwitch* hwSwitch_;

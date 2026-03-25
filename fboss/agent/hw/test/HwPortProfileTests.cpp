@@ -98,6 +98,8 @@ class HwPortProfileTest : public HwTest {
         getPlatform()->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_CHENAB ||
         getPlatform()->getAsic()->getAsicType() ==
+            cfg::AsicType::ASIC_TYPE_CHENAB2 ||
+        getPlatform()->getAsic()->getAsicType() ==
             cfg::AsicType::ASIC_TYPE_MOCK) {
       return;
     }
@@ -342,5 +344,7 @@ TEST_PROFILE(PROFILE_800G_8_PAM4_RS544X2N_COPPER)
 TEST_PROFILE(PROFILE_100G_1_PAM4_RS544X2N_COPPER)
 
 TEST_PROFILE(PROFILE_100G_2_PAM4_RS544X2N_COPPER)
+
+TEST_PROFILE(PROFILE_200G_1_PAM4_RS544X2N_COPPER)
 
 } // namespace facebook::fboss

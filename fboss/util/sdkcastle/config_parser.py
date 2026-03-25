@@ -12,16 +12,17 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from .config import (
+    AgentScaleTestsSpec,
     AgentTestsSpec,
     AsicTestOptions,
     BassetQuery,
     BenchmarkTestsSpec,
     CommonTestSpec,
+    ConfigTestsSpec,
     HwTestsSpec,
     LinkTestsSpec,
     NWarmbootTestsSpec,
     SdkcastleSpec,
-    SpecTestsSpec,
     TestSpec,
 )
 from .enums import (
@@ -90,6 +91,9 @@ class ConfigParser:
             agent_tests=self._parse_test_list(
                 data.get("agentTests", []), self._parse_agent_tests_spec
             ),
+            agent_scale_tests=self._parse_test_list(
+                data.get("agentScaleTests", []), self._parse_agent_scale_tests_spec
+            ),
             n_warmboot_tests=self._parse_test_list(
                 data.get("nWarmbootTests", []), self._parse_n_warmboot_tests_spec
             ),
@@ -97,7 +101,7 @@ class ConfigParser:
                 data.get("linkTests", []), self._parse_link_tests_spec
             ),
             config_tests=self._parse_test_list(
-                data.get("configTests", []), self._parse_spec_tests_spec
+                data.get("configTests", []), self._parse_config_tests_spec
             ),
             benchmark_tests=self._parse_test_list(
                 data.get("benchmarkTests", []), self._parse_benchmark_tests_spec
@@ -122,36 +126,50 @@ class ConfigParser:
         return AgentTestsSpec(
             test_name=data["testName"],
             common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
-            npu_mode=self._string_to_enum(data.get("npu_mode"), NpuMode),
-            multi_stage=self._string_to_enum(data.get("multi_stage"), MultiStage),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
+            multi_stage=self._string_to_enum(data.get("multiStage"), MultiStage),
+        )
+
+    def _parse_agent_scale_tests_spec(
+        self, data: Dict[str, Any]
+    ) -> AgentScaleTestsSpec:
+        """Parse AgentScaleTestsSpec from dictionary"""
+        return AgentScaleTestsSpec(
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
+            multi_stage=self._string_to_enum(data.get("multiStage"), MultiStage),
         )
 
     def _parse_n_warmboot_tests_spec(self, data: Dict[str, Any]) -> NWarmbootTestsSpec:
         """Parse NWarmbootTestsSpec from dictionary"""
         return NWarmbootTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
+            num_iterations=data.get("numIterations"),
         )
 
     def _parse_link_tests_spec(self, data: Dict[str, Any]) -> LinkTestsSpec:
         """Parse LinkTestsSpec from dictionary"""
         return LinkTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
         )
 
-    def _parse_spec_tests_spec(self, data: Dict[str, Any]) -> SpecTestsSpec:
-        """Parse SpecTestsSpec from dictionary"""
-        return SpecTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+    def _parse_config_tests_spec(self, data: Dict[str, Any]) -> ConfigTestsSpec:
+        """Parse ConfigTestsSpec from dictionary"""
+        return ConfigTestsSpec(
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
         )
 
     def _parse_benchmark_tests_spec(self, data: Dict[str, Any]) -> BenchmarkTestsSpec:
         """Parse BenchmarkTestsSpec from dictionary"""
         return BenchmarkTestsSpec(
-            test_name=data["test_name"],
-            common_test_spec=self._parse_common_test_spec(data["common_test_spec"]),
+            test_name=data["testName"],
+            common_test_spec=self._parse_common_test_spec(data["commonTestSpec"]),
+            npu_mode=self._string_to_enum(data.get("npuMode"), NpuMode),
         )
 
     def _parse_common_test_spec(self, data: Dict[str, Any]) -> CommonTestSpec:

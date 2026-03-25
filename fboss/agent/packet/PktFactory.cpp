@@ -301,7 +301,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeNeighborSolicitation(
       ipv6,
       bodyLength,
       [neighborIp, ndpOptions](folly::io::RWPrivateCursor* cursor) {
-        cursor->writeBE<uint32_t>(0); // reserved
+        cursor->writeBE<uint32_t>(static_cast<uint32_t>(0)); // reserved
         cursor->push(neighborIp.bytes(), folly::IPAddressV6::byteCount());
         ndpOptions.serialize(cursor);
       });
@@ -466,7 +466,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass,
     uint8_t innerTrafficClass,
-    uint8_t hopLimit,
+    uint8_t outerHopLimit,
+    std::optional<uint8_t> innerHopLimit,
     std::optional<std::vector<uint8_t>> payload) {
   if (!payload) {
     payload = kDefaultPayload;
@@ -480,13 +481,13 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
   outerIpHdr.trafficClass = outerTrafficClass;
   outerIpHdr.payloadLength =
       IPv6Hdr::size() + UDPHeader::size() + payloadBytes.size();
-  outerIpHdr.hopLimit = hopLimit;
+  outerIpHdr.hopLimit = outerHopLimit;
   // IPv6Hdr -- inner
   IPv6Hdr innerIpHdr(innerSrcIp, innerDstIp);
   innerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP);
   innerIpHdr.trafficClass = innerTrafficClass;
   innerIpHdr.payloadLength = UDPHeader::size() + payloadBytes.size();
-  innerIpHdr.hopLimit = hopLimit;
+  innerIpHdr.hopLimit = innerHopLimit.value_or(outerHopLimit);
 
   auto txPacket = allocatePacket(
       EthHdr::SIZE + 2 * outerIpHdr.size() + UDPHeader::size() +
@@ -503,7 +504,74 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
 
   rwCursor.writeBE<uint16_t>(srcPort);
   rwCursor.writeBE<uint16_t>(dstPort);
-  rwCursor.writeBE<uint16_t>(UDPHeader::size() + payloadBytes.size());
+  rwCursor.writeBE<uint16_t>(
+      static_cast<uint16_t>(UDPHeader::size() + payloadBytes.size()));
+  folly::io::RWPrivateCursor csumCursor(rwCursor);
+  rwCursor.skip(2);
+  folly::io::Cursor payloadStart(rwCursor);
+  rwCursor.push(payloadBytes.data(), payloadBytes.size());
+  UDPHeader udpHdr(srcPort, dstPort, UDPHeader::size() + payloadBytes.size());
+  uint16_t csum = udpHdr.computeChecksum(innerIpHdr, payloadStart);
+  csumCursor.writeBE<uint16_t>(csum);
+  return txPacket;
+}
+
+std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
+    const AllocatePktFn& allocatePacket,
+    VlanID vlan,
+    folly::MacAddress outerSrcMac,
+    folly::MacAddress outerDstMac,
+    const folly::IPAddressV6& outerSrcIp,
+    const folly::IPAddressV6& outerDstIp,
+    const folly::IPAddressV4& innerSrcIp,
+    const folly::IPAddressV4& innerDstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t outerTrafficClass,
+    uint8_t innerDscp,
+    uint8_t outerHopLimit,
+    std::optional<uint8_t> innerHopLimit,
+    std::optional<std::vector<uint8_t>> payload) {
+  if (!payload) {
+    payload = kDefaultPayload;
+  }
+  const auto& payloadBytes = payload.value();
+  auto ethHdr =
+      makeEthHdr(outerSrcMac, outerDstMac, vlan, ETHERTYPE::ETHERTYPE_IPV6);
+  // IPv6Hdr -- outer
+  IPv6Hdr outerIpHdr(outerSrcIp, outerDstIp);
+  outerIpHdr.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV4);
+  outerIpHdr.trafficClass = outerTrafficClass;
+  outerIpHdr.payloadLength =
+      IPv4Hdr::minSize() + UDPHeader::size() + payloadBytes.size();
+  outerIpHdr.hopLimit = outerHopLimit;
+  // IPv4Hdr -- inner
+  IPv4Hdr innerIpHdr(
+      innerSrcIp,
+      innerDstIp,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
+      UDPHeader::size() + payloadBytes.size());
+  innerIpHdr.dscp = innerDscp;
+  innerIpHdr.ttl = innerHopLimit.value_or(outerHopLimit);
+  innerIpHdr.computeChecksum();
+
+  auto txPacket = allocatePacket(
+      EthHdr::SIZE + outerIpHdr.size() + innerIpHdr.size() + UDPHeader::size() +
+      payloadBytes.size());
+  folly::io::RWPrivateCursor rwCursor(txPacket->buf());
+  txPacket->writeEthHeader(
+      &rwCursor,
+      ethHdr.getDstMac(),
+      ethHdr.getSrcMac(),
+      vlan,
+      ethHdr.getEtherType());
+  outerIpHdr.serialize(&rwCursor);
+  innerIpHdr.serialize(&rwCursor);
+
+  rwCursor.writeBE<uint16_t>(srcPort);
+  rwCursor.writeBE<uint16_t>(dstPort);
+  rwCursor.writeBE<uint16_t>(
+      static_cast<uint16_t>(UDPHeader::size() + payloadBytes.size()));
   folly::io::RWPrivateCursor csumCursor(rwCursor);
   rwCursor.skip(2);
   folly::io::Cursor payloadStart(rwCursor);
@@ -572,7 +640,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeUDPTxPacket(
       dstIp,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP),
       payloadBytes.size() + UDPHeader::size());
-  ipHdr.dscp = dscp;
+  ipHdr.dscp = dscp >> 2;
+  ipHdr.ecn = dscp & 0x3;
   ipHdr.ttl = ttl;
   ipHdr.computeChecksum();
   // UDPHeader
@@ -844,7 +913,7 @@ std::unique_ptr<TxPacket> makeSflowV5Packet(
   fsample.flowRecords.push_back(frecord);
 
   // Add flow sample to sample record
-  record.sampleData.push_back(fsample);
+  record.sampleData.emplace_back(fsample);
 
   // Add sample record to datagram
   datagram.datagramV5.samples.push_back(record);
@@ -941,7 +1010,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   frecord.flowData = std::move(hdr);
 
   fsample.flowRecords.push_back(frecord);
-  record.sampleData.push_back(fsample);
+  record.sampleData.emplace_back(fsample);
   datagram.datagramV5.samples.push_back(record);
 
   auto sampleHdrSize = datagram.size();
@@ -1028,7 +1097,7 @@ std::unique_ptr<facebook::fboss::TxPacket> makeSflowV5Packet(
   frecord.flowData = std::move(hdr);
 
   fsample.flowRecords.push_back(frecord);
-  record.sampleData.push_back(fsample);
+  record.sampleData.emplace_back(fsample);
   datagram.datagramV5.samples.push_back(record);
 
   auto sampleHdrSize = datagram.size();

@@ -25,6 +25,8 @@ struct PfcPriorityInfo {
   std::vector<PfcPriority> enabledPfcPriorities{};
   bool txPfcDurationEnabled{false};
   bool rxPfcDurationEnabled{false};
+  bool inCongestionDiscardCountSupported{false};
+  bool inCongestionDiscardSeenSupported{false};
 };
 
 class HwBasePortFb303Stats {
@@ -35,10 +37,16 @@ class HwBasePortFb303Stats {
       QueueId2Name queueId2Name = {},
       std::vector<PfcPriority> enabledPfcPriorities = {},
       std::optional<cfg::PortPfc> pfcCfg = std::nullopt,
+      bool inCongestionDiscardCountSupported = false,
+      bool inCongestionDiscardSeenSupported = false,
       std::optional<std::string> multiSwitchStatsPrefix = std::nullopt)
       : queueId2Name_(std::move(queueId2Name)),
         portName_(portName),
         portCounters_(HwFb303Stats(std::move(multiSwitchStatsPrefix))) {
+    pfcInfo_.inCongestionDiscardCountSupported =
+        inCongestionDiscardCountSupported;
+    pfcInfo_.inCongestionDiscardSeenSupported =
+        inCongestionDiscardSeenSupported;
     pfcInfo_.enabledPfcPriorities = std::move(enabledPfcPriorities);
     pfcInfo_.rxPfcDurationEnabled =
         pfcCfg.has_value() && pfcCfg->rxPfcDurationEnable().has_value()

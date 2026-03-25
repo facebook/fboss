@@ -48,20 +48,15 @@ void WeutilImpl::printInfo() {
 }
 
 folly::dynamic WeutilImpl::getInfoJson() {
-  folly::dynamic eepromObject = folly::dynamic::object;
+  folly::dynamic eepromJsonObject = folly::dynamic::object;
   for (const auto& [key, value] : getContents()) {
     if (key == "CRC16") {
       continue;
     }
-    eepromObject[key] = value;
+    eepromJsonObject[key] = value;
   }
 
-  folly::dynamic json = folly::dynamic::object;
-  json["Information"] = eepromObject;
-  json["Actions"] = folly::dynamic::array();
-  json["Resources"] = folly::dynamic::array();
-
-  return json;
+  return eepromJsonObject;
 }
 
 } // namespace facebook::fboss::platform

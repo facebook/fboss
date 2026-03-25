@@ -8,10 +8,10 @@ import socket
 from argparse import ArgumentParser
 
 import ipaddr
-from facebook.network.Address.ttypes import BinaryAddress
-from neteng.fboss.ctrl import FbossCtrl
-from neteng.fboss.ctrl.ttypes import IpPrefix, UnicastRoute
-from neteng.fboss.qsfp import QsfpService
+from facebook.network.Address.thrift_types import BinaryAddress
+from neteng.fboss.ctrl.thrift_clients import FbossCtrl
+from neteng.fboss.ctrl.thrift_types import IpPrefix, UnicastRoute
+from neteng.fboss.qsfp.thrift_clients import QsfpService
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket
 

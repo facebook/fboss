@@ -63,11 +63,7 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   std::unordered_map<std::string, std::string> kv_map;
   kv_map.insert(std::make_pair("SAI_KEY_PORT_AUTONEG_DEFAULT_OFF", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_NOT_DROP_SMAC_DMAC_EQUAL", "1"));
-#if !defined(CHENAB_SAI_SDK_VERSION_2505_34_0_1)
-  kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_BUFFER_ENABLED", "0"));
-#else
   kv_map.insert(std::make_pair("SAI_KEY_RECLAIM_PG0_BUFFER_DISABLED", "1"));
-#endif
   kv_map.insert(std::make_pair("SAI_KEY_TRAP_PACKETS_USING_CALLBACK", "1"));
   kv_map.insert(std::make_pair("SAI_KEY_ROUTE_METADATA_FIELD_SIZE", "5"));
   kv_map.insert(
@@ -92,6 +88,19 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
   // SAI_PORT_STAT_IF_IN_UCAST_PKTS, set SAI_PORT_STAT_IF_IN_UCAST_PKTS to count
   // all received packet, including discarded packets
   kv_map.insert(std::make_pair("SAI_AGGREGATE_UCAST_DROPS", "1"));
+  // PFC-WD perform recovery once recovery time is elapsed even while new PFC
+  // frames are received
+  kv_map.insert(
+      std::make_pair(
+          "SAI_KEY_PFC_WD_FORWARD_ACTION_BEHAVIOR",
+          "PFC_WD_FORWARD_ACTION_IMMEDIATE_RECOVERY"));
+#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0)
+  kv_map.insert(std::make_pair("SAI_WITHOUT_SX_NETDEV", "1"));
+  // enable PTP based cable length estimation
+  kv_map.insert(std::make_pair("SAI_KEY_PTP_CABLE_MEASUREMENT_ENABLE", "1"));
+#endif
+  kv_map.insert(std::make_pair("SAI_INDEPENDENT_MODULE_MODE", "1"));
+
   return kv_map;
 }
 

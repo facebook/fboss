@@ -11,6 +11,10 @@ include "fboss/agent/switch_config.thrift"
 include "fboss/agent/if/ctrl.thrift"
 include "fboss/agent/if/mpls.thrift"
 include "common/network/if/Address.thrift"
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
 
 struct NeighborInfo {
   1: bool exists;
@@ -43,6 +47,12 @@ struct AggPortInfo {
   3: i32 numActiveMembers;
 }
 
+struct AclStatCountInfo {
+  1: i32 aclEntryCount;
+  2: i32 aclStatCount;
+  3: i32 counterCount;
+}
+
 service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
@@ -72,6 +82,10 @@ service AgentHwTestCtrl {
     3: list<switch_config.CounterType> types,
     4: string tableName,
   );
+
+  AclStatCountInfo getDefaultAclTableStatCountInfo();
+
+  bool isAclStatDeleted(1: string statName);
 
   bool isMirrorProgrammed(1: switch_state.MirrorFields mirror);
 
@@ -164,4 +178,10 @@ service AgentHwTestCtrl {
   );
 
   bool validateFlowSetTable(1: bool expectFlowsetSizeZero);
+
+  bool verifyEcmpForNonFlowlet(
+    1: CIDRNetwork prefix,
+    2: switch_state.SwitchSettingsFields settings,
+    3: bool expectFlowsetFree,
+  );
 }

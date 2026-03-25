@@ -6,6 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+include "thrift/annotation/thrift.thrift"
+
+@thrift.AllowLegacyMissingUris
+package;
+
 namespace cpp2 facebook.fboss.sdkcastle
 namespace py3 facebook.fboss.sdkcastle
 
@@ -45,8 +50,8 @@ enum BootType {
 }
 
 enum NpuMode {
-  SINGLE = 0,
-  MULTI = 1,
+  MONO = 0,
+  MULTI_SWITCH = 1,
 }
 
 enum MultiStage {
@@ -85,13 +90,22 @@ struct HwTestsSpec {
 struct AgentTestsSpec {
   1: string testName;
   2: CommonTestSpec commonTestSpec;
-  3: optional NpuMode npuMode;
+  3: NpuMode npuMode = NpuMode.MONO;
+  4: optional MultiStage multiStage;
+}
+
+struct AgentScaleTestsSpec {
+  1: string testName;
+  2: CommonTestSpec commonTestSpec;
+  3: NpuMode npuMode = NpuMode.MONO;
   4: optional MultiStage multiStage;
 }
 
 struct NWarmbootTestsSpec {
   1: string testName;
   2: CommonTestSpec commonTestSpec;
+  3: NpuMode npuMode = NpuMode.MONO;
+  4: optional string numIterations;
 }
 
 struct LinkTestsSpec {
@@ -99,7 +113,7 @@ struct LinkTestsSpec {
   2: CommonTestSpec commonTestSpec;
 }
 
-struct SpecTestsSpec {
+struct ConfigTestsSpec {
   1: string testName;
   2: CommonTestSpec commonTestSpec;
 }
@@ -114,8 +128,9 @@ struct TestSpec {
   2: optional list<AgentTestsSpec> agentTests;
   3: optional list<NWarmbootTestsSpec> nWarmbootTests;
   4: optional list<LinkTestsSpec> linkTests;
-  5: optional list<SpecTestsSpec> configTests;
+  5: optional list<ConfigTestsSpec> configTests;
   6: optional list<BenchmarkTestsSpec> benchmarkTests;
+  7: optional list<AgentScaleTestsSpec> agentScaleTests;
 }
 
 struct SdkcastleSpec {

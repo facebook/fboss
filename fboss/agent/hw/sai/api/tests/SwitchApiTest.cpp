@@ -685,3 +685,58 @@ TEST_F(SwitchApiTest, testPfcMonitorEnable) {
           switchId, SaiSwitchTraits::Attributes::PfcMonitorEnable{}),
       false);
 }
+
+TEST_F(SwitchApiTest, testCablePropagationDelayMeasurement) {
+  // Test default value
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      false);
+
+  // Test setting to true
+  SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement
+      cablePropagationDelayMeasurementEnable{true};
+  switchApi->setAttribute(switchId, cablePropagationDelayMeasurementEnable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      true);
+
+  // Test setting to false
+  SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement
+      cablePropagationDelayMeasurementDisable{false};
+  switchApi->setAttribute(switchId, cablePropagationDelayMeasurementDisable);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId,
+          SaiSwitchTraits::Attributes::CablePropagationDelayMeasurement{}),
+      false);
+}
+
+TEST_F(SwitchApiTest, testSwitchingMode) {
+  // Test default value (STORE_AND_FORWARD)
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::SwitchingMode{}),
+      SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD);
+
+  // Test setting to CUT_THROUGH
+  SaiSwitchTraits::Attributes::SwitchingMode cutThrough{
+      SAI_SWITCH_SWITCHING_MODE_CUT_THROUGH};
+  switchApi->setAttribute(switchId, cutThrough);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::SwitchingMode{}),
+      SAI_SWITCH_SWITCHING_MODE_CUT_THROUGH);
+
+  // Test setting back to STORE_AND_FORWARD
+  SaiSwitchTraits::Attributes::SwitchingMode storeAndForward{
+      SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
+  switchApi->setAttribute(switchId, storeAndForward);
+  EXPECT_EQ(
+      switchApi->getAttribute(
+          switchId, SaiSwitchTraits::Attributes::SwitchingMode{}),
+      SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD);
+}

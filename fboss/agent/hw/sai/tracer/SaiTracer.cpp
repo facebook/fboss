@@ -41,6 +41,7 @@
 #include "fboss/agent/hw/sai/tracer/SaiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SamplePacketApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SchedulerApiTracer.h"
+#include "fboss/agent/hw/sai/tracer/Srv6ApiTracer.h" // @manual
 #include "fboss/agent/hw/sai/tracer/SwitchApiTracer.h"
 #include "fboss/agent/hw/sai/tracer/SwitchPipelineApiTracer.h" // NOLINT(facebook-unused-include-check)
 #include "fboss/agent/hw/sai/tracer/SystemPortApiTracer.h"
@@ -408,6 +409,14 @@ sai_status_t __wrap_sai_api_query(
       *api_method_table = facebook::fboss::wrappedTunnelApi();
       SaiTracer::getInstance()->logApiQuery(sai_api_id, "tunnel_api");
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_API_SRV6:
+      SaiTracer::getInstance()->srv6Api_ =
+          static_cast<sai_srv6_api_t*>(*api_method_table);
+      *api_method_table = facebook::fboss::wrappedSrv6Api();
+      SaiTracer::getInstance()->logApiQuery(sai_api_id, "srv6_api");
+      break;
+#endif
     case SAI_API_UDF:
       SaiTracer::getInstance()->udfApi_ =
           static_cast<sai_udf_api_t*>(*api_method_table);
@@ -798,6 +807,40 @@ void SaiTracer::logInsegEntryCreateFn(
   writeToFile(lines);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+void SaiTracer::logMySidEntryCreateFn(
+    const sai_my_sid_entry_t* my_sid_entry,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines =
+      setAttrList(attr_list, attr_count, SAI_OBJECT_TYPE_MY_SID_ENTRY);
+
+  setMySidEntry(my_sid_entry, lines);
+
+  lines.push_back(logTimeAndRv(rv));
+
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_MY_SID_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "create_my_sid_entry(&ms_e,",
+          attr_count,
+          ",s_a)"));
+
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+#endif
+
 std::string SaiTracer::logCreateFn(
     const string& fn_name,
     sai_object_id_t* create_object_id,
@@ -824,6 +867,175 @@ std::string SaiTracer::logCreateFn(
 
   writeToFile(lines, /*linefeed*/ false);
   return varName;
+}
+
+void SaiTracer::logBulkCreateFn(
+    const std::string& fn_name,
+    sai_object_id_t switch_id,
+    uint32_t object_count,
+    const uint32_t* attr_count,
+    const sai_attribute_t** attr_list,
+    sai_bulk_op_error_mode_t mode,
+    sai_object_id_t* object_id,
+    sai_status_t* object_statuses,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  // Calculate total attributes needed for all objects
+  uint32_t totalAttrs = 0;
+  for (uint32_t i = 0; i < object_count; ++i) {
+    totalAttrs += attr_count[i];
+  }
+  checkAttrCount(totalAttrs);
+
+  vector<string> lines{};
+  // Pre-allocate capacity to avoid repeated reallocations in loops
+  // Estimate: 2 memset + object_count attr_list_ptrs + 1 memset +
+  // object_count attr_counts + object_count*attrs + 1 timestamp +
+  // 1 bulk call + object_count statuses + 1 rv check
+  lines.reserve(5 + 3 * object_count + totalAttrs);
+
+  // Initialize the main attribute array and attr_list_ptrs
+  lines.push_back(to<string>("memset(s_a,0,ATTR_SIZE*", maxAttrCount_, ")"));
+  lines.push_back(
+      to<string>(
+          "memset(attr_list_ptrs,0,sizeof(sai_attribute_t*)*",
+          FLAGS_default_list_size,
+          ")"));
+
+  // Set up attr_list_ptrs array to point to the correct positions in s_a
+  int attributeIndexInSa = 0;
+  for (uint32_t i = 0; i < object_count; ++i) {
+    lines.push_back(
+        to<string>("attr_list_ptrs[", i, "]=&s_a[", attributeIndexInSa, "]"));
+    attributeIndexInSa += attr_count[i];
+  }
+
+  // Setup attr_count array
+  lines.push_back(
+      to<string>(
+          "memset(attr_count_list,0,sizeof(uint32_t)*",
+          FLAGS_default_list_size,
+          ")"));
+  for (uint32_t i = 0; i < object_count; ++i) {
+    lines.push_back(to<string>("attr_count_list[", i, "]=", attr_count[i]));
+  }
+
+  // Process each object's attributes
+  for (uint32_t i = 0; i < object_count; ++i) {
+    lines.push_back(to<string>("// Object ", i, " attributes:"));
+
+    // Get attribute values for this object using setAttrList
+    auto objAttrLines =
+        setAttrList(attr_list[i], attr_count[i], object_type, 0);
+
+    // Skip the first line (memset) and replace all s_a occurrences with
+    // attr_list_ptrs[i]
+    for (size_t lineIdx = 1; lineIdx < objAttrLines.size(); ++lineIdx) {
+      string line = objAttrLines[lineIdx];
+      string replacement = to<string>("attr_list_ptrs[", i, "]");
+      size_t pos = 0;
+      while ((pos = line.find("s_a", pos)) != string::npos) {
+        line.replace(pos, 3, replacement);
+        pos += replacement.length();
+      }
+      lines.push_back(line);
+    }
+  }
+
+  // Log current timestamp and return value
+  lines.push_back(logTimeAndRv(rv, SAI_NULL_OBJECT_ID));
+
+  // Make the bulk create call
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          getVariable(switch_id),
+          ",",
+          object_count,
+          ",attr_count_list,(const sai_attribute_t**)attr_list_ptrs,(sai_bulk_op_error_mode_t)",
+          mode,
+          ",obj_list,object_statuses)"));
+
+  // Log object IDs and statuses for each object
+  for (uint32_t i = 0; i < object_count; ++i) {
+    std::ostringstream outStringStream;
+    outStringStream << "// object_id[" << i << "]: " << object_id[i] << " (0x"
+                    << std::hex << object_id[i] << ") status: " << std::dec
+                    << object_statuses[i];
+    lines.push_back(outStringStream.str());
+  }
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+
+void SaiTracer::logBulkRemoveFn(
+    const std::string& fn_name,
+    uint32_t object_count,
+    const sai_object_id_t* object_id,
+    sai_bulk_op_error_mode_t mode,
+    sai_status_t* object_statuses,
+    sai_object_type_t object_type,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines{};
+  // Pre-allocate capacity to avoid repeated reallocations in loops
+  // Estimate: object_count obj_list + 1 timestamp + 1 bulk call +
+  // object_count statuses + 1 rv check
+  lines.reserve(3 + 2 * object_count);
+
+  // Setup object ids in obj_list
+  for (uint32_t i = 0; i < object_count; ++i) {
+    lines.push_back(
+        to<string>("obj_list[", i, "]=", getVariable(object_id[i])));
+  }
+
+  // Log current timestamp and return value
+  lines.push_back(logTimeAndRv(rv, SAI_NULL_OBJECT_ID));
+
+  // Make the bulk remove call
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              object_type,
+              "Unsupported Sai Object type in Sai Tracer"),
+          fn_name,
+          "(",
+          object_count,
+          ",obj_list,(sai_bulk_op_error_mode_t)",
+          mode,
+          ",object_statuses)"));
+
+  // Log object IDs and statuses for each object
+  for (uint32_t i = 0; i < object_count; ++i) {
+    std::ostringstream outStringStream;
+    outStringStream << "// object_id[" << i << "]: " << object_id[i] << " (0x"
+                    << std::hex << object_id[i] << ") status: " << std::dec
+                    << object_statuses[i];
+    lines.push_back(outStringStream.str());
+  }
+
+  // Check return value to be the same as the original run
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
 }
 
 void SaiTracer::logRouteEntryRemoveFn(const sai_route_entry_t* route_entry) {
@@ -929,6 +1141,34 @@ void SaiTracer::logInsegEntryRemoveFn(
 
   writeToFile(lines);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+void SaiTracer::logMySidEntryRemoveFn(
+    const sai_my_sid_entry_t* my_sid_entry,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines{};
+  setMySidEntry(my_sid_entry, lines);
+
+  lines.push_back(logTimeAndRv(rv));
+
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_MY_SID_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "remove_my_sid_entry(&ms_e)"));
+
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+#endif
 
 void SaiTracer::logRemoveFn(
     const string& fn_name,
@@ -1081,6 +1321,36 @@ void SaiTracer::logInsegEntrySetAttrFn(
 
   writeToFile(lines);
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+void SaiTracer::logMySidEntrySetAttrFn(
+    const sai_my_sid_entry_t* my_sid_entry,
+    const sai_attribute_t* attr,
+    sai_status_t rv) {
+  if (!FLAGS_enable_replayer) {
+    return;
+  }
+
+  vector<string> lines = setAttrList(attr, 1, SAI_OBJECT_TYPE_MY_SID_ENTRY);
+
+  setMySidEntry(my_sid_entry, lines);
+
+  lines.push_back(logTimeAndRv(rv));
+
+  lines.push_back(
+      to<string>(
+          "rv=",
+          folly::get_or_throw(
+              fnPrefix_,
+              SAI_OBJECT_TYPE_MY_SID_ENTRY,
+              "Unsupported Sai Object type in Sai Tracer"),
+          "set_my_sid_entry_attribute(&ms_e,s_a)"));
+
+  lines.push_back(rvCheck(rv));
+
+  writeToFile(lines);
+}
+#endif
 
 // Prior to GET calls, log the attributes used for GET.
 void SaiTracer::logAttrPreGet(
@@ -1760,6 +2030,14 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY:
       setTunnelTermAttributes(attr_list, attr_count, attrLines, rv);
       break;
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    case SAI_OBJECT_TYPE_SRV6_SIDLIST:
+      setSrv6SidListAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+    case SAI_OBJECT_TYPE_MY_SID_ENTRY:
+      setMySidEntryAttributes(attr_list, attr_count, attrLines, rv);
+      break;
+#endif
     case SAI_OBJECT_TYPE_UDF:
       setUdfAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -1982,6 +2260,38 @@ void SaiTracer::setRouteEntry(
     lines.push_back(maskOutStringStream.str());
   }
 }
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+void SaiTracer::setMySidEntry(
+    const sai_my_sid_entry_t* my_sid_entry,
+    vector<string>& lines) {
+  lines.push_back(
+      to<string>("ms_e.switch_id=", getVariable(my_sid_entry->switch_id)));
+  lines.push_back(to<string>("ms_e.vr_id=", getVariable(my_sid_entry->vr_id)));
+  lines.push_back(
+      to<string>("ms_e.locator_block_len=", my_sid_entry->locator_block_len));
+  lines.push_back(
+      to<string>("ms_e.locator_node_len=", my_sid_entry->locator_node_len));
+  lines.push_back(to<string>("ms_e.function_len=", my_sid_entry->function_len));
+  lines.push_back(to<string>("ms_e.args_len=", my_sid_entry->args_len));
+
+  folly::IPAddressV6 sidAddr =
+      facebook::fboss::fromSaiIpAddress(my_sid_entry->sid);
+  lines.push_back(to<string>("// ", sidAddr.str()));
+
+  // SID is sai_ip6_t (uint8_t[16])
+  lines.emplace_back("u=ms_e.sid");
+  lines.emplace_back("memset(u,0,16)");
+  std::ostringstream sidOutStringStream;
+  for (int i = 0; i < 16; ++i) {
+    if (my_sid_entry->sid[i] != 0) {
+      sidOutStringStream << to<string>("u[", i, "]=", my_sid_entry->sid[i])
+                         << ";";
+    }
+  }
+  lines.push_back(sidOutStringStream.str());
+}
+#endif
 
 string SaiTracer::rvCheck(sai_status_t rv) {
   return to<string>("rvCheck(rv,", rv, ",", numCalls_++, ")");
@@ -2240,6 +2550,10 @@ void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_TAM, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, 0);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  varCounts_.emplace(SAI_OBJECT_TYPE_SRV6_SIDLIST, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_MY_SID_ENTRY, 0);
+#endif
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_MATCH, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_UDF_GROUP, 0);

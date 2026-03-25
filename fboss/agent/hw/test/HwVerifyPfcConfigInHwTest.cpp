@@ -58,6 +58,13 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
     return {0, 7};
   }
 
+  std::vector<PortID> portIdsForTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds();
+    }
+    return masterLogicalInterfacePortIds();
+  }
+
   void addPfcConfig(
       cfg::SwitchConfig& cfg,
       const HwSwitch* /*hwSwitch*/,
@@ -129,16 +136,12 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
   void runPfcWatchdogTest(const cfg::PfcWatchdog& pfcWatchdogConfig) {
     auto setup = [=, this]() {
       auto cfg = initialConfig();
-      setupPfcAndPfcWatchdog(
-          cfg, masterLogicalInterfacePortIds()[0], pfcWatchdogConfig);
+      setupPfcAndPfcWatchdog(cfg, this->portIdsForTest()[0], pfcWatchdogConfig);
     };
 
     auto verify = [=, this]() {
       utility::pfcWatchdogProgrammingMatchesConfig(
-          getHwSwitch(),
-          masterLogicalInterfacePortIds()[0],
-          true,
-          pfcWatchdogConfig);
+          getHwSwitch(), this->portIdsForTest()[0], true, pfcWatchdogConfig);
     };
 
     verifyAcrossWarmBoots(setup, verify);
@@ -153,7 +156,7 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
       bool pfcTx = false;
 
       utility::getPfcEnabledStatus(
-          getHwSwitch(), masterLogicalInterfacePortIds()[0], pfcRx, pfcTx);
+          getHwSwitch(), this->portIdsForTest()[0], pfcRx, pfcTx);
       EXPECT_EQ(pfcRx, rxEnabled);
       EXPECT_EQ(pfcTx, txEnabled);
     };
@@ -164,13 +167,13 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
   // Verify PFC watchdog is not configured in HW
   void verifyPfcWatchdogNotConfigured() {
     auto currentConfig = initialConfig();
-    setupPfc(currentConfig, masterLogicalInterfacePortIds()[0], true, true);
+    setupPfc(currentConfig, this->portIdsForTest()[0], true, true);
     cfg::PfcWatchdog defaultPfcWatchdogConfig{};
 
     XLOG(DBG0) << "Verify PFC watchdog is disabled by default on enabling PFC";
     utility::pfcWatchdogProgrammingMatchesConfig(
         getHwSwitch(),
-        masterLogicalInterfacePortIds()[0],
+        this->portIdsForTest()[0],
         false,
         defaultPfcWatchdogConfig);
   }
@@ -198,11 +201,7 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
   void runPfcTest(bool rxEnabled, bool txEnabled) {
     auto setup = [=, this]() {
       auto currentConfig = initialConfig();
-      setupPfc(
-          currentConfig,
-          masterLogicalInterfacePortIds()[0],
-          rxEnabled,
-          txEnabled);
+      setupPfc(currentConfig, this->portIdsForTest()[0], rxEnabled, txEnabled);
     };
 
     auto verify = [=, this]() {
@@ -210,7 +209,7 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
       bool pfcTx = false;
 
       utility::getPfcEnabledStatus(
-          getHwSwitch(), masterLogicalInterfacePortIds()[0], pfcRx, pfcTx);
+          getHwSwitch(), this->portIdsForTest()[0], pfcRx, pfcTx);
 
       EXPECT_EQ(pfcRx, rxEnabled);
       EXPECT_EQ(pfcTx, txEnabled);
@@ -277,7 +276,8 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
            2000,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Verify PFC watchdog deadlock detection timer outside range with 1600msec"});
-    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    } else if (
+        getAsic()->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
       wdParams.push_back(
           {200,
@@ -289,7 +289,9 @@ class HwVerifyPfcConfigInHwTest : public HwTest {
            2000,
            cfg::PfcWatchdogRecoveryAction::DROP,
            "Verify PFC watchdog deadlock detection timer longer value"});
-    } else if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA) {
+    } else if (
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+        getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
       // YUBA supports a min timer value of 25msec and max of 10sec. In the
       // supported range, timer value as a multiple of 25msec is expected.
       wdParams.push_back(
@@ -359,7 +361,7 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcRxEnabledTxEnabled) {
 // This test will be retained as a HwTest given there is a lot of programming
 // followed by reading back from HW.
 TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
-  auto portId = masterLogicalInterfacePortIds()[0];
+  auto portId = this->portIdsForTest()[0];
   cfg::PfcWatchdog prodPfcWdConfig;
   // The granularity of PFC deadlock timer config in J3 is such that a
   // config of 200 msec results in 198 msec being programmed in HW. To
@@ -393,7 +395,7 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
 
     // All PFC WD configuration combinations to test
     std::vector<PfcWdTestConfigs> configTest;
-    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (getAsic()->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
       configTest.push_back(
           {200,
@@ -450,8 +452,8 @@ TEST_F(HwVerifyPfcConfigInHwTest, PfcWatchdogProgrammingSequence) {
     }
 
     // PFC watchdog deadlock config on multiple ports
-    auto portId2 = masterLogicalInterfacePortIds()[1];
-    if (getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    auto portId2 = this->portIdsForTest()[1];
+    if (getAsic()->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // Chenab ASIC requires at minimum 200ms DLD/ 400ms DLR intervals
       setupPfcWdAndValidateProgramming(
           {200,

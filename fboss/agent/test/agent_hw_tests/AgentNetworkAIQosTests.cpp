@@ -13,6 +13,7 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 constexpr int kPayloadSize = 4500;
 DEFINE_int32(lossy_queue_test_qmin, 5000, "Queue min guarantee in bytes");
@@ -34,7 +35,7 @@ class AgentNetworkAIQosTests : public AgentQosTestBase {
     utility::addNetworkAIQueueConfig(
         &cfg, streamType, cfg::QueueScheduling::STRICT_PRIORITY, hwAsic);
     utility::addNetworkAIQosMaps(cfg, ensemble.getL3Asics());
-    if (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_CHENAB) {
+    if (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       utility::setDefaultCpuTrafficPolicyConfig(
           cfg, ensemble.getL3Asics(), ensemble.isSai());
       utility::addCpuQueueConfig(cfg, ensemble.getL3Asics(), ensemble.isSai());
@@ -142,9 +143,9 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 

@@ -34,6 +34,10 @@ class Utils {
   // Throws an exception when it fails to resolve CharDevicePath
   std::string resolveWatchdogCharDevPath(const std::string& sysfsPath);
 
+  // Explore and resolve MdioBus's CharDevicePath for given SysfsPath.
+  // Throws an exception when it fails to resolve CharDevicePath
+  std::string resolveMdioBusCharDevPath(uint32_t instanceId);
+
   bool checkDeviceReadiness(
       std::function<bool()>&& isDeviceReadyFunc,
       const std::string& onWaitMsg,
@@ -62,9 +66,24 @@ class Utils {
   // Replace hex literals with decimal values in expression string
   std::string convertHexLiteralsToDecimal(const std::string& expression);
 
+  // Create the I2C Adapter Config block based on the given I2cAdapterConfig
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
+  static std::vector<I2cAdapterConfig> createI2cAdapterConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
+
   // Create the XCVR Controller Config block based on the given xcvrCtrlConfig
   // residing at the given PciDevice. Throw std::runtime_error on failure.
   static std::vector<XcvrCtrlConfig> createXcvrCtrlConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
+
+  // Create the LED Controller Config block based on the given ledCtrlConfig
+  // residing at the given PciDevice. Throw std::runtime_error on failure.
+  static std::vector<LedCtrlConfig> createLedCtrlConfigs(
+      const PciDeviceConfig& pciDeviceConfig);
+
+  // Create the MDIO BUS Controller Config block residing at the given
+  // PciDevice. Throw std::runtime_error on failure.
+  static std::vector<FpgaIpBlockConfig> createMdioBusConfigs(
       const PciDeviceConfig& pciDeviceConfig);
 };
 

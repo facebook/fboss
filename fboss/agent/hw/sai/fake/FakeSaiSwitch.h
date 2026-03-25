@@ -40,17 +40,17 @@ class FakeSwitch {
   void setShellStatus(bool enabled) {
     shellEnabled_ = enabled;
   }
-  void setEcmpHashV4Id(const sai_object_id_t id) {
-    ecmpHashV4_ = id;
+  void setEcmpHashV4Id(const sai_object_id_t oid) {
+    ecmpHashV4_ = oid;
   }
-  void setEcmpHashV6Id(const sai_object_id_t id) {
-    ecmpHashV6_ = id;
+  void setEcmpHashV6Id(const sai_object_id_t oid) {
+    ecmpHashV6_ = oid;
   }
-  void setLagHashV4Id(const sai_object_id_t id) {
-    lagHashV4_ = id;
+  void setLagHashV4Id(const sai_object_id_t oid) {
+    lagHashV4_ = oid;
   }
-  void setLagHashV6Id(const sai_object_id_t id) {
-    lagHashV6_ = id;
+  void setLagHashV6Id(const sai_object_id_t oid) {
+    lagHashV6_ = oid;
   }
   void setEcmpSeed(sai_uint32_t seed) {
     ecmpSeed_ = seed;
@@ -240,8 +240,8 @@ class FakeSwitch {
     counterRefreshInterval_ = interval;
   }
 
-  void setDefaultVlanId(sai_object_id_t id) {
-    defaultVlanId_ = id;
+  void setDefaultVlanId(sai_object_id_t oid) {
+    defaultVlanId_ = oid;
   }
 
   sai_object_id_t getDefaultVlanId() const {
@@ -298,6 +298,22 @@ class FakeSwitch {
     return pfcMonitorEnable_;
   }
 
+  void setCablePropagationDelayMeasurement(bool enable) {
+    cablePropagationDelayMeasurement_ = enable;
+  }
+
+  bool getCablePropagationDelayMeasurement() {
+    return cablePropagationDelayMeasurement_;
+  }
+
+  void setSwitchingMode(sai_int32_t mode) {
+    switchingMode_ = mode;
+  }
+
+  sai_int32_t getSwitchingMode() const {
+    return switchingMode_;
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -352,6 +368,8 @@ class FakeSwitch {
   sai_packet_action_t pfcDlrPacketAction_{SAI_PACKET_ACTION_DROP};
   sai_object_id_t tamObjectId_{SAI_NULL_OBJECT_ID};
   bool pfcMonitorEnable_{false};
+  bool cablePropagationDelayMeasurement_{false};
+  sai_int32_t switchingMode_{SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;

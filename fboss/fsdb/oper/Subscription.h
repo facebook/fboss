@@ -4,14 +4,17 @@
 
 #include "fboss/fsdb/common/Utils.h"
 #include "fboss/fsdb/if/FsdbModel.h"
+#include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_oper_types.h"
 #include "fboss/fsdb/oper/DeltaValue.h"
 #include "fboss/fsdb/oper/SubscriptionCommon.h"
 #include "fboss/fsdb/oper/SubscriptionMetadataServer.h"
+#include "fboss/fsdb/oper/SubscriptionServeQueue.h"
 #include "fboss/thrift_cow/gen-cpp2/patch_types.h"
 
 #include <boost/core/noncopyable.hpp>
+#include <fb303/ThreadCachedServiceData.h>
 #include <folly/coro/AsyncPipe.h>
 #include <folly/coro/AsyncScope.h>
 #include <folly/io/async/EventBase.h>
@@ -20,6 +23,10 @@
 DECLARE_bool(forceCloseSlowSubscriber);
 
 namespace facebook::fboss::fsdb {
+
+// Counter name for tracking subscription serve coalescing events
+inline constexpr auto kNumSubscriptionServesCoalesced =
+    "num_subscription_serves_coalesced";
 
 class BaseSubscription {
  public:
@@ -50,6 +57,10 @@ class BaseSubscription {
   virtual bool isActive() const = 0;
 
   void requestPruneWithReason(FsdbErrorCode reason) {
+    if (reason == FsdbErrorCode::SUBSCRIPTION_SERVE_UPDATES_PENDING) {
+      // don't prune, we will retry later
+      return;
+    }
     pruneReason_ = reason;
   }
 
@@ -116,6 +127,22 @@ class BaseSubscription {
     return *queueWatermark_.rlock();
   }
 
+  uint32_t getChunksCoalesced() const {
+    return *chunksCoalesced_.rlock();
+  }
+
+  uint64_t getEnqueuedDataSize() const {
+    return streamInfo_->enqueuedDataSize.load();
+  }
+
+  uint64_t getServedDataSize() const {
+    return streamInfo_->servedDataSize.load();
+  }
+
+  std::shared_ptr<SubscriptionStreamInfo> getSharedStreamInfo() {
+    return streamInfo_;
+  }
+
   void stop();
 
  protected:
@@ -130,7 +157,8 @@ class BaseSubscription {
   std::optional<FsdbErrorCode> tryWrite(
       folly::coro::BoundedAsyncPipe<T>& pipe,
       V&& val,
-      const std::string& dbgStr) {
+      size_t updateSize,
+      const std::string& /* dbgStr */) {
     std::optional<FsdbErrorCode> ret{std::nullopt};
     queueWatermark_.withWLock([&](auto& queueWatermark) {
       auto queuedChunks = pipe.getOccupiedSpace();
@@ -158,8 +186,46 @@ class BaseSubscription {
                     << " pipe full, update dropped!";
         }
       }
+    } else {
+      streamInfo_->enqueuedDataSize.fetch_add(updateSize);
     }
     return ret;
+  }
+
+  template <typename T, typename V>
+  std::optional<FsdbErrorCode> tryCoalescingWrite(
+      folly::coro::BoundedAsyncPipe<T>& pipe,
+      std::optional<V>& val,
+      const std::string& /* dbgStr */) {
+    auto queuedChunks = pipe.getOccupiedSpace();
+    bool isCoalescing = queuedChunks > 1;
+
+    // Increment counter when we transition from not coalescing to coalescing
+    if (isCoalescing && !isCurrentlyCoalescing_) {
+      isCurrentlyCoalescing_ = true;
+      numSubscriptionServesCoalescedCounter_.addValue(1);
+    } else if (!isCoalescing && isCurrentlyCoalescing_) {
+      isCurrentlyCoalescing_ = false;
+    }
+
+    if (isCoalescing) {
+      XLOG(DBG2) << "Subscription " << subscriberId()
+                 << " pending chunks, coalesce update";
+      chunksCoalesced_.withWLock(
+          [&](auto& chunksCoalesced) { chunksCoalesced++; });
+      return FsdbErrorCode::SUBSCRIPTION_SERVE_UPDATES_PENDING;
+    }
+
+    // try_write moves object only if there is space in the pipe
+    // NOLINTNEXTLINE(bugprone-use-after-move)
+    if (pipe.try_write(std::move(val.value()))) {
+      val.reset();
+    } else {
+      XLOG(DBG0) << "Subscription " << subscriberId()
+                 << " pipe closed, skip write";
+    }
+
+    return std::nullopt;
   }
 
  private:
@@ -172,8 +238,13 @@ class BaseSubscription {
   folly::coro::CancellableAsyncScope backgroundScope_;
   std::chrono::milliseconds heartbeatInterval_;
   folly::Synchronized<uint32_t> queueWatermark_{0};
+  folly::Synchronized<uint32_t> chunksCoalesced_{0};
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
   std::optional<OperMetadata> lastServedMetadata_;
+  std::shared_ptr<SubscriptionStreamInfo> streamInfo_;
+  bool isCurrentlyCoalescing_{false};
+  fb303::ThreadCachedServiceData::TLTimeseries
+      numSubscriptionServesCoalescedCounter_;
 };
 
 class Subscription : public BaseSubscription {
@@ -276,6 +347,11 @@ class BasePathSubscription : public Subscription {
   PubSubType type() const override {
     return PubSubType::PATH;
   }
+
+  size_t getUpdateSize(const auto& /* val */) {
+    // we don't track update sizes for path subscriptions
+    return 0;
+  }
 };
 
 class PathSubscription : public BasePathSubscription,
@@ -289,7 +365,8 @@ class PathSubscription : public BasePathSubscription,
   using PathIter = std::vector<std::string>::const_iterator;
 
   std::optional<FsdbErrorCode> offer(DeltaValue<OperState> newVal) override {
-    return tryWrite(pipe_, std::move(newVal), "path.offer");
+    nextOffered_ = std::move(newVal);
+    return tryCoalescingWrite(pipe_, nextOffered_, "path.offer");
   }
 
   bool isActive() const override {
@@ -331,13 +408,16 @@ class PathSubscription : public BasePathSubscription,
     tryWrite(
         pipe_,
         Utils::createFsdbException(disconnectReason, msg),
+        0 /* updateSize */,
         "path.pubsGone");
   }
 
   std::optional<FsdbErrorCode> flush(
       const SubscriptionMetadataServer& metadataServer) override {
     updateMetadata(metadataServer);
-    // no-op, we write directly to the pipe in offer
+    if (nextOffered_.has_value()) {
+      return tryCoalescingWrite(pipe_, nextOffered_, "path.flush");
+    }
     return std::nullopt;
   }
 
@@ -350,7 +430,7 @@ class PathSubscription : public BasePathSubscription,
     if (md.has_value()) {
       t.newVal->metadata() = md.value();
     }
-    return tryWrite(pipe_, std::move(t), "path.hb");
+    return tryWrite(pipe_, std::move(t), 0 /* updateSize */, "path.hb");
   }
 
   PathSubscription(
@@ -372,6 +452,7 @@ class PathSubscription : public BasePathSubscription,
 
  private:
   folly::coro::BoundedAsyncPipe<value_type> pipe_;
+  std::optional<DeltaValue<OperState>> nextOffered_;
 };
 
 class BaseDeltaSubscription : public Subscription {
@@ -426,7 +507,7 @@ class DeltaSubscription : public BaseDeltaSubscription,
       override;
 
   static std::pair<
-      folly::coro::AsyncGenerator<OperDelta&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<OperDelta>&&>,
       std::unique_ptr<DeltaSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -436,16 +517,21 @@ class DeltaSubscription : public BaseDeltaSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   DeltaSubscription(
       SubscriptionIdentifier&& subscriber,
       std::vector<std::string> path,
-      folly::coro::BoundedAsyncPipe<OperDelta> pipe,
+      folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<OperDelta>>
+          pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval)
+      std::chrono::milliseconds heartbeatInterval,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0)
       : BaseDeltaSubscription(
             std::move(subscriber),
             std::move(path),
@@ -453,12 +539,20 @@ class DeltaSubscription : public BaseDeltaSubscription,
             std::move(publisherTreeRoot),
             heartbeatEvb,
             std::move(heartbeatInterval)),
-        pipe_(std::move(pipe)) {}
+        pipe_(std::move(pipe)),
+        subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
+        subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
+
+  size_t getUpdateSize(const OperDelta& val) {
+    return getOperDeltaSize(val);
+  }
 
   std::optional<FsdbErrorCode> serveHeartbeat() override;
 
  private:
-  folly::coro::BoundedAsyncPipe<OperDelta> pipe_;
+  folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<OperDelta>> pipe_;
+  size_t subscriptionQueueMemoryLimit_;
+  int32_t subscriptionQueueFullMinSize_;
 };
 
 class ExtendedPathSubscription;
@@ -509,7 +603,7 @@ class ExtendedPathSubscription : public ExtendedSubscription,
       const SubscriptionMetadataServer& metadataServer) override;
 
   std::optional<FsdbErrorCode> serveHeartbeat() override {
-    return tryWrite(pipe_, gen_type(), "ExtPath.hb");
+    return tryWrite(pipe_, gen_type(), 0 /* updateSize */, "ExtPath.hb");
   }
 
   PubSubType type() const override {
@@ -558,9 +652,15 @@ class ExtendedPathSubscription : public ExtendedSubscription,
             std::move(heartbeatInterval)),
         pipe_(std::move(pipe)) {}
 
+  size_t getUpdateSize(const auto& /* val */) {
+    // we don't track update sizes for path subscriptions
+    return 0;
+  }
+
  private:
   folly::coro::BoundedAsyncPipe<gen_type> pipe_;
   std::optional<gen_type> buffered_;
+  std::optional<gen_type> nextOffered_;
 };
 
 class ExtendedDeltaSubscription;
@@ -614,7 +714,7 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       const std::vector<std::string>& path) override;
 
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::shared_ptr<ExtendedDeltaSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -623,7 +723,9 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
       OperProtocol protocol,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   void buffer(TaggedOperDelta&& newVal);
 
@@ -644,11 +746,14 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
   ExtendedDeltaSubscription(
       SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
-      folly::coro::BoundedAsyncPipe<value_type> pipe,
+      folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<value_type>>
+          pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval)
+      std::chrono::milliseconds heartbeatInterval,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0)
       : ExtendedSubscription(
             std::move(subscriber),
             std::move(paths),
@@ -656,11 +761,19 @@ class ExtendedDeltaSubscription : public ExtendedSubscription,
             std::move(publisherTreeRoot),
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
-        pipe_(std::move(pipe)) {}
+        pipe_(std::move(pipe)),
+        subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
+        subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
+
+  size_t getUpdateSize(const gen_type& val) {
+    return getExtendedDeltaSize(val);
+  }
 
  private:
-  folly::coro::BoundedAsyncPipe<gen_type> pipe_;
+  folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
   std::optional<gen_type> buffered_;
+  size_t subscriptionQueueMemoryLimit_;
+  int32_t subscriptionQueueFullMinSize_;
 };
 
 class ExtendedPatchSubscription;
@@ -713,7 +826,7 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
 
   // Single path
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -722,11 +835,13 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   // Multipath
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -735,11 +850,13 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   // Extended paths
   static std::pair<
-      folly::coro::AsyncGenerator<gen_type&&>,
+      folly::coro::AsyncGenerator<SubscriptionServeQueueElement<gen_type>&&>,
       std::unique_ptr<ExtendedPatchSubscription>>
   create(
       SubscriptionIdentifier&& subscriber,
@@ -748,16 +865,21 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
       std::optional<std::string> publisherRoot,
       folly::EventBase* heartbeatEvb,
       std::chrono::milliseconds heartbeatInterval,
-      int32_t pipeCapacity);
+      int32_t pipeCapacity,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0);
 
   ExtendedPatchSubscription(
       SubscriptionIdentifier&& subscriber,
       ExtSubPathMap paths,
-      folly::coro::BoundedAsyncPipe<gen_type> pipe,
+      folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>>
+          pipe,
       OperProtocol protocol,
       std::optional<std::string> publisherTreeRoot,
       folly::EventBase* heartbeatEvb,
-      std::chrono::milliseconds heartbeatInterval)
+      std::chrono::milliseconds heartbeatInterval,
+      size_t subscriptionQueueMemoryLimit = 0,
+      int32_t subscriptionQueueFullMinSize = 0)
       : ExtendedSubscription(
             std::move(subscriber),
             std::move(paths),
@@ -765,7 +887,9 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
             std::move(publisherTreeRoot),
             std::move(heartbeatEvb),
             std::move(heartbeatInterval)),
-        pipe_(std::move(pipe)) {}
+        pipe_(std::move(pipe)),
+        subscriptionQueueMemoryLimit_(subscriptionQueueMemoryLimit),
+        subscriptionQueueFullMinSize_(subscriptionQueueFullMinSize) {}
 
   PubSubType type() const override {
     return PubSubType::PATCH;
@@ -787,12 +911,24 @@ class ExtendedPatchSubscription : public ExtendedSubscription,
   void allPublishersGone(FsdbErrorCode disconnectReason, const std::string& msg)
       override;
 
+  size_t getUpdateSize(const SubscriberChunk& val) {
+    size_t totalSize = 0;
+    for (const auto& [key, patchList] : *val.patchGroups()) {
+      for (const auto& patch : patchList) {
+        totalSize += getPatchNodeSize(*patch.patch());
+      }
+    }
+    return totalSize;
+  }
+
  private:
   std::optional<SubscriberChunk> moveCurChunk(
       const SubscriptionMetadataServer& metadataServer);
 
   std::map<SubscriptionKey, std::vector<Patch>> buffered_;
-  folly::coro::BoundedAsyncPipe<gen_type> pipe_;
+  folly::coro::BoundedAsyncPipe<SubscriptionServeQueueElement<gen_type>> pipe_;
+  size_t subscriptionQueueMemoryLimit_;
+  int32_t subscriptionQueueFullMinSize_;
 };
 
 } // namespace facebook::fboss::fsdb

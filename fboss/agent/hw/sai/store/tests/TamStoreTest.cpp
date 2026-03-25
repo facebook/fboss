@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/store/tests/SaiStoreTest.h"
+#include "fboss/lib/TupleUtils.h"
 
 using namespace facebook::fboss;
 
@@ -72,6 +73,7 @@ class TamStoreTest : public SaiStoreTest {
     sai_int32_t eventId = 1;
     std::vector<sai_object_id_t> extensionsCollectorList{10};
     std::vector<sai_int32_t> packetDropTypeMmu = {3, 4};
+    std::vector<sai_int32_t> packetDropTypeIngress = {5, 6};
     sai_object_id_t agingGroup = 20;
 
     SaiTamEventTraits::CreateAttributes result;
@@ -90,6 +92,9 @@ class TamStoreTest : public SaiStoreTest {
         result) = extensionsCollectorList;
     std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
         result) = packetDropTypeMmu;
+    std::get<
+        std::optional<SaiTamEventTraits::Attributes::PacketDropTypeIngress>>(
+        result) = packetDropTypeIngress;
     std::get<std::optional<SaiTamEventTraits::Attributes::AgingGroup>>(result) =
         agingGroup;
 
@@ -174,7 +179,11 @@ TEST_F(TamStoreTest, loadTam) {
       actionStore.get(SaiTamEventActionTraits::AdapterHostKey{report})
           ->adapterKey(),
       action);
-  EXPECT_EQ(eventStore.get(tamEventTraits(action))->adapterKey(), event);
+  auto eventCreateAttrs = tamEventTraits(action);
+  auto eventAdapterHostKey = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventCreateAttrs);
+  EXPECT_EQ(eventStore.get(eventAdapterHostKey)->adapterKey(), event);
   EXPECT_EQ(tamStore.get(tamTraits(event))->adapterKey(), tam);
 }
 
@@ -415,22 +424,27 @@ TEST_F(TamStoreTest, setObject) {
       GET_ATTR(TamEventAction, ReportType, action->attributes()),
       report->adapterKey());
 
-  auto eventAhk = tamEventTraits(action->adapterKey());
-  auto event = s.get<SaiTamEventTraits>().setObject(eventAhk, eventAhk);
+  auto eventCreateAttrs = tamEventTraits(action->adapterKey());
+  auto eventAhk = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventCreateAttrs);
+  auto event = s.get<SaiTamEventTraits>().setObject(eventAhk, eventCreateAttrs);
 
   EXPECT_EQ(
       GET_ATTR(TamEvent, Type, event->attributes()),
       SAI_TAM_EVENT_TYPE_PACKET_DROP);
   EXPECT_EQ(
       GET_ATTR(TamEvent, ActionList, event->attributes()),
-      std::get<SaiTamEventTraits::Attributes::ActionList>(eventAhk).value());
+      std::get<SaiTamEventTraits::Attributes::ActionList>(eventCreateAttrs)
+          .value());
   EXPECT_EQ(
       GET_ATTR(TamEvent, CollectorList, event->attributes()),
-      std::get<SaiTamEventTraits::Attributes::CollectorList>(eventAhk).value());
+      std::get<SaiTamEventTraits::Attributes::CollectorList>(eventCreateAttrs)
+          .value());
   EXPECT_EQ(
       GET_OPT_ATTR(TamEvent, SwitchEventType, event->attributes()),
       std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
-          eventAhk)
+          eventCreateAttrs)
           .value()
           .value());
 
@@ -454,8 +468,11 @@ TEST_F(TamStoreTest, updateObject) {
   auto action =
       s.get<SaiTamEventActionTraits>().setObject(actionAhk, actionAhk);
 
-  auto eventAhk = tamEventTraits(action->adapterKey());
-  auto event = s.get<SaiTamEventTraits>().setObject(eventAhk, eventAhk);
+  auto eventCreateAttrs = tamEventTraits(action->adapterKey());
+  auto eventAhk = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventCreateAttrs);
+  auto event = s.get<SaiTamEventTraits>().setObject(eventAhk, eventCreateAttrs);
 
   auto transportAhk = tamTransportTraits();
   auto transport =
@@ -476,8 +493,12 @@ TEST_F(TamStoreTest, updateObject) {
 
   std::vector<sai_int32_t> newEvents = {4, 5, 6};
   std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
-      eventAhk) = newEvents;
-  auto updatedEvent = s.get<SaiTamEventTraits>().setObject(eventAhk, eventAhk);
+      eventCreateAttrs) = newEvents;
+  auto updatedEventAhk = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventCreateAttrs);
+  auto updatedEvent =
+      s.get<SaiTamEventTraits>().setObject(updatedEventAhk, eventCreateAttrs);
   EXPECT_EQ(
       GET_OPT_ATTR(TamEvent, SwitchEventType, updatedEvent->attributes()),
       newEvents);

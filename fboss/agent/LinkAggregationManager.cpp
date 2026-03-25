@@ -277,7 +277,7 @@ void LinkAggregationManager::updateHyperPortState(
   if (!FLAGS_hyper_port) {
     return;
   }
-  cfg::PortState newPortState;
+  cfg::PortState newPortState{cfg::PortState::DISABLED};
   std::optional<PortID> hyperPortId;
   if (!newAggPort) {
     // remove old aggregate port
@@ -319,6 +319,8 @@ void LinkAggregationManager::updateHyperPortState(
                      newPortState](const std::shared_ptr<SwitchState>& state) {
       const auto oldHyperPort =
           state->getPorts()->getNodeIf(hyperPortId.value());
+      CHECK(oldHyperPort) << "hyper port " << (int)hyperPortId.value()
+                          << " not found in state";
       std::shared_ptr<SwitchState> newState{state};
       auto newHyperPort = oldHyperPort->modify(&newState);
       XLOG(DBG2) << "set hyper port " << (int)hyperPortId.value()
@@ -328,45 +330,6 @@ void LinkAggregationManager::updateHyperPortState(
       return newState;
     };
     sw_->updateStateNoCoalescing("set hyper-port state", std::move(updateFn));
-    if (newPortState == cfg::PortState::DISABLED) {
-      // toggle all enabled member ports after hyper port goes down
-      std::vector<PortID> memberPortsToToggle;
-      for (const auto& subPort : newAggPort->sortedSubports()) {
-        const auto memberPort =
-            sw_->getState()->getPorts()->getNodeIf(subPort.portID);
-        if (memberPort->getAdminState() == cfg::PortState::ENABLED) {
-          memberPortsToToggle.push_back(subPort.portID);
-        }
-      }
-      auto disableMemberPortsFn =
-          [memberPortsToToggle](const std::shared_ptr<SwitchState>& state) {
-            std::shared_ptr<SwitchState> newState{state};
-            for (const auto& portId : memberPortsToToggle) {
-              const auto oldMemberPort = state->getPorts()->getNodeIf(portId);
-              auto newMemberPort = oldMemberPort->modify(&newState);
-              XLOG(DBG2) << "set hyper port member " << (int)portId
-                         << " to state DISABLED";
-              newMemberPort->setAdminState(cfg::PortState::DISABLED);
-            }
-            return newState;
-          };
-      auto enableMemberPortsFn =
-          [memberPortsToToggle](const std::shared_ptr<SwitchState>& state) {
-            std::shared_ptr<SwitchState> newState{state};
-            for (const auto& portId : memberPortsToToggle) {
-              const auto oldMemberPort = state->getPorts()->getNodeIf(portId);
-              auto newMemberPort = oldMemberPort->modify(&newState);
-              XLOG(DBG2) << "set hyper port member " << (int)portId
-                         << " to state ENABLED";
-              newMemberPort->setAdminState(cfg::PortState::ENABLED);
-            }
-            return newState;
-          };
-      sw_->updateStateNoCoalescing(
-          "disable hyper-port members", std::move(disableMemberPortsFn));
-      sw_->updateStateNoCoalescing(
-          "enable hyper-port members", std::move(enableMemberPortsFn));
-    }
   }
 }
 
@@ -462,7 +425,7 @@ bool LinkAggregationManager::transmit(LACPDU lacpdu, PortID portID) {
       port->getIngressVlan(),
       LACPDU::EtherType::SLOW_PROTOCOLS);
 
-  writer.writeBE<uint8_t>(LACPDU::EtherSubtype::LACP);
+  writer.writeBE<uint8_t>(static_cast<uint8_t>(LACPDU::EtherSubtype::LACP));
 
   lacpdu.to(&writer);
 

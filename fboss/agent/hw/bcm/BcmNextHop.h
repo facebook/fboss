@@ -7,6 +7,7 @@ extern "C" {
 #include <bcm/types.h>
 }
 
+#include <folly/Utility.h>
 #include "fboss/agent/hw/bcm/BcmHostKey.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/lib/RefMap.h"
@@ -19,9 +20,9 @@ class BcmHostIf;
 class BcmLabeledEgress;
 class BcmLabeledTunnelEgress;
 
-class BcmNextHop {
+class BcmNextHop : public folly::NonCopyableNonMovable {
  public:
-  virtual ~BcmNextHop() {}
+  virtual ~BcmNextHop() = default;
   virtual bcm_if_t getEgressId() const = 0;
   virtual void programToCPU(bcm_if_t intf) = 0;
   virtual bool isProgrammed() const = 0;

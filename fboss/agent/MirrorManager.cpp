@@ -7,7 +7,6 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
-#include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/SwitchState.h"
 
@@ -75,23 +74,10 @@ bool MirrorManager::hasMirrorChanges(const StateDelta& delta) {
   if (!sw_->getState()->getMirrors()->numNodes()) {
     return false;
   }
-  if (!isEmpty(delta.getMirrorsDelta()) || !isEmpty(delta.getFibsDelta())) {
+  if (!isEmpty(delta.getMirrorsDelta())) {
     return true;
   }
-
-  for (const auto& entry : delta.getVlansDelta()) {
-    if (!isEmpty(entry.getArpDelta()) || !isEmpty(entry.getNdpDelta())) {
-      return true;
-    }
-  }
-
-  for (const auto& entry : delta.getIntfsDelta()) {
-    if (!isEmpty(entry.getArpDelta()) || !isEmpty(entry.getNdpDelta())) {
-      return true;
-    }
-  }
-
-  return false;
+  return delta.hasRouteOrNeighborChanges();
 }
 
 } // namespace facebook::fboss

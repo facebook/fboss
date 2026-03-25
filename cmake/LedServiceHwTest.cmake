@@ -12,7 +12,7 @@ target_link_libraries(led_service_hw_test
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
   fboss_common_init
-  error
+  fboss_error
   fboss_types
   led_manager_lib
   common_file_utils

@@ -1,0 +1,11 @@
+distro_infra/parts/ipxe/ipxe
+distro_infra/parts/ipxe/ipxev4.efi
+distro_infra/parts/ipxe/ipxev6.efi
+image_builder/logs
+image_builder/output
+kernel/dist
+distro_cli/.artifacts
+image_builder/templates/centos-09.0/root
+*.iso
+*.tar*
+image_builder/output/

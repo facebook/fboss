@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<image schemaversion="8.3" name="FBOSS-Distro-Image">
+    <description type="system">
+        <author>Chaitanya Tikku</author>
+        <contact>ctikku@nexthop.ai</contact>
+        <specification>FBOSS Distro Image</specification>
+    </description>
+    <profiles>
+        <profile name="FBOSS" description="FBOSS"/>
+    </profiles>
+    <preferences>
+        <version>1.0</version>
+        <packagemanager>dnf4</packagemanager>
+        <bootsplash-theme>charge</bootsplash-theme>
+        <locale>en_US</locale>
+        <keytable>us</keytable>
+        <timezone>UTC</timezone>
+        <rpm-check-signatures>false</rpm-check-signatures>
+    </preferences>
+
+    <preferences profiles="FBOSS">
+        <type image="oem"
+            installpxe="true"
+            bootprofile="uefi"
+            filesystem="btrfs"
+            firmware="uefi"
+            initrd_system="dracut"
+            primary="true"
+            installiso="true"
+            bootpartition="false"
+            kernelcmdline="nomodeset console=ttyS0,57600n8 8250.nr_uarts=1 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
+
+            <bootloader name="grub2" console="serial" serial_line="ttyS0,57600n8"/>
+            <size unit="G">16</size>
+            <oemconfig>
+                <!-- The oem-resize element should be false for a fixed-size disk -->
+                <oem-resize>true</oem-resize>
+                <oem-unattended>true</oem-unattended>
+                <oem-skip-verify>true</oem-skip-verify>
+            </oemconfig>
+        </type>
+        <type image="tbz">
+        </type>
+    </preferences>
+    <users>
+        <user name="root" password="root" pwdformat="plain" groups="root" home="/root"/>
+        <user name="netops" password="netops" pwdformat="plain" groups="netops,wheel" home="/home/netops"/>
+    </users>
+
+    <repository type="rpm-md" alias="CentOS9-ExtrasCommon" sourcetype="metalink">
+        <source path="https://mirrors.centos.org/metalink?repo=centos-extras-sig-extras-common-9-stream&amp;arch=x86_64"/>
+    </repository>
+    <repository type="rpm-md" alias="CentOS9-CRB" sourcetype="metalink">
+        <source path="https://mirrors.centos.org/metalink?repo=centos-crb-9-stream&amp;arch=x86_64"/>
+    </repository>
+    <repository type="rpm-md" alias="CentOS9-AppStream" sourcetype="metalink">
+        <source path="https://mirrors.centos.org/metalink?repo=centos-appstream-9-stream&amp;arch=x86_64"/>
+    </repository>
+    <repository type="rpm-md" alias="CentOS9-BaseOS" sourcetype="metalink">
+        <source path="https://mirrors.centos.org/metalink?repo=centos-baseos-9-stream&amp;arch=x86_64"/>
+    </repository>
+    <repository type="rpm-md" alias="EPEL" >
+        <source path="http://download.fedoraproject.org/pub/epel/9/Everything/x86_64/"/>
+    </repository>
+
+    <repository type="rpm-md" alias="KiwiTools">
+        <source path="https://download.opensuse.org/repositories/Virtualization:/Appliances:/Builder/CentOS_10/"/>
+    </repository>
+
+    <packages type="image">
+        <!-- Do not install any specific kernel package, those are done in config.sh -->
+        <package name="epel-release"/>
+        <package name="syslinux"/>
+        <package name="gdisk"/>
+        <package name="grub2"/>
+        <package name="grub2-efi"/>
+        <package name="grub2-efi-x64-modules"/>
+        <package name="plymouth-theme-charge"/>
+        <package name="audit"/>
+        <package name="dhclient"/>
+        <package name="e2fsprogs"/>
+        <package name="firewalld"/>
+        <package name="hostname"/>
+        <package name="initscripts"/>
+        <package name="iprutils"/>
+        <package name="irqbalance"/>
+        <package name="kbd"/>
+        <package name="kexec-tools"/>
+        <package name="openssh-clients"/>
+        <package name="openssh-server"/>
+        <package name="parted"/>
+        <package name="passwd"/>
+        <package name="policycoreutils"/>
+        <package name="policycoreutils-python-utils"/>
+        <package name="rootfiles"/>
+        <package name="rsyslog"/>
+        <package name="selinux-policy-targeted"/>
+        <package name="xfsprogs"/>
+        <package name="NetworkManager"/>
+        <package name="iputils"/>
+        <package name="net-tools"/>
+        <package name="pciutils"/>
+        <package name="glibc-all-langpacks"/>
+        <package name="pv"/>
+        <package name="parted"/>
+        <package name="dracut-live"/>
+        <package name="dracut-kiwi-oem-dump"/>
+        <package name="dracut-kiwi-live"/>
+        <package name="dracut-kiwi-lib"/>
+        <package name="dracut-kiwi-oem-repart"/>
+        <package name="python3-dnf-plugin-versionlock"/>
+        <package name="dnf-plugins-core"/>
+        <package name="efibootmgr"/>
+        <package name="i2c-tools"/>
+        <package name="ipmitool"/>
+        <package name="sudo"/>
+        <package name="wget"/>
+        <package name="vim"/>
+        <package name="flashrom"/>
+        <package name="libgpiod-utils"/>
+        <package name="vi"/>
+        <package name="btrfs-progs"/>
+        <package name="createrepo"/>
+        <package name="libnl3"/>
+        <package name="python3.12"/>
+        <package name="nvme-cli"/>
+        <package name="re2"/>
+        <package name="libsodium"/>
+        <package name="double-conversion"/>
+        <package name="libdwarf"/>
+        <package name="libunwind"/>
+        <package name="xxhash-libs"/>
+        <package name="libgpiod"/>
+        <package name="glog"/>
+        <package name="python3-pip"/>
+        <package name="lz4"/>
+        <package name="zstd"/>
+        <package name="libusbx"/>
+        <package name="dmidecode"/>
+        <package name="libaio"/>
+        <package name="git"/>
+        <package name="tcpdump"/>
+        <package name="usbutils"/>
+        <package name="ndisc6"/>
+    </packages>
+
+    <packages type="bootstrap">
+        <package name="filesystem"/>
+        <package name="basesystem"/>
+        <package name="pv"/>
+        <package name="shim-x64" arch="x86_64"/>
+        <package name="libdb-utils"/>
+        <package name="dracut-live"/>
+        <package name="dracut-kiwi-live"/>
+        <package name="dracut-kiwi-lib"/>
+        <package name="dracut-config-generic"/>
+        <package name="dracut-kiwi-oem-dump"/>
+    </packages>
+</image>

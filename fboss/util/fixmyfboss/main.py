@@ -5,7 +5,6 @@ import sys
 from typing import Dict, List
 
 from fboss.util.fixmyfboss import status
-
 from fboss.util.fixmyfboss.check import _checks, Check, load_checks
 from fboss.util.fixmyfboss.cli_wrapper import CliWrapper
 from fboss.util.fixmyfboss.remediation import Remediation

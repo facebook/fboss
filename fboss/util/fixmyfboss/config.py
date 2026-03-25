@@ -1,15 +1,12 @@
 # pyre-strict
 import importlib.resources
 import json
-
 from typing import Optional
 
 from fboss.platform.platform_manager.platform_manager_config.thrift_types import (
     PlatformConfig,
 )
-
 from fboss.util.fixmyfboss.platform_name_lib import get_platform_name
-
 from thrift.py3 import Protocol, serializer
 
 

@@ -13,6 +13,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PortStatsTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -34,6 +35,13 @@ class AgentLoopBackTest : public AgentHwTest {
   }
 
  private:
+  PortID portIdToTest() {
+    if (FLAGS_hyper_port) {
+      return masterLogicalHyperPortIds()[0];
+    }
+    return masterLogicalInterfacePortIds()[0];
+  }
+
   void sendPkt(bool frontPanel, uint8_t ttl, bool srcEqualDstMac) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
@@ -44,16 +52,16 @@ class AgentLoopBackTest : public AgentHwTest {
         vlanId,
         srcEqualDstMac ? intfMac : srcMac,
         intfMac,
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::3"),
-        folly::IPAddressV6("2620:0:1cfe:face:b00c::4"),
-        8000,
-        8001,
+        folly::IPAddressV6(kTestSrcIpV6),
+        folly::IPAddressV6(kTestDstIpV6),
+        kTestSrcPort,
+        kTestDstPort,
         0,
         ttl);
 
     if (frontPanel) {
       getSw()->sendPacketOutOfPortAsync(
-          std::move(txPacket), masterLogicalInterfacePortIds()[0]);
+          std::move(txPacket), this->portIdToTest());
     } else {
       getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     }
@@ -76,12 +84,10 @@ class AgentLoopBackTest : public AgentHwTest {
           checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
               ->getSwitchType();
       for (auto frontPanel : {true, false}) {
-        auto beforePortStats =
-            getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+        auto beforePortStats = getLatestPortStats(this->portIdToTest());
         sendPkt(frontPanel, pktTtl, srcEqualDstMac);
         WITH_RETRIES({
-          auto afterPortStats =
-              getLatestPortStats(masterLogicalInterfacePortIds()[0]);
+          auto afterPortStats = getLatestPortStats(this->portIdToTest());
           // For packets going out to front panel, they would not go through the
           // routing logic the very first time (but directly looped back).
           // Therefore, the counter would plus one compared to the cpu port.
