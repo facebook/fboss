@@ -4,6 +4,7 @@
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -11,6 +12,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -71,7 +73,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
         asic,
         &cfg,
         std::set<folly::CIDRNetwork>{
-            {kV6RoutePrefix, kV6RoutePrefixLen}, {kV4RoutePrefix, 24}});
+            {kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}});
     return cfg;
   }
 
@@ -164,7 +166,10 @@ class AgentSrv6DecapTest : public AgentHwTest {
     return aggPort->sortedSubports().front().portID;
   }
 
-  void verifyDecapPacket(PortID egressPort, bool isV4) {
+  void verifyDecapPacket(
+      PortID egressPort,
+      bool isV4,
+      std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
@@ -210,13 +215,67 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kHopLimit);
     }
 
-    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6DecapSnooper");
 
+    if (injectPort.has_value()) {
+      this->getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), injectPort.value());
+    } else {
+      this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    }
+
+    auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
       auto portStatsAfter = this->getLatestPortStats(egressPort);
       auto bytesAfter = *portStatsAfter.outBytes_();
       EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+      if (!frameRx.has_value()) {
+        frameRx = snooper.waitForPacket(1);
+      }
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
     });
+    ASSERT_TRUE(frameRx.has_value());
+    folly::io::Cursor cursor((*frameRx).get());
+    utility::EthFrame frame(cursor);
+
+    // After decap, the forwarded packet should be the inner IP packet
+    if (isV4) {
+      EXPECT_EQ(
+          frame.header().etherType,
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
+      auto rxV4 = frame.v4PayLoad();
+      ASSERT_TRUE(rxV4.has_value());
+      EXPECT_EQ(rxV4->header().srcAddr, folly::IPAddressV4("10.0.0.1"));
+      EXPECT_EQ(rxV4->header().dstAddr, kV4RouteDstIp);
+      auto rxUdp = rxV4->udpPayload();
+      ASSERT_TRUE(rxUdp.has_value());
+      EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
+      EXPECT_EQ(rxUdp->header().dstPort, kDstPort);
+    } else {
+      EXPECT_EQ(
+          frame.header().etherType,
+          static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
+      auto rxV6 = frame.v6PayLoad();
+      ASSERT_TRUE(rxV6.has_value());
+      EXPECT_EQ(rxV6->header().srcAddr, folly::IPAddressV6("1::10"));
+      EXPECT_EQ(rxV6->header().dstAddr, kV6RouteDstIp);
+      auto rxUdp = rxV6->udpPayload();
+      ASSERT_TRUE(rxUdp.has_value());
+      EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
+      EXPECT_EQ(rxUdp->header().dstPort, kDstPort);
+    }
+  }
+
+  PortID findInjectPort(PortID egressPort) {
+    for (const auto& portMap :
+         std::as_const(*this->getProgrammedState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        if (port->getID() != egressPort && port->isPortUp()) {
+          return port->getID();
+        }
+      }
+    }
+    throw FbossError("No UP port found besides egress port");
   }
 };
 
