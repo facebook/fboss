@@ -653,8 +653,41 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_rtmcpld",
-          "pmUnitScopedName": "RTM_L_CPLD"
+          "kernelDeviceName": "fbg_rtmcpld",
+          "pmUnitScopedName": "RTM_L_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
@@ -833,8 +866,41 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_rtmcpld",
-          "pmUnitScopedName": "RTM_R_CPLD"
+          "kernelDeviceName": "fbg_rtmcpld",
+          "pmUnitScopedName": "RTM_R_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
