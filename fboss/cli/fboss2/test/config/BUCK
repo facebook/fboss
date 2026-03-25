@@ -31,6 +31,7 @@ cpp_unittest(
         "CmdConfigSessionTest.cpp",
         "CmdConfigTestBase.cpp",
         "CmdConfigTunnelIpInIpTest.cpp",
+        "CmdConfigVlanConfigTest.cpp",
         "CmdConfigVlanDefaultTest.cpp",
         "CmdConfigVlanManagerTest.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",
