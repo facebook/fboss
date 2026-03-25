@@ -1912,6 +1912,19 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
     }
   }
 
+  {
+    const auto oldMode = oldSwitchSettings->getPacketForwardingMode();
+    const auto newMode = newSwitchSettings->getPacketForwardingMode();
+    if (oldMode != newMode && newMode.has_value()) {
+      XLOG(DBG3) << "Configuring packetForwardingMode old: "
+                 << (oldMode.has_value()
+                         ? apache::thrift::util::enumNameSafe(*oldMode)
+                         : "none")
+                 << " new: " << apache::thrift::util::enumNameSafe(*newMode);
+      managerTable_->switchManager().setSwitchingMode(*newMode);
+    }
+  }
+
   if (oldSwitchSettings->getMaxRouteCounterIDs() !=
       newSwitchSettings->getMaxRouteCounterIDs()) {
     managerTable_->counterManager().setMaxRouteCounterIDs(
