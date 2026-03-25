@@ -394,4 +394,51 @@ TEST_F(AgentHwAclStatTest, AclStatDeleteSharedPostWarmBoot) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
+TEST_F(AgentHwAclStatTest, AclStatCreateSharedPostWarmBoot) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=]() {};
+
+  auto setupPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    addDscpAcl(&newCfg, "acl1");
+    utility::addAclStat(
+        &newCfg,
+        "acl0",
+        "stat",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    utility::addAclStat(
+        &newCfg,
+        "acl1",
+        "stat",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    applyNewConfig(newCfg);
+  };
+
+  auto verifyPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+    auto client = ensemble.getHwAgentTestClient(switchId);
+    auto counterTypes =
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics());
+
+    utility::AclStatCountInfo statCountInfo;
+    client->sync_getDefaultAclTableStatCountInfo(statCountInfo);
+    EXPECT_EQ(*statCountInfo.aclEntryCount(), 2);
+    EXPECT_EQ(*statCountInfo.aclStatCount(), 1);
+    EXPECT_EQ(*statCountInfo.counterCount(), (int)counterTypes.size());
+
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0", "acl1"}, {"stat"}, counterTypes));
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
+}
+
 } // namespace facebook::fboss
