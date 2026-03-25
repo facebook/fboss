@@ -63,6 +63,7 @@ cpp_unittest(
         "ParserUtilsTest.cpp",
     ],
     deps = [
+        "//fboss/platform/weutil:crc16_ccitt_aug",
         "//fboss/platform/weutil:fboss_eeprom_lib",
         "//folly:file_util",
         "//folly/testing:test_util",
