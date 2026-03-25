@@ -218,6 +218,22 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kHopLimit);
     }
 
+    // Extract expected inner UDP payload before sending (txPacket gets moved)
+    auto origFrame = utility::makeEthFrame(*txPacket);
+    auto origOuterV6 = origFrame.v6PayLoad();
+    ASSERT_TRUE(origOuterV6.has_value());
+    std::optional<utility::UDPDatagram> expectedUdp;
+    if (isV4) {
+      auto innerV4 = origOuterV6->v4PayLoad();
+      ASSERT_NE(innerV4, nullptr);
+      expectedUdp = innerV4->udpPayload();
+    } else {
+      auto innerV6 = origOuterV6->v6PayLoad();
+      ASSERT_NE(innerV6, nullptr);
+      expectedUdp = innerV6->udpPayload();
+    }
+    ASSERT_TRUE(expectedUdp.has_value());
+
     utility::SwSwitchPacketSnooper snooper(this->getSw(), "srv6DecapSnooper");
 
     if (injectPort.has_value()) {
@@ -242,6 +258,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     utility::EthFrame frame(cursor);
 
     // After decap, the forwarded packet should be the inner IP packet
+    std::optional<utility::UDPDatagram> rxUdp;
     if (isV4) {
       EXPECT_EQ(
           frame.header().etherType,
@@ -254,10 +271,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       EXPECT_EQ(v4Hdr.ttl, kHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v4Hdr.dscp, kTc);
-      auto rxUdp = rxV4->udpPayload();
-      ASSERT_TRUE(rxUdp.has_value());
-      EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
-      EXPECT_EQ(rxUdp->header().dstPort, kDstPort);
+      rxUdp = rxV4->udpPayload();
     } else {
       EXPECT_EQ(
           frame.header().etherType,
@@ -270,11 +284,10 @@ class AgentSrv6DecapTest : public AgentHwTest {
       EXPECT_EQ(v6Hdr.hopLimit, kHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
-      auto rxUdp = rxV6->udpPayload();
-      ASSERT_TRUE(rxUdp.has_value());
-      EXPECT_EQ(rxUdp->header().srcPort, kSrcPort);
-      EXPECT_EQ(rxUdp->header().dstPort, kDstPort);
+      rxUdp = rxV6->udpPayload();
     }
+    ASSERT_TRUE(rxUdp.has_value());
+    EXPECT_EQ(*rxUdp, *expectedUdp);
   }
 
   PortID findInjectPort(PortID egressPort) {
