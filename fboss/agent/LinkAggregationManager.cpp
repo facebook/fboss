@@ -319,6 +319,8 @@ void LinkAggregationManager::updateHyperPortState(
                      newPortState](const std::shared_ptr<SwitchState>& state) {
       const auto oldHyperPort =
           state->getPorts()->getNodeIf(hyperPortId.value());
+      CHECK(oldHyperPort) << "hyper port " << (int)hyperPortId.value()
+                          << " not found in state";
       std::shared_ptr<SwitchState> newState{state};
       auto newHyperPort = oldHyperPort->modify(&newState);
       XLOG(DBG2) << "set hyper port " << (int)hyperPortId.value()
