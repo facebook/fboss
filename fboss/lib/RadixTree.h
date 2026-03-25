@@ -33,8 +33,8 @@ template <typename IPADDRTYPE, typename T>
 class RadixTreeNode {
  public:
   // Optional function parameter to call from destructor
-  typedef std::function<void(const RadixTreeNode<IPADDRTYPE, T>&)>
-      NodeDeleteCallback;
+  using NodeDeleteCallback =
+      std::function<void(const RadixTreeNode<IPADDRTYPE, T>&)>;
 
   RadixTreeNode(
       const IPADDRTYPE& ipAddr,
@@ -184,8 +184,8 @@ template <
 class RadixTreeIteratorImpl
     : public std::iterator<std::forward_iterator_tag, CURSORNODE> {
  public:
-  typedef DESIREDITERTYPE ValueType;
-  typedef CURSORNODE TreeNode;
+  using ValueType = DESIREDITERTYPE;
+  using TreeNode = CURSORNODE;
 
   // default constructor
   RadixTreeIteratorImpl() {}
@@ -294,13 +294,12 @@ class RadixTreeIterator : public RadixTreeIteratorImpl<
                               RadixTreeNode<IPADDRTYPE, T>,
                               RadixTreeIterator<IPADDRTYPE, T>> {
  public:
-  typedef RadixTreeIteratorImpl<
+  using IteratorImpl = RadixTreeIteratorImpl<
       IPADDRTYPE,
       T,
       RadixTreeNode<IPADDRTYPE, T>,
-      RadixTreeIterator<IPADDRTYPE, T>>
-      IteratorImpl;
-  typedef typename IteratorImpl::TreeNode TreeNode;
+      RadixTreeIterator<IPADDRTYPE, T>>;
+  using TreeNode = typename IteratorImpl::TreeNode;
   using IteratorImpl::checkValueNode;
 
  private:
@@ -329,14 +328,13 @@ class RadixTreeConstIterator : public RadixTreeIteratorImpl<
                                    const RadixTreeNode<IPADDRTYPE, T>,
                                    RadixTreeConstIterator<IPADDRTYPE, T>> {
  public:
-  typedef RadixTreeIteratorImpl<
+  using IteratorImpl = RadixTreeIteratorImpl<
       IPADDRTYPE,
       const T,
       const RadixTreeNode<IPADDRTYPE, T>,
-      RadixTreeConstIterator<IPADDRTYPE, T>>
-      IteratorImpl;
-  typedef RadixTreeIterator<IPADDRTYPE, T> NonConstIterator;
-  typedef typename IteratorImpl::TreeNode TreeNode;
+      RadixTreeConstIterator<IPADDRTYPE, T>>;
+  using NonConstIterator = RadixTreeIterator<IPADDRTYPE, T>;
+  using TreeNode = typename IteratorImpl::TreeNode;
 
   // Inherit constructors
   using IteratorImpl::IteratorImpl;
@@ -348,9 +346,9 @@ class RadixTreeConstIterator : public RadixTreeIteratorImpl<
 
 template <typename IPADDRTYPE, typename T>
 struct RadixTreeTraits {
-  typedef RadixTreeIterator<IPADDRTYPE, T> Iterator;
-  typedef RadixTreeConstIterator<IPADDRTYPE, T> ConstIterator;
-  typedef RadixTreeNode<IPADDRTYPE, T> TreeNode;
+  using Iterator = RadixTreeIterator<IPADDRTYPE, T>;
+  using ConstIterator = RadixTreeConstIterator<IPADDRTYPE, T>;
+  using TreeNode = RadixTreeNode<IPADDRTYPE, T>;
 
   Iterator makeItr(TreeNode* node, bool includeNonValueNodes = false) const {
     return Iterator(node, includeNonValueNodes);
@@ -375,12 +373,12 @@ template <
     typename TreeTraits = RadixTreeTraits<IPADDRTYPE, T>>
 class RadixTree {
  public:
-  typedef RadixTreeNode<IPADDRTYPE, T> TreeNode;
-  typedef typename TreeNode::TreeDirection TreeDirection;
-  typedef typename TreeNode::NodeDeleteCallback NodeDeleteCallback;
-  typedef typename TreeTraits::Iterator Iterator;
-  typedef typename TreeTraits::ConstIterator ConstIterator;
-  typedef typename std::vector<ConstIterator> VecConstIterators;
+  using TreeNode = RadixTreeNode<IPADDRTYPE, T>;
+  using TreeDirection = typename TreeNode::TreeDirection;
+  using NodeDeleteCallback = typename TreeNode::NodeDeleteCallback;
+  using Iterator = typename TreeTraits::Iterator;
+  using ConstIterator = typename TreeTraits::ConstIterator;
+  using VecConstIterators = typename std::vector<ConstIterator>;
 
   explicit RadixTree(
       NodeDeleteCallback nodeDelCallback = NodeDeleteCallback(),
@@ -650,11 +648,11 @@ template <
 class IPAddressRadixTreeIteratorImpl
     : public std::iterator<DESIREDITERTYPE, T> {
  public:
-  typedef V4ITRTYPE Iterator4;
-  typedef V6ITRTYPE Iterator6;
-  typedef typename V4ITRTYPE::TreeNode TreeNode4;
-  typedef typename V6ITRTYPE::TreeNode TreeNode6;
-  typedef DESIREDITERTYPE ValueType;
+  using Iterator4 = V4ITRTYPE;
+  using Iterator6 = V6ITRTYPE;
+  using TreeNode4 = typename V4ITRTYPE::TreeNode;
+  using TreeNode6 = typename V6ITRTYPE::TreeNode;
+  using ValueType = DESIREDITERTYPE;
 
   // default constructor
   IPAddressRadixTreeIteratorImpl() {}
@@ -834,14 +832,13 @@ class RadixTreeIterator<folly::IPAddress, T>
           RadixTreeIterator<folly::IPAddressV6, T>,
           RadixTreeIterator<folly::IPAddress, T>> {
  public:
-  typedef IPAddressRadixTreeIteratorImpl<
+  using IteratorImpl = IPAddressRadixTreeIteratorImpl<
       T,
       RadixTreeIterator<folly::IPAddressV4, T>,
       RadixTreeIterator<folly::IPAddressV6, T>,
-      RadixTreeIterator<folly::IPAddress, T>>
-      IteratorImpl;
-  typedef typename IteratorImpl::TreeNode4 TreeNode4;
-  typedef typename IteratorImpl::TreeNode6 TreeNode6;
+      RadixTreeIterator<folly::IPAddress, T>>;
+  using TreeNode4 = typename IteratorImpl::TreeNode4;
+  using TreeNode6 = typename IteratorImpl::TreeNode6;
 
  private:
   using IteratorImpl::checkDereference;
@@ -871,15 +868,14 @@ class RadixTreeConstIterator<folly::IPAddress, T>
           RadixTreeConstIterator<folly::IPAddressV6, T>,
           RadixTreeConstIterator<folly::IPAddress, T>> {
  public:
-  typedef IPAddressRadixTreeIteratorImpl<
+  using IteratorImpl = IPAddressRadixTreeIteratorImpl<
       const T,
       RadixTreeConstIterator<folly::IPAddressV4, T>,
       RadixTreeConstIterator<folly::IPAddressV6, T>,
-      RadixTreeConstIterator<folly::IPAddress, T>>
-      IteratorImpl;
-  typedef typename IteratorImpl::TreeNode4 TreeNode4;
-  typedef typename IteratorImpl::TreeNode6 TreeNode6;
-  typedef RadixTreeIterator<folly::IPAddress, T> NonConstIterator;
+      RadixTreeConstIterator<folly::IPAddress, T>>;
+  using TreeNode4 = typename IteratorImpl::TreeNode4;
+  using TreeNode6 = typename IteratorImpl::TreeNode6;
+  using NonConstIterator = RadixTreeIterator<folly::IPAddress, T>;
   // Inherit constructors
   using IteratorImpl::IteratorImpl;
   // default constructor
@@ -897,10 +893,10 @@ class RadixTreeConstIterator<folly::IPAddress, T>
  */
 template <typename T>
 struct V6TreeInCompositeTreeTraits {
-  typedef RadixTreeIterator<folly::IPAddress, T> Iterator;
-  typedef RadixTreeConstIterator<folly::IPAddress, T> ConstIterator;
-  typedef RadixTreeNode<folly::IPAddressV4, T> TreeNode4;
-  typedef RadixTreeNode<folly::IPAddressV6, T> TreeNode6;
+  using Iterator = RadixTreeIterator<folly::IPAddress, T>;
+  using ConstIterator = RadixTreeConstIterator<folly::IPAddress, T>;
+  using TreeNode4 = RadixTreeNode<folly::IPAddressV4, T>;
+  using TreeNode6 = RadixTreeNode<folly::IPAddressV6, T>;
 
   Iterator itrConstCast(ConstIterator citr) const {
     return Iterator(
@@ -926,13 +922,13 @@ struct V6TreeInCompositeTreeTraits {
  */
 template <typename T>
 struct V4TreeInCompositeTreeTraits {
-  typedef RadixTreeIterator<folly::IPAddress, T> Iterator;
-  typedef RadixTreeConstIterator<folly::IPAddress, T> ConstIterator;
-  typedef RadixTreeNode<folly::IPAddressV6, T> TreeNode6;
-  typedef RadixTreeNode<folly::IPAddressV4, T> TreeNode4;
+  using Iterator = RadixTreeIterator<folly::IPAddress, T>;
+  using ConstIterator = RadixTreeConstIterator<folly::IPAddress, T>;
+  using TreeNode6 = RadixTreeNode<folly::IPAddressV6, T>;
+  using TreeNode4 = RadixTreeNode<folly::IPAddressV4, T>;
 
-  typedef RadixTree<folly::IPAddressV6, T, V6TreeInCompositeTreeTraits<T>>
-      Tree6;
+  using Tree6 =
+      RadixTree<folly::IPAddressV6, T, V6TreeInCompositeTreeTraits<T>>;
   explicit V4TreeInCompositeTreeTraits(Tree6& v6Tree) : v6Tree_(v6Tree) {}
 
   Iterator itrConstCast(ConstIterator citr) const {
@@ -990,13 +986,13 @@ struct V4TreeInCompositeTreeTraits {
 template <typename T>
 class RadixTree<folly::IPAddress, T> {
  public:
-  typedef RadixTreeNode<folly::IPAddressV4, T> TreeNode4;
-  typedef RadixTreeNode<folly::IPAddressV6, T> TreeNode6;
-  typedef typename TreeNode4::NodeDeleteCallback NodeDeleteCallback4;
-  typedef typename TreeNode6::NodeDeleteCallback NodeDeleteCallback6;
-  typedef RadixTreeIterator<folly::IPAddress, T> Iterator;
-  typedef RadixTreeConstIterator<folly::IPAddress, T> ConstIterator;
-  typedef std::vector<ConstIterator> VecConstIterators;
+  using TreeNode4 = RadixTreeNode<folly::IPAddressV4, T>;
+  using TreeNode6 = RadixTreeNode<folly::IPAddressV6, T>;
+  using NodeDeleteCallback4 = typename TreeNode4::NodeDeleteCallback;
+  using NodeDeleteCallback6 = typename TreeNode6::NodeDeleteCallback;
+  using Iterator = RadixTreeIterator<folly::IPAddress, T>;
+  using ConstIterator = RadixTreeConstIterator<folly::IPAddress, T>;
+  using VecConstIterators = std::vector<ConstIterator>;
 
   explicit RadixTree(
       NodeDeleteCallback4 nodeDeleteCallback4 = NodeDeleteCallback4(),
