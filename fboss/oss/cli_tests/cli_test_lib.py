@@ -342,3 +342,34 @@ def cleanup_config(
 
     print("  Committing cleanup...")
     commit_config()
+
+
+def running_config() -> dict[str, Any]:
+    """
+    Get the running configuration from the FBOSS agent.
+
+    Returns the nested JSON payload, skipping the initial 'localhost' level.
+    This allows direct access to the configuration without needing to iterate
+    over host keys.
+
+    Returns:
+        The configuration dict containing 'sw', 'platform', etc.
+    """
+    # Note: We don't use --fmt json here because the command already returns JSON
+    # and the framework would wrap it in another layer
+    cmd = [get_fboss_cli(), "show", "config", "running", "agent"]
+    result = subprocess.run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+    if result.returncode != 0:
+        print(f"Command failed with return code {result.returncode}")
+        print(f"stdout: {result.stdout}")
+        print(f"stderr: {result.stderr}")
+        raise RuntimeError(f"Command failed: {' '.join(cmd)}")
+
+    return json.loads(result.stdout)
