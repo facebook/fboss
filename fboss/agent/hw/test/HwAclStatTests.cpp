@@ -56,65 +56,6 @@ class HwAclStatTest : public HwTest {
   }
 };
 
-TEST_F(HwAclStatTest, AclStatRename) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /* ACLs */ 1,
-        /* Stats */ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  auto setupPostWB = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat1",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verifyPostWB = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /*ACLs*/ 1,
-        /*stats*/ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat1",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    utility::checkAclStatDeleted(this->getHwSwitch(), "stat0");
-  };
-
-  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-}
-
 TEST_F(HwAclStatTest, AclStatRenameShared) {
   auto setup = [=, this]() {
     auto newCfg = this->initialConfig();
