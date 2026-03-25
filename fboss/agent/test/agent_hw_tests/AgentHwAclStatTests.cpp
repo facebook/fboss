@@ -648,4 +648,63 @@ TEST_F(AgentHwAclStatTest, AclStatRenameShared) {
   this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
 }
 
+TEST_F(AgentHwAclStatTest, AclStatShuffle) {
+  auto setup = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl0");
+    addDscpAcl(&newCfg, "acl1");
+    utility::addAclStat(
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    utility::addAclStat(
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    applyNewConfig(newCfg);
+  };
+
+  auto verify = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto switchId = scopeResolver().scope(masterLogicalPortIds()[0]).switchId();
+    auto client = ensemble.getHwAgentTestClient(switchId);
+    auto counterTypes =
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics());
+
+    utility::AclStatCountInfo statCountInfo;
+    client->sync_getDefaultAclTableStatCountInfo(statCountInfo);
+    EXPECT_EQ(*statCountInfo.aclEntryCount(), 2);
+    EXPECT_EQ(*statCountInfo.aclStatCount(), 2);
+    EXPECT_EQ(*statCountInfo.counterCount(), 2 * (int)counterTypes.size());
+
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl0"}, {"stat0"}, counterTypes));
+    EXPECT_TRUE(client->sync_isStatProgrammedInDefaultAclTable(
+        {"acl1"}, {"stat1"}, counterTypes));
+  };
+
+  auto setupPostWB = [=, this]() {
+    auto& ensemble = *getAgentEnsemble();
+    auto newCfg = initialConfig(ensemble);
+    addDscpAcl(&newCfg, "acl1");
+    addDscpAcl(&newCfg, "acl0");
+    utility::addAclStat(
+        &newCfg,
+        "acl1",
+        "stat1",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    utility::addAclStat(
+        &newCfg,
+        "acl0",
+        "stat0",
+        utility::getAclCounterTypes(ensemble.getHwAsicTable()->getL3Asics()));
+    applyNewConfig(newCfg);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verify);
+}
+
 } // namespace facebook::fboss
