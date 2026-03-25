@@ -306,6 +306,14 @@ class FakeSwitch {
     return cablePropagationDelayMeasurement_;
   }
 
+  void setSwitchingMode(sai_int32_t mode) {
+    switchingMode_ = mode;
+  }
+
+  sai_int32_t getSwitchingMode() const {
+    return switchingMode_;
+  }
+
   sai_object_id_t id;
 
   sai_status_t setLed(const sai_attribute_t* attr);
@@ -361,6 +369,7 @@ class FakeSwitch {
   sai_object_id_t tamObjectId_{SAI_NULL_OBJECT_ID};
   bool pfcMonitorEnable_{false};
   bool cablePropagationDelayMeasurement_{false};
+  sai_int32_t switchingMode_{SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD};
 };
 
 using FakeSwitchManager = FakeManager<sai_object_id_t, FakeSwitch>;
