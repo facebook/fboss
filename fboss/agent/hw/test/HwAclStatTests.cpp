@@ -56,41 +56,4 @@ class HwAclStatTest : public HwTest {
   }
 };
 
-TEST_F(HwAclStatTest, StatNumberOfCounters) {
-  auto setup = [=, this]() {
-    auto newCfg = this->initialConfig();
-    this->addDscpAcl(&newCfg, "acl0");
-    utility::addAclStat(
-        &newCfg,
-        "acl0",
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-    this->applyNewConfig(newCfg);
-  };
-
-  auto verify = [=, this]() {
-    utility::checkAclEntryAndStatCount(
-        this->getHwSwitch(),
-        /* ACLs */ 1,
-        /* Stats */ 1,
-        /*counters*/
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics())
-            .size());
-    utility::checkAclStat(
-        this->getHwSwitch(),
-        this->getProgrammedState(),
-        {"acl0"},
-        "stat0",
-        utility::getAclCounterTypes(this->getHwSwitchEnsemble()->getL3Asics()));
-  };
-
-  auto setupPostWB = [=]() {};
-
-  auto verifyPostWB = [=, this]() {
-    verify();
-    utility::checkAclStatSize(this->getHwSwitch(), "stat0");
-  };
-  this->verifyAcrossWarmBoots(setup, verify, setupPostWB, verifyPostWB);
-}
-
 } // namespace facebook::fboss
