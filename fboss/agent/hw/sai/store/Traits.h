@@ -8,17 +8,22 @@ namespace facebook::fboss {
 template <typename>
 struct IsObjectPublisher : std::false_type {};
 
-template <typename ObjectTraits, typename = void>
-struct IsPublisherKeyCustomType : std::false_type {};
-
 namespace detail {
+// Primary template: Attr differs from AdapterHostKey means custom publisher key
 template <typename ObjectTraits, typename Attr>
 struct PublisherKeyInternal {
   using type = Attr;
   using custom_type = std::conditional_t<
-      IsPublisherKeyCustomType<ObjectTraits>::value,
-      Attr,
-      std::monostate>;
+      std::is_same_v<Attr, typename ObjectTraits::AdapterHostKey>,
+      std::monostate,
+      Attr>;
+};
+
+// Specialization for non-publishers (Attr = void)
+template <typename ObjectTraits>
+struct PublisherKeyInternal<ObjectTraits, void> {
+  using type = void;
+  using custom_type = std::monostate;
 };
 } // namespace detail
 

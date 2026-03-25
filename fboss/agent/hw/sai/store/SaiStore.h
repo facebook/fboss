@@ -206,7 +206,9 @@ class SaiObjectStore {
       bool notify = true) {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
       static_assert(
-          !IsPublisherKeyCustomType<SaiObjectTraits>::value,
+          std::is_same_v<
+              typename PublisherKey<SaiObjectTraits>::custom_type,
+              std::monostate>,
           "method not available for objects with publisher attributes of custom types");
     }
     XLOGF(
@@ -230,7 +232,9 @@ class SaiObjectStore {
       const typename PublisherKey<SaiObjectTraits>::custom_type& publisherKey,
       bool notify = true) {
     static_assert(
-        IsPublisherKeyCustomType<SaiObjectTraits>::value,
+        !std::is_same_v<
+            typename PublisherKey<SaiObjectTraits>::custom_type,
+            std::monostate>,
         "method available only for objects with publisher attributes of custom types");
     XLOGF(
         DBG5,

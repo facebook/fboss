@@ -62,18 +62,11 @@ template <>
 struct IsObjectPublisher<SaiBridgePortTraits> : std::true_type {};
 
 template <>
-struct IsPublisherKeyCustomType<SaiBridgePortTraits> : std::true_type {};
-
-template <>
 struct PublisherKey<SaiBridgePortTraits>
     : detail::PublisherKeyInternal<SaiBridgePortTraits, SaiPortDescriptor> {};
 
 template <>
 struct IsObjectPublisher<SaiVlanRouterInterfaceTraits> : std::true_type {};
-
-template <>
-struct IsPublisherKeyCustomType<SaiVlanRouterInterfaceTraits> : std::true_type {
-};
 
 template <>
 struct PublisherKey<SaiVlanRouterInterfaceTraits>
@@ -82,9 +75,6 @@ struct PublisherKey<SaiVlanRouterInterfaceTraits>
 
 template <>
 struct IsObjectPublisher<SaiFdbTraits> : std::true_type {};
-
-template <>
-struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
 
 template <>
 struct PublisherKey<SaiFdbTraits>
