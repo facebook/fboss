@@ -44,6 +44,7 @@ add_library(fib_updater
 )
 
 target_link_libraries(fib_updater
+  fib_helpers
   network_to_route_map
   nexthop_id_manager
   standalone_rib

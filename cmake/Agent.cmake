@@ -109,8 +109,10 @@ add_library(dsfnode_utils
 
 target_link_libraries(dsfnode_utils
   agent_config_cpp2
+  agent_features
   fboss_error
   load_agent_config
+  switch_asics
   switch_config_cpp2
 )
 
