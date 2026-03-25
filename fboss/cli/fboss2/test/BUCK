@@ -14,6 +14,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/googletest:gtest",
+        ":bgp_mock_client",
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/cli/fboss2:cmd-common-utils",
@@ -25,11 +26,54 @@ cpp_library(
         "//fboss/lib:thrift_service_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/bgp/if:bgp_thrift-cpp2-services",
         "//folly:network_address",
+        "//folly/coro:gmock_helpers",
         "//folly/io/async:async_socket",
-        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//thrift/lib/cpp2:server",
         "//thrift/lib/cpp2/util:util",
+    ],
+)
+
+cpp_library(
+    name = "bgp_test_utils",
+    srcs = ["CmdBgpTestUtils.cpp"],
+    headers = [
+        "CmdBgpTestUtils.h",
+    ],
+    exported_deps = [
+        "//fboss/agent:address_utils",
+        "//fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//folly:network_address",
+    ],
+    exported_external_deps = [
+        ("boost", None, "boost_algorithm"),
+    ],
+)
+
+cpp_library(
+    name = "bgp_mock_client",
+    headers = [
+        "bgp/MockBgpClient.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gmock",
+        "//fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//fboss/bgp/if:bgp_thrift-cpp2-types",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
+    ],
+)
+
+cpp_library(
+    name = "config_test_utils",
+    srcs = ["CmdShowConfigTestUtils.cpp"],
+    headers = [
+        "CmdShowConfigTestUtils.h",
+    ],
+    exported_deps = [
+        "//folly/json:dynamic",
     ],
 )
 
@@ -74,6 +118,28 @@ cpp_unittest(
         "CmdShowAggregatePortTest.cpp",
         "CmdShowArpTest.cpp",
         "CmdShowConfigRunningTest.cpp",
+        "CmdShowBgpChangelistTest.cpp",
+        "CmdShowBgpNeighborsAdvertisedPostPolicyTest.cpp",
+        "CmdShowBgpNeighborsAdvertisedPrePolicyTest.cpp",
+        "CmdShowBgpNeighborsAdvertisedRejectedTest.cpp",
+        "CmdShowBgpNeighborsReceivedPostPolicyTest.cpp",
+        "CmdShowBgpNeighborsReceivedPrePolicyTest.cpp",
+        "CmdShowBgpNeighborsReceivedRejectedTest.cpp",
+        "CmdShowBgpNeighborsTest.cpp",
+        "CmdShowBgpOriginatedRoutesTest.cpp",
+        "CmdShowBgpShadowRibTest.cpp",
+        "CmdShowBgpStatsAttrsTest.cpp",
+        "CmdShowBgpStatsEntriesTest.cpp",
+        "CmdShowBgpStatsPolicyTest.cpp",
+        "CmdShowBgpStreamSubscriberTest.cpp",
+        "CmdShowBgpStreamSummaryTest.cpp",
+        "CmdShowBgpSummaryEgressTest.cpp",
+        "CmdShowBgpSummaryTest.cpp",
+        "CmdShowBgpTableCommunityTest.cpp",
+        "CmdShowBgpTableDetailTest.cpp",
+        "CmdShowBgpTableMoreSpecificsTest.cpp",
+        "CmdShowBgpTablePrefixTest.cpp",
+        "CmdShowBgpTableTest.cpp",
         "CmdShowCpuPortTest.cpp",
         "CmdShowExampleTest.cpp",
         "CmdShowFlowletTest.cpp",
@@ -115,7 +181,10 @@ cpp_unittest(
     deps = [
         "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
+        ":bgp_mock_client",
+        ":bgp_test_utils",
         ":cmd_test_utils",
+        ":config_test_utils",
         "//configerator/structs/neteng/fboss/bgp:bgp_config-cpp2-types",
         "//fboss/agent:address_utils",
         "//fboss/agent/if:common-cpp2-types",
@@ -125,6 +194,7 @@ cpp_unittest(
         "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2/commands/show/acl:model-cpp2-types",
+        "//fboss/cli/fboss2/commands/show/bgp/summary:bgp_summary-cpp2-types",
         "//fboss/cli/fboss2/commands/show/agent:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/aggregateport:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/arp:model-cpp2-types",
@@ -152,7 +222,10 @@ cpp_unittest(
         "//folly:network_address",
         "//folly:string",
         "//folly/json:dynamic",
+        "//fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//fboss/bgp/if:bgp_thrift-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
+        "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
         "//thrift/lib/cpp2/protocol:protocol",
         "//thrift/lib/cpp2/reflection:testing",
     ],

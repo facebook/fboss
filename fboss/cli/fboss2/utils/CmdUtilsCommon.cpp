@@ -21,7 +21,10 @@
 #include <folly/stop_watch.h>
 
 #include <chrono>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 using folly::ByteRange;
@@ -206,6 +209,13 @@ const std::string parseTimeToTimeStamp(const long& timeToParse) {
 #ifndef IS_OSS
   constexpr std::string_view kTimeFormat = "%Y-%m-%d %H:%M:%S %Z";
   stringFormatTimestamp(splitTime.tv_sec, kTimeFormat.data(), &formattedTime);
+#else
+  // OSS: Use std::put_time instead of Meta-internal stringFormatTimestamp
+  std::tm tm_info;
+  localtime_r(&splitTime.tv_sec, &tm_info);
+  std::ostringstream oss;
+  oss << std::put_time(&tm_info, "%Y-%m-%d %H:%M:%S %Z");
+  formattedTime = oss.str();
 #endif
 
   // stringFormatTimestamp returns a formatted time like the following:

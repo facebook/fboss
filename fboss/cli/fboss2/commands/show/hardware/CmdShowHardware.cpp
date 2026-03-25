@@ -15,10 +15,10 @@
 #include "fboss/cli/fboss2/utils/clients/BmcClient.h"
 #include "folly/json/json.h"
 #ifndef IS_OSS
-#include "neteng/fboss/bgp/if/gen-cpp2/TBgpService.h"
+#include "fboss/bgp/if/gen-cpp2/TBgpService.h"
 #endif
 
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string.hpp> // NOLINT(misc-include-cleaner)
 
 namespace facebook::fboss {
 
