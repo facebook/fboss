@@ -8651,7 +8651,8 @@ std::pair<apache::thrift::ident::tcToRateLimitKbps, ChildThriftPath<::std::map<:
 std::pair<apache::thrift::ident::pfcWatchdogTimerGranularityMsec, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::ecmpCompressionThresholdPct, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::fabricLinkMonitoringSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::measureCableLengths, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>>;
+std::pair<apache::thrift::ident::measureCableLengths, Child<bool, ::apache::thrift::type_class::integral, ::apache::thrift::type::bool_t>>,
+std::pair<apache::thrift::ident::packetForwardingMode, Child<::facebook::fboss::cfg::PacketForwardingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PacketForwardingMode>>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -8692,6 +8693,7 @@ std::pair<apache::thrift::ident::measureCableLengths, Child<bool, ::apache::thri
     STRUCT_CHILD_GETTERS(ecmpCompressionThresholdPct, 33);
     STRUCT_CHILD_GETTERS(fabricLinkMonitoringSystemPortOffset, 34);
     STRUCT_CHILD_GETTERS(measureCableLengths, 35);
+    STRUCT_CHILD_GETTERS(packetForwardingMode, 36);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -8730,6 +8732,7 @@ std::pair<apache::thrift::ident::measureCableLengths, Child<bool, ::apache::thri
     else if constexpr (__id == apache::thrift::FieldId{33}) { return ecmpCompressionThresholdPct(); }
     else if constexpr (__id == apache::thrift::FieldId{34}) { return fabricLinkMonitoringSystemPortOffset(); }
     else if constexpr (__id == apache::thrift::FieldId{35}) { return measureCableLengths(); }
+    else if constexpr (__id == apache::thrift::FieldId{36}) { return packetForwardingMode(); }
   }
 };
 
@@ -10788,7 +10791,8 @@ std::pair<apache::thrift::ident::numberOfSflowSamplesPerPacket, Child<::std::int
 std::pair<apache::thrift::ident::tcToRateLimitKbps, ChildThriftPath<::std::map<::std::int32_t, ::std::int32_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::pfcWatchdogTimerGranularityMsec, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::ecmpCompressionThresholdPct, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::fabricLinkMonitoringSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::fabricLinkMonitoringSystemPortOffset, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::packetForwardingMode, Child<::facebook::fboss::cfg::PacketForwardingMode, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::PacketForwardingMode>>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -10853,6 +10857,7 @@ std::pair<apache::thrift::ident::fabricLinkMonitoringSystemPortOffset, Child<::s
     STRUCT_CHILD_GETTERS(pfcWatchdogTimerGranularityMsec, 58);
     STRUCT_CHILD_GETTERS(ecmpCompressionThresholdPct, 59);
     STRUCT_CHILD_GETTERS(fabricLinkMonitoringSystemPortOffset, 60);
+    STRUCT_CHILD_GETTERS(packetForwardingMode, 61);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -10915,6 +10920,7 @@ std::pair<apache::thrift::ident::fabricLinkMonitoringSystemPortOffset, Child<::s
     else if constexpr (__id == apache::thrift::FieldId{58}) { return pfcWatchdogTimerGranularityMsec(); }
     else if constexpr (__id == apache::thrift::FieldId{59}) { return ecmpCompressionThresholdPct(); }
     else if constexpr (__id == apache::thrift::FieldId{60}) { return fabricLinkMonitoringSystemPortOffset(); }
+    else if constexpr (__id == apache::thrift::FieldId{61}) { return packetForwardingMode(); }
   }
 };
 

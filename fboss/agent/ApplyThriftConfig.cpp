@@ -5044,6 +5044,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
     switchSettingsChange = true;
   }
 
+  {
+    auto oldMode = origSwitchSettings->getPacketForwardingMode();
+    auto newModeRef = cfg_->switchSettings()->packetForwardingMode();
+    std::optional<cfg::PacketForwardingMode> newMode = newModeRef.has_value()
+        ? std::optional<cfg::PacketForwardingMode>(*newModeRef)
+        : std::nullopt;
+    if (oldMode != newMode) {
+      newSwitchSettings->setPacketForwardingMode(newMode);
+      switchSettingsChange = true;
+    }
+  }
+
   if (origSwitchSettings->getL2AgeTimerSeconds() !=
       *cfg_->switchSettings()->l2AgeTimerSeconds()) {
     newSwitchSettings->setL2AgeTimerSeconds(
