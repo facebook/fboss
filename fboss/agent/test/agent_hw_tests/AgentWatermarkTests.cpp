@@ -278,7 +278,7 @@ class AgentWatermarkTest : public AgentHwTest {
 
     if (needTrafficLoop) {
       const auto& nextHop = ecmpHelper6.nhop(portDesc);
-      utility::ttlDecrementHandlingForLoopbackTraffic(
+      utility::disablePortTTLDecrementIfSupported(
           getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
     }
 
@@ -310,10 +310,13 @@ class AgentWatermarkTest : public AgentHwTest {
       ecmpHelper6.programRoutes(
           &routeUpdater,
           {portDesc},
-          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
+          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}},
+          {},
+          std::nullopt,
+          needTrafficLoop ? std::make_optional(true) : std::nullopt);
       if (needTrafficLoop) {
         const auto& nextHop = ecmpHelper6.nhop(portDesc);
-        utility::ttlDecrementHandlingForLoopbackTraffic(
+        utility::disablePortTTLDecrementIfSupported(
             getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
       }
     }

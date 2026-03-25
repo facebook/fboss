@@ -122,15 +122,14 @@ void disableTTLDecrements(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts);
 
 template <typename EcmpNhopT>
-void ttlDecrementHandlingForLoopbackTraffic(
+void disablePortTTLDecrementIfSupported(
     TestEnsembleIf* hw,
     RouterID routerId,
     const EcmpNhopT& nhop) {
   auto asicTable = hw->getHwAsicTable();
-  // for TTL0 supported devices we need to go through cfg change
-  if (!asicTable->isFeatureSupportedOnAnyAsic(
-          HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
-    disableTTLDecrements(hw, routerId, nhop);
+  if (asicTable->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    disableTTLDecrements(hw, nhop.portDesc);
   }
 }
 

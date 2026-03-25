@@ -523,9 +523,9 @@ device:
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 

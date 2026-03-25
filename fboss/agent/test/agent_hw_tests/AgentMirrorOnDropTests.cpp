@@ -110,11 +110,16 @@ class AgentMirrorOnDropTest : public AgentHwTest {
       return ecmpHelper.resolveNextHops(state, {port});
     });
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {std::move(route)});
-
+    ecmpHelper.programRoutes(
+        &routeUpdater,
+        {port},
+        {std::move(route)},
+        {},
+        std::nullopt,
+        disableTtlDecrement ? std::make_optional(true) : std::nullopt);
     if (disableTtlDecrement) {
       for (auto& nhop : ecmpHelper.getNextHops()) {
-        utility::ttlDecrementHandlingForLoopbackTraffic(
+        utility::disablePortTTLDecrementIfSupported(
             getAgentEnsemble(), ecmpHelper.getRouterId(), nhop);
       }
     }
