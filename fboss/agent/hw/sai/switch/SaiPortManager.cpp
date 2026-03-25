@@ -3497,6 +3497,78 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
   return serdesParams;
 }
 
+std::vector<phy::TxSettings> SaiPortManager::getTxSettings(
+    PortSerdesSaiId serdesSaiPortId,
+    PortID swPortID,
+    uint8_t numPmdLanes) const {
+  auto portType = getPortType(swPortID);
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::FABRIC_PORT &&
+      portType != cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<phy::TxSettings>();
+  }
+
+  std::vector<phy::TxSettings> txSettings(numPmdLanes);
+
+  auto getTxParam =
+      [&](const char* paramName, auto attributeType, auto&& setter) {
+        try {
+          auto values = SaiApiTable::getInstance()->portApi().getAttribute(
+              serdesSaiPortId, attributeType);
+          for (int l = 0; l < numPmdLanes; l++) {
+            setter(txSettings[l], values[l]);
+          }
+        } catch (const SaiApiError& e) {
+          XLOG(DBG2) << "Failed to get " << paramName
+                     << " TX parameter: " << e.what();
+        }
+      };
+
+  getTxParam(
+      "TxFirPre1",
+      SaiPortSerdesTraits::Attributes::TxFirPre1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPre2",
+      SaiPortSerdesTraits::Attributes::TxFirPre2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre2() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPre3",
+      SaiPortSerdesTraits::Attributes::TxFirPre3{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre3() = static_cast<int32_t>(val); });
+
+  getTxParam(
+      "TxFirMain",
+      SaiPortSerdesTraits::Attributes::TxFirMain{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.main() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost1",
+      SaiPortSerdesTraits::Attributes::TxFirPost1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost2",
+      SaiPortSerdesTraits::Attributes::TxFirPost2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post2() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost3",
+      SaiPortSerdesTraits::Attributes::TxFirPost3{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post3() = static_cast<int16_t>(val); });
+
+  return txSettings;
+}
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
 std::vector<sai_port_frequency_offset_ppm_values_t> SaiPortManager::getRxPPM(
     PortSaiId saiPortId,
