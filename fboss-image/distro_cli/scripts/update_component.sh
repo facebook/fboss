@@ -5,9 +5,9 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-# Update script that runs on the FBOSS device to update services.
+# Update script that runs on the FBOSS device to update components.
 # Installs whatever artifact exists in the script's directory.
-# Usage: ./update_service.sh <component> <service1> [service2] ...
+# Usage: ./update_component.sh <component> <service1> [service2] ...
 
 set -eou pipefail
 
@@ -63,17 +63,17 @@ if [ "${FOUND_ARTIFACT}" = false ]; then
   exit 1
 fi
 
+COMPONENT_SNAPSHOT_PATH="${UPDATES_DIR}/${COMPONENT}-${TIMESTAMP}"
+echo "Creating snapshot for component ${COMPONENT}: ${COMPONENT_SNAPSHOT_PATH}"
+
+btrfs subvolume snapshot "${BASE_SNAPSHOT}" "${COMPONENT_SNAPSHOT_PATH}"
+cp -a "${STAGING_DIR}"/* "${COMPONENT_SNAPSHOT_PATH}/opt/fboss/"
+
 for svc in ${SERVICES}; do
-  SNAPSHOT_PATH="${UPDATES_DIR}/${svc}-${TIMESTAMP}"
-  echo "Creating snapshot for ${svc}: ${SNAPSHOT_PATH}"
-
-  btrfs subvolume snapshot "${BASE_SNAPSHOT}" "${SNAPSHOT_PATH}"
-  cp -a "${STAGING_DIR}"/* "${SNAPSHOT_PATH}/opt/fboss/"
-
   mkdir -p "/etc/systemd/system/${svc}.service.d/"
   cat >"/etc/systemd/system/${svc}.service.d/root-override.conf" <<EOF
 [Service]
-RootDirectory=${SNAPSHOT_PATH}
+RootDirectory=${COMPONENT_SNAPSHOT_PATH}
 EOF
 done
 
@@ -84,15 +84,12 @@ for svc in ${SERVICES}; do
   systemctl restart "${svc}"
 done
 
-# Delete old subvolumes after restart succeeds
-for svc in ${SERVICES}; do
-  SNAPSHOT_PATH="${UPDATES_DIR}/${svc}-${TIMESTAMP}"
-  for old in "${UPDATES_DIR}/${svc}"-*; do
-    if [ -d "$old" ] && [ "$old" != "${SNAPSHOT_PATH}" ]; then
-      echo "  Deleting old snapshot: ${old}"
-      btrfs subvolume delete "$old" 2>/dev/null || true
-    fi
-  done
+# Delete old component subvolumes after restart succeeds
+for old in "${UPDATES_DIR}/${COMPONENT}"-*; do
+  if [ -d "$old" ] && [ "$old" != "${COMPONENT_SNAPSHOT_PATH}" ]; then
+    echo "  Deleting old snapshot: ${old}"
+    btrfs subvolume delete "$old" 2>/dev/null || true
+  fi
 done
 
 echo "Update complete for component: ${COMPONENT}"

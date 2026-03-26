@@ -31,7 +31,7 @@ COMPONENT_SERVICES: dict[str, list[str]] = {
 }
 
 # Path to the update script that runs on the device
-UPDATE_SCRIPT_PATH = Path(__file__).parent.parent / "scripts" / "update_service.sh"
+UPDATE_SCRIPT_PATH = Path(__file__).parent.parent / "scripts" / "update_component.sh"
 
 
 class DeviceUpdateError(DistroInfraError):
@@ -44,8 +44,8 @@ class DeviceUpdater:
     Workflow:
     1. Validate component is supported for update
     2. Acquire artifacts (build OR download)
-    3. SCP artifact and update_service.sh to device
-    4. SSH: run update_service.sh
+    3. SCP artifact and update_component.sh to device
+    4. SSH: run update_component.sh
     """
 
     def __init__(
@@ -203,8 +203,8 @@ class DeviceUpdater:
             services_arg = " ".join(services)
             remote_cmd = (
                 f"cd {remote_dir} && "
-                f"chmod +x update_service.sh && "
-                f"./update_service.sh {self.component} {services_arg}"
+                f"chmod +x update_component.sh && "
+                f"./update_component.sh {self.component} {services_arg}"
             )
 
             logger.info("Executing update on device...")

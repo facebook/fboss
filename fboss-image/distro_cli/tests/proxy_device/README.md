@@ -89,13 +89,13 @@ The initial version is "1.0.0". Updates replace the script with a new version.
 
 ### Version Verification
 
-Each service writes its version to `/var/run/<service>.version` **inside its btrfs subvolume**.
+Each service writes its version to `/var/run/<service>.version` **inside its component's btrfs snapshot**.
 
 To verify from outside the service:
 ```bash
-# Find the service's subvolume and check version
-SUBVOL=$(ls -d /mnt/btrfs/updates/wedge_agent-* | head -1)
-cat $SUBVOL/var/run/wedge_agent.version
+# Find the forwarding stack component snapshot and check wedge_agent version
+SUBVOL=$(ls -d /mnt/btrfs/updates/fboss-forwarding-stack-* | head -1)
+cat "$SUBVOL/var/run/wedge_agent.version"
 # Output: 1.0.0 (before update) or 2.0.0 (after update)
 ```
 
@@ -124,8 +124,8 @@ docker exec proxy-device systemctl status wedge_agent
 # Check subvolumes
 docker exec proxy-device ls /mnt/btrfs/updates/
 
-# Check service version
-docker exec proxy-device bash -c 'cat /mnt/btrfs/updates/wedge_agent-*/var/run/wedge_agent.version'
+# Check service version via component snapshot
+docker exec proxy-device bash -c 'cat /mnt/btrfs/updates/fboss-forwarding-stack-*/var/run/wedge_agent.version'
 ```
 
 ## Testing Updates
