@@ -11,11 +11,13 @@ cpp_unittest(
         "CmdConfigInterfaceDescriptionTest.cpp",
         "CmdConfigInterfaceMtuTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
+        "CmdConfigL2LearningModeTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdConfigTestBase.cpp",
+        "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
     ],
     deps = [

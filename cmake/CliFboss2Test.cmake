@@ -37,8 +37,6 @@ gtest_discover_tests(fboss2_framework_test)
 add_executable(fboss2_cmd_test
   fboss/util/oss/TestMain.cpp
   fboss/cli/fboss2/oss/config/CmdListImpl.cpp
-  fboss/cli/fboss2/test/CmdConfigL2LearningModeTest.cpp
-  fboss/cli/fboss2/test/CmdConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/CmdGetPcapTest.cpp
   fboss/cli/fboss2/test/CmdListConfigTest.cpp
   fboss/cli/fboss2/test/CmdSetPortStateTest.cpp

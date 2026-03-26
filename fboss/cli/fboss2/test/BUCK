@@ -64,8 +64,6 @@ cpp_unittest(
 cpp_unittest(
     name = "cmd_test",
     srcs = [
-        "CmdConfigL2LearningModeTest.cpp",
-        "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdListConfigTest.cpp",
         "CmdSetPortStateTest.cpp",
