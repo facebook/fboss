@@ -1272,7 +1272,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_L_CPLD"
         },
         {
@@ -1530,7 +1530,7 @@
         {
           "busName": "INCOMING@4",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_R_CPLD"
         }
       ]
