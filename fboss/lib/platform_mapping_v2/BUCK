@@ -132,7 +132,7 @@ python_library(
     srcs = ["asic_vendor_config.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
     ],
 )
 
