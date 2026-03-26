@@ -93,6 +93,11 @@ void disableTTLDecrements(
 
 void disableTTLDecrements(TestEnsembleIf* hw, const PortDescriptor& port);
 
+void disableTTLDecrementOnNeighbor(
+    TestEnsembleIf* hw,
+    InterfaceID intfID,
+    const folly::IPAddress& nhop);
+
 template <typename EcmpNhopT>
 void disableTTLDecrements(
     TestEnsembleIf* ensemble,
@@ -130,6 +135,14 @@ void disablePortTTLDecrementIfSupported(
   if (asicTable->isFeatureSupportedOnAnyAsic(
           HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
     disableTTLDecrements(hw, nhop.portDesc);
+  } else if (
+      !hw->isSai() &&
+      asicTable->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::NEXTHOP_TTL_DECREMENT_DISABLE)) {
+    // BCM-native reads disableTTLDecrement from the neighbor entry,
+    // not from route nexthops. SAI reads it from route nexthops via
+    // SaiNextHopManager. Only set neighbor entry for BCM-native.
+    disableTTLDecrementOnNeighbor(hw, nhop.intf, folly::IPAddress(nhop.ip));
   }
 }
 
