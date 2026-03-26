@@ -40,7 +40,6 @@ Start a separate fsdb instance listening on unused ports 5911, 5912, 5913:
 
 ```bash
 /etc/packages/neteng-fboss-fsdb/current/fsdb \
-  --readConfigFile=false \
   --thrift_ssl_policy=permitted \
   --streamExpire_ms=0 \
   --fsdbPort=5911 \
