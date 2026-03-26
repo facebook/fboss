@@ -555,11 +555,11 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     });
   }
 
+  // HwAsic::getMaxNdpTableSize() — e.g. Yuba/G202x (Tajo-based) return 512.
   uint32_t getAsicNeighborTableSize() {
-    uint32_t ndpTableSize = 0;
     auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
     CHECK(hwAsic->getMaxNdpTableSize().has_value());
-    ndpTableSize = hwAsic->getMaxNdpTableSize().value();
+    uint32_t ndpTableSize = hwAsic->getMaxNdpTableSize().value();
     CHECK(ndpTableSize > 0);
     return ndpTableSize;
   }
@@ -580,7 +580,16 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
   }
 
  private:
-  // program neighbor entries with neighbor updater
+  // Same pattern as AgentMacLearningTests::generateMacs: MacAddressGenerator
+  // with a fixed base; get(base + 1 + i) matches startOver(base) then i+1 x
+  // getNext()
+  static folly::MacAddress macFromNeighborIndex(uint32_t i) {
+    const uint64_t kBaseHbo = folly::MacAddress("02:00:00:0a:00:00").u64HBO();
+    return utility::MacAddressGenerator().get(kBaseHbo + 1 + i);
+  }
+
+  // program neighbor entries with neighbor updater (entries from
+  // getBulkProgramCount() onward)
   template <typename AddrT>
   void programNeighborsWithNeighborUpdater(
       const PortDescriptor& port,
@@ -588,13 +597,24 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
     for (int i = getBulkProgramCount(); i < ipAddresses.size(); i++) {
       XLOG(DBG2) << "Programming neighbor " << i << ": "
                  << ipAddresses[i].str();
-      getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
-          kIntfID,
-          ipAddresses[i],
-          kNeighborMac,
-          port,
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-          0);
+      folly::MacAddress mac = macFromNeighborIndex(static_cast<uint32_t>(i));
+      if (FLAGS_intf_nbr_tables) {
+        getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
+            kIntfID,
+            ipAddresses[i],
+            mac,
+            port,
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      } else {
+        getSw()->getNeighborUpdater()->receivedNdpMine(
+            kVlanID,
+            ipAddresses[i],
+            mac,
+            port,
+            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+            0);
+      }
 
       // wait for neighbor update to complete before enqueuing next neighbor
       // update
@@ -621,9 +641,9 @@ class AgentNeighborResolutionOverFlowTest : public AgentNeighborResolutionTest {
       std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
     auto state = in->clone();
     CHECK_LE(startIndex + count, ipAddressesV6.size());
-    for (int i = startIndex; i < startIndex + count; i++) {
+    for (uint32_t i = startIndex; i < startIndex + count; i++) {
       state = updateNeighborEntry<AddrT>(
-          state, port, ipAddressesV6[i], kNeighborMac, lookupClass);
+          state, port, ipAddressesV6[i], macFromNeighborIndex(i), lookupClass);
     }
     return state;
   }
