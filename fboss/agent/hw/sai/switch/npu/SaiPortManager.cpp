@@ -753,7 +753,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (auto txEnable = swPort->getTxEnable()) {
     pktTxEnable = SaiPortTraits::Attributes::PktTxEnable{txEnable.value()};
   }
-  auto portPfcInfo = getPortPfcAttributes(swPort);
+  SaiPortPfcInfo portPfcInfo;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    portPfcInfo = getPortPfcAttributes(swPort);
+  } else {
+    CHECK(!swPort->getPfc().has_value())
+        << "Enabling PFC on hyper port member is not supported";
+  }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = std::nullopt;

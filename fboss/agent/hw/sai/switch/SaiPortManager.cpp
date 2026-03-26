@@ -870,6 +870,8 @@ void SaiPortManager::programPfc(
     const std::shared_ptr<Port>& swPort,
     sai_uint8_t txPfc,
     sai_uint8_t rxPfc) {
+  CHECK(swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER)
+      << "Enabling PFC on hyper port member is not supported";
   auto portHandle = getPortHandle(swPort->getID());
 
   auto pfcInfo = getPfcAttributes(txPfc, rxPfc);
