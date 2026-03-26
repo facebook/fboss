@@ -253,8 +253,6 @@ utils::ObjectArgTypeId argTypeHandler() {
   return T().ObjectArgTypeId;
 }
 
-utils::ObjectArgTypeId helpArgTypeHandler();
-
 template <typename T>
 std::vector<utils::LocalOption> localOptionsHandler() {
   return T().LocalOptions;
