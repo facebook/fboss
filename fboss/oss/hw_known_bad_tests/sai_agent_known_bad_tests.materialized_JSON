@@ -86,6 +86,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -177,6 +180,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -397,6 +403,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -485,6 +494,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -714,6 +726,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -805,6 +820,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -944,6 +962,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1026,6 +1047,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1172,6 +1196,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -1270,6 +1297,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -1361,6 +1391,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1475,6 +1508,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -1644,6 +1680,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -1732,6 +1771,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -1994,6 +2036,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2085,6 +2130,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2215,6 +2263,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -2303,6 +2354,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2484,6 +2538,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2575,6 +2632,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2731,6 +2791,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -2822,6 +2885,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -2967,6 +3033,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -3055,6 +3124,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3239,6 +3311,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3330,6 +3405,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3489,6 +3567,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -3580,6 +3661,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -3779,6 +3863,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -3867,6 +3954,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4189,6 +4279,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -4280,6 +4373,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4533,6 +4629,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -4621,6 +4720,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -4799,6 +4901,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -4887,6 +4992,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5077,6 +5185,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5168,6 +5279,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5319,6 +5433,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5410,6 +5527,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5591,6 +5711,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5682,6 +5805,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -5827,6 +5953,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -5918,6 +6047,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6063,6 +6195,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -6154,6 +6289,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6293,6 +6431,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -6375,6 +6516,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6521,6 +6665,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -6611,6 +6758,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -6704,6 +6854,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -6818,6 +6971,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -6984,6 +7140,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -7072,6 +7231,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7328,6 +7490,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -7419,6 +7584,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -7597,6 +7765,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -7685,6 +7856,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8001,6 +8175,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8092,6 +8269,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8339,6 +8519,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -8427,6 +8610,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8608,6 +8794,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -8696,6 +8885,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -8889,6 +9081,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -8980,6 +9175,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9134,6 +9332,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9225,6 +9426,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9409,6 +9613,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9500,6 +9707,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9648,6 +9858,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9739,6 +9952,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -9884,6 +10100,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -9975,6 +10194,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10114,6 +10336,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10196,6 +10421,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10342,6 +10570,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -10432,6 +10663,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -10525,6 +10759,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -10639,6 +10876,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
@@ -10805,6 +11045,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -10893,6 +11136,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11149,6 +11395,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -11240,6 +11489,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11418,6 +11670,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -11506,6 +11761,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -11822,6 +12080,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -11913,6 +12174,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12214,6 +12478,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -12302,6 +12569,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12600,6 +12870,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -12691,6 +12964,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -12920,6 +13196,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -13008,6 +13287,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13189,6 +13471,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -13277,6 +13562,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13467,6 +13755,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -13555,6 +13846,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13739,6 +14033,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -13830,6 +14127,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -13984,6 +14284,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -14075,6 +14378,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -14259,6 +14565,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -14350,6 +14659,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -14498,6 +14810,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -14589,6 +14904,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -14734,6 +15052,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -14825,6 +15146,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15024,6 +15348,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -15112,6 +15439,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15419,6 +15749,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -15510,6 +15843,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -15748,6 +16084,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -15836,6 +16175,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16017,6 +16359,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -16105,6 +16450,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16295,6 +16643,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -16383,6 +16734,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16567,6 +16921,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -16658,6 +17015,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -16812,6 +17172,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -16903,6 +17266,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -17087,6 +17453,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -17178,6 +17547,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -17326,6 +17698,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -17417,6 +17792,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -17562,6 +17940,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -17653,6 +18034,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -17852,6 +18236,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -17940,6 +18327,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -18247,6 +18637,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -18338,6 +18731,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -18630,6 +19026,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -18718,6 +19117,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -18959,6 +19361,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -19050,6 +19455,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -19201,6 +19609,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -19283,6 +19694,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -19429,6 +19843,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -19445,6 +19862,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
@@ -19554,6 +19974,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -19645,6 +20068,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -19761,6 +20187,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].UnresolvedRouteNextHopToLowPriQueue$"
         },
         {
@@ -19777,6 +20206,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
@@ -19958,6 +20390,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -20046,6 +20481,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
@@ -20156,6 +20594,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
@@ -20190,6 +20631,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -20362,6 +20806,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -20455,6 +20902,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "AgentCoppTest/[01].VerifyCoppPpsLowPri$"
         },
         {
@@ -20503,6 +20953,9 @@
           "test_name_regex": "AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
           "test_name_regex": "AgentDeepPacketInspectionTest.l3ForwardedPkt$"
         },
         {
@@ -20537,6 +20990,9 @@
         },
         {
           "test_name_regex": "AgentTrafficPfcTest.verifyBufferPoolWatermarks$"
+        },
+        {
+          "test_name_regex": "AgentTrafficPfcGenTest.verifyBufferPoolWatermarks$"
         },
         {
           "test_name_regex": "AgentIngressAclSpanMirroringTest/IPv[46].*$"
@@ -21020,6 +21476,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -21298,6 +21757,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -21535,6 +21997,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -21782,6 +22247,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
         },
         {
@@ -21844,6 +22312,9 @@
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
+          "test_name_regex": "warm_boot.AgentTrafficPfcGenTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -22037,6 +22508,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -22098,6 +22572,9 @@
           "test_name_regex": "warm_boot.AgentTrafficPfcTest.verifyIngressPriorityGroupWatermarks$"
         },
         {
+          "test_name_regex": "warm_boot.AgentTrafficPfcGenTest.verifyIngressPriorityGroupWatermarks$"
+        },
+        {
           "test_name_regex": "AgentAclAndDscpQueueMappingTest.VerifyAclAndQosMap$"
         },
         {
@@ -22291,6 +22768,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -22424,6 +22904,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -22550,6 +23033,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -22717,6 +23203,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
@@ -22890,6 +23379,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -23098,6 +23590,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -23299,6 +23794,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
@@ -23507,6 +24005,9 @@
           "test_name_regex": "AgentArsSprayTest.*$"
         },
         {
+          "test_name_regex": "AgentArsBcmTest.*$"
+        },
+        {
           "test_name_regex": "roundtrip.preprod_2_trunk_2_preprod.cold_boot.AgentPacketSendReceiveLagTest.LacpPacketReceiveSrcPort$"
         },
         {
@@ -23708,6 +24209,9 @@
         },
         {
           "test_name_regex": "AgentArsSprayTest.*$"
+        },
+        {
+          "test_name_regex": "AgentArsBcmTest.*$"
         },
         {
           "test_name_regex": "warm_boot.AgentInNullRouteDiscardsCounterTest.nullRouteHit$"
