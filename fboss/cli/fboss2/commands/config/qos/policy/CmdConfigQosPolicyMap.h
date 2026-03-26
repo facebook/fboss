@@ -27,18 +27,37 @@ enum class QosMapType {
   TC_TO_QUEUE, // trafficClassToQueueId
   PFC_PRI_TO_QUEUE, // pfcPriorityToQueueId
   TC_TO_PG, // trafficClassToPgId
-  PFC_PRI_TO_PG // pfcPriorityToPgId
+  PFC_PRI_TO_PG, // pfcPriorityToPgId
+  DSCP, // dscpMaps
+  MPLS_EXP, // expMaps
+  DOT1P, // pcpMaps
+};
+
+/**
+ * Direction for DSCP/EXP/DOT1P maps.
+ * INGRESS: codepoint -> traffic class (additive, classification)
+ * EGRESS: traffic class -> codepoint (rewrite)
+ */
+enum class QosMapDirection {
+  INGRESS,
+  EGRESS,
 };
 
 /**
  * Custom type for QoS map entry configuration.
  *
  * Parses command line arguments in the format:
- *   <map-type> <key> <value>
+ *   For simple maps (tc-to-queue, pfc-pri-to-queue, tc-to-pg, pfc-pri-to-pg):
+ *     <map-type> <key> <value>
+ *     Example: tc-to-queue 0 0
  *
- * For example:
- *   tc-to-queue 0 0
- *   pfc-pri-to-queue 3 3
+ *   For DSCP/EXP/DOT1P maps (source -> destination):
+ *     dscp <value> tc <tc>           - maps DSCP to traffic class (additive)
+ *     traffic-class <tc> dscp <value> - maps traffic class to DSCP
+ *     mpls-exp <value> traffic-class <tc> - maps MPLS EXP to traffic class
+ *     traffic-class <tc> mpls-exp <value> - maps traffic class to MPLS EXP
+ *     dot1p <value> traffic-class <tc> - maps DOT1P to traffic class
+ *     traffic-class <tc> dot1p <value> - maps traffic class to DOT1P
  */
 class QosMapConfig : public utils::BaseObjectArgType<std::string> {
  public:
@@ -57,13 +76,37 @@ class QosMapConfig : public utils::BaseObjectArgType<std::string> {
     return value_;
   }
 
+  /**
+   * For DSCP/EXP/DOT1P maps, returns the traffic class.
+   */
+  int16_t getTrafficClass() const {
+    return trafficClass_;
+  }
+
+  /**
+   * For DSCP/EXP/DOT1P maps, returns the direction (ingress or egress).
+   */
+  QosMapDirection getDirection() const {
+    return direction_;
+  }
+
+  /**
+   * Returns true if this is a DSCP/EXP/DOT1P map type.
+   */
+  bool isListMapType() const;
+
   const static utils::ObjectArgTypeId id =
       utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY;
 
  private:
+  void parseListMapType(const std::vector<std::string>& v);
+
   QosMapType mapType_{QosMapType::TC_TO_QUEUE};
   int16_t key_{0};
   int16_t value_{0};
+  // For DSCP/EXP/DOT1P maps
+  int16_t trafficClass_{0};
+  QosMapDirection direction_{QosMapDirection::INGRESS};
 };
 
 struct CmdConfigQosPolicyMapTraits : public WriteCommandTraits {
