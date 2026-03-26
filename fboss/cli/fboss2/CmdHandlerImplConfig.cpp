@@ -104,6 +104,7 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
+#include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
 // NOLINTEND(misc-include-cleaner)
 // IWYU pragma: end_keep
 
@@ -354,5 +355,8 @@ template void CmdHandler<
 template void CmdHandler<
     CmdConfigProtocolBgpPeerGroupWarningOnly,
     CmdConfigProtocolBgpPeerGroupWarningOnlyTraits>::run();
+
+// New delete config commands
+template void CmdHandler<CmdDeleteConfig, CmdDeleteConfigTraits>::run();
 
 } // namespace facebook::fboss

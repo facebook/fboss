@@ -100,6 +100,7 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
+#include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
 
 namespace facebook::fboss {
 
@@ -772,6 +773,12 @@ const CommandTree& kConfigCommandTree() {
                 }},
            }},
       },
+
+      {"delete",
+       "config",
+       "Delete config objects",
+       commandHandler<CmdDeleteConfig>,
+       argTypeHandler<CmdDeleteConfigTraits>},
   };
   sort(root.begin(), root.end());
   return root;

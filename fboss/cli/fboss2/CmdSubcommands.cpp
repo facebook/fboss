@@ -351,13 +351,28 @@ void CmdSubcommands::addCommandBranch(
     const Command& cmd,
     std::string& fullCmd,
     int depth) {
-  // Command should not already exists since we only traverse the tree once
-  if (utils::getSubcommandIf(app, cmd.name)) {
-    // TODO explore moving this check to a compile time check
-    throw std::runtime_error(
-        fmt::format(
-            "Command `{}` already exists, command tree must be invalid",
-            cmd.name));
+  if (auto* existing = utils::getSubcommandIf(app, cmd.name)) {
+    // Command already exists. Allow merging when either side has subcommands
+    // to contribute. Reject only when both the existing and incoming commands
+    // are leaf nodes (no children) — that means the exact same path from root
+    // to leaf exists in multiple trees, which is a true conflict.
+    if (cmd.subcommands.empty() &&
+        existing->get_subcommands([](CLI::App*) { return true; }).empty()) {
+      throw std::runtime_error(
+          fmt::format(
+              "Command `{}` already exists, command tree must be invalid",
+              cmd.name));
+    }
+    if (fullCmd.empty()) {
+      fullCmd += cmd.name;
+    } else {
+      fullCmd += fmt::format("_{}", cmd.name);
+    }
+    for (const auto& child : cmd.subcommands) {
+      std::string newFullCmd = fullCmd;
+      addCommandBranch(*existing, child, newFullCmd, depth);
+    }
+    return;
   }
   auto* subCmd = addCommand(app, cmd, fullCmd, depth);
   if (cmd.commandHandler) {
