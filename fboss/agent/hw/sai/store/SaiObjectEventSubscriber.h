@@ -160,10 +160,6 @@ class SaiObjectEventAggregateSubscriber
       : detail::SaiObjectEventSingleSubscriber<Class, PublishedObjectTraits>(
             attrs)... {}
 
-  ~SaiObjectEventAggregateSubscriber() {
-    resetObject();
-  }
-
   template <typename PublishedObjectTrait>
   void afterCreateNotifyAggregateSubscriber() {
     auto index = TupleIndex<AggregateType, PublishedObjectTrait>::value;

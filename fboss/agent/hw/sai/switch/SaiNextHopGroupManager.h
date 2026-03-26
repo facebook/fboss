@@ -85,6 +85,10 @@ class ManagedSaiNextHopGroupMember
         weight_(weight),
         fixedWidthMode_(fixedWidthMode) {}
 
+  ~ManagedSaiNextHopGroupMember() {
+    this->resetObject();
+  }
+
   std::pair<
       std::optional<SaiNextHopGroupMemberTraits::AdapterHostKey>,
       std::optional<SaiNextHopGroupMemberTraits::CreateAttributes>>
