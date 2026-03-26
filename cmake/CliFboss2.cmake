@@ -527,7 +527,6 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
-  fboss/cli/fboss2/oss/CmdListShowConfig.cpp
   fboss/cli/fboss2/utils/CmdUtils.cpp
   fboss/cli/fboss2/utils/CLIParserUtils.cpp
   fboss/cli/fboss2/utils/CmdClientUtils.cpp
@@ -626,6 +625,7 @@ target_link_libraries(fboss2_lib
 # headers needed by CmdGlobalOptions.h), so we inline the sources instead.
 add_executable(fboss2
   fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdListImpl.cpp
   fboss/cli/fboss2/utils/CmdInitUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
 )
@@ -830,9 +830,9 @@ target_link_libraries(fboss2_config_lib
 
 add_executable(fboss2-dev
   fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/config/CmdListImpl.cpp
   fboss/cli/fboss2/utils/CmdInitUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
-  fboss/cli/fboss2/oss/CmdListConfig.cpp
 )
 
 target_link_libraries(fboss2-dev

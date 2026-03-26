@@ -7,6 +7,7 @@
 # TODO(joseph5wu) Need to come up with a solution to enable these tests for OSS
 add_executable(fboss2_framework_test
   fboss/util/oss/TestMain.cpp
+  fboss/cli/fboss2/oss/config/CmdListImpl.cpp
   fboss/cli/fboss2/test/AggregationParsingTest.cpp
   # fboss/cli/fboss2/test/AggregationTest.cpp - excluded (requires bundled schema)
   # fboss/cli/fboss2/test/AggregationValidationTest.cpp - excluded (requires bundled schema)
@@ -19,6 +20,7 @@ add_executable(fboss2_framework_test
 
 target_link_libraries(fboss2_framework_test
   fboss2_lib
+  fboss2_config_lib
   thrift_service_utils
   CLI11::CLI11
   ${GTEST}
@@ -34,7 +36,7 @@ gtest_discover_tests(fboss2_framework_test)
 # cmd_test - Command tests from BUCK file
 add_executable(fboss2_cmd_test
   fboss/util/oss/TestMain.cpp
-  fboss/cli/fboss2/oss/CmdListConfig.cpp
+  fboss/cli/fboss2/oss/config/CmdListImpl.cpp
   fboss/cli/fboss2/test/CmdConfigL2LearningModeTest.cpp
   fboss/cli/fboss2/test/CmdConfigVlanPortTaggingModeTest.cpp
   fboss/cli/fboss2/test/CmdGetPcapTest.cpp

@@ -43,6 +43,7 @@ cpp_unittest(
         "CmdSubCommandsTest.cpp",
         "FilterTest.cpp",
         "FilterValidationTest.cpp",
+        "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
@@ -101,6 +102,7 @@ cpp_unittest(
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
         "PortMapTest.cpp",
+        "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
     # Config files for PortMapTest parameterized tests
     resources = [

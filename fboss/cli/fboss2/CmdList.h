@@ -230,8 +230,10 @@ using RevHelpForObj = std::map<HelpInfo, std::vector<Command>>;
 using ReverseHelpTree = std::map<std::string, RevHelpForObj>;
 
 const CommandTree& kCommandTree();
+const CommandTree& kBaseAdditionalCommandTree();
+// Each binary must provide exactly one definition of kAdditionalCommandTree()
+// and kSpecialCommands() in its own CmdListImpl.cpp to satisfy ODR.
 const CommandTree& kAdditionalCommandTree();
-
 const std::vector<Command>& kSpecialCommands();
 
 template <typename T>

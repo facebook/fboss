@@ -21,7 +21,6 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
-#include "fboss/cli/fboss2/commands/help/CmdHelp.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
@@ -552,17 +551,6 @@ const CommandTree& kCommandTree() {
   };
   sort(root.begin(), root.end());
   return root;
-}
-
-utils::ObjectArgTypeId helpArgTypeHandler() {
-  return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
-}
-
-void helpCommandHandler() {
-  const auto& cmdTree = kCommandTree();
-  const auto& addCmdTree = kAdditionalCommandTree();
-  std::vector<CommandTree> cmdTrees = {cmdTree, addCmdTree};
-  CmdHelp(cmdTrees).run();
 }
 
 } // namespace facebook::fboss
