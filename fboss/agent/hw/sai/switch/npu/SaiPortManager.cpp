@@ -731,7 +731,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt;
   std::optional<SaiPortTraits::Attributes::PrbsConfig> prbsConfig =
       std::nullopt;
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS) &&
+      swPort->getPortType() != cfg::PortType::HYPER_PORT) {
+    // PRBS should only be configured on hyper port member or normal ports,
+    // not on hyper port
     auto asicPrbs = swPort->getAsicPrbs();
     prbsConfig = getSaiPortPrbsConfig(asicPrbs.enabled().value());
     if (asicPrbs.enabled().value()) {
