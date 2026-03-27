@@ -45,7 +45,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       break;
   }
 
-  std::optional<sai_object_id_t> nextHopId;
+  sai_object_id_t nextHopId = SAI_NULL_OBJECT_ID;
   if (nexthopHandle) {
     if (auto* nhgHandle = std::get_if<std::shared_ptr<SaiNextHopGroupHandle>>(
             &nexthopHandle.value())) {
@@ -63,7 +63,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   auto vrId = vrHandle->virtualRouter->adapterKey();
 
   sai_int32_t packetAction = SAI_PACKET_ACTION_FORWARD;
-  if (nextHopId && *nextHopId == SAI_NULL_OBJECT_ID) {
+  if (nextHopId == SAI_NULL_OBJECT_ID && nexthopHandle) {
     packetAction = SAI_PACKET_ACTION_DROP;
   }
 
@@ -128,18 +128,18 @@ void ManagedMySidNextHop::afterCreate(
     // while creating my_sid entry, managed next hop id must be used in create
     return;
   }
-  entry->setOptionalAttribute(
+  entry->setAttribute(
       SaiMySidEntryTraits::Attributes::NextHopId{nexthop->adapterKey()});
-  entry->setOptionalAttribute(
+  entry->setAttribute(
       SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_FORWARD});
 }
 
 void ManagedMySidNextHop::beforeRemove() {
   auto entry = manager_->getMySidObject(mySidKey_);
   if (entry) {
-    entry->setOptionalAttribute(
+    entry->setAttribute(
         SaiMySidEntryTraits::Attributes::NextHopId{SAI_NULL_OBJECT_ID});
-    entry->setOptionalAttribute(
+    entry->setAttribute(
         SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_DROP});
   }
   this->setPublisherObject(nullptr);

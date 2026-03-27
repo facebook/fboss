@@ -138,10 +138,10 @@ struct SaiMySidEntryTraits {
   using AdapterHostKey = MySidEntry;
   using CreateAttributes = std::tuple<
       Attributes::EndpointBehavior,
-      std::optional<Attributes::EndpointBehaviorFlavor>,
-      std::optional<Attributes::NextHopId>,
-      std::optional<Attributes::Vrf>,
-      std::optional<Attributes::PacketAction>>;
+      Attributes::EndpointBehaviorFlavor,
+      Attributes::NextHopId,
+      Attributes::Vrf,
+      Attributes::PacketAction>;
 };
 template <>
 struct IsSaiEntryStruct<SaiMySidEntryTraits::MySidEntry>
