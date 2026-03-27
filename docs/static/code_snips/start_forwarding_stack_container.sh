@@ -17,16 +17,16 @@ tar xvzf fboss/oss/stable_commits/latest_stable_hashes.tar.gz
 # /path_to_sdk/lib/     -> /opt/sdk/lib/
 # /path_to_sdk/include/ -> /opt/sdk/include/
 sudo docker run -d \
-    -it --name=FBOSS_DOCKER_CONTAINER \
+    -it --name=FBOSS_BUILD_CONTAINER \
     -v $PWD:/var/FBOSS/fboss:z \
     -v /path_to_sdk:/opt/sdk:z \
-    fboss_docker:latest bash
+    fboss_image:latest bash
 
 # A full FBOSS build may take significant space (>50GB of storage). You
 # can mount a volume with more storage for building by using the -v flag
 sudo docker run -d \
-    -it --name=FBOSS_DOCKER_CONTAINER \
+    -it --name=FBOSS_BUILD_CONTAINER \
     -v $PWD:/var/FBOSS/fboss:z \
     -v /path_to_sdk:/opt/sdk:z \
     -v /opt/app/localbuild:/var/FBOSS/tmp_bld_dir:z \
-    fboss_docker:latest bash
+    fboss_image:latest bash
