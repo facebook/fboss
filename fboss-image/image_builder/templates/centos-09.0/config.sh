@@ -9,6 +9,10 @@ mkdir -p "$LOCAL_RPM_REPO_DIR"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+# Default to python 3.12, also simulate the Debian python-is-python3 package
+update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
 # All dnf invocations with an invalid RPM repo configured will fail. Create the
 # metadata for the local_rpm_repo now to prevent that.
 createrepo /usr/local/share/local_rpm_repo
@@ -64,7 +68,7 @@ process_kernel() {
   return 0
 }
 
-process_hw_agent_sai_tarball() {
+process_npu_sai_tarball() {
   local component_dir=$1
   local component_name
   component_name=$(basename "$component_dir")
@@ -144,8 +148,8 @@ for component_dir in /repos/*; do
     rm -rf "$component_tmp"
     ;;
 
-  hw_agent_sai)
-    process_hw_agent_sai_tarball "$component_dir"
+  npu_sai)
+    process_npu_sai_tarball "$component_dir"
     handler_rc=$?
     ;;
 

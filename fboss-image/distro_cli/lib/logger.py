@@ -14,30 +14,28 @@ import time
 class ElapsedTimeFormatter(logging.Formatter):
     """Formatter that shows elapsed time since CLI start."""
 
-    def __init__(self, fmt="[%(current_time)s] [%(elapsed).2fs] [%(levelname)s] %(message)s"):
+    def __init__(self, fmt="[%(elapsed).2fs] %(message)s"):
         super().__init__(fmt)
         self.start_time = time.time()
 
     def format(self, record):
         record.elapsed = time.time() - self.start_time
-        record.current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         return super().format(record)
 
 
 def setup_logging(verbose=False):
     """Setup logging with elapsed time formatter.
 
-    Configures the root logger so all child loggers inherit the configuration.
+    Configures the 'distro_cli' logger, which is the parent of all module
+    loggers created via logging.getLogger(__name__) throughout the package.
     """
-    # Configure the root logger so all loggers inherit this configuration
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-    root_logger.handlers = []
+    logger = logging.getLogger("distro_cli")
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger.handlers = []
 
     handler = logging.StreamHandler()
     formatter = ElapsedTimeFormatter()
     handler.setFormatter(formatter)
-    root_logger.addHandler(handler)
+    logger.addHandler(handler)
 
-    # Also return a named logger for backward compatibility
-    return logging.getLogger("fboss-image")
+    return logger

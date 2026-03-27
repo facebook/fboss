@@ -15,10 +15,10 @@
     "execute": ["build_stack.sh", "platform-stack"],
     "artifact": "platform-stack.tar"
   },
-  "hw_agent_sai": {
+  "npu_sai": {
     "download": "file:sai-devel.tar"
   },
-  "qsfp_service_sai": {
+  "phy_sai": {
   },
   "fboss-forwarding-stack": {
     "execute": ["build_stack.sh", "forwarding-stack"],

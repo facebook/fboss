@@ -86,8 +86,8 @@ class TestImageBuilder(unittest.TestCase):
 
         # Verify component build was called for each component element in manifest
         # dev_image.json has: kernel (1), other_dependencies (2 elements), fboss-platform-stack (1),
-        # bsps (2 elements), hw_agent_sai (1), fboss-forwarding-stack (1),
-        # qsfp_service_sai (1), image_build_hooks (1) = 10 total
+        # bsps (2 elements), npu_sai (1), fboss-forwarding-stack (1),
+        # phy_sai (1), image_build_hooks (1) = 10 total
         self.assertEqual(mock_component_build.call_count, 10)
 
     @patch("distro_cli.builder.image_builder.ImageBuilder._compress_artifact")
@@ -105,23 +105,23 @@ class TestImageBuilder(unittest.TestCase):
         # Request 'sai' and 'fboss-platform-stack' which both have execute commands
         # Note: 'sai' depends on 'kernel', so kernel will be built first
         # 'fboss-forwarding-stack' depends on 'sai', so sai will be built first
-        components = ["hw_agent_sai", "fboss-platform-stack"]
+        components = ["npu_sai", "fboss-platform-stack"]
         self.builder.build_components(components)
 
         # Verify component build was called for:
-        # 1. kernel (dependency of hw_agent_sai, downloaded artifact)
-        # 2. hw_agent_sai (requested, execute build)
+        # 1. kernel (dependency of npu_sai, downloaded artifact)
+        # 2. npu_sai (requested, execute build)
         # 3. fboss-platform-stack (requested, execute build)
         self.assertEqual(mock_component_build.call_count, 3)
 
         # Only artifacts produced by execute builds are compressed; downloaded
         # artifacts are used as-is. In this manifest, kernel is a download, so
-        # we expect compression for hw_agent_sai and fboss-platform-stack only.
+        # we expect compression for npu_sai and fboss-platform-stack only.
         self.assertEqual(mock_compress.call_count, 2)
 
         # Verify artifacts were stored
         self.assertIn("kernel", self.builder.component_artifacts)  # Built as dependency
-        self.assertIn("hw_agent_sai", self.builder.component_artifacts)
+        self.assertIn("npu_sai", self.builder.component_artifacts)
         self.assertIn("fboss-platform-stack", self.builder.component_artifacts)
 
     @patch("distro_cli.builder.image_builder.ImageBuilder._compress_artifact")
@@ -196,17 +196,17 @@ class TestImageBuilder(unittest.TestCase):
         """Test handling of component build failure"""
         # Mock failed component build
         mock_component_build.side_effect = BuildError(
-            "hw_agent_sai build failed with exit code 1"
+            "npu_sai build failed with exit code 1"
         )
 
         with self.assertRaises(BuildError) as cm:
-            self.builder.build_components(["hw_agent_sai"])
+            self.builder.build_components(["npu_sai"])
 
         # Verify error message contains component name and exit code
-        self.assertIn("hw_agent_sai", str(cm.exception))
+        self.assertIn("npu_sai", str(cm.exception))
         self.assertIn("exit code 1", str(cm.exception))
 
-        # Component build should have been called once (for hw_agent_sai)
+        # Component build should have been called once (for npu_sai)
         mock_component_build.assert_called_once()
 
     @patch("distro_cli.builder.image_builder.run_container")

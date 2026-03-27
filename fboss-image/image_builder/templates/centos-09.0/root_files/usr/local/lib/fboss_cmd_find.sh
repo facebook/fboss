@@ -28,7 +28,7 @@ fw_util | sensor_service_client | showtech | weutil)
   ;;
 esac
 
-update_path=$(ls -1 /updates/${update_prefix}-*/opt/fboss/bin/${cmd} | head -n 1)
+update_path=$(ls -1 /updates/${update_prefix}-*/opt/fboss/bin/${cmd} 2>/dev/null | head -n 1)
 if [ -x "$update_path" ]; then
   echo exec "$update_path" "$@"
 else
