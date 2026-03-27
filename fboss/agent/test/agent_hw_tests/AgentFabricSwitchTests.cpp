@@ -372,31 +372,31 @@ TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
 
 TEST_F(AgentFabricSwitchTest, reachDiscard) {
   auto verify = [this]() {
-    for (auto switchId : getFabricSwitchIdsWithPorts()) {
-      auto beforeSwitchDrops = *getHwSwitchStats(switchId).switchDropStats();
-      std::string out;
-      getAgentEnsemble()->runDiagCommand(
-          "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
-          out,
-          switchId);
-      WITH_RETRIES({
-        auto afterSwitchDrops = *getHwSwitchStats(switchId).switchDropStats();
-        XLOG(INFO) << " Before reach drops: "
-                   << *beforeSwitchDrops.globalReachabilityDrops()
-                   << " After reach drops: "
-                   << *afterSwitchDrops.globalReachabilityDrops()
-                   << " Before global drops: "
-                   << *beforeSwitchDrops.globalDrops()
-                   << " After global drops: : "
-                   << *afterSwitchDrops.globalDrops();
-        EXPECT_EVENTUALLY_EQ(
-            *afterSwitchDrops.globalReachabilityDrops(),
-            *beforeSwitchDrops.globalReachabilityDrops() + 1);
-        // Global drops are in bytes
-        EXPECT_EVENTUALLY_GT(
-            *afterSwitchDrops.globalDrops(), *beforeSwitchDrops.globalDrops());
-      });
-    }
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    auto beforeSwitchDrops = *getHwSwitchStats(switchIndex).switchDropStats();
+    std::string out;
+    getAgentEnsemble()->runDiagCommand(
+        "TX 1 destination=-1 destinationModid=-1 flags=0x8000\n",
+        out,
+        switchId);
+    WITH_RETRIES({
+      auto afterSwitchDrops = *getHwSwitchStats(switchIndex).switchDropStats();
+      XLOG(INFO) << " Before reach drops: "
+                 << *beforeSwitchDrops.globalReachabilityDrops()
+                 << " After reach drops: "
+                 << *afterSwitchDrops.globalReachabilityDrops()
+                 << " Before global drops: " << *beforeSwitchDrops.globalDrops()
+                 << " After global drops: : "
+                 << *afterSwitchDrops.globalDrops();
+      EXPECT_EVENTUALLY_EQ(
+          *afterSwitchDrops.globalReachabilityDrops(),
+          *beforeSwitchDrops.globalReachabilityDrops() + 1);
+      // Global drops are in bytes
+      EXPECT_EVENTUALLY_GT(
+          *afterSwitchDrops.globalDrops(), *beforeSwitchDrops.globalDrops());
+    });
     checkStatsStabilize();
   };
   verifyAcrossWarmBoots([]() {}, verify);
