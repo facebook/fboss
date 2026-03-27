@@ -2706,6 +2706,16 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             CmisHelper::getActiveValidSpeedCombinations(),
             CmisHelper::getActiveSpeedApplication());
   } else {
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, state.speed);
+    }
+    SmfSpeedApplicationMap configMapping;
+    if (!configCodes.empty()) {
+      configMapping[state.speed] = std::move(configCodes);
+    }
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
             state.speed,
@@ -2714,12 +2724,13 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
-            TransceiverPropertiesManager::isKnown(getModuleMediaInterface())
+            TransceiverPropertiesManager::isKnown(mediaInterface)
                 ? TransceiverPropertiesManager::getSpeedCombinations<
-                      SMFMediaInterfaceCode>(getModuleMediaInterface())
+                      SMFMediaInterfaceCode>(mediaInterface)
                 : std::vector<
                       std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
-            CmisHelper::getSmfSpeedApplicationMapping());
+            configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
+                                  : configMapping);
   }
   if (laneProgramValues.size() == kMaxOsfpNumLanes) {
     AllLaneConfig stageSet0Config;
@@ -2905,8 +2916,20 @@ CmisModule::getAppSelCodeForSpeed(
     appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
-    appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
-        speed, CmisHelper::getSmfSpeedApplicationMapping());
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    if (!configCodes.empty()) {
+      for (auto code : configCodes) {
+        appCodes.push_back(static_cast<uint8_t>(code));
+      }
+    } else {
+      appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
+          speed, CmisHelper::getSmfSpeedApplicationMapping());
+    }
   }
 
   if (appCodes.empty()) {
@@ -3132,6 +3155,16 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         CmisHelper::getActiveValidSpeedCombinations(),
         CmisHelper::getActiveSpeedApplication());
   } else {
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    SmfSpeedApplicationMap configMapping;
+    if (!configCodes.empty()) {
+      configMapping[speed] = std::move(configCodes);
+    }
     return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
         speed,
         startHostLane,
@@ -3140,12 +3173,13 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         tcvrName,
         moduleCapabilities_,
         currHwSpeedConfig,
-        TransceiverPropertiesManager::isKnown(getModuleMediaInterface())
+        TransceiverPropertiesManager::isKnown(mediaInterface)
             ? TransceiverPropertiesManager::getSpeedCombinations<
-                  SMFMediaInterfaceCode>(getModuleMediaInterface())
+                  SMFMediaInterfaceCode>(mediaInterface)
             : std::vector<
                   std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
-        CmisHelper::getSmfSpeedApplicationMapping());
+        configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
+                              : configMapping);
   }
 }
 
@@ -3346,8 +3380,20 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
     appCodes = CmisHelper::getInterfaceCode(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
-    appCodes = CmisHelper::getInterfaceCode(
-        speed, CmisHelper::getSmfSpeedApplicationMapping());
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    if (!configCodes.empty()) {
+      for (auto code : configCodes) {
+        appCodes.push_back(static_cast<uint8_t>(code));
+      }
+    } else {
+      appCodes = CmisHelper::getInterfaceCode(
+          speed, CmisHelper::getSmfSpeedApplicationMapping());
+    }
   }
   if (appCodes.empty()) {
     // Speed Not supported

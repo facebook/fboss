@@ -2093,6 +2093,29 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
   EXPECT_FALSE(
       xcvr->isRequestValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 4, 4));
 
+  auto fr4Combos =
+      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
+          MediaInterfaceCode::FR4_2x400G);
+
+  auto fr4_400gCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+      SMFMediaInterfaceCode>(
+      MediaInterfaceCode::FR4_2x400G, cfg::PortSpeed::FOURHUNDREDG);
+  SmfSpeedApplicationMap fr4_400gMapping;
+  fr4_400gMapping[cfg::PortSpeed::FOURHUNDREDG] = fr4_400gCodes;
+
+  auto fr4_100gCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+      SMFMediaInterfaceCode>(
+      MediaInterfaceCode::FR4_2x400G, cfg::PortSpeed::HUNDREDG);
+  SmfSpeedApplicationMap fr4_100gMapping;
+  fr4_100gMapping[cfg::PortSpeed::HUNDREDG] = fr4_100gCodes;
+
+  auto fr4_fr1Codes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+      SMFMediaInterfaceCode>(
+      MediaInterfaceCode::FR4_2x400G,
+      cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG);
+  SmfSpeedApplicationMap fr4_fr1Mapping;
+  fr4_fr1Mapping[cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG] = fr4_fr1Codes;
+
   auto speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
       cfg::PortSpeed::FOURHUNDREDG,
       0,
@@ -2100,9 +2123,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(0, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
-          MediaInterfaceCode::FR4_2x400G),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_400gMapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[0], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
@@ -2113,9 +2135,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
-          MediaInterfaceCode::FR4_2x400G),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_400gMapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
@@ -2126,22 +2147,20 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
-          MediaInterfaceCode::FR4_2x400G),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_100gMapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::CWDM4_100G);
 
   speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
-      cfg::PortSpeed::HUNDREDG,
+      cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
       5,
       1,
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
-          MediaInterfaceCode::FR4_2x400G),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_fr1Mapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   for (auto& speed : speedCfgCombo) {
     EXPECT_EQ(speed, (uint8_t)SMFMediaInterfaceCode::FR1_100G);
