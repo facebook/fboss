@@ -222,6 +222,7 @@ cpp_library(
         "AgentStateReconstructionTests.cpp",
         "AgentSwitchStateReplayTest.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",
+        "AgentSwitchingModeTests.cpp",
         "AgentTrafficPauseTests.cpp",
         "AgentTrafficPfcTests.cpp",
         "AgentTrunkLoadBalancerTests.cpp",
