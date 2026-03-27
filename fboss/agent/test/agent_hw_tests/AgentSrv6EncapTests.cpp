@@ -103,6 +103,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
     this->resolveNeighbors(ecmpHelper4, numNextHops);
   }
 
+  void unresolveV4AndV6NextHops(int numNextHops) {
+    auto ecmpHelper6 = makeEcmpHelper<folly::IPAddressV6>();
+    this->unresolveNeighbors(ecmpHelper6, numNextHops);
+    auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
+    this->unresolveNeighbors(ecmpHelper4, numNextHops);
+  }
   void setupHelper(bool resolveNeighbors = true) {
     if constexpr (kIsTrunk) {
       applyConfigAndEnableTrunks(
@@ -320,6 +326,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->bringDownPort(egressPort);
+    this->unresolveV4AndV6NextHops(2);
     this->bringUpPort(egressPort);
     this->resolveV4AndV6NextHops(2);
   };
