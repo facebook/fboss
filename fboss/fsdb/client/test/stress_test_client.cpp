@@ -36,6 +36,11 @@ DEFINE_bool(stats, false, "Subscribe to stats instead of state");
 
 DEFINE_string(host, "::1", "FSDB server host");
 
+DEFINE_string(
+    client_id,
+    "",
+    "FSDB Client ID string. If not specified, defaults to stress_test_client_<streamType>");
+
 DEFINE_int32(
     port,
     facebook::fboss::fsdb::fsdb_common_constants::PORT(),
@@ -118,8 +123,8 @@ void consume(
 }
 
 void subscribe(const std::vector<std::string>& rawPath, bool subscribeStats) {
-  auto pubSubMgr =
-      std::make_unique<FsdbPubSubManager>("stress_test_client_path");
+  auto pubSubMgr = std::make_unique<FsdbPubSubManager>(
+      FLAGS_client_id.empty() ? "stress_test_client_path" : FLAGS_client_id);
 
   auto connectionOptions = getConnectionOptions();
 
@@ -167,8 +172,8 @@ void subscribe(const std::vector<std::string>& rawPath, bool subscribeStats) {
 void subscribeDelta(
     const std::vector<std::string>& rawPath,
     bool subscribeStats) {
-  auto pubSubMgr =
-      std::make_unique<FsdbPubSubManager>("stress_test_client_delta");
+  auto pubSubMgr = std::make_unique<FsdbPubSubManager>(
+      FLAGS_client_id.empty() ? "stress_test_client_delta" : FLAGS_client_id);
 
   auto connectionOptions = getConnectionOptions();
 
@@ -241,7 +246,8 @@ void publishPathImpl(
   }
 
   auto syncManager = std::make_unique<FsdbSyncManager<PubRootT>>(
-      "stress_test_client_path_publisher",
+      FLAGS_client_id.empty() ? "stress_test_client_path_publisher"
+                              : FLAGS_client_id,
       basePath,
       publishStats,
       PubSubType::PATH);
@@ -304,7 +310,8 @@ void publishBgpPath(IDataGenerator& dataFactory) {
   auto bgpPath = fsdbStateRootPath.bgp();
 
   auto syncManager = std::make_unique<FsdbSyncManager<BgpData>>(
-      "stress_test_client_path_publisher",
+      FLAGS_client_id.empty() ? "stress_test_client_path_publisher"
+                              : FLAGS_client_id,
       bgpPath.tokens(),
       false /* isStats */,
       PubSubType::PATH);
@@ -384,7 +391,9 @@ void subscribePatch(const std::vector<std::string>& rawPath, bool isStats) {
   };
 
   auto doSubscribe = [&]<typename SubManagerT, bool IsStats>() {
-    SubscriptionOptions options("stress_test_client", isStats);
+    SubscriptionOptions options(
+        FLAGS_client_id.empty() ? "stress_test_client_patch" : FLAGS_client_id,
+        isStats);
     auto subscriber = std::make_unique<SubManagerT>(
         std::move(options), std::move(connectionOptions));
 
