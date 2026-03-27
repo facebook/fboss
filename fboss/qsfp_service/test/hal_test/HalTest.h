@@ -61,4 +61,9 @@ class T1HalTest : public HalTest {};
 // T2: runs after T1. Same behavior as T1.
 class T2HalTest : public HalTest {};
 
+// Register dynamically parameterized tests from transceiver properties config.
+// Must be called after TransceiverPropertiesManager::init() and before
+// RUN_ALL_TESTS().
+void registerApplicationModeTests();
+
 } // namespace facebook::fboss

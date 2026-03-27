@@ -25,6 +25,8 @@ target_link_libraries(hal_test_utils
   switch_config_cpp2
   bsp_platform_mapping_cpp2
   transceiver_cpp2
+  transceiver_properties_cpp2
+  transceiver_properties_manager
   qsfp_module
   Folly::folly
   FBThrift::thriftcpp2
@@ -56,6 +58,7 @@ target_link_libraries(qsfp_hal_test
   ${LIBGMOCK_LIBRARIES}
   hal_test_base
   transceiver_cpp2
+  transceiver_properties_manager
   qsfp_module
   fboss_init
   Folly::folly
