@@ -348,7 +348,8 @@
         78,
         85,
         86,
-        87
+        87,
+        79
     ],
     "tomahawk5": [
         2,
@@ -879,7 +880,8 @@
         "ECMP_RANDOM_SPRAY",
         "HIGH_FREQUENCY_CPU_POLLING_STATS",
         "CLASS_ID_FOR_NEIGHBOR",
-        "UDF_HASH"
+        "UDF_HASH",
+        "PTP_TC_PROVISIONING_TIME_HW_VALIDATION"
     ],
     "tomahawk5": [
         "CPU_RX_TX",
