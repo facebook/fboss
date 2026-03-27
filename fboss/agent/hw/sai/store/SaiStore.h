@@ -151,6 +151,7 @@ class SaiObjectStore {
   void reload(
       const folly::dynamic* adapterKeysJson,
       const folly::dynamic* adapterKeys2AdapterHostKey) {
+    XLOG(DBG5) << " Reloading SaiObjectStore for: " << objectTypeName();
     if (!saiSwitchId_) {
       XLOG(FATAL)
           << "Attempted to reload() on a SaiObjectStore without a switchId";
