@@ -8,12 +8,12 @@
  *
  */
 
-#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
-
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
+#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 namespace facebook::fboss {
@@ -2064,6 +2064,7 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
 }
 
 TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
+  TransceiverPropertiesManager::initDefault();
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
       xcvrID, TransceiverModuleIdentifier::OSFP);
@@ -2099,7 +2100,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(0, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
+      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
+          MediaInterfaceCode::FR4_2x400G),
       CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[0], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
@@ -2111,7 +2113,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
+      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
+          MediaInterfaceCode::FR4_2x400G),
       CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
@@ -2123,7 +2126,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
+      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
+          MediaInterfaceCode::FR4_2x400G),
       CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::CWDM4_100G);
@@ -2135,7 +2139,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
+      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
+          MediaInterfaceCode::FR4_2x400G),
       CmisHelper::getSmfSpeedApplicationMapping());
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   for (auto& speed : speedCfgCombo) {

@@ -2714,7 +2714,11 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
-            CmisHelper::getSmfValidSpeedCombinations(),
+            TransceiverPropertiesManager::isKnown(getModuleMediaInterface())
+                ? TransceiverPropertiesManager::getSpeedCombinations<
+                      SMFMediaInterfaceCode>(getModuleMediaInterface())
+                : std::vector<
+                      std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
             CmisHelper::getSmfSpeedApplicationMapping());
   }
   if (laneProgramValues.size() == kMaxOsfpNumLanes) {
@@ -3136,7 +3140,11 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         tcvrName,
         moduleCapabilities_,
         currHwSpeedConfig,
-        CmisHelper::getSmfValidSpeedCombinations(),
+        TransceiverPropertiesManager::isKnown(getModuleMediaInterface())
+            ? TransceiverPropertiesManager::getSpeedCombinations<
+                  SMFMediaInterfaceCode>(getModuleMediaInterface())
+            : std::vector<
+                  std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
         CmisHelper::getSmfSpeedApplicationMapping());
   }
 }
