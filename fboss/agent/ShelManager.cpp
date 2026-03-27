@@ -37,8 +37,7 @@ bool ShelManager::ecmpOverShelDisabledPort(
   for (const auto& [sysPortId, portState] : sysPortShelState) {
     if (portState == cfg::PortState::DISABLED) {
       auto lockedMap = intf2RefCnt_.rlock();
-      if (lockedMap->find(static_cast<InterfaceID>(sysPortId)) !=
-          lockedMap->end()) {
+      if (lockedMap->contains(static_cast<InterfaceID>(sysPortId))) {
         return true;
       }
     }
@@ -146,7 +145,7 @@ std::shared_ptr<SwitchState> ShelManager::processDelta(
                              bool enable) {
     for (const auto& [intf, _] : toMap) {
       // Only enable SHEL for local system ports
-      if (fromMap.find(intf) == fromMap.end() &&
+      if (!fromMap.contains(intf) &&
           delta.newState()->getSystemPorts()->getNodeIf(SystemPortID(intf))) {
         auto portId =
             getPortID(static_cast<SystemPortID>(intf), delta.newState());
