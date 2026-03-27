@@ -328,6 +328,26 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
     this->bringDownPort(egressPort);
     this->unresolveV4AndV6NextHops(2);
     this->bringUpPort(egressPort);
+    // For aggregate ports, the SAI fast-path link down handler disables
+    // the LAG member (EgressDisable=true). Since LACP is not running in
+    // tests, nobody updates the switch state to reflect this. We must
+    // first set forwarding to DISABLED (to match SAI state), then back
+    // to ENABLED to generate a state delta that triggers
+    // SaiLagManager::changeLag() to re-enable the SAI LAG member.
+    constexpr bool isTrunk = TestFixture::kIsTrunk;
+
+    if constexpr (isTrunk) {
+      this->applyNewState(
+          [](const std::shared_ptr<SwitchState> state) {
+            return utility::disableTrunkPorts(state);
+          },
+          "disable trunk ports to sync with SAI state");
+      this->applyNewState(
+          [](const std::shared_ptr<SwitchState> state) {
+            return utility::enableTrunkPorts(state);
+          },
+          "re-enable trunk ports after link flap");
+    }
     this->resolveV4AndV6NextHops(2);
   };
 

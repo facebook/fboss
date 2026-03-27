@@ -34,6 +34,8 @@ void addAggPort(
     std::optional<std::string> aggPortName = std::nullopt);
 std::shared_ptr<SwitchState> enableTrunkPorts(
     std::shared_ptr<SwitchState> curState);
+std::shared_ptr<SwitchState> disableTrunkPorts(
+    std::shared_ptr<SwitchState> curState);
 std::shared_ptr<SwitchState> setTrunkMinLinkCount(
     std::shared_ptr<SwitchState> curState,
     uint8_t minlinks);
