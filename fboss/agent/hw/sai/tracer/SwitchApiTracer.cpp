@@ -102,6 +102,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
 #endif
     SAI_ATTR_MAP(Switch, AsicTemperatureList),
     SAI_ATTR_MAP(Switch, NumTemperatureSensors),
+    SAI_ATTR_MAP(Switch, SwitchingMode),
 
 };
 

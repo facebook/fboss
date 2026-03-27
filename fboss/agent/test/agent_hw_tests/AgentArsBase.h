@@ -86,6 +86,7 @@ class AgentArsBase : public AgentHwTest {
   RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const;
   virtual void generatePrefixes();
   virtual std::vector<PortID> getTestPorts() const;
+  void setupEcmpGroups(int numEcmp);
   cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) const;
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
@@ -129,6 +130,12 @@ class AgentArsBase : public AgentHwTest {
       const folly::CIDRNetwork& ip,
       const cfg::FlowletSwitchingConfig& flowletCfg,
       bool flowletEnable,
+      const PortID& port);
+
+  bool verifyEcmpForNonFlowlet(
+      const folly::CIDRNetwork& ip,
+      const cfg::FlowletSwitchingConfig& flowletCfg,
+      bool expectFlowsetFree,
       const PortID& port);
 
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};

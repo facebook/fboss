@@ -587,3 +587,13 @@ target_link_libraries(tunnel_mgr_test_utils
   Folly::folly
   ${GTEST}
 )
+
+add_library(nexthop_id_test_utils
+  fboss/agent/test/utils/NextHopIdTestUtils.cpp
+)
+
+target_link_libraries(nexthop_id_test_utils
+  state
+  nexthop_id_manager
+  Folly::folly
+)

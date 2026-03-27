@@ -1046,6 +1046,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       measureCableLengths, // enable cable propagation delay measurement
+      std::nullopt, // switching mode (store-and-forward / cut-through)
   };
 }
 

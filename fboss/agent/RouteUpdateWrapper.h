@@ -126,13 +126,13 @@ class RouteUpdateWrapper {
   RouteUpdateWrapper(
       const SwitchIdScopeResolver* resolver,
       RoutingInformationBase* rib,
-      std::optional<FibUpdateFunction> fibUpdateFn,
-      void* fibUpdateCookie)
+      std::optional<RibToSwitchStateFunction> ribToSwitchStateFunc,
+      void* ribToSwitchStateCookie)
       : resolver_(resolver),
         rib_(rib),
-        fibUpdateFn_(fibUpdateFn),
-        fibUpdateCookie_(fibUpdateCookie) {
-    CHECK(rib_ && fibUpdateFn_ && fibUpdateCookie_);
+        ribToSwitchStateFunc_(ribToSwitchStateFunc),
+        ribToSwitchStateCookie_(ribToSwitchStateCookie) {
+    CHECK(rib_ && ribToSwitchStateFunc_ && ribToSwitchStateCookie_);
   }
 
   RouteUpdateWrapper(RouteUpdateWrapper&&) = default;
@@ -145,8 +145,8 @@ class RouteUpdateWrapper {
   RouterIDToPrefixes remoteLoopbackIntfRouteToDel_;
   const SwitchIdScopeResolver* resolver_{};
   RoutingInformationBase* rib_{nullptr};
-  std::optional<FibUpdateFunction> fibUpdateFn_;
-  void* fibUpdateCookie_{nullptr};
+  std::optional<RibToSwitchStateFunction> ribToSwitchStateFunc_;
+  void* ribToSwitchStateCookie_{nullptr};
   std::unique_ptr<ConfigRoutes> configRoutes_{nullptr};
 };
 } // namespace facebook::fboss

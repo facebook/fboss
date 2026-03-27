@@ -1297,8 +1297,9 @@ struct SaiPortSerdesTraits {
   using AdapterHostKey = Attributes::PortId;
   using CreateAttributes = std::tuple<
       Attributes::PortId,
+#if !defined(CHENAB_SAI_SDK)
       std::optional<Attributes::Preemphasis>,
-
+#endif
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
       std::optional<Attributes::TxFirPre2>,
@@ -1353,7 +1354,9 @@ struct SaiPortSerdesTraits {
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
+#if !defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(PortSerdes, Preemphasis);
+#endif
 SAI_ATTRIBUTE_NAME(PortSerdes, IDriver);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre2);

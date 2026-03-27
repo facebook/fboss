@@ -20,6 +20,7 @@
 #include "fboss/lib/restart_tracker/RestartTimeTracker.h"
 #include "fboss/lib/thrift_service_client/ThriftServiceClient.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 
 using namespace std::chrono;
 
@@ -66,6 +67,12 @@ DEFINE_bool(
     firmware_upgrade_on_tcvr_insert,
     false,
     "Set to true to automatically upgrade firmware when a transceiver is inserted");
+
+DEFINE_string(
+    transceiver_properties_config,
+    "",
+    "Path to transceiver_properties.json config file. "
+    "Empty string disables config-driven transceiver properties.");
 
 DEFINE_bool(
     port_manager_mode,
@@ -286,6 +293,13 @@ void TransceiverManager::init() {
     // Read the warm boot state file for a warm boot
     readWarmBootStateFile();
     restoreAgentConfigAppliedInfo();
+  }
+
+  // Load transceiver properties config (file override or built-in default)
+  if (!FLAGS_transceiver_properties_config.empty()) {
+    TransceiverPropertiesManager::init(FLAGS_transceiver_properties_config);
+  } else {
+    TransceiverPropertiesManager::initDefault();
   }
 
   // Now we might need to start threads

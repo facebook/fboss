@@ -217,7 +217,9 @@ TEST_F(RouteTest, routeApi) {
   auto testRouteApi = [&](auto route) {
     EXPECT_TRUE(std::make_shared<RouteV6>(route.toThrift())->isSame(&route));
     EXPECT_EQ(pfx6, route.prefix());
-    EXPECT_EQ(route.toRouteDetails(), route.toRouteDetails());
+    EXPECT_EQ(
+        route.toRouteDetails(route.getForwardInfo().getNextHopSet()),
+        route.toRouteDetails(route.getForwardInfo().getNextHopSet()));
     EXPECT_EQ(route.str(), route.str());
     EXPECT_EQ(route.flags(), 0);
     EXPECT_FALSE(route.isResolved());

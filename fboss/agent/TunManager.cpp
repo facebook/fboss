@@ -72,8 +72,21 @@ void TunManager::stopProcessing() {
   if (observingState_) {
     sw_->unregisterStateObserver(this);
   }
-  std::lock_guard<std::mutex> lock(mutex_);
-  stop();
+  // Run stop() on the EventBase thread to synchronize with any in-flight
+  // TunIntf::handlerReady callbacks. unregisterHandler() prevents new
+  // dispatches but does NOT cancel an already-running callback. By
+  // scheduling stop() on the evb, we guarantee it runs after any pending
+  // handlerReady invocation completes, closing the race window between
+  // stopProcessing() and SwSwitch::stop() tearing down members.
+  if (evb_->isRunning()) {
+    evb_->runImmediatelyOrRunInFbossEventBaseThreadAndWait([this] {
+      std::lock_guard<std::mutex> lock(mutex_);
+      stop();
+    });
+  } else {
+    std::lock_guard<std::mutex> lock(mutex_);
+    stop();
+  }
   nl_close(sock_);
   nl_socket_free(sock_);
 }

@@ -203,12 +203,15 @@ class AgentHwTest : public ::testing::Test {
       const cfg::SwitchConfig& in) const;
 
   template <typename EcmpHelperT>
-  void resolveNeighborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
+  void resolveNeighborAndProgramRoutes(
+      const EcmpHelperT& ecmp,
+      int width,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) {
     applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
       return ecmp.resolveNextHops(in, width);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    ecmp.programRoutes(&wrapper, width);
+    ecmp.programRoutes(&wrapper, width, {}, {}, disableTTLDecrement);
   }
   template <typename EcmpHelperT>
   void resolveNeighbors(const EcmpHelperT& ecmp, int width) {

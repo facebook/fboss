@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FBOSS Explorer</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --green: #3fb950; --red: #f85149;
+    --yellow: #d29922; --blue: #58a6ff; --cyan: #39d2c0; --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--bg); color: var(--text); font-size: 13px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+  h1 { color: var(--cyan); font-size: 20px; margin-bottom: 4px; }
+  .subtitle { color: var(--text2); font-size: 12px; margin-bottom: 16px; }
+  .search-bar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+  .search-bar input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-family: inherit; font-size: 14px; flex: 1; }
+  .search-bar input:focus { outline: none; border-color: var(--blue); }
+  .search-bar button { background: var(--blue); color: var(--bg); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; }
+  .search-bar button:hover { opacity: 0.9; }
+  .search-bar button:disabled { opacity: 0.5; cursor: wait; }
+  .stats-bar { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .stat { background: var(--bg2); padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); }
+  .stat .val { font-size: 18px; font-weight: 700; }
+  .stat .label { font-size: 11px; color: var(--text2); }
+  .stat.up .val { color: var(--green); }
+  .stat.down .val { color: var(--red); }
+  .stat.peers .val { color: var(--cyan); }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .filter-bar input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 4px; font-family: inherit; width: 250px; }
+  .filter-bar .chip { background: var(--bg3); padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 11px; border: 1px solid var(--border); }
+  .filter-bar .chip:hover { border-color: var(--blue); }
+  .filter-bar .chip.active { background: var(--blue); color: var(--bg); border-color: var(--blue); }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--bg2); padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--text2); position: sticky; top: 0; border-bottom: 2px solid var(--border); }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tr:hover { background: var(--bg2); cursor: pointer; }
+  tr.selected { background: var(--bg3); border-left: 3px solid var(--cyan); }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .warn { color: var(--yellow); }
+  .dim { color: var(--text2); }
+  .role-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-left: 4px; }
+  .role-spine { background: #1a3a5c; color: var(--blue); }
+  .role-rack { background: #2a1a3c; color: var(--purple); }
+  /* Detail panel */
+  .detail-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; }
+  .detail-overlay.open { display: flex; justify-content: center; align-items: flex-start; padding-top: 40px; }
+  .detail-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; width: 95%; max-width: 1200px; max-height: 85vh; overflow-y: auto; padding: 24px; }
+  .detail-panel h2 { color: var(--cyan); margin-bottom: 16px; font-size: 16px; }
+  .detail-close { float: right; cursor: pointer; color: var(--text2); font-size: 20px; padding: 4px 8px; }
+  .detail-close:hover { color: var(--red); }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .detail-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+  .detail-section h3 { color: var(--blue); font-size: 12px; text-transform: uppercase; margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .detail-row .dlabel { color: var(--text2); }
+  .detail-row .dval { font-weight: 500; }
+  .ods-links { margin-top: 16px; }
+  .ods-links h3 { color: var(--blue); font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+  .ods-link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .ods-link { display: flex; gap: 8px; padding: 4px 0; }
+  .ods-link a { color: var(--blue); text-decoration: none; font-size: 12px; }
+  .ods-link a:hover { text-decoration: underline; }
+  .ods-link .olabel { color: var(--text2); font-size: 12px; min-width: 180px; }
+  .loading { text-align: center; padding: 40px; color: var(--text2); }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error { background: #2d1b1b; border: 1px solid var(--red); color: var(--red); padding: 12px; border-radius: 6px; }
+  .badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; }
+  .badge-match { background: #1a3a2a; color: var(--green); }
+  .badge-mismatch { background: #3a1a1a; color: var(--red); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>FBOSS Explorer</h1>
+  <p class="subtitle">Device Explorer &bull; Link Explorer &bull; Optics Diagnostics</p>
+
+  <div class="search-bar">
+    <input type="text" id="hostname" placeholder="Enter switch hostname (e.g. fsw001.p001.f01.ftw5)" autofocus
+           onkeydown="if(event.key==='Enter') querySwitch()">
+    <button id="queryBtn" onclick="querySwitch()">Explore Device</button>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this) closeDetail()">
+  <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+<script>
+let currentData = null;
+let allLinks = [];
+
+// URL parameter support: ?switch=X or ?switch=X&port=Y
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const sw = params.get('switch');
+  if (sw) {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('hostname').value = sw;
+      querySwitch(params.get('port'));
+    });
+  }
+})();
+
+function updateURL(sw, port) {
+  let url = '?switch=' + encodeURIComponent(sw);
+  if (port) url += '&port=' + encodeURIComponent(port);
+  history.replaceState(null, '', url);
+}
+
+function getShareableURL(sw, port) {
+  const base = window.location.origin + window.location.pathname;
+  let url = base + '?switch=' + encodeURIComponent(sw);
+  if (port) url += '&port=' + encodeURIComponent(port);
+  return url;
+}
+
+function copyShareLink(sw, port) {
+  const url = getShareableURL(sw, port);
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('shareBtn');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Share Link'; }, 2000); }
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+function querySwitch(autoOpenPort) {
+  const hostname = document.getElementById('hostname').value.trim();
+  if (!hostname) return;
+  const btn = document.getElementById('queryBtn');
+  btn.disabled = true;
+  btn.textContent = 'Querying...';
+  document.getElementById('content').innerHTML = '<div class="loading"><span class="spinner"></span>Querying ' + esc(hostname) + '... (fetching LLDP, ports, transceivers)</div>';
+
+  fetch('/api/query?hostname=' + encodeURIComponent(hostname))
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.textContent = 'Explore Device';
+      if (data.error) {
+        document.getElementById('content').innerHTML = '<div class="error">' + esc(data.error) + '</div>';
+        return;
+      }
+      currentData = data;
+      allLinks = data.links;
+      updateURL(hostname);
+      renderOverview(data);
+      // Auto-open a port if specified via URL param
+      if (autoOpenPort) {
+        const idx = allLinks.findIndex(l => l.localPort === autoOpenPort);
+        if (idx >= 0) showDetail(idx);
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = 'Explore Device';
+      document.getElementById('content').innerHTML = '<div class="error">Request failed: ' + esc(err.message) + '</div>';
+    });
+}
+
+function renderOverview(data) {
+  const links = data.links;
+  const up = links.filter(l => l.status === 'up').length;
+  const down = links.length - up;
+  const peers = new Set(links.map(l => l.peer)).size;
+  const roles = {};
+  links.forEach(l => { const r = l.role || 'other'; roles[r] = (roles[r]||0) + 1; });
+
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+  html += '<h2 style="color:var(--cyan);font-size:16px;margin:0">Device Explorer: ' + esc(data.hostname) + '</h2>';
+  html += '<button id="shareBtn" onclick="copyShareLink(\'' + esc(data.hostname).replace(/'/g,"\\'") + '\')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px">Share Link</button>';
+  html += '</div>';
+
+  html += '<div class="stats-bar">';
+  html += '<div class="stat"><div class="val">' + links.length + '</div><div class="label">Total Links</div></div>';
+  html += '<div class="stat up"><div class="val">' + up + '</div><div class="label">Up</div></div>';
+  if (down > 0) html += '<div class="stat down"><div class="val">' + down + '</div><div class="label">Down</div></div>';
+  html += '<div class="stat peers"><div class="val">' + peers + '</div><div class="label">Peers</div></div>';
+  for (const [r, c] of Object.entries(roles).sort()) {
+    html += '<div class="stat"><div class="val">' + c + '</div><div class="label">' + r + '</div></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="filter-bar">';
+  html += '<input type="text" id="filterInput" placeholder="Filter (port, peer, vendor, role...)" oninput="filterLinks()">';
+  html += '<span class="chip" onclick="setFilter(\'down\')">Down</span>';
+  html += '<span class="chip" onclick="setFilter(\'spine\')">Spines</span>';
+  html += '<span class="chip" onclick="setFilter(\'rack\')">Racks</span>';
+  html += '<span class="chip" onclick="setFilter(\'\')" >All</span>';
+  html += '</div>';
+
+  html += '<div id="linkTable"></div>';
+  document.getElementById('content').innerHTML = html;
+  renderTable(links);
+}
+
+function renderTable(links) {
+  let html = '<table><thead><tr>';
+  html += '<th>#</th><th>Local Port</th><th>Status</th><th>Speed</th><th>Peer Switch</th><th>Peer Port</th><th>Role</th><th>Optic</th><th>Vendor</th><th>Temp</th>';
+  html += '</tr></thead><tbody>';
+
+  links.forEach((l, i) => {
+    const stCls = l.status === 'up' ? 'up' : 'down';
+    const roleCls = l.role === 'spine' ? 'role-spine' : l.role === 'rack' ? 'role-rack' : '';
+    const tempStr = l.temperature ? l.temperature.toFixed(1) + 'C' : '--';
+    const tempCls = l.temperature > 70 ? 'down' : l.temperature > 60 ? 'warn' : '';
+
+    const origIdx = allLinks.indexOf(l);
+    html += '<tr onclick="showDetail(' + origIdx + ')">';
+    html += '<td class="dim">' + (i+1) + '</td>';
+    html += '<td>' + esc(l.localPort) + '</td>';
+    html += '<td class="' + stCls + '">' + l.status.toUpperCase() + '</td>';
+    html += '<td>' + esc(l.speed) + '</td>';
+    html += '<td>' + esc(l.peer) + '</td>';
+    html += '<td>' + esc(l.peerPort) + '</td>';
+    html += '<td>' + (l.role ? '<span class="role-tag ' + roleCls + '">' + l.role + '</span>' : '') + '</td>';
+    html += '<td>' + esc(l.mediaInterface) + '</td>';
+    html += '<td>' + esc(l.vendor) + '</td>';
+    html += '<td class="' + tempCls + '">' + tempStr + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('linkTable').innerHTML = html;
+}
+
+function filterLinks() {
+  const f = document.getElementById('filterInput').value.toLowerCase();
+  const filtered = allLinks.filter(l =>
+    l.localPort.toLowerCase().includes(f) ||
+    l.peer.toLowerCase().includes(f) ||
+    l.status.toLowerCase().includes(f) ||
+    l.vendor.toLowerCase().includes(f) ||
+    l.mediaInterface.toLowerCase().includes(f) ||
+    (l.role||'').toLowerCase().includes(f) ||
+    l.serial.toLowerCase().includes(f)
+  );
+  renderTable(filtered);
+}
+
+function setFilter(val) {
+  document.getElementById('filterInput').value = val;
+  filterLinks();
+}
+
+function showDetail(idx) {
+  const link = allLinks[idx];
+  const hostname = currentData.hostname;
+  const panel = document.getElementById('detailPanel');
+  panel.innerHTML = '<div class="loading"><span class="spinner"></span>Querying remote switch ' + esc(link.peer) + '...</div>';
+  document.getElementById('detailOverlay').classList.add('open');
+
+  fetch('/api/query?hostname=' + encodeURIComponent(link.peer))
+    .then(r => r.json())
+    .then(remoteData => {
+      let remoteLink = null;
+      if (remoteData.links) {
+        remoteLink = remoteData.links.find(rl => rl.localPort === link.peerPort);
+      }
+      renderDetail(hostname, link, link.peer, remoteLink);
+    })
+    .catch(() => {
+      renderDetail(hostname, link, link.peer, null);
+    });
+}
+
+function renderDetail(hostname, local, remoteHost, remote) {
+  const panel = document.getElementById('detailPanel');
+  const r = remote || {};
+  updateURL(hostname, local.localPort);
+  let html = '<span class="detail-close" onclick="closeDetail()">&times;</span>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
+  html += '<h2 style="color:var(--cyan);margin:0">Link Explorer: ' + esc(hostname) + ' ' + esc(local.localPort) + '  &harr;  ' + esc(remoteHost) + ' ' + esc(local.peerPort) + '</h2>';
+  html += '<button onclick="copyShareLink(\'' + esc(hostname).replace(/'/g,"\\'") + '\',\'' + esc(local.localPort).replace(/'/g,"\\'") + '\')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:12px">Share Link</button>';
+  html += '</div>';
+
+  html += '<div class="detail-grid">';
+
+  // Local side
+  html += '<div class="detail-section"><h3>Local (' + esc(hostname) + ')</h3>';
+  html += detailRows([
+    ['Port', local.localPort], ['Status', statusBadge(local.status)], ['Speed', local.speed], ['FEC', local.fec],
+    ['─── Transceiver ───', ''], ['Media', local.mediaInterface], ['Vendor', local.vendor],
+    ['Part #', local.partNumber], ['Serial', local.serial], ['FW App', local.appFw], ['FW DSP', local.dspFw],
+    ['─── DOM ───', ''], ['Temperature', colorTemp(local.temperature)], ['Voltage', local.voltage ? local.voltage.toFixed(2) + 'V' : '--'],
+    ['Tx Power (mW)', colorPowerArr(local.txPower)], ['Rx Power (mW)', colorPowerArr(local.rxPower)],
+    ['Rx SNR (dB)', colorSnrArr(local.rxSnr)], ['Tx Bias (mA)', fmtArr(local.currentMA, 1)],
+    ['─── Stats ───', ''],
+    ['Ingress', fmtBytes(local.ingressBytes)], ['Egress', fmtBytes(local.egressBytes)],
+    ['In Unicast Pkts', fmtNum(local.inUnicastPkts)],
+    ['In Errors', colorNonZero(local.inErrors)], ['In Discards', colorNonZero(local.inDiscards)],
+    ['Out Discards', colorNonZero(local.outDiscards)], ['Out Cong. Discards', colorNonZero(local.outCongestionDiscards)],
+    ['In Pause', fmtNum(local.inPause)], ['Out Pause', fmtNum(local.outPause)],
+  ]);
+  html += '</div>';
+
+  // Remote side
+  html += '<div class="detail-section"><h3>Remote (' + esc(remoteHost) + ')' + (remote ? '' : ' <span class="dim">(unavailable)</span>') + '</h3>';
+  if (remote) {
+    html += detailRows([
+      ['Port', r.localPort], ['Status', statusBadge(r.status)], ['Speed', r.speed], ['FEC', r.fec],
+      ['─── Transceiver ───', ''], ['Media', r.mediaInterface], ['Vendor', r.vendor],
+      ['Part #', r.partNumber], ['Serial', r.serial], ['FW App', r.appFw], ['FW DSP', r.dspFw],
+      ['─── DOM ───', ''], ['Temperature', colorTemp(r.temperature)], ['Voltage', r.voltage ? r.voltage.toFixed(2) + 'V' : '--'],
+      ['Tx Power (mW)', colorPowerArr(r.txPower)], ['Rx Power (mW)', colorPowerArr(r.rxPower)],
+      ['Rx SNR (dB)', colorSnrArr(r.rxSnr)], ['Tx Bias (mA)', fmtArr(r.currentMA, 1)],
+      ['─── Stats ───', ''],
+      ['Ingress', fmtBytes(r.ingressBytes)], ['Egress', fmtBytes(r.egressBytes)],
+      ['In Unicast Pkts', fmtNum(r.inUnicastPkts)],
+      ['In Errors', colorNonZero(r.inErrors)], ['In Discards', colorNonZero(r.inDiscards)],
+      ['Out Discards', colorNonZero(r.outDiscards)], ['Out Cong. Discards', colorNonZero(r.outCongestionDiscards)],
+      ['In Pause', fmtNum(r.inPause)], ['Out Pause', fmtNum(r.outPause)],
+    ]);
+  } else {
+    html += '<div class="dim" style="padding:20px;text-align:center">Could not query remote switch</div>';
+  }
+  html += '</div></div>';
+
+  // ODS Links
+  html += '<div class="ods-links"><h3>ODS Charts (last 3 hours) - click to open</h3>';
+
+  const odsBase = 'https://www.internalfb.com/intern/ods/chart/?';
+
+  function buildOdsLinks(entity, port, label) {
+    let h = '<div style="margin-bottom:16px"><h3 style="color:var(--cyan);font-size:11px;margin-bottom:8px">' + label + '</h3>';
+    h += '<div class="ods-link-grid">';
+
+    // ── Port Stats (fboss.agent) ──
+    h += '<div style="grid-column:1/-1;color:var(--text2);font-size:10px;font-weight:600;margin-top:4px">PORT STATS</div>';
+    const portStats = [
+      ['FEC Correctable', 'fboss.agent.' + port + '.fec_correctable_errors.sum.60'],
+      ['FEC Uncorrectable', 'fboss.agent.' + port + '.fec_uncorrectable_errors.sum.60'],
+      ['Link Flaps', 'fboss.agent.' + port + '.leaky_bucket_flap_cnt.sum.60'],
+      ['In Bytes', 'fboss.agent.' + port + '.in_bytes.sum.60'],
+      ['Out Bytes', 'fboss.agent.' + port + '.out_bytes.sum.60'],
+      ['In Errors', 'fboss.agent.' + port + '.in_errors.sum.60'],
+      ['In Discards', 'fboss.agent.' + port + '.in_discards.sum.60'],
+      ['Out Discards', 'fboss.agent.' + port + '.out_discards.sum.60'],
+      ['Out Congestion', 'fboss.agent.' + port + '.out_congestion_discards.sum.60'],
+      ['In Pause', 'fboss.agent.' + port + '.in_pause_frames.sum.60'],
+      ['Out Pause', 'fboss.agent.' + port + '.out_pause_frames.sum.60'],
+    ];
+    portStats.forEach(([lbl, key]) => {
+      const url = odsBase + 'entity=' + encodeURIComponent(entity) + '&key=' + encodeURIComponent(key) + '&stime=10800';
+      h += '<div class="ods-link"><span class="olabel">' + lbl + '</span><a href="' + url + '" target="_blank">chart</a></div>';
+    });
+
+    // ── Module Health (qsfp_service.qsfp.interface) ──
+    h += '<div style="grid-column:1/-1;color:var(--text2);font-size:10px;font-weight:600;margin-top:8px">MODULE HEALTH</div>';
+    const qp = 'qsfp_service.qsfp.interface.' + port;
+    const moduleHealth = [
+      ['Present', qp + '.present'],
+      ['Status Ready', qp + '.status.ready'],
+      ['Read Downtime', qp + '.readDownTime'],
+      ['Write Downtime', qp + '.writeDownTime'],
+      ['EEPROM Invalid', qp + '.eeprom.invalid'],
+      ['Remediation Count', qp + '.opticsRemediationCount'],
+      ['TX Loss of Signal', qp + '.txLos'],
+      ['RX Loss of Signal', qp + '.rxLos'],
+      ['TX Loss of Lock', qp + '.txLol'],
+      ['RX Loss of Lock', qp + '.rxLol'],
+      ['TX Fault', qp + '.txFault'],
+      ['Temperature', qp + '.temp'],
+      ['Vcc (mV)', qp + '.vcc.mv'],
+    ];
+    moduleHealth.forEach(([lbl, key]) => {
+      const url = odsBase + 'entity=' + encodeURIComponent(entity) + '&key=' + encodeURIComponent(key) + '&stime=10800';
+      h += '<div class="ods-link"><span class="olabel">' + lbl + '</span><a href="' + url + '" target="_blank">chart</a></div>';
+    });
+
+    // ── Per-Channel Optical (regex for all channels) ──
+    h += '<div style="grid-column:1/-1;color:var(--text2);font-size:10px;font-weight:600;margin-top:8px">PER-CHANNEL OPTICAL (all channels)</div>';
+    const perChannel = [
+      ['TX Bias', 'regex(' + qp + '.txBias.*)'],
+      ['TX Power (uW)', 'regex(' + qp + '.txPwr.uW.*)'],
+      ['RX Power (uW)', 'regex(' + qp + '.rxPwr.uW.*)'],
+      ['TX SNR', 'regex(' + qp + '.txSnr.*)'],
+      ['RX SNR', 'regex(' + qp + '.rxSnr.*)'],
+    ];
+    perChannel.forEach(([lbl, key]) => {
+      const url = odsBase + 'entity=' + encodeURIComponent(entity) + '&key=' + encodeURIComponent(key) + '&stime=10800';
+      h += '<div class="ods-link"><span class="olabel">' + lbl + '</span><a href="' + url + '" target="_blank">chart</a></div>';
+    });
+
+    h += '</div></div>';
+    return h;
+  }
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  html += buildOdsLinks(hostname, local.localPort, 'LOCAL (' + esc(hostname) + ' ' + esc(local.localPort) + ')');
+  html += buildOdsLinks(remoteHost, local.peerPort, 'REMOTE (' + esc(remoteHost) + ' ' + esc(local.peerPort) + ')');
+  html += '</div></div>';
+
+  panel.innerHTML = html;
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  if (currentData) updateURL(currentData.hostname);
+}
+
+// Helpers
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+function statusBadge(s) { return s === 'up' ? '<span class="up">UP</span>' : '<span class="down">DOWN</span>'; }
+function colorTemp(t) {
+  if (!t) return '--';
+  const s = t.toFixed(1) + 'C';
+  if (t > 70) return '<span class="down">' + s + '</span>';
+  if (t > 60) return '<span class="warn">' + s + '</span>';
+  return '<span class="up">' + s + '</span>';
+}
+function colorPower(v) {
+  const s = v.toFixed(1);
+  if (v <= -9) return '<span class="down">' + s + '</span>';
+  if (v <= -7) return '<span class="warn">' + s + '</span>';
+  return '<span class="up">' + s + '</span>';
+}
+function colorPowerArr(arr) { return arr && arr.length ? arr.map(colorPower).join(', ') : '--'; }
+function colorSnr(v) {
+  const s = v.toFixed(1);
+  if (v <= 19) return '<span class="down">' + s + '</span>';
+  if (v <= 20) return '<span class="warn">' + s + '</span>';
+  return '<span class="up">' + s + '</span>';
+}
+function colorSnrArr(arr) { return arr && arr.length ? arr.map(colorSnr).join(', ') : '--'; }
+function colorNonZero(v) { return v === 0 ? '<span class="up">0</span>' : '<span class="down">' + fmtNum(v) + '</span>'; }
+function fmtArr(arr, dec) { return arr && arr.length ? arr.map(v => v.toFixed(dec||0)).join(', ') : '--'; }
+function fmtNum(n) { return (n||0).toLocaleString(); }
+function fmtBytes(n) {
+  if (!n) return '0';
+  const u = ['B','KB','MB','GB','TB','PB'];
+  let i = 0;
+  while (Math.abs(n) >= 1024 && i < u.length-1) { n /= 1024; i++; }
+  return n.toFixed(1) + u[i];
+}
+function detailRows(rows) {
+  return rows.map(([l,v]) => {
+    if (v === '' && l.startsWith('───')) return '<div style="margin-top:8px;color:var(--text2);font-size:11px;font-weight:600">' + l + '</div>';
+    return '<div class="detail-row"><span class="dlabel">' + esc(l) + '</span><span class="dval">' + (v||'--') + '</span></div>';
+  }).join('');
+}
+
+// Keyboard shortcut: Escape to close detail
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+</script>
+</body>
+</html>

@@ -15,7 +15,6 @@
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/RouteTypes.h"
-#include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
 
 #include <memory>
@@ -69,11 +68,6 @@ class ForwardingInformationBaseUpdater {
 
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
-  std::optional<StateDelta> getLastDelta() const {
-    return lastDelta_
-        ? StateDelta(lastDelta_->oldState(), lastDelta_->newState())
-        : std::optional<StateDelta>();
-  }
 
  private:
   /*
@@ -101,7 +95,6 @@ class ForwardingInformationBaseUpdater {
   const IPv6NetworkToRouteMap& v6NetworkToRoute_;
   const LabelToRouteMap& labelToRoute_;
   const NextHopIDManager* nextHopIDManager_;
-  std::optional<StateDelta> lastDelta_;
 };
 
 } // namespace facebook::fboss

@@ -829,6 +829,24 @@ std::optional<bool> SaiSwitchManager::getPtpTcEnabled() {
   return isPtpTcEnabled_;
 }
 
+void SaiSwitchManager::setSwitchingMode(cfg::PacketForwardingMode mode) {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::CUT_THROUGH_FORWARDING)) {
+    throw FbossError("setSwitchingMode not supported on this ASIC");
+  }
+  sai_int32_t saiMode;
+  switch (mode) {
+    case cfg::PacketForwardingMode::CUT_THROUGH:
+      saiMode = SAI_SWITCH_SWITCHING_MODE_CUT_THROUGH;
+      break;
+    case cfg::PacketForwardingMode::STORE_AND_FORWARD:
+      saiMode = SAI_SWITCH_SWITCHING_MODE_STORE_AND_FORWARD;
+      break;
+  }
+  switch_->setOptionalAttribute(
+      SaiSwitchTraits::Attributes::SwitchingMode{saiMode});
+}
+
 bool SaiSwitchManager::isGlobalQoSMapSupported() const {
 #if defined(BRCM_SAI_SDK_XGS_AND_DNX)
   return false;

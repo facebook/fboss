@@ -108,8 +108,6 @@ class ManagedSaiNextHopGroupMember
 
   void removeObject(size_t index, PublisherObjects removed);
 
-  void handleLinkDown() {}
-
   std::string toString() const;
 
  private:

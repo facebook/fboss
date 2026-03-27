@@ -109,8 +109,10 @@ add_library(dsfnode_utils
 
 target_link_libraries(dsfnode_utils
   agent_config_cpp2
+  agent_features
   fboss_error
   load_agent_config
+  switch_asics
   switch_config_cpp2
 )
 
@@ -330,6 +332,7 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/SwSwitchMySidUpdater.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TamManager.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
@@ -425,6 +428,7 @@ set(core_libs
   build_info_wrapper
   ecmp_resource_manager
   thrift_method_rate_limit
+  thrift_service_utils
   shel_manager
   state_delta_logger
   dsfnode_utils

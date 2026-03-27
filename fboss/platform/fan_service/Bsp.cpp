@@ -21,7 +21,6 @@
 #include "fboss/platform/helpers/PlatformUtils.h"
 #include "fboss/platform/sensor_service/if/gen-cpp2/sensor_service_types.h"
 
-using namespace folly::literals::shell_literals;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
@@ -30,7 +29,45 @@ DEFINE_bool(
     false,
     "For subscribing to qsfp state and stats from FSDB");
 
-namespace {} // namespace
+namespace {
+auto constexpr kDefaultMaxBrightness = 255;
+auto constexpr kSensordThriftPort = 5970;
+auto constexpr kAgentTempThriftPort = 5972;
+
+std::optional<std::string> getOpticTypeFromMediaCode(
+    std::optional<facebook::fboss::MediaInterfaceCode> mediaInterfaceCode,
+    const std::string& unknownFallback) {
+  using facebook::fboss::MediaInterfaceCode;
+  if (!mediaInterfaceCode ||
+      *mediaInterfaceCode == MediaInterfaceCode::UNKNOWN) {
+    return unknownFallback;
+  }
+  switch (*mediaInterfaceCode) {
+    case MediaInterfaceCode::CWDM4_100G:
+    case MediaInterfaceCode::CR4_100G:
+    case MediaInterfaceCode::FR1_100G:
+      return constants::OPTIC_TYPE_100_GENERIC();
+    case MediaInterfaceCode::FR4_200G:
+      return constants::OPTIC_TYPE_200_GENERIC();
+    case MediaInterfaceCode::FR4_400G:
+    case MediaInterfaceCode::LR4_400G_10KM:
+    case MediaInterfaceCode::DR4_400G:
+      return constants::OPTIC_TYPE_400_GENERIC();
+    case MediaInterfaceCode::FR4_2x400G:
+    case MediaInterfaceCode::FR4_LITE_2x400G:
+    case MediaInterfaceCode::FR4_LPO_2x400G:
+    case MediaInterfaceCode::DR4_2x400G:
+    case MediaInterfaceCode::FR8_800G:
+    case MediaInterfaceCode::LR4_2x400G_10KM:
+    case MediaInterfaceCode::ZR_800G:
+    case MediaInterfaceCode::CR8_800G:
+      return constants::OPTIC_TYPE_800_GENERIC();
+    default:
+      return std::nullopt;
+  }
+}
+
+} // namespace
 
 namespace facebook::fboss::platform::fan_service {
 
@@ -128,7 +165,14 @@ void Bsp::closeWatchdog() {
 }
 
 bool Bsp::writeToWatchdog(const std::string& value) {
-  std::string cmdLine;
+  auto writeFd = [](int fd, const std::string& val) {
+    auto ret = write(fd, val.c_str(), val.size());
+    if (ret < 0) {
+      XLOG(ERR) << "Failed to write to file descriptor " << fd << ": "
+                << folly::errnoStr(errno);
+    }
+    return ret > 0;
+  };
   if (!config_.watchdog().has_value()) {
     return false;
   }
@@ -160,6 +204,15 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
   std::map<std::string, std::vector<OpticData>> data{};
   std::vector<int32_t> txvrsIdsWithNoData;
 
+  if (opticsGroup.tempToPwmMaps()->empty() &&
+      opticsGroup.pidSettings()->empty()) {
+    XLOG(ERR) << "Optic group has no tempToPwmMaps or pidSettings";
+    return data;
+  }
+  const auto& unknownFallback = !opticsGroup.tempToPwmMaps()->empty()
+      ? opticsGroup.tempToPwmMaps()->begin()->first
+      : opticsGroup.pidSettings()->begin()->first;
+
   for (const auto& [xvrId, transceiverInfo] : transceiverInfoMap) {
     const TcvrState& tcvrState = *transceiverInfo.tcvrState();
     const TcvrStats& tcvrStats = *transceiverInfo.tcvrStats();
@@ -180,48 +233,17 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
       continue;
     }
 
-    auto mediaInterfaceCode = tcvrState.moduleMediaInterface()
-        ? *tcvrState.moduleMediaInterface()
-        : MediaInterfaceCode::UNKNOWN;
-
-    // Parse using the definition in qsfp_service/if/transceiver.thrift
-    std::string opticType{};
-    switch (mediaInterfaceCode) {
-      case MediaInterfaceCode::UNKNOWN:
-        // Use the first table's type for unknown/missing media type
-        opticType = opticsGroup.tempToPwmMaps()->begin()->first;
-        break;
-      case MediaInterfaceCode::CWDM4_100G:
-      case MediaInterfaceCode::CR4_100G:
-      case MediaInterfaceCode::FR1_100G:
-        opticType = constants::OPTIC_TYPE_100_GENERIC();
-        break;
-      case MediaInterfaceCode::FR4_200G:
-        opticType = constants::OPTIC_TYPE_200_GENERIC();
-        break;
-      case MediaInterfaceCode::FR4_400G:
-      case MediaInterfaceCode::LR4_400G_10KM:
-      case MediaInterfaceCode::DR4_400G:
-        opticType = constants::OPTIC_TYPE_400_GENERIC();
-        break;
-      case MediaInterfaceCode::FR4_2x400G:
-      case MediaInterfaceCode::FR4_LITE_2x400G:
-      case MediaInterfaceCode::FR4_LPO_2x400G:
-      case MediaInterfaceCode::DR4_2x400G:
-      case MediaInterfaceCode::FR8_800G:
-      case MediaInterfaceCode::LR4_2x400G_10KM:
-      case MediaInterfaceCode::ZR_800G:
-      case MediaInterfaceCode::CR8_800G:
-        opticType = constants::OPTIC_TYPE_800_GENERIC();
-        break;
-      default:
-        XLOG(INFO) << fmt::format(
-            "Transceiver id {} has unsupported media type {}. Ignoring.",
-            xvrId,
-            int(mediaInterfaceCode));
-        continue;
+    auto opticType = getOpticTypeFromMediaCode(
+        tcvrState.moduleMediaInterface().to_optional(), unknownFallback);
+    if (!opticType) {
+      auto mediaCode = tcvrState.moduleMediaInterface().to_optional();
+      XLOG(INFO) << fmt::format(
+          "Transceiver id {} has unsupported media type {}. Ignoring.",
+          xvrId,
+          mediaCode ? static_cast<int>(*mediaCode) : -1);
+      continue;
     }
-    data[opticType].push_back(OpticData{xvrId, temp});
+    data[*opticType].push_back(OpticData{xvrId, temp});
   }
 
   if (!txvrsIdsWithNoData.empty()) {
@@ -352,7 +374,7 @@ void Bsp::getAsicTempDataOverThrift(
     const std::shared_ptr<SensorData>& pSensorData) {
   try {
     auto agentReadResponse =
-        getAsicTempThroughThrift(agentTempThriftPort_, evbSensor_);
+        getAsicTempThroughThrift(kAgentTempThriftPort, evbSensor_);
     for (auto& asicTempData : *agentReadResponse.asicTempData()) {
       // Again, for Thrift too, only honor the entry with value and timestamp.
       if (asicTempData.value() && asicTempData.timeStamp()) {
@@ -387,7 +409,7 @@ void Bsp::getSensorDataThrift(std::shared_ptr<SensorData> pSensorData) {
   sensor_service::SensorReadResponse sensorReadResponse;
   try {
     sensorReadResponse =
-        getSensorValueThroughThrift(sensordThriftPort_, evbSensor_);
+        getSensorValueThroughThrift(kSensordThriftPort, evbSensor_);
   } catch (std::exception& e) {
     XLOG(ERR) << "Failed to get sensor data from sensor_service: " << e.what();
     return;
@@ -417,9 +439,9 @@ float Bsp::readSysfs(const std::string& path) const {
   std::string buf = facebook::fboss::readSysfs(path);
   try {
     retVal = std::stof(buf);
-  } catch (std::exception& e) {
+  } catch (const std::exception&) {
     XLOG(ERR) << "Failed to convert sysfs read to float!! ";
-    throw e;
+    throw;
   }
   return retVal;
 }
@@ -437,7 +459,8 @@ bool Bsp::turnOnLedSysfs(const std::string& path) {
   auto max_brightness = getLedMaxBrightness(path);
   return writeSysfs(
       path + "/brightness",
-      max_brightness.has_value() ? max_brightness.value() : 255);
+      max_brightness.has_value() ? max_brightness.value()
+                                 : kDefaultMaxBrightness);
 }
 
 std::optional<int> Bsp::getLedMaxBrightness(const std::string& path) const {

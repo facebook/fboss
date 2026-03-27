@@ -194,6 +194,14 @@ class NextHopIDManager {
   std::optional<RouteNextHopSet> getNextHopsForName(
       const std::string& name) const;
 
+  // Get the RouteNextHopSet for a given NextHopSetID
+  // Throws FbossError if the NextHopSetID is not found
+  RouteNextHopSet getNextHops(NextHopSetID nextHopSetID) const;
+
+  // Get the RouteNextHopSet for a given NextHopSetID
+  // Returns std::nullopt if the NextHopSetID is not found
+  std::optional<RouteNextHopSet> getNextHopsIf(NextHopSetID nextHopSetID) const;
+
   // Get all named next-hop groups
   const std::unordered_map<std::string, RouteNextHopSet>&
   getNameToNextHopSetMap() const {

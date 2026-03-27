@@ -625,6 +625,7 @@ cpp_library(
         "HwTestPortUtilsThriftHandler.cpp",
         "HwTestPtpTcUtilsThriftHandler.cpp",
         "HwTestRouteUtilsThriftHandler.cpp",
+        "HwTestSwitchingModeUtilsThriftHandler.cpp",
         "HwTestTamUtilsThriftHandler.cpp",
         "HwTestTeFlowUtilsThriftHandler.cpp",
         "HwTestThriftHandler.cpp",
@@ -638,6 +639,7 @@ cpp_library(
         "fbsource//third-party/googletest:gtest",
         ":bcm_aqm_utils",  # @manual
         ":bcm_trunk_utils",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_switch",
         "//fboss/agent/hw/bcm:bcm",

@@ -868,4 +868,31 @@ bool AgentArsBase::verifyEcmpForFlowletSwitching(
       cidr, settings, flowletEnable);
 }
 
+bool AgentArsBase::verifyEcmpForNonFlowlet(
+    const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    const bool expectFlowsetFree,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+  state::SwitchSettingsFields settings;
+  settings.flowletSwitchingConfig() = flowletCfg;
+  return client->sync_verifyEcmpForNonFlowlet(
+      cidr, settings, expectFlowsetFree);
+}
+
+void AgentArsBase::setupEcmpGroups(int numEcmp) {
+  generatePrefixes();
+  std::vector<RoutePrefixV6> testPrefixes = {
+      prefixes.begin(), prefixes.begin() + numEcmp};
+  std::vector<flat_set<PortDescriptor>> testNhopSets = {
+      nhopSets.begin(), nhopSets.begin() + numEcmp};
+  auto wrapper = getSw()->getRouteUpdater();
+  helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+}
+
 } // namespace facebook::fboss

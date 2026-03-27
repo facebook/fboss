@@ -32,6 +32,7 @@ cpp_library(
     name = "hw_cpu_latency_benchmark_helper",
     headers = ["HwCpuLatencyBenchmarkHelper.h"],
     exported_deps = [
+        "//fboss/agent:asic_utils",
         "//fboss/agent:packet",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/packet:packet_factory",

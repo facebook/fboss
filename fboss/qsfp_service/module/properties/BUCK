@@ -1,0 +1,26 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
+
+oncall("fboss_optics_phy")
+
+cpp_library(
+    name = "transceiver-properties-manager",
+    srcs = [
+        "TransceiverPropertiesManager.cpp",
+    ],
+    headers = [
+        "TransceiverPropertiesDefault.h",
+        "TransceiverPropertiesManager.h",
+    ],
+    compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
+    exported_deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver-cpp2-types",
+        "//fboss/qsfp_service/if:transceiver_properties-cpp2-types",
+        "//folly:file_util",
+        "//folly/json:dynamic",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+    ],
+)

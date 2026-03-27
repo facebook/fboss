@@ -21,14 +21,9 @@ WorkingDirectory=/opt/fboss
 ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fboss_hw_agent-sai_impl --switchIndex %i --fsdb_client_ssl_preferred=false --thrift_ssl_policy=disabled'
 
 Restart=always
-RestartSec=30
-TimeoutStartSec=180s
-TimeoutStopSec=30s
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=fboss_hw_agent%i
+StandardOutput=append:/var/facebook/logs/fboss/wedge_agent.log
+StandardError=append:/var/facebook/logs/fboss/wedge_agent.log
 
 [Install]
 WantedBy=multi-user.target

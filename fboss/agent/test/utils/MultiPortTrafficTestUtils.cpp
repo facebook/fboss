@@ -58,9 +58,10 @@ void setupEcmpDataplaneLoopOnAllPorts(
     routePrefixes.emplace_back(prefix, 128);
   }
   auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-  ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);
+  ecmpHelper.programRoutes(
+      &routeUpdater, portDescSets, routePrefixes, {}, std::nullopt, true);
   for (auto& nhop : ecmpHelper.getNextHops()) {
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    utility::disablePortTTLDecrementIfSupported(
         ensemble, ecmpHelper.getRouterId(), nhop);
   }
 }

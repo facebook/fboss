@@ -98,6 +98,12 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
       std::unique_ptr<std::vector<UnicastRoute>> routes,
       int32_t vrf) override;
 
+  /* MySid entries */
+  void addMySidEntries(
+      std::unique_ptr<std::vector<MySidEntry>> mySidEntries) override;
+  void deleteMySidEntries(
+      std::unique_ptr<std::vector<IpPrefix>> prefixes) override;
+
   /* MPLS routes */
   void addMplsRoutes(
       int16_t clientId,
@@ -159,6 +165,9 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
 
   int32_t flushNeighborEntry(std::unique_ptr<BinaryAddress> ip, int32_t vlan)
       override;
+
+  int32_t flushNeighborEntries(
+      std::unique_ptr<std::vector<IfAndIP>> entries) override;
 
   void getVlanAddresses(Addresses& addrs, int32_t vlan) override;
   void getVlanAddressesByName(
@@ -233,6 +242,10 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void clearInterfacePrbsStats(
       std::unique_ptr<std::string> portName,
       phy::PortComponent component) override;
+  void setInterfacesPrbs(
+      std::unique_ptr<std::vector<std::string>> portNames,
+      phy::PortComponent component,
+      std::unique_ptr<prbs::InterfacePrbsState> state) override;
   void setInterfaceTxRx(
       std::vector<phy::TxRxEnableResponse>& txRxEnableResponse,
       std::unique_ptr<std::vector<phy::TxRxEnableRequest>> txRxEnableRequests)

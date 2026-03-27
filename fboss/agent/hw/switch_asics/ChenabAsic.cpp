@@ -240,6 +240,7 @@ bool ChenabAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
       return false;
   }
@@ -424,7 +425,7 @@ uint32_t ChenabAsic::getSflowShimHeaderSize() const {
   return 9;
 }
 std::optional<uint32_t> ChenabAsic::getPortSerdesPreemphasis() const {
-  return std::nullopt;
+  return -15; // must be same as pre1
 }
 uint32_t ChenabAsic::getPacketBufferUnitSize() const {
   return 192;

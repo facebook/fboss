@@ -72,7 +72,8 @@ void addTrapPacketAcl(
   entry.name() = folly::to<std::string>("trap-", prefix.first.str());
   entry.dstIp() = prefix.first.str();
   if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-    entry.etherType() = cfg::EtherType::IPv6;
+    entry.etherType() =
+        prefix.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4;
   }
   entry.actionType() = cfg::AclActionType::PERMIT;
   utility::addAclEntry(config, entry, utility::kDefaultAclTable());

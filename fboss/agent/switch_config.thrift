@@ -255,6 +255,7 @@ enum EtherType {
   LLDP = 0x88CC,
   ARP = 0x0806,
   LACP = 0x8809,
+  AIFM = 0x88B6,
 }
 
 struct Ttl {
@@ -1920,6 +1921,17 @@ struct SwitchInfo {
 }
 
 /*
+ * Packet forwarding mode for the switch ASIC pipeline.
+ * Controls whether the switch waits for the entire packet before
+ * forwarding (store-and-forward) or begins forwarding after reading
+ * just the header (cut-through).
+ */
+enum PacketForwardingMode {
+  CUT_THROUGH = 0,
+  STORE_AND_FORWARD = 1,
+}
+
+/*
  * Switch specific settings: global to the switch
  */
 struct SwitchSettings {
@@ -2014,6 +2026,7 @@ struct SwitchSettings {
   // monitoring feature.
   34: optional i32 fabricLinkMonitoringSystemPortOffset;
   35: optional bool measureCableLengths;
+  36: optional PacketForwardingMode packetForwardingMode;
 }
 
 // Global buffer pool

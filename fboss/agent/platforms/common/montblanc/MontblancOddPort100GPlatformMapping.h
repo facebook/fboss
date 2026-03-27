@@ -103232,11 +103232,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103247,10 +103247,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
+              "main": 101,
+              "post": -19,
               "post2": -7,
               "post3": 0,
               "pre3": 0
@@ -103262,10 +103262,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103277,11 +103277,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 101,
+              "post": -17,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103320,11 +103320,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 11,
+              "main": 101,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -103335,11 +103335,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103350,11 +103350,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103365,10 +103365,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -16,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103408,11 +103408,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103423,11 +103423,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -29,
+              "pre2": 7,
+              "main": 106,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103438,11 +103438,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 106,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -103454,10 +103454,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 102,
+              "post": -22,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -103496,11 +103496,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103511,11 +103511,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 102,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103526,11 +103526,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103541,11 +103541,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 102,
+              "post": -21,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -103584,11 +103584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103599,10 +103599,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103614,10 +103614,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103629,10 +103629,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
               "post2": -7,
               "post3": 0,
               "pre3": 0
@@ -103674,9 +103674,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 111,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103688,10 +103688,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103703,10 +103703,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103717,11 +103717,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103760,11 +103760,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -103775,11 +103775,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103790,10 +103790,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "pre": -29,
+              "pre2": 9,
+              "main": 107,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103805,10 +103805,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "main": 106,
+              "post": -15,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103848,11 +103848,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -15,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -103863,11 +103863,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103878,11 +103878,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -103893,10 +103893,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -103936,11 +103936,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103951,11 +103951,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -103966,11 +103966,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 12,
+              "main": 104,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -103981,11 +103981,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 104,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104024,11 +104024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 107,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104039,11 +104039,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -104054,11 +104054,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104071,9 +104071,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104112,11 +104112,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -104129,9 +104129,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 105,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104142,11 +104142,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -104157,11 +104157,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -27,
+              "pre2": 7,
+              "main": 105,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104200,11 +104200,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104217,9 +104217,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 102,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104230,11 +104230,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -7,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104245,11 +104245,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -19,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -104288,11 +104288,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104303,11 +104303,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104318,11 +104318,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104333,11 +104333,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104376,11 +104376,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -104391,11 +104391,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -8,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -104406,11 +104406,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104421,11 +104421,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104464,11 +104464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104479,11 +104479,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -104494,11 +104494,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104509,11 +104509,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 106,
+              "post": -6,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -104552,11 +104552,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104567,11 +104567,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 105,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -104583,10 +104583,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -104597,11 +104597,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104640,11 +104640,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104655,10 +104655,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre": -32,
+              "pre2": 11,
+              "main": 106,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -104670,11 +104670,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104685,11 +104685,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104728,11 +104728,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 112,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104744,10 +104744,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 110,
+              "post": -7,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -104758,11 +104758,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 114,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104773,11 +104773,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104816,11 +104816,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -104831,11 +104831,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -13,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -104846,11 +104846,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -4,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104861,11 +104861,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 110,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104904,11 +104904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 10,
+              "main": 109,
+              "post": -4,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104919,11 +104919,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 105,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -104934,11 +104934,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 113,
+              "post": -4,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -104949,11 +104949,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -29,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -104994,8 +104994,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 115,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105007,11 +105007,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 7,
+              "main": 112,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -105022,10 +105022,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -105037,11 +105037,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105080,10 +105080,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre": -31,
+              "pre2": 9,
+              "main": 114,
+              "post": -2,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105095,11 +105095,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -105110,11 +105110,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 7,
+              "main": 116,
+              "post": -5,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105125,11 +105125,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -105170,9 +105170,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
+              "main": 108,
               "post": -18,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -105183,11 +105183,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105200,8 +105200,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
+              "main": 114,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105213,11 +105213,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 7,
+              "main": 113,
+              "post": -3,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -105225,9 +105225,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
+        "0": 0,
+        "1": 0,
+        "2": 0,
         "3": 2
       }
     },
@@ -105256,11 +105256,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 108,
+              "post": -15,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -105272,10 +105272,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -105286,11 +105286,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -16,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -105303,8 +105303,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 102,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105313,9 +105313,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
+        "4": 0,
+        "5": 0,
+        "6": 0,
         "7": 2
       }
     },
@@ -105344,11 +105344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 101,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105359,10 +105359,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 9,
               "main": 103,
-              "post": -18,
+              "post": -15,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105375,9 +105375,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105389,11 +105389,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 104,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105401,10 +105401,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -105433,10 +105433,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre2": 8,
+              "main": 106,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105447,11 +105447,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105462,11 +105462,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105477,11 +105477,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105489,10 +105489,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -105520,11 +105520,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105535,11 +105535,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 103,
+              "post": -16,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -105550,11 +105550,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 115,
+              "post": 0,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105565,11 +105565,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 115,
+              "post": -6,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -105577,9 +105577,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
+        "0": 0,
         "1": 2,
-        "2": 2,
+        "2": 0,
         "3": 2
       }
     },
@@ -105608,11 +105608,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105623,11 +105623,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 98,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105638,11 +105638,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -31,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 116,
+              "post": 0,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105653,11 +105653,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 7,
+              "main": 113,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105665,9 +105665,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
+        "4": 0,
         "5": 2,
-        "6": 2,
+        "6": 0,
         "7": 2
       }
     },
@@ -105696,10 +105696,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -105713,9 +105713,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105726,11 +105726,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105741,11 +105741,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 115,
+              "post": -2,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -105753,10 +105753,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -105784,11 +105784,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 109,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105799,11 +105799,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -105814,11 +105814,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105829,11 +105829,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -19,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -105841,9 +105841,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
+        "4": 0,
+        "5": 0,
+        "6": 0,
         "7": 2
       }
     },
@@ -105872,11 +105872,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -105887,11 +105887,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105903,10 +105903,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -105918,10 +105918,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
+              "pre2": 8,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -13,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -105929,10 +105929,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -105960,11 +105960,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
               "post": -15,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -105975,11 +105975,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -105992,9 +105992,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -16,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -106005,11 +106005,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106017,10 +106017,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -106048,10 +106048,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106063,10 +106063,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106078,11 +106078,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106095,9 +106095,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -106105,10 +106105,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -106136,10 +106136,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -106151,11 +106151,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -106166,11 +106166,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -106183,9 +106183,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
+              "main": 107,
               "post": -15,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106193,10 +106193,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -106224,10 +106224,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106239,11 +106239,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -106254,11 +106254,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106269,10 +106269,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "main": 105,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106281,10 +106281,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -106312,11 +106312,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106327,11 +106327,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 102,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -106342,11 +106342,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106357,10 +106357,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106369,10 +106369,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -106400,11 +106400,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106415,10 +106415,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106430,11 +106430,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -32,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106445,11 +106445,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106457,10 +106457,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -106488,11 +106488,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 107,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -106503,11 +106503,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106518,11 +106518,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 5,
+              "main": 112,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -106533,11 +106533,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre": -27,
+              "pre2": 8,
+              "main": 107,
               "post": -16,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106545,10 +106545,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -106577,10 +106577,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
+              "pre2": 7,
+              "main": 110,
               "post": -14,
-              "post2": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -106591,11 +106591,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106606,11 +106606,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -106621,11 +106621,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106633,10 +106633,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -106664,11 +106664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
               "post": -14,
-              "post2": -11,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -106679,11 +106679,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -106696,9 +106696,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -12,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -106709,10 +106709,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -106721,10 +106721,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -106752,10 +106752,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -106767,11 +106767,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -106782,10 +106782,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -106797,11 +106797,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106809,10 +106809,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -106840,11 +106840,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -106857,8 +106857,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 107,
+              "post": -12,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -106872,8 +106872,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "main": 110,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -106885,11 +106885,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -106897,10 +106897,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -106928,11 +106928,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -106943,11 +106943,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 8,
+              "main": 106,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -106958,11 +106958,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -106973,11 +106973,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -106985,10 +106985,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -107016,11 +107016,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107031,11 +107031,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -11,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -107046,11 +107046,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -107063,9 +107063,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -107073,10 +107073,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -107104,11 +107104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107120,10 +107120,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 107,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -107134,11 +107134,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107149,10 +107149,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 105,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -107161,10 +107161,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -107192,11 +107192,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 6,
+              "main": 111,
+              "post": -15,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -107207,11 +107207,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 105,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107222,11 +107222,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -107239,9 +107239,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 107,
               "post": -14,
-              "post2": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107249,10 +107249,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -107280,11 +107280,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107295,11 +107295,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -107310,11 +107310,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107327,9 +107327,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 109,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107337,10 +107337,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -107368,11 +107368,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -107385,9 +107385,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -107398,11 +107398,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 113,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107415,8 +107415,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "main": 112,
+              "post": -10,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -107425,10 +107425,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -107456,11 +107456,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107472,9 +107472,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -107486,11 +107486,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
               "post": -13,
-              "post2": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -107504,7 +107504,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "pre": -28,
               "pre2": 8,
               "main": 106,
-              "post": -14,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -107513,10 +107513,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -107544,11 +107544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107561,7 +107561,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 105,
               "post": -14,
               "post2": -11,
               "post3": 0,
@@ -107574,11 +107574,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 109,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107589,11 +107589,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107601,10 +107601,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -107634,8 +107634,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -107647,11 +107647,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
               "post": -15,
-              "post2": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107662,11 +107662,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -107677,10 +107677,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -18,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -107689,10 +107689,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -107720,11 +107720,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107735,11 +107735,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
               "post": -15,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -107750,10 +107750,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -107765,11 +107765,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 6,
+              "main": 106,
+              "post": -20,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -107777,10 +107777,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -107808,11 +107808,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -107823,10 +107823,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -107838,11 +107838,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -107854,9 +107854,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 7,
+              "main": 108,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -107865,10 +107865,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -107896,11 +107896,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -107911,11 +107911,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 105,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -107927,10 +107927,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -107941,11 +107941,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -107953,10 +107953,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -107984,11 +107984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -107999,10 +107999,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -108014,11 +108014,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 111,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -108030,10 +108030,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 107,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -108041,10 +108041,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -108072,11 +108072,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108087,11 +108087,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -108102,11 +108102,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 111,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -108117,11 +108117,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -108129,10 +108129,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -108161,10 +108161,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 120,
+              "post": -5,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108175,11 +108175,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 8,
+              "main": 117,
+              "post": -8,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -108190,11 +108190,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108205,11 +108205,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -24,
+              "pre2": 5,
+              "main": 119,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108217,10 +108217,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -108248,10 +108248,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre": -25,
+              "pre2": 5,
+              "main": 122,
+              "post": -5,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108263,11 +108263,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 117,
+              "post": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108278,10 +108278,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -4,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108293,11 +108293,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 5,
+              "main": 120,
+              "post": -11,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -108305,10 +108305,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -108336,11 +108336,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -29,
+              "pre2": 9,
+              "main": 110,
+              "post": -10,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108351,11 +108351,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 109,
+              "pre": -25,
+              "pre2": 5,
+              "main": 113,
               "post": -14,
-              "post2": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108366,10 +108366,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 111,
-              "post": -13,
+              "main": 114,
+              "post": -10,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -108381,10 +108381,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
+              "main": 110,
+              "post": -12,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108393,10 +108393,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -108425,10 +108425,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 114,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108441,9 +108441,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "main": 110,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -108455,9 +108455,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "pre2": 6,
+              "main": 115,
+              "post": -10,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108469,11 +108469,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
               "main": 111,
-              "post": -13,
-              "post2": -8,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108481,10 +108481,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -108512,11 +108512,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 6,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108527,11 +108527,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
               "post": -13,
-              "post2": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108542,11 +108542,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 114,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108557,11 +108557,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 111,
+              "main": 113,
               "post": -13,
-              "post2": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -108569,10 +108569,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -108600,10 +108600,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "main": 116,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108618,7 +108618,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "pre": -27,
               "pre2": 7,
               "main": 111,
-              "post": -13,
+              "post": -12,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -108632,9 +108632,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108645,11 +108645,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 109,
+              "pre": -26,
+              "pre2": 6,
+              "main": 115,
               "post": -14,
-              "post2": -9,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -108657,10 +108657,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -108689,9 +108689,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre2": 6,
+              "main": 118,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108703,11 +108703,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -30,
               "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "main": 117,
+              "post": -6,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108720,9 +108720,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "main": 118,
+              "post": -6,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108734,10 +108734,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 6,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108745,10 +108745,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -108776,11 +108776,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 5,
+              "main": 119,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108792,9 +108792,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre2": 6,
+              "main": 118,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108806,11 +108806,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 120,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108821,11 +108821,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 117,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -108833,10 +108833,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -108865,10 +108865,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 8,
+              "main": 116,
+              "post": -5,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108879,10 +108879,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "main": 114,
+              "post": -9,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -108894,11 +108894,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 114,
-              "post": -10,
-              "post2": -9,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -108909,11 +108909,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -26,
+              "pre2": 6,
               "main": 112,
               "post": -12,
-              "post2": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108921,10 +108921,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -108953,10 +108953,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 8,
+              "main": 115,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108967,11 +108967,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -108982,11 +108982,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 114,
-              "post": -10,
-              "post2": -9,
+              "post": -5,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -108997,11 +108997,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 8,
+              "main": 111,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109009,10 +109009,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -109040,11 +109040,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109055,11 +109055,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -23,
+              "pre2": 5,
+              "main": 115,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109070,11 +109070,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -9,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -109085,10 +109085,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "pre": -26,
+              "pre2": 5,
+              "main": 116,
+              "post": -11,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -109097,10 +109097,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -109128,11 +109128,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -109143,11 +109143,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 5,
+              "main": 117,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -109159,10 +109159,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 121,
+              "post": -6,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109173,11 +109173,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -25,
+              "pre2": 5,
+              "main": 118,
+              "post": -12,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -109185,10 +109185,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -109216,11 +109216,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -28,
+              "pre2": 8,
+              "main": 115,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109231,11 +109231,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -30,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "main": 112,
+              "post": -11,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109247,10 +109247,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 116,
+              "post": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -109262,10 +109262,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "pre2": 6,
+              "main": 114,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109273,10 +109273,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -109304,11 +109304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 118,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -109320,10 +109320,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 111,
+              "pre2": 6,
+              "main": 112,
               "post": -13,
-              "post2": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -109334,11 +109334,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109350,10 +109350,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre2": 6,
+              "main": 113,
+              "post": -15,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -109361,10 +109361,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -109392,11 +109392,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 8,
+              "main": 114,
+              "post": -10,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109407,10 +109407,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 111,
-              "post": -13,
+              "main": 109,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -109422,11 +109422,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 114,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109437,11 +109437,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 8,
+              "main": 110,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109449,10 +109449,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -109480,10 +109480,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
               "main": 114,
-              "post": -10,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -109497,9 +109497,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "main": 113,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -109510,11 +109510,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 8,
+              "main": 113,
+              "post": -9,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109525,11 +109525,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 115,
+              "post": -10,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109537,10 +109537,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -109569,10 +109569,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109583,11 +109583,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -109598,11 +109598,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109613,11 +109613,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 109,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -109625,10 +109625,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -109656,11 +109656,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -109672,10 +109672,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 107,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -109686,10 +109686,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -109701,10 +109701,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 6,
+              "main": 110,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -109713,10 +109713,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -109744,10 +109744,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 109,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -109759,11 +109759,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 106,
+              "post": -18,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -109774,11 +109774,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 109,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -109790,10 +109790,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -109801,10 +109801,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -109832,11 +109832,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -109847,11 +109847,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 105,
+              "post": -14,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -109862,11 +109862,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -109877,11 +109877,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 108,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -109889,10 +109889,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -109922,9 +109922,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -109935,11 +109935,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -109952,9 +109952,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
+              "main": 108,
               "post": -15,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -109965,11 +109965,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -109977,10 +109977,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -110008,11 +110008,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110023,11 +110023,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 10,
+              "main": 101,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110038,11 +110038,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 109,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110053,11 +110053,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -110065,10 +110065,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -110096,11 +110096,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110111,10 +110111,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -110126,11 +110126,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -33,
+              "pre2": 10,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110141,11 +110141,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110153,10 +110153,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -110184,11 +110184,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 10,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110199,11 +110199,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110214,11 +110214,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -110229,11 +110229,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110241,10 +110241,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -110272,10 +110272,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 106,
-              "post": -14,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110287,11 +110287,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110302,10 +110302,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "pre": -25,
+              "pre2": 7,
+              "main": 114,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110317,10 +110317,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -24,
+              "pre2": 6,
+              "main": 111,
+              "post": -16,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110329,10 +110329,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -110360,10 +110360,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "main": 111,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110375,11 +110375,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
+              "main": 105,
               "post": -14,
-              "post2": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110391,10 +110391,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110405,11 +110405,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -17,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -110417,10 +110417,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -110448,11 +110448,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110463,11 +110463,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 5,
+              "main": 108,
+              "post": -17,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110478,11 +110478,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110495,9 +110495,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -110505,10 +110505,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -110536,10 +110536,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110551,11 +110551,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110566,10 +110566,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 110,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110581,11 +110581,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 110,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110593,10 +110593,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -110624,11 +110624,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110639,10 +110639,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -110654,11 +110654,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -110671,8 +110671,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "main": 107,
+              "post": -15,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -110681,10 +110681,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -110712,11 +110712,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -110727,11 +110727,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -110744,9 +110744,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110758,10 +110758,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre2": 9,
+              "main": 105,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -110769,10 +110769,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -110800,11 +110800,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110815,10 +110815,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -110830,11 +110830,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -110845,11 +110845,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110857,10 +110857,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -110888,11 +110888,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -33,
+              "pre2": 10,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -6,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110903,11 +110903,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 105,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110918,11 +110918,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -110933,11 +110933,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -32,
+              "pre2": 10,
+              "main": 105,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -110945,10 +110945,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -110978,8 +110978,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -110993,9 +110993,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 108,
               "post": -14,
-              "post2": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111006,10 +111006,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -26,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -111021,10 +111021,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -111033,10 +111033,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -111065,9 +111065,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -111081,9 +111081,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111096,9 +111096,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -111109,10 +111109,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -26,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111121,10 +111121,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -111152,11 +111152,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111167,11 +111167,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111182,11 +111182,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111197,11 +111197,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 107,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111209,10 +111209,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -111241,10 +111241,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 109,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111256,10 +111256,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 106,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -111272,8 +111272,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 109,
+              "post": -10,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111285,9 +111285,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -26,
+              "pre2": 6,
+              "main": 110,
               "post": -15,
               "post2": -10,
               "post3": 0,
@@ -111297,10 +111297,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -111328,11 +111328,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -111345,9 +111345,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 107,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111358,11 +111358,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -16,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -111373,11 +111373,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 104,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -111385,10 +111385,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -111416,11 +111416,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111431,11 +111431,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111448,9 +111448,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 110,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -111461,11 +111461,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -18,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -111473,10 +111473,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -111504,11 +111504,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -111519,10 +111519,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -33,
+              "pre2": 10,
+              "main": 106,
+              "post": -8,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111534,11 +111534,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111550,9 +111550,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre2": 7,
+              "main": 108,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111561,10 +111561,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -111592,11 +111592,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -111607,11 +111607,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -6,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -111622,11 +111622,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 11,
+              "main": 105,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111637,10 +111637,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -9,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111649,10 +111649,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -111681,10 +111681,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111697,8 +111697,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 107,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111710,10 +111710,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111725,11 +111725,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 103,
+              "main": 105,
               "post": -18,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111737,10 +111737,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -111768,11 +111768,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111783,11 +111783,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111799,10 +111799,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111815,9 +111815,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 105,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111825,10 +111825,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -111856,10 +111856,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 107,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111871,11 +111871,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 103,
+              "main": 104,
               "post": -18,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111886,11 +111886,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -111901,11 +111901,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -15,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -111913,10 +111913,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -111944,11 +111944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -111961,9 +111961,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 104,
+              "post": -15,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -111976,8 +111976,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "main": 107,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -111989,10 +111989,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "main": 106,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -112001,10 +112001,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -112032,11 +112032,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112048,9 +112048,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre2": 7,
+              "main": 105,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -112062,11 +112062,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -33,
+              "pre2": 10,
+              "main": 112,
+              "post": 0,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112077,11 +112077,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 102,
+              "post": -19,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112089,9 +112089,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
+        "0": 0,
         "1": 2,
-        "2": 2,
+        "2": 0,
         "3": 2
       }
     },
@@ -112120,11 +112120,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112135,11 +112135,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 8,
-              "main": 102,
+              "main": 103,
               "post": -19,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112150,10 +112150,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -31,
+              "pre2": 8,
+              "main": 117,
+              "post": -1,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -112165,11 +112165,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -18,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -112177,10 +112177,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -112210,9 +112210,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 104,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112223,11 +112223,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 103,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112239,10 +112239,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112253,10 +112253,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -112265,10 +112265,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
       }
     },
     {
@@ -112296,11 +112296,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 103,
-              "post": -18,
-              "post2": -10,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112311,10 +112311,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
+              "pre": -30,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -112326,11 +112326,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -112341,11 +112341,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112353,10 +112353,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -112384,11 +112384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112400,10 +112400,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 7,
+              "main": 115,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112414,11 +112414,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -32,
+              "pre2": 9,
+              "main": 112,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112429,11 +112429,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 10,
+              "main": 108,
+              "post": -5,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112441,9 +112441,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
+        "0": 0,
+        "1": 0,
+        "2": 0,
         "3": 2
       }
     },
@@ -112472,11 +112472,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112487,11 +112487,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 101,
+              "post": -16,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -112504,8 +112504,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 103,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -112517,11 +112517,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112529,7 +112529,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2,
+        "4": 0,
         "5": 2,
         "6": 2,
         "7": 2
@@ -112561,10 +112561,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 7,
+              "main": 106,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -112577,9 +112577,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 109,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112590,11 +112590,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 111,
+              "post": -2,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112605,11 +112605,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -6,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112617,9 +112617,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
+        "0": 0,
         "1": 2,
-        "2": 2,
+        "2": 0,
         "3": 2
       }
     },
@@ -112648,11 +112648,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112663,11 +112663,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -6,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112678,11 +112678,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112693,11 +112693,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 115,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112736,10 +112736,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -112751,11 +112751,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 107,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -112766,11 +112766,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -112781,11 +112781,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -112824,11 +112824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112839,11 +112839,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 107,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112854,11 +112854,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -112869,10 +112869,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "main": 106,
+              "post": -14,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -112912,11 +112912,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 108,
+              "post": -4,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -112927,11 +112927,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -112942,11 +112942,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -33,
+              "pre2": 11,
+              "main": 108,
+              "post": -1,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -112957,11 +112957,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -4,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113000,11 +113000,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -34,
+              "pre2": 11,
+              "main": 106,
+              "post": -3,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113015,11 +113015,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 108,
+              "post": -3,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113030,11 +113030,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -33,
+              "pre2": 10,
+              "main": 111,
+              "post": -1,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -113045,11 +113045,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 111,
+              "post": -4,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113090,9 +113090,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 108,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113103,11 +113103,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 109,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113118,11 +113118,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 7,
+              "main": 110,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113134,10 +113134,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre2": 7,
+              "main": 106,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113176,11 +113176,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 109,
+              "post": -7,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113191,11 +113191,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 7,
+              "main": 106,
+              "post": -10,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -113207,10 +113207,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113221,11 +113221,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113264,11 +113264,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113279,11 +113279,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113294,11 +113294,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -31,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113309,11 +113309,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -24,
+              "pre2": 6,
+              "main": 109,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113352,11 +113352,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113367,11 +113367,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 105,
+              "post": -7,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113384,9 +113384,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113397,11 +113397,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113440,10 +113440,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -113456,10 +113456,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 107,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113470,10 +113470,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -113485,11 +113485,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113528,11 +113528,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113543,11 +113543,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -8,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113558,11 +113558,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 111,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -113573,11 +113573,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 104,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -113618,9 +113618,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -113631,11 +113631,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113646,11 +113646,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113663,9 +113663,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 106,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113704,11 +113704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113719,11 +113719,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 10,
+              "main": 102,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -113734,10 +113734,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -33,
+              "pre2": 11,
+              "main": 104,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -113749,11 +113749,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 10,
+              "main": 103,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113792,11 +113792,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113807,10 +113807,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "main": 108,
+              "post": -13,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -113822,11 +113822,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113837,11 +113837,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113880,11 +113880,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113895,11 +113895,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113910,11 +113910,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 6,
+              "main": 111,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -113925,11 +113925,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -113968,11 +113968,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -113983,11 +113983,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 103,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114000,9 +114000,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -114013,11 +114013,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 107,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114056,11 +114056,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -114071,11 +114071,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 105,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114086,11 +114086,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -114101,11 +114101,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 105,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114144,11 +114144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114159,11 +114159,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -30,
+              "pre2": 10,
+              "main": 102,
+              "post": -17,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -114174,11 +114174,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114189,11 +114189,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 103,
+              "post": -19,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114232,11 +114232,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114247,11 +114247,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -17,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -114262,11 +114262,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114277,11 +114277,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 102,
+              "post": -20,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -114320,11 +114320,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -19,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -114335,11 +114335,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -114350,11 +114350,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -18,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -114365,11 +114365,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114408,11 +114408,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -17,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -114423,11 +114423,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114438,11 +114438,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -16,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -114454,10 +114454,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -114496,11 +114496,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114511,10 +114511,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
+              "main": 101,
+              "post": -19,
               "post2": -7,
               "post3": 0,
               "pre3": 0
@@ -114526,10 +114526,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -114541,11 +114541,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 101,
+              "post": -17,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114556,11 +114556,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 11,
+              "main": 101,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -114571,11 +114571,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114586,11 +114586,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114601,10 +114601,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -16,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -114648,11 +114648,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114663,11 +114663,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -29,
+              "pre2": 7,
+              "main": 106,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114678,11 +114678,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 106,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -114694,10 +114694,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 102,
+              "post": -22,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -114708,11 +114708,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114723,11 +114723,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 102,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114738,11 +114738,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114753,11 +114753,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 102,
+              "post": -21,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -114800,11 +114800,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114815,10 +114815,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -114830,10 +114830,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -114845,10 +114845,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
               "post2": -7,
               "post3": 0,
               "pre3": 0
@@ -114862,9 +114862,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 111,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114876,10 +114876,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -114891,10 +114891,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114905,11 +114905,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114952,11 +114952,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -114967,11 +114967,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -114982,10 +114982,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "pre": -29,
+              "pre2": 9,
+              "main": 107,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -114997,10 +114997,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "main": 106,
+              "post": -15,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -115012,11 +115012,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -15,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -115027,11 +115027,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115042,11 +115042,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -115057,10 +115057,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -115104,11 +115104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -115119,11 +115119,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -115134,11 +115134,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 12,
+              "main": 104,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115149,11 +115149,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 104,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115164,11 +115164,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 107,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115179,11 +115179,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -115194,11 +115194,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115211,9 +115211,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115256,11 +115256,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -115273,9 +115273,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 105,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115286,11 +115286,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -115301,11 +115301,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -27,
+              "pre2": 7,
+              "main": 105,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115316,11 +115316,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115333,9 +115333,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 102,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115346,11 +115346,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -7,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115361,11 +115361,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -19,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -115408,11 +115408,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115423,11 +115423,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115438,11 +115438,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115453,11 +115453,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115468,11 +115468,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -115483,11 +115483,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -8,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -115498,11 +115498,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115513,11 +115513,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115560,11 +115560,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115575,11 +115575,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -115590,11 +115590,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115605,11 +115605,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 106,
+              "post": -6,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -115620,11 +115620,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115635,11 +115635,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 105,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -115651,10 +115651,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -115665,11 +115665,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115712,11 +115712,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115727,10 +115727,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre": -32,
+              "pre2": 11,
+              "main": 106,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -115742,11 +115742,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115757,11 +115757,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115772,11 +115772,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 112,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115788,10 +115788,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 110,
+              "post": -7,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -115802,11 +115802,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 114,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115817,11 +115817,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115864,11 +115864,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -115879,11 +115879,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -13,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -115894,11 +115894,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -4,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -115909,11 +115909,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 110,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115924,11 +115924,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 10,
+              "main": 109,
+              "post": -4,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115939,11 +115939,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 105,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -115954,11 +115954,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 113,
+              "post": -4,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -115969,11 +115969,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -29,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116018,8 +116018,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 115,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116031,11 +116031,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 7,
+              "main": 112,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -116046,10 +116046,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -116061,11 +116061,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116076,10 +116076,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre": -31,
+              "pre2": 9,
+              "main": 114,
+              "post": -2,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116091,11 +116091,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -116106,11 +116106,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 7,
+              "main": 116,
+              "post": -5,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116121,11 +116121,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -116170,9 +116170,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
+              "main": 108,
               "post": -18,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -116183,11 +116183,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116200,8 +116200,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
+              "main": 114,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116213,11 +116213,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 7,
+              "main": 113,
+              "post": -3,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -116228,11 +116228,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 108,
+              "post": -15,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -116244,10 +116244,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -116258,11 +116258,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -16,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -116275,8 +116275,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 102,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116285,13 +116285,13 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
+        "0": 0,
+        "1": 0,
+        "2": 0,
         "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
+        "4": 0,
+        "5": 0,
+        "6": 0,
         "7": 2
       }
     },
@@ -116320,11 +116320,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 101,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116335,10 +116335,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 9,
               "main": 103,
-              "post": -18,
+              "post": -15,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116351,9 +116351,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116365,11 +116365,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 104,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116381,10 +116381,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre2": 8,
+              "main": 106,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116395,11 +116395,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116410,11 +116410,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116425,11 +116425,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116437,14 +116437,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -116472,11 +116472,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116487,11 +116487,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 103,
+              "post": -16,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -116502,11 +116502,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 115,
+              "post": 0,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116517,11 +116517,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 115,
+              "post": -6,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -116532,11 +116532,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116547,11 +116547,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 98,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116562,11 +116562,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -31,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 116,
+              "post": 0,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116577,11 +116577,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 7,
+              "main": 113,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116589,13 +116589,13 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
+        "0": 0,
         "1": 2,
-        "2": 2,
+        "2": 0,
         "3": 2,
-        "4": 2,
+        "4": 0,
         "5": 2,
-        "6": 2,
+        "6": 0,
         "7": 2
       }
     },
@@ -116624,10 +116624,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116641,9 +116641,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116654,11 +116654,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116669,11 +116669,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 115,
+              "post": -2,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -116684,11 +116684,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 109,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116699,11 +116699,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -116714,11 +116714,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116729,11 +116729,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -19,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -116741,13 +116741,13 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
         "7": 2
       }
     },
@@ -116776,11 +116776,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116791,11 +116791,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116807,10 +116807,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -116822,10 +116822,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
+              "pre2": 8,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -13,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -116836,11 +116836,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
               "post": -15,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -116851,11 +116851,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116868,9 +116868,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -16,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -116881,11 +116881,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -116893,14 +116893,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -116928,10 +116928,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116943,10 +116943,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -116958,11 +116958,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -116975,9 +116975,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -116988,10 +116988,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -117003,11 +117003,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117018,11 +117018,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -117035,9 +117035,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
+              "main": 107,
               "post": -15,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117045,14 +117045,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117080,10 +117080,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -117095,11 +117095,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117110,11 +117110,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117125,10 +117125,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "main": 105,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -117140,11 +117140,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117155,11 +117155,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 102,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117170,11 +117170,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117185,10 +117185,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -117197,14 +117197,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117232,11 +117232,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117247,10 +117247,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -117262,11 +117262,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -32,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117277,11 +117277,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117292,11 +117292,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 107,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -117307,11 +117307,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117322,11 +117322,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 5,
+              "main": 112,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -117337,11 +117337,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre": -27,
+              "pre2": 8,
+              "main": 107,
               "post": -16,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117349,14 +117349,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117385,10 +117385,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
+              "pre2": 7,
+              "main": 110,
               "post": -14,
-              "post2": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -117399,11 +117399,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117414,11 +117414,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -117429,11 +117429,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117444,11 +117444,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
               "post": -14,
-              "post2": -11,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -117459,11 +117459,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117476,9 +117476,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -12,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -117489,10 +117489,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -117501,14 +117501,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117536,10 +117536,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -117551,11 +117551,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -117566,10 +117566,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -117581,11 +117581,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117596,11 +117596,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117613,8 +117613,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 107,
+              "post": -12,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -117628,8 +117628,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "main": 110,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -117641,11 +117641,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -117653,14 +117653,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117688,11 +117688,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117703,11 +117703,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 8,
+              "main": 106,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -117718,11 +117718,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -117733,11 +117733,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117748,11 +117748,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117763,11 +117763,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -11,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -117778,11 +117778,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117795,9 +117795,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -117805,14 +117805,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117840,11 +117840,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -117856,10 +117856,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 107,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -117870,11 +117870,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -117885,10 +117885,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 105,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -117900,11 +117900,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 6,
+              "main": 111,
+              "post": -15,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -117915,11 +117915,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 105,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -117930,11 +117930,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -117947,9 +117947,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 107,
               "post": -14,
-              "post2": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -117957,14 +117957,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -117992,11 +117992,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118007,11 +118007,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -118022,11 +118022,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118039,9 +118039,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 109,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118052,11 +118052,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118069,9 +118069,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -118082,11 +118082,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 113,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118099,8 +118099,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "main": 112,
+              "post": -10,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -118109,14 +118109,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -118144,11 +118144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118160,9 +118160,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -118174,11 +118174,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
               "post": -13,
-              "post2": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118192,7 +118192,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "pre": -28,
               "pre2": 8,
               "main": 106,
-              "post": -14,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -118204,11 +118204,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118221,7 +118221,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 105,
               "post": -14,
               "post2": -11,
               "post3": 0,
@@ -118234,11 +118234,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 109,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118249,11 +118249,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118261,14 +118261,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -118298,8 +118298,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -118311,11 +118311,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
               "post": -15,
-              "post2": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118326,11 +118326,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118341,10 +118341,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -18,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -118356,11 +118356,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118371,11 +118371,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
               "post": -15,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -118386,10 +118386,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -118401,11 +118401,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 6,
+              "main": 106,
+              "post": -20,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118413,14 +118413,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -118448,11 +118448,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118463,10 +118463,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -118478,11 +118478,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118494,9 +118494,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 7,
+              "main": 108,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -118508,11 +118508,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118523,11 +118523,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 105,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118539,10 +118539,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118553,11 +118553,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118565,14 +118565,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -118600,11 +118600,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118615,10 +118615,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -118630,11 +118630,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 111,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118646,10 +118646,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 107,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -118660,11 +118660,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118675,11 +118675,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -118690,11 +118690,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 111,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -118705,11 +118705,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -118717,14 +118717,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -118753,10 +118753,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 120,
+              "post": -5,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118767,11 +118767,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 8,
+              "main": 117,
+              "post": -8,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -118782,11 +118782,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118797,11 +118797,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -24,
+              "pre2": 5,
+              "main": 119,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -118812,10 +118812,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre": -25,
+              "pre2": 5,
+              "main": 122,
+              "post": -5,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -118827,11 +118827,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 117,
+              "post": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -118842,10 +118842,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -4,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -118857,11 +118857,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 5,
+              "main": 120,
+              "post": -11,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -118869,14 +118869,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -118904,11 +118904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -29,
+              "pre2": 9,
+              "main": 110,
+              "post": -10,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -118919,11 +118919,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 109,
+              "pre": -25,
+              "pre2": 5,
+              "main": 113,
               "post": -14,
-              "post2": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118934,10 +118934,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 111,
-              "post": -13,
+              "main": 114,
+              "post": -10,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -118949,10 +118949,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
+              "main": 110,
+              "post": -12,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -118965,10 +118965,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 114,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -118981,9 +118981,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "main": 110,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -118995,9 +118995,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "pre2": 6,
+              "main": 115,
+              "post": -10,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119009,11 +119009,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
               "main": 111,
-              "post": -13,
-              "post2": -8,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119021,14 +119021,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119056,11 +119056,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 6,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119071,11 +119071,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
               "post": -13,
-              "post2": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119086,11 +119086,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 114,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119101,11 +119101,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 111,
+              "main": 113,
               "post": -13,
-              "post2": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -119116,10 +119116,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "main": 116,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119134,7 +119134,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "pre": -27,
               "pre2": 7,
               "main": 111,
-              "post": -13,
+              "post": -12,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -119148,9 +119148,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119161,11 +119161,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 109,
+              "pre": -26,
+              "pre2": 6,
+              "main": 115,
               "post": -14,
-              "post2": -9,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -119173,14 +119173,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119209,9 +119209,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre2": 6,
+              "main": 118,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119223,11 +119223,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -30,
               "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "main": 117,
+              "post": -6,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119240,9 +119240,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "main": 118,
+              "post": -6,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119254,10 +119254,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 6,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119268,11 +119268,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 5,
+              "main": 119,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119284,9 +119284,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre2": 6,
+              "main": 118,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119298,11 +119298,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 120,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119313,11 +119313,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 117,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119325,14 +119325,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119361,10 +119361,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 8,
+              "main": 116,
+              "post": -5,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119375,10 +119375,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "main": 114,
+              "post": -9,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119390,11 +119390,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 114,
-              "post": -10,
-              "post2": -9,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119405,11 +119405,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -26,
+              "pre2": 6,
               "main": 112,
               "post": -12,
-              "post2": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119421,10 +119421,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 8,
+              "main": 115,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119435,11 +119435,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -119450,11 +119450,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 114,
-              "post": -10,
-              "post2": -9,
+              "post": -5,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119465,11 +119465,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 8,
+              "main": 111,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119477,14 +119477,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119512,11 +119512,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119527,11 +119527,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -23,
+              "pre2": 5,
+              "main": 115,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119542,11 +119542,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -9,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -119557,10 +119557,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "pre": -26,
+              "pre2": 5,
+              "main": 116,
+              "post": -11,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119572,11 +119572,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119587,11 +119587,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 5,
+              "main": 117,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -119603,10 +119603,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 121,
+              "post": -6,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119617,11 +119617,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -25,
+              "pre2": 5,
+              "main": 118,
+              "post": -12,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -119629,14 +119629,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119664,11 +119664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -28,
+              "pre2": 8,
+              "main": 115,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119679,11 +119679,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -30,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "main": 112,
+              "post": -11,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119695,10 +119695,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 116,
+              "post": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119710,10 +119710,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "pre2": 6,
+              "main": 114,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119724,11 +119724,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 118,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -119740,10 +119740,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 111,
+              "pre2": 6,
+              "main": 112,
               "post": -13,
-              "post2": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -119754,11 +119754,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119770,10 +119770,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre2": 6,
+              "main": 113,
+              "post": -15,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -119781,14 +119781,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119816,11 +119816,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 8,
+              "main": 114,
+              "post": -10,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119831,10 +119831,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 111,
-              "post": -13,
+              "main": 109,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -119846,11 +119846,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 114,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119861,11 +119861,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 8,
+              "main": 110,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119876,10 +119876,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
               "main": 114,
-              "post": -10,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -119893,9 +119893,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "main": 113,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -119906,11 +119906,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 8,
+              "main": 113,
+              "post": -9,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119921,11 +119921,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 115,
+              "post": -10,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -119933,14 +119933,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -119969,10 +119969,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -119983,11 +119983,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -119998,11 +119998,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120013,11 +120013,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 109,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120028,11 +120028,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120044,10 +120044,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 107,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -120058,10 +120058,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120073,10 +120073,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 6,
+              "main": 110,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -120085,14 +120085,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -120120,10 +120120,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 109,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -120135,11 +120135,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 106,
+              "post": -18,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120150,11 +120150,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 109,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120166,10 +120166,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120180,11 +120180,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120195,11 +120195,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 105,
+              "post": -14,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -120210,11 +120210,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120225,11 +120225,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 108,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -120237,14 +120237,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -120274,9 +120274,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -120287,11 +120287,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -120304,9 +120304,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
+              "main": 108,
               "post": -15,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -120317,11 +120317,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120332,11 +120332,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120347,11 +120347,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 10,
+              "main": 101,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120362,11 +120362,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 109,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120377,11 +120377,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -120389,14 +120389,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -120424,11 +120424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120439,10 +120439,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -120454,11 +120454,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -33,
+              "pre2": 10,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120469,11 +120469,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120484,11 +120484,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 10,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120499,11 +120499,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120514,11 +120514,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -120529,11 +120529,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120541,14 +120541,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -120576,10 +120576,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 106,
-              "post": -14,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120591,11 +120591,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120606,10 +120606,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "pre": -25,
+              "pre2": 7,
+              "main": 114,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120621,10 +120621,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -24,
+              "pre2": 6,
+              "main": 111,
+              "post": -16,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120636,10 +120636,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "main": 111,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120651,11 +120651,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
+              "main": 105,
               "post": -14,
-              "post2": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120667,10 +120667,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120681,11 +120681,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -17,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -120693,14 +120693,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -120728,11 +120728,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120743,11 +120743,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 5,
+              "main": 108,
+              "post": -17,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120758,11 +120758,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -120775,9 +120775,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -120788,10 +120788,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120803,11 +120803,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -120818,10 +120818,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 110,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -120833,11 +120833,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 110,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120845,14 +120845,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -120880,11 +120880,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120895,10 +120895,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -120910,11 +120910,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -120927,8 +120927,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "main": 107,
+              "post": -15,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -120940,11 +120940,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -120955,11 +120955,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -120972,9 +120972,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -120986,10 +120986,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre2": 9,
+              "main": 105,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -120997,14 +120997,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121032,11 +121032,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -121047,10 +121047,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121062,11 +121062,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -121077,11 +121077,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -121092,11 +121092,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -33,
+              "pre2": 10,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -6,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121107,11 +121107,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 105,
+              "post": -7,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -121122,11 +121122,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121137,11 +121137,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -32,
+              "pre2": 10,
+              "main": 105,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -121149,14 +121149,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121186,8 +121186,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -121201,9 +121201,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 108,
               "post": -14,
-              "post2": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121214,10 +121214,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -26,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -121229,10 +121229,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -121245,9 +121245,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -121261,9 +121261,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121276,9 +121276,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -121289,10 +121289,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -26,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121301,14 +121301,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121336,11 +121336,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121351,11 +121351,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -17,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121366,11 +121366,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121381,11 +121381,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 107,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121397,10 +121397,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 109,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121412,10 +121412,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 106,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -121428,8 +121428,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 109,
+              "post": -10,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121441,9 +121441,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
+              "pre": -26,
+              "pre2": 6,
+              "main": 110,
               "post": -15,
               "post2": -10,
               "post3": 0,
@@ -121453,14 +121453,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121488,11 +121488,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -121505,9 +121505,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 107,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121518,11 +121518,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -16,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -121533,11 +121533,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 104,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -121548,11 +121548,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121563,11 +121563,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121580,9 +121580,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 110,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -121593,11 +121593,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -18,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -121605,14 +121605,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121640,11 +121640,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -121655,10 +121655,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -33,
+              "pre2": 10,
+              "main": 106,
+              "post": -8,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121670,11 +121670,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121686,9 +121686,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre2": 7,
+              "main": 108,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121700,11 +121700,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -121715,11 +121715,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -6,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -121730,11 +121730,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 11,
+              "main": 105,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121745,10 +121745,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -9,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121757,14 +121757,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121793,10 +121793,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121809,8 +121809,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 107,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121822,10 +121822,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121837,11 +121837,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 103,
+              "main": 105,
               "post": -18,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121852,11 +121852,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121867,11 +121867,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121883,10 +121883,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121899,9 +121899,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 105,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121909,14 +121909,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -121944,10 +121944,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 107,
+              "post": -12,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -121959,11 +121959,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 103,
+              "main": 104,
               "post": -18,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -121974,11 +121974,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -121989,11 +121989,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -15,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122004,11 +122004,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122021,9 +122021,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 104,
+              "post": -15,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122036,8 +122036,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "main": 107,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122049,10 +122049,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "main": 106,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122061,14 +122061,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -122096,11 +122096,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122112,9 +122112,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre2": 7,
+              "main": 105,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122126,11 +122126,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -33,
+              "pre2": 10,
+              "main": 112,
+              "post": 0,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122141,11 +122141,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 102,
+              "post": -19,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122156,11 +122156,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122171,11 +122171,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 8,
-              "main": 102,
+              "main": 103,
               "post": -19,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122186,10 +122186,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -31,
+              "pre2": 8,
+              "main": 117,
+              "post": -1,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122201,11 +122201,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -18,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -122213,14 +122213,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
+        "0": 0,
         "1": 2,
-        "2": 2,
+        "2": 0,
         "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -122250,9 +122250,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 104,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122263,11 +122263,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 103,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122279,10 +122279,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122293,10 +122293,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122308,11 +122308,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 103,
-              "post": -18,
-              "post2": -10,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122323,10 +122323,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
+              "pre": -30,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122338,11 +122338,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -122353,11 +122353,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 104,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122365,14 +122365,14 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
-        "3": 2,
-        "4": 2,
-        "5": 2,
-        "6": 2,
-        "7": 2
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
       }
     },
     {
@@ -122400,11 +122400,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122416,10 +122416,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 7,
+              "main": 115,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122430,11 +122430,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -32,
+              "pre2": 9,
+              "main": 112,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122445,11 +122445,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 10,
+              "main": 108,
+              "post": -5,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122460,11 +122460,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122475,11 +122475,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 101,
+              "post": -16,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122492,8 +122492,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 103,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -122505,11 +122505,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122517,11 +122517,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
-        "1": 2,
-        "2": 2,
+        "0": 0,
+        "1": 0,
+        "2": 0,
         "3": 2,
-        "4": 2,
+        "4": 0,
         "5": 2,
         "6": 2,
         "7": 2
@@ -122553,10 +122553,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 7,
+              "main": 106,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122569,9 +122569,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 109,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122582,11 +122582,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 111,
+              "post": -2,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122597,11 +122597,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -6,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122612,11 +122612,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122627,11 +122627,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -6,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122642,11 +122642,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122657,11 +122657,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 115,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122669,9 +122669,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2,
+        "0": 0,
         "1": 2,
-        "2": 2,
+        "2": 0,
         "3": 2,
         "4": 2,
         "5": 2,
@@ -122704,10 +122704,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -122719,11 +122719,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 107,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122734,11 +122734,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -122749,11 +122749,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122764,11 +122764,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122779,11 +122779,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 107,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122794,11 +122794,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -122809,10 +122809,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "main": 106,
+              "post": -14,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -122856,11 +122856,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 108,
+              "post": -4,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122871,11 +122871,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -122886,11 +122886,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -33,
+              "pre2": 11,
+              "main": 108,
+              "post": -1,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122901,11 +122901,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -4,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -122916,11 +122916,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -34,
+              "pre2": 11,
+              "main": 106,
+              "post": -3,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -122931,11 +122931,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 108,
+              "post": -3,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -122946,11 +122946,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -33,
+              "pre2": 10,
+              "main": 111,
+              "post": -1,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -122961,11 +122961,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 111,
+              "post": -4,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123010,9 +123010,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 108,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123023,11 +123023,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 109,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123038,11 +123038,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 7,
+              "main": 110,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -123054,10 +123054,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre2": 7,
+              "main": 106,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123068,11 +123068,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 109,
+              "post": -7,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123083,11 +123083,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 7,
+              "main": 106,
+              "post": -10,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -123099,10 +123099,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -123113,11 +123113,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123160,11 +123160,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123175,11 +123175,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123190,11 +123190,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -31,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123205,11 +123205,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -24,
+              "pre2": 6,
+              "main": 109,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -123220,11 +123220,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -123235,11 +123235,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 105,
+              "post": -7,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123252,9 +123252,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -123265,11 +123265,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123312,10 +123312,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -123328,10 +123328,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 107,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123342,10 +123342,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -123357,11 +123357,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123372,11 +123372,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123387,11 +123387,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -8,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123402,11 +123402,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 111,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123417,11 +123417,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 104,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123466,9 +123466,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -123479,11 +123479,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123494,11 +123494,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123511,9 +123511,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 106,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123524,11 +123524,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123539,11 +123539,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 10,
+              "main": 102,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -123554,10 +123554,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -33,
+              "pre2": 11,
+              "main": 104,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -123569,11 +123569,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 10,
+              "main": 103,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123616,11 +123616,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123631,10 +123631,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "main": 108,
+              "post": -13,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -123646,11 +123646,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123661,11 +123661,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123676,11 +123676,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123691,11 +123691,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123706,11 +123706,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 6,
+              "main": 111,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123721,11 +123721,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123768,11 +123768,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123783,11 +123783,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 103,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123800,9 +123800,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123813,11 +123813,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 107,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123828,11 +123828,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123843,11 +123843,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 105,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123858,11 +123858,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -123873,11 +123873,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 105,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -123920,11 +123920,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123935,11 +123935,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -30,
+              "pre2": 10,
+              "main": 102,
+              "post": -17,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -123950,11 +123950,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123965,11 +123965,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 103,
+              "post": -19,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123980,11 +123980,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -123995,11 +123995,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -17,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -124010,11 +124010,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124025,11 +124025,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 102,
+              "post": -20,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -124072,11 +124072,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -19,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -124087,11 +124087,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -124102,11 +124102,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -18,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -124117,11 +124117,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124132,11 +124132,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 104,
+              "post": -17,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -124147,11 +124147,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124162,11 +124162,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -16,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -124178,10 +124178,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -124224,11 +124224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 9,
+              "main": 103,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -124264,10 +124264,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
+              "main": 101,
+              "post": -19,
               "post2": -7,
               "post3": 0,
               "pre3": 0
@@ -124304,10 +124304,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -124344,11 +124344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "main": 101,
+              "post": -17,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -124384,11 +124384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 11,
+              "main": 101,
+              "post": -9,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -124424,11 +124424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 9,
+              "main": 101,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -124464,11 +124464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124504,10 +124504,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -16,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -124544,11 +124544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -124584,10 +124584,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -124624,10 +124624,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -124664,10 +124664,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
               "post2": -7,
               "post3": 0,
               "pre3": 0
@@ -124706,9 +124706,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 111,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124745,10 +124745,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -124785,10 +124785,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124824,11 +124824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124864,11 +124864,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -34,
+              "pre2": 11,
+              "main": 102,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124904,11 +124904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -124944,11 +124944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -33,
+              "pre2": 12,
+              "main": 104,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -124984,11 +124984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 104,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125024,11 +125024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 107,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -125064,11 +125064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -125104,11 +125104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 109,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -125146,9 +125146,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -125184,11 +125184,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 106,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -125224,11 +125224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125264,11 +125264,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -125304,11 +125304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -125344,11 +125344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -125384,11 +125384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 103,
+              "post": -8,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -125424,11 +125424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -125464,11 +125464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 103,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -125504,11 +125504,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125544,10 +125544,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre": -32,
+              "pre2": 11,
+              "main": 106,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -125584,11 +125584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125624,11 +125624,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125664,11 +125664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 112,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -125705,10 +125705,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 110,
+              "post": -7,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -125744,11 +125744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 114,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125784,11 +125784,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -27,
+              "pre2": 6,
+              "main": 113,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125826,8 +125826,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 115,
+              "post": -6,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -125864,11 +125864,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 7,
+              "main": 112,
+              "post": -6,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -125904,10 +125904,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -29,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -125944,11 +125944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -8,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -125984,10 +125984,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre": -31,
+              "pre2": 9,
+              "main": 114,
+              "post": -2,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -126024,11 +126024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -5,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -126064,11 +126064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 7,
+              "main": 116,
+              "post": -5,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126104,11 +126104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -126144,11 +126144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 10,
+              "main": 101,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126156,7 +126156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -126184,10 +126184,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 9,
               "main": 103,
-              "post": -18,
+              "post": -15,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -126196,7 +126196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -126225,9 +126225,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre2": 9,
+              "main": 106,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -126236,7 +126236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -126264,11 +126264,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 104,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -126276,7 +126276,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -126305,10 +126305,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre2": 8,
+              "main": 106,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -126316,7 +126316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -126344,11 +126344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 7,
+              "main": 104,
+              "post": -18,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -126356,7 +126356,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -126384,11 +126384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -30,
+              "pre2": 9,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126396,7 +126396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -126424,11 +126424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 106,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126436,7 +126436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -126464,10 +126464,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 108,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -126476,7 +126476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -126506,9 +126506,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -126516,7 +126516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -126544,11 +126544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126556,7 +126556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -126584,11 +126584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 115,
+              "post": -2,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -126596,7 +126596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -126624,11 +126624,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 109,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126636,7 +126636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -126664,11 +126664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -13,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -126676,7 +126676,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -126704,11 +126704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 107,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126716,7 +126716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -126744,11 +126744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 106,
+              "post": -19,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -126784,10 +126784,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -126796,7 +126796,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -126824,10 +126824,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -126836,7 +126836,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -126864,11 +126864,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -32,
+              "pre2": 10,
+              "main": 107,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -126876,7 +126876,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -126906,9 +126906,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 106,
+              "post": -14,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -126916,7 +126916,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -126944,10 +126944,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -126956,7 +126956,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -126984,11 +126984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -126996,7 +126996,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -127024,11 +127024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -127036,7 +127036,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -127066,9 +127066,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
+              "main": 107,
               "post": -15,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -127076,7 +127076,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -127104,11 +127104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -127116,7 +127116,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -127144,10 +127144,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -29,
+              "pre2": 8,
+              "main": 107,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -127156,7 +127156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -127184,11 +127184,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -32,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -127196,7 +127196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -127224,11 +127224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 8,
+              "main": 105,
+              "post": -13,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -127236,7 +127236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -127264,11 +127264,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -31,
+              "pre2": 9,
+              "main": 107,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -127276,7 +127276,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -127304,11 +127304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 109,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -127316,7 +127316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -127344,11 +127344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -26,
+              "pre2": 5,
+              "main": 112,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -127356,7 +127356,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -127384,11 +127384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre": -27,
+              "pre2": 8,
+              "main": 107,
               "post": -16,
-              "post2": -10,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -127396,7 +127396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -127424,10 +127424,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -127436,7 +127436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -127464,11 +127464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -127476,7 +127476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -127504,10 +127504,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -9,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -127516,7 +127516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -127544,11 +127544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -25,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -127556,7 +127556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -127584,11 +127584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -127596,7 +127596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -127626,8 +127626,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 107,
+              "post": -12,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -127636,7 +127636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -127666,8 +127666,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "main": 110,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -127676,7 +127676,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -127704,11 +127704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -127716,7 +127716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -127744,11 +127744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -127756,7 +127756,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -127785,10 +127785,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 107,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -127796,7 +127796,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -127824,11 +127824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -127836,7 +127836,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -127864,10 +127864,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 105,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -127876,7 +127876,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -127904,11 +127904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 6,
+              "main": 111,
+              "post": -15,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -127916,7 +127916,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -127944,11 +127944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 105,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -127956,7 +127956,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -127984,11 +127984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -127996,7 +127996,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -128026,9 +128026,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 107,
               "post": -14,
-              "post2": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -128036,7 +128036,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -128064,11 +128064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 107,
+              "post": -11,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -128076,7 +128076,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -128105,9 +128105,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -128116,7 +128116,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -128144,11 +128144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
               "post": -13,
-              "post2": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -128156,7 +128156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -128187,7 +128187,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "pre": -28,
               "pre2": 8,
               "main": 106,
-              "post": -14,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -128196,7 +128196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -128224,11 +128224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 107,
-              "post": -13,
-              "post2": -11,
+              "post": -9,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -128236,7 +128236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -128266,7 +128266,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 105,
               "post": -14,
               "post2": -11,
               "post3": 0,
@@ -128276,7 +128276,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -128304,11 +128304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 109,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -128316,7 +128316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -128344,11 +128344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -128356,7 +128356,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -128384,11 +128384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 111,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -128396,7 +128396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -128424,10 +128424,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 106,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -128436,7 +128436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -128464,11 +128464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -11,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -128476,7 +128476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -128505,9 +128505,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 7,
+              "main": 108,
+              "post": -13,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -128516,7 +128516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -128544,11 +128544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 111,
+              "post": -14,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -128556,7 +128556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -128584,11 +128584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 105,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -128596,7 +128596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -128625,10 +128625,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -128636,7 +128636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -128664,11 +128664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -128676,7 +128676,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -128705,10 +128705,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 120,
+              "post": -5,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -128716,7 +128716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -128744,11 +128744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -29,
+              "pre2": 8,
+              "main": 117,
+              "post": -8,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -128756,7 +128756,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -128784,11 +128784,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 6,
+              "main": 121,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -128796,7 +128796,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -128824,11 +128824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -24,
+              "pre2": 5,
+              "main": 119,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -128836,7 +128836,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -128864,10 +128864,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre": -25,
+              "pre2": 5,
+              "main": 122,
+              "post": -5,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -128876,7 +128876,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -128904,11 +128904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 117,
+              "post": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -128916,7 +128916,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -128944,10 +128944,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -4,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -128956,7 +128956,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -128984,11 +128984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -25,
+              "pre2": 5,
+              "main": 120,
+              "post": -11,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -128996,7 +128996,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -129024,11 +129024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 6,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -129036,7 +129036,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -129064,11 +129064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
+              "pre": -28,
+              "pre2": 8,
+              "main": 110,
               "post": -13,
-              "post2": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -129076,7 +129076,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -129104,11 +129104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
+              "pre": -29,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 114,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -129116,7 +129116,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -129144,11 +129144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 111,
+              "main": 113,
               "post": -13,
-              "post2": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -129156,7 +129156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -129184,10 +129184,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "main": 116,
+              "post": -8,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -129196,7 +129196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -129227,7 +129227,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "pre": -27,
               "pre2": 7,
               "main": 111,
-              "post": -13,
+              "post": -12,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -129236,7 +129236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -129266,9 +129266,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -27,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 117,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -129276,7 +129276,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -129304,11 +129304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 109,
+              "pre": -26,
+              "pre2": 6,
+              "main": 115,
               "post": -14,
-              "post2": -9,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -129316,7 +129316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -129345,10 +129345,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 8,
+              "main": 116,
+              "post": -5,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -129356,7 +129356,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -129384,10 +129384,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -28,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
+              "main": 114,
+              "post": -9,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -129396,7 +129396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -129424,11 +129424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 114,
-              "post": -10,
-              "post2": -9,
+              "post": -7,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -129436,7 +129436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -129464,11 +129464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -26,
+              "pre2": 6,
               "main": 112,
               "post": -12,
-              "post2": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -129476,7 +129476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -129505,10 +129505,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 114,
-              "post": -10,
-              "post2": -9,
+              "pre2": 8,
+              "main": 115,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -129516,7 +129516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -129544,11 +129544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 9,
+              "main": 111,
+              "post": -5,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -129556,7 +129556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -129584,11 +129584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 114,
-              "post": -10,
-              "post2": -9,
+              "post": -5,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -129596,7 +129596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -129624,11 +129624,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -28,
+              "pre2": 8,
+              "main": 111,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -129636,7 +129636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -129664,11 +129664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre": -28,
+              "pre2": 8,
+              "main": 115,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -129676,7 +129676,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -129704,11 +129704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -27,
+              "pre": -30,
               "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "main": 112,
+              "post": -11,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -129716,7 +129716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -129745,10 +129745,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre2": 6,
+              "main": 116,
+              "post": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -129756,7 +129756,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -129785,10 +129785,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 109,
-              "post": -14,
-              "post2": -9,
+              "pre2": 6,
+              "main": 114,
+              "post": -13,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -129796,7 +129796,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -129824,11 +129824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -27,
+              "pre": -26,
               "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "main": 118,
+              "post": -8,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -129836,7 +129836,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -129865,10 +129865,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 111,
+              "pre2": 6,
+              "main": 112,
               "post": -13,
-              "post2": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -129876,7 +129876,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -129904,11 +129904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -27,
-              "pre2": 7,
-              "main": 112,
-              "post": -12,
-              "post2": -9,
+              "pre": -26,
+              "pre2": 6,
+              "main": 121,
+              "post": -8,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -129916,7 +129916,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -129945,10 +129945,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -27,
-              "pre2": 7,
-              "main": 111,
-              "post": -13,
-              "post2": -8,
+              "pre2": 6,
+              "main": 113,
+              "post": -15,
+              "post2": -5,
               "post3": 0,
               "pre3": 0
             }
@@ -129956,7 +129956,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -129985,10 +129985,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre2": 9,
+              "main": 107,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -129996,7 +129996,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -130024,11 +130024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -29,
+              "pre2": 7,
+              "main": 109,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -130036,7 +130036,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -130064,11 +130064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "main": 110,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -130076,7 +130076,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -130104,11 +130104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 109,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -130116,7 +130116,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -130144,11 +130144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre": -31,
+              "pre2": 10,
+              "main": 106,
+              "post": -5,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -130156,7 +130156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -130185,10 +130185,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 7,
+              "main": 107,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -130196,7 +130196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -130224,10 +130224,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -130236,7 +130236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -130264,10 +130264,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -27,
+              "pre2": 6,
+              "main": 110,
+              "post": -14,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -130276,7 +130276,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -130306,9 +130306,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 108,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -130316,7 +130316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -130344,11 +130344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -130356,7 +130356,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -130386,9 +130386,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
+              "main": 108,
               "post": -15,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -130396,7 +130396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -130424,11 +130424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -130436,7 +130436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -130464,11 +130464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -130476,7 +130476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -130504,11 +130504,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 10,
+              "main": 101,
+              "post": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -130516,7 +130516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -130544,11 +130544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 109,
+              "post": -9,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -130556,7 +130556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -130584,11 +130584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre": -29,
+              "pre2": 8,
+              "main": 106,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -130596,7 +130596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -130624,10 +130624,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 106,
-              "post": -14,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -130636,7 +130636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -130664,11 +130664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -30,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -130676,7 +130676,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -130704,10 +130704,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "pre": -25,
+              "pre2": 7,
+              "main": 114,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -130716,7 +130716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -130744,10 +130744,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -24,
+              "pre2": 6,
+              "main": 111,
+              "post": -16,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -130756,7 +130756,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -130784,10 +130784,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 107,
-              "post": -13,
+              "main": 111,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -130796,7 +130796,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -130824,11 +130824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 106,
+              "main": 105,
               "post": -14,
-              "post2": -11,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -130836,7 +130836,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -130865,10 +130865,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 107,
-              "post": -13,
-              "post2": -11,
+              "pre2": 7,
+              "main": 111,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -130876,7 +130876,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -130904,11 +130904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -17,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -130916,7 +130916,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -130944,11 +130944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -130956,7 +130956,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -130984,10 +130984,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "pre": -31,
+              "pre2": 9,
+              "main": 106,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -130996,7 +130996,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -131024,11 +131024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -14,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -131036,7 +131036,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -131066,8 +131066,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
+              "main": 107,
+              "post": -15,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -131076,7 +131076,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -131104,11 +131104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -131116,7 +131116,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -131144,11 +131144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -131156,7 +131156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -131186,9 +131186,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 108,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -131196,7 +131196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -131225,10 +131225,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
+              "pre2": 9,
+              "main": 105,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -131236,7 +131236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -131266,8 +131266,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -131276,7 +131276,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -131306,9 +131306,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
+              "main": 108,
               "post": -14,
-              "post2": -11,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -131316,7 +131316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -131344,10 +131344,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -26,
+              "pre2": 7,
+              "main": 112,
+              "post": -12,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -131356,7 +131356,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -131384,10 +131384,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre": -29,
+              "pre2": 7,
+              "main": 108,
+              "post": -11,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -131396,7 +131396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -131425,9 +131425,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 106,
-              "post": -14,
+              "pre2": 9,
+              "main": 108,
+              "post": -10,
               "post2": -11,
               "post3": 0,
               "pre3": 0
@@ -131436,7 +131436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -131466,9 +131466,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -131476,7 +131476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -131506,9 +131506,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 106,
-              "post": -14,
-              "post2": -11,
+              "main": 110,
+              "post": -10,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -131516,7 +131516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -131544,10 +131544,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "pre": -26,
+              "pre2": 7,
+              "main": 108,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -131556,7 +131556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -131584,11 +131584,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 109,
+              "post": -16,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -131596,7 +131596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -131626,9 +131626,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 107,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -131636,7 +131636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -131664,11 +131664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
-              "post2": -10,
+              "post": -16,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }
@@ -131676,7 +131676,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -131704,11 +131704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 104,
               "post": -16,
-              "post2": -10,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -131716,7 +131716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -131744,11 +131744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 110,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -131756,7 +131756,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -131784,11 +131784,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 9,
+              "main": 102,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -131796,7 +131796,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -131826,9 +131826,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 110,
+              "post": -13,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -131836,7 +131836,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -131864,11 +131864,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
+              "pre": -29,
+              "pre2": 8,
               "main": 104,
-              "post": -16,
-              "post2": -10,
+              "post": -18,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -131876,7 +131876,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -131905,10 +131905,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "pre2": 9,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -131916,7 +131916,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -131946,8 +131946,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
+              "main": 107,
+              "post": -13,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -131956,7 +131956,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -131984,10 +131984,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 105,
-              "post": -15,
+              "post": -11,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -131996,7 +131996,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -132024,11 +132024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 7,
-              "main": 103,
+              "main": 105,
               "post": -18,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132036,7 +132036,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "3": 2
+        "3": 0
       }
     },
     {
@@ -132064,11 +132064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 105,
-              "post": -15,
-              "post2": -10,
+              "main": 107,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132076,7 +132076,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -132104,11 +132104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "main": 106,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132116,7 +132116,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -132145,10 +132145,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 7,
-              "main": 104,
-              "post": -16,
-              "post2": -10,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132156,7 +132156,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -132186,9 +132186,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "main": 105,
+              "post": -16,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -132196,7 +132196,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -132224,11 +132224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -29,
+              "pre2": 8,
+              "main": 105,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -132236,7 +132236,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -132265,9 +132265,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "pre2": 7,
+              "main": 105,
+              "post": -17,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -132304,11 +132304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
-              "post2": -10,
+              "pre": -33,
+              "pre2": 10,
+              "main": 112,
+              "post": 0,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -132316,7 +132316,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -132344,11 +132344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 102,
+              "post": -19,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -132384,11 +132384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "main": 105,
+              "post": -17,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -132396,7 +132396,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -132424,11 +132424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 8,
-              "main": 102,
+              "main": 103,
               "post": -19,
-              "post2": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132436,7 +132436,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "5": 2
+        "5": 0
       }
     },
     {
@@ -132464,10 +132464,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 7,
-              "main": 103,
-              "post": -18,
+              "pre": -31,
+              "pre2": 8,
+              "main": 117,
+              "post": -1,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -132476,7 +132476,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "6": 2
+        "6": 0
       }
     },
     {
@@ -132504,11 +132504,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -29,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -18,
+              "post2": -8,
               "post3": 0,
               "pre3": 0
             }
@@ -132516,7 +132516,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "7": 2
+        "7": 0
       }
     },
     {
@@ -132544,11 +132544,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -30,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -14,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132556,7 +132556,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "0": 2
+        "0": 0
       }
     },
     {
@@ -132585,10 +132585,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre2": 7,
+              "main": 115,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132596,7 +132596,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "1": 2
+        "1": 0
       }
     },
     {
@@ -132624,11 +132624,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 102,
-              "post": -19,
-              "post2": -10,
+              "pre": -32,
+              "pre2": 9,
+              "main": 112,
+              "post": -3,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132636,7 +132636,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "2": 2
+        "2": 0
       }
     },
     {
@@ -132664,11 +132664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -30,
+              "pre2": 10,
+              "main": 108,
+              "post": -5,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -132704,11 +132704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
+              "pre": -31,
+              "pre2": 9,
               "main": 102,
-              "post": -19,
-              "post2": -10,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -132716,7 +132716,7 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
         ]
       },
       "driverPeaking": {
-        "4": 2
+        "4": 0
       }
     },
     {
@@ -132744,11 +132744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "main": 101,
+              "post": -16,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -132786,8 +132786,8 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 100,
-              "post": -20,
+              "main": 103,
+              "post": -16,
               "post2": -10,
               "post3": 0,
               "pre3": 0
@@ -132824,11 +132824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 100,
-              "post": -20,
-              "post2": -10,
+              "pre": -27,
+              "pre2": 7,
+              "main": 112,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -132864,10 +132864,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "pre": -31,
+              "pre2": 9,
+              "main": 110,
+              "post": -7,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -132904,11 +132904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -26,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 107,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -132944,11 +132944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 110,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -132984,11 +132984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 10,
+              "main": 103,
+              "post": -10,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -133024,11 +133024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -31,
+              "pre2": 9,
+              "main": 108,
+              "post": -6,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -133064,11 +133064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 107,
+              "post": -10,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -133104,11 +133104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -7,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -133144,10 +133144,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
+              "main": 106,
+              "post": -14,
               "post2": -9,
               "post3": 0,
               "pre3": 0
@@ -133186,9 +133186,9 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             "tx": {
               "pre": -28,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 108,
+              "post": -9,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -133224,11 +133224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 109,
+              "post": -10,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -133264,11 +133264,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre": -30,
+              "pre2": 7,
+              "main": 110,
+              "post": -8,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -133305,10 +133305,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre2": 7,
+              "main": 106,
+              "post": -11,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -133344,11 +133344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 109,
+              "post": -7,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -133384,11 +133384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -30,
+              "pre2": 7,
+              "main": 106,
+              "post": -10,
+              "post2": -14,
               "post3": 0,
               "pre3": 0
             }
@@ -133425,10 +133425,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "pre2": 7,
+              "main": 108,
+              "post": -12,
+              "post2": -12,
               "post3": 0,
               "pre3": 0
             }
@@ -133464,11 +133464,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 106,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -133504,10 +133504,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -30,
+              "pre2": 9,
+              "main": 108,
+              "post": -11,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -133545,10 +133545,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
             },
             "tx": {
               "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre2": 7,
+              "main": 107,
+              "post": -15,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -133584,10 +133584,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
+              "pre": -31,
+              "pre2": 9,
+              "main": 109,
+              "post": -10,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -133624,11 +133624,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 101,
+              "post": -12,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -133664,11 +133664,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -32,
+              "pre2": 9,
+              "main": 106,
+              "post": -8,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -133704,11 +133704,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -31,
+              "pre2": 10,
+              "main": 104,
+              "post": -8,
+              "post2": -13,
               "post3": 0,
               "pre3": 0
             }
@@ -133744,11 +133744,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "main": 111,
+              "post": -8,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -133784,11 +133784,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -32,
+              "pre2": 10,
+              "main": 104,
+              "post": -12,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -133824,11 +133824,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
+              "pre": -29,
               "pre2": 8,
-              "main": 99,
-              "post": -22,
-              "post2": -9,
+              "main": 111,
+              "post": -9,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -133864,10 +133864,10 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 98,
-              "post": -24,
+              "main": 108,
+              "post": -13,
               "post2": -8,
               "post3": 0,
               "pre3": 0
@@ -133904,11 +133904,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 7,
+              "main": 111,
+              "post": -12,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -133944,11 +133944,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 6,
+              "main": 108,
+              "post": -16,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -133984,11 +133984,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -26,
+              "pre2": 7,
+              "main": 110,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -134024,11 +134024,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -14,
+              "post2": -10,
               "post3": 0,
               "pre3": 0
             }
@@ -134064,11 +134064,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 98,
-              "post": -24,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 6,
+              "main": 111,
+              "post": -11,
+              "post2": -11,
               "post3": 0,
               "pre3": 0
             }
@@ -134104,11 +134104,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -27,
+              "pre2": 7,
+              "main": 108,
+              "post": -15,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -134144,11 +134144,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 0
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -30,
+              "pre2": 9,
+              "main": 104,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -134184,11 +134184,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 1
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -30,
+              "pre2": 10,
+              "main": 102,
+              "post": -17,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -134224,11 +134224,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 2
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -29,
+              "pre2": 9,
+              "main": 105,
+              "post": -13,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -134264,11 +134264,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 3
             },
             "tx": {
-              "pre": -28,
+              "pre": -27,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 103,
+              "post": -19,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -134304,11 +134304,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 4
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 96,
-              "post": -26,
-              "post2": -7,
+              "pre": -26,
+              "pre2": 6,
+              "main": 107,
+              "post": -18,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -134344,11 +134344,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 5
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "pre": -32,
+              "pre2": 10,
+              "main": 100,
+              "post": -17,
+              "post2": -7,
               "post3": 0,
               "pre3": 0
             }
@@ -134384,11 +134384,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 6
             },
             "tx": {
-              "pre": -28,
-              "pre2": 8,
-              "main": 97,
-              "post": -25,
-              "post2": -8,
+              "pre": -31,
+              "pre2": 9,
+              "main": 104,
+              "post": -14,
+              "post2": -9,
               "post3": 0,
               "pre3": 0
             }
@@ -134424,11 +134424,11 @@ constexpr auto kJsonOdd8x100GPlatformMappingStr = R"(
               "lane": 7
             },
             "tx": {
-              "pre": -28,
+              "pre": -30,
               "pre2": 8,
-              "main": 94,
-              "post": -29,
-              "post2": -5,
+              "main": 102,
+              "post": -20,
+              "post2": -6,
               "post3": 0,
               "pre3": 0
             }

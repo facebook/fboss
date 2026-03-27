@@ -51,7 +51,7 @@
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRxPacket.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
@@ -831,11 +831,17 @@ void SaiSwitch::rollbackPartialRoutes(const StateDelta& delta) noexcept {
         processAddedRoutesDeltaInReverse<
             CoarseGrainedLockPolicy,
             folly::IPAddressV6>(
-            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+            routerID,
+            routeDelta.getFibDelta<folly::IPAddressV6>(),
+            lockPolicy,
+            delta.newState());
         processChangedRoutesDeltaInReverse<
             CoarseGrainedLockPolicy,
             folly::IPAddressV6>(
-            routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+            routerID,
+            routeDelta.getFibDelta<folly::IPAddressV6>(),
+            lockPolicy,
+            delta.newState());
 
         processRemovedRoutesDeltaInReverse<
             CoarseGrainedLockPolicy,
@@ -844,11 +850,17 @@ void SaiSwitch::rollbackPartialRoutes(const StateDelta& delta) noexcept {
         processAddedRoutesDeltaInReverse<
             CoarseGrainedLockPolicy,
             folly::IPAddressV4>(
-            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+            routerID,
+            routeDelta.getFibDelta<folly::IPAddressV4>(),
+            lockPolicy,
+            delta.newState());
         processChangedRoutesDeltaInReverse<
             CoarseGrainedLockPolicy,
             folly::IPAddressV4>(
-            routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+            routerID,
+            routeDelta.getFibDelta<folly::IPAddressV4>(),
+            lockPolicy,
+            delta.newState());
       }
     }
   } catch (const std::exception& ex) {
@@ -1019,7 +1031,8 @@ template <typename LockPolicyT, typename AddrT>
 void SaiSwitch::processChangedAndAddedRoutesDelta(
     const RouterID& routerID,
     const auto& routesDelta,
-    const LockPolicyT& lockPolicy) {
+    const LockPolicyT& lockPolicy,
+    const std::shared_ptr<SwitchState>& state) {
   if (!getRollbackInProgress_()) {
     // Normal processing order: changed first, then added
     processChangedDelta(
@@ -1027,18 +1040,20 @@ void SaiSwitch::processChangedAndAddedRoutesDelta(
         managerTable_->routeManager(),
         lockPolicy,
         &SaiRouteManager::changeRoute<AddrT>,
-        routerID);
+        routerID,
+        state);
     processAddedDelta(
         routesDelta,
         managerTable_->routeManager(),
         lockPolicy,
         &SaiRouteManager::addRoute<AddrT>,
-        routerID);
+        routerID,
+        state);
   } else {
     processAddedRoutesDeltaInReverse<LockPolicyT, AddrT>(
-        routerID, routesDelta, lockPolicy);
+        routerID, routesDelta, lockPolicy, state);
     processChangedRoutesDeltaInReverse<LockPolicyT, AddrT>(
-        routerID, routesDelta, lockPolicy);
+        routerID, routesDelta, lockPolicy, state);
   }
 }
 
@@ -1481,14 +1496,28 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
         &SaiFdbManager::addMac);
   }
 
+  processDelta(
+      delta.getSrv6TunnelsDelta(),
+      managerTable_->srv6TunnelManager(),
+      lockPolicy,
+      &SaiSrv6TunnelManager::changeSrv6Tunnel,
+      &SaiSrv6TunnelManager::addSrv6Tunnel,
+      &SaiSrv6TunnelManager::removeSrv6Tunnel);
+
   for (const auto& fibInfoDelta : delta.getFibsInfoDelta()) {
     for (const auto& routeDelta : fibInfoDelta.getFibsMapDelta()) {
       auto routerID = routeDelta.getOld() ? routeDelta.getOld()->getID()
                                           : routeDelta.getNew()->getID();
       processChangedAndAddedRoutesDelta<LockPolicyT, folly::IPAddressV6>(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV6>(), lockPolicy);
+          routerID,
+          routeDelta.getFibDelta<folly::IPAddressV6>(),
+          lockPolicy,
+          delta.newState());
       processChangedAndAddedRoutesDelta<LockPolicyT, folly::IPAddressV4>(
-          routerID, routeDelta.getFibDelta<folly::IPAddressV4>(), lockPolicy);
+          routerID,
+          routeDelta.getFibDelta<folly::IPAddressV4>(),
+          lockPolicy,
+          delta.newState());
     }
   }
   {
@@ -1599,22 +1628,14 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       &SaiTunnelManager::addTunnel,
       &SaiTunnelManager::removeTunnel);
 
-  processDelta(
-      delta.getSrv6TunnelsDelta(),
-      managerTable_->srv6TunnelManager(),
-      lockPolicy,
-      &SaiSrv6TunnelManager::changeSrv6Tunnel,
-      &SaiSrv6TunnelManager::addSrv6Tunnel,
-      &SaiSrv6TunnelManager::removeSrv6Tunnel);
-
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   processDelta(
       delta.getMySidsDelta(),
-      managerTable_->srv6Manager(),
+      managerTable_->srv6MySidManager(),
       lockPolicy,
-      &SaiSrv6Manager::changeMySidEntry,
-      &SaiSrv6Manager::addMySidEntry,
-      &SaiSrv6Manager::removeMySidEntry);
+      &SaiSrv6MySidManager::changeMySidEntry,
+      &SaiSrv6MySidManager::addMySidEntry,
+      &SaiSrv6MySidManager::removeMySidEntry);
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_42_8)
@@ -1887,6 +1908,19 @@ void SaiSwitch::processSwitchSettingsChangeSansDrainedEntryLocked(
       managerTable_->switchManager().setPtpTcEnabled(newVal);
       // update already added ports
       managerTable_->portManager().setPtpTcEnable(newVal);
+    }
+  }
+
+  {
+    const auto oldMode = oldSwitchSettings->getPacketForwardingMode();
+    const auto newMode = newSwitchSettings->getPacketForwardingMode();
+    if (oldMode != newMode && newMode.has_value()) {
+      XLOG(DBG3) << "Configuring packetForwardingMode old: "
+                 << (oldMode.has_value()
+                         ? apache::thrift::util::enumNameSafe(*oldMode)
+                         : "none")
+                 << " new: " << apache::thrift::util::enumNameSafe(*newMode);
+      managerTable_->switchManager().setSwitchingMode(*newMode);
     }
   }
 
@@ -2531,23 +2565,30 @@ void SaiSwitch::updatePmdInfo(
 #endif
 
   std::vector<phy::SerdesParameters> pmdSerdesParameters;
+  std::vector<phy::TxSettings> pmdTxSettings;
   if (readSerdesParams && serdes) {
     pmdSerdesParameters = managerTable_->portManager().getSerdesParameters(
+        serdes->adapterKey(), portID, numPmdLanes);
+    pmdTxSettings = managerTable_->portManager().getTxSettings(
         serdes->adapterKey(), portID, numPmdLanes);
   } else {
     // Use the previous state
     for (const auto& [_, laneState] : *lastPmdState.lanes()) {
       pmdSerdesParameters.push_back(*laneState.serdesParameters());
+      pmdTxSettings.push_back(*laneState.txSettings());
     }
   }
-  for (const auto& serdesParams : pmdSerdesParameters) {
-    auto laneId = *serdesParams.lane();
+  for (int l = 0; l < pmdSerdesParameters.size(); l++) {
+    auto laneId = *pmdSerdesParameters[l].lane();
     phy::LaneState laneState;
     if (laneStates.find(laneId) != laneStates.end()) {
       laneState = laneStates[laneId];
     }
     laneState.lane() = laneId;
-    laneState.serdesParameters() = serdesParams;
+    laneState.serdesParameters() = pmdSerdesParameters[l];
+    if (l < pmdTxSettings.size()) {
+      laneState.txSettings() = pmdTxSettings[l];
+    }
     laneStates[laneId] = laneState;
   }
   for (const auto& laneStat : laneStats) {
@@ -4842,7 +4883,8 @@ template <typename LockPolicyT, typename AddrT>
 void SaiSwitch::processChangedRoutesDeltaInReverse(
     const RouterID& routerID,
     const auto& routesDelta,
-    const LockPolicyT& lockPolicy) {
+    const LockPolicyT& lockPolicy,
+    const std::shared_ptr<SwitchState>& state) {
   // During rollback, process changed routes in reverse order
   std::vector<
       std::pair<std::shared_ptr<Route<AddrT>>, std::shared_ptr<Route<AddrT>>>>
@@ -4859,7 +4901,7 @@ void SaiSwitch::processChangedRoutesDeltaInReverse(
   for (auto it = changedRoutes.rbegin(); it != changedRoutes.rend(); ++it) {
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
     managerTable_->routeManager().changeRoute<AddrT>(
-        it->first, it->second, routerID);
+        it->first, it->second, routerID, state);
   }
 }
 
@@ -4867,7 +4909,8 @@ template <typename LockPolicyT, typename AddrT>
 void SaiSwitch::processAddedRoutesDeltaInReverse(
     const RouterID& routerID,
     const auto& routesDelta,
-    const LockPolicyT& lockPolicy) {
+    const LockPolicyT& lockPolicy,
+    const std::shared_ptr<SwitchState>& state) {
   // During rollback, process added routes in reverse order
   std::vector<std::shared_ptr<Route<AddrT>>> addedRoutes;
 
@@ -4878,7 +4921,7 @@ void SaiSwitch::processAddedRoutesDeltaInReverse(
 
   for (auto it = addedRoutes.rbegin(); it != addedRoutes.rend(); ++it) {
     [[maybe_unused]] const auto& lock = lockPolicy.lock();
-    managerTable_->routeManager().addRoute<AddrT>(*it, routerID);
+    managerTable_->routeManager().addRoute<AddrT>(*it, routerID, state);
   }
 }
 

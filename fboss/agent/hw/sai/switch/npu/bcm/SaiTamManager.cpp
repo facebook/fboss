@@ -465,9 +465,12 @@ void SaiTamManager::addXgsMirrorOnDropReport(
   std::vector<std::shared_ptr<SaiTamEvent>> events;
   std::vector<sai_object_id_t> eventIds;
 
-  // For XGS, we use ingress packet drop type instead of MMU drop types
+  // For XGS, configure both Ingress and MMU packet drop types.
+  // Ingress drops capture forwarding-related drops (ACL, routing, etc).
+  // MMU drops capture congestion-related drops (buffer exhaustion).
   std::vector<sai_int32_t> ingressDropTypes = {
       SAI_PACKET_DROP_TYPE_INGRESS_ALL};
+  std::vector<sai_int32_t> mmuDropTypes = {SAI_PACKET_DROP_TYPE_MMU_ALL};
   std::vector<sai_object_id_t> actions{action->adapterKey()};
   std::vector<sai_object_id_t> collectors{collector->adapterKey()};
 
@@ -481,6 +484,8 @@ void SaiTamManager::addXgsMirrorOnDropReport(
       eventTraits) = tam::kModDeviceId;
   std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeIngress>>(
       eventTraits) = ingressDropTypes;
+  std::get<std::optional<SaiTamEventTraits::Attributes::PacketDropTypeMmu>>(
+      eventTraits) = mmuDropTypes;
   std::get<SaiTamEventTraits::Attributes::ActionList>(eventTraits) = actions;
   std::get<
       std::optional<SaiTamEventTraits::Attributes::ExtensionsCollectorList>>(
@@ -504,7 +509,7 @@ void SaiTamManager::addXgsMirrorOnDropReport(
   eventIds.push_back(event->adapterKey());
   XLOG(INFO) << "Created event ID " << tam::kModSwitchEventId
              << " with tam event " << event->adapterKey()
-             << " for all ingress drop types.";
+             << " for Ingress and MMU drop types.";
 
   std::vector<sai_int32_t> bindpoints = {
       SAI_TAM_BIND_POINT_TYPE_SWITCH, SAI_TAM_BIND_POINT_TYPE_PORT};

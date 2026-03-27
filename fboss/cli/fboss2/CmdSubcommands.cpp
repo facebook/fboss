@@ -70,7 +70,15 @@ CLI::App* CmdSubcommands::addCommand(
   }
   auto* subCmd = app.add_subcommand(cmd.name, cmd.help);
   if (auto& commandHandler = cmd.commandHandler) {
-    subCmd->callback(*commandHandler);
+    // Wrap the handler to only execute if this is the leaf command
+    // (i.e., no subcommands were parsed). This is needed because CLI11
+    // invokes callbacks for all commands in the chain, but we only want
+    // the target leaf command to execute.
+    subCmd->callback([commandHandler, subCmd]() {
+      if (subCmd->get_subcommands().empty()) {
+        (*commandHandler)();
+      }
+    });
 
     if (auto& localOptionsHandler = cmd.localOptionsHandler) {
       auto& localOptionMap =
@@ -298,6 +306,42 @@ CLI::App* CmdSubcommands::addCommand(
               "shared-bytes, weight, scaling-factor, scheduling, stream-type, "
               "buffer-pool-name, active-queue-management");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME:
+          subCmd->add_option("qos_policy_name", args, "QoS policy name");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY:
+          subCmd->add_option(
+              "map_entry",
+              args,
+              "<map-type> ... where map-type is one of:\n"
+              "  tc-to-queue (traffic class to queue)\n"
+              "  pfc-pri-to-queue (PFC priority to queue)\n"
+              "  tc-to-pg (traffic class to priority group)\n"
+              "  pfc-pri-to-pg (PFC priority to priority group)\n"
+              "  dscp (DSCP marking)\n"
+              "  mpls-exp (MPLS EXP bits)\n"
+              "  dot1p (802.1p priority)\n"
+              "  traffic-class");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE:
+          subCmd->add_option(
+              "port_and_tagging_mode",
+              args,
+              "Port name and tagging mode (e.g., eth1/1/1 tagged|untagged|priority-tagged)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_L2_LEARNING_MODE:
+          subCmd->add_option(
+              "learning_mode",
+              args,
+              "L2 learning mode (hardware|software|disabled)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG:
+          subCmd->add_option(
+              "interface_config",
+              args,
+              "<port-list> [<attr> <value> ...] where <attr> is one "
+              "of: description, mtu");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
@@ -314,13 +358,28 @@ void CmdSubcommands::addCommandBranch(
     const Command& cmd,
     std::string& fullCmd,
     int depth) {
-  // Command should not already exists since we only traverse the tree once
-  if (utils::getSubcommandIf(app, cmd.name)) {
-    // TODO explore moving this check to a compile time check
-    throw std::runtime_error(
-        fmt::format(
-            "Command `{}` already exists, command tree must be invalid",
-            cmd.name));
+  if (auto* existing = utils::getSubcommandIf(app, cmd.name)) {
+    // Command already exists. Allow merging when either side has subcommands
+    // to contribute. Reject only when both the existing and incoming commands
+    // are leaf nodes (no children) — that means the exact same path from root
+    // to leaf exists in multiple trees, which is a true conflict.
+    if (cmd.subcommands.empty() &&
+        existing->get_subcommands([](CLI::App*) { return true; }).empty()) {
+      throw std::runtime_error(
+          fmt::format(
+              "Command `{}` already exists, command tree must be invalid",
+              cmd.name));
+    }
+    if (fullCmd.empty()) {
+      fullCmd += cmd.name;
+    } else {
+      fullCmd += fmt::format("_{}", cmd.name);
+    }
+    for (const auto& child : cmd.subcommands) {
+      std::string newFullCmd = fullCmd;
+      addCommandBranch(*existing, child, newFullCmd, depth);
+    }
+    return;
   }
   auto* subCmd = addCommand(app, cmd, fullCmd, depth);
   if (cmd.commandHandler) {

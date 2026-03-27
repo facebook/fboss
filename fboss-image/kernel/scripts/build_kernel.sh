@@ -33,7 +33,6 @@ bash "$CONTAINER_SCRIPTS_DIR/setup_kernel_build_deps.sh"
 # Use a separate build directory to avoid cluttering dist/
 BUILD_DIR="$CONTAINER_DIST_DIR/build-$KERNEL_VERSION"
 
-mkdir -p "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/SOURCES"
 cd "$BUILD_DIR"
 

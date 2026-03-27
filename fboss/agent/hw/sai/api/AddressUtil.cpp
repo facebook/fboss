@@ -134,4 +134,14 @@ void toSaiMacAddress(const folly::MacAddress& src, sai_mac_t& dst) {
   std::copy(std::begin(r), std::end(r), std::begin(dst));
 }
 
+std::vector<std::array<uint8_t, 16>> toSaiIp6List(
+    const std::vector<folly::IPAddressV6>& addrs) {
+  std::vector<std::array<uint8_t, 16>> result(addrs.size());
+  for (size_t i = 0; i < addrs.size(); i++) {
+    // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
+    toSaiIpAddressV6(addrs[i], reinterpret_cast<sai_ip6_t*>(result[i].data()));
+  }
+  return result;
+}
+
 } // namespace facebook::fboss

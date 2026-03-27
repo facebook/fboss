@@ -467,10 +467,6 @@ class RevisionList : public BaseObjectArgType<std::string> {
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST;
 };
 
-// Called after CLI11 is initlized but before parsing, for any final
-// initialization steps
-void postAppInit(int argc, char* argv[], CLI::App& app);
-
 std::vector<int32_t> getPortIDList(
     const std::vector<std::string>& ifList,
     std::map<int32_t, facebook::fboss::PortInfoThrift>& portEntries);

@@ -12,6 +12,7 @@
 
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 namespace {
 auto constexpr kRateSamplingInterval = 25;
@@ -62,8 +63,8 @@ void AgentQosSchedulerTestBase::sendUdpPkts(
 
 void AgentQosSchedulerTestBase::_setup(
     const utility::EcmpSetupAnyNPorts6& ecmpHelper6) {
-  resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth);
-  utility::ttlDecrementHandlingForLoopbackTraffic(
+  resolveNeighborAndProgramRoutes(ecmpHelper6, kDefaultEcmpWidth, true);
+  utility::disablePortTTLDecrementIfSupported(
       getAgentEnsemble(), ecmpHelper6.getRouterId(), ecmpHelper6.nhop(0));
 }
 

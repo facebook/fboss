@@ -18,9 +18,6 @@ WorkingDirectory=/opt/fboss
 ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/fboss_sw_agent --fsdb_client_ssl_preferred=false --thrift_ssl_policy=disabled'
 
 Restart=always
-RestartSec=30
-TimeoutStartSec=180s
-TimeoutStopSec=30s
 
 StandardOutput=append:/var/facebook/logs/fboss/wedge_agent.log
 StandardError=append:/var/facebook/logs/fboss/wedge_agent.log

@@ -168,6 +168,42 @@ TEST(SwitchSettingsTest, applyPtpTcEnable) {
   EXPECT_EQ(300, switchSettingsV1->getL2AgeTimerSeconds());
 }
 
+TEST(SwitchSettingsTest, applyPacketForwardingMode) {
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+
+  // Apply config with CUT_THROUGH
+  cfg::SwitchConfig config;
+  config.switchSettings()->packetForwardingMode() =
+      cfg::PacketForwardingMode::CUT_THROUGH;
+  auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+  EXPECT_NE(nullptr, stateV1);
+  auto switchSettingsV1 = utility::getFirstNodeIf(stateV1->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV1);
+  EXPECT_EQ(
+      cfg::PacketForwardingMode::CUT_THROUGH,
+      switchSettingsV1->getPacketForwardingMode().value());
+
+  // Apply config with STORE_AND_FORWARD
+  config.switchSettings()->packetForwardingMode() =
+      cfg::PacketForwardingMode::STORE_AND_FORWARD;
+  auto stateV2 = publishAndApplyConfig(stateV1, &config, platform.get());
+  EXPECT_NE(nullptr, stateV2);
+  auto switchSettingsV2 = utility::getFirstNodeIf(stateV2->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV2);
+  EXPECT_EQ(
+      cfg::PacketForwardingMode::STORE_AND_FORWARD,
+      switchSettingsV2->getPacketForwardingMode().value());
+
+  // Apply config without packetForwardingMode (unset/reset path)
+  cfg::SwitchConfig config2;
+  auto stateV3 = publishAndApplyConfig(stateV2, &config2, platform.get());
+  EXPECT_NE(nullptr, stateV3);
+  auto switchSettingsV3 = utility::getFirstNodeIf(stateV3->getSwitchSettings());
+  ASSERT_NE(nullptr, switchSettingsV3);
+  EXPECT_FALSE(switchSettingsV3->getPacketForwardingMode().has_value());
+}
+
 TEST(SwitchSettingsTest, applyL2AgeTimerSeconds) {
   auto platform = createMockPlatform();
   auto stateV0 = make_shared<SwitchState>();

@@ -7,11 +7,12 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -94,7 +95,7 @@ class Srv6NextHopManagerTest : public ManagerTestBase {
             swNextHop.intfID().value());
     auto [sidListKey, sidListAttrs] =
         makeSrv6SidListKeyAndAttributes(rifHandle->adapterKey(), swNextHop);
-    return saiManagerTable->srv6Manager().addOrReuseSrv6SidList(
+    return saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
         sidListKey, sidListAttrs);
   }
 
@@ -166,9 +167,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
 
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   // Verify NextHopId was set on the SID list to the underlay IP nhop
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
@@ -202,9 +203,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {
   auto sidListKey =
       sidListHandle->managedSidList->getSidList()->adapterHostKey();
 
-  // Verify the SID list was inserted into SaiSrv6Manager
+  // Verify the SID list was inserted into SaiSrv6SidListManager
   auto* handle =
-      saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+      saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
   EXPECT_NE(handle, nullptr);
 }
 
@@ -251,15 +252,16 @@ TEST_F(Srv6NextHopManagerTest, sidListFreedWhenManagedNextHopDestroyed) {
     ASSERT_NE(sidListHandle, nullptr);
     sidListKey = sidListHandle->managedSidList->getSidList()->adapterHostKey();
 
-    // Verify SID list exists in SaiSrv6Manager while managed next hop is alive
+    // Verify SID list exists in SaiSrv6SidListManager while managed next hop is
+    // alive
     auto* handle =
-        saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+        saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(handle, nullptr);
   }
   // managedNextHop destroyed here — SID list should be freed
 
   auto* handle =
-      saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+      saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
   EXPECT_EQ(handle, nullptr);
 }
 

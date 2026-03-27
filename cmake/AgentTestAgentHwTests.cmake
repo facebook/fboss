@@ -18,6 +18,7 @@ add_library(agent_qos_test_src
 
 target_link_libraries(agent_qos_test_src
   agent_hw_test
+  aqm_test_utils
   config_factory
   copp_test_utils
   ecmp_helper
@@ -154,7 +155,9 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentTrafficPfcTests.cpp
   fboss/agent/test/agent_hw_tests/AgentIpInIpTunnelTests.cpp
   fboss/agent/test/agent_hw_tests/AgentSrv6EncapTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentSrv6DecapTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentSwitchingModeTests.cpp
   fboss/agent/test/agent_hw_tests/AgentHwUdfTests.cpp
   fboss/agent/test/agent_hw_tests/AgentRouterInterfaceCounterTest.cpp
   fboss/agent/test/agent_hw_tests/AgentHwPtpTcProvisionTests.cpp

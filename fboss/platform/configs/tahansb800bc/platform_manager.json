@@ -364,7 +364,7 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x60",
-          "kernelDeviceName": "tahansb_mcbcpld",
+          "kernelDeviceName": "fbg_mcbcpld",
           "pmUnitScopedName": "MCB_CPLD",
           "initRegSettings": [
             {
@@ -372,6 +372,83 @@
               "ioBuf": [
                 13
               ]
+            }
+          ],
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            },
+            {
+              "name": "oob_eeprom_wp",
+              "mode": "rw",
+              "regAddr": "0x06",
+              "bitOffset": 2,
+              "description": "OOB EEPROM write protect"
+            },
+            {
+              "name": "oob_eeprom_sel",
+              "mode": "rw",
+              "regAddr": "0x06",
+              "bitOffset": 3,
+              "description": "OOB EEPROM select"
+            },
+            {
+              "name": "smb_pg",
+              "regAddr": "0x0A",
+              "bitOffset": 1,
+              "description": "SMB power good"
+            },
+            {
+              "name": "hs_48v_pg",
+              "regAddr": "0x0A",
+              "bitOffset": 6,
+              "description": "Hot swap 48V power good (1 = present, 0 = absent)"
+            },
+            {
+              "name": "smb_present",
+              "regAddr": "0x10",
+              "bitOffset": 5,
+              "description": "SMB present (1 = present, 0 = absent)"
+            },
+            {
+              "name": "slot_present",
+              "regAddr": "0xA0",
+              "bitOffset": 3,
+              "description": "Slot present"
+            },
+            {
+              "name": "slot_id",
+              "regAddr": "0xA0",
+              "numBits": 3,
+              "description": "Slot ID"
             }
           ]
         },
@@ -604,17 +681,17 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_1",
           "initRegSettings": [
             {
-              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:594",
+              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1001",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
-              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:594",
+              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1001",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -625,10 +702,10 @@
               ]
             },
             {
-              "__comment__": "Remote temp2(temp3) high limit setting for high byte. PR:594",
+              "__comment__": "Remote temp2(temp3) high limit setting for high byte. PR:1001",
               "regOffset": 21,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -686,17 +763,17 @@
           "pmUnitScopedName": "SMB_TH6_SENSOR_TMP432_2",
           "initRegSettings": [
             {
-              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:594",
+              "__comment__": "Local temp(temp1) high limit setting for high byte. PR:1001",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
-              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:594",
+              "__comment__": "Remote temp1(temp2) high limit setting for high byte. PR:1001",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -895,7 +972,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 9,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.1.0-1",
+  "bspKmodsRpmVersion": "4.2.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

@@ -364,6 +364,33 @@ std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsForName(
   return std::nullopt;
 }
 
+RouteNextHopSet NextHopIDManager::getNextHops(NextHopSetID nextHopSetID) const {
+  auto nextHopsOpt = getNextHopsIf(nextHopSetID);
+  if (!nextHopsOpt) {
+    throw FbossError("NextHopSetID ", nextHopSetID, " not found");
+  }
+  return *nextHopsOpt;
+}
+
+std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsIf(
+    NextHopSetID nextHopSetID) const {
+  auto nextHopIdSetIt = idToNextHopIdSet_.find(nextHopSetID);
+  if (nextHopIdSetIt == idToNextHopIdSet_.end()) {
+    return std::nullopt;
+  }
+
+  std::vector<NextHop> nextHopVec;
+  nextHopVec.reserve(nextHopIdSetIt->second.size());
+  for (const auto& nextHopID : nextHopIdSetIt->second) {
+    auto nextHopIt = idToNextHop_.find(nextHopID);
+    CHECK(nextHopIt != idToNextHop_.end())
+        << "NextHopId " << nextHopID
+        << " not found in idToNextHop_ for NextHopSetID " << nextHopSetID;
+    nextHopVec.push_back(nextHopIt->second);
+  }
+  return RouteNextHopSet(nextHopVec.begin(), nextHopVec.end());
+}
+
 void NextHopIDManager::reconstructFromFib(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap) {
   clearNhopIdManagerState();

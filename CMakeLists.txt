@@ -511,6 +511,16 @@ add_fbthrift_py_library(
     prbs_py
 )
 add_fbthrift_cpp_library(
+  transceiver_properties_cpp2
+  fboss/qsfp_service/if/transceiver_properties.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    switch_config_cpp2
+    transceiver_cpp2
+)
+add_fbthrift_cpp_library(
   pim_state_cpp2
   fboss/lib/if/pim_state.thrift
   OPTIONS
@@ -1066,6 +1076,7 @@ add_dependencies(fboss_platform_services
   platform_manager_handler_test
   weutil_crc16_ccitt_test
   weutil_fboss_eeprom_interface_test
+  weutil_parser_utils_test
   sensor_service_sw_test
   sensor_service_utils_test
   rackmon_test
@@ -1101,6 +1112,7 @@ add_dependencies(fboss2_targets
   fboss2_cmd_config_test
   fboss2_framework_test
   fboss2-dev
+  fboss2_integration_test
 )
 
 if (SAI_IMPL OR BUILD_SAI_FAKE)
@@ -1192,6 +1204,7 @@ add_dependencies(fboss_fake_agent_test_targets
   multi_switch_agent_hw_test
   sai_agent_scale_test-fake
   sai_invariant_agent_test-fake
+  switch_test
 )
 
 if(BUILD_SAI_FAKE_BENCHMARKS)

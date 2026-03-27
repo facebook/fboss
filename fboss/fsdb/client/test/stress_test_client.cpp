@@ -7,12 +7,16 @@
 #include <folly/init/Init.h>
 #include <folly/synchronization/Baton.h>
 #include <gflags/gflags.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
+#include "fboss/fsdb/client/FsdbSyncManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStatsSubManager.h"
+#include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_types.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
+#include "fboss/thrift_cow/storage/tests/TestDataFactory.h"
 
 DEFINE_int32(
     consumeDelayMs,
@@ -37,7 +41,18 @@ DEFINE_int32(
     facebook::fboss::fsdb::fsdb_common_constants::PORT(),
     "FSDB server port");
 
+DEFINE_int32(
+    publishIntervalMs,
+    1000,
+    "Interval in milliseconds between publishes for publishPath");
+
+DEFINE_string(
+    publishRole,
+    "MaxScale",
+    "Role for data generation scale (Minimal, MaxScale, RSW, FSW, SSW, RTSW, FTSW, STSW, XSW, MA, FA, RDSW, FDSW, SDSW, EDSW)");
+
 using namespace facebook::fboss::fsdb;
+using namespace facebook::fboss::test_data;
 
 facebook::fboss::utils::ConnectionOptions getConnectionOptions() {
   return facebook::fboss::utils::ConnectionOptions(FLAGS_host, FLAGS_port);
@@ -59,6 +74,33 @@ struct RawPath {
  private:
   std::vector<std::string> tokens_;
 };
+
+RoleSelector parseRoleSelector(const std::string& roleStr) {
+  static const std::map<std::string, RoleSelector> roleMap = {
+      {"Minimal", RoleSelector::Minimal},
+      {"MaxScale", RoleSelector::MaxScale},
+      {"RTSW", RoleSelector::RTSW},
+      {"FTSW", RoleSelector::FTSW},
+      {"STSW", RoleSelector::STSW},
+      {"RSW", RoleSelector::RSW},
+      {"FSW", RoleSelector::FSW},
+      {"SSW", RoleSelector::SSW},
+      {"XSW", RoleSelector::XSW},
+      {"MA", RoleSelector::MA},
+      {"FA", RoleSelector::FA},
+      {"RDSW", RoleSelector::RDSW},
+      {"FDSW", RoleSelector::FDSW},
+      {"SDSW", RoleSelector::SDSW},
+      {"EDSW", RoleSelector::EDSW},
+  };
+
+  auto it = roleMap.find(roleStr);
+  if (it != roleMap.end()) {
+    return it->second;
+  }
+  std::cerr << "Unknown role: " << roleStr << ", using Minimal" << std::endl;
+  return RoleSelector::Minimal;
+}
 
 template <typename T>
 void consume(
@@ -186,6 +228,149 @@ void subscribeDelta(
   baton.wait();
 }
 
+template <typename PubRootT>
+void publishPathImpl(
+    const std::vector<std::string>& basePath,
+    bool publishStats,
+    IDataGenerator& dataFactory) {
+  // Enable the appropriate flag for FsdbSyncManager
+  if (publishStats) {
+    FLAGS_publish_stats_to_fsdb = true;
+  } else {
+    FLAGS_publish_state_to_fsdb = true;
+  }
+
+  auto syncManager = std::make_unique<FsdbSyncManager<PubRootT>>(
+      "stress_test_client_path_publisher",
+      basePath,
+      publishStats,
+      PubSubType::PATH);
+
+  std::cout << "Starting FsdbSyncManager for "
+            << (publishStats ? "stats" : "state") << " publishing..."
+            << std::endl;
+
+  syncManager->start();
+
+  std::cout << "FsdbSyncManager started. Publishing data every "
+            << FLAGS_publishIntervalMs << "ms with role=" << FLAGS_publishRole
+            << ". Press Ctrl+C to exit." << std::endl;
+
+  int64_t version = 0;
+  while (true) {
+    // Generate test data using the factory
+    TaggedOperState taggedState = dataFactory.getStateUpdate(version, false);
+
+    // Update the state in SyncManager which will automatically publish
+    syncManager->updateState(
+        [taggedState](const auto& /* oldState */) {
+          // Deserialize the generated state into a CowState
+          auto newState = std::make_shared<
+              facebook::fboss::thrift_cow::ThriftStructNode<PubRootT>>();
+          auto iobuf =
+              folly::IOBuf::copyBuffer(*taggedState.state()->contents());
+          newState->fromEncodedBuf(
+              *taggedState.state()->protocol(), std::move(*iobuf));
+          return newState;
+        },
+        false /* printUpdateDelay */);
+
+    if (FLAGS_printChunks) {
+      auto contents = taggedState.state()->contents()
+          ? taggedState.state()->contents()->substr(0, 200) + "..."
+          : "null";
+      std::cout << "Published version " << version << ": " << contents
+                << std::endl;
+    }
+    if (FLAGS_count) {
+      std::cout << "Published chunk " << version + 1 << std::endl;
+    }
+
+    version++;
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(FLAGS_publishIntervalMs));
+  }
+
+  syncManager->stop();
+}
+
+// Specialized publisher for BGP data. The data factory generates a full
+// FsdbOperStateRoot, but we need to publish only the BgpData subtree at
+// basePath ["bgp"] to match the FSDB schema.
+void publishBgpPath(IDataGenerator& dataFactory) {
+  FLAGS_publish_state_to_fsdb = true;
+
+  const thriftpath::RootThriftPath<FsdbOperStateRoot> fsdbStateRootPath;
+  auto bgpPath = fsdbStateRootPath.bgp();
+
+  auto syncManager = std::make_unique<FsdbSyncManager<BgpData>>(
+      "stress_test_client_path_publisher",
+      bgpPath.tokens(),
+      false /* isStats */,
+      PubSubType::PATH);
+
+  std::cout << "Starting FsdbSyncManager for BGP state publishing..."
+            << std::endl;
+
+  syncManager->start();
+
+  std::cout << "FsdbSyncManager started. Publishing BGP data every "
+            << FLAGS_publishIntervalMs << "ms with role=" << FLAGS_publishRole
+            << ". Press Ctrl+C to exit." << std::endl;
+
+  int64_t version = 0;
+  while (true) {
+    TaggedOperState taggedState = dataFactory.getStateUpdate(version, false);
+
+    // Deserialize the full FsdbOperStateRoot, then extract BgpData
+    auto iobuf = folly::IOBuf::copyBuffer(*taggedState.state()->contents());
+    auto fullRoot = std::make_shared<
+        facebook::fboss::thrift_cow::ThriftStructNode<FsdbOperStateRoot>>();
+    fullRoot->fromEncodedBuf(
+        *taggedState.state()->protocol(), std::move(*iobuf));
+
+    // Extract the BgpData from the full root and publish it
+    syncManager->updateState(
+        [fullRoot](const auto& /* oldState */) {
+          auto bgpThrift = fullRoot->toThrift().bgp().value();
+          auto newState = std::make_shared<
+              facebook::fboss::thrift_cow::ThriftStructNode<BgpData>>();
+          newState->fromThrift(std::move(bgpThrift));
+          return newState;
+        },
+        false /* printUpdateDelay */);
+
+    if (FLAGS_printChunks) {
+      std::cout << "Published BGP version " << version << std::endl;
+    }
+    if (FLAGS_count) {
+      std::cout << "Published chunk " << version + 1 << std::endl;
+    }
+
+    version++;
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(FLAGS_publishIntervalMs));
+  }
+
+  syncManager->stop();
+}
+
+void publishPath(const std::vector<std::string>& rawPath, bool publishStats) {
+  // Parse the role and create appropriate data factory
+  RoleSelector role = parseRoleSelector(FLAGS_publishRole);
+
+  if (!rawPath.empty() && rawPath[0] == "bgp") {
+    BgpRibMapDataGenerator dataFactory(role);
+    publishBgpPath(dataFactory);
+  } else if (publishStats) {
+    FsdbStatsDataFactory dataFactory(role);
+    publishPathImpl<FsdbOperStatsRoot>(rawPath, publishStats, dataFactory);
+  } else {
+    FsdbStateDataFactory dataFactory(role);
+    publishPathImpl<FsdbOperStateRoot>(rawPath, publishStats, dataFactory);
+  }
+}
+
 void subscribePatch(const std::vector<std::string>& rawPath, bool isStats) {
   auto connectionOptions = getConnectionOptions();
 
@@ -245,13 +430,15 @@ int main(int argc, char** argv) {
   const folly::Init init(&argc, &argv);
 
   if (argc < 3) {
-    std::cout << "Incorrect usage. Expected 2 arguments, streamType and path"
-              << std::endl;
     std::cout
-        << "Usage: stress_test_client <streamType> <path> [--stats] [--consumeDelayMs=<ms>] [--resetDelayAfterNChunks=<n>] [--count]"
+        << "Usage: stress_test_client <streamType> <path> [--stats] [--consumeDelayMs=<ms>] [--resetDelayAfterNChunks=<n>] [--count] [--publishIntervalMs=<ms>] [--publishRole=<role>]"
         << std::endl;
-    std::cout << "streamType: subscribePath, subscribeDelta, subscribePatch"
-              << std::endl;
+    std::cout
+        << "streamType: subscribePath, subscribeDelta, subscribePatch, publishPath"
+        << std::endl;
+    std::cout
+        << "publishRole: Minimal, MaxScale, RSW, FSW, SSW, RTSW, FTSW, STSW, XSW, MA, FA, RDSW, FDSW, SDSW, EDSW"
+        << std::endl;
     return 1;
   }
 
@@ -268,9 +455,12 @@ int main(int argc, char** argv) {
       subscribeDelta(std::move(rawPath), FLAGS_stats);
     } else if (streamType == "subscribePatch") {
       subscribePatch(std::move(rawPath), FLAGS_stats);
+    } else if (streamType == "publishPath") {
+      publishPath(std::move(rawPath), FLAGS_stats);
     } else {
       std::cout << "Incorrect usage. Choose from 'subscribePath', "
-                << "'subscribeDelta', or 'subscribePatch'" << std::endl;
+                << "'subscribeDelta', 'subscribePatch', or 'publishPath'"
+                << std::endl;
       return 1;
     }
   } catch (const FsdbException& e) {

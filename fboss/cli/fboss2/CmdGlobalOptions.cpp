@@ -43,6 +43,9 @@ void CmdGlobalOptions::init(CLI::App& app) {
          "QsfpService thrift port to connect to")
       ->check(CLI::PositiveNumber);
   app.add_option(
+         "--fsdb-port", fsdbThriftPort_, "Fsdb thrift port to connect to")
+      ->check(CLI::PositiveNumber);
+  app.add_option(
       "--color", color_, "color (no, yes => yes for tty and no for pipe)");
   app.add_option(
       "--filter",

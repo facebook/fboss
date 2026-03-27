@@ -8,6 +8,7 @@ on:
       - 'cmake/CliFboss2.cmake'
       - 'cmake/CliFboss2Test.cmake'
       - 'cmake/CliFboss2TestConfig.cmake'
+      - 'cmake/CliFboss2TestIntegrationTest.cmake'
       - '.github/workflows/fboss2-cli.yml'
   # Allow manually triggering the workflow
   workflow_dispatch:

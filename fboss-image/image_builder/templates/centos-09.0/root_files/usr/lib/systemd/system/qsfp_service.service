@@ -24,10 +24,8 @@ Restart=always
 RestartSec=30
 TimeoutStartSec=180s
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=qsfp_service
+StandardOutput=append:/var/facebook/logs/fboss/qsfp_service.log
+StandardError=append:/var/facebook/logs/fboss/qsfp_service.log
 
 [Install]
 WantedBy=multi-user.target

@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
@@ -78,6 +78,7 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   ~ManagedNextHop() {
     this->resetObject();
   }
+
   void createObject(PublishedObjects /*added*/);
 
   void removeObject(size_t index, PublishedObjects removed) {

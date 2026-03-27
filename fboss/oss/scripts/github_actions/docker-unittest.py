@@ -18,6 +18,7 @@ FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 
 TEST_PATH_REGEX = re.compile(".*tests?$")
 HW_TEST_PATH_REGEX = re.compile(".*hw_tests?$")
+INTEGRATION_TEST_PATH_REGEX = re.compile(".*integration_tests?$")
 CONTAINER_WORKDIR = "/var/FBOSS/fboss"
 
 
@@ -26,8 +27,7 @@ def get_docker_path():
     github_actions_path = os.path.dirname(__file__)
     scripts_path = Path(github_actions_path).parent.absolute()
     oss_dir_path = Path(scripts_path).parent.absolute()
-    docker_dir_path = os.path.join(oss_dir_path, "docker")
-    return docker_dir_path
+    return os.path.join(oss_dir_path, "docker")
 
 
 def get_repo_path():
@@ -45,14 +45,14 @@ def use_stable_hashes():
         "-rf",
         "build/deps/github_hashes/",
     ]
-    subprocess.run(rm_cmd)
+    subprocess.run(rm_cmd, check=False)
 
     extract_cmd = [
         "tar",
         "xvzf",
         "fboss/oss/stable_commits/latest_stable_hashes.tar.gz",
     ]
-    subprocess.run(extract_cmd)
+    subprocess.run(extract_cmd, check=False)
 
     os.chdir(cwd)
 
@@ -75,19 +75,20 @@ def build_docker_image(docker_dir_path: str):
                 "-f",
                 dockerfile_path,
             ],
+            check=False,
             stdout=output,
             stderr=subprocess.STDOUT,
         )
-    if not cp.returncode == 0:
-        errMsg = f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}"
-        print(errMsg, file=sys.stderr)
+    if cp.returncode != 0:
+        err_msg = f"An error occurred while trying to build the FBOSS docker image: {cp.stderr}"
+        print(err_msg, file=sys.stderr)
         sys.exit(1)
 
 
 def unpack_tarball(tarball_path: str) -> str:
     output_dir = tempfile.mkdtemp()
     print(f"Unpacking tarball to {output_dir}")
-    subprocess.run(["tar", "-xvf", tarball_path, "-C", output_dir])
+    subprocess.run(["tar", "-xvf", tarball_path, "-C", output_dir], check=False)
     return output_dir
 
 
@@ -108,7 +109,7 @@ def find_tests(output_dir: str) -> list[str]:
     for f in os.listdir(bin_dir):
         file_path = os.path.join(bin_dir, f)
         # Make sure to ignore hw tests as they will not pass on GitHub actions runners.
-        if is_test(file_path) and not is_hw_test(file_path):
+        if is_test(file_path) and not is_e2e_test(file_path):
             tests.append(f)
     return tests
 
@@ -121,8 +122,20 @@ def is_test(path: str) -> bool:
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
+def is_e2e_test(path: str) -> bool:
+    return is_hw_test(path) or is_integration_test(path)
+
+
 def is_hw_test(path: str) -> bool:
     match = HW_TEST_PATH_REGEX.match(path)
+    if not match:
+        return False
+
+    return os.path.isfile(path) and os.access(path, os.X_OK)
+
+
+def is_integration_test(path: str) -> bool:
+    match = INTEGRATION_TEST_PATH_REGEX.match(path)
     if not match:
         return False
 
@@ -144,7 +157,7 @@ def run_test(test: str, output_dir: str) -> bool:
     cmd_args.append(f"{FBOSS_IMAGE_NAME}:latest")
     test_path = os.path.join(output_dir, "bin", test)
     cmd_args.append(test_path)
-    cp = subprocess.run(cmd_args)
+    cp = subprocess.run(cmd_args, check=False)
     return cp.returncode == 0
 
 

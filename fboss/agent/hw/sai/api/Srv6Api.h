@@ -12,6 +12,8 @@
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
 
+#include <array>
+
 extern "C" {
 #include <sai.h>
 }
@@ -31,7 +33,7 @@ struct SaiSrv6SidListTraits {
     using SegmentList = SaiAttribute<
         EnumType,
         SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST,
-        std::vector<folly::IPAddressV6>>;
+        std::vector<std::array<uint8_t, 16>>>;
     using NextHopId =
         SaiAttribute<EnumType, SAI_SRV6_SIDLIST_ATTR_NEXT_HOP_ID, SaiObjectIdT>;
   };
@@ -138,10 +140,10 @@ struct SaiMySidEntryTraits {
   using AdapterHostKey = MySidEntry;
   using CreateAttributes = std::tuple<
       Attributes::EndpointBehavior,
-      std::optional<Attributes::EndpointBehaviorFlavor>,
-      std::optional<Attributes::NextHopId>,
-      std::optional<Attributes::Vrf>,
-      std::optional<Attributes::PacketAction>>;
+      Attributes::EndpointBehaviorFlavor,
+      Attributes::NextHopId,
+      Attributes::Vrf,
+      Attributes::PacketAction>;
 };
 template <>
 struct IsSaiEntryStruct<SaiMySidEntryTraits::MySidEntry>

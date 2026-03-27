@@ -5,6 +5,7 @@
     "disable_neighbor_updates": "true",
     "ecmp_width": "128",
     "enable_replayer": "true",
+    "intf_nbr_tables": "true",
     "log_variable_name": "true",
     "sai_configure_six_tap": "true"
   },

@@ -319,6 +319,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::LLDP:
     case cfg::EtherType::ARP:
     case cfg::EtherType::LACP:
+    case cfg::EtherType::AIFM:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases

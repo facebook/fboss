@@ -390,9 +390,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
@@ -567,12 +567,31 @@ class AgentTrafficPfcTest : public AgentHwTest {
     }
   }
 
+  // Find the strict-priority queue ID with the highest priority from
+  // the config. Injecting on such a queue avoids low-priority queue
+  // tail drops so to unblock lossless TC from crossing the PFC XOFF
+  // threshold.
+  std::optional<uint8_t> getInjectionQueueId() {
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    std::optional<uint8_t> queueId = std::nullopt;
+    for (const auto& [name, queues] : *cfg.portQueueConfigs()) {
+      for (const auto& queueCfg : queues) {
+        if (*queueCfg.scheduling() == cfg::QueueScheduling::STRICT_PRIORITY &&
+            (!queueId || *queueCfg.id() > *queueId)) {
+          queueId = static_cast<uint8_t>(*queueCfg.id());
+        }
+      }
+    }
+    return queueId;
+  }
+
   void pumpTraffic(const int priority, bool scaleTest) {
     std::vector<PortID> portIds = portIdsForTest(scaleTest);
+    auto queue = getInjectionQueueId();
     pumpTraffic(
         priority,
         std::nullopt /* vlanId */,
-        std::nullopt /* queue */,
+        queue,
         portIds,
         getDestinationIps(static_cast<int>(portIds.size())));
   }

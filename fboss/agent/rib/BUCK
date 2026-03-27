@@ -64,11 +64,15 @@ cpp_unittest(
     name = "rib_tests",
     srcs = [
         "test/FibInteractionTests.cpp",
+        "test/MySidMapUpdaterTests.cpp",
         "test/NextHopIDManagerTests.cpp",
         "test/NextHopMapPopulationTests.cpp",
+        "test/ReconstructRibFromSwitchStateTests.cpp",
         "test/RibLpmTests.cpp",
+        "test/RibMySidUpdateTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
+        "test/RibToSwitchStateUpdaterTests.cpp",
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
@@ -79,6 +83,7 @@ cpp_unittest(
         ":standalone_rib",
         "//common/network/if:if-cpp2-types",
         "//fboss/agent:address_utils",
+        "//fboss/agent:agent_features",
         "//fboss/agent:core",
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
@@ -137,6 +142,8 @@ cpp_library(
     srcs = [
         "FibUpdateHelpers.cpp",
         "ForwardingInformationBaseUpdater.cpp",
+        "MySidMapUpdater.cpp",
+        "RibToSwitchStateUpdater.cpp",
     ],
     exported_deps = [
         ":network_to_route_map",

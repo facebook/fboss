@@ -1381,7 +1381,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     rib_ = RoutingInformationBase::fromThrift(
         rib_->toThrift(),
         state->getFibsInfoMap(),
-        state->getLabelForwardingInformationBase());
+        state->getLabelForwardingInformationBase(),
+        state->getMySids());
   }
 
   fb303::fbData->setCounter(kHwUpdateFailures, 0);

@@ -27,6 +27,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
@@ -39,7 +40,6 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -928,6 +928,44 @@ void ThriftHandler::updateUnicastRoutesImpl(
   }
 }
 
+void ThriftHandler::addMySidEntries(
+    std::unique_ptr<std::vector<MySidEntry>> mySidEntries) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw_->getScopeResolver(),
+      *mySidEntries,
+      {} /* toDelete */,
+      "addMySidEntries",
+      ribMySidToSwitchStateFunc,
+      sw_);
+}
+
+void ThriftHandler::deleteMySidEntries(
+    std::unique_ptr<std::vector<IpPrefix>> prefixes) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw_->getScopeResolver(),
+      {} /* toAdd */,
+      *prefixes,
+      "deleteMySidEntries",
+      ribMySidToSwitchStateFunc,
+      sw_);
+}
+
 static void populateInterfaceDetail(
     InterfaceDetail& interfaceDetail,
     const std::shared_ptr<Interface> intf,
@@ -1547,6 +1585,18 @@ void ThriftHandler::setInterfacePrbs(
   }
 }
 
+void ThriftHandler::setInterfacesPrbs(
+    std::unique_ptr<std::vector<std::string>> portNames,
+    phy::PortComponent component,
+    std::unique_ptr<prbs::InterfacePrbsState> state) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  for (const auto& portName : *portNames) {
+    auto portNamePtr = std::make_unique<std::string>(portName);
+    auto stateCopy = std::make_unique<prbs::InterfacePrbsState>(*state);
+    setInterfacePrbs(std::move(portNamePtr), component, std::move(stateCopy));
+  }
+}
+
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PortComponent component) {
@@ -1925,7 +1975,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
         }
         if (fwdInfo.getOverrideNextHops().has_value()) {
           tempRoute.overrideNextHops() =
-              util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+              util::fromRouteNextHopSet(getNormalizedNextHops(state, fwdInfo));
         }
         routes.emplace_back(std::move(tempRoute));
       });
@@ -1968,9 +2018,12 @@ void ThriftHandler::getRouteTableByClient(
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  auto state = sw_->getState();
   forAllRoutes(
-      sw_->getState(), [&routes](const RouterID& /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails(true));
+      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+        routes.emplace_back(route->toRouteDetails(
+            getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
+            true));
       });
 }
 
@@ -2053,12 +2106,16 @@ void ThriftHandler::getIpRouteDetails(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(true);
+      route = match->toRouteDetails(
+          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
+          true);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(true);
+      route = match->toRouteDetails(
+          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
+          true);
     }
   }
 }
@@ -2448,6 +2505,27 @@ int32_t ThriftHandler::flushNeighborEntry(
         parsedIP,
         " could not be deleted. Entry is either of type STATIC, DYNAMIC or does not exist");
   }
+}
+
+int32_t ThriftHandler::flushNeighborEntries(
+    unique_ptr<std::vector<IfAndIP>> entries) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  int32_t totalFlushed = 0;
+
+  for (const auto& entry : *entries) {
+    try {
+      totalFlushed += flushNeighborEntry(
+          std::make_unique<BinaryAddress>(*entry.ip()), *entry.interfaceID());
+    } catch (...) {
+      XLOG(WARNING) << "Failed to flush neighbor entry for "
+                    << toIPAddress(*entry.ip()).str() << " on interface "
+                    << *entry.interfaceID();
+    }
+  }
+
+  return totalFlushed;
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {

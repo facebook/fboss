@@ -50,7 +50,11 @@ class Srv6ApiTest : public ::testing::Test {
     SaiMySidEntryTraits::Attributes::EndpointBehavior behavior{
         endpointBehavior};
     SaiMySidEntryTraits::CreateAttributes attrs{
-        behavior, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        behavior,
+        SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
+        SAI_NULL_OBJECT_ID,
+        0,
+        SAI_PACKET_ACTION_FORWARD};
     srv6Api->create<SaiMySidEntryTraits>(entry, attrs);
   }
 
@@ -220,7 +224,7 @@ TEST_F(Srv6ApiTest, getMySidEntryDefaultAttributes) {
   EXPECT_EQ(
       srv6Api->getAttribute(
           entry, SaiMySidEntryTraits::Attributes::EndpointBehaviorFlavor{}),
-      0);
+      SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP);
   EXPECT_EQ(
       srv6Api->getAttribute(
           entry, SaiMySidEntryTraits::Attributes::NextHopId{}),

@@ -16,7 +16,7 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/HwSwitchWarmBootHelper.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"

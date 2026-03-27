@@ -493,6 +493,7 @@ struct SwitchSettingsFields {
   59: optional i32 ecmpCompressionThresholdPct;
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
+  61: optional switch_config.PacketForwardingMode packetForwardingMode;
 }
 
 struct RoutePrefix {

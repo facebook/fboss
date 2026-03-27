@@ -41,11 +41,39 @@ class MySid : public ThriftStructNode<MySid, state::MySidFields> {
     return std::make_pair(ip, static_cast<uint8_t>(len));
   }
 
-  void setMySid(const folly::CIDRNetwork& cidr) {
-    network::thrift::IPPrefix prefix;
-    prefix.prefixAddress() = network::toBinaryAddress(cidr.first);
-    prefix.prefixLength() = cidr.second;
-    ref<switch_state_tags::mySid>()->fromThrift(std::move(prefix));
+  const RouteNextHopEntry* getResolvedNextHop() const {
+    if (auto nhop = safe_cref<switch_state_tags::resolvedNextHop>()) {
+      return &(*nhop);
+    }
+    return nullptr;
+  }
+
+  void setResolvedNextHop(const std::optional<RouteNextHopEntry>& nhop) {
+    if (nhop) {
+      set<switch_state_tags::resolvedNextHop>(nhop->toThrift());
+    } else {
+      ref<switch_state_tags::resolvedNextHop>().reset();
+    }
+  }
+
+  const RouteNextHopEntry* getUnresolvedNextHop() const {
+    if (auto nhop = safe_cref<switch_state_tags::unresolveNextHop>()) {
+      return &(*nhop);
+    }
+    return nullptr;
+  }
+
+  void setUnresolvedNextHop(const std::optional<RouteNextHopEntry>& nhop) {
+    if (nhop) {
+      set<switch_state_tags::unresolveNextHop>(nhop->toThrift());
+    } else {
+      ref<switch_state_tags::unresolveNextHop>().reset();
+    }
+  }
+
+  bool resolved() const {
+    return getType() == MySidType::DECAPSULATE_AND_LOOKUP ||
+        getResolvedNextHop() != nullptr;
   }
 
  private:

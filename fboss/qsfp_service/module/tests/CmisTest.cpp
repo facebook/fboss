@@ -8,12 +8,12 @@
  *
  */
 
-#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
-
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 #include "fboss/qsfp_service/module/tests/FakeTransceiverImpl.h"
 #include "fboss/qsfp_service/module/tests/TransceiverTestsHelper.h"
+#include "fboss/qsfp_service/test/TransceiverManagerTestHelper.h"
 #include "fboss/qsfp_service/test/hw_test/HwTransceiverUtils.h"
 
 namespace facebook::fboss {
@@ -935,8 +935,8 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
       info.tcvrState()->moduleMediaInterface(),
       MediaInterfaceCode::FR4_LPO_2x400G);
   for (auto& media : *info.tcvrState()->settings()->mediaInterface()) {
-    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR4_400G);
-    EXPECT_EQ(media.code(), MediaInterfaceCode::FR4_400G);
+    EXPECT_EQ(media.media()->get_smfCode(), SMFMediaInterfaceCode::FR1_100G);
+    EXPECT_EQ(media.code(), MediaInterfaceCode::FR1_100G);
   }
 
   // Check cmisStateChanged
@@ -980,10 +980,10 @@ TEST_F(CmisTest, cmis2x400GFr4LpoTransceiverInfoTest) {
         std::nullopt);
   }
 
-  // TODO T230016502: Add SMFMediaInterfaceCode::FR8_800G once we have new
-  // EEPROM and modules supporting 800G ?
   for (auto supportedApplication :
-       {SMFMediaInterfaceCode::FR4_400G, SMFMediaInterfaceCode::FR1_100G}) {
+       {SMFMediaInterfaceCode::FR8_800G,
+        SMFMediaInterfaceCode::FR4_400G,
+        SMFMediaInterfaceCode::FR1_100G}) {
     auto applicationField = xcvr->getApplicationField(
         static_cast<uint8_t>(supportedApplication), 0);
     EXPECT_NE(applicationField, std::nullopt);
@@ -1238,11 +1238,64 @@ TEST_F(CmisTest, cmis800GZrTransceiverInfoTest) {
   EXPECT_EQ(
       0x80, xcvr->frequencyGridToGridSelection(FrequencyGrid::LASER_150GHZ));
 
-  // Test 3P125GHZ getChannelNumFromFrequency conversion
+  // Test getChannelNumFromFrequency: base frequency → channel 0
   EXPECT_EQ(
       xcvr->getChannelNumFromFrequency(
           193100000, FrequencyGrid::LASER_3P125GHZ),
       0);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193100000, FrequencyGrid::LASER_6P25GHZ),
+      0);
+
+  // Test getChannelNumFromFrequency: positive channel numbers
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193775000, FrequencyGrid::LASER_6P25GHZ),
+      108);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193925000, FrequencyGrid::LASER_6P25GHZ),
+      132);
+
+  // Test getChannelNumFromFrequency: negative channel numbers (L-band)
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(186125000, FrequencyGrid::LASER_6P25GHZ),
+      -1116);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(191375000, FrequencyGrid::LASER_6P25GHZ),
+      -276);
+
+  // Test getChannelNumFromFrequency across all grids to verify
+  // no floating-point truncation (the off-by-one bug)
+  // 150 GHz grid: n = (diffMhz * 40) / 1000000 - 3; channel 1 at 193200000
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193200000, FrequencyGrid::LASER_150GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193200000, FrequencyGrid::LASER_100GHZ),
+      1);
+  // 75 GHz grid: n = (diffMhz * 40) / 1000000; channel 1 at 193125000
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193125000, FrequencyGrid::LASER_75GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193150000, FrequencyGrid::LASER_50GHZ),
+      1);
+  // 33 GHz grid: n = (diffMhz * 30) / 1000000; channel 3 at 193200000
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193200000, FrequencyGrid::LASER_33GHZ),
+      3);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193125000, FrequencyGrid::LASER_25GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193112500, FrequencyGrid::LASER_12P5GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(193106250, FrequencyGrid::LASER_6P25GHZ),
+      1);
+  EXPECT_EQ(
+      xcvr->getChannelNumFromFrequency(
+          193103125, FrequencyGrid::LASER_3P125GHZ),
+      1);
 
   auto tunableLaserStatus = xcvr->getTunableLaserStatus();
   EXPECT_NE(tunableLaserStatus, std::nullopt);
@@ -2011,6 +2064,7 @@ TEST_F(CmisTest, cmis2x400GFr4TransceiverVdmTest) {
 }
 
 TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
+  TransceiverPropertiesManager::initDefault();
   auto xcvrID = TransceiverID(1);
   auto xcvr = overrideCmisModule<Cmis2x400GFr4Transceiver>(
       xcvrID, TransceiverModuleIdentifier::OSFP);
@@ -2039,6 +2093,29 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
   EXPECT_FALSE(
       xcvr->isRequestValidMultiportSpeedConfig(cfg::PortSpeed::HUNDREDG, 4, 4));
 
+  auto fr4Combos =
+      TransceiverPropertiesManager::getSpeedCombinations<SMFMediaInterfaceCode>(
+          MediaInterfaceCode::FR4_2x400G);
+
+  auto fr4_400gCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+      SMFMediaInterfaceCode>(
+      MediaInterfaceCode::FR4_2x400G, cfg::PortSpeed::FOURHUNDREDG);
+  SmfSpeedApplicationMap fr4_400gMapping;
+  fr4_400gMapping[cfg::PortSpeed::FOURHUNDREDG] = fr4_400gCodes;
+
+  auto fr4_100gCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+      SMFMediaInterfaceCode>(
+      MediaInterfaceCode::FR4_2x400G, cfg::PortSpeed::HUNDREDG);
+  SmfSpeedApplicationMap fr4_100gMapping;
+  fr4_100gMapping[cfg::PortSpeed::HUNDREDG] = fr4_100gCodes;
+
+  auto fr4_fr1Codes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+      SMFMediaInterfaceCode>(
+      MediaInterfaceCode::FR4_2x400G,
+      cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG);
+  SmfSpeedApplicationMap fr4_fr1Mapping;
+  fr4_fr1Mapping[cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG] = fr4_fr1Codes;
+
   auto speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
       cfg::PortSpeed::FOURHUNDREDG,
       0,
@@ -2046,8 +2123,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(0, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_400gMapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[0], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
@@ -2058,8 +2135,8 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_400gMapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::FR4_400G);
 
@@ -2070,20 +2147,20 @@ TEST_F(CmisTest, cmis2x400GFr4DatapathProgramTest) {
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_100gMapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   EXPECT_EQ(speedCfgCombo[4], (uint8_t)SMFMediaInterfaceCode::CWDM4_100G);
 
   speedCfgCombo = CmisHelper::getValidMultiportSpeedConfig(
-      cfg::PortSpeed::HUNDREDG,
+      cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
       5,
       1,
       CmisModule::laneMask(4, 4),
       "tcvr1",
       xcvr->getModuleCapabilities(),
-      CmisHelper::getSmfValidSpeedCombinations(),
-      CmisHelper::getSmfSpeedApplicationMapping());
+      fr4Combos,
+      fr4_fr1Mapping);
   EXPECT_EQ(speedCfgCombo.size(), CmisModule::kMaxOsfpNumLanes);
   for (auto& speed : speedCfgCombo) {
     EXPECT_EQ(speed, (uint8_t)SMFMediaInterfaceCode::FR1_100G);

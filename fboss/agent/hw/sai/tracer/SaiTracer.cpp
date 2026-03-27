@@ -2275,6 +2275,10 @@ void SaiTracer::setMySidEntry(
   lines.push_back(to<string>("ms_e.function_len=", my_sid_entry->function_len));
   lines.push_back(to<string>("ms_e.args_len=", my_sid_entry->args_len));
 
+  folly::IPAddressV6 sidAddr =
+      facebook::fboss::fromSaiIpAddress(my_sid_entry->sid);
+  lines.push_back(to<string>("// ", sidAddr.str()));
+
   // SID is sai_ip6_t (uint8_t[16])
   lines.emplace_back("u=ms_e.sid");
   lines.emplace_back("memset(u,0,16)");

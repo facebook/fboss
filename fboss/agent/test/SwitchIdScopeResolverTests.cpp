@@ -7,6 +7,8 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -439,4 +441,20 @@ TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelStateScopeCfg) {
   auto tunnelMatcher = resolver.scope(tunnel, config);
   auto intfMatcher = resolver.scope(intf, config);
   EXPECT_EQ(tunnelMatcher, intfMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, mySidScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<MySid>{});
+  } else {
+    this->expectL3(std::shared_ptr<MySid>());
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, mySidMapScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<MySidMap>{});
+  } else {
+    this->expectL3(std::shared_ptr<MySidMap>());
+  }
 }

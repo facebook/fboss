@@ -11,6 +11,7 @@
 #include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
@@ -18,6 +19,7 @@
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
@@ -334,6 +336,127 @@ TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
         handler.flushNeighborEntry(std::move(v4Addr), 1001), FbossError);
     EXPECT_THROW(
         handler.flushNeighborEntry(std::move(v6Addr), 1001), FbossError);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesEmpty) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+  EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighborEntries) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+  IfAndIP v4Entry;
+  v4Entry.interfaceID() = 1;
+  v4Entry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+  entries->push_back(v4Entry);
+
+  IfAndIP v6Entry;
+  v6Entry.interfaceID() = 1;
+  v6Entry.ip() = toBinaryAddress(IPAddress("100::100"));
+  entries->push_back(v6Entry);
+
+  if (this->isNpu()) {
+    // Non-existent entries on a valid vlan return 0 flushed
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+  } else {
+    // On non-NPU switches, flushNeighborEntry throws for each entry,
+    // but flushNeighborEntries catches exceptions and continues
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesWithInvalidVlan) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+  // Entry with invalid vlan - flushNeighborEntry will throw,
+  // but flushNeighborEntries should catch and continue
+  IfAndIP invalidEntry;
+  invalidEntry.interfaceID() = 9999;
+  invalidEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+  entries->push_back(invalidEntry);
+
+  // Should not throw, failures are caught internally
+  EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesMixedValidity) {
+  ThriftHandler handler(this->sw_);
+
+  if (this->isNpu()) {
+    // Add actual neighbor entries so they can be flushed
+    this->sw_->getNeighborUpdater()->receivedArpMineForIntf(
+        InterfaceID(1),
+        folly::IPAddressV4("10.0.0.22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        ArpOpCode::ARP_OP_REPLY);
+
+    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        InterfaceID(1),
+        folly::IPAddressV6("2401:db00:2110:3001::22"),
+        folly::MacAddress("02:09:00:00:00:23"),
+        PortDescriptor(PortID(1)),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+
+    auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+    // Existing ARP entry - should flush successfully
+    IfAndIP existingArpEntry;
+    existingArpEntry.interfaceID() = 1;
+    existingArpEntry.ip() = toBinaryAddress(IPAddress("10.0.0.22"));
+    entries->push_back(existingArpEntry);
+
+    // Invalid vlan - will throw inside flushNeighborEntry, caught internally
+    IfAndIP invalidVlanEntry;
+    invalidVlanEntry.interfaceID() = 9999;
+    invalidVlanEntry.ip() = toBinaryAddress(IPAddress("200.200.200.1"));
+    entries->push_back(invalidVlanEntry);
+
+    // Existing NDP entry - should flush successfully
+    IfAndIP existingNdpEntry;
+    existingNdpEntry.interfaceID() = 1;
+    existingNdpEntry.ip() =
+        toBinaryAddress(IPAddress("2401:db00:2110:3001::22"));
+    entries->push_back(existingNdpEntry);
+
+    // Non-existent neighbor on valid vlan - returns 0
+    IfAndIP nonExistentEntry;
+    nonExistentEntry.interfaceID() = 1;
+    nonExistentEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+    entries->push_back(nonExistentEntry);
+
+    // 2 entries flushed (ARP + NDP), invalid vlan caught, non-existent is 0
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 2);
+  } else {
+    // On non-NPU switches, all entries throw but are caught
+    auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+    IfAndIP validVlanEntry;
+    validVlanEntry.interfaceID() = 1;
+    validVlanEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+    entries->push_back(validVlanEntry);
+
+    IfAndIP invalidVlanEntry;
+    invalidVlanEntry.interfaceID() = 9999;
+    invalidVlanEntry.ip() = toBinaryAddress(IPAddress("200.200.200.1"));
+    entries->push_back(invalidVlanEntry);
+
+    IfAndIP anotherValidEntry;
+    anotherValidEntry.interfaceID() = 1;
+    anotherValidEntry.ip() = toBinaryAddress(IPAddress("100::100"));
+    entries->push_back(anotherValidEntry);
+
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
   }
 }
 
@@ -2870,3 +2993,140 @@ class ThriftTeFlowTest : public ::testing::Test {
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
 };
+
+namespace {
+
+MySidEntry makeMySidEntry(
+    const std::string& addr,
+    uint8_t len,
+    MySidType type = MySidType::DECAPSULATE_AND_LOOKUP) {
+  MySidEntry entry;
+  entry.type() = type;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  entry.mySid() = prefix;
+  return entry;
+}
+
+IpPrefix toMySidIpPrefix(const std::string& addr, uint8_t len) {
+  IpPrefix prefix;
+  prefix.ip() = facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  return prefix;
+}
+
+} // namespace
+
+TEST_F(ThriftTest, addMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_NE(nullptr, mySids);
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, deleteMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  // First add entries
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Delete one
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_EQ(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsNonDecapsulateType) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(
+      makeMySidEntry("2001:db8::1", 64, MySidType::NODE_MICRO_SID));
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsEntryWithNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  entry.nextHops()->push_back(nhop);
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addAndDeleteMySidEntriesInSequence) {
+  ThriftHandler handler(sw_);
+
+  // Add
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+
+  // Delete
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  state = sw_->getState();
+  EXPECT_EQ(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
+
+TEST_F(ThriftTest, deleteNonExistentMySidEntryIsNoOp) {
+  ThriftHandler handler(sw_);
+
+  auto stateBefore = sw_->getState();
+
+  // Delete a prefix that doesn't exist
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::99", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto stateAfter = sw_->getState();
+  // MySids map should be the same (both empty)
+  EXPECT_EQ(
+      stateBefore->getMySids()->toThrift(),
+      stateAfter->getMySids()->toThrift());
+}
+
+TEST_F(ThriftTest, mySidEntryReflectedInRib) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Verify RIB has the entry
+  auto rib = sw_->getRib();
+  auto ribMySidTable = rib->getMySidTableCopy();
+  auto cidr = std::make_pair(folly::IPAddressV6("2001:db8::1"), 64);
+  EXPECT_EQ(ribMySidTable.count(cidr), 1);
+
+  // Verify SwitchState has the entry
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}

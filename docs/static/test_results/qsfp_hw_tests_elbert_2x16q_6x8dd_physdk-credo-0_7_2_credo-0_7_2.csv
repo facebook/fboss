@@ -1,4 +1,5 @@
 "Test Case","Platform","PHY SDK","Status"
+"cold_boot.HwTest.publishStats","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwXphyPortStatsCollectionTest.checkXphyStatsCollectionDone","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwXphyFirmwareTest.CheckDefaultXphyFirmwareVersion","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwTransceiverThermalDataTest.thermalDataValidate","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
@@ -11,7 +12,6 @@
 "cold_boot.HwTest_PROFILE_200G_4_PAM4_RS544X2N_OPTICAL.TestProfile","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwTest_PROFILE_100G_4_NRZ_RS528_OPTICAL.TestProfile","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwTest.transceiverIOStats","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
-"cold_boot.HwTest.publishStats","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwTest.i2cUniqueSerialNumbers","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwTest.i2cStressWrite","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"
 "cold_boot.HwTest.i2cStressRead","elbert_2x16Q_6x8DD","credo-0.7.2","PASSED"

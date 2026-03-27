@@ -24,10 +24,8 @@ TimeoutStartSec=180s
 AmbientCapabilities=CAP_SYS_RAWIO
 CapabilityBoundingSet=CAP_SYS_RAWIO
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=data_corral_service
+StandardOutput=append:/var/facebook/logs/fboss/data_corral_service.log
+StandardError=append:/var/facebook/logs/fboss/data_corral_service.log
 
 [Install]
 WantedBy=multi-user.target

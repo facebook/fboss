@@ -86,8 +86,8 @@ inline std::vector<uint8_t> encodePayload(uint32_t sequenceNumber) {
           std::chrono::steady_clock::now().time_since_epoch())
           .count();
 
-  cursor.writeBE(timestampNs);
-  cursor.writeBE(sequenceNumber);
+  cursor.writeBE<uint64_t>(timestampNs);
+  cursor.writeBE<uint32_t>(sequenceNumber);
 
   return std::vector(buf.data(), buf.data() + buf.length());
 }
@@ -196,9 +196,10 @@ inline CpuLatencyBenchmarkSetup createCpuLatencyEnsemble() {
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
       portSet,
-      {RoutePrefixV6{folly::IPAddressV6(), 0}});
-
-  utility::ttlDecrementHandlingForLoopbackTraffic(
+      {RoutePrefixV6{folly::IPAddressV6(), 0}},
+      {},
+      true);
+  utility::disablePortTTLDecrementIfSupported(
       ensemble.get(), ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   XLOG(DBG2) << "Loopback traffic path setup complete for port " << portId;

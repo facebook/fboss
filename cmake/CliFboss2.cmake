@@ -389,6 +389,9 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdHandlerImpl.cpp
+  fboss/cli/fboss2/CmdStreamHandler.h
+  fboss/cli/fboss2/CmdStreamHandler.cpp
+  fboss/cli/fboss2/CmdStreamHandlerImpl.cpp
   fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/CmdLocalOptions.cpp
@@ -618,8 +621,16 @@ target_link_libraries(fboss2_lib
   ${RE2}
 )
 
+# CmdInitUtils sources are compiled directly into each binary rather than as a
+# separate library. In Buck, cmd-init-utils uses preferred_linkage = "static"
+# to defer kCommandTree() symbol resolution to the final binary. CMake can't
+# do this without also losing transitive include paths (e.g. generated thrift
+# headers needed by CmdGlobalOptions.h), so we inline the sources instead.
 add_executable(fboss2
   fboss/cli/fboss2/Main.cpp
+  fboss/cli/fboss2/oss/CmdListImpl.cpp
+  fboss/cli/fboss2/utils/CmdInitUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
 )
 
 target_link_libraries(fboss2
@@ -635,11 +646,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.cpp
   fboss/cli/fboss2/commands/config/CmdConfigReload.h
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceDescription.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.h
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceMtu.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
@@ -647,6 +657,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h
   fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp
+  fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h
+  fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp
+  fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h
   fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.cpp
   fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h
@@ -768,6 +781,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp
   fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.cpp
+  fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicyMap.h
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp
   fboss/cli/fboss2/commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h
@@ -785,6 +801,9 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.cpp
   fboss/cli/fboss2/commands/config/vlan/CmdConfigVlan.h
+  fboss/cli/fboss2/commands/config/vlan/port/CmdConfigVlanPort.h
+  fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h
+  fboss/cli/fboss2/commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.cpp
   fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h
   fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h
   fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp
@@ -794,8 +813,10 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/session/ConfigSession.cpp
   fboss/cli/fboss2/session/Git.h
   fboss/cli/fboss2/session/Git.cpp
-  fboss/cli/fboss2/utils/InterfaceList.h
+  fboss/cli/fboss2/utils/InterfacesConfig.cpp
+  fboss/cli/fboss2/utils/InterfacesConfig.h
   fboss/cli/fboss2/utils/InterfaceList.cpp
+  fboss/cli/fboss2/utils/InterfaceList.h
   fboss/cli/fboss2/CmdListConfig.cpp
   fboss/cli/fboss2/CmdHandlerImplConfig.cpp
 )
@@ -810,7 +831,9 @@ target_link_libraries(fboss2_config_lib
 
 add_executable(fboss2-dev
   fboss/cli/fboss2/Main.cpp
-  fboss/cli/fboss2/oss/CmdListConfig.cpp
+  fboss/cli/fboss2/oss/config/CmdListImpl.cpp
+  fboss/cli/fboss2/utils/CmdInitUtils.cpp
+  fboss/cli/fboss2/utils/oss/CmdInitUtils.cpp
 )
 
 target_link_libraries(fboss2-dev

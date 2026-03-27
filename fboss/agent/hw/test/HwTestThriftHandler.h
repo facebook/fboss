@@ -53,6 +53,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::vector<cfg::CounterType>> types,
       std::unique_ptr<std::string> tableName) override;
 
+  void getDefaultAclTableStatCountInfo(AclStatCountInfo& info) override;
+
+  bool isAclStatDeleted(std::unique_ptr<std::string> statName) override;
+
   bool isMirrorProgrammed(std::unique_ptr<state::MirrorFields> mirror) override;
 
   bool isPortMirrored(
@@ -125,6 +129,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<state::RouteNextHopEntry> routeNextHopEntry) override;
 
   bool getPtpTcEnabled() override;
+
+  int32_t getSwitchingModeFromHw() override;
 
   void clearInterfacePhyCounters(
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;

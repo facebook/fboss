@@ -85,6 +85,12 @@ enum class ObjectArgTypeId : uint8_t {
   // Queuing policy argument types
   OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME,
   OBJECT_ARG_TYPE_ID_QUEUE_ID,
+  // QoS policy argument types
+  OBJECT_ARG_TYPE_ID_QOS_POLICY_NAME,
+  OBJECT_ARG_TYPE_ID_QOS_MAP_ENTRY,
+  OBJECT_ARG_TYPE_PORT_AND_TAGGING_MODE,
+  OBJECT_ARG_TYPE_L2_LEARNING_MODE,
+  OBJECT_ARG_TYPE_ID_INTERFACES_CONFIG,
 };
 
 template <typename T>
@@ -189,10 +195,6 @@ auto filterTupleMonostates(Tuple tup) {
   return filterTupleMonostatesImpl<UnfilteredTypes>(
       tup, std::make_index_sequence<std::tuple_size_v<UnfilteredTypes>>());
 }
-
-// Called after CLI11 is initlized but before parsing, for any final
-// initialization steps
-void postAppInit(int argc, char* argv[], CLI::App& app);
 
 // API to retrieve host related information
 std::pair<std::string, folly::IPAddress> getCanonicalNameAndIPFromHost(

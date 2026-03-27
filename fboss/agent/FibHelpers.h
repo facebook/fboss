@@ -75,6 +75,44 @@ RouteNextHopSet getNonOverrideNormalizedNextHops(
     const std::shared_ptr<SwitchState>& state,
     const RouteNextHopEntry& entry);
 
+/*
+ * Build a new SwitchState that has newState's non-FIB data but
+ * oldState's FIB routes (and ID maps when FLAGS_enable_nexthop_id_manager
+ * is on). When oldState has no FibsInfoMap (warmboot/rollback),
+ * creates empty FIBs matching newState's structure.
+ */
+std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
+    const std::shared_ptr<SwitchState>& oldState,
+    const std::shared_ptr<SwitchState>& newState);
+
+/*
+ * Optimized overload: populates pre-cloned mutable maps directly.
+ * Caller clones the maps once and passes them across multiple route calls,
+ * avoiding per-route cloning overhead. Maps must be non-null (caller
+ * initializes them before the first call).
+ */
+template <typename AddrT>
+void populateIdMapsForRoute(
+    const std::shared_ptr<Route<AddrT>>& route,
+    const std::shared_ptr<SwitchState>& sourceState,
+    std::shared_ptr<IdToNextHopIdSetMap>& dstIdToSetMap,
+    std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
+
+/*
+ * Copy ID maps (idToNextHopIdSetMap and idToNextHopMap) from sourceState
+ * to dstState for each switch. Returns the modified state.
+ */
+std::shared_ptr<SwitchState> syncIdMapsFromState(
+    const std::shared_ptr<SwitchState>& sourceState,
+    const std::shared_ptr<SwitchState>& dstState);
+
+// Resolve override-aware normalized nexthops from RouteNextHopEntry.
+// If overrides present, uses entry.normalizedNextHops() (overrides are inline).
+// If no overrides, delegates to getNonOverrideNormalizedNextHops (ID-aware).
+RouteNextHopSet getNormalizedNextHops(
+    const std::shared_ptr<SwitchState>& state,
+    const RouteNextHopEntry& entry);
+
 template <typename Func>
 void forAllRoutes(const std::shared_ptr<SwitchState>& state, Func func) {
   for (const auto& [_, fibInfo] : std::as_const(*state->getFibsInfoMap())) {

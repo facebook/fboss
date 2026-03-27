@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "folly/IPAddressV6.h"
@@ -22,10 +23,14 @@ folly::CIDRNetwork makeSidPrefix(
 
 std::shared_ptr<MySid> makeMySid(
     const folly::CIDRNetwork& prefix = makeSidPrefix()) {
-  auto mySid = std::make_shared<MySid>();
-  mySid->setType(MySidType::NODE_MICRO_SID);
-  mySid->setMySid(prefix);
-  return mySid;
+  state::MySidFields fields;
+  fields.type() = MySidType::NODE_MICRO_SID;
+  facebook::network::thrift::IPPrefix thriftPrefix;
+  thriftPrefix.prefixAddress() =
+      facebook::network::toBinaryAddress(prefix.first);
+  thriftPrefix.prefixLength() = prefix.second;
+  fields.mySid() = thriftPrefix;
+  return std::make_shared<MySid>(fields);
 }
 } // namespace
 
@@ -46,16 +51,6 @@ TEST(MySidTest, ModifyType) {
   auto mySid = makeMySid();
   mySid->setType(MySidType::DECAPSULATE_AND_LOOKUP);
   EXPECT_EQ(mySid->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
-}
-
-TEST(MySidTest, ModifyMySid) {
-  auto mySid = makeMySid();
-  auto newPrefix = makeSidPrefix("fc00:200::1", 64);
-  mySid->setMySid(newPrefix);
-  auto cidr = mySid->getMySid();
-  EXPECT_EQ(cidr.first, folly::IPAddress("fc00:200::1"));
-  EXPECT_EQ(cidr.second, 64);
-  EXPECT_EQ(mySid->getID(), "fc00:200::1/64");
 }
 
 TEST(MySidTest, Inequality) {
@@ -216,6 +211,55 @@ TEST(MySidDeltaTest, ChangeEntry) {
   EXPECT_TRUE(added.empty());
   EXPECT_TRUE(removed.empty());
   EXPECT_EQ(changed, (std::set<std::string>{"fc00:100::1/48"}));
+}
+
+TEST(MySidTest, ResolvedNextHop) {
+  auto mySid = makeMySid();
+  EXPECT_EQ(mySid->getResolvedNextHop(), nullptr);
+
+  RouteNextHopEntry nhop(
+      RouteNextHopEntry::Action::DROP, AdminDistance::STATIC_ROUTE);
+  mySid->setResolvedNextHop(std::optional<RouteNextHopEntry>(nhop.toThrift()));
+  auto* got = mySid->getResolvedNextHop();
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->getAction(), RouteNextHopEntry::Action::DROP);
+}
+
+TEST(MySidTest, UnresolvedNextHop) {
+  auto mySid = makeMySid();
+  EXPECT_EQ(mySid->getUnresolvedNextHop(), nullptr);
+
+  RouteNextHopEntry nhop(
+      RouteNextHopEntry::Action::TO_CPU, AdminDistance::STATIC_ROUTE);
+  mySid->setUnresolvedNextHop(
+      std::optional<RouteNextHopEntry>(nhop.toThrift()));
+  auto* got = mySid->getUnresolvedNextHop();
+  ASSERT_NE(got, nullptr);
+  EXPECT_EQ(got->getAction(), RouteNextHopEntry::Action::TO_CPU);
+}
+
+TEST(MySidTest, SerDeserWithNextHops) {
+  auto mySid = makeMySid();
+  RouteNextHopEntry resolved(
+      RouteNextHopEntry::Action::DROP, AdminDistance::STATIC_ROUTE);
+  RouteNextHopEntry unresolved(
+      RouteNextHopEntry::Action::TO_CPU, AdminDistance::STATIC_ROUTE);
+  mySid->setResolvedNextHop(
+      std::optional<RouteNextHopEntry>(resolved.toThrift()));
+  mySid->setUnresolvedNextHop(
+      std::optional<RouteNextHopEntry>(unresolved.toThrift()));
+
+  auto serialized = mySid->toThrift();
+  auto mySidBack = std::make_shared<MySid>(serialized);
+  EXPECT_TRUE(*mySid == *mySidBack);
+
+  auto* gotResolved = mySidBack->getResolvedNextHop();
+  ASSERT_NE(gotResolved, nullptr);
+  EXPECT_EQ(gotResolved->getAction(), RouteNextHopEntry::Action::DROP);
+
+  auto* gotUnresolved = mySidBack->getUnresolvedNextHop();
+  ASSERT_NE(gotUnresolved, nullptr);
+  EXPECT_EQ(gotUnresolved->getAction(), RouteNextHopEntry::Action::TO_CPU);
 }
 
 TEST(MySidDeltaTest, MixedAddRemoveChange) {

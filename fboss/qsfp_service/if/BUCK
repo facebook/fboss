@@ -193,6 +193,28 @@ thrift_library(
 )
 
 thrift_library(
+    name = "transceiver_properties",
+    go_thrift_namespaces = {
+        "transceiver_properties.thrift": "neteng.fboss.transceiver_properties",
+    },
+    languages = [
+        "cpp2",
+        "py-deprecated",
+        "py3-deprecated",
+        "python",
+    ],
+    py3_namespace = "neteng.fboss",
+    py_base_module = "neteng.fboss",
+    thrift_cpp2_options = "json",
+    thrift_py_options = "json,sort_keys",
+    thrift_srcs = {"transceiver_properties.thrift": []},
+    deps = [
+        ":transceiver",
+        "//fboss/agent:switch_config",
+    ],
+)
+
+thrift_library(
     name = "transceiver_validation",
     go_thrift_namespaces = {
         "transceiver_validation.thrift": "neteng.fboss.transceiver_validation",

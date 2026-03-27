@@ -40,9 +40,10 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
       IntfPorts,
-      {RoutePrefixV6{folly::IPAddressV6(), 0}});
-  // Disable TTL decrements
-  utility::ttlDecrementHandlingForLoopbackTraffic(
+      {RoutePrefixV6{folly::IPAddressV6(), 0}},
+      {},
+      true);
+  utility::disablePortTTLDecrementIfSupported(
       ensemble.get(), ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
 
   const auto kSrcMac = folly::MacAddress{"fa:ce:b0:00:00:0c"};

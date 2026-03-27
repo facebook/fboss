@@ -111,6 +111,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:

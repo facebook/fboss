@@ -277,7 +277,7 @@ void LinkAggregationManager::updateHyperPortState(
   if (!FLAGS_hyper_port) {
     return;
   }
-  cfg::PortState newPortState;
+  cfg::PortState newPortState{cfg::PortState::DISABLED};
   std::optional<PortID> hyperPortId;
   if (!newAggPort) {
     // remove old aggregate port
@@ -319,6 +319,8 @@ void LinkAggregationManager::updateHyperPortState(
                      newPortState](const std::shared_ptr<SwitchState>& state) {
       const auto oldHyperPort =
           state->getPorts()->getNodeIf(hyperPortId.value());
+      CHECK(oldHyperPort) << "hyper port " << (int)hyperPortId.value()
+                          << " not found in state";
       std::shared_ptr<SwitchState> newState{state};
       auto newHyperPort = oldHyperPort->modify(&newState);
       XLOG(DBG2) << "set hyper port " << (int)hyperPortId.value()

@@ -20,9 +20,11 @@ cpp_unittest(
         "//fboss/thrift_cow/storage:cow_storage_mgr",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly:string",
+        "//folly:utility",
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )
@@ -46,6 +48,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switch_state-cpp2-types",
         "//fboss/agent/hw:hardware_stats-cpp2-types",
+        "//fboss/agent/if:asic_temp-cpp2-types",
         "//fboss/agent/if:common-cpp2-types",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/fsdb/benchmarks:state_generator",
@@ -76,6 +79,9 @@ cpp_library(
         "//folly:string",
         "//folly/init:init",
         "//folly/json:dynamic",
+    ],
+    exported_external_deps = [
+        "gflags",
     ],
 )
 
