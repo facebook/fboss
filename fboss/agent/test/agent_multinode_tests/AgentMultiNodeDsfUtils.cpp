@@ -709,17 +709,21 @@ bool verifyHyperPortMemberCableLengthForSwitch(const std::string& switchName) {
           return false;
         }
 
-        // Skip down ports - cable length is only collected for up ports
         if (it->second.operState().value() != PortOperState::UP) {
           XLOG(DBG2) << "From " << switchName
                      << " hyper port member: " << it->second.name().value()
                      << " of hyper port " << aggPort.name().value()
-                     << " is down, skipping cable length check";
-          continue;
+                     << " is not up";
+          return false;
         }
 
         if (it->second.cableLengthMeters().has_value() &&
-            it->second.cableLengthMeters().value() >= 0) {
+            it->second.cableLengthMeters().value() > 0) {
+          XLOG(DBG2) << "From " << switchName
+                     << " hyper port member: " << it->second.name().value()
+                     << " of hyper port " << aggPort.name().value()
+                     << " has cable length: "
+                     << it->second.cableLengthMeters().value();
           continue;
         }
 
@@ -951,7 +955,7 @@ bool verifyDsfSessions(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 }
 
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+  WITH_RETRIES_N_TIMED(100, std::chrono::milliseconds(5000), {
     if (FLAGS_hyper_port) {
       EXPECT_EVENTUALLY_TRUE(verifyPorts(topologyInfo));
     } else {
