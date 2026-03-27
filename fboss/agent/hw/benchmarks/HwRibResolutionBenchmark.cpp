@@ -43,7 +43,10 @@ BENCHMARK(RibResolutionBenchmark) {
   // Create a dummy rib since we don't want to go through
   // HwSwitchEnsemble and write to HW
   auto rib = RoutingInformationBase::fromThrift(
-      ensemble->getSw()->getRib()->toThrift(), nullptr, nullptr, nullptr);
+      ensemble->getSw()->getRib()->toThrift(),
+      ensemble->getProgrammedState()->getFibsInfoMap(),
+      nullptr,
+      nullptr);
   auto switchState = ensemble->getProgrammedState();
   suspender.dismiss();
   std::for_each(
