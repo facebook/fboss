@@ -601,7 +601,14 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     }
     hwLaneList = pportList;
   }
-  auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
+  std::optional<SaiPortTraits::Attributes::GlobalFlowControlMode>
+      globalFlowControlMode;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
+  } else {
+    CHECK(!*swPort->getPause().tx() && !*swPort->getPause().rx())
+        << "Programming global flow control mode on hyper port member is not supported";
+  }
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::optional<int> loopbackMode;
   if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
