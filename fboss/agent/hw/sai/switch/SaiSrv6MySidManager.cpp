@@ -63,7 +63,8 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
   auto vrId = vrHandle->virtualRouter->adapterKey();
 
   sai_int32_t packetAction = SAI_PACKET_ACTION_FORWARD;
-  if (nextHopId == SAI_NULL_OBJECT_ID && nexthopHandle) {
+  if (mySid.getType() != MySidType::DECAPSULATE_AND_LOOKUP &&
+      nextHopId == SAI_NULL_OBJECT_ID && nexthopHandle) {
     packetAction = SAI_PACKET_ACTION_DROP;
   }
 
