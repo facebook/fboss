@@ -7,6 +7,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -166,9 +167,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
 
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   // Verify NextHopId was set on the SID list to the underlay IP nhop
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);

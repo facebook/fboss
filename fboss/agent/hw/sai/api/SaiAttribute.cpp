@@ -10,35 +10,27 @@
 
 #include "fboss/agent/hw/sai/api/SaiAttribute.h"
 
-#include "fboss/agent/hw/sai/api/AddressUtil.h"
-
 #include <array>
-#include <cstdint>
+#include <cstring>
 #include <vector>
 
-void _fill(std::vector<folly::IPAddressV6>& src, sai_segment_list_t& dst) {
-  static thread_local std::vector<std::array<uint8_t, 16>> buf;
-  buf.resize(src.size());
-  for (size_t i = 0; i < src.size(); i++) {
-    facebook::fboss::toSaiIpAddressV6(
-        src[i], reinterpret_cast<sai_ip6_t*>(buf[i].data()));
-  }
+void _fill(std::vector<std::array<uint8_t, 16>>& src, sai_segment_list_t& dst) {
   dst.count = static_cast<uint32_t>(src.size());
-  dst.list = reinterpret_cast<sai_ip6_t*>(buf.data());
+  dst.list = src.empty() ? nullptr : reinterpret_cast<sai_ip6_t*>(src.data());
 }
 
 void _fill(
     const sai_segment_list_t& src,
-    std::vector<folly::IPAddressV6>& dst) {
+    std::vector<std::array<uint8_t, 16>>& dst) {
   dst.resize(src.count);
   for (uint32_t i = 0; i < src.count; i++) {
     // NOLINTNEXTLINE(facebook-hte-ParameterUncheckedArrayBounds)
-    dst[i] = facebook::fboss::fromSaiIpAddress(src.list[i]);
+    std::memcpy(dst[i].data(), &src.list[i], 16);
   }
 }
 
 void _realloc(
     const sai_segment_list_t& src,
-    std::vector<folly::IPAddressV6>& dst) {
+    std::vector<std::array<uint8_t, 16>>& dst) {
   dst.resize(src.count);
 }

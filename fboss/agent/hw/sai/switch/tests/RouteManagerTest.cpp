@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -693,9 +694,9 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
 
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   auto gotType = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});
@@ -789,8 +790,8 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
   EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
 
   // Verify SID list for each next hop via SaiSrv6SidListManager
-  std::vector<folly::IPAddressV6> segmentList{
-      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  auto segmentList = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
   for (const auto& intf : {std::cref(intf0), std::cref(intf1)}) {
     auto rifHandle =
         saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
@@ -809,9 +810,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
     auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
     auto gotSegments = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-    EXPECT_EQ(gotSegments.size(), 2);
-    EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-    EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+    EXPECT_EQ(gotSegments, segmentList);
 
     auto gotType = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::Type{});
@@ -849,9 +848,9 @@ TEST_F(Srv6RouteTest, createSrv6SidList) {
   auto sidListId = sidList->adapterKey();
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   auto gotType = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});

@@ -1,8 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/fake/FakeSaiSrv6.h"
-#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+
+#include <cstring>
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 namespace {
@@ -16,7 +17,7 @@ sai_status_t create_srv6_sidlist_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   sai_int32_t type{};
-  std::vector<folly::IPAddressV6> segmentList;
+  std::vector<std::array<uint8_t, 16>> segmentList;
   sai_object_id_t nextHopId{SAI_NULL_OBJECT_ID};
   for (uint32_t i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
@@ -25,10 +26,10 @@ sai_status_t create_srv6_sidlist_fn(
         break;
       case SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST: {
         const auto& list = attr_list[i].value.segmentlist;
-        segmentList.reserve(list.count);
+        segmentList.resize(list.count);
         for (uint32_t j = 0; j < list.count; j++) {
-          segmentList.push_back(
-              facebook::fboss::fromSaiIpAddress(list.list[j]));
+          // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
+          std::memcpy(segmentList[j].data(), &list.list[j], 16);
         }
         break;
       }
@@ -71,8 +72,10 @@ sai_status_t get_srv6_sidlist_attribute_fn(
         attr[i].value.segmentlist.count =
             static_cast<uint32_t>(sidList.segmentList.size());
         for (size_t j = 0; j < sidList.segmentList.size(); j++) {
-          facebook::fboss::toSaiIpAddressV6(
-              sidList.segmentList[j], &attr[i].value.segmentlist.list[j]);
+          std::memcpy(
+              &attr[i].value.segmentlist.list[j],
+              sidList.segmentList[j].data(),
+              16);
         }
         break;
       }
@@ -97,11 +100,9 @@ sai_status_t set_srv6_sidlist_attribute_fn(
       break;
     case SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST: {
       const auto& list = attr->value.segmentlist;
-      sidList.segmentList.clear();
-      sidList.segmentList.reserve(list.count);
+      sidList.segmentList.resize(list.count);
       for (uint32_t j = 0; j < list.count; j++) {
-        sidList.segmentList.push_back(
-            facebook::fboss::fromSaiIpAddress(list.list[j]));
+        std::memcpy(sidList.segmentList[j].data(), &list.list[j], 16);
       }
       break;
     }

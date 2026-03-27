@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
@@ -123,12 +124,11 @@ std::shared_ptr<SaiSrv6SidList> SaiNextHopManager::createSrv6SidList(
   }
   auto rifId = routerInterfaceHandle->adapterKey();
   folly::IPAddress ip = swNextHop.addr();
+  auto saiSegList = toSaiIp6List(swNextHop.srv6SegmentList());
   SaiSrv6SidListTraits::CreateAttributes sidListCreateAttrs{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-      swNextHop.srv6SegmentList(),
-      std::nullopt};
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, saiSegList, std::nullopt};
   SaiSrv6SidListTraits::AdapterHostKey sidListKey{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, swNextHop.srv6SegmentList(), rifId, ip};
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, saiSegList, rifId, ip};
   auto& store = saiStore_->get<SaiSrv6SidListTraits>();
   return store.setObject(sidListKey, sidListCreateAttrs);
 }

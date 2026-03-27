@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/store/SaiObjectEventPublisher.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
@@ -61,15 +62,11 @@ std::pair<
 makeSrv6SidListKeyAndAttributes(
     RouterInterfaceSaiId rifId,
     const ResolvedNextHop& swNextHop) {
+  auto saiSegList = toSaiIp6List(swNextHop.srv6SegmentList());
   SaiSrv6SidListTraits::AdapterHostKey key{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-      swNextHop.srv6SegmentList(),
-      rifId,
-      swNextHop.addr()};
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, saiSegList, rifId, swNextHop.addr()};
   SaiSrv6SidListTraits::CreateAttributes attrs{
-      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-      swNextHop.srv6SegmentList(),
-      std::nullopt};
+      SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, saiSegList, std::nullopt};
   return {std::move(key), std::move(attrs)};
 }
 

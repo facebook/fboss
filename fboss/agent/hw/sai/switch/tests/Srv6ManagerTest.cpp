@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Srv6Api.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
@@ -20,7 +21,7 @@ class Srv6ManagerTest : public ManagerTestBase {
 
   SaiSrv6SidListTraits::CreateAttributes makeCreateAttributes(
       sai_int32_t type = SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-      const std::optional<std::vector<folly::IPAddressV6>>& segmentList =
+      const std::optional<std::vector<std::array<uint8_t, 16>>>& segmentList =
           std::nullopt) {
     return SaiSrv6SidListTraits::CreateAttributes{
         type, segmentList, std::nullopt};
@@ -28,7 +29,7 @@ class Srv6ManagerTest : public ManagerTestBase {
 
   SaiSrv6SidListTraits::AdapterHostKey makeAdapterHostKey(
       sai_int32_t type = SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED,
-      const std::optional<std::vector<folly::IPAddressV6>>& segmentList =
+      const std::optional<std::vector<std::array<uint8_t, 16>>>& segmentList =
           std::nullopt,
       RouterInterfaceSaiId rifId = RouterInterfaceSaiId{42},
       folly::IPAddress ip = folly::IPAddress("10.0.0.1")) {
@@ -46,10 +47,10 @@ TEST_F(Srv6ManagerTest, addSrv6SidList) {
 }
 
 TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
-  std::vector<folly::IPAddressV6> segments{
-      folly::IPAddressV6("2001:db8::1"),
-      folly::IPAddressV6("2001:db8::2"),
-      folly::IPAddressV6("2001:db8::3")};
+  auto segments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::1"),
+       folly::IPAddressV6("2001:db8::2"),
+       folly::IPAddressV6("2001:db8::3")});
   auto key = makeAdapterHostKey(SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segments);
   auto attrs = makeCreateAttributes(SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segments);
   auto handle =
@@ -66,10 +67,7 @@ TEST_F(Srv6ManagerTest, addSrv6SidListWithSegments) {
   auto gotSegments = srv6Api.getAttribute(
       handle->managedSidList->getSidList()->adapterKey(),
       SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 3);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::1"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::2"));
-  EXPECT_EQ(gotSegments[2], folly::IPAddressV6("2001:db8::3"));
+  EXPECT_EQ(gotSegments, segments);
 }
 
 TEST_F(Srv6ManagerTest, reuseSrv6SidList) {
