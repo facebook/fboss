@@ -1252,6 +1252,42 @@ RoutingInformationBase::warmBootState() const {
   return ribTables_.warmBootState();
 }
 
+template <typename AddressT>
+std::optional<std::pair<std::shared_ptr<Route<AddressT>>, RouteNextHopSet>>
+RibRouteTables::getRouteAndNextHops(
+    const AddressT& address,
+    RouterID vrf,
+    bool normalized) const {
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  auto vrfIt = lockedRouteTables->routerIDToRouteTable.find(vrf);
+  if (vrfIt == lockedRouteTables->routerIDToRouteTable.end()) {
+    return std::nullopt;
+  }
+  auto route = vrfIt->second.longestMatch(address);
+  if (!route) {
+    return std::nullopt;
+  }
+  const auto& fwdInfo = route->getForwardInfo();
+  std::optional<std::pair<std::shared_ptr<Route<AddressT>>, RouteNextHopSet>>
+      result;
+  if (FLAGS_resolve_nexthops_from_id && nextHopIDManager_) {
+    auto setId = normalized ? fwdInfo.getNormalizedResolvedNextHopSetID()
+                            : fwdInfo.getResolvedNextHopSetID();
+    if (!setId.has_value()) {
+      result = std::make_pair(route, RouteNextHopSet{});
+    } else {
+      result = std::make_pair(
+          route,
+          nextHopIDManager_->getNextHops(static_cast<NextHopSetID>(*setId)));
+    }
+  } else {
+    result = std::make_pair(
+        route,
+        normalized ? fwdInfo.normalizedNextHops() : fwdInfo.getNextHopSet());
+  }
+  return result;
+}
+
 template std::shared_ptr<Route<folly::IPAddressV4>>
 RibRouteTables::longestMatch(const folly::IPAddressV4& address, RouterID vrf)
     const;
@@ -1273,5 +1309,18 @@ template void
 reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
     const std::shared_ptr<MultiLabelForwardingInformationBase>& fib,
     NetworkToRouteMap<LabelID>* addrToRoute);
+
+template std::optional<
+    std::pair<std::shared_ptr<Route<folly::IPAddressV4>>, RouteNextHopSet>>
+RibRouteTables::getRouteAndNextHops(
+    const folly::IPAddressV4& address,
+    RouterID vrf,
+    bool normalized) const;
+template std::optional<
+    std::pair<std::shared_ptr<Route<folly::IPAddressV6>>, RouteNextHopSet>>
+RibRouteTables::getRouteAndNextHops(
+    const folly::IPAddressV6& address,
+    RouterID vrf,
+    bool normalized) const;
 
 } // namespace facebook::fboss

@@ -179,6 +179,18 @@ class RibRouteTables {
       const AddressT& address,
       RouterID vrf) const;
 
+  // Atomically perform longestMatch + NextHopSetID resolution under a single
+  // rlock on synchronizedRouteTables_. Returns nullopt if no route found.
+  // Otherwise returns {route, resolved nexthops}.
+  // When normalized=true (default), returns weight-normalized nexthops.
+  // When normalized=false, returns raw resolved nexthops.
+  template <typename AddressT>
+  std::optional<std::pair<std::shared_ptr<Route<AddressT>>, RouteNextHopSet>>
+  getRouteAndNextHops(
+      const AddressT& address,
+      RouterID vrf,
+      bool normalized = true) const;
+
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
       const std::map<int32_t, state::RouteTableFields>&,
@@ -244,6 +256,8 @@ class RibRouteTables {
   using RouterIDToRouteTable =
       boost::container::flat_map<RouterID, VrfRouteTable>;
 
+  // TODO: Move nextHopIDManager_ into RouteTables so it gets locked in the
+  // same pattern as v4, v6 radix trees.
   struct RouteTables {
     RouterIDToRouteTable routerIDToRouteTable;
     std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>> mySidTable;
@@ -443,6 +457,15 @@ class RoutingInformationBase {
       const AddressT& address,
       RouterID vrf) const {
     return ribTables_.longestMatch(address, vrf);
+  }
+
+  template <typename AddressT>
+  std::optional<std::pair<std::shared_ptr<Route<AddressT>>, RouteNextHopSet>>
+  getRouteAndNextHops(
+      const AddressT& address,
+      RouterID vrf,
+      bool normalized = true) const {
+    return ribTables_.getRouteAndNextHops(address, vrf, normalized);
   }
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
