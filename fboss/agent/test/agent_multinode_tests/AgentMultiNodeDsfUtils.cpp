@@ -709,6 +709,15 @@ bool verifyHyperPortMemberCableLengthForSwitch(const std::string& switchName) {
           return false;
         }
 
+        // Skip down ports - cable length is only collected for up ports
+        if (it->second.operState().value() != PortOperState::UP) {
+          XLOG(DBG2) << "From " << switchName
+                     << " hyper port member: " << it->second.name().value()
+                     << " of hyper port " << aggPort.name().value()
+                     << " is down, skipping cable length check";
+          continue;
+        }
+
         if (it->second.cableLengthMeters().has_value() &&
             it->second.cableLengthMeters().value() >= 0) {
           continue;
