@@ -12932,7 +12932,7 @@ class ChildThriftPath<::facebook::network::thrift::BinaryAddress, ::facebook::fb
     ChildTag,
     Self
   >;
-  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::addr, Child<::folly::fbstring, ::apache::thrift::type_class::binary, ::apache::thrift::type::cpp_type<::folly::fbstring, ::apache::thrift::type::binary_t>>>,
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::addr, Child<::std::string, ::apache::thrift::type_class::binary, ::apache::thrift::type::binary_t>>,
 std::pair<apache::thrift::ident::port, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::ifName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
@@ -13434,7 +13434,7 @@ class ChildThriftPath<::facebook::fboss::cfg::MacsecFlowAction, ::facebook::fbos
     ChildTag,
     Self
   >;
-  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::flowId, Child<uint64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::cpp_type<uint64_t, ::apache::thrift::type::i64_t>>>,
+  using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::flowId, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
 std::pair<apache::thrift::ident::action, Child<::facebook::fboss::cfg::MacsecFlowPacketAction, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::MacsecFlowPacketAction>>>>;
 
   template <typename Name>
