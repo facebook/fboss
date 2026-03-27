@@ -12,6 +12,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #ifndef IS_OSS
@@ -24,6 +25,28 @@ namespace facebook::fboss {
 using namespace facebook::neteng::fboss::bgp::thrift;
 #endif
 extern std::vector<facebook::fboss::ArpEntryThrift> createArpEntries();
+
+class MockFsdb : public apache::thrift::ServiceHandler<fsdb::FsdbService> {
+ public:
+  MOCK_METHOD(
+      void,
+      sync_getAllOperPublisherInfos,
+      (fsdb::PublisherIdToOperPublisherInfo&));
+  MOCK_METHOD(
+      void,
+      sync_getOperPublisherInfos,
+      (fsdb::PublisherIdToOperPublisherInfo&,
+       std::unique_ptr<fsdb::PublisherIds> ids));
+  MOCK_METHOD(
+      void,
+      sync_getAllOperSubscriberInfos,
+      (fsdb::SubscriberIdToOperSubscriberInfos&));
+  MOCK_METHOD(
+      void,
+      sync_getOperSubscriberInfos,
+      (fsdb::SubscriberIdToOperSubscriberInfos&,
+       std::unique_ptr<fsdb::SubscriberIds> ids));
+};
 
 class MockAgentCounters : public AgentCountersIf {
  public:

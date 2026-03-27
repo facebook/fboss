@@ -55,6 +55,7 @@ add_executable(fboss2_cmd_test
   fboss/cli/fboss2/test/CmdShowCpuPortTest.cpp
   fboss/cli/fboss2/test/CmdShowExampleTest.cpp
   fboss/cli/fboss2/test/CmdShowFlowletTest.cpp
+  fboss/cli/fboss2/test/CmdShowFsdbTest.cpp
   fboss/cli/fboss2/test/CmdShowHostTest.cpp
   fboss/cli/fboss2/test/CmdShowHwAgentStatusTest.cpp
   fboss/cli/fboss2/test/CmdShowHwObjectTest.cpp
