@@ -511,6 +511,16 @@ add_fbthrift_py_library(
     prbs_py
 )
 add_fbthrift_cpp_library(
+  transceiver_properties_cpp2
+  fboss/qsfp_service/if/transceiver_properties.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    switch_config_cpp2
+    transceiver_cpp2
+)
+add_fbthrift_cpp_library(
   pim_state_cpp2
   fboss/lib/if/pim_state.thrift
   OPTIONS

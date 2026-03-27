@@ -284,6 +284,7 @@ add_library(transceiver_manager STATIC
 target_link_libraries(transceiver_manager
   qsfp_lib
   qsfp_module
+  transceiver_properties_manager
   ledIO
   qsfp_bsp_core
   platform_base
@@ -300,6 +301,7 @@ target_link_libraries(transceiver_manager
   product_info
   fsdb_flags
   firmware_upgrader
+  transceiver_properties_manager
   transceiver_validator
   ${RE2}
   restart_time_tracker
