@@ -86,9 +86,21 @@ std::string FwUtilVersionHandler::getSingleVersion(const std::string& fpd) {
 }
 
 void FwUtilVersionHandler::printAllVersions() {
+  std::vector<std::string> failedDevices;
   for (const auto& orderedfpd : fwDeviceNamesByPrio_) {
-    std::string version = getSingleVersion(orderedfpd.first);
-    std::cout << orderedfpd.first << " : " << version << std::endl;
+    try {
+      std::string version = getSingleVersion(orderedfpd.first);
+      std::cout << orderedfpd.first << " : " << version << std::endl;
+    } catch (const std::exception& e) {
+      XLOG(WARNING) << "Failed to read version for " << orderedfpd.first << ": "
+                    << e.what();
+      std::cout << orderedfpd.first << " : ERROR" << std::endl;
+      failedDevices.push_back(orderedfpd.first);
+    }
+  }
+  if (!failedDevices.empty()) {
+    throw std::runtime_error(
+        "Failed to read versions for: " + folly::join(", ", failedDevices));
   }
 }
 
