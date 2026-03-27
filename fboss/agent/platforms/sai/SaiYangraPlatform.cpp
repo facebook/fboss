@@ -101,6 +101,13 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
 #endif
   kv_map.insert(std::make_pair("SAI_INDEPENDENT_MODULE_MODE", "1"));
 
+  // case #1050017
+  // When port is transmitting traffic with TC2 and TC7, and PFC XOFF is
+  // received for TC2, expectation is that TC7 traffic is not throttled. To
+  // ensure this, set below key value pair. Not doing so, leads to TC7 traffic
+  // being throttled.
+  kv_map.insert(std::make_pair("SAI_KEY_NO_HQOS_QUEUE_TO_SUBGROUP", "1"));
+
   return kv_map;
 }
 
