@@ -63,11 +63,15 @@ jobs:
           --copy-root-libs
           --scratch-path=/var/FBOSS/tmp_bld_dir
           --compress
+      - name: Save Docker image
+        run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6
         with:
           name: fboss
-          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+          path: |
+            ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+            ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
           # Explicitly set the retention at the object level
           retention-days: 14
   FSDB-Test:
@@ -81,6 +85,8 @@ jobs:
         with:
           name: fboss
       - run: ls ${{ github.workspace }}
+      - name: Load Docker image
+        run: zstd -dc ${{ github.workspace }}/fboss_docker_image.tar.zst | sudo docker load
       - name: Verify IPv6 is available
         run: |
           echo "=== IPv6 Configuration ==="
