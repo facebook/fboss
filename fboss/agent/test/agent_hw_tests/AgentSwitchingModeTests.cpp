@@ -14,6 +14,11 @@
 
 namespace facebook::fboss {
 
+// SAI switching mode values (from saiswitch.h) — defined here to avoid
+// pulling <sai.h> into platform-agnostic agent test code.
+constexpr int32_t kSaiSwitchingModeCutThrough = 0;
+constexpr int32_t kSaiSwitchingModeStoreAndForward = 1;
+
 class AgentSwitchingModeTest : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
@@ -31,6 +36,15 @@ class AgentSwitchingModeTest : public AgentHwTest {
     config.switchSettings()->packetForwardingMode() = mode;
     applyNewConfig(config);
   }
+
+  void verifySwitchingModeInHw(int32_t expectedSaiMode) {
+    auto ensemble = getAgentEnsemble();
+    for (const auto& [switchId, _] : ensemble->getHwAsicTable()->getHwAsics()) {
+      auto client = ensemble->getHwAgentTestClient(SwitchID(switchId));
+      auto hwMode = client->sync_getSwitchingModeFromHw();
+      EXPECT_EQ(expectedSaiMode, hwMode);
+    }
+  }
 };
 
 TEST_F(AgentSwitchingModeTest, VerifyCutThroughMode) {
@@ -44,6 +58,7 @@ TEST_F(AgentSwitchingModeTest, VerifyCutThroughMode) {
     EXPECT_EQ(
         cfg::PacketForwardingMode::CUT_THROUGH,
         *config.switchSettings()->packetForwardingMode());
+    verifySwitchingModeInHw(kSaiSwitchingModeCutThrough);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -60,6 +75,7 @@ TEST_F(AgentSwitchingModeTest, VerifyStoreAndForwardMode) {
     EXPECT_EQ(
         cfg::PacketForwardingMode::STORE_AND_FORWARD,
         *config.switchSettings()->packetForwardingMode());
+    verifySwitchingModeInHw(kSaiSwitchingModeStoreAndForward);
   };
 
   verifyAcrossWarmBoots(setup, verify);
@@ -69,16 +85,10 @@ TEST_F(AgentSwitchingModeTest, VerifySwitchingModeToggle) {
   constexpr int kLoopCount = 5;
   for (int i = 0; i < kLoopCount; i++) {
     setPacketForwardingMode(cfg::PacketForwardingMode::CUT_THROUGH);
-    auto config = getAgentEnsemble()->getCurrentConfig();
-    EXPECT_EQ(
-        cfg::PacketForwardingMode::CUT_THROUGH,
-        *config.switchSettings()->packetForwardingMode());
+    verifySwitchingModeInHw(kSaiSwitchingModeCutThrough);
 
     setPacketForwardingMode(cfg::PacketForwardingMode::STORE_AND_FORWARD);
-    config = getAgentEnsemble()->getCurrentConfig();
-    EXPECT_EQ(
-        cfg::PacketForwardingMode::STORE_AND_FORWARD,
-        *config.switchSettings()->packetForwardingMode());
+    verifySwitchingModeInHw(kSaiSwitchingModeStoreAndForward);
   }
 }
 

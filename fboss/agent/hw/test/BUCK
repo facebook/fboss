@@ -467,6 +467,7 @@ cpp_library(
         ":hw_test_port_utils",
         ":hw_test_ptp_tc_utils",
         ":hw_test_route_utils",
+        ":hw_test_tam_utils",
         ":hw_test_te_flow_utils",
         ":hw_test_trunk_utils",
         ":hw_test_udf_utils",
@@ -611,6 +612,11 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//folly:network_address",
     ],
+)
+
+cpp_library(
+    name = "hw_test_switching_mode_utils",
+    headers = ["HwTestSwitchingModeUtils.h"],
 )
 
 cpp_library(

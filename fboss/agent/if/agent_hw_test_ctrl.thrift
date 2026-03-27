@@ -148,6 +148,9 @@ service AgentHwTestCtrl {
   // PtcTc utils
   bool getPtpTcEnabled();
 
+  // Switching mode utils
+  i32 getSwitchingModeFromHw();
+
   void clearInterfacePhyCounters(1: list<i32> portIds);
 
   bool validateUdfConfig(1: string udfGroupName, 2: string udfPackeMatchName);

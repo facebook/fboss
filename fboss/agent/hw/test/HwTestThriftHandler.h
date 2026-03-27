@@ -130,6 +130,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool getPtpTcEnabled() override;
 
+  int32_t getSwitchingModeFromHw() override;
+
   void clearInterfacePhyCounters(
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
 
