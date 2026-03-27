@@ -1231,9 +1231,15 @@ bool CmisModule::getMediaInterfaceId(
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
       media.smfCode() = smfMediaInterface;
-      mediaInterface[lane].code() =
-          CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
-              smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
+      if (TransceiverPropertiesManager::isKnown(getModuleMediaInterface())) {
+        mediaInterface[lane].code() =
+            TransceiverPropertiesManager::mediaLaneCodeToMediaInterfaceCode(
+                static_cast<uint8_t>(smfMediaInterface));
+      } else {
+        mediaInterface[lane].code() =
+            CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
+                smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
+      }
       if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
         QSFP_LOG(ERR, this)
             << "Unable to find MediaInterfaceCode for "
