@@ -170,6 +170,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
 
   void verifyDecapPacket(
       PortID egressPort,
+      bool ecnMarked,
       bool isV4,
       std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
@@ -182,6 +183,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
     constexpr uint8_t kInnerHopLimit{64};
     constexpr uint8_t kOuterHopLimit{24};
     constexpr uint8_t kTc{42};
+    auto outerTcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
+                                  : static_cast<uint8_t>(kTc << 2);
 
     // Outer IPv6: dst = mySid address (triggers decap)
     // Inner IP: dst matches route prefix (forwarded after decap)
@@ -199,7 +202,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kV4RouteDstIp,
           kSrcPort,
           kDstPort,
-          kTc << 2 /* outerTrafficClass */,
+          outerTcField,
           kTc /* innerDscp */,
           kOuterHopLimit,
           kInnerHopLimit);
@@ -215,7 +218,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kV6RouteDstIp,
           kSrcPort,
           kDstPort,
-          kTc << 2 /* outerTrafficClass */,
+          outerTcField,
           kTc << 2 /* innerTrafficClass */,
           kOuterHopLimit,
           kInnerHopLimit);
@@ -279,6 +282,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       EXPECT_EQ(v4Hdr.ttl, kInnerHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v4Hdr.dscp, kTc);
+      EXPECT_EQ(v4Hdr.ecn, ecnMarked ? 0x3 : 0);
       rxUdp = rxV4->udpPayload();
     } else {
       EXPECT_EQ(
@@ -297,6 +301,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       EXPECT_EQ(v6Hdr.hopLimit, kInnerHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
+      EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
       rxUdp = rxV6->udpPayload();
     }
     ASSERT_TRUE(rxUdp.has_value());
@@ -306,8 +311,12 @@ class AgentSrv6DecapTest : public AgentHwTest {
   void verifyDecapCpuAndFrontPanel(PortID egressPort) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
-      verifyDecapPacket(egressPort, isV4);
-      verifyDecapPacket(egressPort, isV4, injectPort);
+      // ECN not marked
+      verifyDecapPacket(egressPort, false, isV4);
+      verifyDecapPacket(egressPort, false, isV4, injectPort);
+      // ECN marked
+      verifyDecapPacket(egressPort, true, isV4);
+      verifyDecapPacket(egressPort, true, isV4, injectPort);
     }
   }
 
