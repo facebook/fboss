@@ -161,12 +161,31 @@ struct PerSlotPowerConfig {
 //               measured by sensors. In this case, we can add a fixed value to
 //               the total power consumption.
 //
-// `inputVoltageSensors`: List of input voltage sensor names for monitoring input voltage.
+// `inputVoltageSensors`: List of input voltage sensor names. Only sensors
+//     that directly reflect input voltage coming into the switch from
+//     external power source. The purpose is to monitor external voltage
+//     being supplied to the switch.
+//
+// `dcVoltageMin`: Minimum expected DC voltage (default 9V, covers 12V PEM).
+//                 Sensor config JSON can override if needed.
+//
+// `dcVoltageMax`: Maximum expected DC voltage (default 64V, covers 48V PSU).
+//                 Sensor config JSON can override if needed.
+//
+// `acVoltageMin`: Minimum expected AC voltage (default 90V).
+//                 Sensor config JSON can override if needed.
+//
+// `acVoltageMax`: Maximum expected AC voltage (default 305V).
+//                 Sensor config JSON can override if needed.
 struct PowerConfig {
   1: list<PerSlotPowerConfig> perSlotPowerConfigs;
   2: list<string> otherPowerSensorNames;
   3: double powerDelta;
   4: list<string> inputVoltageSensors;
+  5: i32 dcVoltageMin = 9;
+  6: i32 dcVoltageMax = 64;
+  7: i32 acVoltageMin = 90;
+  8: i32 acVoltageMax = 305;
 }
 
 // `TemperatureConfig`: Describes temperature of components.
