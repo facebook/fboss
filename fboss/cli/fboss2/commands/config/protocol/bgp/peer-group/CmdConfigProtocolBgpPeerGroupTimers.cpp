@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer-group/CmdConfigProtocolBgpPeerGroupTimers.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/core.h>
 
 namespace facebook::fboss {
@@ -33,5 +35,10 @@ CmdConfigProtocolBgpPeerGroupTimers::queryClient(
 void CmdConfigProtocolBgpPeerGroupTimers::printOutput(const RetType& output) {
   std::cout << output << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigProtocolBgpPeerGroupTimers,
+    CmdConfigProtocolBgpPeerGroupTimersTraits>::run();
 
 } // namespace facebook::fboss
