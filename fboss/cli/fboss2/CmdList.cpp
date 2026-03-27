@@ -91,6 +91,8 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
+#include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
+#include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h"
 
 namespace facebook::fboss {
 
@@ -548,6 +550,20 @@ const CommandTree& kCommandTree() {
          "Show Product Detail Information",
          commandHandler<CmdShowProductDetails>,
          argTypeHandler<CmdShowProductDetailsTraits>}}},
+
+      {"stream",
+       "fsdb",
+       "Stream fsdb operational information",
+       {
+           {"stats",
+            "Stream fsdb operational stats",
+            commandHandler<CmdStreamSubFsdbOperStats>,
+            argTypeHandler<CmdStreamSubFsdbOperStatsTraits>},
+           {"state",
+            "Stream fsdb operational state",
+            commandHandler<CmdStreamSubFsdbOperState>,
+            argTypeHandler<CmdStreamSubFsdbOperStateTraits>},
+       }},
   };
   sort(root.begin(), root.end());
   return root;

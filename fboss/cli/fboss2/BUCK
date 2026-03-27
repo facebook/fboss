@@ -129,6 +129,8 @@ cpp_library(
     headers = [
         "CmdHandler.cpp",
         "CmdHandler.h",
+        "CmdStreamHandler.cpp",
+        "CmdStreamHandler.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
@@ -331,6 +333,7 @@ cpp_library(
     srcs = [
         "CmdHandlerImpl.cpp",
         "CmdList.cpp",
+        "CmdStreamHandlerImpl.cpp",
         "commands/create/config/facebook/CmdCreateConfigUtils.cpp",
         "commands/debug/facebook/CmdDebugUtils.cpp",
         "commands/delete/config/facebook/CmdDeleteConfigUtils.cpp",
@@ -621,7 +624,6 @@ cpp_library(
         "commands/stop/pcap/CmdStopPcap.h",
         "commands/stream/fsdb/CmdStreamSubFsdbOperState.h",
         "commands/stream/fsdb/CmdStreamSubFsdbOperStats.h",
-        "facebook/CmdStreamHandler.h",
         "utils/CmdUtils.h",
         "utils/clients/BmcClient.h",
     ],
