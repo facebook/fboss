@@ -13,6 +13,7 @@ cpp_unittest(
         "CmdConfigL2LearningModeTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",
         "CmdConfigReloadTest.cpp",
+        "CmdConfigSessionCommitTest.cpp",
         "CmdConfigSessionDiffTest.cpp",
         "CmdConfigSessionTest.cpp",
         "CmdConfigTestBase.cpp",
