@@ -23,6 +23,7 @@
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -53,7 +54,6 @@ constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
-constexpr int kFR4LiteSMFLength = 500; // 500 meters
 
 // Definitions for CDB Histogram
 constexpr int kCdbSymErrHistBinSize = 6;
@@ -3791,30 +3791,18 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (isLpoModule()) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::FR4_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
-        // Lite Modules are not LPO modules but have a reach of 500m.
-        moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
-      } else {
-        moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
-      }
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR4_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::LR4_10_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::LR4_2x400G_10KM;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR4_800G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::DR4_2x800G;
-    } else {
+    std::vector<int> hostStartLanes(
+        firstModuleCapability->hostStartLanes.begin(),
+        firstModuleCapability->hostStartLanes.end());
+    auto smfLength = static_cast<int>(getQsfpSMFLength());
+    // Config-driven SMF derivation
+    moduleMediaInterface = TransceiverPropertiesManager::deriveSmfCode(
+        static_cast<uint8_t>(smfCode),
+        hostStartLanes,
+        firstModuleCapability->moduleHostInterface,
+        smfLength);
+    if (moduleMediaInterface == MediaInterfaceCode::UNKNOWN) {
+      // Fallback to existing mapping for unrecognized modules
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfCode, CmisHelper::getSmfMediaInterfaceMapping());
