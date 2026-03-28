@@ -19,6 +19,9 @@ FBOSS_CONTAINER_NAME = "FBOSS_BUILD_CONTAINER"
 TEST_PATH_REGEX = re.compile(".*tests?$")
 HW_TEST_PATH_REGEX = re.compile(".*hw_tests?$")
 INTEGRATION_TEST_PATH_REGEX = re.compile(".*integration_tests?$")
+EXCLUDED_TEST_REGEXES = [
+    re.compile(".*hal_tests?$"),
+]
 CONTAINER_WORKDIR = "/var/FBOSS/fboss"
 
 
@@ -140,6 +143,13 @@ def unpack_tarball(tarball_path: str) -> str:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(ARG_FBOSS_TARBALL)
+    parser.add_argument(
+        "--exclude",
+        dest="excludes",
+        action="append",
+        default=[],
+        help="Test binary name to exclude. Can be specified multiple times.",
+    )
 
     return parser.parse_args()
 
@@ -148,13 +158,20 @@ def cleanup(output_dir: str):
     shutil.rmtree(output_dir)
 
 
-def find_tests(output_dir: str) -> list[str]:
+def find_tests(output_dir, excludes=None):
     tests = []
     bin_dir = os.path.join(output_dir, "bin")
     for f in os.listdir(bin_dir):
         file_path = os.path.join(bin_dir, f)
-        # Make sure to ignore hw tests as they will not pass on GitHub actions runners.
-        if is_test(file_path) and not is_e2e_test(file_path):
+        if excludes and f in excludes:
+            print(f"Excluding test: {f}")
+            continue
+        # Make sure to ignore hw/integration tests and excluded test patterns.
+        if (
+            is_test(file_path)
+            and not is_e2e_test(file_path)
+            and not is_excluded_test(file_path)
+        ):
             tests.append(f)
     return tests
 
@@ -165,6 +182,13 @@ def is_test(path: str) -> bool:
         return False
 
     return os.path.isfile(path) and os.access(path, os.X_OK)
+
+
+def is_excluded_test(path):
+    for regex in EXCLUDED_TEST_REGEXES:
+        if regex.match(path):
+            return True
+    return False
 
 
 def is_e2e_test(path: str) -> bool:
@@ -261,7 +285,7 @@ def main():
             check=False,
         )
 
-    tests = find_tests(output_dir)
+    tests = find_tests(output_dir, args.excludes)
 
     failed_tests = []
 
