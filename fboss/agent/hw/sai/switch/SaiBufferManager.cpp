@@ -1079,7 +1079,11 @@ void SaiBufferManager::publishGlobalWatermarks(
 
   auto* switchStats = platform_->getHwSwitch()->getSwitchStats();
   switchStats->updateGlobalWatermarkMax(
-      globalHeadroomBytes, globalSharedBytes, headroomWatermarkSupported);
+      globalHeadroomBytes,
+      globalSharedBytes,
+      getConfiguredHeadroomPoolSizeBytes(),
+      getConfiguredSharedPoolSizeBytes(),
+      headroomWatermarkSupported);
 }
 
 void SaiBufferManager::publishPgWatermarks(

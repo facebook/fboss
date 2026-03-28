@@ -550,7 +550,15 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
           getCounterPrefix() + "buffer_watermark_global_headroom_hourly_max"),
       globalSharedWatermarkMaxCounter_(
           map,
-          getCounterPrefix() + "buffer_watermark_global_shared_hourly_max") {}
+          getCounterPrefix() + "buffer_watermark_global_shared_hourly_max"),
+      globalHeadroomWatermarkPeakUsagePct_(
+          map,
+          getCounterPrefix() +
+              "buffer_watermark_global_headroom_hourly_max_pct"),
+      globalSharedWatermarkPeakUsagePct_(
+          map,
+          getCounterPrefix() +
+              "buffer_watermark_global_shared_hourly_max_pct") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -1236,6 +1244,8 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
 void HwSwitchFb303Stats::updateGlobalWatermarkMax(
     uint64_t globalHeadroomBytes,
     uint64_t globalSharedBytes,
+    uint64_t configuredHeadroomPoolSizeBytes,
+    uint64_t configuredSharedPoolSizeBytes,
     bool headroomWatermarkSupported) {
   // Update all-time max values
   if (headroomWatermarkSupported) {
@@ -1255,16 +1265,36 @@ void HwSwitchFb303Stats::updateGlobalWatermarkMax(
       fb303::fbData->setCounter(
           globalHeadroomWatermarkMaxCounter_.name(),
           static_cast<int64_t>(globalHeadroomWatermarkMax_));
+      // Calculate and publish peak headroom pool usage percentage (rounded up)
+      if (configuredHeadroomPoolSizeBytes > 0) {
+        auto headroomPct = (globalHeadroomWatermarkMax_ * 100 +
+                            configuredHeadroomPoolSizeBytes - 1) /
+            configuredHeadroomPoolSizeBytes;
+        fb303::fbData->setCounter(
+            globalHeadroomWatermarkPeakUsagePct_.name(),
+            static_cast<int64_t>(headroomPct));
+      }
     }
     fb303::fbData->setCounter(
         globalSharedWatermarkMaxCounter_.name(),
         static_cast<int64_t>(globalSharedWatermarkMax_));
+    // Calculate and publish peak shared pool usage percentage (rounded up)
+    if (configuredSharedPoolSizeBytes > 0) {
+      auto sharedPct = (globalSharedWatermarkMax_ * 100 +
+                        configuredSharedPoolSizeBytes - 1) /
+          configuredSharedPoolSizeBytes;
+      fb303::fbData->setCounter(
+          globalSharedWatermarkPeakUsagePct_.name(),
+          static_cast<int64_t>(sharedPct));
+    }
   } else if (counterPublished_ && elapsed >= kMaxWatermarkClearDelay) {
     counterPublished_ = false;
     if (headroomWatermarkSupported) {
       fb303::fbData->clearCounter(globalHeadroomWatermarkMaxCounter_.name());
+      fb303::fbData->clearCounter(globalHeadroomWatermarkPeakUsagePct_.name());
     }
     fb303::fbData->clearCounter(globalSharedWatermarkMaxCounter_.name());
+    fb303::fbData->clearCounter(globalSharedWatermarkPeakUsagePct_.name());
   }
 }
 

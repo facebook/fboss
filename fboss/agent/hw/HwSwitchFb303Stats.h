@@ -273,6 +273,8 @@ class HwSwitchFb303Stats {
   void updateGlobalWatermarkMax(
       uint64_t globalHeadroomBytes,
       uint64_t globalSharedBytes,
+      uint64_t configuredHeadroomPoolSizeBytes,
+      uint64_t configuredSharedPoolSizeBytes,
       bool headroomWatermarkSupported);
 
   void fabricConnectivityMissingCount(int64_t value);
@@ -572,6 +574,8 @@ class HwSwitchFb303Stats {
   std::chrono::steady_clock::time_point hourlyWatermarkStatsPublishTime_{
       std::chrono::steady_clock::now()};
   bool counterPublished_{false};
+  TLCounter globalHeadroomWatermarkPeakUsagePct_;
+  TLCounter globalSharedWatermarkPeakUsagePct_;
 };
 
 } // namespace facebook::fboss
