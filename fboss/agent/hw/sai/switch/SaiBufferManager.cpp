@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -1068,8 +1069,17 @@ SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
 void SaiBufferManager::publishGlobalWatermarks(
     const uint64_t& globalHeadroomBytes,
     const uint64_t& globalSharedBytes) const {
-  STATS_buffer_watermark_global_headroom.addValue(globalHeadroomBytes);
+  auto headroomWatermarkSupported = platform_->getAsic()->isSupported(
+      HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK);
+  // Update quantile stats (for sliding window p100 values)
+  if (headroomWatermarkSupported) {
+    STATS_buffer_watermark_global_headroom.addValue(globalHeadroomBytes);
+  }
   STATS_buffer_watermark_global_shared.addValue(globalSharedBytes);
+
+  auto* switchStats = platform_->getHwSwitch()->getSwitchStats();
+  switchStats->updateGlobalWatermarkMax(
+      globalHeadroomBytes, globalSharedBytes, headroomWatermarkSupported);
 }
 
 void SaiBufferManager::publishPgWatermarks(
