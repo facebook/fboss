@@ -1165,4 +1165,49 @@ SaiBufferManager::getEgressPortBufferProfiles(
   }
   return profileHandles;
 }
+
+// Buffer sizes in configs are per core for VOQ switches and per ITM/buffer
+// for the rest. However, what is programmed to hardware is the combined size
+// of all cores/ITMs/buffers. Divide by the appropriate count to get the
+// per-unit configured size.
+uint64_t SaiBufferManager::getIngressPoolDivisor() const {
+  return platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ
+      ? platform_->getAsic()->getNumCores()
+      : platform_->getAsic()->getNumMemoryBuffers();
+}
+
+uint64_t SaiBufferManager::getConfiguredHeadroomPoolSizeBytes() const {
+  auto* ingressPoolHandle = getIngressBufferPoolHandle();
+  if (!ingressPoolHandle) {
+    return 0;
+  }
+
+  auto xoffSize =
+      std::get<std::optional<SaiBufferPoolTraits::Attributes::XoffSize>>(
+          ingressPoolHandle->bufferPool->attributes());
+  if (!xoffSize.has_value()) {
+    return 0;
+  }
+
+  return xoffSize.value().value() / getIngressPoolDivisor();
+}
+
+uint64_t SaiBufferManager::getConfiguredSharedPoolSizeBytes() const {
+  auto* ingressPoolHandle = getIngressBufferPoolHandle();
+  if (!ingressPoolHandle) {
+    return 0;
+  }
+
+  auto poolSize = std::get<SaiBufferPoolTraits::Attributes::Size>(
+      ingressPoolHandle->bufferPool->attributes());
+  auto xoffSize =
+      std::get<std::optional<SaiBufferPoolTraits::Attributes::XoffSize>>(
+          ingressPoolHandle->bufferPool->attributes());
+
+  uint64_t sharedSize = xoffSize.has_value()
+      ? poolSize.value() - xoffSize.value().value()
+      : poolSize.value();
+
+  return sharedSize / getIngressPoolDivisor();
+}
 } // namespace facebook::fboss
