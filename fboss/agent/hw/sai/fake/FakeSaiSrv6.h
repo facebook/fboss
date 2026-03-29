@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include <array>
 #include <vector>
 #include "fboss/agent/hw/sai/fake/FakeManager.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiMySidEntry.h"
+
+#include <folly/IPAddressV6.h>
 
 extern "C" {
 #include <sai.h>
@@ -18,12 +19,12 @@ class FakeSaiSrv6SidList {
  public:
   FakeSaiSrv6SidList(
       sai_int32_t type,
-      std::vector<std::array<uint8_t, 16>> segmentList,
+      std::vector<folly::IPAddressV6> segmentList,
       sai_object_id_t nextHopId)
       : type(type), segmentList(std::move(segmentList)), nextHopId(nextHopId) {}
   sai_object_id_t id{0};
   sai_int32_t type;
-  std::vector<std::array<uint8_t, 16>> segmentList;
+  std::vector<folly::IPAddressV6> segmentList;
   sai_object_id_t nextHopId{SAI_NULL_OBJECT_ID};
 };
 

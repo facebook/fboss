@@ -8,11 +8,22 @@ namespace facebook::fboss {
 template <typename>
 struct IsObjectPublisher : std::false_type {};
 
-template <typename T, typename = void>
-struct PublisherKey {
-  using type = void;
-  using custom_type = std::monostate;
+template <typename ObjectTraits, typename = void>
+struct IsPublisherKeyCustomType : std::false_type {};
+
+namespace detail {
+template <typename ObjectTraits, typename Attr>
+struct PublisherKeyInternal {
+  using type = Attr;
+  using custom_type = std::conditional_t<
+      IsPublisherKeyCustomType<ObjectTraits>::value,
+      Attr,
+      std::monostate>;
 };
+} // namespace detail
+
+template <typename T, typename = void>
+struct PublisherKey : detail::PublisherKeyInternal<T, void> {};
 
 template <typename ObjectTraits>
 struct AdapterHostKeyWarmbootRecoverable : std::true_type {};

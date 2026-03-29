@@ -78,7 +78,6 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   ~ManagedNextHop() {
     this->resetObject();
   }
-
   void createObject(PublishedObjects /*added*/);
 
   void removeObject(size_t index, PublishedObjects removed) {
@@ -118,9 +117,16 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
     return underlayNextHop_;
   }
 
+  void setCreateRifAndIp(RouterInterfaceSaiId rif, folly::IPAddress ip) {
+    createRifId_ = rif;
+    createIp_ = ip;
+  }
+
  private:
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
+  std::optional<RouterInterfaceSaiId> createRifId_{};
+  std::optional<folly::IPAddress> createIp_{};
   std::optional<bool> disableTTLDecrement_{};
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle_;

@@ -11,7 +11,6 @@
 
 #include <folly/IPAddress.h>
 #include <folly/IPAddressV6.h>
-
 #include <array>
 
 extern "C" {
@@ -140,10 +139,10 @@ struct SaiMySidEntryTraits {
   using AdapterHostKey = MySidEntry;
   using CreateAttributes = std::tuple<
       Attributes::EndpointBehavior,
-      Attributes::EndpointBehaviorFlavor,
-      Attributes::NextHopId,
-      Attributes::Vrf,
-      Attributes::PacketAction>;
+      std::optional<Attributes::EndpointBehaviorFlavor>,
+      std::optional<Attributes::NextHopId>,
+      std::optional<Attributes::Vrf>,
+      std::optional<Attributes::PacketAction>>;
 };
 template <>
 struct IsSaiEntryStruct<SaiMySidEntryTraits::MySidEntry>

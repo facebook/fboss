@@ -80,11 +80,13 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     std::optional<sai_object_id_t> sidListId;
     if (!resolvedNextHop.srv6SegmentList().empty()) {
-      auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+      auto keyAndAttrs = makeSrv6SidListKeyAndAttributes(
           routerInterfaceHandle->adapterKey(), resolvedNextHop);
       auto sidListHandle =
           managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
-              sidListKey, sidListAttrs);
+              keyAndAttrs.adapterHostKey,
+              keyAndAttrs.createAttributes,
+              keyAndAttrs.subscriptionNexthopKey);
       sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
       srv6SidListMap.emplace(&resolvedNextHop, std::move(sidListHandle));
     }

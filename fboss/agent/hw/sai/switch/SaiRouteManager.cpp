@@ -368,11 +368,13 @@ void SaiRouteManager::addOrUpdateRoute(
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
         std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle;
         if (!swNextHop.srv6SegmentList().empty()) {
-          auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+          auto keyAndAttrs = makeSrv6SidListKeyAndAttributes(
               routerInterfaceHandle->adapterKey(), swNextHop);
           srv6SidListHandle =
               managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
-                  sidListKey, sidListAttrs);
+                  keyAndAttrs.adapterHostKey,
+                  keyAndAttrs.createAttributes,
+                  keyAndAttrs.subscriptionNexthopKey);
         }
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(

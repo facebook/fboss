@@ -60,6 +60,8 @@ struct PublisherKey<SaiSrv6SidlistNextHopTraits> {
 template <>
 struct IsObjectPublisher<SaiBridgePortTraits> : std::true_type {};
 template <>
+struct IsPublisherKeyCustomType<SaiBridgePortTraits> : std::true_type {};
+template <>
 struct PublisherKey<SaiBridgePortTraits> {
   using type = SaiPortDescriptor;
   using custom_type = SaiPortDescriptor;
@@ -68,6 +70,9 @@ struct PublisherKey<SaiBridgePortTraits> {
 template <>
 struct IsObjectPublisher<SaiVlanRouterInterfaceTraits> : std::true_type {};
 template <>
+struct IsPublisherKeyCustomType<SaiVlanRouterInterfaceTraits> : std::true_type {
+};
+template <>
 struct PublisherKey<SaiVlanRouterInterfaceTraits> {
   using type = InterfaceID;
   using custom_type = InterfaceID;
@@ -75,6 +80,8 @@ struct PublisherKey<SaiVlanRouterInterfaceTraits> {
 
 template <>
 struct IsObjectPublisher<SaiFdbTraits> : std::true_type {};
+template <>
+struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
 template <>
 struct PublisherKey<SaiFdbTraits> {
   using type = std::tuple<InterfaceID, folly::MacAddress>;

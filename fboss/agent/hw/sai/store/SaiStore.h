@@ -151,7 +151,6 @@ class SaiObjectStore {
   void reload(
       const folly::dynamic* adapterKeysJson,
       const folly::dynamic* adapterKeys2AdapterHostKey) {
-    XLOG(DBG5) << " Reloading SaiObjectStore for: " << objectTypeName();
     if (!saiSwitchId_) {
       XLOG(FATAL)
           << "Attempted to reload() on a SaiObjectStore without a switchId";
@@ -207,9 +206,7 @@ class SaiObjectStore {
       bool notify = true) {
     if constexpr (IsObjectPublisher<SaiObjectTraits>::value) {
       static_assert(
-          std::is_same_v<
-              typename PublisherKey<SaiObjectTraits>::custom_type,
-              std::monostate>,
+          !IsPublisherKeyCustomType<SaiObjectTraits>::value,
           "method not available for objects with publisher attributes of custom types");
     }
     XLOGF(
@@ -233,9 +230,7 @@ class SaiObjectStore {
       const typename PublisherKey<SaiObjectTraits>::custom_type& publisherKey,
       bool notify = true) {
     static_assert(
-        !std::is_same_v<
-            typename PublisherKey<SaiObjectTraits>::custom_type,
-            std::monostate>,
+        IsPublisherKeyCustomType<SaiObjectTraits>::value,
         "method available only for objects with publisher attributes of custom types");
     XLOGF(
         DBG5,
@@ -533,7 +528,23 @@ class SaiObjectStore {
               ObjectType(adapterHostKey, attributes, saiSwitchId_.value()),
               true /*force*/);
     if (!ins.second) {
-      ins.first->setAttributes(attributes);
+      // NextHop CreateAttributes (RouterInterfaceId, Ip, Type, etc.) are
+      // create-only. Setting them on existing HW objects returns
+      // INVALID_ATTRIBUTE. During warm boot, we program with resolved attrs;
+      // skip HW write to avoid failing set_attribute and just update in-memory
+      // attributes_.
+      constexpr bool kNextHopCreateOnly =
+          std::is_same_v<SaiObjectTraits, SaiIpNextHopTraits> ||
+          std::is_same_v<SaiObjectTraits, SaiMplsNextHopTraits>
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+          || std::is_same_v<SaiObjectTraits, SaiSrv6SidlistNextHopTraits>
+#endif
+          ;
+      if constexpr (kNextHopCreateOnly) {
+        ins.first->setAttributes(attributes, true /* skipHwWrite */);
+      } else {
+        ins.first->setAttributes(attributes);
+      }
     }
     auto notify = ins.second;
     auto iter = warmBootHandles_.find(adapterHostKey);

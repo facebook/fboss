@@ -420,6 +420,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJsonAllNextHopTypes) {
 
   auto nextHopId1 = createNextHop(ip1);
   auto nextHopId2 = createMplsNextHop(ip2, {301, 302});
+  // Underlay ip3 / 42 is CreateAttributes; NHG AdapterHostKey is canonical.
   auto nextHopId3 = createSrv6SidlistNextHop(ip3, tunnelId, srv6SidlistId);
 
   createNextHopGroupMember(nextHopGroupId, nextHopId1, weight1);
@@ -442,7 +443,10 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJsonAllNextHopTypes) {
   k.nhopMemberSet.insert(
       std::make_pair(
           SaiSrv6SidlistNextHopTraits::AdapterHostKey{
-              42, ip3, tunnelId, srv6SidlistId},
+              RouterInterfaceSaiId(0),
+              folly::IPAddress("0.0.0.0"),
+              tunnelId,
+              srv6SidlistId},
           weight3));
 
   auto got = store.get(k);

@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/HwSwitch.h"
-#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
@@ -789,8 +788,9 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
   ASSERT_NE(nhgHandle, nullptr);
   EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
 
-  // Verify SID list for each next hop via SaiSrv6SidListManager
-  auto segmentList = toSaiIp6List(
+  // Verify SID list for each ECMP member; keys must match
+  // SaiNextHopGroupManager.
+  const auto segmentListVec = toSaiIp6List(
       {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
   for (const auto& intf : {std::cref(intf0), std::cref(intf1)}) {
     auto rifHandle =
@@ -800,8 +800,13 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
     auto rifId = rifHandle->adapterKey();
     folly::IPAddress ip = intf.get().remoteHosts.at(0).ip;
 
+    using Attr = SaiSrv6SidListTraits::Attributes;
+    Attr::Type sidListType{SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED};
     SaiSrv6SidListTraits::AdapterHostKey sidListKey{
-        SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segmentList, rifId, ip};
+        sidListType,
+        std::optional<Attr::SegmentList>{Attr::SegmentList{segmentListVec}},
+        rifId,
+        ip};
     auto* sidListHandle =
         saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(sidListHandle, nullptr);
@@ -810,7 +815,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
     auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
     auto gotSegments = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-    EXPECT_EQ(gotSegments, segmentList);
+    EXPECT_EQ(gotSegments, segmentListVec);
 
     auto gotType = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::Type{});

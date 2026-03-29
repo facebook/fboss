@@ -129,18 +129,18 @@ void ManagedMySidNextHop::afterCreate(
     // while creating my_sid entry, managed next hop id must be used in create
     return;
   }
-  entry->setAttribute(
+  entry->setOptionalAttribute(
       SaiMySidEntryTraits::Attributes::NextHopId{nexthop->adapterKey()});
-  entry->setAttribute(
+  entry->setOptionalAttribute(
       SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_FORWARD});
 }
 
 void ManagedMySidNextHop::beforeRemove() {
   auto entry = manager_->getMySidObject(mySidKey_);
   if (entry) {
-    entry->setAttribute(
+    entry->setOptionalAttribute(
         SaiMySidEntryTraits::Attributes::NextHopId{SAI_NULL_OBJECT_ID});
-    entry->setAttribute(
+    entry->setOptionalAttribute(
         SaiMySidEntryTraits::Attributes::PacketAction{SAI_PACKET_ACTION_DROP});
   }
   this->setPublisherObject(nullptr);

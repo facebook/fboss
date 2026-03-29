@@ -108,11 +108,7 @@ class MySidEntryStoreTest : public SaiStoreTest {
   SaiMySidEntryTraits::CreateAttributes makeMySidEntryAttrs(
       sai_int32_t behavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_E) const {
     return SaiMySidEntryTraits::CreateAttributes{
-        behavior,
-        SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_FLAVOR_PSP_AND_USP,
-        SAI_NULL_OBJECT_ID,
-        0,
-        SAI_PACKET_ACTION_FORWARD};
+        behavior, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
   }
 };
 
@@ -167,7 +163,7 @@ TEST_F(MySidEntryStoreTest, setMySidEntryPacketAction) {
   auto got = store.get(entry);
   EXPECT_EQ(got->adapterKey(), entry);
   EXPECT_EQ(
-      GET_ATTR(MySidEntry, PacketAction, got->attributes()),
+      GET_OPT_ATTR(MySidEntry, PacketAction, got->attributes()),
       SAI_PACKET_ACTION_TRAP);
 }
 

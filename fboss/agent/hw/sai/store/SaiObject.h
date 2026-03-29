@@ -372,11 +372,14 @@ class SaiObject {
     static_assert(
         IsObjectPublisher<SaiObjectTraits>::value,
         "object must be pubisher to notify destroy");
-    if constexpr (!std::is_same_v<
-                      typename PublisherKey<SaiObjectTraits>::custom_type,
-                      std::monostate>) {
+    if constexpr (IsPublisherKeyCustomType<SaiObjectTraits>::value) {
       return publisherKey_;
     } else {
+      static_assert(
+          std::is_same_v<
+              typename PublisherKey<SaiObjectTraits>::type,
+              typename SaiObjectTraits::AdapterHostKey>,
+          "publisher key must use adapter host key");
       return adapterHostKey_;
     }
   }

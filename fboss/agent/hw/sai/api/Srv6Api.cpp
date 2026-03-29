@@ -4,6 +4,8 @@
 
 #include "fboss/agent/Constants.h"
 
+#include <boost/functional/hash.hpp>
+
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 
 namespace std {
