@@ -451,10 +451,18 @@ sai_status_t __wrap_sai_api_query(
 }
 
 bool should_log(sai_object_type_t object_type) {
+  // Entry types must be excluded: __wrap_sai_get_object_key logs via
+  // declareVariable(&object.key.object_id, object_type). That path is only
+  // valid for OID-backed keys. MY_SID_ENTRY (and INSEG/FDB/NEIGHBOR/ROUTE)
+  // use structured keys, not object_id; logging them aborts (e.g. Tracer96).
   return object_type != SAI_OBJECT_TYPE_INSEG_ENTRY &&
       object_type != SAI_OBJECT_TYPE_FDB_ENTRY &&
       object_type != SAI_OBJECT_TYPE_NEIGHBOR_ENTRY &&
-      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY;
+      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      && object_type != SAI_OBJECT_TYPE_MY_SID_ENTRY
+#endif
+      ;
 }
 
 sai_status_t __wrap_sai_get_object_key(
