@@ -319,6 +319,7 @@ uint16_t SaiAclTableManager::cfgEtherTypeToSaiEtherType(
     case cfg::EtherType::LLDP:
     case cfg::EtherType::ARP:
     case cfg::EtherType::LACP:
+    case cfg::EtherType::AIFM:
       return static_cast<uint16_t>(cfgEtherType);
   }
   // should return in one of the cases
@@ -1693,6 +1694,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
+  bool isTomahawk6 =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
   bool isChenab = platform_->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
@@ -1840,6 +1843,10 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // CS00012342272
     if (isTomahawk5) {
       bcmQualifiers.erase(cfg::AclTableQualifier::OUTER_VLAN);
+    }
+    // ETHER_TYPE required for Aifm controller packets using 0x88B6
+    if (isTomahawk6) {
+      bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
     }
 
     return bcmQualifiers;

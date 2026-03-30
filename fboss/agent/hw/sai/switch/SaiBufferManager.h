@@ -105,6 +105,8 @@ class SaiBufferManager {
       const std::vector<IngressPriorityGroupSaiId>& ingressPriorityGroupSaiIds);
   SaiBufferPoolHandle* getIngressBufferPoolHandle() const;
   static uint64_t getMaxEgressPoolBytes(const SaiPlatform* platform);
+  uint64_t getConfiguredHeadroomPoolSizeBytes() const;
+  uint64_t getConfiguredSharedPoolSizeBytes() const;
   std::vector<std::shared_ptr<SaiBufferProfileHandle>>
   getIngressPortBufferProfiles(
       cfg::MMUScalingFactor scalingFactor,
@@ -178,6 +180,7 @@ class SaiBufferManager {
       cfg::MMUScalingFactor scalingFactor,
       int reservedSizeBytes);
 
+  uint64_t getIngressPoolDivisor() const;
   SaiStore* saiStore_;
   SaiManagerTable* managerTable_;
   const SaiPlatform* platform_;

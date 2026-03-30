@@ -78,6 +78,7 @@ set(SAI_API_SRC
   fboss/agent/hw/sai/api/TamApi.h
   fboss/agent/hw/sai/api/TamEventAgingGroupApi.h
   fboss/agent/hw/sai/api/Traits.h
+  fboss/agent/hw/sai/api/Srv6Api.cpp
   fboss/agent/hw/sai/api/Srv6Api.h
   fboss/agent/hw/sai/api/TunnelApi.h
   fboss/agent/hw/sai/api/Types.h

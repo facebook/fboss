@@ -90,8 +90,10 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
       return false;
     }
     usedSensorNames.emplace(*pmSensor.name());
-    if (!pmSensor.sysfsPath()->starts_with("/run/devmap/sensors/")) {
-      XLOG(ERR) << "PmSensor sysfsPath must start with /run/devmap/sensors/";
+    if (!pmSensor.sysfsPath()->starts_with("/run/devmap/sensors/") &&
+        !pmSensor.sysfsPath()->starts_with("/run/devmap/cplds/")) {
+      XLOG(ERR)
+          << "PmSensor sysfsPath must start with /run/devmap/sensors/ or /run/devmap/cplds/";
       return false;
     }
   }

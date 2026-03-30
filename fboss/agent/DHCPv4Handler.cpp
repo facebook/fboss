@@ -178,9 +178,10 @@ void DHCPv4Handler::handlePacket(
   DHCPv4Packet dhcpPkt;
   try {
     dhcpPkt.parse(&cursor);
-  } catch (const FbossError&) {
+  } catch (const FbossError& ex) {
     sw->portStats(pkt->getSrcPort())->dhcpV4BadPkt();
-    throw; // Rethrow
+    XLOG(ERR) << "Failed to parse DHCPv4 packet: " << ex.what();
+    return;
   }
   if (dhcpPkt.hasDhcpCookie()) {
     switch (dhcpPkt.op) {

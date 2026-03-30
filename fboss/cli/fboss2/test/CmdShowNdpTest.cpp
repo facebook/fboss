@@ -30,6 +30,7 @@ std::vector<facebook::fboss::NdpEntryThrift> createNdpEntries() {
   ndpEntry1.port() = 46;
   ndpEntry1.vlanName() = "downlinks";
   ndpEntry1.vlanID() = 2000;
+  ndpEntry1.interfaceID() = 2000;
   ndpEntry1.state() = "REACHABLE";
   ndpEntry1.ttl() = 45013;
   ndpEntry1.classID() = 0;
@@ -45,6 +46,7 @@ std::vector<facebook::fboss::NdpEntryThrift> createNdpEntries() {
   ndpEntry2.port() = 102;
   ndpEntry2.vlanName() = "uplink_1";
   ndpEntry2.vlanID() = 4001;
+  ndpEntry2.interfaceID() = 4001;
   ndpEntry2.state() = "REACHABLE";
   ndpEntry2.ttl() = 21045;
   ndpEntry2.classID() = 0;

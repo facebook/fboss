@@ -23,16 +23,14 @@ LimitCORE=32G
 Environment="PATH=/opt/fboss/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="LD_LIBRARY_PATH=/opt/fboss/lib"
 WorkingDirectory=/opt/fboss
-ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/platform_manager --run_once=false'
+ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/platform_manager --run_once=false --thrift_ssl_policy=disabled'
 
 Restart=on-failure
 RestartSec=30
 TimeoutStartSec=180s
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=platform_manager
+StandardOutput=append:/var/facebook/logs/fboss/platform_manager.log
+StandardError=append:/var/facebook/logs/fboss/platform_manager.log
 
 [Install]
 WantedBy=multi-user.target

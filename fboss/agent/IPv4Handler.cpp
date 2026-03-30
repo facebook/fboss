@@ -267,7 +267,10 @@ void IPv4Handler::handlePacket(
   if (v4Hdr.protocol == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
-    udpHdr.parse(&udpCursor, sw_->portStats(port));
+    if (!udpHdr.tryParse(&udpCursor, sw_->portStats(port))) {
+      XLOG_EVERY_MS(ERR, 1000) << "failed to parse udp header";
+      return;
+    }
     XLOG(DBG4) << "UDP packet, Source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {
@@ -308,8 +311,7 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    auto intfIDOpt =
-        sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
     if (intfIDOpt) {
       intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
     }

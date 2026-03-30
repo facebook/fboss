@@ -11,6 +11,8 @@
 
 #include "fboss/qsfp_service/QsfpServiceHandler.h"
 
+#include "fboss/qsfp_service/QsfpServer.h"
+
 #include <folly/executors/FunctionScheduler.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <chrono>
@@ -36,7 +38,7 @@ void QsfpServiceSignalHandler::signalReceived(int signum) noexcept {
   steady_clock::time_point begin = steady_clock::now();
 
   // stop accepting new connections to qsfp_service thrift server
-  qsfpServer_->stopListening();
+  stopQsfpServerGracefully(qsfpServer_);
   steady_clock::time_point thriftServerStopped = steady_clock::now();
   XLOG(INFO)
       << "[Exit] Stopped thrift server listening. Stop time: "

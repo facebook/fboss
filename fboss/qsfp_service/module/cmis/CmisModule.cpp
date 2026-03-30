@@ -23,6 +23,7 @@
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -53,7 +54,6 @@ constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
-constexpr int kFR4LiteSMFLength = 500; // 500 meters
 
 // Definitions for CDB Histogram
 constexpr int kCdbSymErrHistBinSize = 6;
@@ -68,8 +68,6 @@ constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
-// Tunable module const expr
-constexpr double kMhzToGhzFactor = 0.000001;
 // DeInitAllMask
 constexpr uint8_t kFullDataPathDeInitMask = 0xFF;
 
@@ -406,6 +404,8 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::VDM_LATCH_DONE, {CmisPages::PAGE2F, 145, 1}},
     // Page 34h - Lane FEC Performance Monitoring (C-CMIS)
     {CmisField::PAGE_UPPER34H, {CmisPages::PAGE34, 128, 128}},
+    // Page 35h - Lane Link Performance Monitoring (C-CMIS)
+    {CmisField::PAGE_UPPER35H, {CmisPages::PAGE35, 128, 128}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -608,7 +608,22 @@ bool isValidVdmConfigType(int vdmConf) {
       vdmConf == static_cast<int>(MODULATOR_BIAS_X_PHASE) ||
       vdmConf == static_cast<int>(MODULATOR_BIAS_Y_PHASE) ||
       vdmConf == static_cast<int>(CD_LOW_GRANULARITY) ||
-      vdmConf == static_cast<int>(SOPMD_LOW_GRANULARITY)) {
+      vdmConf == static_cast<int>(SOPMD_LOW_GRANULARITY) ||
+      vdmConf == static_cast<int>(CD_HIGH_GRANULARITY) ||
+      vdmConf == static_cast<int>(DGD) ||
+      vdmConf == static_cast<int>(SOPMD_HIGH_GRANULARITY) ||
+      vdmConf == static_cast<int>(PDL) || vdmConf == static_cast<int>(OSNR) ||
+      vdmConf == static_cast<int>(ESNR) || vdmConf == static_cast<int>(CFO) ||
+      vdmConf == static_cast<int>(EVM) ||
+      vdmConf == static_cast<int>(TX_POWER) ||
+      vdmConf == static_cast<int>(RX_TOTAL_POWER) ||
+      vdmConf == static_cast<int>(RX_SIGNAL_POWER) ||
+      vdmConf == static_cast<int>(SOP_ROC) ||
+      vdmConf == static_cast<int>(MER) ||
+      vdmConf == static_cast<int>(CLOCK_RECOVERY_LOOP) ||
+      vdmConf == static_cast<int>(SNR_MARGIN) ||
+      vdmConf == static_cast<int>(Q_FACTOR) ||
+      vdmConf == static_cast<int>(Q_MARGIN)) {
     return true;
   }
   return false;
@@ -1216,9 +1231,15 @@ bool CmisModule::getMediaInterfaceId(
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
       media.smfCode() = smfMediaInterface;
-      mediaInterface[lane].code() =
-          CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
-              smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
+      if (TransceiverPropertiesManager::isKnown(getModuleMediaInterface())) {
+        mediaInterface[lane].code() =
+            TransceiverPropertiesManager::mediaLaneCodeToMediaInterfaceCode(
+                static_cast<uint8_t>(smfMediaInterface));
+      } else {
+        mediaInterface[lane].code() =
+            CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
+                smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
+      }
       if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
         QSFP_LOG(ERR, this)
             << "Unable to find MediaInterfaceCode for "
@@ -2040,10 +2061,13 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 alarm data";
   }
   if (!fillVdmPerfMonitorCoherentVdm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "Coherent VDM stats not available";
+    QSFP_LOG(DBG5, this) << "Coherent VDM stats not available";
   }
   if (!fillVdmPerfMonitorFecPm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "FEC PM stats not available";
+    QSFP_LOG(DBG5, this) << "FEC PM stats not available";
+  }
+  if (!fillVdmPerfMonitorLinkPm(vdmStats)) {
+    QSFP_LOG(DBG5, this) << "Link PM stats not available";
   }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
@@ -2312,6 +2336,9 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE34:
         CHECK_LE(offset + length, sizeof(page34_));
         return (page34_ + offset);
+      case CmisPages::PAGE35:
+        CHECK_LE(offset + length, sizeof(page35_));
+        return (page35_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -2685,6 +2712,16 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             CmisHelper::getActiveValidSpeedCombinations(),
             CmisHelper::getActiveSpeedApplication());
   } else {
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, state.speed);
+    }
+    SmfSpeedApplicationMap configMapping;
+    if (!configCodes.empty()) {
+      configMapping[state.speed] = std::move(configCodes);
+    }
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
             state.speed,
@@ -2693,8 +2730,13 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
-            CmisHelper::getSmfValidSpeedCombinations(),
-            CmisHelper::getSmfSpeedApplicationMapping());
+            TransceiverPropertiesManager::isKnown(mediaInterface)
+                ? TransceiverPropertiesManager::getSpeedCombinations<
+                      SMFMediaInterfaceCode>(mediaInterface)
+                : std::vector<
+                      std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
+            configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
+                                  : configMapping);
   }
   if (laneProgramValues.size() == kMaxOsfpNumLanes) {
     AllLaneConfig stageSet0Config;
@@ -2880,8 +2922,20 @@ CmisModule::getAppSelCodeForSpeed(
     appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
-    appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
-        speed, CmisHelper::getSmfSpeedApplicationMapping());
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    if (!configCodes.empty()) {
+      for (auto code : configCodes) {
+        appCodes.push_back(static_cast<uint8_t>(code));
+      }
+    } else {
+      appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
+          speed, CmisHelper::getSmfSpeedApplicationMapping());
+    }
   }
 
   if (appCodes.empty()) {
@@ -3107,6 +3161,16 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         CmisHelper::getActiveValidSpeedCombinations(),
         CmisHelper::getActiveSpeedApplication());
   } else {
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    SmfSpeedApplicationMap configMapping;
+    if (!configCodes.empty()) {
+      configMapping[speed] = std::move(configCodes);
+    }
     return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
         speed,
         startHostLane,
@@ -3115,8 +3179,13 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         tcvrName,
         moduleCapabilities_,
         currHwSpeedConfig,
-        CmisHelper::getSmfValidSpeedCombinations(),
-        CmisHelper::getSmfSpeedApplicationMapping());
+        TransceiverPropertiesManager::isKnown(mediaInterface)
+            ? TransceiverPropertiesManager::getSpeedCombinations<
+                  SMFMediaInterfaceCode>(mediaInterface)
+            : std::vector<
+                  std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
+        configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
+                              : configMapping);
   }
 }
 
@@ -3317,8 +3386,20 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
     appCodes = CmisHelper::getInterfaceCode(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
-    appCodes = CmisHelper::getInterfaceCode(
-        speed, CmisHelper::getSmfSpeedApplicationMapping());
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    if (!configCodes.empty()) {
+      for (auto code : configCodes) {
+        appCodes.push_back(static_cast<uint8_t>(code));
+      }
+    } else {
+      appCodes = CmisHelper::getInterfaceCode(
+          speed, CmisHelper::getSmfSpeedApplicationMapping());
+    }
   }
   if (appCodes.empty()) {
     // Speed Not supported
@@ -3536,43 +3617,35 @@ uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
 int16_t CmisModule::getChannelNumFromFrequency(
     int32_t frequencyMhz,
     FrequencyGrid frequencyGrid) {
+  int64_t diffMhz = static_cast<int64_t>(frequencyMhz) - kDefaultFrequencyMhz;
   int32_t channelNum = 0;
   switch (frequencyGrid) {
     case FrequencyGrid::LASER_150GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40) - 3);
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000 - 3);
       break;
     case FrequencyGrid::LASER_100GHZ:
-      channelNum =
-          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 10);
+      channelNum = static_cast<int32_t>((diffMhz * 10) / 1000000);
       break;
     case FrequencyGrid::LASER_75GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000);
       break;
     case FrequencyGrid::LASER_50GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 20));
+      channelNum = static_cast<int32_t>((diffMhz * 20) / 1000000);
       break;
     case FrequencyGrid::LASER_33GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 30));
+      channelNum = static_cast<int32_t>((diffMhz * 30) / 1000000);
       break;
     case FrequencyGrid::LASER_25GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000);
       break;
     case FrequencyGrid::LASER_12P5GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 80));
+      channelNum = static_cast<int32_t>((diffMhz * 80) / 1000000);
       break;
     case FrequencyGrid::LASER_6P25GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 160));
+      channelNum = static_cast<int32_t>((diffMhz * 160) / 1000000);
       break;
     case FrequencyGrid::LASER_3P125GHZ:
-      channelNum =
-          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 320);
+      channelNum = static_cast<int32_t>((diffMhz * 320) / 1000000);
       break;
     default:
       throw FbossError(
@@ -3778,30 +3851,18 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (isLpoModule()) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::FR4_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
-        // Lite Modules are not LPO modules but have a reach of 500m.
-        moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
-      } else {
-        moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
-      }
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR4_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::LR4_10_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::LR4_2x400G_10KM;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR4_800G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::DR4_2x800G;
-    } else {
+    std::vector<int> hostStartLanes(
+        firstModuleCapability->hostStartLanes.begin(),
+        firstModuleCapability->hostStartLanes.end());
+    auto smfLength = static_cast<int>(getQsfpSMFLength());
+    // Config-driven SMF derivation
+    moduleMediaInterface = TransceiverPropertiesManager::deriveSmfCode(
+        static_cast<uint8_t>(smfCode),
+        hostStartLanes,
+        firstModuleCapability->moduleHostInterface,
+        smfLength);
+    if (moduleMediaInterface == MediaInterfaceCode::UNKNOWN) {
+      // Fallback to existing mapping for unrecognized modules
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfCode, CmisHelper::getSmfMediaInterfaceMapping());
@@ -4946,6 +5007,7 @@ void CmisModule::updateVdmCacheLocked() {
   // Read C-CMIS PM pages for coherent optics
   if (isTunableOptics()) {
     readCmisField(CmisField::PAGE_UPPER34H, page34_);
+    readCmisField(CmisField::PAGE_UPPER35H, page35_);
   }
 }
 
@@ -5123,6 +5185,38 @@ std::pair<std::optional<const uint8_t*>, int> CmisModule::getVdmDataValPtr(
     return std::make_pair(data, length);
   }
   return std::make_pair(std::nullopt, 0);
+}
+
+/*
+ * readU16VdmValue
+ *
+ * Read a single U16 (unsigned 16-bit) VDM value and convert to double.
+ * Returns std::nullopt if the VDM data is not available.
+ */
+std::optional<double> CmisModule::readU16VdmValue(
+    VdmConfigType vdmConf,
+    double lsb) {
+  auto [data, length] = getVdmDataValPtr(vdmConf);
+  if (data && length >= 2) {
+    return readU16(data.value(), 0) * lsb;
+  }
+  return std::nullopt;
+}
+
+/*
+ * readS16VdmValue
+ *
+ * Read a single S16 (signed 16-bit) VDM value and convert to double.
+ * Returns std::nullopt if the VDM data is not available.
+ */
+std::optional<double> CmisModule::readS16VdmValue(
+    VdmConfigType vdmConf,
+    double lsb) {
+  auto [data, length] = getVdmDataValPtr(vdmConf);
+  if (data && length >= 2) {
+    return readS16(data.value(), 0) * lsb;
+  }
+  return std::nullopt;
 }
 
 /*
@@ -5598,7 +5692,7 @@ bool CmisModule::fillVdmPerfMonitorPam4AlarmData(
  * which is expected for non-coherent modules.
  */
 bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
-  if (!isVdmSupported() || !cacheIsValid()) {
+  if (!isTunableOptics() || !isVdmSupported() || !cacheIsValid()) {
     return false;
   }
 
@@ -5608,30 +5702,6 @@ bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
   constexpr double kCdLowGranLsb = 20.0;
   // SOPMD low granularity uses U16 format with LSB = 1
   constexpr double kSopmdLowGranLsb = 1.0;
-
-  // Lambda to read a single U16 VDM value and convert to double
-  auto readU16VdmValue = [&](VdmConfigType vdmConf,
-                             double lsb) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConf);
-    if (data && length >= 2) {
-      uint16_t rawVal =
-          (static_cast<uint16_t>(data.value()[0]) << 8) | data.value()[1];
-      return rawVal * lsb;
-    }
-    return std::nullopt;
-  };
-
-  // Lambda to read a single S16 VDM value (signed) and convert to double
-  auto readS16VdmValue = [&](VdmConfigType vdmConf,
-                             double lsb) -> std::optional<double> {
-    auto [data, length] = getVdmDataValPtr(vdmConf);
-    if (data && length >= 2) {
-      int16_t rawVal = static_cast<int16_t>(
-          (static_cast<uint16_t>(data.value()[0]) << 8) | data.value()[1]);
-      return rawVal * lsb;
-    }
-    return std::nullopt;
-  };
 
   bool foundAny = false;
   auto& portNameToMediaLanes = getPortNameToMediaLanes();
@@ -5755,6 +5825,143 @@ bool CmisModule::fillVdmPerfMonitorFecPm(VdmPerfMonitorStats& vdmStats) {
 
     vdmStats.mediaPortVdmStats()[portName].coherentVdmStats().ensure().fecPm() =
         fecPm;
+  }
+  return true;
+}
+
+/*
+ * readLinkPmMetricS32
+ *
+ * Read a Link PM metric with S32 avg/min/max from page 35h (4 bytes each)
+ * and S16 current value from VDM pages.
+ */
+link::LinkPerfMonitorParamEachSideVal CmisModule::readLinkPmMetricS32(
+    int startByte,
+    double lsb,
+    VdmConfigType vdmConf) {
+  const uint8_t* buf = page35_;
+  int idx = startByte - 128;
+
+  auto readS32 = [buf](int off) -> double {
+    int32_t raw = static_cast<int32_t>(
+        (static_cast<uint32_t>(buf[off]) << 24) |
+        (static_cast<uint32_t>(buf[off + 1]) << 16) |
+        (static_cast<uint32_t>(buf[off + 2]) << 8) | buf[off + 3]);
+    return static_cast<double>(raw);
+  };
+
+  link::LinkPerfMonitorParamEachSideVal val;
+  val.avg() = readS32(idx) * lsb;
+  val.min() = readS32(idx + 4) * lsb;
+  val.max() = readS32(idx + 8) * lsb;
+  val.cur() = readS16VdmValue(vdmConf, lsb).value_or(0);
+  return val;
+}
+
+/*
+ * readU16
+ *
+ * Read an unsigned 16-bit value from a byte buffer at the given offset.
+ */
+double CmisModule::readU16(const uint8_t* p, int off) {
+  return static_cast<double>((static_cast<uint16_t>(p[off]) << 8) | p[off + 1]);
+}
+
+/*
+ * readS16
+ *
+ * Read a signed 16-bit value from a byte buffer at the given offset.
+ */
+double CmisModule::readS16(const uint8_t* p, int off) {
+  return static_cast<double>(
+      static_cast<int16_t>((static_cast<uint16_t>(p[off]) << 8) | p[off + 1]));
+}
+
+/*
+ * readLinkPmMetricU16
+ *
+ * Read a Link PM metric with U16 avg/min/max from page 35h (2 bytes each)
+ * and U16 current value from VDM pages.
+ */
+link::LinkPerfMonitorParamEachSideVal CmisModule::readLinkPmMetricU16(
+    int startByte,
+    double lsb,
+    VdmConfigType vdmConf) {
+  const uint8_t* buf = page35_;
+  int idx = startByte - 128;
+
+  link::LinkPerfMonitorParamEachSideVal val;
+  val.avg() = readU16(buf, idx) * lsb;
+  val.min() = readU16(buf, idx + 2) * lsb;
+  val.max() = readU16(buf, idx + 4) * lsb;
+  val.cur() = readU16VdmValue(vdmConf, lsb).value_or(0);
+  return val;
+}
+
+/*
+ * readLinkPmMetricS16
+ *
+ * Read a Link PM metric with S16 avg/min/max from page 35h (2 bytes each)
+ * and S16 current value from VDM pages.
+ */
+link::LinkPerfMonitorParamEachSideVal CmisModule::readLinkPmMetricS16(
+    int startByte,
+    double lsb,
+    VdmConfigType vdmConf) {
+  const uint8_t* buf = page35_;
+  int idx = startByte - 128;
+
+  link::LinkPerfMonitorParamEachSideVal val;
+  val.avg() = readS16(buf, idx) * lsb;
+  val.min() = readS16(buf, idx + 2) * lsb;
+  val.max() = readS16(buf, idx + 4) * lsb;
+  val.cur() = readS16VdmValue(vdmConf, lsb).value_or(0);
+  return val;
+}
+
+/*
+ * fillVdmPerfMonitorLinkPm
+ *
+ * Fill in Link Performance Monitoring stats from C-CMIS Page 35h
+ * (Section 7.4.8, Table 15) and VDM pages (20h-23h).
+ *
+ * Page 35h provides avg/min/max values over the prior PM interval.
+ * Current (real-time) values come from VDM pages using identifiers 134-152.
+ * Only available on coherent (tunable) optics modules.
+ */
+bool CmisModule::fillVdmPerfMonitorLinkPm(VdmPerfMonitorStats& vdmStats) {
+  if (!isTunableOptics() || !cacheIsValid()) {
+    return false;
+  }
+
+  auto& portNameToMediaLanes = getPortNameToMediaLanes();
+
+  for (auto& [portName, mediaLanes] : portNameToMediaLanes) {
+    LinkPm linkPm;
+
+    linkPm.cd() = readLinkPmMetricS32(128, 1.0, CD_HIGH_GRANULARITY);
+    linkPm.dgd() = readLinkPmMetricU16(140, 0.01, DGD);
+    linkPm.sopmd() = readLinkPmMetricU16(146, 0.01, SOPMD_HIGH_GRANULARITY);
+    linkPm.pdl() = readLinkPmMetricU16(152, 0.1, PDL);
+    linkPm.osnr() = readLinkPmMetricU16(158, 0.1, OSNR);
+    linkPm.esnr() = readLinkPmMetricU16(164, 0.1, ESNR);
+    linkPm.cfo() = readLinkPmMetricS16(170, 1.0, CFO);
+    linkPm.evmModem() = readLinkPmMetricU16(176, 100.0 / 65535.0, EVM);
+    linkPm.txPower() = readLinkPmMetricS16(182, 0.01, TX_POWER);
+    linkPm.rxPower() = readLinkPmMetricS16(188, 0.01, RX_TOTAL_POWER);
+    linkPm.rxSigPower() = readLinkPmMetricS16(194, 0.01, RX_SIGNAL_POWER);
+    linkPm.sopcr() = readLinkPmMetricS16(200, 1.0, SOP_ROC);
+    linkPm.mer() = readLinkPmMetricU16(206, 0.1, MER);
+    linkPm.clockRecoveryLoop() =
+        readLinkPmMetricS16(212, 100.0 / 32767.0, CLOCK_RECOVERY_LOOP);
+    linkPm.snrMargin() = readLinkPmMetricS16(224, 0.1, SNR_MARGIN);
+    linkPm.qFactor() = readLinkPmMetricU16(230, 0.1, Q_FACTOR);
+    linkPm.qMargin() = readLinkPmMetricS16(236, 0.1, Q_MARGIN);
+
+    vdmStats.mediaPortVdmStats()[portName]
+        .coherentVdmStats()
+        .ensure()
+        .linkPm() = linkPm;
   }
   return true;
 }

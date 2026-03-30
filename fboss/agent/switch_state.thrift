@@ -9,6 +9,7 @@ namespace go neteng.fboss.switch_state
 
 include "fboss/agent/switch_config.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "fboss/agent/if/common.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "common/network/if/Address.thrift"
@@ -387,6 +388,8 @@ struct MirrorOnDropReportFields {
   16: bool isResolved = false;
   17: optional string resolvedCollectorMac;
   18: optional switch_config.PortDescriptor resolvedEgressPort;
+  // Optional sampling rate for MOD packets
+  19: optional i32 samplingRate;
 }
 
 struct ControlPlaneFields {
@@ -490,6 +493,7 @@ struct SwitchSettingsFields {
   59: optional i32 ecmpCompressionThresholdPct;
   // System port offset for fabric link monitoring
   60: optional i32 fabricLinkMonitoringSystemPortOffset;
+  61: optional switch_config.PacketForwardingMode packetForwardingMode;
 }
 
 struct RoutePrefix {
@@ -543,9 +547,9 @@ struct LabelForwardingEntryFields {
 
 struct FibContainerFields {
   1: i16 vrf;
-  @common.AllowSkipThriftCow
+  @fboss_common.AllowSkipThriftCow
   2: map<string, RouteFields> fibV4;
-  @common.AllowSkipThriftCow
+  @fboss_common.AllowSkipThriftCow
   3: map<string, RouteFields> fibV6;
 }
 
@@ -601,6 +605,15 @@ struct Srv6TunnelFields {
   9: common.TunnelType tunnelType;
 }
 
+struct MySidFields {
+  1: common.MySidType type;
+  # MySid entry in ip/mask format. 32 bits of this are
+  # locator block len and 32-maskLen are sid bits
+  2: Address.IPPrefix mySid;
+  3: optional RouteNextHopEntry unresolveNextHop;
+  4: optional RouteNextHopEntry resolvedNextHop;
+}
+
 struct QosPolicyFields {
   1: string name;
   2: TrafficClassToQosAttributeMap dscpMap;
@@ -624,7 +637,7 @@ struct SflowCollectorFields {
   2: SocketAddress address;
 }
 
-@common.AllowSkipThriftCow
+@fboss_common.AllowSkipThriftCow
 struct InterfaceFields {
   1: i32 interfaceId;
   2: i32 routerId;
@@ -803,6 +816,7 @@ struct SwitchState {
   > mirrorOnDropReportMaps;
   124: map<SwitchIdList, FibInfoFields> fibsInfoMap;
   125: map<SwitchIdList, map<string, Srv6TunnelFields>> srv6TunnelMaps;
+  126: map<SwitchIdList, map<string, MySidFields>> mySidMaps;
   // Remote object maps
   600: map<SwitchIdList, map<i64, SystemPortFields>> remoteSystemPortMaps;
   601: map<SwitchIdList, map<i32, InterfaceFields>> remoteInterfaceMaps;

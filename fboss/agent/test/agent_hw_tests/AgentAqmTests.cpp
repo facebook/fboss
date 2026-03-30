@@ -240,8 +240,9 @@ class AgentAqmTest : public AgentHwTest {
     });
     RoutePrefixV6 route{folly::IPAddressV6(kTestDstIpV6), 128};
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, {portDesc}, {route});
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &wrapper, {portDesc}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(),
         ecmpHelper.getRouterId(),
         ecmpHelper.getNextHops()[0]);

@@ -806,6 +806,23 @@ class SwitchSettings
     return std::nullopt;
   }
 
+  std::optional<cfg::PacketForwardingMode> getPacketForwardingMode() const {
+    if (auto packetForwardingMode =
+            cref<switch_state_tags::packetForwardingMode>()) {
+      return packetForwardingMode->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setPacketForwardingMode(
+      std::optional<cfg::PacketForwardingMode> packetForwardingMode) {
+    if (!packetForwardingMode) {
+      ref<switch_state_tags::packetForwardingMode>().reset();
+    } else {
+      set<switch_state_tags::packetForwardingMode>(*packetForwardingMode);
+    }
+  }
+
   SwitchSettings* modify(std::shared_ptr<SwitchState>* state);
 
  private:

@@ -6,7 +6,7 @@ namespace cpp2 facebook.fboss.fsdb
 
 cpp_include "folly/container/F14Map.h"
 
-include "fboss/agent/if/common.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
@@ -49,7 +49,7 @@ struct OtherStruct {
   5: optional i32 o;
 }
 
-@common.AllowSkipThriftCow
+@fboss_common.AllowSkipThriftCow
 struct TestHybridStruct {
   1: optional i32 optionalIntegral;
   2: string str;
@@ -66,7 +66,7 @@ struct TestStruct {
   3: string name;
   4: TestStructSimple member;
   @cpp.Type{template = "folly::F14FastMap"}
-  @common.AllowSkipThriftCow
+  @fboss_common.AllowSkipThriftCow
   5: map<i32, TestStructSimple> structMap = {};
   6: optional string optionalString;
   7: UnionSimple variantMember;
@@ -75,7 +75,7 @@ struct TestStruct {
   10: TestEnum enumeration = TestEnum.FIRST;
   11: set<TestEnum> enumSet = [];
   12: set<i32> integralSet = [];
-  @common.AllowSkipThriftCow
+  @fboss_common.AllowSkipThriftCow
   13: map<string, i32> mapOfStringToI32;
   14: list<i32> listOfPrimitives;
   15: set<i32> setOfI32;
@@ -85,4 +85,7 @@ struct TestStruct {
   19: list<OtherStruct> listofStructs;
   20: set<string> setOfStrings = [];
   21: map<i32, TestHybridStruct> mapOfHybridStruct;
+  22: optional TestHybridStruct optionalAnnotatedStruct;
+  @fboss_common.AllowSkipThriftCow
+  23: map<string, OtherStruct> fieldAnnotatedMap;
 }

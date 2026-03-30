@@ -8,9 +8,6 @@
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -50,33 +47,6 @@ BspGenericSystemContainer<T>::initBspPlatformMapping() {
   }
 
   return std::make_unique<T>();
-}
-
-using Meru400bfuSystemContainer =
-    BspGenericSystemContainer<Meru400bfuBspPlatformMapping>;
-folly::Singleton<Meru400bfuSystemContainer> _meru400bfuSystemContainer;
-template <>
-std::shared_ptr<Meru400bfuSystemContainer>
-Meru400bfuSystemContainer::getInstance() {
-  return _meru400bfuSystemContainer.try_get();
-}
-
-using Meru400biaSystemContainer =
-    BspGenericSystemContainer<Meru400biaBspPlatformMapping>;
-folly::Singleton<Meru400biaSystemContainer> _meru400biaSystemContainer;
-template <>
-std::shared_ptr<Meru400biaSystemContainer>
-Meru400biaSystemContainer::getInstance() {
-  return _meru400biaSystemContainer.try_get();
-}
-
-using Meru400biuSystemContainer =
-    BspGenericSystemContainer<Meru400biuBspPlatformMapping>;
-folly::Singleton<Meru400biuSystemContainer> _meru400biuSystemContainer;
-template <>
-std::shared_ptr<Meru400biuSystemContainer>
-Meru400biuSystemContainer::getInstance() {
-  return _meru400biuSystemContainer.try_get();
 }
 
 using Meru800biaSystemContainer =

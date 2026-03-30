@@ -206,6 +206,7 @@ class PlatformMappingV2:
         self.pm_parser = PlatformMappingParser(
             directory_map, platform, multi_npu, version
         )
+        self._name2entry: Dict[str, PlatformPortEntry] = {}
         self.platform_mapping: PlatformMapping = self._generate_platform_mapping()
 
     def get_platform_mapping(self) -> PlatformMapping:
@@ -485,6 +486,8 @@ class PlatformMappingV2:
 
             ports[port_id] = port_entry
 
+            self._name2entry[mapping.name] = port_entry
+
         # Sort and Merge port_config_overrides
         merged_port_config_overrides = self._sort_and_merge_port_config_overrides(
             port_config_overrides
@@ -528,9 +531,25 @@ class PlatformMappingV2:
                                     other_port_config.subsumedPorts = []
                                 if port_id not in other_port_config.subsumedPorts:
                                     other_port_config.subsumedPorts.append(port_id)
-                                # Only set controllingPort if not explicitly set in CSV
-                                if not has_explicit_controlling_port:
-                                    port_entry.mapping.controllingPort = other_port_id
+
+                                # For some platforms, the controlling port is the root port
+                                if (
+                                    self.platform == "icecube800banw"
+                                    or self.platform == "icecube800bc"
+                                    or self.platform == "tahansb800bc"
+                                ):
+                                    # port ethx/x/[1-8] use ethx/x/1 the controlling port
+                                    rootPortName = port_entry.mapping.name[:-1] + "1"
+                                    rootPortEntry = self._name2entry[rootPortName]
+                                    port_entry.mapping.controllingPort = (
+                                        rootPortEntry.mapping.controllingPort
+                                    )
+                                else:
+                                    # Only set controllingPort if not explicitly set in CSV
+                                    if not has_explicit_controlling_port:
+                                        port_entry.mapping.controllingPort = (
+                                            other_port_id
+                                        )
 
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():

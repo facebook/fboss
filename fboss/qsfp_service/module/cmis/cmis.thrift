@@ -322,4 +322,6 @@ enum CmisField {
   // C-CMIS Performance Monitoring Pages
   // Page 34h - Lane FEC Performance Monitoring
   PAGE_UPPER34H = 461,
+  // Page 35h - Lane Link Performance Monitoring
+  PAGE_UPPER35H = 462,
 }

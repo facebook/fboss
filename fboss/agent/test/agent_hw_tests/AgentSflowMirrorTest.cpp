@@ -523,9 +523,9 @@ device:
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
@@ -873,24 +873,32 @@ device:
     }
   }
 
-  uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    const auto& portStats = stats.at(getNonSflowSampledInterfacePort());
-    return *portStats.outUnicastPkts_();
+  uint64_t getSampleCount(
+      const std::map<PortID, HwPortStats>& newStats,
+      const std::map<PortID, HwPortStats>& oldStats) {
+    const auto& newPortStats = newStats.at(getNonSflowSampledInterfacePort());
+    const auto& oldPortStats = oldStats.at(getNonSflowSampledInterfacePort());
+    return *newPortStats.outUnicastPkts_() - *oldPortStats.outUnicastPkts_();
   }
 
   const PortID getDataTrafficPort() {
     return getPortsForSampling()[kDataTrafficPortIndex];
   }
 
-  uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    uint64_t expectedSampleCount = 0;
+  uint64_t getExpectedSampleCount(
+      const std::map<PortID, HwPortStats>& newStats,
+      const std::map<PortID, HwPortStats>& oldStats) {
     auto port = getDataTrafficPort();
-    const auto& portStats = stats.at(port);
+    const auto& newPortStats = newStats.at(port);
+    const auto& oldPortStats = oldStats.at(port);
     // In theory it's more correct to calcuate this based on inUnicastPkts, but
     // Rx counters are not supported on TH5 in EDB loopback, so use Tx.
-    expectedSampleCount =
-        (*portStats.outUnicastPkts_() / FLAGS_sflow_test_rate);
-    XLOG(DBG2) << "total packets tx " << *portStats.outUnicastPkts_();
+    uint64_t expectedSampleCount =
+        (*newPortStats.outUnicastPkts_() - *oldPortStats.outUnicastPkts_()) /
+        FLAGS_sflow_test_rate;
+    XLOG(DBG2) << "total packets tx delta: "
+               << (*newPortStats.outUnicastPkts_() -
+                   *oldPortStats.outUnicastPkts_());
     return expectedSampleCount;
   }
 
@@ -910,28 +918,43 @@ device:
         1000 * 1000 * 0.99; // 99% is good enough
     getAgentEnsemble()->waitForSpecificRateOnPort(trafficPort, portSpeedBps);
 
-    auto ports = getPortsForSampling();
-    getAgentEnsemble()->bringDownPorts(
-        std::vector<PortID>(ports.begin() + 1, ports.end()));
-    ports.push_back(getNonSflowSampledInterfacePort());
+    auto samplingPorts = getPortsForSampling();
+    auto mirrorPort = getNonSflowSampledInterfacePort();
+    // Bring down all sampling ports except the data traffic port.
+    std::vector<PortID> portsToDown;
+    for (const auto& port : samplingPorts) {
+      if (port != trafficPort) {
+        portsToDown.push_back(port);
+      }
+    }
+    getAgentEnsemble()->bringDownPorts(portsToDown);
+    // Collect stats from the data traffic port and mirror egress port.
+    std::vector<PortID> statsPorts = {trafficPort, mirrorPort};
     int percentError = 100;
+    std::map<PortID, HwPortStats> lastStats;
     WITH_RETRIES({
-      auto stats = getLatestPortStats(ports);
-      auto actualSampleCount = getSampleCount(stats);
-      auto expectedSampleCount = getExpectedSampleCount(stats);
+      auto stats = getLatestPortStats(statsPorts);
+      if (lastStats.empty()) {
+        lastStats = stats;
+        continue;
+      }
+      auto actualSampleCount = getSampleCount(stats, lastStats);
+      auto expectedSampleCount = getExpectedSampleCount(stats, lastStats);
+      lastStats = stats;
       XLOG(DBG2) << "Number of sflow samples expected: " << expectedSampleCount
                  << ", samples seen: " << actualSampleCount;
+      if (expectedSampleCount == 0 || actualSampleCount == 0) {
+        // Not enough traffic in this interval, retry.
+        continue;
+      }
       auto difference = (expectedSampleCount > actualSampleCount)
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
-      if (actualSampleCount) {
-        percentError = (difference * 100) / actualSampleCount;
-      }
+      percentError = (difference * 100) / actualSampleCount;
       EXPECT_EVENTUALLY_LE(percentError, kDefaultPercentErrorThreshold);
     });
 
-    getAgentEnsemble()->bringUpPorts(
-        std::vector<PortID>(ports.begin() + 1, ports.end()));
+    getAgentEnsemble()->bringUpPorts(portsToDown);
     getAgentEnsemble()->clearPortStats();
   }
 

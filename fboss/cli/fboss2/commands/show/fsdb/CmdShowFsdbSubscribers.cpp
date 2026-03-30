@@ -21,9 +21,8 @@ namespace facebook::fboss {
 CmdShowFsdbSubscribers::RetType CmdShowFsdbSubscribers::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& fsdbClientid) {
-  auto client =
-      utils::createClient<facebook::fboss::fsdb::FsdbServiceAsyncClient>(
-          hostInfo);
+  auto client = utils::createClient<
+      apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>(hostInfo);
 
   fsdb::SubscriberIds subscribers(fsdbClientid.begin(), fsdbClientid.end());
 

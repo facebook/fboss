@@ -23,34 +23,25 @@
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
-template <typename AddrType, bool enableIntfNbrTable>
-struct IpAddrAndEnableIntfNbrTableT {
+template <typename AddrType>
+struct IpAddrT {
   using AddrT = AddrType;
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using TestTypes = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+using TestTypes =
+    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename IpAddrT>
 class AgentQueuePerHostTest : public AgentHwTest {
-  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
-  static auto constexpr isIntfNbrTable =
-      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
+  using AddrT = typename IpAddrT::AddrT;
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       ArpTable,
       NdpTable>;
 
   void setCmdLineFlagOverrides() const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
@@ -142,17 +133,10 @@ class AgentQueuePerHostTest : public AgentHwTest {
       auto ip = ipToMacAndClassID.first;
 
       NeighborTableT* neighborTable;
-      if (isIntfNbrTable) {
-        neighborTable = outState->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kIntfID, &outState);
-      } else {
-        neighborTable = outState->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kVlanID, &outState);
-      }
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
 
       neighborTable->addPendingEntry(ip, kIntfID);
     }
@@ -173,17 +157,10 @@ class AgentQueuePerHostTest : public AgentHwTest {
                                    : macAndClassID.second;
 
       NeighborTableT* neighborTable;
-      if (isIntfNbrTable) {
-        neighborTable = outState->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kIntfID, &outState);
-      } else {
-        neighborTable = outState->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kVlanID, &outState);
-      }
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
 
       auto existingEntry = neighborTable->getEntryIf(ip);
 
@@ -224,15 +201,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
                                      : macAndClassID.second;
 
         std::shared_ptr<NeighborTableT> neighborTable;
-        if (isIntfNbrTable) {
-          neighborTable = state->getInterfaces()
-                              ->getNode(kIntfID)
-                              ->template getNeighborTable<NeighborTableT>();
-        } else {
-          neighborTable = state->getVlans()
-                              ->getNode(kVlanID)
-                              ->template getNeighborTable<NeighborTableT>();
-        }
+        neighborTable = state->getInterfaces()
+                            ->getNode(kIntfID)
+                            ->template getNeighborTable<NeighborTableT>();
 
         auto entry = neighborTable->getEntryIf(ip);
         XLOG(DBG2) << "Verify class id for " << ip

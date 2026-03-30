@@ -20,7 +20,6 @@ class SensorServiceImplInputVoltageTest : public ::testing::Test {
     pmUnitSensors.pmUnitName() = "MOCK_PSU";
     config_.pmUnitSensorsList() = {pmUnitSensors};
 
-    // Initialize PowerConfig with empty inputVoltageSensors
     PowerConfig powerConfig;
     powerConfig.perSlotPowerConfigs() = {};
     powerConfig.otherPowerSensorNames() = {};
@@ -49,145 +48,189 @@ class SensorServiceImplInputVoltageTest : public ::testing::Test {
     }
     return polledData;
   }
+
+  void runInputVoltageTest(std::map<std::string, SensorData>& polledData) {
+    impl_->processInputVoltage(polledData, *config_.powerConfig());
+  }
+
+  void createImpl() {
+    impl_ = std::make_unique<SensorServiceImpl>(config_);
+  }
+
+  void expectMaxVoltageStats(int expectedValue, int expectedFailures = 0) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(
+                SensorServiceImpl::kDerivedValue,
+                SensorServiceImpl::kMaxInputVoltage)),
+        expectedValue);
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(
+                SensorServiceImpl::kDerivedFailure,
+                SensorServiceImpl::kMaxInputVoltage)),
+        expectedFailures);
+  }
+
+  void expectInputPowerType(int expectedType) {
+    EXPECT_EQ(
+        fb303::fbData->getCounter(
+            fmt::format(
+                SensorServiceImpl::kDerivedValue,
+                SensorServiceImpl::kInputPowerType)),
+        expectedType);
+  }
+
   SensorConfig config_;
+  std::unique_ptr<SensorServiceImpl> impl_;
 };
 
 TEST_F(SensorServiceImplInputVoltageTest, MaxInputVoltageWithMultipleSensors) {
   addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
-
+  createImpl();
   auto polledData =
       createPolledData({{"PSU1_VIN", 220.5}, {"PSU2_VIN", 215.3}});
+  runInputVoltageTest(polledData);
 
-  auto impl = SensorServiceImpl{config_};
-  impl.processInputVoltage(
-      polledData, *config_.powerConfig()->inputVoltageSensors());
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedValue,
-              SensorServiceImpl::kMaxInputVoltage)),
-      220);
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedFailure,
-              SensorServiceImpl::kMaxInputVoltage)),
-      0);
-}
-
-TEST_F(SensorServiceImplInputVoltageTest, MaxInputVoltageWithSingleSensor) {
-  addInputVoltageSensors({"PSU1_VIN"});
-
-  auto polledData = createPolledData({{"PSU1_VIN", 230.7}});
-
-  auto impl = SensorServiceImpl{config_};
-  impl.processInputVoltage(
-      polledData, *config_.powerConfig()->inputVoltageSensors());
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedValue,
-              SensorServiceImpl::kMaxInputVoltage)),
-      230);
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedFailure,
-              SensorServiceImpl::kMaxInputVoltage)),
-      0);
+  expectMaxVoltageStats(220);
 }
 
 TEST_F(SensorServiceImplInputVoltageTest, MaxInputVoltageWithMissingSensor) {
   addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
-
-  // Only PSU1_VIN has data, PSU2_VIN is missing
+  createImpl();
   auto polledData = createPolledData({{"PSU1_VIN", 225.0}});
+  runInputVoltageTest(polledData);
 
-  auto impl = SensorServiceImpl{config_};
-  impl.processInputVoltage(
-      polledData, *config_.powerConfig()->inputVoltageSensors());
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedValue,
-              SensorServiceImpl::kMaxInputVoltage)),
-      225);
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedFailure,
-              SensorServiceImpl::kMaxInputVoltage)),
-      0);
-}
-
-TEST_F(
-    SensorServiceImplInputVoltageTest,
-    MaxInputVoltageWithAllSensorsMissing) {
-  addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
-
-  // No sensor data available
-  auto polledData = createPolledData({});
-
-  auto impl = SensorServiceImpl{config_};
-  impl.processInputVoltage(
-      polledData, *config_.powerConfig()->inputVoltageSensors());
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedValue,
-              SensorServiceImpl::kMaxInputVoltage)),
-      0);
-
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedFailure,
-              SensorServiceImpl::kMaxInputVoltage)),
-      1);
+  expectMaxVoltageStats(225);
 }
 
 TEST_F(SensorServiceImplInputVoltageTest, EmptyInputVoltageSensors) {
-  // No input voltage sensors configured
+  createImpl();
   auto polledData = createPolledData({});
-  auto impl = SensorServiceImpl{config_};
-  impl.processInputVoltage(
-      polledData, *config_.powerConfig()->inputVoltageSensors());
-
-  // Should not publish any stats when no sensors are configured
-  // The function returns early, so no counter is created
-  // We can verify this by checking that calling the function doesn't crash
+  runInputVoltageTest(polledData);
+  // Verify no crash when no sensors are configured
   SUCCEED();
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, NoSensorData) {
+  addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
+  createImpl();
+  auto polledData = createPolledData({});
+  runInputVoltageTest(polledData);
+
+  expectMaxVoltageStats(0, 1);
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeUnknown);
 }
 
 TEST_F(SensorServiceImplInputVoltageTest, MaxInputVoltageWithZeroValue) {
   addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
-
+  createImpl();
   auto polledData = createPolledData({{"PSU1_VIN", 0.0}, {"PSU2_VIN", 220.0}});
+  runInputVoltageTest(polledData);
 
-  auto impl = SensorServiceImpl{config_};
-  impl.processInputVoltage(
-      polledData, *config_.powerConfig()->inputVoltageSensors());
+  expectMaxVoltageStats(220);
+}
 
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedValue,
-              SensorServiceImpl::kMaxInputVoltage)),
-      220);
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    InputPowerTypePersistsAcrossReadings) {
+  addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
+  createImpl();
 
-  EXPECT_EQ(
-      fb303::fbData->getCounter(
-          fmt::format(
-              SensorServiceImpl::kDerivedFailure,
-              SensorServiceImpl::kMaxInputVoltage)),
-      0);
+  auto polledData1 =
+      createPolledData({{"PSU1_VIN", 220.0}, {"PSU2_VIN", 215.0}});
+  runInputVoltageTest(polledData1);
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeAC);
+
+  auto polledData2 = createPolledData({{"PSU1_VIN", 48.0}, {"PSU2_VIN", 50.0}});
+  runInputVoltageTest(polledData2);
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeAC);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, DCPowerTypeEstablished) {
+  addInputVoltageSensors({"PSU1_VIN"});
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 50.0f}});
+  runInputVoltageTest(polledData);
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeDC);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, UnknownPowerTypeLowVoltage) {
+  addInputVoltageSensors({"PSU1_VIN"});
+  createImpl();
+  auto polledData = createPolledData({{"PSU1_VIN", 5.0f}});
+  runInputVoltageTest(polledData);
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeUnknown);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, UnknownPowerTypeGapVoltage) {
+  addInputVoltageSensors({"PSU1_VIN"});
+  createImpl();
+  // 75V is between dcVoltageMax (64) and acVoltageMin (90)
+  auto polledData = createPolledData({{"PSU1_VIN", 75.0f}});
+  runInputVoltageTest(polledData);
+  expectInputPowerType(SensorServiceImpl::kInputPowerTypeUnknown);
+  // No thresholds should be assigned when power type is unknown
+  EXPECT_FALSE(
+      polledData["PSU1_VIN"].thresholds()->lowerCriticalVal().has_value());
+  EXPECT_FALSE(
+      polledData["PSU1_VIN"].thresholds()->upperCriticalVal().has_value());
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, ThresholdsSetOnPowerTypeEstablished) {
+  addInputVoltageSensors({"PSU1_VIN", "PSU2_VIN"});
+  createImpl();
+
+  auto polledData =
+      createPolledData({{"PSU1_VIN", 220.0}, {"PSU2_VIN", 215.0}});
+
+  EXPECT_FALSE(
+      polledData["PSU1_VIN"].thresholds()->lowerCriticalVal().has_value());
+  EXPECT_FALSE(
+      polledData["PSU1_VIN"].thresholds()->upperCriticalVal().has_value());
+
+  runInputVoltageTest(polledData);
+
+  // Thresholds come from thrift PowerConfig defaults
+  // (acVoltageMin=90, acVoltageMax=305)
+  Thresholds expectedThresholds;
+  expectedThresholds.lowerCriticalVal() = 90.0;
+  expectedThresholds.upperCriticalVal() = 305.0;
+  EXPECT_EQ(*polledData["PSU1_VIN"].thresholds(), expectedThresholds);
+  EXPECT_EQ(*polledData["PSU2_VIN"].thresholds(), expectedThresholds);
+}
+
+TEST_F(SensorServiceImplInputVoltageTest, ThresholdsSetForDC) {
+  addInputVoltageSensors({"PSU1_VIN"});
+  createImpl();
+
+  auto polledData = createPolledData({{"PSU1_VIN", 50.0}});
+  runInputVoltageTest(polledData);
+
+  // Thresholds come from thrift PowerConfig defaults
+  // (dcVoltageMin=9, dcVoltageMax=64)
+  Thresholds expectedThresholds;
+  expectedThresholds.lowerCriticalVal() = 9.0;
+  expectedThresholds.upperCriticalVal() = 64.0;
+  EXPECT_EQ(*polledData["PSU1_VIN"].thresholds(), expectedThresholds);
+}
+
+TEST_F(
+    SensorServiceImplInputVoltageTest,
+    ThresholdsNotOverwrittenIfAlreadySet) {
+  addInputVoltageSensors({"PSU1_VIN"});
+  createImpl();
+
+  auto polledData = createPolledData({{"PSU1_VIN", 220.0}});
+  polledData["PSU1_VIN"].thresholds()->lowerCriticalVal() = 100.0f;
+  polledData["PSU1_VIN"].thresholds()->upperCriticalVal() = 300.0f;
+
+  runInputVoltageTest(polledData);
+
+  Thresholds expectedThresholds;
+  expectedThresholds.lowerCriticalVal() = 100.0f;
+  expectedThresholds.upperCriticalVal() = 300.0f;
+  EXPECT_EQ(*polledData["PSU1_VIN"].thresholds(), expectedThresholds);
 }
 
 } // namespace facebook::fboss

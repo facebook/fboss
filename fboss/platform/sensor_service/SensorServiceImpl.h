@@ -49,8 +49,6 @@ class SensorServiceImpl {
   static constexpr int kInputPowerTypeUnknown = 0;
   static constexpr int kInputPowerTypeDC = 1;
   static constexpr int kInputPowerTypeAC = 2;
-  static constexpr float kACVoltageThreshold = 80.0f;
-  static constexpr float kMinVoltageThreshold = 9.0f;
   auto static constexpr kDerivedFailure = "derived.{}.failure";
   auto static constexpr kDerivedValue = "derived.{}.value";
   auto static constexpr kPmUnitVersion = "pmunit.{}.version.{}.{}.{}";
@@ -81,8 +79,8 @@ class SensorServiceImpl {
       const std::vector<TemperatureConfig>& tempConfigs);
 
   void processInputVoltage(
-      const std::map<std::string, SensorData>& polledData,
-      const std::vector<std::string>& inputVoltageSensors);
+      std::map<std::string, SensorData>& polledData,
+      const PowerConfig& powerConfig);
 
   SensorData processAsicCmd(const AsicCommand& asicCommand);
 

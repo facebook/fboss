@@ -1434,10 +1434,11 @@ class AgentCoppQosTest : public AgentHwTest {
 
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac);
-    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
-    auto& nextHop = ecmpHelper.getNextHops()[0];
-    utility::ttlDecrementHandlingForLoopbackTraffic(
-        getAgentEnsemble(), ecmpHelper.getRouterId(), nextHop);
+    resolveNeighborAndProgramRoutes(ecmpHelper, 1, true);
+    utility::disablePortTTLDecrementIfSupported(
+        getAgentEnsemble(),
+        ecmpHelper.getRouterId(),
+        ecmpHelper.getNextHops()[0]);
   }
 
   std::optional<folly::IPAddress> getDestinationIpIfValid(RxPacket* pkt) {

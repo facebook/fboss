@@ -13,12 +13,11 @@
 
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/VlanMapDelta.h"
 
 #include <folly/IPAddressV4.h>
 #include <folly/IPAddressV6.h>
-
-DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 /*
@@ -38,21 +37,10 @@ class NeighborTableDeltaCallbackGenerator {
         MultiSwitchMapDelta<MultiSwitchVlanMap>>(
         stateDelta, stateDelta.getVlansDelta(), cb);
 
-    if (FLAGS_intf_nbr_tables) {
-      genTableCallbacks<folly::IPAddressV6, MultiSwitchInterfaceMapDelta>(
-          stateDelta, stateDelta.getIntfsDelta(), cb);
-      genTableCallbacks<folly::IPAddressV4, MultiSwitchInterfaceMapDelta>(
-          stateDelta, stateDelta.getIntfsDelta(), cb);
-    } else {
-      genTableCallbacks<
-          folly::IPAddressV6,
-          MultiSwitchMapDelta<MultiSwitchVlanMap>>(
-          stateDelta, stateDelta.getVlansDelta(), cb);
-      genTableCallbacks<
-          folly::IPAddressV4,
-          MultiSwitchMapDelta<MultiSwitchVlanMap>>(
-          stateDelta, stateDelta.getVlansDelta(), cb);
-    }
+    genTableCallbacks<folly::IPAddressV6, MultiSwitchInterfaceMapDelta>(
+        stateDelta, stateDelta.getIntfsDelta(), cb);
+    genTableCallbacks<folly::IPAddressV4, MultiSwitchInterfaceMapDelta>(
+        stateDelta, stateDelta.getIntfsDelta(), cb);
   }
 
   template <typename Callback>
@@ -70,33 +58,25 @@ class NeighborTableDeltaCallbackGenerator {
     if constexpr (std::is_same_v<AddrT, folly::MacAddress>) {
       return vlan->getMacTable();
     } else if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      if (FLAGS_intf_nbr_tables) {
-        auto interfaceID = vlan->getInterfaceID();
-        if (interfaceID == InterfaceID(0)) {
-          XLOG(DBG2) << "No interface ID (or 0) found for VLAN "
-                     << vlan->getID() << ". Returning empty ARP table.";
-          return std::make_shared<ArpTable>();
-        }
-        auto interface = switchState->getInterfaces()->getNodeIf(interfaceID);
-        CHECK(interface);
-        return interface->getArpTable();
-      } else {
-        return vlan->getArpTable();
+      auto interfaceID = vlan->getInterfaceID();
+      if (interfaceID == InterfaceID(0)) {
+        XLOG(DBG2) << "No interface ID (or 0) found for VLAN " << vlan->getID()
+                   << ". Returning empty ARP table.";
+        return std::make_shared<ArpTable>();
       }
+      auto interface = switchState->getInterfaces()->getNodeIf(interfaceID);
+      CHECK(interface);
+      return interface->getArpTable();
     } else {
-      if (FLAGS_intf_nbr_tables) {
-        auto interfaceID = vlan->getInterfaceID();
-        if (interfaceID == InterfaceID(0)) {
-          XLOG(DBG2) << "No interface ID (or 0) found for VLAN "
-                     << vlan->getID() << ". Returning empty NDP table.";
-          return std::make_shared<NdpTable>();
-        }
-        auto interface = switchState->getInterfaces()->getNodeIf(interfaceID);
-        CHECK(interface);
-        return interface->getNdpTable();
-      } else {
-        return vlan->getNdpTable();
+      auto interfaceID = vlan->getInterfaceID();
+      if (interfaceID == InterfaceID(0)) {
+        XLOG(DBG2) << "No interface ID (or 0) found for VLAN " << vlan->getID()
+                   << ". Returning empty NDP table.";
+        return std::make_shared<NdpTable>();
       }
+      auto interface = switchState->getInterfaces()->getNodeIf(interfaceID);
+      CHECK(interface);
+      return interface->getNdpTable();
     }
   }
 

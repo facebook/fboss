@@ -12,6 +12,7 @@
 
 namespace {
 using namespace facebook::fboss::utility;
+using facebook::fboss::AggregatePortThrift;
 using facebook::fboss::checkAlwaysTrueWithRetryErrorReturn;
 using facebook::fboss::checkWithRetryErrorReturn;
 using facebook::fboss::DsfSessionState;
@@ -582,6 +583,102 @@ bool verifyFabricPorts(const std::string& switchName) {
       verifyNoPortErrorsForSwitch(switchName);
 }
 
+std::vector<AggregatePortThrift> getAggregatePortTable(
+    const std::string& switchName) {
+  std::vector<AggregatePortThrift> aggregatePorts;
+  auto swAgentClient = getSwAgentThriftClient(switchName);
+  swAgentClient->sync_getAggregatePortTable(aggregatePorts);
+  return aggregatePorts;
+}
+
+bool verifyHyperPortMembersUpForSwitch(const std::string& switchName) {
+  auto aggregatePorts = getAggregatePortTable(switchName);
+  auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+
+  for (const auto& aggPort : aggregatePorts) {
+    for (const auto& member : aggPort.memberPorts().value()) {
+      auto it = portIdToPortInfo.find(member.memberPortID().value());
+      if (it == portIdToPortInfo.end()) {
+        XLOG(DBG2) << "Member port " << member.memberPortID().value()
+                   << " of hyper port " << aggPort.name().value()
+                   << " not found in port info on " << switchName;
+        return false;
+      }
+      if (it->second.operState().value() != PortOperState::UP) {
+        XLOG(DBG2) << "Member port " << it->second.name().value()
+                   << " of hyper port " << aggPort.name().value()
+                   << " is not up on " << switchName;
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool verifyHyperPortLacpStateForSwitch(const std::string& switchName) {
+  auto aggregatePorts = getAggregatePortTable(switchName);
+
+  for (const auto& aggPort : aggregatePorts) {
+    for (const auto& member : aggPort.memberPorts().value()) {
+      if (!member.isForwarding().value()) {
+        XLOG(DBG2) << "Member port " << member.memberPortID().value()
+                   << " of hyper port " << aggPort.name().value()
+                   << " LACP forwarding state is false on " << switchName;
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool verifyHyperPortUpForSwitch(const std::string& switchName) {
+  auto aggregatePorts = getAggregatePortTable(switchName);
+
+  for (const auto& aggPort : aggregatePorts) {
+    if (!aggPort.isUp().value()) {
+      XLOG(DBG2) << "Hyper port " << aggPort.name().value() << " is not up on "
+                 << switchName;
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool verifyHyperPortMembersUp(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Hyper Port Members Up";
+  for (const auto& edsw : topologyInfo->getEdsws()) {
+    if (!verifyHyperPortMembersUpForSwitch(edsw)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool verifyHyperPortLacpState(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Hyper Port LACP Forwarding State";
+  for (const auto& edsw : topologyInfo->getEdsws()) {
+    if (!verifyHyperPortLacpStateForSwitch(edsw)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool verifyHyperPortUp(const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Hyper Port Up";
+  for (const auto& edsw : topologyInfo->getEdsws()) {
+    if (!verifyHyperPortUpForSwitch(edsw)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying Ports for RDSWs";
   for (const auto& rdsw : topologyInfo->getRdsws()) {
@@ -596,12 +693,88 @@ bool verifyPortsForRdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   return true;
 }
 
+bool verifyHyperPortMemberCableLengthForSwitch(const std::string& switchName) {
+  auto verifyCableLengthHelper = [switchName]() {
+    XLOG(DBG2) << "Verifying Hyper Port Member Cable Length: " << switchName;
+    auto aggregatePorts = getAggregatePortTable(switchName);
+    auto portIdToPortInfo = getPortIdToPortInfo(switchName);
+
+    for (const auto& aggPort : aggregatePorts) {
+      for (const auto& member : aggPort.memberPorts().value()) {
+        auto it = portIdToPortInfo.find(member.memberPortID().value());
+        if (it == portIdToPortInfo.end()) {
+          XLOG(DBG2) << "Member port " << member.memberPortID().value()
+                     << " of hyper port " << aggPort.name().value()
+                     << " not found in port info on " << switchName;
+          return false;
+        }
+
+        if (it->second.operState().value() != PortOperState::UP) {
+          XLOG(DBG2) << "From " << switchName
+                     << " hyper port member: " << it->second.name().value()
+                     << " of hyper port " << aggPort.name().value()
+                     << " is not up";
+          return false;
+        }
+
+        if (it->second.cableLengthMeters().has_value() &&
+            it->second.cableLengthMeters().value() > 0) {
+          XLOG(DBG2) << "From " << switchName
+                     << " hyper port member: " << it->second.name().value()
+                     << " of hyper port " << aggPort.name().value()
+                     << " has cable length: "
+                     << it->second.cableLengthMeters().value();
+          continue;
+        }
+
+        XLOG(DBG2) << "From " << switchName
+                   << " hyper port member: " << it->second.name().value()
+                   << " of hyper port " << aggPort.name().value()
+                   << " has invalid cable length: "
+                   << it->second.cableLengthMeters().value_or(-1);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Cable length is collected during periodic stats collection, not immediately
+  // when port comes up. Thus, retry to allow stats collection to complete.
+  return checkWithRetryErrorReturn(
+      verifyCableLengthHelper,
+      30 /* num retries */,
+      std::chrono::milliseconds(2000) /* sleep between retries */,
+      true /* retry on exception */);
+}
+
+bool verifyHyperPortMemberCableLength(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  XLOG(DBG2) << "Verifying Hyper Port Member Cable Length";
+  for (const auto& edsw : topologyInfo->getEdsws()) {
+    if (!verifyHyperPortMemberCableLengthForSwitch(edsw)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool verifyPortsForEdsws(const std::unique_ptr<TopologyInfo>& topologyInfo) {
   XLOG(DBG2) << "Verifying Ports for EDSWs";
-  // for (const auto& edsw : topologyInfo->getEdsws()) {
-  //  TODO(daiweix): verify cable length of eth ports
-  //  TODO(daiweix): verify port up for hyper ports
-  //}
+  if (FLAGS_hyper_port) {
+    if (!verifyHyperPortMembersUp(topologyInfo)) {
+      return false;
+    }
+    if (!verifyHyperPortLacpState(topologyInfo)) {
+      return false;
+    }
+    if (!verifyHyperPortUp(topologyInfo)) {
+      return false;
+    }
+    if (!verifyHyperPortMemberCableLength(topologyInfo)) {
+      return false;
+    }
+  }
 
   return true;
 }
@@ -782,9 +955,8 @@ bool verifyDsfSessions(const std::unique_ptr<TopologyInfo>& topologyInfo) {
 }
 
 void verifyDsfCluster(const std::unique_ptr<TopologyInfo>& topologyInfo) {
-  WITH_RETRIES_N_TIMED(10, std::chrono::milliseconds(5000), {
+  WITH_RETRIES_N_TIMED(100, std::chrono::milliseconds(5000), {
     if (FLAGS_hyper_port) {
-      // TODO(daiweix): also verify LACP state
       EXPECT_EVENTUALLY_TRUE(verifyPorts(topologyInfo));
     } else {
       EXPECT_EVENTUALLY_TRUE(verifyFabricConnectivity(topologyInfo));

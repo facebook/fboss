@@ -25,7 +25,8 @@ MirrorOnDropReport::MirrorOnDropReport(
     std::string switchMac,
     std::string firstInterfaceMac,
     std::map<int8_t, cfg::MirrorOnDropEventConfig> modEventToConfigMap,
-    std::map<cfg::MirrorOnDropAgingGroup, int32_t> agingGroupAgingIntervalUsecs)
+    std::map<cfg::MirrorOnDropAgingGroup, int32_t> agingGroupAgingIntervalUsecs,
+    std::optional<int32_t> samplingRate)
     : ThriftStructNode<MirrorOnDropReport, state::MirrorOnDropReportFields>() {
   set<switch_state_tags::name>(name);
   set<switch_state_tags::mirrorPortId>(mirrorPortId);
@@ -42,6 +43,9 @@ MirrorOnDropReport::MirrorOnDropReport(
   set<switch_state_tags::agingGroupAgingIntervalUsecs>(
       agingGroupAgingIntervalUsecs);
   set<switch_state_tags::isResolved>(false);
+  if (samplingRate.has_value()) {
+    set<switch_state_tags::samplingRate>(samplingRate.value());
+  }
 }
 
 std::string MirrorOnDropReport::getID() const {
@@ -101,6 +105,13 @@ MirrorOnDropReport::getModEventToConfigMap() const {
 std::map<cfg::MirrorOnDropAgingGroup, int32_t>
 MirrorOnDropReport::getAgingGroupAgingIntervalUsecs() const {
   return get<switch_state_tags::agingGroupAgingIntervalUsecs>()->toThrift();
+}
+
+std::optional<int32_t> MirrorOnDropReport::getSamplingRate() const {
+  if (auto rate = get<switch_state_tags::samplingRate>()) {
+    return rate->cref();
+  }
+  return std::nullopt;
 }
 
 bool MirrorOnDropReport::isResolved() const {

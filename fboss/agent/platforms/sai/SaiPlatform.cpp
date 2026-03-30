@@ -38,9 +38,6 @@
 #include "fboss/agent/platforms/sai/SaiElbert8DDPhyPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiFakePlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiJanga800bicPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru400bfuPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru400biaPlatformPort.h"
-#include "fboss/agent/platforms/sai/SaiMeru400biuPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800bfaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMeru800biaPlatformPort.h"
 #include "fboss/agent/platforms/sai/SaiMinipack3NPlatformPort.h"
@@ -169,7 +166,11 @@ SaiPlatform::SaiPlatform(
         (FLAGS_hide_interface_ports &&
          *platPorts.find(static_cast<int32_t>(itPort.first))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platPorts.find(static_cast<int32_t>(itPort.first))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
       continue;
     }
     masterLogicalPortIds_.push_back(itPort.first);
@@ -387,17 +388,11 @@ void SaiPlatform::initPorts() {
           getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
         saiPort = std::make_unique<SaiBcmElbertPlatformPort>(portId, this);
       }
-    } else if (platformMode == PlatformType::PLATFORM_MERU400BIU) {
-      saiPort = std::make_unique<SaiMeru400biuPlatformPort>(portId, this);
     } else if (
         platformMode == PlatformType::PLATFORM_MERU800BIA ||
         platformMode == PlatformType::PLATFORM_MERU800BIAB ||
         platformMode == PlatformType::PLATFORM_MERU800BIAC) {
       saiPort = std::make_unique<SaiMeru800biaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MERU400BIA) {
-      saiPort = std::make_unique<SaiMeru400biaPlatformPort>(portId, this);
-    } else if (platformMode == PlatformType::PLATFORM_MERU400BFU) {
-      saiPort = std::make_unique<SaiMeru400bfuPlatformPort>(portId, this);
     } else if (
         platformMode == PlatformType::PLATFORM_MERU800BFA ||
         platformMode == PlatformType::PLATFORM_MERU800BFA_P1) {
@@ -1051,6 +1046,7 @@ SaiSwitchTraits::CreateAttributes SaiPlatform::getSwitchAttributes(
 #endif
       std::nullopt, // enable PFC monitoring for the switch
       measureCableLengths, // enable cable propagation delay measurement
+      std::nullopt, // switching mode (store-and-forward / cut-through)
   };
 }
 

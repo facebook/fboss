@@ -249,6 +249,146 @@ void NextHopIDManager::clearNhopIdManagerState() {
   idToNextHop_.clear();
   nextHopIdSetToIDInfo_.clear();
   idToNextHopIdSet_.clear();
+  nameToNextHopSet_.clear();
+  nameToNextHopSetID_.clear();
+}
+
+// Allocate or update a named next-hop group.
+// This API is called when a thrift API request comes in to add/update a named
+// next-hop group, independent of whether any route is using it.
+// Note: getOrAllocRouteNextHopSetID will reuse existing NextHopSetID if the
+// same nexthops have already been allocated (e.g., by routes), ensuring named
+// groups and routes share the same NextHopSetID when they have identical
+// nexthops.
+NextHopIDManager::NamedNextHopGroupAllocationResult
+NextHopIDManager::allocateNamedNextHopGroup(
+    const std::string& name,
+    const RouteNextHopSet& nextHopSet) {
+  NamedNextHopGroupAllocationResult result;
+  result.name = name;
+
+  // Check if this name already exists
+  auto existingIt = nameToNextHopSet_.find(name);
+  if (existingIt != nameToNextHopSet_.end()) {
+    // Group already exists - delegate to updateNamedNextHopGroup
+    auto updateResult = updateNamedNextHopGroup(name, nextHopSet);
+    result.allocation = std::move(updateResult.allocation);
+    result.isNew = false;
+  } else {
+    // New named next-hop group
+    // Note: getOrAllocRouteNextHopSetID will reuse existing NextHopSetID
+    // if the same nexthops have already been allocated (e.g., by routes).
+    // This ensures named groups and routes share the same NextHopSetID
+    // when they reference the same set of nexthops.
+    result.allocation = getOrAllocRouteNextHopSetID(nextHopSet);
+    result.isNew = true;
+
+    // Store the mappings
+    nameToNextHopSet_[name] = nextHopSet;
+    nameToNextHopSetID_[name] = result.allocation.nextHopIdSetIter->second.id;
+  }
+
+  return result;
+}
+
+NextHopIDManager::NamedNextHopGroupUpdateResult
+NextHopIDManager::updateNamedNextHopGroup(
+    const std::string& name,
+    const RouteNextHopSet& newNextHopSet) {
+  NamedNextHopGroupUpdateResult result;
+  result.name = name;
+
+  // Check if this name exists
+  auto existingIt = nameToNextHopSet_.find(name);
+  if (existingIt == nameToNextHopSet_.end()) {
+    throw FbossError("Cannot update non-existent named next-hop group: ", name);
+  }
+
+  auto oldSetIdIt = nameToNextHopSetID_.find(name);
+  CHECK(oldSetIdIt != nameToNextHopSetID_.end())
+      << "Named next-hop group " << name
+      << " exists in nameToNextHopSet_ but not in nameToNextHopSetID_";
+
+  // Deallocate old nexthops
+  result.deallocation = decrOrDeallocRouteNextHopSetID(oldSetIdIt->second);
+
+  // Allocate new nexthops
+  result.allocation = getOrAllocRouteNextHopSetID(newNextHopSet);
+
+  // Update the mappings
+  nameToNextHopSet_[name] = newNextHopSet;
+  nameToNextHopSetID_[name] = result.allocation.nextHopIdSetIter->second.id;
+
+  return result;
+}
+
+NextHopIDManager::NextHopDeallocationResult
+NextHopIDManager::deallocateNamedNextHopGroup(const std::string& name) {
+  // Check if this name exists
+  auto existingIt = nameToNextHopSet_.find(name);
+  if (existingIt == nameToNextHopSet_.end()) {
+    throw FbossError(
+        "Cannot deallocate non-existent named next-hop group: ", name);
+  }
+
+  auto setIdIt = nameToNextHopSetID_.find(name);
+  CHECK(setIdIt != nameToNextHopSetID_.end())
+      << "Named next-hop group " << name
+      << " exists in nameToNextHopSet_ but not in nameToNextHopSetID_";
+
+  // Deallocate the nexthops
+  auto result = decrOrDeallocRouteNextHopSetID(setIdIt->second);
+
+  // Remove the name mappings
+  nameToNextHopSet_.erase(existingIt);
+  nameToNextHopSetID_.erase(setIdIt);
+
+  return result;
+}
+
+std::optional<NextHopSetID> NextHopIDManager::getNextHopSetIDForName(
+    const std::string& name) const {
+  auto it = nameToNextHopSetID_.find(name);
+  if (it != nameToNextHopSetID_.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsForName(
+    const std::string& name) const {
+  auto it = nameToNextHopSet_.find(name);
+  if (it != nameToNextHopSet_.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+RouteNextHopSet NextHopIDManager::getNextHops(NextHopSetID nextHopSetID) const {
+  auto nextHopsOpt = getNextHopsIf(nextHopSetID);
+  if (!nextHopsOpt) {
+    throw FbossError("NextHopSetID ", nextHopSetID, " not found");
+  }
+  return *nextHopsOpt;
+}
+
+std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsIf(
+    NextHopSetID nextHopSetID) const {
+  auto nextHopIdSetIt = idToNextHopIdSet_.find(nextHopSetID);
+  if (nextHopIdSetIt == idToNextHopIdSet_.end()) {
+    return std::nullopt;
+  }
+
+  std::vector<NextHop> nextHopVec;
+  nextHopVec.reserve(nextHopIdSetIt->second.size());
+  for (const auto& nextHopID : nextHopIdSetIt->second) {
+    auto nextHopIt = idToNextHop_.find(nextHopID);
+    CHECK(nextHopIt != idToNextHop_.end())
+        << "NextHopId " << nextHopID
+        << " not found in idToNextHop_ for NextHopSetID " << nextHopSetID;
+    nextHopVec.push_back(nextHopIt->second);
+  }
+  return RouteNextHopSet(nextHopVec.begin(), nextHopVec.end());
 }
 
 void NextHopIDManager::reconstructFromFib(
@@ -262,6 +402,10 @@ void NextHopIDManager::reconstructFromFib(
   NextHopID maxNextHopId = NextHopID(kNextHopIDStart - 1);
   NextHopSetID maxNextHopSetId = NextHopSetID(kNextHopSetIDStart - 1);
 
+  // Track named next-hop groups that we've already processed
+  // We only need to process them once since they're the same across switches
+  std::unordered_set<std::string> processedNamedGroups;
+
   // Iterate through each FIBInfo on all switches
   for (const auto& [switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
     auto id2NhopMapInFib = fibInfo->getIdToNextHopMap();
@@ -272,7 +416,7 @@ void NextHopIDManager::reconstructFromFib(
       continue;
     }
 
-    // function to process a single SetID - This setId can be
+    // function to process a single SetID
     // resolvedNextHopSetID, normalizedResolvedNextHopID, and any future ID
     // types
     auto processNhopSetId = [&](NextHopSetID setId) {
@@ -346,6 +490,53 @@ void NextHopIDManager::reconstructFromFib(
     for (const auto& [routerId, fibContainer] : std::as_const(*fibsMap)) {
       processRoutes(fibContainer->getFibV4());
       processRoutes(fibContainer->getFibV6());
+    }
+
+    // Reconstruct named next-hop groups from FibInfo
+    // Only process each name once (they should be the same across switches)
+    // This must come after processNhopSetId is defined so we can use it
+    // to properly increment reference counts for named groups
+    auto nameToSetIdMap =
+        fibInfo->safe_cref<switch_state_tags::nameToNextHopSetId>();
+    if (nameToSetIdMap) {
+      for (const auto& [name, setIdNode] : std::as_const(*nameToSetIdMap)) {
+        if (processedNamedGroups.count(name) > 0) {
+          continue;
+        }
+        processedNamedGroups.insert(name);
+
+        NextHopSetID setId = NextHopSetID(setIdNode->toThrift());
+
+        // Increment reference counts via processNhopSetId so that
+        // deallocateNamedNextHopGroup() can properly decrement them.
+        // This also populates idToNextHop_ and idToNextHopIdSet_ maps.
+        processNhopSetId(setId);
+
+        // Now we can get the NextHopIDSet directly from the ID manager's
+        // idToNextHopIdSet_ map which was populated by processNhopSetId
+        auto nextHopIdSetIt = idToNextHopIdSet_.find(setId);
+        CHECK(nextHopIdSetIt != idToNextHopIdSet_.end())
+            << "NextHopSetId " << setId
+            << " not found in idToNextHopIdSet_ after processNhopSetId";
+
+        // Build RouteNextHopSet from the NextHopIDSet using idToNextHop_ map
+        // Collect nexthops in a vector first to avoid O(n^2) single-element
+        // insertions into flat_set
+        std::vector<NextHop> nextHopVec;
+        nextHopVec.reserve(nextHopIdSetIt->second.size());
+        for (const auto& nextHopID : nextHopIdSetIt->second) {
+          auto nextHopIt = idToNextHop_.find(nextHopID);
+          CHECK(nextHopIt != idToNextHop_.end())
+              << "NextHopId " << nextHopID
+              << " not found in idToNextHop_ after processNhopSetId";
+          nextHopVec.push_back(nextHopIt->second);
+        }
+        RouteNextHopSet nextHopSet(nextHopVec.begin(), nextHopVec.end());
+
+        // Store the name to nexthop mapping
+        nameToNextHopSet_[name] = nextHopSet;
+        nameToNextHopSetID_[name] = setId;
+      }
     }
   }
 

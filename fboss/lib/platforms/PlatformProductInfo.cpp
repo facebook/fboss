@@ -138,16 +138,6 @@ void PlatformProductInfo::initMode() {
         modelName.find("YANGRA") == 0) {
       type_ = PlatformType::PLATFORM_YANGRA;
     } else if (
-        modelName.find("Meru400biu") == 0 ||
-        modelName.find("S9710-76D-BB12") == 0) {
-      type_ = PlatformType::PLATFORM_MERU400BIU;
-    } else if (modelName.find("Meru400bia") == 0) {
-      type_ = PlatformType::PLATFORM_MERU400BIA;
-    } else if (
-        modelName.find("Meru400bfu") == 0 ||
-        modelName.find("S9705-48D-4B4") == 0) {
-      type_ = PlatformType::PLATFORM_MERU400BFU;
-    } else if (
         modelName.find("Meru800bia") == 0 ||
         modelName.find("MERU800BIA") == 0 ||
         modelName.find("ASY-92458-101") == 0 ||
@@ -251,8 +241,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_ELBERT;
     } else if (FLAGS_mode == "darwin") {
       type_ = PlatformType::PLATFORM_DARWIN;
-    } else if (FLAGS_mode == "meru400biu") {
-      type_ = PlatformType::PLATFORM_MERU400BIU;
     } else if (FLAGS_mode == "meru800bia") {
       type_ = PlatformType::PLATFORM_MERU800BIA;
     } else if (FLAGS_mode == "meru800biab") {
@@ -263,10 +251,6 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_MERU800BFA;
     } else if (FLAGS_mode == "meru800bfa_p1") {
       type_ = PlatformType::PLATFORM_MERU800BFA_P1;
-    } else if (FLAGS_mode == "meru400bia") {
-      type_ = PlatformType::PLATFORM_MERU400BIA;
-    } else if (FLAGS_mode == "meru400bfu") {
-      type_ = PlatformType::PLATFORM_MERU400BFU;
     } else if (FLAGS_mode == "wedge400c") {
       type_ = PlatformType::PLATFORM_WEDGE400C;
     } else if (FLAGS_mode == "wedge400c_voq") {

@@ -56,6 +56,9 @@
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
@@ -264,10 +267,18 @@ template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
+template void
+CmdHandler<CmdShowFsdbDataCommon, CmdShowFsdbDataCommonTraits>::run();
+template void
+CmdHandler<CmdShowFsdbSubscribers, CmdShowFsdbSubscriberTraits>::run();
+template void
+CmdHandler<CmdShowFsdbPublishers, CmdShowFsdbPublisherTraits>::run();
 
 template const ValidAggMapType
 CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
 
+template const ValidFilterMapType
+CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
 template const ValidFilterMapType

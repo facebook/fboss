@@ -141,3 +141,5 @@ DECLARE_bool(can_warm_boot);
 DECLARE_string(thrift_switch_state_file);
 DECLARE_bool(qsfp_port_manager_mode);
 DECLARE_bool(verify_fib_nexthop_id_consistency);
+DECLARE_bool(enforce_single_nbr_mac_per_intf);
+DECLARE_int32(max_tx_packets);

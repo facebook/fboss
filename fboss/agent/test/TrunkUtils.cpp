@@ -92,6 +92,22 @@ std::shared_ptr<SwitchState> enableTrunkPorts(
   return newState;
 }
 
+std::shared_ptr<SwitchState> disableTrunkPorts(
+    std::shared_ptr<SwitchState> curState) {
+  auto newState{curState};
+  for (const auto& [_, aggPorts] :
+       std::as_const(*newState->getAggregatePorts())) {
+    for (const auto& idAndAggPort : std::as_const(*aggPorts)) {
+      auto aggPort = idAndAggPort.second->modify(&newState);
+      for (auto subPort : aggPort->sortedSubports()) {
+        aggPort->setForwardingState(
+            subPort.portID, AggregatePort::Forwarding::DISABLED);
+      }
+    }
+  }
+  return newState;
+}
+
 std::shared_ptr<SwitchState> setTrunkMinLinkCount(
     std::shared_ptr<SwitchState> curState,
     uint8_t minlinks) {

@@ -257,6 +257,18 @@ target_link_libraries(dscp_marking_utils
   switch_config_cpp2
 )
 
+add_library(srv6_test_utils
+  fboss/agent/test/utils/Srv6TestUtils.cpp
+)
+
+target_link_libraries(srv6_test_utils
+  agent_ensemble
+  config_utils
+  fboss_types
+  load_balancer_test_utils
+  switch_config_cpp2
+)
+
 add_library(trap_packet_utils
   fboss/agent/test/utils/TrapPacketUtils.cpp
 )
@@ -560,4 +572,28 @@ add_library(neighbor_test_utils
 target_link_libraries(neighbor_test_utils
   core
   state
+)
+
+add_library(tunnel_mgr_test_utils
+  fboss/agent/test/utils/TunnelMgrTestUtils.cpp
+)
+
+target_link_libraries(tunnel_mgr_test_utils
+  core
+  fboss_types
+  state
+  switch_config_cpp2
+  utils
+  Folly::folly
+  ${GTEST}
+)
+
+add_library(nexthop_id_test_utils
+  fboss/agent/test/utils/NextHopIdTestUtils.cpp
+)
+
+target_link_libraries(nexthop_id_test_utils
+  state
+  nexthop_id_manager
+  Folly::folly
 )

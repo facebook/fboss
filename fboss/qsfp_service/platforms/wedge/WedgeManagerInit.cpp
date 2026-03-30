@@ -16,9 +16,6 @@
 #include "fboss/lib/bsp/icetea800bc/Icetea800bcBspPlatformMapping.h"
 #include "fboss/lib/bsp/janga800bic/Janga800bicBspPlatformMapping.h"
 #include "fboss/lib/bsp/ladakh800bcls/Ladakh800bclsBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400bfu/Meru400bfuBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400bia/Meru400biaBspPlatformMapping.h"
-#include "fboss/lib/bsp/meru400biu/Meru400biuBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bfa/Meru800bfaBspPlatformMapping.h"
 #include "fboss/lib/bsp/meru800bia/Meru800biaBspPlatformMapping.h"
 #include "fboss/lib/bsp/minipack3bta/Minipack3BTABspPlatformMapping.h"
@@ -100,21 +97,6 @@ std::unique_ptr<WedgeManager> createWedgeManager(
       return createDarwinWedgeManager(platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_ELBERT:
       return createElbertWedgeManager(platformMapping, qsfpServiceThreads);
-    case PlatformType::PLATFORM_MERU400BFU:
-      return createBspWedgeManager<
-          Meru400bfuBspPlatformMapping,
-          PlatformType::PLATFORM_MERU400BFU>(
-          platformMapping, qsfpServiceThreads);
-    case PlatformType::PLATFORM_MERU400BIA:
-      return createBspWedgeManager<
-          Meru400biaBspPlatformMapping,
-          PlatformType::PLATFORM_MERU400BIA>(
-          platformMapping, qsfpServiceThreads);
-    case PlatformType::PLATFORM_MERU400BIU:
-      return createBspWedgeManager<
-          Meru400biuBspPlatformMapping,
-          PlatformType::PLATFORM_MERU400BIU>(
-          platformMapping, qsfpServiceThreads);
     case PlatformType::PLATFORM_MERU800BIA:
     case PlatformType::PLATFORM_MERU800BIAB:
     case PlatformType::PLATFORM_MERU800BIAC:

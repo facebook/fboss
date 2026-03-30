@@ -3,12 +3,12 @@
 #include <gtest/gtest.h>
 
 #include "fboss/agent/ShelManager.h"
-#include "fboss/agent/state/FibInfo.h"
-#include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 
 namespace {
 constexpr auto kLocalSysPortMax = 20;
@@ -23,6 +23,9 @@ class ShelManagerTest : public ::testing::Test {
  public:
   void SetUp() override {
     shelManager_ = std::make_unique<ShelManager>();
+    if (FLAGS_enable_nexthop_id_manager) {
+      nextHopIDManager_ = std::make_unique<NextHopIDManager>();
+    }
   }
 
   std::shared_ptr<SwitchState> switchStateWithLocalSysPorts(
@@ -80,6 +83,7 @@ class ShelManagerTest : public ::testing::Test {
     RoutePrefixV4 v4Prefix{folly::IPAddressV4("10.0.0.0"), 24};
     auto v4Route = std::make_shared<RouteV4>(RouteV4::makeThrift(v4Prefix));
     auto entry = RouteNextHopEntry(ecmpNextHopSet, AdminDistance::EBGP);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
     v4Route->setResolved(entry);
     v4Route->publish();
 
@@ -121,6 +125,7 @@ class ShelManagerTest : public ::testing::Test {
     };
     addSwitchSettings(SwitchID(0));
     newState->resetSwitchSettings(std::move(multiSwitchSwitchSettings));
+    populateFibInfoIdMaps(nextHopIDManager_.get(), newState);
     return newState;
   }
 
@@ -139,6 +144,7 @@ class ShelManagerTest : public ::testing::Test {
   }
 
   std::unique_ptr<ShelManager> shelManager_;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
 };
 
 TEST_F(ShelManagerTest, RefCountAndIntf2AddDel) {

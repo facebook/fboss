@@ -653,8 +653,41 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_rtmcpld",
-          "pmUnitScopedName": "RTM_L_CPLD"
+          "kernelDeviceName": "fbg_rtmcpld",
+          "pmUnitScopedName": "RTM_L_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
@@ -833,8 +866,41 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_rtmcpld",
-          "pmUnitScopedName": "RTM_R_CPLD"
+          "kernelDeviceName": "fbg_rtmcpld",
+          "pmUnitScopedName": "RTM_R_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
@@ -1037,7 +1103,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1051,7 +1117,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1065,7 +1131,7 @@
               "__comment__": "Remote temp2 high limit setting for high byte.",
               "regOffset": 21,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1119,7 +1185,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1133,7 +1199,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1206,7 +1272,7 @@
         {
           "busName": "INCOMING@2",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_L_CPLD"
         },
         {
@@ -1227,7 +1293,7 @@
           "busName": "INCOMING@4",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_L_INLET_TSHENSOR"
+          "pmUnitScopedName": "SMB_L_INLET_TSENSOR"
         },
         {
           "busName": "INCOMING@4",
@@ -1244,7 +1310,7 @@
           "busName": "INCOMING@0",
           "address": "0x48",
           "kernelDeviceName": "lm75b",
-          "pmUnitScopedName": "SMB_R_INLET_TSHENSOR"
+          "pmUnitScopedName": "SMB_R_INLET_TSENSOR"
         },
         {
           "busName": "INCOMING@0",
@@ -1309,7 +1375,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1323,7 +1389,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1337,7 +1403,7 @@
               "__comment__": "Remote temp2 high limit setting for high byte.",
               "regOffset": 21,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1391,7 +1457,7 @@
               "__comment__": "Local temperature high limit for high byte.",
               "regOffset": 11,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1405,7 +1471,7 @@
               "__comment__": "Remote temp1 high limit setting for high byte.",
               "regOffset": 13,
               "ioBuf": [
-                100
+                95
               ]
             },
             {
@@ -1464,7 +1530,7 @@
         {
           "busName": "INCOMING@4",
           "address": "0x33",
-          "kernelDeviceName": "anacapa_smbcpld",
+          "kernelDeviceName": "th6_smbcpld",
           "pmUnitScopedName": "SMB_R_CPLD"
         }
       ]
@@ -1637,7 +1703,7 @@
     "/run/devmap/sensors/SMB_L_ASIC_VOLTAGE_7": "/SMB_L_SLOT@0/[SMB_L_ASIC_VOLTAGE_7]",
     "/run/devmap/sensors/SMB_L_ADC1_SENSOR": "/SMB_L_SLOT@0/[SMB_L_ADC1_SENSOR]",
     "/run/devmap/sensors/SMB_L_ADC2_SENSOR": "/SMB_L_SLOT@0/[SMB_L_ADC2_SENSOR]",
-    "/run/devmap/sensors/SMB_L_INLET_TSHENSOR": "/SMB_L_SLOT@0/[SMB_L_INLET_TSHENSOR]",
+    "/run/devmap/sensors/SMB_L_INLET_TSENSOR": "/SMB_L_SLOT@0/[SMB_L_INLET_TSENSOR]",
     "/run/devmap/sensors/SMB_L_VDDCORE": "/SMB_L_SLOT@0/[SMB_L_VDDCORE]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_0": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_0]",
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_1": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_1]",
@@ -1653,17 +1719,18 @@
     "/run/devmap/sensors/SMB_R_ASIC_VOLTAGE_7": "/SMB_R_SLOT@0/[SMB_R_ASIC_VOLTAGE_7]",
     "/run/devmap/sensors/SMB_R_ADC1_SENSOR": "/SMB_R_SLOT@0/[SMB_R_ADC1_SENSOR]",
     "/run/devmap/sensors/SMB_R_ADC2_SENSOR": "/SMB_R_SLOT@0/[SMB_R_ADC2_SENSOR]",
-    "/run/devmap/sensors/SMB_R_INLET_TSHENSOR": "/SMB_R_SLOT@0/[SMB_R_INLET_TSHENSOR]",
+    "/run/devmap/sensors/SMB_R_INLET_TSENSOR": "/SMB_R_SLOT@0/[SMB_R_INLET_TSENSOR]",
     "/run/devmap/sensors/SMB_R_VDDCORE": "/SMB_R_SLOT@0/[SMB_R_VDDCORE]"
   },
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 2,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.0.0-1",
+  "bspKmodsRpmVersion": "4.2.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",
     "fboss_iob_pci",
+    "fboss_iob_i2c",
     "ledtrig_timer"
   ]
 }

@@ -5,8 +5,8 @@
 #include <folly/logging/xlog.h>
 
 #if FOLLY_HAS_COROUTINES
-#include <folly/experimental/coro/AsyncGenerator.h>
-#include <folly/experimental/coro/WithCancellation.h>
+#include <folly/coro/AsyncGenerator.h>
+#include <folly/coro/WithCancellation.h>
 #endif
 
 DEFINE_int32(

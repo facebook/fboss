@@ -51,6 +51,12 @@ createClient(const HostInfo& hostInfo) {
   return utils::createLedClient(hostInfo);
 }
 
+template <>
+std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
+createClient(const HostInfo& hostInfo) {
+  return utils::createFsdbClient(hostInfo);
+}
+
 int getNumHwSwitches(const HostInfo& hostInfo) {
   auto client =
       utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);

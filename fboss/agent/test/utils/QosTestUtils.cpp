@@ -93,6 +93,23 @@ std::shared_ptr<SwitchState> disableTTLDecrement(
   return newState;
 }
 
+void disableTTLDecrementOnNeighbor(
+    TestEnsembleIf* hw,
+    InterfaceID intfID,
+    const folly::IPAddress& nhop) {
+  hw->applyNewState(
+      [intfID, &nhop](const std::shared_ptr<SwitchState>& state) {
+        auto newState = state->clone();
+        if (nhop.isV4()) {
+          setDisableTTLDecrementOnNeighnor(&newState, intfID, nhop.asV4());
+        } else {
+          setDisableTTLDecrementOnNeighnor(&newState, intfID, nhop.asV6());
+        }
+        return newState;
+      },
+      "Disable TTL decrement on neighbor: " + nhop.str());
+}
+
 void disableTTLDecrements(TestEnsembleIf* hw, const PortDescriptor& port) {
   hw->applyNewState(
       [asicTable = hw->getHwAsicTable(),

@@ -7,20 +7,27 @@ cpp_unittest(
     srcs = [
         "ArpHdrTest.cpp",
         "DHCPv4PacketTest.cpp",
+        "EthFrameExtTest.cpp",
         "EthFrameTest.cpp",
         "EthHdrTest.cpp",
+        "ICMPExtHdrTest.cpp",
         "ICMPHdrTest.cpp",
         "ICMPPacketTest.cpp",
+        "IPPacketTest.cpp",
         "IPv4HdrTest.cpp",
         "IPv6HdrTest.cpp",
         "LlcHdrTest.cpp",
         "MPLSHdrTest.cpp",
+        "MPLSPacketTest.cpp",
         "NDPOptionTest.cpp",
         "NDPRouterAdvertisementTest.cpp",
         "PTPHdrTest.cpp",
+        "PktFactoryTest.cpp",
         "PktUtilTest.cpp",
-        "Srv6PacketTest.cpp",
+        "TCPHeaderExtTest.cpp",
         "TCPHeaderTest.cpp",
+        "TCPPacketTest.cpp",
+        "UDPDatagramTest.cpp",
         "UDPHdrTest.cpp",
     ],
     deps = [
@@ -50,6 +57,7 @@ cpp_unittest(
 cpp_unittest(
     name = "sflow_structs_test",
     srcs = [
+        "SflowStructsExtTest.cpp",
         "SflowStructsTest.cpp",
     ],
     deps = [
@@ -63,6 +71,7 @@ cpp_unittest(
 cpp_unittest(
     name = "dhcpv6_packet_test",
     srcs = [
+        "DHCPv6PacketExtTest.cpp",
         "DHCPv6PacketTest.cpp",
     ],
     deps = [

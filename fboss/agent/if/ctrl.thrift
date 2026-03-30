@@ -10,12 +10,14 @@ include "common/fb303/if/fb303.thrift"
 include "common/network/if/Address.thrift"
 include "fboss/agent/agent_stats.thrift"
 include "fboss/agent/if/mpls.thrift"
+include "configerator/structs/neteng/fboss/thrift/common.thrift" as fboss_common
 include "fboss/agent/if/common.thrift"
 include "fboss/agent/if/product_info.thrift"
 include "fboss/qsfp_service/if/transceiver.thrift"
 include "fboss/agent/switch_config.thrift"
 include "fboss/agent/platform_config.thrift"
 include "fboss/lib/phy/phy.thrift"
+include "fboss/lib/phy/prbs.thrift"
 include "fboss/agent/hw/hardware_stats.thrift"
 include "thrift/annotation/python.thrift"
 include "thrift/annotation/cpp.thrift"
@@ -104,6 +106,14 @@ struct MplsRoute {
   4: list<common.NextHopThrift> nextHops;
   // use this instead of next hops for using policy based routing or named next hop group
   6: common.NamedRouteDestination namedRouteDestination;
+}
+
+struct MySidEntry {
+  1: common.MySidType type;
+  # MySid entry in ip/mask format. 32 bits of this are
+  # locator block len and 32-maskLen are sid bits
+  2: Address.IPPrefix mySid;
+  3: list<common.NextHopThrift> nextHops;
 }
 
 struct ClientAndNextHops {
@@ -456,7 +466,7 @@ struct PortQueueFields {
   19: optional common.BufferPoolFields bufferPoolConfig;
 }
 
-@common.AllowSkipThriftCow
+@fboss_common.AllowSkipThriftCow
 struct SystemPortThrift {
   1: i64 portId;
   2: i64 switchId;
@@ -913,6 +923,13 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
     3: i32 vrf,
   ) throws (1: fboss.FbossBaseError error, 2: FbossFibUpdateError fibError);
 
+  void addMySidEntries(1: list<MySidEntry> mySidEntries) throws (
+    1: fboss.FbossBaseError error,
+  );
+  void deleteMySidEntries(1: list<IpPrefix> prefixes) throws (
+    1: fboss.FbossBaseError error,
+  );
+
   // Get route counter values
   map<string, i64> getRouteCounterBytes(1: list<string> counters) throws (
     1: fboss.FbossBaseError error,
@@ -927,12 +944,20 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * This injects the packet into the controller, as if it had been received
    * from a front-panel port.
    */
-  void sendPkt(1: i32 port, 2: i32 vlan, 3: fbbinary data) throws (
-    1: fboss.FbossBaseError error,
-  );
-  void sendPktHex(1: i32 port, 2: i32 vlan, 3: fbstring hex) throws (
-    1: fboss.FbossBaseError error,
-  );
+  void sendPkt(
+    1: i32 port,
+    2: i32 vlan,
+    3: fbbinary data,
+    4: i32 numOfPkts = 1,
+    5: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
+  void sendPktHex(
+    1: i32 port,
+    2: i32 vlan,
+    3: fbstring hex,
+    4: i32 numOfPkts = 1,
+    5: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit a packet out a specific front panel port.
@@ -943,9 +968,12 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * packet actually sent by the hardware, based on the hardware VLAN tagging
    * configuration for this VLAN+port.)
    */
-  void txPkt(1: i32 port, 2: fbbinary data) throws (
-    1: fboss.FbossBaseError error,
-  );
+  void txPkt(
+    1: i32 port,
+    2: fbbinary data,
+    3: i32 numOfPkts = 1,
+    4: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit a packet out to a specific VLAN.
@@ -959,7 +987,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * packet actually sent by the hardware, based on the hardware VLAN tagging
    * configuration for this VLAN.)
    */
-  void txPktL2(1: fbbinary data) throws (1: fboss.FbossBaseError error);
+  void txPktL2(
+    1: fbbinary data,
+    2: i32 numOfPkts = 1,
+    3: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Transmit an L3 packet.
@@ -968,7 +1000,11 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * The controller will add an appropriate ethernet frame header.  It will
    * contain the correct next hop information based on the layer 3 header.
    */
-  void txPktL3(1: fbbinary payload) throws (1: fboss.FbossBaseError error);
+  void txPktL3(
+    1: fbbinary payload,
+    2: i32 numOfPkts = 1,
+    3: i32 intervalInMs = 10,
+  ) throws (1: fboss.FbossBaseError error);
 
   /*
    * Flush the ARP/NDP entry with the specified IP address.
@@ -979,6 +1015,15 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Returns the number of entries flushed.
    */
   i32 flushNeighborEntry(1: Address.BinaryAddress ip, 2: i32 vlanId);
+
+  /*
+   * Flush a list of ARP/NDP entries in bulk.
+   *
+   * Each entry specifies an IP address and a vlanId (interfaceID).
+   *
+   * Returns the total number of entries flushed.
+   */
+  i32 flushNeighborEntries(1: list<IfAndIP> entries);
 
   /*
    * Inband addresses
@@ -1574,6 +1619,15 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
    * Get total route count (v4 and v6) from the FIB
    */
   RouteCount getRouteTableSize() throws (1: fboss.FbossBaseError error);
+
+  /*
+   * Change the PRBS setting on a list of ports.
+   */
+  void setInterfacesPrbs(
+    1: list<string> portNames,
+    2: phy.PortComponent component,
+    3: prbs.InterfacePrbsState state,
+  ) throws (1: fboss.FbossBaseError error);
 }
 
 service NeighborListenerClient extends fb303.FacebookService {

@@ -26,6 +26,7 @@ class PlatformManagerHandler
   void getEepromContents(
       EepromContentResponse& response,
       std::unique_ptr<PmUnitInfoRequest> request) override;
+  void getFirmwareVersions(FirmwareVersionsResponse& response) override;
 
  private:
   const PlatformExplorer& platformExplorer_;

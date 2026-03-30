@@ -19,12 +19,21 @@ import sys
 import tempfile
 
 
+def print_info(msg):
+    print(f"\033[93m{msg}\033[0m")
+
+
+def print_error(msg):
+    print(f"\033[91m{msg}\033[0m")
+
+
 # SDK Related Flags
 ARG_NPU_SAI_IMPL = "--npu-sai-impl"
 ARG_NPU_SAI_VERSION = "--npu-sai-version"
 ARG_NPU_SAI_SDK_VERSION = "--npu-sai-sdk-version"
 ARG_NPU_LIBSAI_IMPL_PATH = "--npu-libsai-impl-path"
 ARG_NPU_EXPERIMENTS_PATH = "--npu-experiments-path"
+ARG_PHY_SAI_IMPL = "--phy-sai-impl"
 
 # Misc Build Flags
 ARG_BENCHMARK_INSTALL = "--benchmark-install"
@@ -33,13 +42,14 @@ ARG_ASAN = "--asan"
 ARG_GETDEPS_HELP = "--getdeps-help"
 ARG_GETDEPS = "getdeps_args"
 
-SAI_IMPL_CHOICES = [
+SUPPORTED_SAI_IMPLS = {
     "SAI_BRCM_IMPL",
-    "SAI_BRCM_PAI_IMPL",
     "CHENAB_SAI_SDK",
     "SAI_TAJO_IMPL",
-    "BUILD_SAI_FAKE",
-]
+}
+SUPPORTED_PHY_IMPLS = {
+    "SAI_BRCM_PAI_IMPL",
+}
 SAI_VERSION_SHAS = {
     "1.13.2": "d60935ba1e5cc7e4ebf2ae7d04f9e937d445e3f875822e27a359c775cb203bae",
     "1.14.0": "4e3a1d010bda0c589db46e077725a2cd9624a5cc255c89d1caa79deb408d1fa7",
@@ -50,10 +60,32 @@ SAI_VERSION_SHAS = {
     "1.16.3": "5c89cdb6b2e4f1b42ced6b78d43d06d22434ddbf423cdc551f7c2001f12e63d9",
     "1.17.1": "05411b13b32abcc50f2f2b78e491e503b2b05e5a1503699abd4cc1b81f90d1ae",
 }
-# TODO: fill out
-SAI_SDK_VERSIONS = [
+SUPPORTED_SAI_SDK_VERSIONS = {
+    # BRCM XGS
+    "SAI_VERSION_8_2_0_0_ODP",
+    "SAI_VERSION_10_2_0_0_ODP",
+    "SAI_VERSION_11_7_0_0_ODP",
+    "SAI_VERSION_12_2_0_0_ODP",
+    "SAI_VERSION_13_3_0_0_ODP",
     "SAI_VERSION_14_0_EA_ODP",
-]
+    "SAI_VERSION_14_2_0_0_ODP",
+    "SAI_VERSION_15_0_EA_ODP",
+    # BRCM DNX
+    "SAI_VERSION_11_7_0_0_DNX_ODP",
+    "SAI_VERSION_12_2_0_0_DNX_ODP",
+    "SAI_VERSION_13_3_0_0_DNX_ODP",
+    "SAI_VERSION_14_0_EA_DNX_ODP",
+    "SAI_VERSION_14_2_0_0_DNX_ODP",
+    "SAI_VERSION_15_0_EA_DNX_ODP",
+    # Tajo
+    "TAJO_SDK_VERSION_1_42_8",
+    "TAJO_SDK_VERSION_24_8_3001",
+    "TAJO_SDK_VERSION_25_5_4210",
+    "TAJO_SDK_VERSION_25_11_5210",
+    # Chenab
+    "CHENAB_SAI_SDK_VERSION_2505_34_0_32",
+    "CHENAB_SAI_SDK_VERSION_2511_35_0_0",
+}
 
 
 def parse_args():
@@ -61,8 +93,18 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_SAI_IMPL,
         required=False,
-        choices=SAI_IMPL_CHOICES,
-        help="SAI implementation to be used for the build.",
+        help="SAI implementation to be used for the build. "
+        "Mutually exclusive with --phy-sai-impl. "
+        "If neither is provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
+        f"Meta officially supports: {sorted(SUPPORTED_SAI_IMPLS)}",
+    )
+    parser.add_argument(
+        ARG_PHY_SAI_IMPL,
+        required=False,
+        help="PHY (XPHY) SAI implementation to be used for the build. "
+        "Mutually exclusive with --npu-sai-impl. "
+        "If neither is provided, a fake SAI build is used (BUILD_SAI_FAKE=1). "
+        f"Meta officially supports: {sorted(SUPPORTED_PHY_IMPLS)}",
     )
     parser.add_argument(
         ARG_NPU_SAI_VERSION,
@@ -73,8 +115,8 @@ def parse_args():
     parser.add_argument(
         ARG_NPU_SAI_SDK_VERSION,
         required=False,
-        choices=SAI_SDK_VERSIONS,
-        help="SAI SDK version to be used for the build.",
+        help="SAI SDK version to be used for the build. "
+        f"Meta officially supports: {sorted(SUPPORTED_SAI_SDK_VERSIONS)}",
     )
     parser.add_argument(
         ARG_NPU_LIBSAI_IMPL_PATH,
@@ -87,6 +129,12 @@ def parse_args():
         ARG_NPU_EXPERIMENTS_PATH,
         required=False,
         help="Full path to SAI spec experiments directory.",
+    )
+    parser.add_argument(
+        "--preserve-env",
+        required=False,
+        action="store_true",
+        help="When set, flags will not overwrite previously set environment variables.",
     )
     parser.add_argument(
         ARG_BENCHMARK_INSTALL,
@@ -139,7 +187,7 @@ def detect_toolchain():
             ["g++", "--version"], capture_output=True, text=True, timeout=5
         )
     except (subprocess.TimeoutExpired, OSError) as e:
-        print(f"Warning: Could not detect compiler: {e}", file=sys.stderr)
+        print_info(f"Warning: Could not detect compiler: {e}")
         return None
 
     if gxx_version.returncode != 0:
@@ -181,10 +229,9 @@ def detect_toolchain():
                         break
 
     else:
-        print(
+        print_info(
             f"Warning: Could not detect toolchain from g++ --version output. "
-            f"Expected 'clang' or 'GCC' in output, got:\n{gxx_version.stdout}",
-            file=sys.stderr,
+            f"Expected 'clang' or 'GCC' in output, got:\n{gxx_version.stdout}"
         )
         return None
 
@@ -204,18 +251,16 @@ def setup_clang_environment(toolchain_info):
     Args:
         toolchain_info: dict with 'target_triple' and 'install_dir' from detect_toolchain()
     """
-    print("Detected clang compiler, setting clang-specific flags", file=sys.stderr)
+    print_info("Detected clang compiler, setting clang-specific flags")
 
     target_triple = toolchain_info.get("target_triple")
     llvm_bin_dir = toolchain_info.get("install_dir")
 
     if not llvm_bin_dir:
-        print(
-            "Warning: Could not determine LLVM installation directory", file=sys.stderr
-        )
+        print_info("Warning: Could not determine LLVM installation directory")
         return
     if not target_triple:
-        print("Warning: Could not determine target triple", file=sys.stderr)
+        print_info("Warning: Could not determine target triple")
         return
 
     # Read clang-specific CXXFLAGS from CMakeLists.txt using regex
@@ -225,10 +270,7 @@ def setup_clang_environment(toolchain_info):
             content = f.read()
     except FileNotFoundError:
         # CMakeLists.txt not found - this can happen during Docker build
-        print(
-            "Warning: CMakeLists.txt not found, skipping clang-specific flags",
-            file=sys.stderr,
-        )
+        print_info("Warning: CMakeLists.txt not found, skipping clang-specific flags")
         return
 
     # Extract the clang-specific section: if (CMAKE_CXX_COMPILER_ID MATCHES "Clang") ... endif()
@@ -264,6 +306,7 @@ def setup_clang_environment(toolchain_info):
     # Helper to prepend a value to an environment variable
     def prepend_env(new, var, sep=" "):
         os.environ[var] = (new + sep + os.environ.get(var, "")).strip(sep)
+        print_info(f"Set {var}={os.environ[var]}")
 
     # Set CFLAGS - prepend to existing flags
     cflags = ["-DHAVE_SETNS=1"]
@@ -296,6 +339,7 @@ def setup_clang_environment(toolchain_info):
         if "\nbinutils" in content:
             with open(manifest, "w") as f:
                 f.write(content.replace("\nbinutils", "\n#binutils"))
+            print_info(f"Patching manifest {manifest} to disable binutils")
 
 
 def _edit_libsai_manifest(version):
@@ -317,10 +361,11 @@ def _edit_libsai_manifest(version):
         "\n"
         "[install.files]\n"
         "inc = include\n"
+        "experimental = experimental\n"
     )
     with open(manifest_path, "w") as f:
         f.write(manifest_str)
-    print(f"Updated libsai manifest for SAI version {version}", file=sys.stderr)
+    print_info(f"Updated libsai manifest for SAI version {version}")
 
 
 def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
@@ -331,16 +376,38 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     that CMake expects, and that directory is prepended to CMAKE_PREFIX_PATH.
     """
     if (libsai_impl_path is None) and (experiments_path is None):
-        print(
-            f"Both {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH} not provided! Skip preparing SDK artifacts.",
-            file=sys.stderr,
+        print_info(
+            f"Both {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH} not provided! Skip preparing SDK artifacts."
         )
         return
 
     if (libsai_impl_path is None) or (experiments_path is None):
-        print(
-            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH} must both be provided together.",
-            file=sys.stderr,
+        print_info(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH} must both be provided together."
+        )
+        sys.exit(1)
+
+    # Validate paths exist and are non-empty
+    if not os.path.isfile(libsai_impl_path):
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} path does not exist "
+            f"or is not a file: {libsai_impl_path}"
+        )
+        sys.exit(1)
+    if os.path.getsize(libsai_impl_path) == 0:
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_PATH} file is empty: {libsai_impl_path}"
+        )
+        sys.exit(1)
+    if not os.path.isdir(experiments_path):
+        print_error(
+            f"Error: {ARG_NPU_EXPERIMENTS_PATH} path does not exist "
+            f"or is not a directory: {experiments_path}"
+        )
+        sys.exit(1)
+    if not os.listdir(experiments_path):
+        print_error(
+            f"Error: {ARG_NPU_EXPERIMENTS_PATH} directory is empty: {experiments_path}"
         )
         sys.exit(1)
 
@@ -354,8 +421,12 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
         os.path.join(lib_dir, os.path.basename(libsai_impl_path)),
     )
     os.symlink(os.path.abspath(experiments_path), os.path.join(staging_dir, "include"))
+    print_info(f"Symlinked {libsai_impl_path} -> {lib_dir}")
+    print_info(
+        f"Symlinked {experiments_path} -> {os.path.join(staging_dir, 'include')}"
+    )
 
-    print(f"Staged SDK artifacts in {staging_dir}", file=sys.stderr)
+    print_info(f"Staged SDK artifacts in {staging_dir}")
 
     # Prepend the staging directory to CMAKE_PREFIX_PATH
     existing = os.environ.get("CMAKE_PREFIX_PATH", "")
@@ -364,12 +435,87 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     )
 
 
+def _warn_if_unsupported(flag_name, value, supported_values):
+    """Print an info message if value is not in the set of officially supported values."""
+    if value not in supported_values:
+        print_info(
+            f"Note: '{value}' is not a Meta officially supported value for {flag_name}. "
+            f"Supported values: {sorted(supported_values)}"
+        )
+
+
+def _set_build_env_vars(args):
+    """
+    Validate flag groups and set the corresponding environment variables.
+    """
+    env_vars = {}
+
+    # --- SAI impl mutual exclusivity check ---
+    if args.npu_sai_impl is not None and args.phy_sai_impl is not None:
+        print_error(
+            f"Error: {ARG_NPU_SAI_IMPL} and {ARG_PHY_SAI_IMPL} are mutually exclusive. "
+            "Specify only one SAI implementation."
+        )
+        sys.exit(1)
+
+    # --- SAI flags ---
+    if args.npu_sai_version is not None:
+        env_vars["SAI_VERSION"] = args.npu_sai_version
+
+    if args.npu_sai_impl is not None:
+        _warn_if_unsupported(ARG_NPU_SAI_IMPL, args.npu_sai_impl, SUPPORTED_SAI_IMPLS)
+
+        # Real SAI impl requires an SDK version
+        if args.npu_sai_sdk_version is None:
+            print_error(
+                f"Error: {ARG_NPU_SAI_SDK_VERSION} is required when using "
+                f"{ARG_NPU_SAI_IMPL}={args.npu_sai_impl}."
+            )
+            sys.exit(1)
+        env_vars[args.npu_sai_impl] = "1"
+
+        _warn_if_unsupported(
+            ARG_NPU_SAI_SDK_VERSION,
+            args.npu_sai_sdk_version,
+            SUPPORTED_SAI_SDK_VERSIONS,
+        )
+        env_vars["SAI_SDK_VERSION"] = args.npu_sai_sdk_version
+    elif args.phy_sai_impl is not None:
+        _warn_if_unsupported(ARG_PHY_SAI_IMPL, args.phy_sai_impl, SUPPORTED_PHY_IMPLS)
+        env_vars[args.phy_sai_impl] = "1"
+    else:
+        print_info(
+            "No SAI implementation provided, defaulting to fake SAI build (BUILD_SAI_FAKE=1)"
+        )
+        env_vars["BUILD_SAI_FAKE"] = "1"
+
+    # --- Misc build flags ---
+    if args.benchmark_install:
+        env_vars["BENCHMARK_INSTALL"] = "1"
+    if args.skip_install:
+        env_vars["SKIP_ALL_INSTALL"] = "1"
+
+    # Set all collected env vars
+    for name, value in env_vars.items():
+        if args.preserve_env and name in os.environ:
+            print_info(
+                f"Preserved existing ENV {name}={os.environ[name]} "
+                f"(flag value was {value})"
+            )
+        else:
+            os.environ[name] = str(value).strip()
+            print_info(f"Set ENV {name}={value}")
+
+
 def main():
     args = parse_args()
+    print_info("Starting run-getdeps.py")
     getdeps_path = path_to("build", "fbcode_builder", "getdeps.py")
 
     if args.getdeps_help:
         os.execv(getdeps_path, [getdeps_path, "-h"])
+
+    _set_build_env_vars(args)
 
     _conditionally_prepare_sdk_artifacts(
         args.npu_libsai_impl_path, args.npu_experiments_path
@@ -382,14 +528,16 @@ def main():
     toolchain_info = detect_toolchain()
 
     if toolchain_info:
+        print_info(f"Detected toolchain: {toolchain_info}")
         if toolchain_info["type"] == "clang":
             setup_clang_environment(toolchain_info)
         elif toolchain_info["type"] == "gcc":
-            pass  # No action needed for GCC
+            print_info("Detected GCC compiler, no additional flags needed")
     # If toolchain_info is None, detect_toolchain() already printed a warning
     # and we'll proceed without environment setup
 
     # Call the real getdeps.py with all arguments
+    print_info(f"Executing getdeps.py with args: {args.getdeps_args}")
     os.execv(getdeps_path, [getdeps_path] + args.getdeps_args)
 
 

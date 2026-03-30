@@ -48,11 +48,13 @@ thrift_library(
         ":product_info",
         "//common/fb303/if:fb303",
         "//common/network/if:if",
+        "//configerator/structs/neteng/fboss/thrift:common",
         "//fboss/agent:agent_stats",
         "//fboss/agent:platform_config",
         "//fboss/agent:switch_config",
         "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
+        "//fboss/lib/phy:prbs",
         "//fboss/qsfp_service/if:transceiver",
     ],
 )
@@ -112,7 +114,6 @@ thrift_library(
         ":mpls",
         "//common/network/if:if",
         "//thrift/annotation:cpp",
-        "//thrift/annotation:scope",
         "//thrift/annotation:thrift",
     ],
 )

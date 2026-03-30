@@ -3,6 +3,10 @@
 Description=FBOSS QSFP Service
 After=platform_manager.service
 After=rc-local.service
+Wants=fboss_init.service
+After=fboss_init.service
+StartLimitIntervalSec=600
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -20,10 +24,8 @@ Restart=always
 RestartSec=30
 TimeoutStartSec=180s
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=qsfp_service
+StandardOutput=append:/var/facebook/logs/fboss/qsfp_service.log
+StandardError=append:/var/facebook/logs/fboss/qsfp_service.log
 
 [Install]
 WantedBy=multi-user.target

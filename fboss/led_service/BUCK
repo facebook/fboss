@@ -166,6 +166,7 @@ cpp_library(
         "//fboss/lib/led:led_lib",
         "//fboss/lib/led:led_mapping-cpp2-types",
         "//fboss/lib/platforms:product-info",
+        "//fboss/qsfp_service/if:state-cpp2-types",
         "//folly:format",
         "//folly:synchronized",
         "//folly/io/async:async_base",

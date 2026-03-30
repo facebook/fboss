@@ -29,6 +29,7 @@ enum class ExplorationErrorType {
   IDPROM_READ,
   SLOT_PM_UNIT_ABSENCE,
   SLOT_PRESENCE_CHECK,
+  CPLD_SYSFS_ATTR_CREATE,
   // Need this for ExplorationErrorType size at compile time.
   SIZE
 };
@@ -81,6 +82,8 @@ constexpr const char* toExplorationErrorTypeStr(
       return "slot_pm_unit_absence";
     case ExplorationErrorType::SLOT_PRESENCE_CHECK:
       return "slot_presence_check";
+    case ExplorationErrorType::CPLD_SYSFS_ATTR_CREATE:
+      return "cpld_sysfs_attr_create";
     case ExplorationErrorType::SIZE:
       throw std::invalid_argument("Do not use ExplorationErrorType::SIZE");
   }

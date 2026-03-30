@@ -15,6 +15,7 @@
 #include <folly/MacAddress.h>
 
 #include <fmt/core.h>
+#include <array>
 #include <type_traits>
 #include <variant>
 
@@ -219,7 +220,7 @@ struct WrappedSaiType<std::vector<sai_system_port_config_t>> {
 };
 
 template <>
-struct WrappedSaiType<std::vector<folly::IPAddressV6>> {
+struct WrappedSaiType<std::vector<std::array<uint8_t, 16>>> {
   using value = sai_segment_list_t;
 };
 

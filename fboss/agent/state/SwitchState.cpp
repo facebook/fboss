@@ -54,24 +54,14 @@ DEFINE_bool(
     "Allow multiple acl tables (acl table group)");
 
 /*
- * VOQ switches require that the packets are not tagged with VLAN.
- * We are gradually enhancing the wedge_agent to handle tagged as well as
- * untagged packets.
- * As part of these changes, neighbor tables will move to Interfaces instead of
- * VLANs. This allows for the same neighbor table implementation for VOQ as
- * well as non-VOQ switches.
- *
- * When this flag is TRUE: use neighbor tables from Interfaces.
- * When this flag is FALSE: use neighbor tables from VLANs.
- *
- * Once we have completely migrated to using neighbor tables from Interfaces,
- * this flag will be removed.
+ * DEPRECATED: Migration to Interface neighbor tables is complete.
+ * This flag is kept temporarily for compatibility with test configs
+ * that pass --intf_nbr_tables=true. Will be removed after configerator cleanup.
  */
-
 DEFINE_bool(
     intf_nbr_tables,
-    false,
-    "Use Neighbor Tables from Interfaces instead of VLANs");
+    true,
+    "DEPRECATED: No longer used. Neighbor tables are always on interfaces.");
 
 DEFINE_bool(
     emStatOnlyMode,
@@ -403,6 +393,14 @@ const std::shared_ptr<MultiSwitchSrv6TunnelMap>& SwitchState::getSrv6Tunnels()
   return safe_cref<switch_state_tags::srv6TunnelMaps>();
 }
 
+void SwitchState::resetMySids(std::shared_ptr<MultiSwitchMySidMap> mySids) {
+  ref<switch_state_tags::mySidMaps>() = mySids;
+}
+
+const std::shared_ptr<MultiSwitchMySidMap>& SwitchState::getMySids() const {
+  return safe_cref<switch_state_tags::mySidMaps>();
+}
+
 void SwitchState::resetTeFlowTable(
     std::shared_ptr<MultiTeFlowTable> flowTable) {
   ref<switch_state_tags::teFlowTables>() = flowTable;
@@ -585,16 +583,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
 
-  if (FLAGS_intf_nbr_tables) {
-    migrateNeighborTables(
-        state->getVlans().get() /* from */,
-        state->getInterfaces().get() /* to */);
-  } else {
-    migrateNeighborTables(
-        state->getInterfaces().get() /* from */,
-        state->getVlans().get() /* to */);
-  }
-
   /*
    * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
    *
@@ -664,61 +652,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   }
 
   return state;
-}
-
-/*
- * The warmboot cases to consider and desired action is listed below:
- *
- * (A) vlan nbrTables => vlan nbrTables :: No-Op
- * (B) vlan nbrTables => intf nbrTables :: Populte intf nbrTables from vlan
- * (C) intf nbrTables => intf nbrTables :: No-Op
- * (D) intf nbrTables => vlan nbrTables :: Populate vlan nbrTables from intf
- *
- * See (A), (B), (C), (D) annotations below for how each of the case is
- * handled.
- */
-template <typename FromMultiMapT, typename ToMultiMapT>
-void SwitchState::migrateNeighborTables(
-    FromMultiMapT* fromMultiMap,
-    ToMultiMapT* toMultiMap) {
-  for (const auto& fromTable : *fromMultiMap) {
-    for (const auto& [_, fromEntry] : *fromTable.second) {
-      // During warmboot from vlan nbrTables => vlan nbrTables,
-      // fromEntry(intf)'s neighbor tables will be empty, and vice-versa.
-      if (fromEntry->getNdpTable()->size() == 0) {
-        // Case (A) or Case (C)
-        continue;
-      }
-
-      // Case (B) or Case (D)
-
-      // VlanID always numerically equals the InterfaceID. Thus,
-      // vlanID can be used to lookup InterfaceMap indexed by InterfaceID, and,
-      // interfaceID can be used to lookup VlanMap indexed by VlanID.
-
-      auto [toEntry, toMatcher] =
-          toMultiMap->getNodeAndScope(fromEntry->getID());
-      if (toEntry) {
-        auto fromMatcher = HwSwitchMatcher(fromTable.first);
-        CHECK(fromMatcher == toMatcher);
-
-        auto ndpTable = fromEntry->getNdpTable()->toThrift();
-        auto arpTable = fromEntry->getArpTable()->toThrift();
-
-        // Populate VLAN/Interface tables from Interface/VLAN Tables
-        toEntry->setNdpTable(std::move(ndpTable));
-        toEntry->setArpTable(std::move(arpTable));
-        toEntry->setArpResponseTable(fromEntry->getArpResponseTable());
-        toEntry->setNdpResponseTable(fromEntry->getNdpResponseTable());
-
-        // Clear old Neighbor Tables
-        fromEntry->setNdpTable(nullptr);
-        fromEntry->setArpTable(nullptr);
-        fromEntry->setNdpResponseTable(nullptr);
-        fromEntry->setArpResponseTable(nullptr);
-      }
-    }
-  }
 }
 
 VlanID SwitchState::getDefaultVlan() const {
@@ -896,29 +829,6 @@ state::SwitchState SwitchState::toThrift() const {
     aclTableGroupMaps->clear();
   }
 
-  // Reverse migrate new fibsInfoMap to old fibsMap for rollback compatibility
-  // The new fibsInfoMap contains map<SwitchIdList, FibInfoFields>
-  // We need to populate old fibsMap with map<SwitchIdList, map<vrf,
-  // FibContainerFields>>
-  // Please refer to the comment in uniquePtrFromThrift() for more details -
-  // (FIB Migration: Four-stage transition from fibsMap to fibsInfoMap) We will
-  // remove this code once we fully migrate to new FIB in stage 4.
-
-  auto fibsInfoMapThrift = data.fibsInfoMap();
-  if (fibsInfoMapThrift.has_value()) {
-    std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
-    if (!fibsInfoMapThrift.value().empty()) {
-      for (const auto& [switchIdListStr, fibInfoFields] :
-           fibsInfoMapThrift.value()) {
-        if (fibInfoFields.fibsMap().has_value()) {
-          // Copy the ForwardingInformationBaseMap to the old fibsMap structure
-          fibsMap[switchIdListStr] = fibInfoFields.fibsMap().value();
-        }
-      }
-    }
-    data.fibsMap() = fibsMap;
-  }
-
   // Migrate new portsInfo field to old ports field for warmboot compatibility
   for (auto& [matcherKey, vlanMapThrift] : *data.vlanMaps()) {
     for (auto& [vlanId, vlanThrift] : vlanMapThrift) {
@@ -985,6 +895,8 @@ template MultiSwitchIpTunnelMap* SwitchState::modify<
     switch_state_tags::ipTunnelMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSrv6TunnelMap* SwitchState::modify<
     switch_state_tags::srv6TunnelMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchMySidMap* SwitchState::modify<switch_state_tags::mySidMaps>(
+    std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::systemPortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<

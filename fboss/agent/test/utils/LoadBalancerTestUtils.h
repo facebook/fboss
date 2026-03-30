@@ -254,6 +254,10 @@ cfg::LoadBalancer getEcmpHalfHashConfig(
     const std::vector<const HwAsic*>& asics);
 cfg::LoadBalancer getEcmpFullHashConfig(
     const std::vector<const HwAsic*>& asics);
+cfg::LoadBalancer getEcmpFullWithFlowLabelHashConfig(
+    const std::vector<const HwAsic*>& asics);
+cfg::LoadBalancer getTrunkFullWithFlowLabelHashConfig(
+    const std::vector<const HwAsic*>& asics);
 cfg::LoadBalancer getEcmpFullUdfHashConfig(
     const std::vector<const HwAsic*>& asics);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
@@ -261,6 +265,9 @@ std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
 std::vector<cfg::LoadBalancer> getEcmpHalfTrunkFullHashConfig(
     const std::vector<const HwAsic*>& asics);
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkFullHashConfig(
+    const std::vector<const HwAsic*>& asics);
+std::vector<cfg::LoadBalancer>
+getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
     const std::vector<const HwAsic*>& asics);
 
 std::shared_ptr<SwitchState> setLoadBalancer(

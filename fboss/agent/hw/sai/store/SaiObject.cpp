@@ -2,6 +2,7 @@
 
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/api/AclApi.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 
 namespace facebook {
 namespace fboss {
@@ -352,8 +353,10 @@ folly::dynamic SaiObject<SaiSrv6SidListTraits>::adapterHostKeyToFollyDynamic() {
           adapterHostKey_);
   if (segmentListOpt.has_value()) {
     folly::dynamic segments = folly::dynamic::array;
-    for (const auto& ip : segmentListOpt.value().value()) {
-      segments.push_back(ip.str());
+    for (const auto& ip6 : segmentListOpt.value().value()) {
+      segments.push_back(
+          fromSaiIpAddress(*reinterpret_cast<const sai_ip6_t*>(ip6.data()))
+              .str());
     }
     json["segmentList"] = segments;
   }
@@ -371,9 +374,13 @@ SaiObject<SaiSrv6SidListTraits>::follyDynamicToAdapterHostKey(
       static_cast<sai_int32_t>(json["type"].asInt())};
   std::optional<SaiSrv6SidListTraits::Attributes::SegmentList> segmentList;
   if (json.find("segmentList") != json.items().end()) {
-    std::vector<folly::IPAddressV6> segments;
+    std::vector<std::array<uint8_t, 16>> segments;
     for (const auto& seg : json["segmentList"]) {
-      segments.push_back(folly::IPAddressV6(seg.asString()));
+      std::array<uint8_t, 16> ip6{};
+      toSaiIpAddressV6(
+          folly::IPAddressV6(seg.asString()),
+          reinterpret_cast<sai_ip6_t*>(ip6.data()));
+      segments.push_back(ip6);
     }
     segmentList = segments;
   }

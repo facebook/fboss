@@ -7,6 +7,7 @@
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestRunner.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 
 namespace facebook::fboss {
 
@@ -351,6 +352,32 @@ class AgentLoadBalancerTestV6EcmpSpray
           utility::HwIpV6RoCEEcmpDataPlaneTestUtil,
           false> {};
 
+// SRv6 ECMP load balancing
+class AgentSrv6EcmpLoadBalancerTest : public AgentLoadBalancerTest<
+                                          utility::HwSrv6EcmpDataPlaneTestUtil,
+                                          false> {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SRV6_ENCAP, ProductionFeature::ECMP_LOAD_BALANCER};
+  }
+
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    return utility::srv6EcmpInitialConfig(ensemble);
+  }
+
+  std::unique_ptr<utility::HwSrv6EcmpDataPlaneTestUtil> getECMPHelper()
+      override {
+    if (!getEnsemble()) {
+      return nullptr;
+    }
+    return std::make_unique<utility::HwSrv6EcmpDataPlaneTestUtil>(
+        getEnsemble(), RouterID(0));
+  }
+};
+
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV6)
 RUN_ALL_HW_LOAD_BALANCER_ECMP_TEST_CPU(AgentLoadBalancerTestV4ToMpls)
@@ -422,5 +449,10 @@ RUN_HW_LOAD_BALANCER_NEGATIVE_TEST_FRONT_PANEL(
 
 RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6ArsSpray, Ecmp, Full)
 RUN_HW_LOAD_BALANCER_TEST_SPRAY(AgentLoadBalancerTestV6EcmpSpray, Ecmp, Full)
+
+RUN_HW_LOAD_BALANCER_TEST_CPU(
+    AgentSrv6EcmpLoadBalancerTest,
+    Ecmp,
+    FullWithFlowLabel)
 
 } // namespace facebook::fboss

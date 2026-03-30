@@ -23,7 +23,7 @@ case "$2" in
         ;;
 esac
 
-docker build . -t fboss_docker_base -f $BASE_IMAGE
+docker build . -t fboss_image -f $BASE_IMAGE
 
 docker build . -t fboss_docker_prefetch -f fboss/oss/docker/prefetch/Dockerfile
 

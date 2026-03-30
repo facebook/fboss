@@ -489,14 +489,10 @@ cfg::DsfNode dsfNodeConfig(
       return *platformType;
     }
     switch (asic.getAsicType()) {
-      case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        return PlatformType::PLATFORM_MERU400BIU;
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return PlatformType::PLATFORM_MERU800BIA;
       case cfg::AsicType::ASIC_TYPE_JERICHO4:
         return PlatformType::PLATFORM_J4SIM;
-      case cfg::AsicType::ASIC_TYPE_RAMON:
-        return PlatformType::PLATFORM_MERU400BFU;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return PlatformType::PLATFORM_MERU800BFA;
       case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
@@ -967,7 +963,11 @@ cfg::SwitchConfig genPortVlanCfg(
         (FLAGS_hide_interface_ports &&
          *platformPorts.find(static_cast<int32_t>(portID))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
       continue;
     }
     config.ports()->push_back(

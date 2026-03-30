@@ -27,6 +27,7 @@
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/RouteUpdateLogger.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchStats.h"
@@ -39,7 +40,6 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
@@ -75,6 +75,7 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 #include <memory>
+#include <thread>
 
 #include <limits>
 
@@ -109,8 +110,6 @@ DEFINE_bool(
     allow_running_switch_state_mutations,
     false, // false => Prevents such mutations in prod
     "Allow mutations of running switch state by external thrift calls");
-
-DECLARE_bool(intf_nbr_tables);
 
 DECLARE_bool(enable_acl_table_group);
 
@@ -929,6 +928,44 @@ void ThriftHandler::updateUnicastRoutesImpl(
   }
 }
 
+void ThriftHandler::addMySidEntries(
+    std::unique_ptr<std::vector<MySidEntry>> mySidEntries) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw_->getScopeResolver(),
+      *mySidEntries,
+      {} /* toDelete */,
+      "addMySidEntries",
+      ribMySidToSwitchStateFunc,
+      sw_);
+}
+
+void ThriftHandler::deleteMySidEntries(
+    std::unique_ptr<std::vector<IpPrefix>> prefixes) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  auto rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  rib->update(
+      sw_->getScopeResolver(),
+      {} /* toAdd */,
+      *prefixes,
+      "deleteMySidEntries",
+      ribMySidToSwitchStateFunc,
+      sw_);
+}
+
 static void populateInterfaceDetail(
     InterfaceDetail& interfaceDetail,
     const std::shared_ptr<Interface> intf,
@@ -1127,11 +1164,7 @@ void ThriftHandler::getNdpTable(std::vector<NdpEntryThrift>& ndpTable) {
 
   // Look up neighbor table entries
   std::list<facebook::fboss::NdpEntryThrift> entries;
-  if (FLAGS_intf_nbr_tables) {
-    entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-  } else {
-    entries = sw_->getNeighborUpdater()->getNdpCacheData().get();
-  }
+  entries = sw_->getNeighborUpdater()->getNdpCacheDataForIntf().get();
 
   ndpTable.reserve(entries.size());
   ndpTable.insert(
@@ -1148,11 +1181,7 @@ void ThriftHandler::getArpTable(std::vector<ArpEntryThrift>& arpTable) {
 
   // Look up neighbor table entries
   std::list<facebook::fboss::ArpEntryThrift> entries;
-  if (FLAGS_intf_nbr_tables) {
-    entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
-  } else {
-    entries = sw_->getNeighborUpdater()->getArpCacheData().get();
-  }
+  entries = sw_->getNeighborUpdater()->getArpCacheDataForIntf().get();
 
   arpTable.reserve(entries.size());
   arpTable.insert(
@@ -1556,6 +1585,18 @@ void ThriftHandler::setInterfacePrbs(
   }
 }
 
+void ThriftHandler::setInterfacesPrbs(
+    std::unique_ptr<std::vector<std::string>> portNames,
+    phy::PortComponent component,
+    std::unique_ptr<prbs::InterfacePrbsState> state) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  for (const auto& portName : *portNames) {
+    auto portNamePtr = std::make_unique<std::string>(portName);
+    auto stateCopy = std::make_unique<prbs::InterfacePrbsState>(*state);
+    setInterfacePrbs(std::move(portNamePtr), component, std::move(stateCopy));
+  }
+}
+
 void ThriftHandler::clearPortPrbsStats(
     int32_t portId,
     phy::PortComponent component) {
@@ -1934,7 +1975,7 @@ void ThriftHandler::getRouteTable(std::vector<UnicastRoute>& routes) {
         }
         if (fwdInfo.getOverrideNextHops().has_value()) {
           tempRoute.overrideNextHops() =
-              util::fromRouteNextHopSet(fwdInfo.normalizedNextHops());
+              util::fromRouteNextHopSet(getNormalizedNextHops(state, fwdInfo));
         }
         routes.emplace_back(std::move(tempRoute));
       });
@@ -1977,9 +2018,12 @@ void ThriftHandler::getRouteTableByClient(
 void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  auto state = sw_->getState();
   forAllRoutes(
-      sw_->getState(), [&routes](const RouterID& /*rid*/, const auto& route) {
-        routes.emplace_back(route->toRouteDetails(true));
+      state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
+        routes.emplace_back(route->toRouteDetails(
+            getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
+            true));
       });
 }
 
@@ -2062,12 +2106,16 @@ void ThriftHandler::getIpRouteDetails(
   if (ipAddr.isV4()) {
     auto match = sw_->longestMatch(state, ipAddr.asV4(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(true);
+      route = match->toRouteDetails(
+          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
+          true);
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
-      route = match->toRouteDetails(true);
+      route = match->toRouteDetails(
+          getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
+          true);
     }
   }
 }
@@ -2257,56 +2305,121 @@ void ThriftHandler::getMplsRouteUpdateLoggingTrackedLabels(
 void ThriftHandler::sendPkt(
     int32_t port,
     int32_t vlan,
-    unique_ptr<fbstring> data) {
+    unique_ptr<fbstring> data,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
-  auto buf = IOBuf::copyBuffer(
-      reinterpret_cast<const uint8_t*>(data->data()), data->size());
-  auto pkt = make_unique<MockRxPacket>(std::move(buf));
-  pkt->setSrcPort(PortID(port));
-  pkt->setSrcVlan(VlanID(vlan));
-  sw_->packetReceived(std::move(pkt));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    auto buf = IOBuf::copyBuffer(
+        reinterpret_cast<const uint8_t*>(data->data()), data->size());
+    auto pkt = make_unique<MockRxPacket>(std::move(buf));
+    pkt->setSrcPort(PortID(port));
+    pkt->setSrcVlan(VlanID(vlan));
+    sw_->packetReceived(std::move(pkt));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
 void ThriftHandler::sendPktHex(
     int32_t port,
     int32_t vlan,
-    unique_ptr<fbstring> hex) {
+    unique_ptr<fbstring> hex,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
-  auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
-  pkt->setSrcPort(PortID(port));
-  pkt->setSrcVlan(VlanID(vlan));
-  sw_->packetReceived(std::move(pkt));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    auto pkt = MockRxPacket::fromHex(StringPiece(*hex));
+    pkt->setSrcPort(PortID(port));
+    pkt->setSrcVlan(VlanID(vlan));
+    sw_->packetReceived(std::move(pkt));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
-void ThriftHandler::txPkt(int32_t port, unique_ptr<fbstring> data) {
+void ThriftHandler::txPkt(
+    int32_t port,
+    unique_ptr<fbstring> data,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
-  unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
-  RWPrivateCursor cursor(pkt->buf());
-  cursor.push(StringPiece(*data));
-
-  sw_->sendPacketOutOfPortAsync(std::move(pkt), PortID(port));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    unique_ptr<TxPacket> pkt =
+        sw_->allocatePacket(static_cast<uint32_t>(data->size()));
+    RWPrivateCursor cursor(pkt->buf());
+    cursor.push(StringPiece(*data));
+    sw_->sendPacketOutOfPortAsync(std::move(pkt), PortID(port));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
-void ThriftHandler::txPktL2(unique_ptr<fbstring> data) {
+void ThriftHandler::txPktL2(
+    unique_ptr<fbstring> data,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
-  unique_ptr<TxPacket> pkt = sw_->allocatePacket(data->size());
-  RWPrivateCursor cursor(pkt->buf());
-  cursor.push(StringPiece(*data));
-
-  sw_->sendPacketSwitchedAsync(std::move(pkt));
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    unique_ptr<TxPacket> pkt =
+        sw_->allocatePacket(static_cast<uint32_t>(data->size()));
+    RWPrivateCursor cursor(pkt->buf());
+    cursor.push(StringPiece(*data));
+    sw_->sendPacketSwitchedAsync(std::move(pkt));
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
-void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
+void ThriftHandler::txPktL3(
+    unique_ptr<fbstring> payload,
+    int32_t numOfPkts,
+    int32_t intervalInMs) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureNotFabric(__func__);
 
-  // Use any configured interface
   const auto interfaceMap = sw_->getState()->getInterfaces();
   if (interfaceMap->numNodes() == 0) {
     throw FbossError("No interface configured");
@@ -2322,12 +2435,25 @@ void ThriftHandler::txPktL3(unique_ptr<fbstring> payload) {
   }
   CHECK(intfID.has_value());
 
-  unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(
-      payload->size(), (type == cfg::InterfaceType::VLAN));
-  RWPrivateCursor cursor(pkt->buf());
-  cursor.push(StringPiece(*payload));
-
-  sw_->sendL3Packet(std::move(pkt), *intfID);
+  for (int32_t i = 0; i < numOfPkts; ++i) {
+    size_t txPacketCount = TxPacket::getPacketCounter()->load();
+    if (txPacketCount >= FLAGS_max_tx_packets) {
+      XLOG_EVERY_MS(ERR, 5000) << "Reached max tx packets threshold "
+                               << txPacketCount << ". Dropping packets.";
+      sw_->stats()->updateTxBufferLimitExceededDrops();
+      continue;
+    }
+    unique_ptr<TxPacket> pkt = sw_->allocateL3TxPacket(
+        static_cast<uint32_t>(payload->size()),
+        (type == cfg::InterfaceType::VLAN));
+    RWPrivateCursor cursor(pkt->buf());
+    cursor.push(StringPiece(*payload));
+    sw_->sendL3Packet(std::move(pkt), *intfID);
+    if (i < numOfPkts - 1) {
+      // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+      std::this_thread::sleep_for(std::chrono::milliseconds(intervalInMs));
+    }
+  }
 }
 
 Vlan* ThriftHandler::getVlan(int32_t vlanId) {
@@ -2350,17 +2476,12 @@ int32_t ThriftHandler::flushNeighborEntry(
 
   try {
     int32_t result;
-    if (FLAGS_intf_nbr_tables) {
-      // VOQ switches don't support VLANs. The thrift client will pass
-      // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
-      // identical to interfaceID.
-      InterfaceID intfID = InterfaceID(vlan);
-      result =
-          sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
-    } else {
-      VlanID vlanID(vlan);
-      result = sw_->getNeighborUpdater()->flushEntry(vlanID, parsedIP).get();
-    }
+    // VOQ switches don't support VLANs. The thrift client will pass
+    // interfaceID instead of VLAN. NPU switches support VLANs, but vlanID is
+    // identical to interfaceID.
+    InterfaceID intfID = InterfaceID(vlan);
+    result =
+        sw_->getNeighborUpdater()->flushEntryForIntf(intfID, parsedIP).get();
 
     // Check if NDP static neighbor is enabled
     if (FLAGS_ndp_static_neighbor) {
@@ -2384,6 +2505,27 @@ int32_t ThriftHandler::flushNeighborEntry(
         parsedIP,
         " could not be deleted. Entry is either of type STATIC, DYNAMIC or does not exist");
   }
+}
+
+int32_t ThriftHandler::flushNeighborEntries(
+    unique_ptr<std::vector<IfAndIP>> entries) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  int32_t totalFlushed = 0;
+
+  for (const auto& entry : *entries) {
+    try {
+      totalFlushed += flushNeighborEntry(
+          std::make_unique<BinaryAddress>(*entry.ip()), *entry.interfaceID());
+    } catch (...) {
+      XLOG(WARNING) << "Failed to flush neighbor entry for "
+                    << toIPAddress(*entry.ip()).str() << " on interface "
+                    << *entry.interfaceID();
+    }
+  }
+
+  return totalFlushed;
 }
 
 void ThriftHandler::getVlanAddresses(Addresses& addrs, int32_t vlan) {

@@ -168,10 +168,15 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
       return ecmpHelper.resolveNextHops(state, {port});
     });
     SwSwitchRouteUpdateWrapper routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {RoutePrefixV6(addr, 128)});
-
+    ecmpHelper.programRoutes(
+        &routeUpdater,
+        {port},
+        {RoutePrefixV6(addr, 128)},
+        {},
+        std::nullopt,
+        disableTtlDecrement ? std::make_optional(true) : std::nullopt);
     if (disableTtlDecrement) {
-      utility::ttlDecrementHandlingForLoopbackTraffic(
+      utility::disablePortTTLDecrementIfSupported(
           getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
     }
   }

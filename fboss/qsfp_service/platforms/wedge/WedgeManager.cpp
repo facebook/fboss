@@ -708,15 +708,7 @@ std::vector<TransceiverID> WedgeManager::updateTransceiverMap() {
 
     auto tcvrConfig = getTransceiverConfig();
 
-    // On these platforms, we are configuring the 200G optics in 2x50G
-    // experimental mode. Thus 2 of the 4 lanes remain disabled which kicks in
-    // the remediation logic and flaps the other 2 ports. Disabling remediation
-    // for just these 2 platforms as this is an experimental mode only
     bool cmisSupportRemediate = true;
-    if (getPlatformType() == PlatformType::PLATFORM_MERU400BIU ||
-        getPlatformType() == PlatformType::PLATFORM_MERU400BFU) {
-      cmisSupportRemediate = false;
-    }
     for (auto idx : tcvrsToCreate) {
       TransceiverID tcvrID(idx);
       auto mgmtIf = futInterfaces[idx].value();
@@ -1232,7 +1224,7 @@ void WedgeManager::publishPortStatToFsdb(
 void WedgeManager::publishPortStateToFsdb(
     std::string&& portName,
     portstate::PortState&& state) const {
-  if (FLAGS_publish_stats_to_fsdb) {
+  if (FLAGS_publish_state_to_fsdb) {
     fsdbSyncManager_->updatePortState(std::move(portName), std::move(state));
   }
 }

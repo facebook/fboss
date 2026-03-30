@@ -29,10 +29,11 @@
             primary="true"
             installiso="true"
             bootpartition="false"
-            kernelcmdline="nomodeset console=ttyS4,57600n8 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
+            editbootinstall="editbootinstall.sh"
+            kernelcmdline="nomodeset console=ttyS0,57600n8 8250.nr_uarts=1 biosdevname=0 net.ifnames=0 quiet rootfstype=btrfs">
 
-            <bootloader name="grub2" console="serial" serial_line="ttyS4,57600n8"/>
-            <size unit="G">16</size>
+            <bootloader name="grub2" console="serial" serial_line="ttyS0,57600n8"/>
+            <size unit="G">64</size>
             <oemconfig>
                 <!-- The oem-resize element should be false for a fixed-size disk -->
                 <oem-resize>true</oem-resize>
@@ -44,7 +45,8 @@
         </type>
     </preferences>
     <users>
-        <user name="root" password="$1$wYJUgpM5$YNklayYndL8.nnIpR/Fze0" groups="root" home="/root"/>
+        <user name="root" password="root" pwdformat="plain" groups="root" home="/root"/>
+        <user name="netops" password="netops" pwdformat="plain" groups="netops,wheel" home="/home/netops"/>
     </users>
 
     <repository type="rpm-md" alias="CentOS9-ExtrasCommon" sourcetype="metalink">
@@ -69,6 +71,7 @@
 
     <packages type="image">
         <!-- Do not install any specific kernel package, those are done in config.sh -->
+        <package name="epel-release"/>
         <package name="syslinux"/>
         <package name="gdisk"/>
         <package name="grub2"/>
@@ -90,6 +93,7 @@
         <package name="parted"/>
         <package name="passwd"/>
         <package name="policycoreutils"/>
+        <package name="policycoreutils-python-utils"/>
         <package name="rootfiles"/>
         <package name="rsyslog"/>
         <package name="selinux-policy-targeted"/>
@@ -110,6 +114,7 @@
         <package name="dnf-plugins-core"/>
         <package name="efibootmgr"/>
         <package name="i2c-tools"/>
+        <package name="ipmitool"/>
         <package name="sudo"/>
         <package name="wget"/>
         <package name="vim"/>
@@ -135,6 +140,7 @@
         <package name="libusbx"/>
         <package name="dmidecode"/>
         <package name="libaio"/>
+        <package name="git"/>
         <package name="tcpdump"/>
         <package name="usbutils"/>
         <package name="ndisc6"/>

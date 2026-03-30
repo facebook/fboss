@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
 load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_agent")
@@ -81,9 +82,6 @@ cpp_library(
         "//fboss/lib/bsp/icetea800bc:icetea800bc_bsp",
         "//fboss/lib/bsp/janga800bic:janga800bic_bsp",
         "//fboss/lib/bsp/ladakh800bcls:ladakh800bcls_bsp",
-        "//fboss/lib/bsp/meru400bfu:meru400bfu_bsp",
-        "//fboss/lib/bsp/meru400bia:meru400bia_bsp",
-        "//fboss/lib/bsp/meru400biu:meru400biu_bsp",
         "//fboss/lib/bsp/meru800bfa:meru800bfa_bsp",
         "//fboss/lib/bsp/meru800bia:meru800bia_bsp",
         "//fboss/lib/bsp/minipack3bta:minipack3bta_bsp",
@@ -355,5 +353,15 @@ python_binary(
     par_style = "xar",
     deps = [
         ":known_bad_test_report_lib",
+    ],
+)
+
+python_unittest(
+    name = "test_process_known_bad_test",
+    srcs = [
+        "facebook/tests/test_process_known_bad_test.py",
+    ],
+    deps = [
+        ":process_known_bad_test_lib",
     ],
 )

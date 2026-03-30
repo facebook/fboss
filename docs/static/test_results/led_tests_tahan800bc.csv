@@ -1,4 +1,5 @@
 "Test Case","Platform","Status"
+"LedServiceTest.testTcvrLos","tahan800bc","PASSED"
 "LedServiceTest.checkLedColorChange","tahan800bc","PASSED"
 "LedServiceTest.checkLedBlinking","tahan800bc","PASSED"
 "LedServiceTest.checkForceLed","tahan800bc","PASSED"

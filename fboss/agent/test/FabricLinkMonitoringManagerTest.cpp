@@ -57,7 +57,7 @@ void addDsfNode(
   if (platformType.has_value()) {
     node.platformType() = *platformType;
   } else {
-    node.platformType() = PlatformType::PLATFORM_MERU400BIU;
+    node.platformType() = PlatformType::PLATFORM_MERU800BIA;
   }
   (*config.dsfNodes())[switchId] = node;
 }
@@ -182,7 +182,7 @@ void setupDsfNodesForDualStage(
       cfg::AsicType::ASIC_TYPE_MOCK,
       1 /* fabricLevel */);
   l1NodeCfg.name() = "fabric_l1_0";
-  l1NodeCfg.platformType() = PlatformType::PLATFORM_MERU400BIU;
+  l1NodeCfg.platformType() = PlatformType::PLATFORM_MERU800BIA;
   l1Node->fromThrift(l1NodeCfg);
   dsfNodeMap->addNode(l1Node, HwSwitchMatcher());
 
@@ -197,7 +197,7 @@ void setupDsfNodesForDualStage(
         cfg::AsicType::ASIC_TYPE_MOCK,
         2 /* fabricLevel */);
     l2NodeCfg.name() = "fabric_l2_" + std::to_string(l2SwitchId);
-    l2NodeCfg.platformType() = PlatformType::PLATFORM_MERU400BIU;
+    l2NodeCfg.platformType() = PlatformType::PLATFORM_MERU800BIA;
     l2Node->fromThrift(l2NodeCfg);
     dsfNodeMap->addNode(l2Node, HwSwitchMatcher());
   }

@@ -307,8 +307,14 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4Entries) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4)));
+        });
       }
 
       // Clear kernel entries
@@ -365,9 +371,14 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6Entries) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false, true);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, true));
+        });
       }
 
       // Clear kernel entries
@@ -438,9 +449,14 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanup) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false, true);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, true));
+        });
       }
     }
 
@@ -591,9 +607,14 @@ TEST_F(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false, true);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, true));
+        });
       }
     }
 
@@ -747,9 +768,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv4), true, true);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4), true, true));
+        });
       }
 
       // change ipv4 address of the interface
@@ -769,9 +795,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv4Address) {
 
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv4), true, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4), true, false));
+        });
       }
 
       // Clear kernel entries
@@ -831,9 +862,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
       // There is a known limitation in the kernel that the source route
       // rule entries are not created if the interface is not up. So,
       // checking for the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false));
+        });
       }
 
       // change ipv6 address of the interface
@@ -853,9 +889,14 @@ TEST_F(AgentTunnelMgrTest, changeIPv6Address) {
 
       // Route entries installation is currently not consistent after the ip
       // address change. So, passing false for checkRouteEntry.
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, false));
+        });
       }
 
       // Clear kernel entries
@@ -917,9 +958,14 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false));
+        });
       }
 
       // Applying the same config again
@@ -965,10 +1011,18 @@ TEST_F(AgentTunnelMgrTest, checkDuplicateEntries) {
         // would create duplicate entries.
         utility::checkKernelEntriesRemoved(
             folly::to<std::string>(intfIPv4), folly::to<std::string>(intfIPv6));
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv4New), true, false);
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6New), false, false);
+        // Use WITH_RETRIES to handle race condition with TunManager async
+        // processing.
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4New), true, false));
+        });
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6New), false, false));
+        });
       }
 
       // Clear kernel entries
@@ -1028,9 +1082,14 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDown) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv4), true, false);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4), true, false));
+        });
       }
 
       // Clear kernel entries
@@ -1099,8 +1158,14 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv4EntriesPortsDownUp) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(folly::to<std::string>(intfIPv4));
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv4)));
+        });
       }
 
       // Clear kernel entries
@@ -1169,9 +1234,14 @@ TEST_F(AgentTunnelMgrTest, checkKernelIPv6EntriesPortsDownUp) {
       // There is a known limitation in the kernel that the source route rule
       // entries are not created if the interface is not up. So, checking for
       // the kernel entries if the interface is  up
+      // Use WITH_RETRIES to handle race condition with TunManager async
+      // processing.
       if (status && socketExists) {
-        utility::checkKernelEntriesExist(
-            folly::to<std::string>(intfIPv6), false, true);
+        WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+          EXPECT_EVENTUALLY_TRUE(
+              utility::checkKernelEntriesExistBool(
+                  folly::to<std::string>(intfIPv6), false, true));
+        });
       }
 
       // Clear kernel entries

@@ -4,6 +4,7 @@
 #include <folly/logging/xlog.h>
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -64,6 +65,7 @@ std::shared_ptr<SwitchState> AclNexthopHandler::handleUpdate(
 void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
   RouteNextHopSet nexthops;
   const auto& redirect = action.getRedirectToNextHop();
+
   auto addFilteredNexthops = [&nexthops](auto& fibNextHops, auto& intfID) {
     if (intfID.has_value()) {
       for (const auto& nhop : fibNextHops) {
@@ -80,23 +82,19 @@ void AclNexthopHandler::resolveActionNexthops(MatchAction& action) {
     auto nhIp = folly::IPAddress(*nhIpStruct.ip());
     auto intfID = nhIpStruct.intfID();
     if (nhIp.isV4()) {
-      const auto route = sw_->longestMatch<folly::IPAddressV4>(
-          sw_->getState(), nhIp.asV4(), RouterID(0));
-      if (!route || !route->isResolved()) {
+      auto result =
+          sw_->getRib()->getRouteAndNextHops(nhIp.asV4(), RouterID(0));
+      if (!result || !result->first->isResolved()) {
         continue;
       }
-      RouteNextHopSet routeNextHops =
-          route->getForwardInfo().normalizedNextHops();
-      addFilteredNexthops(routeNextHops, intfID);
+      addFilteredNexthops(result->second, intfID);
     } else {
-      const auto route = sw_->longestMatch<folly::IPAddressV6>(
-          sw_->getState(), nhIp.asV6(), RouterID(0));
-      if (!route || !route->isResolved()) {
+      auto result =
+          sw_->getRib()->getRouteAndNextHops(nhIp.asV6(), RouterID(0));
+      if (!result || !result->first->isResolved()) {
         continue;
       }
-      RouteNextHopSet routeNextHops =
-          route->getForwardInfo().normalizedNextHops();
-      addFilteredNexthops(routeNextHops, intfID);
+      addFilteredNexthops(result->second, intfID);
     }
   }
   action.setRedirectToNextHop(std::make_pair(redirect.value().first, nexthops));

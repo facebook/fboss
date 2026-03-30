@@ -45,7 +45,7 @@ void addDsfNode(
   if (platformType.has_value()) {
     node.platformType() = *platformType;
   } else {
-    node.platformType() = PlatformType::PLATFORM_MERU400BIU;
+    node.platformType() = PlatformType::PLATFORM_MERU800BIA;
   }
   (*config.dsfNodes())[switchId] = node;
 }

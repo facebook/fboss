@@ -195,6 +195,13 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       kmodsList.erase(it);
     }
   }
+  // Blackwolf is the only arista platform that uses aadm1266
+  if (*config.platform() != "BLACKWOLF800BANW") {
+    auto it = std::find(kmodsList.begin(), kmodsList.end(), "aadm1266");
+    if (it != kmodsList.end()) {
+      kmodsList.erase(it);
+    }
+  }
   config.kmods() = kmodsToUse;
 
   std::vector<PciDevice> devices;

@@ -53,7 +53,6 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
         ],
         True: [
             "meru800bfa",
-            "meru400bfu",
             "janga800bic_dctypef_prod",
             "janga800bic_dctypef_test_fixture",
             "ladakh800bcls",

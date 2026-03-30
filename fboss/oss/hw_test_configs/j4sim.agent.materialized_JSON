@@ -510,7 +510,9 @@
                         "lane_to_serdes_map_nif_lane144.BCM9941X": "rx144:tx144",
                         "lane_to_serdes_map_nif_lane145.BCM9941X": "rx145:tx145",
                         "lane_to_serdes_map_nif_lane146.BCM9941X": "rx146:tx146",
-                        "lane_to_serdes_map_nif_lane147.BCM9941X": "rx147:tx147"
+                        "lane_to_serdes_map_nif_lane147.BCM9941X": "rx147:tx147",
+                        "rif_id_max": "0x2000",
+                        "AI23_mode": "4"
                     }
                 }
             }

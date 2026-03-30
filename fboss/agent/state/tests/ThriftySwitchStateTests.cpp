@@ -106,36 +106,27 @@ TEST(ThriftySwitchState, PortMap) {
 }
 
 TEST(ThriftySwitchState, VlanMap) {
-  auto verifyVlanMap = [](bool use_intf_nbr_tables) {
-    FLAGS_intf_nbr_tables = use_intf_nbr_tables;
+  // With intf_nbr_tables enabled (default), neighbor tables are on interfaces,
+  // not VLANs. Only test MAC table on VLAN.
+  auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
+  auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
+  vlan1->setInterfaceID(InterfaceID(1));
+  vlan1->setInterfaceID(InterfaceID(2));
 
-    auto vlan1 = std::make_shared<Vlan>(VlanID(1), std::string("vlan1"));
-    auto vlan2 = std::make_shared<Vlan>(VlanID(2), std::string("vlan2"));
-    vlan1->setInterfaceID(InterfaceID(1));
-    vlan1->setInterfaceID(InterfaceID(2));
+  auto macTable = std::make_shared<MacTable>();
+  auto macEntry = std::make_shared<MacEntry>(
+      MacAddress("02:00:00:00:00:08"),
+      PortDescriptor(PortID(4)),
+      std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
+  macTable->addEntry(macEntry);
 
-    if (!use_intf_nbr_tables) {
-      setNeighborTablesAndDHCPRelay(vlan1, vlan2);
-    }
+  auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
+  vlanMap->addNode(vlan1, scope());
+  vlanMap->addNode(vlan2, scope());
 
-    auto macTable = std::make_shared<MacTable>();
-    auto macEntry = std::make_shared<MacEntry>(
-        MacAddress("02:00:00:00:00:08"),
-        PortDescriptor(PortID(4)),
-        std::optional<cfg::AclLookupClass>(cfg::AclLookupClass::CLASS_DROP));
-    macTable->addEntry(macEntry);
-
-    auto vlanMap = std::make_shared<MultiSwitchVlanMap>();
-    vlanMap->addNode(vlan1, scope());
-    vlanMap->addNode(vlan2, scope());
-
-    auto state = SwitchState();
-    state.resetVlans(vlanMap);
-    verifySwitchStateSerialization(state);
-  };
-
-  verifyVlanMap(false /* VLAN neighbor table */);
-  verifyVlanMap(true /* Interface neighbor table */);
+  auto state = SwitchState();
+  state.resetVlans(vlanMap);
+  verifySwitchStateSerialization(state);
 }
 
 TEST(ThriftySwitchState, AclMap) {
@@ -321,8 +312,6 @@ TEST(ThriftySwitchState, InterfaceMap) {
 }
 
 TEST(ThriftySwitchState, InterfaceMapNbrTables) {
-  FLAGS_intf_nbr_tables = true;
-
   auto intf1 = make_shared<Interface>(
       InterfaceID(1),
       RouterID(0),
@@ -373,55 +362,6 @@ TEST(ThriftySwitchState, IpAddressConversion) {
     EXPECT_EQ(ip_0_dynamic, ip_1_dynamic);
     EXPECT_EQ(addr_0_dynamic, addr_1_dynamic);
   }
-}
-
-TEST(ThriftySwitchState, ToThriftFibsInfoMapMigration) {
-  // Test that toThrift() correctly migrates fibsInfoMap to fibsMap for rollback
-  // compatibility
-  auto state = std::make_shared<SwitchState>();
-  const auto& matcherKey = HwSwitchMatcher::defaultHwSwitchMatcherKey();
-
-  // Create a FibInfo with a populated FibsMap
-  auto fibInfo = std::make_shared<FibInfo>();
-  auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
-
-  // Create a FibContainer for VRF 0
-  RouterID vrf0(0);
-  auto fibContainer =
-      std::make_shared<ForwardingInformationBaseContainer>(vrf0);
-  fibsMap->updateForwardingInformationBaseContainer(fibContainer);
-
-  // Create a FibContainer for VRF 1
-  RouterID vrf1(1);
-  auto fibContainer1 =
-      std::make_shared<ForwardingInformationBaseContainer>(vrf1);
-  fibsMap->updateForwardingInformationBaseContainer(fibContainer1);
-
-  // Set the fibsMap in FibInfo
-  fibInfo->resetFibsMap(fibsMap);
-
-  // Create MultiSwitchFibInfoMap and add the FibInfo
-  auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-  fibsInfoMap->updateFibInfo(fibInfo, scope());
-  state->resetFibsInfoMap(fibsInfoMap);
-
-  // Call toThrift() and verify fibsMap is populated
-  auto stateThrift = state->toThrift();
-
-  // Verify fibsMap is populated with the correct structure
-  ASSERT_TRUE(stateThrift.fibsMap().has_value());
-  EXPECT_FALSE(stateThrift.fibsMap()->empty());
-  EXPECT_TRUE(
-      stateThrift.fibsMap()->find(matcherKey) != stateThrift.fibsMap()->end());
-
-  // Verify the fibsMap contains both VRF 0 and VRF 1
-  const auto& fibsMapThrift = stateThrift.fibsMap()->at(matcherKey);
-  EXPECT_TRUE(fibsMapThrift.find(0) != fibsMapThrift.end());
-  EXPECT_TRUE(fibsMapThrift.find(1) != fibsMapThrift.end());
-
-  // Verify fibsInfoMap is still populated in thrift
-  ASSERT_TRUE(stateThrift.fibsInfoMap().has_value());
-  EXPECT_FALSE(stateThrift.fibsInfoMap()->empty());
 }
 
 TEST(ThriftySwitchState, FromThriftFibsInfoMapMigration) {

@@ -15,4 +15,7 @@ thrift_library(
         "fan_service.thrift": "FanService",
         "fan_service_config.thrift": [],
     },
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )

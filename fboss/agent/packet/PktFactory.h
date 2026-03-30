@@ -107,7 +107,26 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
     uint8_t innerTrafficClass = 0,
-    uint8_t hopLimit = 255,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>());
+
+std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
+    const AllocatePktFn& allocatePkt,
+    VlanID vlan,
+    folly::MacAddress outerSrcMac,
+    folly::MacAddress outerDstMac,
+    const folly::IPAddressV6& outerSrcIp,
+    const folly::IPAddressV6& outerDstIp,
+    const folly::IPAddressV4& innerSrcIp,
+    const folly::IPAddressV4& innerDstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t outerTrafficClass = 0,
+    uint8_t innerDscp = 0,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>());
 
@@ -313,7 +332,8 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
     uint16_t dstPort,
     uint8_t outerTrafficClass = 0,
     uint8_t innerTrafficClass = 0,
-    uint8_t hopLimit = 255,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
     std::optional<std::vector<uint8_t>> payload =
         std::optional<std::vector<uint8_t>>()) {
   return makeIpInIpTxPacket(
@@ -329,7 +349,44 @@ std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
       dstPort,
       outerTrafficClass,
       innerTrafficClass,
-      hopLimit,
+      outerHopLimit,
+      innerHopLimit,
+      payload);
+}
+
+template <typename SwitchT>
+std::unique_ptr<facebook::fboss::TxPacket> makeIpInIpTxPacket(
+    const SwitchT* switchT,
+    VlanID vlan,
+    folly::MacAddress outerSrcMac,
+    folly::MacAddress outerDstMac,
+    const folly::IPAddressV6& outerSrcIp,
+    const folly::IPAddressV6& outerDstIp,
+    const folly::IPAddressV4& innerSrcIp,
+    const folly::IPAddressV4& innerDstIp,
+    uint16_t srcPort,
+    uint16_t dstPort,
+    uint8_t outerTrafficClass = 0,
+    uint8_t innerDscp = 0,
+    uint8_t outerHopLimit = 255,
+    std::optional<uint8_t> innerHopLimit = std::nullopt,
+    std::optional<std::vector<uint8_t>> payload =
+        std::optional<std::vector<uint8_t>>()) {
+  return makeIpInIpTxPacket(
+      makeAllocator(switchT),
+      vlan,
+      outerSrcMac,
+      outerDstMac,
+      outerSrcIp,
+      outerDstIp,
+      innerSrcIp,
+      innerDstIp,
+      srcPort,
+      dstPort,
+      outerTrafficClass,
+      innerDscp,
+      outerHopLimit,
+      innerHopLimit,
       payload);
 }
 

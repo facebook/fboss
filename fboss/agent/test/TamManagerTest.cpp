@@ -110,52 +110,27 @@ TamManagerTestParams<AddrT> getParams() {
 }
 } // namespace
 
-enum class NeighborTableType {
-  INTF,
-  VLAN,
-};
-
-template <typename AddrType, NeighborTableType neighborTableType>
-struct IpAddrAndEnableIntfNbrTableT {
-  using AddrT = AddrType;
-  static constexpr NeighborTableType nbrTableType = neighborTableType;
-};
-
-using TestTypes = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, NeighborTableType::VLAN>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, NeighborTableType::INTF>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, NeighborTableType::VLAN>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, NeighborTableType::INTF>>;
+using TestTypes = ::testing::Types<folly::IPAddressV4, folly::IPAddressV6>;
 
 struct TestTypeNames {
   template <typename T>
   static std::string GetName(int) {
-    std::string name;
-    if constexpr (std::is_same_v<typename T::AddrT, folly::IPAddressV4>) {
-      name = "V4";
+    if constexpr (std::is_same_v<T, folly::IPAddressV4>) {
+      return "V4";
     } else {
-      name = "V6";
+      return "V6";
     }
-    if constexpr (T::nbrTableType == NeighborTableType::INTF) {
-      name += "Intf";
-    } else {
-      name += "Vlan";
-    }
-    return name;
   }
 };
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename AddrType>
 class TamManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
-  static constexpr NeighborTableType nbrTableType =
-      IpAddrAndEnableIntfNbrTableT::nbrTableType;
+  using AddrT = AddrType;
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = (nbrTableType == NeighborTableType::INTF);
     cfg::SwitchConfig config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -232,52 +207,22 @@ class TamManagerTest : public ::testing::Test {
       InterfaceID interfaceID,
       const PortID& portID,
       bool wait = true) {
+    // Neighbor tables are always on interfaces
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      switch (nbrTableType) {
-        case NeighborTableType::INTF:
-          sw_->getNeighborUpdater()->receivedArpMineForIntf(
-              interfaceID,
-              ipAddress.asV4(),
-              macAddress,
-              PortDescriptor(portID),
-              ArpOpCode::ARP_OP_REPLY);
-          break;
-        case NeighborTableType::VLAN:
-          sw_->getNeighborUpdater()->receivedArpMine(
-              sw_->getState()
-                  ->getInterfaces()
-                  ->getNode(interfaceID)
-                  ->getVlanID(),
-              ipAddress.asV4(),
-              macAddress,
-              PortDescriptor(portID),
-              ArpOpCode::ARP_OP_REPLY);
-          break;
-      }
+      sw_->getNeighborUpdater()->receivedArpMineForIntf(
+          interfaceID,
+          ipAddress.asV4(),
+          macAddress,
+          PortDescriptor(portID),
+          ArpOpCode::ARP_OP_REPLY);
     } else {
-      switch (nbrTableType) {
-        case NeighborTableType::INTF:
-          sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-              interfaceID,
-              ipAddress.asV6(),
-              macAddress,
-              PortDescriptor(portID),
-              ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-              0);
-          break;
-        case NeighborTableType::VLAN:
-          sw_->getNeighborUpdater()->receivedNdpMine(
-              sw_->getState()
-                  ->getInterfaces()
-                  ->getNode(interfaceID)
-                  ->getVlanID(),
-              ipAddress.asV6(),
-              macAddress,
-              PortDescriptor(portID),
-              ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-              0);
-          break;
-      }
+      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          interfaceID,
+          ipAddress.asV6(),
+          macAddress,
+          PortDescriptor(portID),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+          0);
     }
     if (wait) {
       sw_->getNeighborUpdater()->waitForPendingUpdates();

@@ -1426,14 +1426,14 @@ AgentStatsScale FsdbStatsDataFactory::getRoleScale(RoleSelector role) {
 
 // BgpRibMapDataGenerator implementation
 TaggedOperState BgpRibMapDataGenerator::getStateUpdate(
-    int /* unused */,
+    int version,
     bool /* unused */) {
   TaggedOperState state;
   OperState chunk;
   std::vector<std::string> basePath;
   chunk.protocol() = protocol_;
 
-  auto fsdbRoot = buildFsdbOperStateRoot();
+  auto fsdbRoot = buildFsdbOperStateRoot(version);
 
   chunk.contents() = facebook::fboss::thrift_cow::serialize<
       apache::thrift::type_class::structure>(protocol_, fsdbRoot);
@@ -1443,11 +1443,12 @@ TaggedOperState BgpRibMapDataGenerator::getStateUpdate(
   return state;
 }
 
-fsdb::FsdbOperStateRoot BgpRibMapDataGenerator::buildFsdbOperStateRoot() {
+fsdb::FsdbOperStateRoot BgpRibMapDataGenerator::buildFsdbOperStateRoot(
+    int version) {
   fsdb::FsdbOperStateRoot root;
 
   root.agent() = fsdb::AgentData{};
-  root.bgp() = buildBgpData();
+  root.bgp() = buildBgpData(version);
   root.openr() = fsdb::OpenrData{};
 
   return root;
@@ -1473,7 +1474,7 @@ BgpRibMapScale BgpRibMapDataGenerator::getScale(RoleSelector role) {
   return it->second;
 }
 
-fsdb::BgpData BgpRibMapDataGenerator::buildBgpData() {
+fsdb::BgpData BgpRibMapDataGenerator::buildBgpData(int version) {
   fsdb::BgpData bgpData;
   BgpRibMapScale scale = getScale(selector_);
 
@@ -1481,14 +1482,14 @@ fsdb::BgpData BgpRibMapDataGenerator::buildBgpData() {
 
   // Generate IPv4 RIB entries
   for (int i = 0; i < scale.ribV4EntryCount; i++) {
-    TRibEntry entry = buildTRibEntry(scale, i, false);
+    TRibEntry entry = buildTRibEntry(scale, i, false, version);
     std::string prefixKey = createPrefixKey(*entry.prefix());
     ribMap[prefixKey] = std::move(entry);
   }
 
   // Generate IPv6 RIB entries
   for (int i = 0; i < scale.ribV6EntryCount; i++) {
-    TRibEntry entry = buildTRibEntry(scale, i, true);
+    TRibEntry entry = buildTRibEntry(scale, i, true, version);
     std::string prefixKey = createPrefixKey(*entry.prefix());
     ribMap[prefixKey] = std::move(entry);
   }
@@ -1500,10 +1501,17 @@ fsdb::BgpData BgpRibMapDataGenerator::buildBgpData() {
 TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
     const BgpRibMapScale& scale,
     int index,
-    bool isV6) {
+    bool isV6,
+    int version) {
   TRibEntry entry;
 
-  auto prefix = createPrefix(index, isV6);
+  // Determine key set and AS path version
+  int keySet = version % 2;
+  // Switch between AS path versions for each key set
+  constexpr int kNumAsPathVersions = 16;
+  int asPathVersion = (version / 2) % kNumAsPathVersions;
+
+  auto prefix = createPrefix(index, isV6, keySet);
   entry.prefix() = prefix;
 
   // Generate paths map with "best" group
@@ -1514,7 +1522,8 @@ TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
         j,
         scale.communitiesPerPath,
         scale.asPathSegments,
-        scale.extCommunitiesPerPath);
+        scale.extCommunitiesPerPath,
+        asPathVersion);
     bestPaths.emplace_back(std::move(path));
   }
 
@@ -1539,15 +1548,19 @@ TRibEntry BgpRibMapDataGenerator::buildTRibEntry(
 }
 
 facebook::neteng::fboss::bgp_attr::TIpPrefix
-BgpRibMapDataGenerator::createPrefix(int index, bool isV6) {
+BgpRibMapDataGenerator::createPrefix(int index, bool isV6, int keySet) {
   facebook::neteng::fboss::bgp_attr::TIpPrefix prefix;
 
   if (isV6) {
     // IPv6 prefix
     prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV6;
+    // Use different base addresses for different key sets
+    // keySet 0: 2401:db00::/32, keySet 1: 2401:dc00::/32
+    int baseOctet = (keySet == 0) ? 0xdb : 0xdc;
     int hex3 = (index / 512) % 256;
     int hex4 = index % 256;
-    std::string prefixStr = fmt::format("2401:db00:{:x}:{:x}::/64", hex3, hex4);
+    std::string prefixStr =
+        fmt::format("2401:{:x}00:{:x}:{:x}::/64", baseOctet, hex3, hex4);
     auto network = folly::IPAddress::createNetwork(prefixStr);
     auto bytes = network.first.asV6().toByteArray();
     std::string encoded = folly::base64Encode(
@@ -1558,9 +1571,17 @@ BgpRibMapDataGenerator::createPrefix(int index, bool isV6) {
   } else {
     // IPv4 prefix
     prefix.afi() = facebook::neteng::fboss::bgp_attr::TBgpAfi::AFI_IPV4;
+    // Use different base addresses for different key sets
+    // keySet 0: 10.0.0.0/8, keySet 1: 172.16.0.0/12
+    int baseOctet1 = (keySet == 0) ? 10 : 172;
     int octet2 = (index / 256) % 256;
     int octet3 = index % 256;
-    std::string prefixStr = fmt::format("10.{}.{}.0/24", octet2, octet3);
+    // For keySet 1 (172.16.0.0/12), use 172 as first octet and add 16 as offset
+    if (keySet == 1) {
+      octet2 = 16 + (octet2 % 16); // Keep within 172.16.0.0/12 range
+    }
+    std::string prefixStr =
+        fmt::format("{}.{}.{}.0/24", baseOctet1, octet2, octet3);
     auto network = folly::IPAddress::createNetwork(prefixStr);
     auto bytes = network.first.asV4().toByteArray();
     std::string encoded = folly::base64Encode(
@@ -1578,7 +1599,8 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
     int pathIndex,
     int numCommunities,
     int numAsPathSegments,
-    int numExtCommunities) {
+    int numExtCommunities,
+    int asPathVersion) {
   neteng::fboss::bgp::thrift::TBgpPath path;
 
   // Create next_hop
@@ -1595,7 +1617,7 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
   nextHop.num_bits() = 128;
   path.next_hop() = nextHop;
 
-  // Create AS path
+  // Create AS path - ping-pong between 2 versions based on asPathVersion
   facebook::neteng::fboss::bgp_attr::TAsPath asPath;
   for (int i = 0; i < numAsPathSegments; i++) {
     facebook::neteng::fboss::bgp_attr::TAsPathSeg segment;
@@ -1607,7 +1629,10 @@ neteng::fboss::bgp::thrift::TBgpPath BgpRibMapDataGenerator::createBgpPath(
     std::vector<int32_t> asns;
     std::vector<int64_t> asns_4_byte;
     for (int j = 0; j < numAsns; j++) {
-      int32_t asn = 65000 + ((entryIndex + pathIndex + i + j) % 1000);
+      // Alternate AS path based on asPathVersion
+      // Version 0: base ASN, Version 1: base ASN + 10000
+      int32_t baseAsn = 65000 + ((entryIndex + pathIndex + i + j) % 1000);
+      int32_t asn = baseAsn + (asPathVersion * 10000);
       asns.push_back(asn);
       asns_4_byte.push_back(asn);
     }

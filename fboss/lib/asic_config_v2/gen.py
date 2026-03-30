@@ -11,14 +11,16 @@ from fboss.lib.asic_config_v2.icecube800banw import gen_icecube800banw_asic_conf
 from fboss.lib.asic_config_v2.icecube800bc import gen_icecube800bc_asic_config
 from fboss.lib.asic_config_v2.montblanc import gen_montblanc_asic_config
 from fboss.lib.asic_config_v2.wedge800bact import gen_wedge800bact_asic_config
-from neteng.fboss.fboss_common.ttypes import PlatformType
+from neteng.fboss.fboss_common.thrift_enums import PlatformType
+from neteng.fboss.fboss_common.ttypes import PlatformType as PlatformTypePyDeprecated
 from thrift.util import Serializer
+from thrift.util.converter import fbthrift_name_or_key_error
 
-_PLATFORM_TO_ASIC_CONFIG_FUNC: Dict[PlatformType, Any] = {
-    PlatformType.PLATFORM_ICECUBE800BANW: gen_icecube800banw_asic_config,
-    PlatformType.PLATFORM_ICECUBE800BC: gen_icecube800bc_asic_config,
-    PlatformType.PLATFORM_MONTBLANC: gen_montblanc_asic_config,
-    PlatformType.PLATFORM_WEDGE800BACT: gen_wedge800bact_asic_config,
+_PLATFORM_TO_ASIC_CONFIG_FUNC: Dict[PlatformTypePyDeprecated, Any] = {
+    PlatformTypePyDeprecated.PLATFORM_ICECUBE800BANW: gen_icecube800banw_asic_config,
+    PlatformTypePyDeprecated.PLATFORM_ICECUBE800BC: gen_icecube800bc_asic_config,
+    PlatformTypePyDeprecated.PLATFORM_MONTBLANC: gen_montblanc_asic_config,
+    PlatformTypePyDeprecated.PLATFORM_WEDGE800BACT: gen_wedge800bact_asic_config,
 }
 
 _FBOSS_DIR: str = os.getcwd() + "/fboss"
@@ -39,7 +41,9 @@ def generate_all_asic_configs() -> None:
             continue
         # Convert PLATFORM_ICECUBE800BC -> icecube800bc
         platform_str = (
-            PlatformType._VALUES_TO_NAMES[platform].replace("PLATFORM_", "").lower()
+            fbthrift_name_or_key_error(PlatformType, platform)
+            .replace("PLATFORM_", "")
+            .lower()
         )
         asic_config_func = _PLATFORM_TO_ASIC_CONFIG_FUNC[platform]
         for config_name, config_data in asic_config_map.items():

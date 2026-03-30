@@ -314,4 +314,28 @@ TEST_F(
   EXPECT_EQ(*response.eepromContents()->vendorDefinedField2(), "0x48656c6c6f");
 }
 
+TEST_F(
+    PlatformManagerHandlerTest,
+    GetFirmwareVersions_ReturnsEmptyMapWhenNone) {
+  FirmwareVersionsResponse response;
+  handler_->getFirmwareVersions(response);
+  EXPECT_TRUE(response.firmwareVersions()->empty());
+}
+
+TEST_F(PlatformManagerHandlerTest, GetFirmwareVersions_ReturnsPopulatedMap) {
+  DataStore dataStore(config_);
+  dataStore.updateFirmwareVersion("SMB_CPLD", "1.2.3");
+  dataStore.updateFirmwareVersion("MCB_FPGA", "4.5.6");
+
+  MockPlatformExplorer explorer(config_, dataStore);
+  PlatformManagerHandler handler(explorer, dataStore, config_);
+
+  FirmwareVersionsResponse response;
+  handler.getFirmwareVersions(response);
+
+  EXPECT_EQ(response.firmwareVersions()->size(), 2);
+  EXPECT_EQ(response.firmwareVersions()->at("SMB_CPLD"), "1.2.3");
+  EXPECT_EQ(response.firmwareVersions()->at("MCB_FPGA"), "4.5.6");
+}
+
 } // namespace facebook::fboss::platform::platform_manager

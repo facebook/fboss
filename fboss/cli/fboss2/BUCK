@@ -1,6 +1,7 @@
 load("@fbcode//clifoundation/cli_target/buck_defs:cli.bzl", "cli")
 load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
 load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+load("@fbcode_macros//build_defs:export_files.bzl", "export_file")
 load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 load("//fastcli:defs.bzl", "auto_tab_complete")
 
@@ -83,6 +84,7 @@ cpp_library(
         "CmdSubcommands.h",
     ],
     exported_deps = [
+        "fbsource//third-party/fmt:fmt",
         ":cli-parser-utils",
         ":cmd-common-utils",
         ":cmd-list-header",
@@ -96,10 +98,39 @@ cpp_library(
 )
 
 cpp_library(
+    name = "cmd-init-utils",
+    srcs = [
+        "utils/CmdInitUtils.cpp",
+        "utils/facebook/CmdInitUtils.cpp",
+    ],
+    headers = [
+        "utils/CmdInitUtils.h",
+    ],
+    # kCommandTree/kAdditionalCommandTree/kSpecialCommands are declared in
+    # CmdList.h (cmd-list-header) but defined in CmdList.cpp (fboss2-lib).
+    # We can't depend on fboss2-lib here without creating a cycle, so we
+    # use static linkage and let the final binary resolve these symbols.
+    # Different binaries (fboss2, fboss2-routing-protocol) provide their
+    # own CmdList.cpp with different command trees.
+    preferred_linkage = "static",
+    exported_deps = [
+        ":cmd-global-options",
+        ":cmd-list-header",  # @manual
+        ":cmd-subcommands",
+        "//fastcli:utils-cpp",
+    ],
+    exported_external_deps = [
+        "CLI11",
+    ],
+)
+
+cpp_library(
     name = "cmd-handler",
     headers = [
         "CmdHandler.cpp",
         "CmdHandler.h",
+        "CmdStreamHandler.cpp",
+        "CmdStreamHandler.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
@@ -109,7 +140,9 @@ cpp_library(
         "//folly/executors:cpu_thread_pool_executor",
         "//folly/logging:logging",
         "//thrift/lib/cpp/util:enum_utils",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
+        "//thrift/lib/thrift:metadata-cpp2-types",
     ],
 )
 
@@ -175,8 +208,7 @@ cpp_library(
         "//folly/gen:base",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",
-        "//thrift/lib/cpp2/visitation:visitation",
-        "//thrift/lib/thrift:metadata-cpp2-types",
+        "//thrift/lib/cpp2/op:get",
     ],
     exported_external_deps = [
         "CLI11",
@@ -236,6 +268,12 @@ cpp_library(
         "commands/show/facebook/bgp/neighbors/received/BgpNeighborsReceivedPrePolicy.h",
         "commands/show/facebook/bgp/neighbors/received/BgpNeighborsReceivedRejected.h",
         "commands/show/facebook/bgp/neighbors/session_id/CmdBgpNeighborsSessionId.h",
+        "commands/show/facebook/bgp/neighbors_by_name/CmdShowBgpNeighborsByName.h",
+        "commands/show/facebook/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejected.h",
+        "commands/show/facebook/bgp/neighbors_by_name/advertised/BgpNeighborsByNameAdvertisedRejectedCrf.h",
+        "commands/show/facebook/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejected.h",
+        "commands/show/facebook/bgp/neighbors_by_name/received/BgpNeighborsByNameReceivedRejectedCrf.h",
+        "commands/show/facebook/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h",
         "commands/show/facebook/bgp/profiler/CmdShowBgpProfiler.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicy.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyCps.h",
@@ -268,6 +306,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        "fbsource//third-party/re2:re2",
         ":cmd-common-utils",
         ":cmd-handler",
         ":cmd-show-utils",  # @manual
@@ -277,6 +316,7 @@ cpp_library(
         "//fboss/cli/fboss2/commands/show/facebook/bgp/ribpolicy/criteria:model-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/bgp/summary:bgp_summary-cpp2-types",
         "//folly:file_util",
+        "//folly:network_address",
         "//folly:string",
         "//folly:subprocess",
         "//folly/logging:logging",
@@ -293,8 +333,10 @@ cpp_library(
     srcs = [
         "CmdHandlerImpl.cpp",
         "CmdList.cpp",
+        "CmdStreamHandlerImpl.cpp",
         "commands/create/config/facebook/CmdCreateConfigUtils.cpp",
         "commands/debug/facebook/CmdDebugUtils.cpp",
+        "commands/delete/config/CmdDeleteConfig.cpp",
         "commands/delete/config/facebook/CmdDeleteConfigUtils.cpp",
         "commands/show/acl/CmdShowAcl.cpp",
         "commands/show/agent/CmdShowAgentFirmware.cpp",
@@ -443,6 +485,7 @@ cpp_library(
         "commands/debug/facebook/bgp/neighbors/CmdDebugBgpNeighborsRestart.h",
         "commands/debug/facebook/bgp/neighbors/CmdDebugBgpNeighborsShutdown.h",
         "commands/debug/facebook/bgp/neighbors/CmdDebugBgpNeighborsStart.h",
+        "commands/delete/config/CmdDeleteConfig.h",
         "commands/delete/config/facebook/CmdDeleteConfigPatcherAgent.h",
         "commands/delete/config/facebook/CmdDeleteConfigUtils.h",
         "commands/facebook/rage/CmdRage.h",
@@ -582,7 +625,6 @@ cpp_library(
         "commands/stop/pcap/CmdStopPcap.h",
         "commands/stream/fsdb/CmdStreamSubFsdbOperState.h",
         "commands/stream/fsdb/CmdStreamSubFsdbOperStats.h",
-        "facebook/CmdStreamHandler.h",
         "utils/CmdUtils.h",
         "utils/clients/BmcClient.h",
     ],
@@ -616,7 +658,6 @@ cpp_library(
         "//configerator/structs/neteng/netwhoami:netwhoami-cpp2-types",
         "//employee/if:thrift-cpp2-services",
         "//employee/if:thrift-cpp2-types",
-        "//fastcli:utils-cpp",
         "//fboss/agent:address_utils",
         "//fboss/agent:agent_config-cpp2-types",
         "//fboss/agent:fboss-types",
@@ -778,7 +819,10 @@ cpp_library(
         "//folly/json:dynamic",
         "//folly/logging:logging",
         "//folly/testing:test_util",
+        "//neteng/fboss/bgp/cpp/lib:bgp_structs",
+        "//neteng/fboss/bgp/cpp/lib:bgplib_util",
         "//neteng/fboss/bgp/cpp/policy:policy_utils",
+        "//neteng/fboss/bgp/if:bgp-structs-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_stream-cpp2-services",
         "//neteng/fboss/bgp/if:bgp_stream-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
@@ -790,9 +834,6 @@ cpp_library(
         "//neteng/netwhoami/lib/cpp:client",
         "//neteng/netwhoami/lib/cpp:recover",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
-        "//nettools/bgplib:bgp_structs",
-        "//nettools/bgplib:bgplib_util",
-        "//nettools/bgplib/if:bgp-structs-cpp2-types",
         "//nettools/skynet/if:query-cpp2-types",
         "//nettools/skynet/if:skynet_structs-cpp2-types",
         "//nettools/skynet/lib/cpp:skynet_thrift_client",
@@ -825,15 +866,13 @@ cpp_binary(
     name = "fboss2",
     srcs = [
         "Main.cpp",
+        "facebook/CmdListImpl.cpp",
     ],
     deps = [
-        ":cmd-common-utils",
-        ":cmd-global-options",
-        ":cmd-subcommands",
+        ":cmd-init-utils",
         ":fboss2-lib",  # @manual
         "//folly/init:init",
         "//folly/logging:init",
-        "//folly/logging:logging",
     ],
     external_deps = [
         "CLI11",
@@ -861,14 +900,18 @@ auto_tab_complete(
 cpp_library(
     name = "fboss2-config-lib",
     srcs = [
-        "CmdHandlerImplConfig.cpp",
         "CmdListConfig.cpp",
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
         "commands/config/history/CmdConfigHistory.cpp",
-        "commands/config/interface/CmdConfigInterfaceDescription.cpp",
-        "commands/config/interface/CmdConfigInterfaceMtu.cpp",
+        "commands/config/interface/CmdConfigInterface.cpp",
+        "commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp",
+        "commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp",
+        "commands/config/interface/switchport/CmdConfigInterfaceSwitchport.cpp",
+        "commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.cpp",
         "commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.cpp",
+        "commands/config/l2/CmdConfigL2.cpp",
+        "commands/config/l2/learning_mode/CmdConfigL2LearningMode.cpp",
         "commands/config/protocol/CmdConfigProtocol.cpp",
         "commands/config/protocol/bgp/BgpConfigSession.cpp",
         "commands/config/protocol/bgp/CmdConfigProtocolBgp.cpp",
@@ -928,27 +971,43 @@ cpp_library(
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.cpp",
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.cpp",
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.cpp",
+        "commands/config/qos/CmdConfigQos.cpp",
         "commands/config/qos/buffer_pool/CmdConfigQosBufferPool.cpp",
+        "commands/config/qos/policy/CmdConfigQosPolicy.cpp",
+        "commands/config/qos/policy/CmdConfigQosPolicyMap.cpp",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.cpp",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.cpp",
+        "commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.cpp",
+        "commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.cpp",
         "commands/config/rollback/CmdConfigRollback.cpp",
+        "commands/config/session/CmdConfigSessionClear.cpp",
         "commands/config/session/CmdConfigSessionCommit.cpp",
         "commands/config/session/CmdConfigSessionDiff.cpp",
         "commands/config/session/CmdConfigSessionRebase.cpp",
+        "commands/config/vlan/CmdConfigVlan.cpp",
+        "commands/config/vlan/port/CmdConfigVlanPort.cpp",
+        "commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.cpp",
+        "commands/config/vlan/static_mac/CmdConfigVlanStaticMac.cpp",
         "commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.cpp",
         "commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.cpp",
         "session/ConfigSession.cpp",
         "session/Git.cpp",
         "utils/InterfaceList.cpp",
+        "utils/InterfacesConfig.cpp",
     ],
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
         "commands/config/history/CmdConfigHistory.h",
         "commands/config/interface/CmdConfigInterface.h",
-        "commands/config/interface/CmdConfigInterfaceDescription.h",
-        "commands/config/interface/CmdConfigInterfaceMtu.h",
+        "commands/config/interface/CmdConfigInterfaceQueuingPolicy.h",
+        "commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h",
+        "commands/config/interface/pfc_config/PfcConfigUtils.h",
         "commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h",
         "commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h",
         "commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h",
+        "commands/config/l2/CmdConfigL2.h",
+        "commands/config/l2/learning_mode/CmdConfigL2LearningMode.h",
         "commands/config/protocol/CmdConfigProtocol.h",
         "commands/config/protocol/bgp/BgpConfigSession.h",
         "commands/config/protocol/bgp/CmdConfigProtocolBgp.h",
@@ -993,17 +1052,27 @@ cpp_library(
         "commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h",
         "commands/config/qos/CmdConfigQos.h",
         "commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h",
+        "commands/config/qos/policy/CmdConfigQosPolicy.h",
+        "commands/config/qos/policy/CmdConfigQosPolicyMap.h",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicy.h",
+        "commands/config/qos/priority_group_policy/CmdConfigQosPriorityGroupPolicyGroupId.h",
+        "commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h",
+        "commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h",
         "commands/config/rollback/CmdConfigRollback.h",
+        "commands/config/session/CmdConfigSessionClear.h",
         "commands/config/session/CmdConfigSessionCommit.h",
         "commands/config/session/CmdConfigSessionDiff.h",
         "commands/config/session/CmdConfigSessionRebase.h",
         "commands/config/vlan/CmdConfigVlan.h",
+        "commands/config/vlan/port/CmdConfigVlanPort.h",
+        "commands/config/vlan/port/tagging_mode/CmdConfigVlanPortTaggingMode.h",
         "commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h",
         "commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h",
         "commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h",
         "session/ConfigSession.h",
         "session/Git.h",
         "utils/InterfaceList.h",
+        "utils/InterfacesConfig.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
@@ -1027,27 +1096,31 @@ cpp_library(
         "//folly:string",
         "//folly:subprocess",
         "//folly/json:dynamic",
+        "//folly/lang:assume",
         "//folly/logging:logging",
+        "//thrift/lib/cpp/util:enum_utils",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
+)
+
+export_file(
+    name = "cmd-list-config-impl",
+    src = "facebook/config/CmdListImpl.cpp",
 )
 
 cpp_binary(
     name = "fboss2-dev",
     srcs = [
         "Main.cpp",
-        "oss/CmdListConfig.cpp",
+        "facebook/config/CmdListImpl.cpp",
     ],
     deps = [
-        ":cmd-common-utils",
-        ":cmd-global-options",
-        ":cmd-subcommands",
+        ":cmd-init-utils",
         ":fboss2-config-lib",  # @manual
         ":fboss2-lib",
         "//folly/init:init",
         "//folly/logging:init",
-        "//folly/logging:logging",
     ],
     external_deps = [
         "CLI11",
@@ -1079,6 +1152,7 @@ cpp_binary(
         "commands/show/config/CmdShowConfigTraits.h",
         "commands/show/facebook/CmdShowUtils.h",
         "commands/show/facebook/CmdShowVersionBgp.h",
+        "commands/show/facebook/bgp/nexthopinfo/CmdShowBgpNexthopInfo.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicy.h",
         "commands/show/facebook/bgp/ribpolicy/CmdShowBgpRibPolicyUtils.h",
         "commands/show/facebook/bgp/ribpolicy/changehistory/CmdShowBgpRibPolicyChangeHistory.h",
@@ -1095,9 +1169,9 @@ cpp_binary(
         ":cmd-common-utils",
         ":cmd-global-options",
         ":cmd-handler",
+        ":cmd-init-utils",
         ":cmd-list-header",
         ":cmd-local-options",
-        ":cmd-subcommands",
         ":commands-show-bgp",
         ":table-utils",
         "//common/config:configerator",
@@ -1107,7 +1181,6 @@ cpp_binary(
         "//configerator/structs/neteng/bgp_policy/thrift:routing_policy-cpp2-types",
         "//configerator/structs/neteng/fboss/bgp/if:bgp_attr-cpp2-types",
         "//configerator/structs/neteng/fboss/push/forwarding_stack:fbpkg_map-cpp2-types",
-        "//fastcli:utils-cpp",
         "//fboss/agent:address_utils",
         "//fboss/cli/fboss2/commands/show/facebook/bgp/summary:bgp_summary-cpp2-types",
         "//fboss/cli/fboss2/commands/show/facebook/bgp/techsupport:bgp_techsupport-cpp2-types",
@@ -1120,14 +1193,14 @@ cpp_binary(
         "//folly/json:dynamic",
         "//folly/logging:init",
         "//folly/logging:logging",
+        "//neteng/fboss/bgp/cpp/lib:bgp_structs",
+        "//neteng/fboss/bgp/cpp/lib:bgplib_util",
         "//neteng/fboss/bgp/cpp/policy:policy_utils",
         "//neteng/fboss/bgp/cpp/rib:rib",
+        "//neteng/fboss/bgp/if:bgp-structs-cpp2-types",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-services",
         "//neteng/fboss/bgp/if:bgp_thrift-cpp2-types",
         "//neteng/routing/policy/if:policy_thrift-cpp2-types",
-        "//nettools/bgplib:bgp_structs",
-        "//nettools/bgplib:bgplib_util",
-        "//nettools/bgplib/if:bgp-structs-cpp2-types",
         "//nettools/skynet/if:query-cpp2-types",
         "//nettools/skynet/if:skynet_structs-cpp2-types",
         "//nettools/skynet/lib/cpp:skynet_thrift_client",

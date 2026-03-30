@@ -27,8 +27,6 @@
 
 #include <folly/IPAddress.h>
 
-DECLARE_bool(intf_nbr_tables);
-
 using boost::container::flat_map;
 using boost::container::flat_set;
 using folly::IPAddress;
@@ -228,14 +226,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto existingEntry = nbrTable->getEntryIf(nhopIp);
@@ -311,14 +303,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto entry = nbrTable->getEntryIf(nhopIp);
@@ -826,9 +812,18 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
     RouteUpdateWrapper* updater,
     size_t width,
     const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
+    const std::vector<NextHopWeight>& weights,
+    const std::optional<bool>& disableTTLDecrement) const {
+  // Use default route prefix when caller passes empty prefixes
+  const auto& effectivePrefixes =
+      prefixes.empty() ? std::vector<RouteT>{{IPAddrT(), 0}} : prefixes;
   ecmpSetupTargetedPorts_.programRoutes(
-      updater, getPortDescs(width), prefixes, weights);
+      updater,
+      getPortDescs(width),
+      effectivePrefixes,
+      weights,
+      std::nullopt,
+      disableTTLDecrement);
 }
 
 template <typename IPAddrT>

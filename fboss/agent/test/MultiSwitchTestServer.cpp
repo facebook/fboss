@@ -33,7 +33,6 @@ MultiSwitchTestServer::MultiSwitchTestServer(
 #ifndef IS_OSS
     serviceFramework_ = std::make_unique<services::ServiceFrameworkLight>(
         sfName.c_str(),
-        true /* threadsafe */,
         services::ServiceFrameworkLight::Options().setDisableScubaLogging(
             true));
     serviceFramework_->addPrimaryThriftService("FbossTestService", server);

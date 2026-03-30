@@ -2,6 +2,8 @@
 
 #include "fboss/platform/platform_manager/ConfigValidator.h"
 
+#include <set>
+
 #include <folly/logging/xlog.h>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/drop.hpp>
@@ -13,9 +15,11 @@
 #include <re2/re2.h>
 #include <thrift/lib/cpp2/op/Get.h>
 
+#include "fboss/platform/platform_manager/CpldManager.h"
 #include "fboss/platform/platform_manager/I2cAddr.h"
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/platform_manager/gen-cpp2/platform_manager_validators_constants.h"
+#include "fboss/platform/platform_manager/uapi/fbcpld-ioctl.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -311,6 +315,7 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
   static const re2::RE2 kCpuBusNameRegex{"CPU_BUS@\\d+"};
   bool hasVirtual = false;
   bool hasExact = false;
+  std::set<std::string> seen;
   for (const auto& name : i2cAdaptersFromCpu) {
     if (re2::RE2::FullMatch(name, kCpuBusNameRegex)) {
       if (name != "CPU_BUS@0" && name != "CPU_BUS@1") {
@@ -318,6 +323,10 @@ bool ConfigValidator::isValidI2cAdaptersFromCpu(
             "Invalid virtual bus name '{}'. "
             "Only CPU_BUS@0 and CPU_BUS@1 are supported",
             name);
+        return false;
+      }
+      if (!seen.insert(name).second) {
+        XLOG(ERR) << fmt::format("Duplicate virtual bus name '{}'", name);
         return false;
       }
       hasVirtual = true;
@@ -581,6 +590,101 @@ bool ConfigValidator::isValidI2cDeviceConfig(
         "eepromOffset defined while isEeprom is not true for {}",
         *i2cDeviceConfig.pmUnitScopedName());
     return false;
+  }
+  if (i2cDeviceConfig.cpldSysfsAttrs() &&
+      !isValidCpldSysfsAttrs(*i2cDeviceConfig.cpldSysfsAttrs())) {
+    return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidCpldSysfsAttrs(
+    const std::vector<CpldSysfsAttr>& cpldSysfsAttrs) {
+  static const re2::RE2 kHexRegex{"0x[0-9a-fA-F]+"};
+
+  if (cpldSysfsAttrs.empty()) {
+    XLOG(ERR) << "cpldSysfsAttrs must not be empty";
+    return false;
+  }
+  if (cpldSysfsAttrs.size() > FBCPLD_MAX_ATTRS) {
+    XLOG(ERR) << fmt::format(
+        "cpldSysfsAttrs has {} entries, exceeds max {}",
+        cpldSysfsAttrs.size(),
+        FBCPLD_MAX_ATTRS);
+    return false;
+  }
+
+  std::set<std::string> seenNames;
+  for (const auto& attr : cpldSysfsAttrs) {
+    if (attr.name()->empty()) {
+      XLOG(ERR) << "CpldSysfsAttr name must not be empty";
+      return false;
+    }
+    auto [it, inserted] = seenNames.insert(*attr.name());
+    if (!inserted) {
+      XLOG(ERR) << fmt::format(
+          "Duplicate CpldSysfsAttr name: {}", *attr.name());
+      return false;
+    }
+    if (*attr.mode() != "ro" && *attr.mode() != "rw" && *attr.mode() != "wo") {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid mode '{}'. Must be 'ro', 'rw', or 'wo'",
+          *attr.name(),
+          *attr.mode());
+      return false;
+    }
+    if (attr.regAddr()->empty() ||
+        !re2::RE2::FullMatch(*attr.regAddr(), kHexRegex)) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid regAddr '{}'. Must be hex (e.g. 0x10)",
+          *attr.name(),
+          *attr.regAddr());
+      return false;
+    }
+    auto regValue = std::stoul(*attr.regAddr(), nullptr, 16);
+    if (regValue > 0xFF) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has regAddr '{}' out of range. Must be 0x0-0xFF",
+          *attr.name(),
+          *attr.regAddr());
+      return false;
+    }
+    if (attr.description()->empty()) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has empty description", *attr.name());
+      return false;
+    }
+    if (*attr.bitOffset() < 0 || *attr.bitOffset() > 7) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid bitOffset {}. Must be 0-7",
+          *attr.name(),
+          *attr.bitOffset());
+      return false;
+    }
+    if (*attr.numBits() < 1 || *attr.numBits() > 8) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' has invalid numBits {}. Must be 1-8",
+          *attr.name(),
+          *attr.numBits());
+      return false;
+    }
+    if (*attr.bitOffset() + *attr.numBits() > 8) {
+      XLOG(ERR) << fmt::format(
+          "CpldSysfsAttr '{}' bitOffset ({}) + numBits ({}) exceeds 8",
+          *attr.name(),
+          *attr.bitOffset(),
+          *attr.numBits());
+      return false;
+    }
+    for (const auto& flag : *attr.flags()) {
+      if (!getCpldFlagMap().contains(flag)) {
+        XLOG(ERR) << fmt::format(
+            "CpldSysfsAttr '{}' has unrecognized flag '{}'",
+            *attr.name(),
+            flag);
+        return false;
+      }
+    }
   }
   return true;
 }

@@ -15,12 +15,13 @@
 #include <folly/Indestructible.h>
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/hw/bcm/BcmBstStatsMgr.h"
 #include "fboss/agent/hw/bcm/BcmControlPlane.h"
 #include "fboss/agent/hw/bcm/BcmCosManager.h"
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmPlatform.h"
+#include "fboss/agent/hw/bcm/BcmPort.h"
 #include "fboss/agent/hw/bcm/BcmPortTable.h"
+#include "fboss/agent/hw/bcm/BcmSwitch.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/if/gen-cpp2/highfreq_types.h"
 
@@ -400,6 +401,40 @@ void BcmBstStatsMgr::populateHighFrequencyBstStats(
           hw_->getMMUCellBytes();
     }
   }
+}
+
+BufferPoolCfgPtr BcmBstStatsMgr::getFirstInterfacePortPoolSettings() const {
+  // The ingress pool is global (shared across all ports), so we can get it
+  // from any interface port.
+  auto swState = hw_->getProgrammedState();
+  for (const auto& [portId, bcmPort] : *hw_->getPortTable()) {
+    if (!bcmPort) {
+      continue;
+    }
+    auto swPort = bcmPort->getSwitchStatePortIf(swState);
+    if (!swPort || swPort->getPortType() != cfg::PortType::INTERFACE_PORT) {
+      continue;
+    }
+    return bcmPort->getCurrentIngressPoolSettings();
+  }
+  return nullptr;
+}
+
+uint64_t BcmBstStatsMgr::getConfiguredHeadroomPoolSizeBytes() const {
+  auto poolSettings = getFirstInterfacePortPoolSettings();
+  if (!poolSettings) {
+    return 0;
+  }
+  auto headroomBytes = poolSettings->getHeadroomBytes();
+  return headroomBytes.has_value() ? static_cast<uint64_t>(*headroomBytes) : 0;
+}
+
+uint64_t BcmBstStatsMgr::getConfiguredSharedPoolSizeBytes() const {
+  auto poolSettings = getFirstInterfacePortPoolSettings();
+  if (!poolSettings) {
+    return 0;
+  }
+  return static_cast<uint64_t>(poolSettings->getSharedBytes());
 }
 
 } // namespace facebook::fboss

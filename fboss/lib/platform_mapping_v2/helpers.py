@@ -323,7 +323,10 @@ def _convert_xphy_core_type(
 
     target_core_type_name = from_core_type_name.replace(suffix_from, suffix_to)
 
-    for core_type_value, core_type_name in CoreType._VALUES_TO_NAMES.items():
+    for (
+        core_type_value,
+        core_type_name,
+    ) in CoreType._VALUES_TO_NAMES.items():
         if core_type_name == target_core_type_name:
             return core_type_value
 

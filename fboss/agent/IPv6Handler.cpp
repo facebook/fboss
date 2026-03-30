@@ -35,8 +35,6 @@
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/state/Vlan.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 DEFINE_bool(
     disable_icmp_error_response,
     false,
@@ -182,7 +180,10 @@ void IPv6Handler::handlePacket(
   if (ipv6.nextHeader == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
-    udpHdr.parse(&udpCursor, sw_->portStats(port));
+    if (!udpHdr.tryParse(&udpCursor, sw_->portStats(port))) {
+      XLOG_EVERY_MS(ERR, 1000) << "failed to parse udp header";
+      return;
+    }
     XLOG(DBG4) << "DHCP UDP packet, source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv6Handler::isForDHCPv6RelayOrServer(udpHdr)) {
@@ -222,8 +223,7 @@ void IPv6Handler::handlePacket(
     // Forward multicast packet directly to corresponding host interface
     // and let Linux handle it. In software we consume ICMPv6 Multicast
     // packets for function of NDP protocol, rest all are forwarded to host.
-    auto intfIDOpt =
-        sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
     if (intfIDOpt) {
       intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
     }
@@ -240,8 +240,7 @@ void IPv6Handler::handlePacket(
     } else {
       // Forward link-local packet directly to corresponding host interface
       // provided desAddr is assigned to that interface.
-      auto intfIDOpt =
-          sw_->getState()->getInterfaceIDForPortIf(PortDescriptor(port));
+      auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
       if (intfIDOpt) {
         intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
       }
@@ -992,8 +991,7 @@ void IPv6Handler::resolveDestAndHandlePacket(
         return;
       } else {
         // Check if destination is unknown, in which case trigger NDP
-        auto entry = getNeighborEntryForIP<NdpEntry>(
-            state, intf, target, FLAGS_intf_nbr_tables);
+        auto entry = getNeighborEntryForIP<NdpEntry>(state, intf, target);
 
         if (nullptr == entry) {
           // No entry in NDP table, create a neighbor solicitation packet
@@ -1064,13 +1062,20 @@ void IPv6Handler::sendMulticastNeighborSolicitations(
 }
 
 void IPv6Handler::floodNeighborAdvertisements() {
-  for (const auto& [_, intfMap] :
-       std::as_const(*sw_->getState()->getInterfaces())) {
+  if (!sw_->isFullyInitialized()) {
+    XLOG(DBG2)
+        << "Skip flooding neighbor advertisements, switch not initialized";
+    return;
+  }
+  // Capture state once to prevent use-after-free: without a local shared_ptr,
+  // a concurrent state update can free Interface nodes mid-iteration.
+  auto state = sw_->getState();
+  for (const auto& [_, intfMap] : std::as_const(*state->getInterfaces())) {
     for (auto iter : std::as_const(*intfMap)) {
       // This check is mostly for agent tests where we dont want to flood NDP
       // causing loop, when ports are in loopback
       const auto& intf = iter.second;
-      if (isAnyInterfacePortInLoopbackMode(sw_->getState(), intf)) {
+      if (isAnyInterfacePortInLoopbackMode(state, intf)) {
         XLOG(DBG2) << "Do not flood neighbor advertisement on interface: "
                    << intf->getName();
         continue;
@@ -1079,7 +1084,7 @@ void IPv6Handler::floodNeighborAdvertisements() {
       // If NDP is flooded on recycle port interface, it will be resolved and
       // will get added as DYNAMIC entry, which is incorrect.
       // Sending NDP packet to eventor port will cause it to get stuck.
-      if (isAnyInterfacePortRecycleOrEventorPort(sw_->getState(), intf)) {
+      if (isAnyInterfacePortRecycleOrEventorPort(state, intf)) {
         XLOG(DBG2) << "Do not flood neighbor advertisement on recycle "
                    << "or eventor port interface: " << intf->getName();
         continue;
@@ -1094,8 +1099,8 @@ void IPv6Handler::floodNeighborAdvertisements() {
         std::optional<PortDescriptor> portDescriptor{std::nullopt};
         auto intfType = intf->getType();
         if (intfType == cfg::InterfaceType::SYSTEM_PORT) {
-          portDescriptor = PortDescriptor(
-              getPortID(*intf->getSystemPortID(), sw_->getState()));
+          portDescriptor =
+              PortDescriptor(getPortID(*intf->getSystemPortID(), state));
         } else if (intfType == cfg::InterfaceType::PORT) {
           portDescriptor = PortDescriptor(intf->getPortID());
         }

@@ -86,6 +86,7 @@ class AgentArsBase : public AgentHwTest {
   RoutePrefixV6 getMirrorDestRoutePrefix(const folly::IPAddress dip) const;
   virtual void generatePrefixes();
   virtual std::vector<PortID> getTestPorts() const;
+  void setupEcmpGroups(int numEcmp);
   cfg::SwitchingMode getFwdSwitchingMode(const RoutePrefixV6& prefix) const;
   void verifyFwdSwitchingMode(
       const RoutePrefixV6& prefix,
@@ -95,6 +96,48 @@ class AgentArsBase : public AgentHwTest {
   bool isTH3(const AgentEnsemble& ensemble) const;
 
  protected:
+  // Port flowlet config helpers - consolidated from AgentArsFlowletTest
+  cfg::PortFlowletConfig getPortFlowletConfig(
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight) const;
+
+  void updatePortFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight) const;
+
+  void updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const;
+
+  void updateFlowletConfigs(
+      cfg::SwitchConfig& cfg,
+      const cfg::SwitchingMode switchingMode,
+      int flowletTableSize,
+      int scalingFactor,
+      int loadWeight,
+      int queueWeight,
+      const std::optional<cfg::SwitchingMode> backupSwitchingMode =
+          std::nullopt) const;
+
+  // Verification helpers - consolidated from AgentArsFlowletTest
+  bool verifyPortFlowletConfig(
+      const folly::CIDRNetwork& ip,
+      cfg::PortFlowletConfig& portFlowletConfig,
+      const PortID& port);
+
+  bool verifyEcmpForFlowletSwitching(
+      const folly::CIDRNetwork& ip,
+      const cfg::FlowletSwitchingConfig& flowletCfg,
+      bool flowletEnable,
+      const PortID& port);
+
+  bool verifyEcmpForNonFlowlet(
+      const folly::CIDRNetwork& ip,
+      const cfg::FlowletSwitchingConfig& flowletCfg,
+      bool expectFlowsetFree,
+      const PortID& port);
+
   cfg::AclActionType aclActionType_{cfg::AclActionType::PERMIT};
   static inline constexpr auto kOutQueue = 6;
   static inline constexpr auto kDscp = 30;

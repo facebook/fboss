@@ -791,4 +791,108 @@ uint32_t AgentArsBase::getMaxArsGroups() const {
   return maxArsGroups.value();
 }
 
+cfg::PortFlowletConfig AgentArsBase::getPortFlowletConfig(
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight) const {
+  cfg::PortFlowletConfig portFlowletConfig;
+  portFlowletConfig.scalingFactor() = scalingFactor;
+  portFlowletConfig.loadWeight() = loadWeight;
+  portFlowletConfig.queueWeight() = queueWeight;
+  return portFlowletConfig;
+}
+
+void AgentArsBase::updatePortFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight) const {
+  cfg.portFlowletConfigs() = {
+      {"default",
+       getPortFlowletConfig(scalingFactor, loadWeight, queueWeight)}};
+}
+
+void AgentArsBase::updatePortFlowletConfigName(cfg::SwitchConfig& cfg) const {
+  for (const auto& portId : masterLogicalInterfacePortIds()) {
+    auto portCfg = utility::findCfgPort(cfg, portId);
+    portCfg->flowletConfigName() = "default";
+  }
+}
+
+void AgentArsBase::updateFlowletConfigs(
+    cfg::SwitchConfig& cfg,
+    const cfg::SwitchingMode switchingMode,
+    int flowletTableSize,
+    int scalingFactor,
+    int loadWeight,
+    int queueWeight,
+    const std::optional<cfg::SwitchingMode> backupSwitchingMode) const {
+  cfg.flowletSwitchingConfig()->switchingMode() = switchingMode;
+  cfg.flowletSwitchingConfig()->flowletTableSize() = flowletTableSize;
+  if (backupSwitchingMode.has_value()) {
+    cfg.flowletSwitchingConfig()->backupSwitchingMode() =
+        backupSwitchingMode.value();
+  }
+  updatePortFlowletConfigs(cfg, scalingFactor, loadWeight, queueWeight);
+}
+
+bool AgentArsBase::verifyPortFlowletConfig(
+    const folly::CIDRNetwork& ip,
+    cfg::PortFlowletConfig& portFlowletConfig,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+
+  return client->sync_verifyPortFlowletConfig(cidr, portFlowletConfig, true);
+}
+
+bool AgentArsBase::verifyEcmpForFlowletSwitching(
+    const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    bool flowletEnable,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+  state::SwitchSettingsFields settings;
+  settings.flowletSwitchingConfig() = flowletCfg;
+  return client->sync_verifyEcmpForFlowletSwitchingHandler(
+      cidr, settings, flowletEnable);
+}
+
+bool AgentArsBase::verifyEcmpForNonFlowlet(
+    const folly::CIDRNetwork& ip,
+    const cfg::FlowletSwitchingConfig& flowletCfg,
+    const bool expectFlowsetFree,
+    const PortID& port) {
+  AgentEnsemble* ensemble = getAgentEnsemble();
+  auto switchId = ensemble->scopeResolver().scope(port).switchId();
+  auto client = ensemble->getHwAgentTestClient(switchId);
+  facebook::fboss::utility::CIDRNetwork cidr;
+  cidr.IPAddress() = ip.first.str();
+  cidr.mask() = ip.second;
+  state::SwitchSettingsFields settings;
+  settings.flowletSwitchingConfig() = flowletCfg;
+  return client->sync_verifyEcmpForNonFlowlet(
+      cidr, settings, expectFlowsetFree);
+}
+
+void AgentArsBase::setupEcmpGroups(int numEcmp) {
+  generatePrefixes();
+  std::vector<RoutePrefixV6> testPrefixes = {
+      prefixes.begin(), prefixes.begin() + numEcmp};
+  std::vector<flat_set<PortDescriptor>> testNhopSets = {
+      nhopSets.begin(), nhopSets.begin() + numEcmp};
+  auto wrapper = getSw()->getRouteUpdater();
+  helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);
+}
+
 } // namespace facebook::fboss

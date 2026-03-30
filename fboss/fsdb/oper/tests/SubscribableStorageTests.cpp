@@ -296,6 +296,176 @@ TYPED_TEST(SubscribableStorageTests, SubscribeHybridDelta) {
   EXPECT_EQ(deltaVal.changes()->size(), 0);
 }
 
+TYPED_TEST(SubscribableStorageTests, GetSetOptionalHybridStruct) {
+  // Build a TestHybridStruct with some data
+  TestHybridStruct hybridStruct;
+  hybridStruct.optionalIntegral() = 1000;
+  hybridStruct.str() = "test-stmt";
+  hybridStruct.integralSet() = {1, 2, 3};
+
+  // Initialize testStruct with the optionalAnnotatedStruct set
+  this->testStruct.optionalAnnotatedStruct() = hybridStruct;
+  auto storage = this->initStorage(this->testStruct);
+
+  // Verify via root get that optionalAnnotatedStruct round-trips through
+  // storage
+  auto rootVal = storage.get(this->root);
+  EXPECT_TRUE(rootVal.hasValue());
+  EXPECT_TRUE(rootVal->optionalAnnotatedStruct().has_value());
+  EXPECT_TRUE(
+      rootVal->optionalAnnotatedStruct()->optionalIntegral().has_value());
+  EXPECT_EQ(rootVal->optionalAnnotatedStruct()->integralSet()->size(), 3);
+  EXPECT_EQ(
+      rootVal->optionalAnnotatedStruct()->optionalIntegral().value(), 1000);
+  EXPECT_EQ(rootVal->optionalAnnotatedStruct()->str(), "test-stmt");
+
+  // Verify direct path get also works for optional hybrid fields
+  auto directResult = storage.get(this->root.optionalAnnotatedStruct());
+  EXPECT_TRUE(directResult.hasValue());
+  EXPECT_TRUE(directResult->optionalIntegral().has_value());
+  EXPECT_EQ(directResult->integralSet()->size(), 3);
+  EXPECT_EQ(directResult->optionalIntegral().value(), 1000);
+  EXPECT_EQ(directResult->str(), "test-stmt");
+
+  // Verify direct path get returns error when optionalAnnotatedStruct is NOT
+  // set
+  TestStruct emptyStruct = initializeTestStruct();
+  auto storage2 = this->initStorage(emptyStruct);
+  auto unsetResult = storage2.get(this->root.optionalAnnotatedStruct());
+  EXPECT_FALSE(unsetResult.hasValue());
+  EXPECT_EQ(unsetResult.error().code(), StorageError::Code::INVALID_PATH);
+}
+
+TYPED_TEST(SubscribableStorageTests, SetGetOptionalHybridStructRoundTrip) {
+  // Build an initial TestHybridStruct
+  TestHybridStruct initialStruct;
+  initialStruct.optionalIntegral() = 1000;
+  initialStruct.str() = "init-stmt";
+  initialStruct.integralSet() = {1, 2, 3};
+
+  // Initialize storage with optionalAnnotatedStruct set
+  this->testStruct.optionalAnnotatedStruct() = initialStruct;
+  auto storage = this->initStorage(this->testStruct);
+
+  // Set a NEW struct via storage.set
+  TestHybridStruct updatedStruct;
+  updatedStruct.optionalIntegral() = 2000;
+  updatedStruct.str() = "updated-stmt";
+  updatedStruct.integralSet() = {4, 5, 6, 7};
+
+  auto setResult = storage.set(
+      this->root.optionalAnnotatedStruct(), std::move(updatedStruct));
+  EXPECT_EQ(setResult, std::nullopt) << "storage.set failed";
+
+  // Must publish after set: NaivePeriodicSubscribableStorage's get() reads
+  // from lastPublishedState_ by default (serveGetRequestsWithLastPublishedState
+  // defaults to true), not from currentState_.
+  storage.publishCurrentState();
+
+  // Verify via direct path that updated struct is returned
+  auto directResult = storage.get(this->root.optionalAnnotatedStruct());
+  ASSERT_TRUE(directResult.hasValue())
+      << "storage.get(root.optionalAnnotatedStruct()) failed: "
+      << directResult.error().toString();
+  EXPECT_TRUE(directResult->optionalIntegral().has_value());
+  EXPECT_EQ(directResult->optionalIntegral().value(), 2000);
+  EXPECT_EQ(directResult->str(), "updated-stmt");
+  EXPECT_EQ(directResult->integralSet()->size(), 4);
+
+  // Verify via root that updated struct is also visible
+  auto rootResult = storage.get(this->root);
+  ASSERT_TRUE(rootResult.hasValue());
+  ASSERT_TRUE(rootResult->optionalAnnotatedStruct().has_value());
+  EXPECT_EQ(
+      rootResult->optionalAnnotatedStruct()->optionalIntegral().value(), 2000);
+  EXPECT_EQ(rootResult->optionalAnnotatedStruct()->str(), "updated-stmt");
+}
+
+TYPED_TEST(SubscribableStorageTests, SubscribeDeltaOptionalHybridStruct) {
+  FLAGS_serveHeartbeats = true;
+
+  // Initialize with a optionalAnnotatedStruct so the field exists
+  TestHybridStruct initialStruct;
+  initialStruct.optionalIntegral() = 1000;
+  initialStruct.str() = "init-stmt";
+  initialStruct.integralSet() = {1, 2, 3};
+  this->testStruct.optionalAnnotatedStruct() = initialStruct;
+
+  auto storage = this->initStorage(this->testStruct);
+
+  // Subscribe at the optionalAnnotatedStruct level so the delta path stays at
+  // or above the TestHybridStruct boundary in both hybrid and non-hybrid modes.
+  auto streamReader = storage.subscribe_delta(
+      std::move(SubscriptionIdentifier(SubscriberId(kSubscriber))),
+      this->root.optionalAnnotatedStruct(),
+      OperProtocol::SIMPLE_JSON);
+  auto generator = std::move(streamReader.generator_);
+  storage.start();
+
+  // First sync post subscription setup
+  auto element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  auto deltaVal = std::move(element.val);
+  EXPECT_EQ(deltaVal.changes()->size(), 1);
+
+  // Update the TestHybridStruct and verify delta
+  TestHybridStruct updatedStruct;
+  updatedStruct.optionalIntegral() = 5000;
+  updatedStruct.str() = "delta-stmt";
+  updatedStruct.integralSet() = {4, 5, 6, 7, 8};
+
+  EXPECT_EQ(
+      storage.set(this->root.optionalAnnotatedStruct(), updatedStruct),
+      std::nullopt);
+
+  element = folly::coro::blockingWait(
+      folly::coro::timeout(consumeOne(generator), std::chrono::seconds(5)));
+  deltaVal = std::move(element.val);
+
+  EXPECT_GE(deltaVal.changes()->size(), 1);
+  EXPECT_TRUE(deltaVal.metadata());
+  auto first = deltaVal.changes()->at(0);
+
+  // checks for HybridStorage enabled only if TestHybridStruct is annotated
+  // Create a CowStorage to access the root ThriftStructNode and check
+  // if optionalAnnotatedStruct field has the HasSkipThriftCow attribute
+  auto cowStorage = this->createCowStorage(this->testStruct);
+  bool isTestHybridStructAnnotated =
+      cowStorage.root()
+          ->template isSkipThriftCowEnabled<
+              apache::thrift::ident::optionalAnnotatedStruct>();
+  bool isMapFieldAnnotated =
+      cowStorage.root()
+          ->template isSkipThriftCowEnabled<
+              apache::thrift::ident::fieldAnnotatedMap>();
+  EXPECT_EQ(isMapFieldAnnotated, this->isHybridStorage());
+  EXPECT_EQ(isTestHybridStructAnnotated, this->isHybridStorage());
+
+  if (this->isHybridStorage() && isTestHybridStructAnnotated) {
+    // In hybrid mode, TestHybridStruct is a hybrid leaf node.
+    // The delta is reported at the optionalAnnotatedStruct boundary with full
+    // struct.
+    EXPECT_THAT(
+        *first.path()->raw(),
+        ::testing::ContainerEq(std::vector<std::string>({})));
+
+    EXPECT_TRUE(first.newState());
+
+    auto deserialized = facebook::fboss::thrift_cow::
+        deserialize<apache::thrift::type_class::structure, TestHybridStruct>(
+            OperProtocol::SIMPLE_JSON, *first.newState());
+    EXPECT_TRUE(deserialized.optionalIntegral().has_value());
+    EXPECT_EQ(deserialized.optionalIntegral().value(), 5000);
+    EXPECT_EQ(deserialized.str(), "delta-stmt");
+    EXPECT_EQ(deserialized.integralSet()->size(), 5);
+  } else {
+    // In non-hybrid mode, TestHybridStruct is a regular cow struct node.
+    // The delta is reported at the sub-field level relative to
+    // optionalAnnotatedStruct.
+    EXPECT_GE(first.path()->raw()->size(), 1);
+  }
+}
+
 TYPED_TEST(SubscribableStorageTests, SubscribePatch) {
   using namespace facebook::fboss::fsdb;
   using namespace facebook::fboss::thrift_cow;

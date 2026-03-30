@@ -37,6 +37,7 @@
 #include "fboss/agent/state/LoadBalancerMap.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/MirrorOnDropReportMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/PortFlowletConfigMap.h"
@@ -112,6 +113,10 @@ RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::srv6TunnelMaps,
     MultiSwitchSrv6TunnelMap);
+RESOLVE_STRUCT_MEMBER(
+    SwitchState,
+    switch_state_tags::mySidMaps,
+    MultiSwitchMySidMap);
 RESOLVE_STRUCT_MEMBER(
     SwitchState,
     switch_state_tags::teFlowTables,
@@ -470,6 +475,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
 
   const std::shared_ptr<MultiSwitchSrv6TunnelMap>& getSrv6Tunnels() const;
 
+  const std::shared_ptr<MultiSwitchMySidMap>& getMySids() const;
+
   const std::shared_ptr<MultiSwitchDsfNodeMap>& getDsfNodes() const;
 
   const std::shared_ptr<UdfConfig> getUdfConfig() const {
@@ -551,6 +558,8 @@ class SwitchState : public ThriftStructNode<SwitchState, state::SwitchState> {
   void resetTunnels(std::shared_ptr<MultiSwitchIpTunnelMap> tunnels);
 
   void resetSrv6Tunnels(std::shared_ptr<MultiSwitchSrv6TunnelMap> tunnels);
+
+  void resetMySids(std::shared_ptr<MultiSwitchMySidMap> mySids);
 
   void resetTeFlowTable(std::shared_ptr<MultiTeFlowTable> teFlowTable);
   void resetDsfNodes(const std::shared_ptr<MultiSwitchDsfNodeMap>& dsfNodes);

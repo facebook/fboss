@@ -49,7 +49,7 @@ cpp_library(
     exported_deps = [
         ":node_utils",
         ":serializer",
-        "//fboss/agent/if:common-cpp2-types",
+        "//configerator/structs/neteng/fboss/thrift:common-cpp2-types",
         "//fboss/agent/state:nodebase",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",
         "//fboss/thrift_cow/visitors:visitors",

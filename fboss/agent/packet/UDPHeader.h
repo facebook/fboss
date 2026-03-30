@@ -53,6 +53,7 @@ struct UDPHeader {
 
   void parse(folly::io::Cursor* cursor);
   void parse(folly::io::Cursor* cursor, PortStats* stats);
+  bool tryParse(folly::io::Cursor* cursor, PortStats* stats);
 
   uint16_t computeChecksum(
       const IPv4Hdr& ipv4Hdr,

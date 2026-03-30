@@ -1,0 +1,4277 @@
+{
+  "team": "sai_bench",
+  "known_bad_tests": {
+    "brcm/10.2.0.0_odp/tomahawk3_pciegen3": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk3_pciegen3/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk3_pciegen3/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk5": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk_pentium": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "runTxSlowPathBenchmark",
+          "reason": "Flaky tests, needs investigation/fine tuning of thresholds"
+        },
+        {
+          "test_name_regex": "HwStatsCollection",
+          "reason": "Test crashed in the middle before giving useful data"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+          "reason": "Test crashed - needs more debugging (T178915901)"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark",
+          "reason": "agent hangs on TH platoform on large number of mac churn"
+        },
+        {
+          "test_name_regex": "SystemScaleMemoryBenchmark",
+          "reason": "Test case hanging on exit, unblock until D78516487 reverted"
+        },
+        {
+          "test_name_regex": "HwUcmp512WidthScaleBenchmark",
+          "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk_pentium/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "runTxSlowPathBenchmark",
+          "reason": "Flaky tests, needs investigation/fine tuning of thresholds"
+        },
+        {
+          "test_name_regex": "HwStatsCollection",
+          "reason": "Test crashed in the middle before giving useful data"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+          "reason": "Test crashed - needs more debugging (T178915901)"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark",
+          "reason": "agent hangs on TH platoform on large number of mac churn"
+        },
+        {
+          "test_name_regex": "SystemScaleMemoryBenchmark",
+          "reason": "Test case hanging on exit, unblock until D78516487 reverted"
+        },
+        {
+          "test_name_regex": "HwUcmp512WidthScaleBenchmark",
+          "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk_pentium/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "runTxSlowPathBenchmark",
+          "reason": "Flaky tests, needs investigation/fine tuning of thresholds"
+        },
+        {
+          "test_name_regex": "HwStatsCollection",
+          "reason": "Test crashed in the middle before giving useful data"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+          "reason": "Test crashed - needs more debugging (T178915901)"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark",
+          "reason": "agent hangs on TH platoform on large number of mac churn"
+        },
+        {
+          "test_name_regex": "SystemScaleMemoryBenchmark",
+          "reason": "Test case hanging on exit, unblock until D78516487 reverted"
+        },
+        {
+          "test_name_regex": "HwUcmp512WidthScaleBenchmark",
+          "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/jericho3/mono": [
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/jericho3/multi_switch": [
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/ramon3": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/ramon3/mono": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/ramon3/multi_switch": [
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitVoqBenchmark",
+          "reason": "VOQ tests not applicable to fabric"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk3_pciegen3": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk3_pciegen3/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk3_pciegen3/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS enhanced mode not available on TH4"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS enhanced mode not available on TH4"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS enhanced mode not available on TH4"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS enhanced mode not available on TH4"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS enhanced mode not available on TH4"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS enhanced mode not available on TH4"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk5": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/11.7_0.0_dnx_odp/jericho3": [
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/mono": [
+        {
+          "test_name_regex": "HwVoqScale2kWideEcmpCompressionReconstructState.*",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwVoqScale2kWideEcmpCompressionRouteAddBenchmark.*",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwVoqScale2kWideEcmpCompressionRouteDelBenchmark.*",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch": [
+        {
+          "test_name_regex": "HwVoqScale2kWideEcmpCompressionReconstructState.*",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwVoqScale2kWideEcmpCompressionRouteAddBenchmark.*",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwVoqScale2kWideEcmpCompressionRouteDelBenchmark.*",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/13.0_ea_odp/tomahawk5": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/13.0_ea_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/13.0_ea_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/13.3.0.0_odp/tomahawk5": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/13.3.0.0_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/13.3.0.0_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk3_pciegen3": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk3_pciegen3/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk3_pciegen3/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Flaky test, debugging in T194688608"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk_pentium": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "runTxSlowPathBenchmark",
+          "reason": "Flaky tests, needs investigation/fine tuning of thresholds"
+        },
+        {
+          "test_name_regex": "HwStatsCollection",
+          "reason": "Test crashed in the middle before giving useful data"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+          "reason": "Test crashed - needs more debugging (T178915901)"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark",
+          "reason": "agent hangs on TH platoform on large number of mac churn"
+        },
+        {
+          "test_name_regex": "SystemScaleMemoryBenchmark",
+          "reason": "Test case hanging on exit, unblock until D78516487 reverted"
+        },
+        {
+          "test_name_regex": "HwUcmp512WidthScaleBenchmark",
+          "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk_pentium/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "runTxSlowPathBenchmark",
+          "reason": "Flaky tests, needs investigation/fine tuning of thresholds"
+        },
+        {
+          "test_name_regex": "HwStatsCollection",
+          "reason": "Test crashed in the middle before giving useful data"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+          "reason": "Test crashed - needs more debugging (T178915901)"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark",
+          "reason": "agent hangs on TH platoform on large number of mac churn"
+        },
+        {
+          "test_name_regex": "SystemScaleMemoryBenchmark",
+          "reason": "Test case hanging on exit, unblock until D78516487 reverted"
+        },
+        {
+          "test_name_regex": "HwUcmp512WidthScaleBenchmark",
+          "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk_pentium/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "runTxSlowPathBenchmark",
+          "reason": "Flaky tests, needs investigation/fine tuning of thresholds"
+        },
+        {
+          "test_name_regex": "HwStatsCollection",
+          "reason": "Test crashed in the middle before giving useful data"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUAnticipatedScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteAddBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwHgridUUScaleRouteDelBenchmark",
+          "reason": "Route scale exceeding asic can support"
+        },
+        {
+          "test_name_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+          "reason": "Test crashed - needs more debugging (T178915901)"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark",
+          "reason": "agent hangs on TH platoform on large number of mac churn"
+        },
+        {
+          "test_name_regex": "SystemScaleMemoryBenchmark",
+          "reason": "Test case hanging on exit, unblock until D78516487 reverted"
+        },
+        {
+          "test_name_regex": "HwUcmp512WidthScaleBenchmark",
+          "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
+        }
+    ],
+    "chenab/2505.34/chenab": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2505.34/chenab/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2505.34/chenab/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2511.35/chenab": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2511.35/chenab/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "chenab/2511.35/chenab/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark.*",
+          "reason": "New test, needs more debugging, T248319161"
+        }
+    ],
+    "leaba/1.42.8/gibraltar": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/1.42.8/gibraltar/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/1.42.8/gibraltar/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/24.8.3001/gibraltar": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/24.8.3001/gibraltar/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/24.8.3001/gibraltar/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/24.8.3001/graphene200": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/24.8.3001/graphene200/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/24.8.3001/graphene200/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/25.5.4210/gibraltar": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/25.5.4210/gibraltar/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/25.5.4210/gibraltar/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        }
+    ],
+    "leaba/25.5.4210/graphene200": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/25.5.4210/graphene200/mono": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ],
+    "leaba/25.5.4210/graphene200/multi_switch": [
+        {
+          "test_name_regex": ".*Voq.*",
+          "reason": "VOQ tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+          "reason": "Fabric tests not applicable to NPU"
+        },
+        {
+          "test_name_regex": "CpuLatency_.*_1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "cpuLatency(1Batch|10Batches)1Packet",
+          "reason": "New test, needs more debugging"
+        },
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark",
+          "reason": "not able to generate linerate traffic on cisco asic"
+        },
+        {
+          "test_name_regex": "RxSlowPathBenchmark",
+          "reason": "Temporary addition to known bad, needs more debugging"
+        }
+    ]
+  },
+  "test_failure_patterns": [
+    
+  ],
+  "buck_rule_or_test_id_to_benchmark_thres": {
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwHgridUUScaleRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/gibraltar/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 26000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 22000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 12380000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 9480000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 7170000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwHgridUUScaleRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/gibraltar/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 13800000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 6000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 6600000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 3900000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwThAlpmScaleRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteAddBenchmark",
+              "upper_bound": 25000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteAddBenchmark",
+              "upper_bound": 38000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteAddBenchmark",
+              "upper_bound": 7560000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.HwThAlpmScaleRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteDelBenchmark",
+              "upper_bound": 16000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteDelBenchmark",
+              "upper_bound": 12360000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteDelBenchmark",
+              "upper_bound": 5400000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.RxSlowPathBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_pentium/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 75655
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 320000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 300000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 184000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 138800
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 173887
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 256000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.multi_switch.runTxSlowPathBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 6471.33
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 9378.4
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 106965.86
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 106965.86
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 690000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 600000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 582766
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3/multi_switch",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 64000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwClearInterfacePhyCounters": [
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 24000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 15000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 23400000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 18000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 23400000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 25200000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 22000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwClearInterfacePhyCounters",
+              "upper_bound": 17500000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwEcmpBackupGroupSpilloverBenchmark": [
+        {
+          "test_config_regex": "tomahawk4/.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+              "upper_bound": 28500000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+              "upper_bound": 26700000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+              "upper_bound": 3370000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwEcmpGroupShrink": [
+        {
+          "test_config_regex": ".*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwEcmpGroupShrink",
+              "upper_bound": 25000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwEcmpGroupShrinkWithCompetingRouteUpdates": [
+        {
+          "test_config_regex": ".*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwEcmpGroupShrinkWithCompetingRouteUpdates",
+              "upper_bound": 25000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwHgridUUScaleRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 26000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 22000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 12380000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 10700000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 7170000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
+              "upper_bound": 33700000000000.004
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwHgridUUScaleRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 13800000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 6000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 6600000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
+              "upper_bound": 3900000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx100GBenchmark": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 6500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 25690000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 11000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 36000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 19320000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 19320000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx100GBenchmark.warmboot": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 8289999999999.999
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx100GBenchmark",
+              "upper_bound": 8289999999999.999
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx10GBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 11739.2
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 27640000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 8343.6
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 25930000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 6500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 26560000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 11000000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx10GBenchmark.warmboot": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 8460000000000.001
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 8460000000000.001
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 21600000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx10GBenchmark",
+              "upper_bound": 15670000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 7050.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 34920000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx25GBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 11651.6
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 27150000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 8259.6
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 24240000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 7050.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 34799999999999.996
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 6500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 26610000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 11000000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx25GBenchmark.warmboot": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 8359999999999.999
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 8359999999999.999
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 21580000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx25GBenchmark",
+              "upper_bound": 15380000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx50GBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 10109.199999999999
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 16920000000000.002
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 8745.1
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 14850000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 7072.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 34799999999999.996
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 6500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 25670000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 11000000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit100Gx50GBenchmark.warmboot": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 8660000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 8660000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 17970000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwInitAndExit100Gx50GBenchmark",
+              "upper_bound": 14050000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExit400Gx400GBenchmark": [
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 15500.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExit400Gx400GBenchmark",
+              "upper_bound": 15500000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwInitAndExitVoqBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 4200.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExitVoqBenchmark",
+              "upper_bound": 16140000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "warm_boot_msecs",
+              "upper_bound": 3120.0
+            },
+            {
+              "metric_key_regex": "HwInitAndExitVoqBenchmark",
+              "upper_bound": 13440000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwStatsCollection": [
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 840000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 874000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 550000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 1400000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 9900000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 38760000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 18960000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/ramon3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwStatsCollection",
+              "upper_bound": 612000000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSwitchReachabilityChangeFabricBenchmark": [
+        {
+          "test_config_regex": ".*/ramon3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSwitchReachabilityChangeFabricBenchmark",
+              "upper_bound": 20000000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwSwitchReachabilityChangeVoqBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwSwitchReachabilityChangeVoqBenchmark",
+              "upper_bound": 14800000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwThAlpmScaleRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteAddBenchmark",
+              "upper_bound": 25000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteAddBenchmark",
+              "upper_bound": 38000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteAddBenchmark",
+              "upper_bound": 7560000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwThAlpmScaleRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteDelBenchmark",
+              "upper_bound": 16000000000000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteDelBenchmark",
+              "upper_bound": 12360000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwThAlpmScaleRouteDelBenchmark",
+              "upper_bound": 5400000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwTunManagerProbeAndCleanup": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwTunManagerProbeAndCleanup",
+              "upper_bound": 293000000000
+            },
+            {
+              "metric_key_regex": "cpu_time_usec",
+              "upper_bound": 44400000.0
+            },
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 2590000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwTunManagerProbeAndCleanup",
+              "upper_bound": 1494000000000.0
+            },
+            {
+              "metric_key_regex": "cpu_time_usec",
+              "upper_bound": 24040000.0
+            },
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 2290000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqRemoteNeighborAdd": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteNeighborAdd",
+              "upper_bound": 36480000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteNeighborAdd",
+              "upper_bound": 236000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqRemoteNeighborDel": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteNeighborDel",
+              "upper_bound": 33600000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteNeighborDel",
+              "upper_bound": 236000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqRemoteSysPortAndIntfAdd": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteSysPortAndIntfAdd",
+              "upper_bound": 692400000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteSysPortAndIntfAdd",
+              "upper_bound": 159600000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqRemoteSysPortAndIntfDel": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteSysPortAndIntfDel",
+              "upper_bound": 496500000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqRemoteSysPortAndIntfDel",
+              "upper_bound": 92400000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScale2kWideEcmpCompressionReconstructState": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScale2kWideEcmpCompressionReconstructState",
+              "upper_bound": 720000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScale2kWideEcmpCompressionRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScale2kWideEcmpCompressionRouteAddBenchmark",
+              "upper_bound": 46500000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScale2kWideEcmpCompressionRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScale2kWideEcmpCompressionRouteDelBenchmark",
+              "upper_bound": 21600000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScale2kWideEcmpRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScale2kWideEcmpRouteAddBenchmark",
+              "upper_bound": 4099999999999.9995
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScale2kWideEcmpRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScale2kWideEcmpRouteDelBenchmark",
+              "upper_bound": 2100000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScaleRouteAddBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScaleRouteAddBenchmark",
+              "upper_bound": 16000000000000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqScaleRouteDelBenchmark": [
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqScaleRouteDelBenchmark",
+              "upper_bound": 1920000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqStatsCollection": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqStatsCollection",
+              "upper_bound": 120200000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqStatsCollection",
+              "upper_bound": 41600000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.HwVoqSysPortProgramming": [
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqSysPortProgramming",
+              "upper_bound": 382500000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "HwVoqSysPortProgramming",
+              "upper_bound": 141600000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.RouteAddHwEcmpGroupScale128x64Benchmark": [
+        {
+          "test_config_regex": "tomahawk4/.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+              "upper_bound": 28500000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+              "upper_bound": 26700000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+              "upper_bound": 3370000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.RouteAddHwEcmpGroupScale256x64Benchmark": [
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+              "upper_bound": 26700000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+              "upper_bound": 3370000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.RouteDelHwEcmpGroupScale128x64Benchmark": [
+        {
+          "test_config_regex": "tomahawk4/.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+              "upper_bound": 28500000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+              "upper_bound": 26700000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+              "upper_bound": 3370000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.RouteDelHwEcmpGroupScale256x64Benchmark": [
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+              "upper_bound": 26700000000000.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/spectrum4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+              "upper_bound": 3370000000000.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.RxSlowPathBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 75655
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 320000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 300000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 184000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 138800
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 173887
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3/mono/fap",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 204800
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_rx_pps",
+              "lower_bound": 256000
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.SystemScaleMemoryBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 2160690
+            },
+            {
+              "metric_key_regex": "program_routes_msecs",
+              "upper_bound": 11229.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 3707334
+            },
+            {
+              "metric_key_regex": "program_routes_msecs",
+              "upper_bound": 34750.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 3707334
+            },
+            {
+              "metric_key_regex": "program_routes_msecs",
+              "upper_bound": 23110.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 3251472
+            },
+            {
+              "metric_key_regex": "program_routes_msecs",
+              "upper_bound": 18030.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 3730320
+            },
+            {
+              "metric_key_regex": "program_routes_msecs",
+              "upper_bound": 9440.0
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "max_rss",
+              "upper_bound": 3924828
+            },
+            {
+              "metric_key_regex": "program_routes_msecs",
+              "upper_bound": 7568.0
+            }
+          ]
+        }
+    ],
+    "fboss.agent.hw.sai.benchmarks.sai_bench_test.runTxSlowPathBenchmark": [
+        {
+          "test_config_regex": ".*/tomahawk_atom.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 6471.33
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk_pentium.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 9378.4
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/gibraltar.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 91268.33
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/graphene200.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 106965.86
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk3_pciegen3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 690000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk4.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 600000
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/tomahawk5.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 582766
+            }
+          ]
+        },
+        {
+          "test_config_regex": ".*/jericho3.*",
+          "thresholds": [
+            {
+              "metric_key_regex": "cpu_tx_pps",
+              "lower_bound": 317600
+            }
+          ]
+        }
+    ]
+  },
+  "pyunit_file_task_for_test_failures": false,
+  "pyunit_file_task_for_test_errors": false,
+  "use_buck2": true,
+  "unsupported_tests": {
+    
+  }
+}

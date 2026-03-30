@@ -76,6 +76,21 @@ setup_coop_configs() {
   copy_config "${platform_dir}/qsfp.conf" "${COOP_DIR}/qsfp.conf" "qsfp.conf"
 }
 
+enable_hw_agents() {
+  local platform_dir="$1"
+  local num_hw_agents
+  if [ ! -f "${platform_dir}/num_hw_agents" ]; then
+    num_hw_agents=1
+  else
+    num_hw_agents=$(cat "${platform_dir}/num_hw_agents")
+  fi
+  for i in $(seq ${num_hw_agents}); do
+    systemctl enable "fboss_hw_agent@$((i - 1)).service"
+    # Calling systemctl start inside a starting systemd service deadlocks
+    systemctl start "fboss_hw_agent@$((i - 1)).service" &
+  done
+}
+
 main() {
   log "Starting FBOSS initialization"
 
@@ -86,6 +101,7 @@ main() {
 
   setup_coop_configs "$platform_dir"
   generate_fruid
+  enable_hw_agents "$platform_dir"
 
   log "FBOSS initialization complete"
 }

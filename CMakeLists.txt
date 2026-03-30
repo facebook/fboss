@@ -360,6 +360,13 @@ add_fbthrift_py_library(
     json
 )
 add_fbthrift_cpp_library(
+  cfgr_fboss_common_cpp2
+  configerator/structs/neteng/fboss/thrift/common.thrift
+  OPTIONS
+    json
+    reflection
+)
+add_fbthrift_cpp_library(
   fboss_common_cpp2
   fboss/lib/if/fboss_common.thrift
   OPTIONS
@@ -450,6 +457,7 @@ add_fbthrift_cpp_library(
     json
     reflection
   DEPENDS
+    cfgr_fboss_common_cpp2
     switch_config_cpp2
     phy_cpp2
     ctrl_cpp2
@@ -501,6 +509,16 @@ add_fbthrift_py_library(
   DEPENDS
     link_py
     prbs_py
+)
+add_fbthrift_cpp_library(
+  transceiver_properties_cpp2
+  fboss/qsfp_service/if/transceiver_properties.thrift
+  OPTIONS
+    json
+    reflection
+  DEPENDS
+    switch_config_cpp2
+    transceiver_cpp2
 )
 add_fbthrift_cpp_library(
   pim_state_cpp2
@@ -697,6 +715,7 @@ add_fbthrift_cpp_library(
     reflection
   DEPENDS
     agent_stats_cpp2
+    cfgr_fboss_common_cpp2
     fboss_cpp2
     fb303_cpp2
     mpls_cpp2
@@ -969,6 +988,9 @@ add_fbthrift_cpp_library(
   fboss/qsfp_service/test/hal_test/hal_test_config.thrift
   OPTIONS
     json
+  DEPENDS
+    qsfp_config_cpp2
+    transceiver_cpp2
 )
 
 find_library(USB usb-1.0)
@@ -1054,6 +1076,7 @@ add_dependencies(fboss_platform_services
   platform_manager_handler_test
   weutil_crc16_ccitt_test
   weutil_fboss_eeprom_interface_test
+  weutil_parser_utils_test
   sensor_service_sw_test
   sensor_service_utils_test
   rackmon_test
@@ -1072,6 +1095,7 @@ add_custom_target(qsfp_targets)
 add_dependencies(qsfp_targets
   qsfp_service
   qsfp_hw_test
+  qsfp_hal_test
   wedge_qsfp_util
 )
 
@@ -1088,6 +1112,7 @@ add_dependencies(fboss2_targets
   fboss2_cmd_config_test
   fboss2_framework_test
   fboss2-dev
+  fboss2_integration_test
 )
 
 if (SAI_IMPL OR BUILD_SAI_FAKE)
@@ -1179,6 +1204,7 @@ add_dependencies(fboss_fake_agent_test_targets
   multi_switch_agent_hw_test
   sai_agent_scale_test-fake
   sai_invariant_agent_test-fake
+  switch_test
 )
 
 if(BUILD_SAI_FAKE_BENCHMARKS)

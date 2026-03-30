@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/switch_asics/CredoPhyAsic.h"
 #include "fboss/agent/platforms/common/elbert/facebook/Elbert8DDPimPlatformMapping.h"
+#include "fboss/lib/phy/CredoSdkVersion.h"
 
 namespace facebook::fboss {
 
@@ -26,7 +27,7 @@ namespace {
 std::unordered_map<std::string, std::string> kSaiProfileValues;
 auto constexpr sdkWarmBootStateFile = "sdk_warm_boot_state";
 
-#ifdef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION >= CREDO_SDK_VERSION_0_9_0
 static auto constexpr kSaiBootType = "SAI_BOOT_TYPE";
 static auto constexpr kSaiConfigFile = "SAI_INIT_CONFIG_FILE";
 #else

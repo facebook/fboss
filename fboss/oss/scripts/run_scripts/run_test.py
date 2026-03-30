@@ -13,13 +13,14 @@ import sys
 import time
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import List, Optional
+from typing import ClassVar
 
 from fboss_agent_utils import (
     agent_can_warm_boot_file_path,
     cleanup_hw_agent_service,
     setup_and_start_hw_agent_service,
 )
+from fsdb_service_utils import cleanup_fsdb_service, setup_and_start_fsdb_service
 from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_service
 
 # Helper to run HwTests
@@ -161,6 +162,7 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 OPT_ARG_COLDBOOT = "--coldboot_only"
 OPT_ARG_FILTER = "--filter"
 OPT_ARG_FILTER_FILE = "--filter_file"
+OPT_ARG_PROFILE = "--profile"
 OPT_ARG_LIST_TESTS = "--list_tests"
 OPT_ARG_CONFIG_FILE = "--config"
 OPT_ARG_QSFP_CONFIG_FILE = "--qsfp-config"
@@ -185,13 +187,16 @@ OPT_UNSUPPORTED_TESTS_FILE = "--unsupported-tests-file"
 OPT_ARG_SETUP_CB = "--setup-for-coldboot"
 OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
+OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
+OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
+OPT_ARG_FSDB_BIN_PATH = "--fsdb-bin-path"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
 SUB_CMD_LINK = "link"
 SUB_CMD_SAI_AGENT = "sai_agent"
 SUB_CMD_PLATFORM = "platform"
-SUB_CMD_CLI = "cli"
+SUB_CMD_FBOSS2_INTEGRATION = "fboss2_integration"
 SUB_ARG_AGENT_RUN_MODE = "--agent-run-mode"
 SUB_ARG_AGENT_RUN_MODE_MONO = "mono"
 SUB_ARG_AGENT_RUN_MODE_MULTI = "multi_switch"
@@ -244,19 +249,12 @@ FEATURE_LIST_PREFIX = "Feature List: "
 DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND = 1200
 
 
-def _check_working_dir():
-    current_dir = os.getcwd()
-    if not current_dir.endswith("/opt/fboss"):
-        print("Error: Script must be run from /opt/fboss directory.")
-        exit(1)
-
-
 def run_script(script_file: str):
     if not os.path.exists(script_file):
         raise Exception(f"Script file {script_file} does not exist")
     if not os.access(script_file, os.X_OK):
         raise Exception(f"Script file {script_file} is not executable")
-    subprocess.run(script_file, shell=True)
+    subprocess.run(script_file, check=False, shell=True)
 
 
 def setup_fboss_env() -> None:
@@ -284,9 +282,12 @@ def setup_fboss_env() -> None:
             f"{os.environ['FBOSS_LIB64']}:{os.environ['FBOSS_LIB']}"
         )
 
+    # Update TestRunner.ENV_VAR to pick up the modified environment
+    TestRunner.ENV_VAR = dict(os.environ)
+
 
 class TestRunner(abc.ABC):
-    ENV_VAR = dict(os.environ)
+    ENV_VAR: ClassVar[dict] = dict(os.environ)
     WARMBOOT_SETUP_OPTION = "--setup-for-warmboot"
     COLDBOOT_PREFIX = "cold_boot."
     WARMBOOT_PREFIX = "warm_boot."
@@ -315,8 +316,8 @@ class TestRunner(abc.ABC):
 
     @abc.abstractmethod
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         pass
 
     @abc.abstractmethod
@@ -332,11 +333,11 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         pass
 
     @abc.abstractmethod
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         pass
 
     @abc.abstractmethod
@@ -348,15 +349,15 @@ class TestRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         pass
 
     def _get_sai_replayer_log_path(
         self,
         test_prefix: str,
         test_name: str,
-        sai_replayer_logging_dir: Optional[str] = None,
-    ) -> Optional[str]:
+        sai_replayer_logging_dir: str | None = None,
+    ) -> str | None:
         if sai_replayer_logging_dir is None:
             return None
         return os.path.join(
@@ -445,14 +446,14 @@ class TestRunner(abc.ABC):
             #   ResolvedSpanMirror
             #
             # In this case, we just need to ignore the comment (starts with '#')
-            line = line.split("#")[0].strip()
-            if line.endswith("."):
-                class_name = line[:-1]
+            sanitized_line = line.split("#")[0].strip()
+            if sanitized_line.endswith("."):
+                class_name = sanitized_line[:-1]
             else:
                 if not class_name:
-                    raise "error"
-                func_name = line.strip()
-                ret.append("{}.{}".format(class_name, func_name))
+                    raise RuntimeError("error")
+                func_name = sanitized_line.strip()
+                ret.append(f"{class_name}.{func_name}")
 
         return ret
 
@@ -465,12 +466,12 @@ class TestRunner(abc.ABC):
             test_summary.append(line)
         return test_summary
 
-    def _list_tests_to_run(self, filter, should_print=True):
+    def _list_tests_to_run(self, test_filter, should_print=True):
         output = subprocess.check_output(
             [
                 self._get_test_binary_name(),
                 "--gtest_list_tests",
-                f"--gtest_filter={filter}",
+                f"--gtest_filter={test_filter}",
             ]
         )
         # Print all the matching tests
@@ -513,17 +514,27 @@ class TestRunner(abc.ABC):
         if args.filter or args.filter_file:
             if args.filter_file:
                 with open(args.filter_file) as file:
-                    gtest_regexes = [
-                        line.strip()
-                        for line in file
-                        if line.strip() and not line.strip().startswith("#")
-                    ]
+                    gtest_regexes = []
+                    for line in file:
+                        stripped_line = line.strip()
+                        if not stripped_line or stripped_line.startswith("#"):
+                            continue
+                        parts = stripped_line.split()
+                        pattern = parts[0]
+                        tags = parts[1:] if len(parts) > 1 else []
+                        if args.profile:
+                            if args.profile not in tags:
+                                continue
+                        # no --profile: include untagged lines and t-tagged lines
+                        elif tags and "t" not in tags:
+                            continue
+                        gtest_regexes.append(pattern)
                     test_names = self._list_tests_to_run(":".join(gtest_regexes), False)
             elif args.filter:
                 test_names = self._list_tests_to_run(args.filter, False)
         else:
             test_names = self._list_tests_to_run("*", False)
-        filter = ""
+        test_filter = ""
         known_bad_test_regexes = self._get_known_bad_test_regexes()
         unsupported_test_regexes = self._get_unsupported_test_regexes()
         for test_name in test_names:
@@ -531,11 +542,11 @@ class TestRunner(abc.ABC):
                 re.match(r, test_name) for r in unsupported_test_regexes
             ):
                 continue
-            filter += f"{test_name}:"
-        if not filter:
+            test_filter += f"{test_name}:"
+        if not test_filter:
             return []
         should_print = not getattr(args, "list_tests_for_features", None)
-        return self._list_tests_to_run(filter, should_print)
+        return self._list_tests_to_run(test_filter, should_print)
 
     def _restart_bcmsim(self, asic):
         try:
@@ -561,7 +572,7 @@ class TestRunner(abc.ABC):
         setup_warmboot,
         sai_logging,
         fboss_logging,
-        sai_replayer_logging_path: Optional[str] = None,
+        sai_replayer_logging_path: str | None = None,
         test_run_timeout_in_second: int = DEFAULT_TEST_RUN_TIMEOUT_IN_SECOND,
     ):
         # Setup flags for the test binary before running the tests
@@ -636,7 +647,7 @@ class TestRunner(abc.ABC):
         except FileNotFoundError:
             print(f"File not found when replacing string: {file_path}")
         except Exception as e:
-            print(f"Error when replacing string in {file_path}: {str(e)}")
+            print(f"Error when replacing string in {file_path}: {e!s}")
 
     def _backup_and_modify_config(self, conf_file):
         """Create a copy of the config and modify settings"""
@@ -660,11 +671,11 @@ class TestRunner(abc.ABC):
                 )
                 return _config_file_modified
             except Exception as e:
-                print(f"Error creating config copy {conf_file}: {str(e)}")
+                print(f"Error creating config copy {conf_file}: {e!s}")
                 return conf_file
         return conf_file
 
-    def _run_tests(self, tests_to_run, conf_file, args):
+    def _run_tests(self, tests_to_run, conf_file, args):  # noqa: PLR0915 - complex orchestration; splitting would harm readability
         if args.sai_replayer_logging:
             if os.path.isdir(args.sai_replayer_logging) or os.path.isfile(
                 args.sai_replayer_logging
@@ -781,12 +792,15 @@ class TestRunner(abc.ABC):
                 test_summary_count[m.group()] += 1
         # Print test result counts
         print("Summary:")
-        for test_result in test_summary_count:
-            print("  ", test_result, ":", test_summary_count[test_result])
+        for test_result, value in test_summary_count.items():
+            print("  ", test_result, ":", value)
 
         self._write_results_to_csv(test_summaries)
 
     def _write_results_to_csv(self, output):
+        if not output:
+            print("No tests we were run.")
+            return
         output_csv = (
             f"hwtest_results_{datetime.now().strftime('%Y_%b_%d-%I_%M_%S_%p')}.csv"
         )
@@ -844,8 +858,8 @@ class BcmTestRunner(TestRunner):
         return "bcm_test"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         # TODO
         return []
 
@@ -859,16 +873,16 @@ class BcmTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return []
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -900,8 +914,8 @@ class SaiTestRunner(TestRunner):
         return args.sai_bin if args.sai_bin else "sai_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         if sai_replayer_log_path is None:
             return []
         return [
@@ -929,18 +943,18 @@ class SaiTestRunner(TestRunner):
             )
         return args_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_warmboot:
             run_script(args.setup_for_warmboot)
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -981,8 +995,8 @@ class QsfpTestRunner(TestRunner):
         return "qsfp_hw_test"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
@@ -1010,19 +1024,19 @@ class QsfpTestRunner(TestRunner):
             )
         return arg_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         subprocess.Popen(
             # Clean up left over flags
             ["rm", "-rf", QSFP_SERVICE_DIR]
         )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -1090,8 +1104,8 @@ class LinkTestRunner(TestRunner):
         return "sai_link_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
@@ -1115,13 +1129,25 @@ class LinkTestRunner(TestRunner):
                     args.platform_mapping_override_path,
                 ]
             )
+
+        arg_list.extend(["--fsdb_client_ssl_preferred=false"])
+
         return arg_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+        # Start FSDB service if not disabled
+        if not args.disable_fsdb:
+            setup_and_start_fsdb_service(
+                fsdb_service_bin_path=args.fsdb_bin_path,
+                fsdb_service_config_path=args.fsdb_config,
+                is_warm_boot=False,
+            )
+
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_fsdb_disabled=args.disable_fsdb,
             is_warm_boot=False,
         )
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1131,14 +1157,23 @@ class LinkTestRunner(TestRunner):
                 hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+        # Start FSDB service if not disabled
+        if not args.disable_fsdb:
+            setup_and_start_fsdb_service(
+                fsdb_service_bin_path=args.fsdb_bin_path,
+                fsdb_service_config_path=args.fsdb_config,
+                is_warm_boot=True,
+            )
         setup_and_start_qsfp_service(
             qsfp_service_config_path=args.qsfp_config,
             platform_mapping_override_path=args.platform_mapping_override_path,
             bsp_platform_mapping_override_path=args.bsp_platform_mapping_override_path,
+            is_fsdb_disabled=args.disable_fsdb,
             is_warm_boot=True,
         )
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1148,15 +1183,18 @@ class LinkTestRunner(TestRunner):
                 hw_agent_service_bin_path=args.hw_agent_bin_path,
                 platform_mapping_override_path=args.platform_mapping_override_path,
                 sai_replayer_log_path=sai_replayer_log_path,
+                is_fsdb_disabled=args.disable_fsdb,
                 is_warm_boot=True,
             )
 
     def _end_run(self):
         cleanup_qsfp_service()
+        if not args.disable_fsdb:
+            cleanup_fsdb_service()
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
 
@@ -1242,8 +1280,8 @@ class SaiAgentTestRunner(TestRunner):
         return "sai_agent_hw_test-sai_impl"
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         if sai_replayer_log_path is None:
             return []
         # Multi switch mode is using hw agent as a service, so the sai replayer logging needs to
@@ -1290,7 +1328,7 @@ class SaiAgentTestRunner(TestRunner):
             )
         return args_list
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_coldboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1303,7 +1341,7 @@ class SaiAgentTestRunner(TestRunner):
                 is_warm_boot=False,
             )
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         if args.setup_for_coldboot:
             run_script(args.setup_for_warmboot)
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
@@ -1320,7 +1358,7 @@ class SaiAgentTestRunner(TestRunner):
         if args.agent_run_mode == SUB_ARG_AGENT_RUN_MODE_MULTI:
             cleanup_hw_agent_service(list(range(args.num_npus)))
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         if args.list_tests_for_features:
             target_features = set(args.list_tests_for_features.split(","))
             matching_tests = []
@@ -1332,9 +1370,9 @@ class SaiAgentTestRunner(TestRunner):
                 ]
                 ret = subprocess.run(
                     cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    universal_newlines=True,
+                    check=False,
+                    capture_output=True,
+                    text=True,
                 )
                 for line in ret.stdout.split("\n"):
                     if not line.startswith(FEATURE_LIST_PREFIX):
@@ -1351,10 +1389,9 @@ class SaiAgentTestRunner(TestRunner):
         if not args.enable_production_features:
             return tests
         asic = str(args.asic)
-        asic_production_features = json.load(open(args.production_features))
-        producition_features = {
-            feature for feature in asic_production_features["asicToFeatureNames"][asic]
-        }
+        with open(args.production_features) as f:
+            asic_production_features = json.load(f)
+        producition_features = set(asic_production_features["asicToFeatureNames"][asic])
         tests_to_run = []
         for test in tests:
             cmd = [
@@ -1364,9 +1401,9 @@ class SaiAgentTestRunner(TestRunner):
             ]
             ret = subprocess.run(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
+                check=False,
+                capture_output=True,
+                text=True,
             )
             for line in ret.stdout.split("\n"):
                 if not line.startswith(FEATURE_LIST_PREFIX):
@@ -1385,7 +1422,7 @@ class SaiAgentTestRunner(TestRunner):
 
 
 class PlatformServicesTestRunner(TestRunner):
-    TEST_TYPE_CHOICES = [
+    TEST_TYPE_CHOICES: ClassVar[list] = [
         SUB_ARG_PLATFORM_HW_TEST,
         SUB_ARG_DATA_CORRAL_HW_TEST,
         SUB_ARG_FAN_HW_TEST,
@@ -1427,8 +1464,8 @@ class PlatformServicesTestRunner(TestRunner):
         return binary_map.get(args.type, "platform_hw_test")
 
     def _get_sai_replayer_logging_flags(
-        self, sai_replayer_log_path: Optional[str]
-    ) -> List[str]:
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
         return []
 
     def _get_sai_logging_flags(self, sai_logging):
@@ -1440,16 +1477,16 @@ class PlatformServicesTestRunner(TestRunner):
     def _get_test_run_args(self, conf_file):
         return []
 
-    def _setup_coldboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
-    def _setup_warmboot_test(self, sai_replayer_log_path: Optional[str] = None):
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
         return
 
     def _end_run(self):
         return
 
-    def _filter_tests(self, tests: List[str]) -> List[str]:
+    def _filter_tests(self, tests: list[str]) -> list[str]:
         return tests
 
     def _run_tests(self, tests_to_run, conf_file, args):
@@ -1513,121 +1550,68 @@ class PlatformServicesTestRunner(TestRunner):
         self._print_output_summary(output)
 
 
-class CliTestRunner:
+class Fboss2IntegrationTestRunner(TestRunner):
     """
-    Runner for CLI end-to-end tests.
+    Runner for fboss2 integration tests.
 
-    Unlike the gtest-based test runners, CLI tests are simple Python tests
-    that run CLI commands and verify output. They test the CLI tool itself
-    (fboss2-dev) on a running FBOSS instance.
+    fboss2 integration tests are C++ gtest-based tests that run CLI commands and verify output.
+    They test the CLI tool itself (fboss2-dev) on a running FBOSS instance.
+
+    fboss2 integration tests are platform/SAI independent - they test the CLI binary which
+    communicates with the agent via Thrift, regardless of the underlying
+    hardware abstraction layer.
     """
 
-    CLI_TEST_DIR = "./share/cli_tests"
+    def add_subcommand_arguments(self, sub_parser: ArgumentParser):
+        """Add CLI test-specific command line arguments"""
+        # Override defaults for CLI tests:
+        # - fruid_path: CLI tests don't use fruid files
+        # - coldboot_only: Some CLI tests use warmboot/coldboot but the test binary doesn't support the --setup-for-warmboot flag.
+        sub_parser.set_defaults(fruid_path=None, coldboot_only=True)
 
-    def run_test(self, args):
-        """Run CLI end-to-end tests"""
-        print("Running CLI end-to-end tests...")
+    def _get_config_path(self):
+        return "/etc/coop/agent.conf"
 
-        # Find and run test scripts
-        test_dir = self.CLI_TEST_DIR
-        if not os.path.isdir(test_dir):
-            print(f"CLI test directory not found: {test_dir}")
-            print("No CLI tests to run.")
-            return
+    def _get_known_bad_tests_file(self):
+        return ""
 
-        # Get list of test scripts
-        test_scripts = []
-        for filename in sorted(os.listdir(test_dir)):
-            if filename.startswith("test_") and filename.endswith(".py"):
-                test_scripts.append(os.path.join(test_dir, filename))
+    def _get_unsupported_tests_file(self):
+        return ""
 
-        if not test_scripts:
-            print(f"No CLI test scripts found in {test_dir}")
-            return
+    def _get_test_binary_name(self):
+        return "fboss2_integration_test"
 
-        # Apply filter if specified
-        if args.filter:
-            filtered_scripts = []
-            for script in test_scripts:
-                script_name = os.path.basename(script)
-                if args.filter in script_name:
-                    filtered_scripts.append(script)
-            test_scripts = filtered_scripts
-            if not test_scripts:
-                print(f"No tests match filter: {args.filter}")
-                return
+    def _get_sai_replayer_logging_flags(
+        self, sai_replayer_log_path: str | None
+    ) -> list[str]:
+        return []
 
-        # Run each test script
-        passed = 0
-        failed = 0
-        failed_tests = []
-        test_times = {}  # Track time for each test
-        total_start_time = time.time()
+    def _get_sai_logging_flags(self, sai_logging):
+        # CLI tests don't use SAI logging
+        return []
 
-        for test_script in test_scripts:
-            test_name = os.path.basename(test_script)
-            print(f"\n########## Running CLI test: {test_name}")
+    def _get_warmboot_check_file(self):
+        return ""
 
-            test_start_time = time.time()
-            try:
-                result = subprocess.run(
-                    ["python3", test_script],
-                    capture_output=True,
-                    text=True,
-                    timeout=300,  # 5 minute timeout per test
-                )
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
+    def _get_test_run_args(self, conf_file):
+        # CLI tests don't need any additional args
+        return []
 
-                if result.returncode == 0:
-                    print(f"[  PASSED  ] {test_name} ({test_elapsed:.1f}s)")
-                    passed += 1
-                else:
-                    print(f"[  FAILED  ] {test_name} ({test_elapsed:.1f}s)")
-                    print(f"stdout: {result.stdout}")
-                    print(f"stderr: {result.stderr}")
-                    failed += 1
-                    failed_tests.append(test_name)
+    def _setup_coldboot_test(self, sai_replayer_log_path: str | None = None):
+        pass
 
-            except subprocess.TimeoutExpired as e:
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
-                print(f"[  TIMEOUT ] {test_name} ({test_elapsed:.1f}s)")
-                if e.stdout:
-                    print(f"stdout: {e.stdout}")
-                if e.stderr:
-                    print(f"stderr: {e.stderr}")
-                failed += 1
-                failed_tests.append(test_name)
-            except Exception as e:
-                test_elapsed = time.time() - test_start_time
-                test_times[test_name] = test_elapsed
-                print(f"[  ERROR   ] {test_name}: {e} ({test_elapsed:.1f}s)")
-                failed += 1
-                failed_tests.append(test_name)
+    def _setup_warmboot_test(self, sai_replayer_log_path: str | None = None):
+        pass
 
-        total_elapsed = time.time() - total_start_time
+    def _end_run(self):
+        pass
 
-        # Print summary
-        print("\n" + "=" * 60)
-        print("CLI Test Summary")
-        print("=" * 60)
-        print(f"  Passed: {passed}")
-        print(f"  Failed: {failed}")
-        print(f"  Total:  {passed + failed}")
-        print(f"  Time:   {total_elapsed:.1f}s")
-
-        if failed_tests:
-            print("\nFailed tests:")
-            for test in failed_tests:
-                print(f"  - {test} ({test_times.get(test, 0):.1f}s)")
-
-        if failed > 0:
-            sys.exit(1)
+    def _filter_tests(self, tests: list[str]) -> list[str]:
+        return tests
 
 
 if __name__ == "__main__":
-    _check_working_dir()
+    os.chdir("/opt/fboss")
     # Set env variables for FBOSS
     setup_fboss_env()
 
@@ -1659,6 +1643,15 @@ if __name__ == "__main__":
         ),
     )
     ap.add_argument(
+        OPT_ARG_PROFILE,
+        type=str,
+        help=(
+            "when used with "
+            + OPT_ARG_FILTER_FILE
+            + ", only include patterns tagged with this profile (e.g. t for traditional, s for scale-up). Without this flag, all patterns are included."
+        ),
+    )
+    ap.add_argument(
         OPT_ARG_LIST_TESTS,
         action="store_true",
         default=False,
@@ -1679,7 +1672,7 @@ if __name__ == "__main__":
         help=(
             "run tests with specified qsfp config with the absolute path e.g. "
             + OPT_ARG_QSFP_CONFIG_FILE
-            + "=/opt/fboss/share/qsfp_test_configs/meru400bfu.materialized_JSON"
+            + "=/opt/fboss/share/qsfp_test_configs/meru800bia.materialized_JSON"
         ),
     )
     ap.add_argument(
@@ -1789,6 +1782,30 @@ if __name__ == "__main__":
         default=False,
     )
 
+    ap.add_argument(
+        OPT_ARG_DISABLE_FSDB,
+        action="store_true",
+        help="Disable FSDB service for link tests",
+        default=False,
+    )
+    ap.add_argument(
+        OPT_ARG_FSDB_CONFIG_FILE,
+        type=str,
+        help=(
+            "run tests with specified fsdb config with the absolute path e.g. "
+            + OPT_ARG_FSDB_CONFIG_FILE
+            + "=/opt/fboss/share/fsdb_test_configs/meru800bia.materialized_JSON"
+        ),
+        default=None,
+    )
+    ap.add_argument(
+        OPT_ARG_FSDB_BIN_PATH,
+        nargs="?",
+        type=str,
+        help="FBOSS FSDB binary path(absolute path).",
+        default=None,
+    )
+
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
 
@@ -1830,27 +1847,36 @@ if __name__ == "__main__":
     platform_test_parser.set_defaults(func=platform_test_runner.run_test)
     platform_test_runner.add_subcommand_arguments(platform_test_parser)
 
-    # Add subparser for CLI end-to-end tests
-    cli_test_parser = subparsers.add_parser(
-        SUB_CMD_CLI, help="run CLI end-to-end tests"
+    # Add subparser for fboss2 integration tests
+    fboss2_integration_test_parser = subparsers.add_parser(
+        SUB_CMD_FBOSS2_INTEGRATION, help="run fboss2 integration tests"
     )
-    cli_test_runner = CliTestRunner()
-    cli_test_parser.set_defaults(func=cli_test_runner.run_test)
+    fboss2_integration_test_runner = Fboss2IntegrationTestRunner()
+    fboss2_integration_test_parser.set_defaults(
+        func=fboss2_integration_test_runner.run_test
+    )
+    fboss2_integration_test_runner.add_subcommand_arguments(
+        fboss2_integration_test_parser
+    )
 
     # Parse the args
     args = ap.parse_known_args()
     args = ap.parse_args(args[1], args[0])
 
-    if args.oss:
-        if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
-            print(
-                "FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'"
-            )
-            sys.exit(0)
+    if args.oss and (
+        ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ)
+    ):
+        print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
+        sys.exit(0)
 
     if args.filter and args.filter_file:
         raise ValueError(
             f"Only one of the {OPT_ARG_FILTER} or {OPT_ARG_FILTER_FILE} can be specified at any time"
+        )
+
+    if args.profile and not args.filter_file:
+        raise ValueError(
+            f"{OPT_ARG_PROFILE} requires {OPT_ARG_FILTER_FILE} to be specified"
         )
 
     try:

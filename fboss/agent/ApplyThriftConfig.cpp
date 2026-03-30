@@ -91,12 +91,11 @@
 #include <utility>
 #include <vector>
 
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-
-DECLARE_bool(intf_nbr_tables);
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -128,20 +127,22 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
+    const facebook::fboss::MySidTable& mySidTable,
     void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,
       v6NetworkToRoute,
       labelToRoute,
-      nextHopIDManager);
+      nextHopIDManager,
+      mySidTable);
 
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
-  fibUpdater(*nextStatePtr);
-  auto lastDelta = fibUpdater.getLastDelta();
+  ribToSwitchStateUpdater(*nextStatePtr);
+  auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
   return StateDelta(lastDelta->oldState(), *nextStatePtr);
 }
@@ -550,7 +551,6 @@ class ThriftConfigApplier {
       const std::shared_ptr<NeighborResponseEntry>& orig,
       IPAddr ip,
       InterfaceIpInfo addrInfo);
-  bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   template <typename VlanOrIntfT, typename CfgVlanOrIntfT>
   bool updateDhcpOverrides(
       VlanOrIntfT* vlanOrIntf,
@@ -3392,7 +3392,6 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
   const auto& portsInfo = vlanPorts_[VlanID(*config->id())];
   auto vlan = make_shared<Vlan>(config, portsInfo);
-  updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
 
   /* TODO t7153326: Following code is added for backward compatibility
@@ -3445,8 +3444,6 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   const auto& portsInfo = vlanPorts_[orig->getID()];
 
   auto newVlan = orig->clone();
-  bool changed_neighbor_table =
-      updateNeighborResponseTables(newVlan.get(), config);
   bool changed_dhcp_overrides = updateDhcpOverrides(newVlan.get(), config);
   auto oldDhcpV4Relay = orig->getDhcpV4Relay();
   auto newDhcpV4Relay = config->dhcpRelayAddressV4()
@@ -3473,8 +3470,8 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   bool macChanged = updateMacTable(newVlan, portSet);
   if (orig->getName() == *config->name() && oldIntfID == newIntfID &&
       orig->getPortsInfo() == portsInfo && oldDhcpV4Relay == newDhcpV4Relay &&
-      oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
-      !changed_dhcp_overrides && !macChanged) {
+      oldDhcpV6Relay == newDhcpV6Relay && !changed_dhcp_overrides &&
+      !macChanged) {
     return nullptr;
   }
 
@@ -4332,51 +4329,6 @@ ThriftConfigApplier::updateNeighborResponseEntry(
   }
 }
 
-bool ThriftConfigApplier::updateNeighborResponseTables(
-    Vlan* vlan,
-    const cfg::Vlan* config) {
-  if (FLAGS_intf_nbr_tables) {
-    // Neighbor response tables are consumed from Interface
-    return false;
-  }
-
-  auto arpChanged = false, ndpChanged = false;
-  auto origArp = vlan->getArpResponseTable();
-  auto origNdp = vlan->getNdpResponseTable();
-  ArpResponseTable::NodeContainer arpTable;
-  NdpResponseTable::NodeContainer ndpTable;
-
-  VlanID vlanID(*config->id());
-  auto it = vlanInterfaces_.find(vlanID);
-  if (it != vlanInterfaces_.end()) {
-    for (const auto& [ip, addrInfo] : it->second.addresses) {
-      if (ip.isV4()) {
-        auto origNode = origArp->getEntry(ip.asV4());
-        auto newNode =
-            updateNeighborResponseEntry(origNode, ip.asV4(), addrInfo);
-        arpChanged |= updateMap(&arpTable, origNode, newNode);
-
-      } else {
-        auto origNode = origNdp->getEntry(ip.asV6());
-        auto newNode =
-            updateNeighborResponseEntry(origNode, ip.asV6(), addrInfo);
-        ndpChanged |= updateMap(&ndpTable, origNode, newNode);
-      }
-    }
-  }
-
-  arpChanged |= origArp->size() != arpTable.size();
-  ndpChanged |= origNdp->size() != ndpTable.size();
-
-  if (arpChanged) {
-    vlan->setArpResponseTable(origArp->clone(std::move(arpTable)));
-  }
-  if (ndpChanged) {
-    vlan->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
-  }
-  return arpChanged || ndpChanged;
-}
-
 std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
   auto origIntfs = orig_->getInterfaces();
   InterfaceMap::NodeContainer newIntfs;
@@ -4640,11 +4592,6 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 bool ThriftConfigApplier::updateNeighborResponseTablesForIntfs(
     Interface* intf,
     const Interface::Addresses& addrs) {
-  if (!FLAGS_intf_nbr_tables) {
-    // Neighbor response tables are consumed from VLANs
-    return false;
-  }
-
   auto arpChanged = false, ndpChanged = false;
   auto origArp = intf->getArpResponseTable();
   auto origNdp = intf->getNdpResponseTable();
@@ -5095,6 +5042,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       *cfg_->switchSettings()->ptpTcEnable()) {
     newSwitchSettings->setPtpTcEnable(*cfg_->switchSettings()->ptpTcEnable());
     switchSettingsChange = true;
+  }
+
+  {
+    auto oldMode = origSwitchSettings->getPacketForwardingMode();
+    auto newModeRef = cfg_->switchSettings()->packetForwardingMode();
+    std::optional<cfg::PacketForwardingMode> newMode = newModeRef.has_value()
+        ? std::optional<cfg::PacketForwardingMode>(*newModeRef)
+        : std::nullopt;
+    if (oldMode != newMode) {
+      newSwitchSettings->setPacketForwardingMode(newMode);
+      switchSettingsChange = true;
+    }
   }
 
   if (origSwitchSettings->getL2AgeTimerSeconds() !=
@@ -6221,7 +6180,8 @@ ThriftConfigApplier::createMirrorOnDropReport(
       getLocalMacAddress().toString(),
       utility::getMacForFirstInterfaceWithPorts(new_).toString(),
       *config->modEventToConfigMap(),
-      *config->agingGroupAgingIntervalUsecs());
+      *config->agingGroupAgingIntervalUsecs(),
+      config->samplingRate().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>

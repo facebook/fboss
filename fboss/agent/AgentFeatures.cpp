@@ -468,3 +468,13 @@ DEFINE_bool(
     verify_fib_nexthop_id_consistency,
     false,
     "Verify FIB route NextHop IDs are consistent with inline nexthops.");
+
+DEFINE_bool(
+    enforce_single_nbr_mac_per_intf,
+    false,
+    "Enforce that each RIF has at most one neighbor MAC address");
+
+DEFINE_int32(
+    max_tx_packets,
+    100000, // 1 gb / 10 kb
+    "the point at which we start dropping tx packets");

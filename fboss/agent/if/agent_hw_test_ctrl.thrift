@@ -47,6 +47,12 @@ struct AggPortInfo {
   3: i32 numActiveMembers;
 }
 
+struct AclStatCountInfo {
+  1: i32 aclEntryCount;
+  2: i32 aclStatCount;
+  3: i32 counterCount;
+}
+
 service AgentHwTestCtrl {
   // acl utils begin
   i32 getDefaultAclTableNumAclEntries();
@@ -76,6 +82,10 @@ service AgentHwTestCtrl {
     3: list<switch_config.CounterType> types,
     4: string tableName,
   );
+
+  AclStatCountInfo getDefaultAclTableStatCountInfo();
+
+  bool isAclStatDeleted(1: string statName);
 
   bool isMirrorProgrammed(1: switch_state.MirrorFields mirror);
 
@@ -138,6 +148,9 @@ service AgentHwTestCtrl {
   // PtcTc utils
   bool getPtpTcEnabled();
 
+  // Switching mode utils
+  i32 getSwitchingModeFromHw();
+
   void clearInterfacePhyCounters(1: list<i32> portIds);
 
   bool validateUdfConfig(1: string udfGroupName, 2: string udfPackeMatchName);
@@ -168,4 +181,10 @@ service AgentHwTestCtrl {
   );
 
   bool validateFlowSetTable(1: bool expectFlowsetSizeZero);
+
+  bool verifyEcmpForNonFlowlet(
+    1: CIDRNetwork prefix,
+    2: switch_state.SwitchSettingsFields settings,
+    3: bool expectFlowsetFree,
+  );
 }
