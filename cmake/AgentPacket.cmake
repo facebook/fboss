@@ -39,6 +39,24 @@ target_link_libraries(sflow_structs
   Folly::folly
 )
 
+add_library(ipfix_header
+  fboss/agent/packet/IpfixHeader.cpp
+)
+
+target_link_libraries(ipfix_header
+  Folly::folly
+)
+
+add_library(xgs_psamp_mod
+  fboss/agent/packet/bcm/XgsPsampMod.cpp
+)
+
+target_link_libraries(xgs_psamp_mod
+  fmt::fmt
+  ipfix_header
+  Folly::folly
+)
+
 add_library(pktutil
   fboss/agent/packet/PktUtil.cpp
 )
