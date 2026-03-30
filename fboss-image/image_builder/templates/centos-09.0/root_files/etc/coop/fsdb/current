@@ -1,6 +1,67 @@
 {
-  "defaultCommandLineArgs": {},
+  "defaultCommandLineArgs": {
+    "serveHeartbeats": "true",
+    "statsSubscriptionHeartbeat_s": "5",
+    "useIdPathsForSubs": "true"
+  },
   "trustedSubnets": [],
-  "publishers": {},
-  "subscribers": {}
+  "publishers": {
+    "agent": {
+      "paths": [
+        {
+          "path": { "raw": ["agent"] },
+          "isExpected": true,
+          "isStats": false
+        },
+        {
+          "path": { "raw": ["agent"] },
+          "isExpected": true,
+          "isStats": true
+        }
+      ],
+      "skipThriftStreamLivenessCheck": false
+    },
+    "build_info": {
+      "paths": [
+        {
+          "path": { "raw": ["build_info"] },
+          "isExpected": false,
+          "isStats": false
+        }
+      ],
+      "skipThriftStreamLivenessCheck": true
+    },
+    "qsfp_service": {
+      "paths": [
+        {
+          "path": { "raw": ["qsfp_service"] },
+          "isExpected": true,
+          "isStats": false
+        },
+        {
+          "path": { "raw": ["qsfp_service"] },
+          "isExpected": true,
+          "isStats": true
+        }
+      ],
+      "skipThriftStreamLivenessCheck": false
+    }
+  },
+  "subscribers": {
+    ":agent": {
+      "trackReconnect": true,
+      "allowExtendedSubscriptions": true,
+      "numExpectedSubscriptions": 0
+    },
+    "fboss2": {
+      "trackReconnect": false,
+      "allowExtendedSubscriptions": true,
+      "numExpectedSubscriptions": 1
+    },
+    "switch_agent": {
+      "trackReconnect": true,
+      "allowExtendedSubscriptions": false,
+      "numExpectedSubscriptions": 1
+    }
+  }
 }
