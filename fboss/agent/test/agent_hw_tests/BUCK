@@ -284,6 +284,7 @@ cpp_library(
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/packet:pktutil",
         "//fboss/agent/packet:sflow_structs",
+        "//fboss/agent/packet/bcm:xgs_psamp_mod",
         "//fboss/agent/state:label_forwarding_action",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
