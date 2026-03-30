@@ -104,6 +104,9 @@ class Tomahawk5Asic : public BroadcomXgsAsic {
     // TODO: update numbers if necessary
     return 2;
   }
+  std::optional<uint32_t> getMaxNdpTableSize() const override {
+    return 8192;
+  }
   std::optional<uint32_t> getMaxArsGroups() const override;
   std::optional<uint32_t> getArsBaseIndex() const override;
   std::optional<uint32_t> getMaxArsWidth() const override;
