@@ -597,7 +597,4 @@ def read_asic_vendor_config(directory: Dict[str, str], prefix: str) -> AsicVendo
         multistageConfig=stringify_map_values(multistage_config),
     )
 
-    # pyre-fixme[6]: Expected `thrift_types.AsicVendorConfigParams` but got
-    #  `ttypes.AsicVendorConfigParams`. Will be fixed when read_files_utils
-    #  migrates to thrift-python.
     return AsicVendorConfig(asic_vendor_config_params=asic_vendor_config_params)
