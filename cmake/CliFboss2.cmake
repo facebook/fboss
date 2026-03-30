@@ -410,14 +410,20 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdArgsLists.cpp
   fboss/cli/fboss2/CmdList.cpp
   fboss/cli/fboss2/CmdLocalOptions.cpp
-  fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.cpp
+  fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
   fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
   fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp
   fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h
   fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.cpp
   fboss/cli/fboss2/commands/delete/interface/ipv6/ndp/CmdDeleteInterfaceIpv6Ndp.h
+  fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.cpp
+  fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h
+  fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.cpp
+  fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h
+  fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.cpp
+  fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.cpp
   fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h
@@ -798,6 +804,7 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/InterfaceAttrArgsBase.h
+  fboss/cli/fboss2/commands/config/interface/InterfaceIpUtils.h
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
@@ -965,6 +972,11 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h
   fboss/cli/fboss2/commands/config/history/CmdConfigHistory.cpp
+  fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.cpp
+  fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h
+  fboss/cli/fboss2/commands/config/protocol/static/route/StaticRouteUtils.h
+  fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.cpp
+  fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h
   fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.cpp
   fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h

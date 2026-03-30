@@ -14,6 +14,7 @@ cpp_unittest(
         "CmdConfigInterfaceIpv6NdpTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
+        "CmdConfigIpRouteTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
         "CmdConfigLoadBalancingTest.cpp",
         "CmdConfigMacAgingTimeTest.cpp",
@@ -33,6 +34,8 @@ cpp_unittest(
         "CmdDeleteInterfaceTest.cpp",
         "CmdDeleteTunnelIpInIpTest.cpp",
         "ConfigSessionSystemdTest.cpp",
+        "CmdConfigIpRouteTest.cpp",
+        "CmdDeleteConfigInterfaceTest.cpp",
     ],
     headers = [
         "MockFbossServiceUtil.h",
