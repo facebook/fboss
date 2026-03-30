@@ -84,3 +84,17 @@ target_link_libraries(packet_factory
   sflow_structs
   multiswitch_ctrl_cpp2
 )
+
+add_executable(xgs_psamp_mod_test
+  fboss/util/oss/TestMain.cpp
+  fboss/agent/packet/bcm/test/XgsPsampModTest.cpp
+)
+
+target_link_libraries(xgs_psamp_mod_test
+  ipfix_header
+  xgs_psamp_mod
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(xgs_psamp_mod_test)
