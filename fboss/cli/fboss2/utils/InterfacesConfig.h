@@ -40,6 +40,13 @@ class InterfacesConfig : public BaseObjectArgType<std::string> {
     return interfaces_;
   }
 
+  /* Implicit conversion to InterfaceList so that child commands can accept
+   * const InterfaceList& without knowing about InterfacesConfig. */
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  /* implicit */ operator const InterfaceList&() const {
+    return interfaces_;
+  }
+
   /* Get the attribute-value pairs. */
   const std::vector<std::pair<std::string, std::string>>& getAttributes()
       const {
