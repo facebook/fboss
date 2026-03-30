@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <folly/json.h>
+
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 
 namespace fs = std::filesystem;
@@ -461,12 +463,32 @@ TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
     // Verify config content is now "First version"
     EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First version"));
 
-    // Verify metadata was also rolled back to first version
+    // Verify system metadata (in /etc/coop) was also rolled back to first
+    // version
     std::string metadataContent = readFile(metadataPath);
     EXPECT_THAT(metadataContent, ::testing::HasSubstr("description First"));
     EXPECT_THAT(
         metadataContent,
         ::testing::Not(::testing::HasSubstr("description Second")));
+
+    // Verify session config was updated to match the rolled-back config
+    fs::path sessionConfigPath = sessionDir / "agent.conf";
+    EXPECT_THAT(
+        readFile(sessionConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify session metadata was updated with the new base and empty commands
+    fs::path sessionMetadataPath = sessionDir / "cli_metadata.json";
+    std::string sessionMetadataContent = readFile(sessionMetadataPath);
+    folly::dynamic sessionMetadata = folly::parseJson(sessionMetadataContent);
+    // The base should be set to the rollback commit SHA
+    EXPECT_EQ(sessionMetadata["base"].asString(), rollbackSha)
+        << "Session metadata base should be set to the rollback commit SHA";
+    // Commands should be empty (clean session)
+    EXPECT_TRUE(sessionMetadata["commands"].isArray())
+        << "Session metadata commands should be an array";
+    EXPECT_EQ(sessionMetadata["commands"].size(), 0)
+        << "Session metadata commands array should be empty after rollback to "
+           "clean session";
 
     // Verify Git history has the rollback commit
     auto& git = session.getGit();
@@ -527,6 +549,25 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
 
     // Verify content is now "First version" (from previous commit)
     EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify session config was updated to match the rolled-back config
+    fs::path sessionConfigPath = sessionDir / "agent.conf";
+    EXPECT_THAT(
+        readFile(sessionConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify session metadata was updated with the new base and empty commands
+    fs::path sessionMetadataPath = sessionDir / "cli_metadata.json";
+    std::string sessionMetadataContent = readFile(sessionMetadataPath);
+    folly::dynamic sessionMetadata = folly::parseJson(sessionMetadataContent);
+    // The base should be set to the rollback commit SHA
+    EXPECT_EQ(sessionMetadata["base"].asString(), rollbackSha)
+        << "Session metadata base should be set to the rollback commit SHA";
+    // Commands should be empty (clean session)
+    EXPECT_TRUE(sessionMetadata["commands"].isArray())
+        << "Session metadata commands should be an array";
+    EXPECT_EQ(sessionMetadata["commands"].size(), 0)
+        << "Session metadata commands array should be empty after rollback to "
+           "clean session";
   }
 }
 
