@@ -94,6 +94,7 @@ void SwSwitchRouteUpdateWrapper::updateStats(
   sw_->stats()->addRoutesV6(stats.v6RoutesAdded);
   sw_->stats()->delRoutesV4(stats.v4RoutesDeleted);
   sw_->stats()->delRoutesV6(stats.v6RoutesDeleted);
+  sw_->stats()->ribRouteProgrammingTimeUs(stats.duration);
 }
 
 AdminDistance SwSwitchRouteUpdateWrapper::clientIdToAdminDistance(
