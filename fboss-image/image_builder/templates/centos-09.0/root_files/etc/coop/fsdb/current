@@ -45,6 +45,20 @@
         }
       ],
       "skipThriftStreamLivenessCheck": false
+    },
+    "sensor_service": {
+      "paths": [
+        {
+          "isExpected": false,
+          "isStats": true,
+          "path": {
+            "raw": [
+              "sensor_service"
+            ]
+          }
+        }
+      ],
+      "skipThriftStreamLivenessCheck": false
     }
   },
   "subscribers": {
