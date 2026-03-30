@@ -67935,7 +67935,7 @@
               }
             }
           ],
-          "portType": 0,
+          "portType": 4,
           "scope": 0
         },
         "supportedProfiles": {
@@ -68090,7 +68090,7 @@
               }
             }
           ],
-          "portType": 0,
+          "portType": 4,
           "scope": 0
         },
         "supportedProfiles": {
