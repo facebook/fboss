@@ -70,9 +70,17 @@ header file.
 The FPGA Info driver exports the following sysfs files:
 
 - `fw_ver`
-  - **Type**: unsigned integer
   - **Description**: This file reports the FPGA's firmware version in the format
     `"%u.%u\n", major_ver, minor_ver`
+  - **Type**: unsigned integer
+  - **Read/Write**: RO
+- `fpga_ver`
+  - **Description**: FPGA's major firmware version
+  - **Type**: unsigned integer
+  - **Read/Write**: RO
+- `fpga_sub_ver`
+  - **Description**: FPGA's minor firmware version
+  - **Type**: unsigned integer
   - **Read/Write**: RO
 
 #### 2.2.2 I2C Controller (i2c_master)
