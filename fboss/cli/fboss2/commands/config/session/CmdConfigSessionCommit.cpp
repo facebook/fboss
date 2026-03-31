@@ -29,6 +29,11 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
 
   auto result = session.commit(hostInfo);
 
+  // Check if this was an empty commit (no changes to commit)
+  if (result.commitSha.empty()) {
+    return "Nothing to commit. Config session is clean.";
+  }
+
   // Categorize services by action type
   std::vector<std::string> restartedServices;
   std::vector<std::string> reloadedServices;
