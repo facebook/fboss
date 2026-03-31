@@ -14,30 +14,36 @@
 
 namespace facebook::fboss {
 
-CmdShowHwObject::RetType CmdShowHwObject::queryClient(
+std::string queryHwObjects(
     const HostInfo& hostInfo,
-    const ObjectArgType& queriedHwObjectTypes) {
+    const CmdShowHwObjectTraits::ObjectArgType& queriedHwObjectTypes,
+    bool cached) {
   std::string hwObjectInfo;
 
   if (utils::isMultiSwitchEnabled(hostInfo)) {
     auto hwAgentQueryFn =
-        [&hwObjectInfo, queriedHwObjectTypes](
+        [&hwObjectInfo, queriedHwObjectTypes, cached](
             apache::thrift::Client<facebook::fboss::FbossHwCtrl>& client) {
           std::string hwAgentObjectInfo;
-          // TODO - we look at non cached objects. Add a cli option to
-          // look at cached objects if so desired.
           client.sync_listHwObjects(
-              hwAgentObjectInfo, queriedHwObjectTypes.data(), false);
+              hwAgentObjectInfo, queriedHwObjectTypes.data(), cached);
           hwObjectInfo += hwAgentObjectInfo;
         };
     utils::runOnAllHwAgents(hostInfo, hwAgentQueryFn);
   } else {
     auto client =
         utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_listHwObjects(hwObjectInfo, queriedHwObjectTypes.data(), true);
+    client->sync_listHwObjects(
+        hwObjectInfo, queriedHwObjectTypes.data(), cached);
   }
 
   return hwObjectInfo;
+}
+
+CmdShowHwObject::RetType CmdShowHwObject::queryClient(
+    const HostInfo& hostInfo,
+    const ObjectArgType& queriedHwObjectTypes) {
+  return queryHwObjects(hostInfo, queriedHwObjectTypes, true /*cached*/);
 }
 
 void CmdShowHwObject::printOutput(
