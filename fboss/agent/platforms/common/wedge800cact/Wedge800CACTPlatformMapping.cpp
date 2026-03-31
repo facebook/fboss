@@ -3357,6 +3357,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                6
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 24
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 25
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 6
@@ -3739,6 +3801,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                8
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 26
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 27
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -4719,6 +4843,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                10
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 28
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 29
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 10
@@ -5101,6 +5287,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                12
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 30
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 31
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -6565,6 +6813,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                14
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 14
@@ -6947,6 +7257,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                16
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -7927,6 +8299,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                18
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 20
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 21
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 18
@@ -8309,6 +8743,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                20
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 22
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core1",
+                      "lane": 23
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -11845,6 +12341,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                26
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 24
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 25
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 26
@@ -12227,6 +12785,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                28
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 26
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 27
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -13207,6 +13827,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                30
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 28
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 29
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 30
@@ -13589,6 +14271,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                32
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 30
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 31
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -15053,6 +15797,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                34
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 34
@@ -15435,6 +16241,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                36
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -16415,6 +17283,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                38
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 20
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 21
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 38
@@ -16797,6 +17727,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                40
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 22
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core0",
+                      "lane": 23
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -20333,6 +21325,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                46
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 46
@@ -20715,6 +21769,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                48
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -21695,6 +22811,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                50
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 50
@@ -22077,6 +23255,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                52
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -23541,6 +24781,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                54
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 54
@@ -23923,6 +25225,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                56
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -24903,6 +26267,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                58
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 12
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 13
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 58
@@ -25285,6 +26711,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                60
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 14
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core6",
+                      "lane": 15
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -28821,6 +30309,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                66
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 66
@@ -29203,6 +30753,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                68
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -30183,6 +31795,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                70
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 70
@@ -30565,6 +32239,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                72
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -32029,6 +33765,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                74
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 74
@@ -32411,6 +34209,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                76
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -33391,6 +35251,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                78
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 12
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 13
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 78
@@ -33773,6 +35695,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                80
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 14
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core7",
+                      "lane": 15
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -37309,6 +39293,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                86
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 24
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 25
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 86
@@ -37691,6 +39737,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                88
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 26
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 27
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -38671,6 +40779,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                90
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 28
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 29
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 90
@@ -39053,6 +41223,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                92
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 30
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 31
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -40517,6 +42749,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                94
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 94
@@ -40899,6 +43193,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                96
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -41879,6 +44235,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                98
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 20
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 21
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 98
@@ -42261,6 +44679,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                100
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 22
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core5",
+                      "lane": 23
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -45797,6 +48277,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                106
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 24
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 25
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 106
@@ -46179,6 +48721,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                108
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 26
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 27
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -47159,6 +49763,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                110
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 28
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 29
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 110
@@ -47541,6 +50207,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                112
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 30
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 31
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -49005,6 +51733,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                114
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 16
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 17
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 114
@@ -49387,6 +52177,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                116
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 18
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 19
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -50367,6 +53219,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                118
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 20
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 21
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 118
@@ -50749,6 +53663,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                120
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 22
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core4",
+                      "lane": 23
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -54285,6 +57261,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                126
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 126
@@ -54667,6 +57705,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                128
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -55647,6 +58747,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                130
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 130
@@ -56029,6 +59191,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                132
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -57493,6 +60717,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                134
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 134
@@ -57875,6 +61161,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                136
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -58855,6 +62203,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                138
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 12
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 13
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 138
@@ -59237,6 +62647,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                140
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 14
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core2",
+                      "lane": 15
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -62773,6 +66245,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                146
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 0
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 1
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 146
@@ -63155,6 +66689,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                148
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 2
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 3
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -64135,6 +67731,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                150
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 4
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 5
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 150
@@ -64517,6 +68175,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                152
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 6
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 7
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -65981,6 +69701,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7, 7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2, 2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13, 13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11, 11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5, 5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40, -40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64, -64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1, 1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0, 0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                154
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 8
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 9
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 0
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 1
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 154
@@ -66363,6 +70145,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                156
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 10
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 11
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 2
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 3
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -67343,6 +71187,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7, 7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2, 2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13, 13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11, 11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5, 5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40, -40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64, -64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1, 1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0, 0, 0]}}]}"
               }
           },
+          "54": {
+              "subsumedPorts": [
+                158
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 12
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 13
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 4
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 5
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
+              }
+          },
           "55": {
               "subsumedPorts": [
                 158
@@ -67725,6 +71631,68 @@ constexpr auto kJsonPlatformMappingStr = R"(
                   }
                 ],
                 "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [3]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [15]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [9]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-18]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-30]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1]}}]}"
+              }
+          },
+          "54": {
+              "subsumedPorts": [
+                160
+              ],
+              "pins": {
+                "iphy": [
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 14
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "NPU-G200-slot1/chip1/core3",
+                      "lane": 15
+                    },
+                    "tx": {
+                      "pre": 0,
+                      "pre2": 0,
+                      "main": 0,
+                      "post": 0,
+                      "post2": 0,
+                      "post3": 0,
+                      "firPre1": -18350,
+                      "firPre2": 0,
+                      "firPre3": 0,
+                      "firMain": 44564,
+                      "firPost1": -2621
+                    }
+                  }
+                ],
+                "transceiver": [
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 6
+                    }
+                  },
+                  {
+                    "id": {
+                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
+                      "lane": 7
+                    }
+                  }
+                ],
+                "serdesCustomCollection": "{\"attributes\": [{\"CUSTOM_TX_1\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_TX_7\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [7, 7]}, \"CUSTOM_RX_8\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_45\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [2, 2]}, \"CUSTOM_RX_31\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [13, 13]}, \"CUSTOM_RX_29\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_34\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [11, 11]}, \"CUSTOM_RX_32\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [5, 5]}, \"CUSTOM_RX_35\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-40, -40]}, \"CUSTOM_RX_37\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_38\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [-64, -64]}, \"CUSTOM_RX_40\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}, \"CUSTOM_RX_44\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [1, 1]}, \"CUSTOM_RX_42\": {\"sai_metadata\": {\"sai_attr_value_type\": \"SAI_ATTR_VALUE_TYPE_INT32_LIST\"}, \"value\": [0, 0]}}]}"
               }
           },
           "55": {
@@ -68614,6 +72582,21 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 11,
           "medium": 2,
           "interfaceType": 21
+        }
+      }
+    },
+    {
+      "factor": {
+        "profileID": 54
+      },
+      "profile": {
+        "speed": 200000,
+        "iphy": {
+          "numLanes": 2,
+          "modulation": 2,
+          "fec": 544,
+          "medium": 1,
+          "interfaceType": 11
         }
       }
     },
