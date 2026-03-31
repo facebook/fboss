@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <folly/String.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
 
 namespace facebook::fboss {
@@ -18,13 +17,10 @@ class CmdClearInterface
     : public CmdHandler<CmdClearInterface, CmdClearInterfaceTraits> {
  public:
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const std::vector<std::string>& /* queriedIfs */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one the subcommands");
-  }
+      const HostInfo& hostInfo,
+      const std::vector<std::string>& queriedIfs);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& model);
 };
 
 } // namespace facebook::fboss

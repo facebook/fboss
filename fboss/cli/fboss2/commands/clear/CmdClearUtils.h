@@ -3,6 +3,7 @@
 #pragma once
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss::utils {
 
