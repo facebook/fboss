@@ -326,12 +326,19 @@ MODULE_DEVICE_TABLE(auxiliary, fpga_info_id_table);
 ```
 
 * The `fpga_info` driver shall export the following sysfs files to userspace:
+  * `fw_ver`
+    * **Description**: This file reports the FPGA's firmware version in the format
+      `"%u.%u\n", major_ver, minor_ver`
+    * **Type**: unsigned integer
+    * **Read/Write**: RO
   * `fpga_ver`
-    * FPGA's major firmware version
-    * Type: unsigned integer
-* `fpga_sub_ver`
-  * FPGA's minor fimrware version
-  * Type: unsigned integer
+    * **Description**: FPGA's major firmware version
+    * **Type**: unsigned integer
+    * **Read/Write**: RO
+  * `fpga_sub_ver`
+    * **Description**: FPGA's minor firmware version
+    * **Type**: unsigned integer
+    * **Read/Write**: RO
 
 #### 5.3.2 I2C Controller (i2c_master)
 
