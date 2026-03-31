@@ -379,13 +379,20 @@ find_package(CLI11 CONFIG REQUIRED)
 add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
+  fboss/cli/fboss2/commands/clear/CmdClearArp.cpp
   fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
+  fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.cpp
   fboss/cli/fboss2/commands/clear/CmdClearNdp.h
+  fboss/cli/fboss2/commands/clear/CmdClearNdp.cpp
   fboss/cli/fboss2/commands/clear/CmdClearUtils.h
   fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h
+  fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.cpp
   fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h
+  fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.cpp
   fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.cpp
   fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h
+  fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.cpp
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
   fboss/cli/fboss2/CmdHandlerImpl.cpp

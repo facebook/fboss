@@ -11,13 +11,6 @@
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
-#include "fboss/cli/fboss2/commands/clear/CmdClearArp.h"
-#include "fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h"
-#include "fboss/cli/fboss2/commands/clear/CmdClearNdp.h"
-#include "fboss/cli/fboss2/commands/clear/interface/CmdClearInterface.h"
-#include "fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.h"
-#include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
-#include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
@@ -95,18 +88,6 @@ template void
 CmdHandler<CmdShowInterfacePrbsStats, CmdShowInterfacePrbsStatsTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
-template void CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::run();
-template void CmdHandler<
-    CmdClearInterfaceCountersPhy,
-    CmdClearInterfaceCountersPhyTraits>::run();
-template void
-CmdHandler<CmdClearInterfacePrbs, CmdClearInterfacePrbsTraits>::run();
-template void
-CmdHandler<CmdClearInterfacePrbsStats, CmdClearInterfacePrbsStatsTraits>::run();
-template void CmdHandler<CmdClearArp, CmdClearArpTraits>::run();
-template void CmdHandler<CmdClearNdp, CmdClearNdpTraits>::run();
-template void
-CmdHandler<CmdClearInterfaceCounters, CmdClearInterfaceCountersTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
 template void CmdHandler<CmdSetPort, CmdSetPortTraits>::run();
 template void CmdHandler<CmdSetPortState, CmdSetPortStateTraits>::run();
@@ -154,21 +135,6 @@ template const ValidFilterMapType CmdHandler<
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePhymap,
     CmdShowInterfacePhymapTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdClearInterface, CmdClearInterfaceTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdClearInterfacePrbs,
-    CmdClearInterfacePrbsTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdClearInterfacePrbsStats,
-    CmdClearInterfacePrbsStatsTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdClearArp, CmdClearArpTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdClearNdp, CmdClearNdpTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdClearInterfaceCounters,
-    CmdClearInterfaceCountersTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::getValidFilters();
 template const ValidFilterMapType
