@@ -60,18 +60,6 @@ SaiObject<SaiNextHopGroupTraits>::adapterHostKeyToFollyDynamic() {
       object[AttributeName<SaiIpNextHopTraits::Attributes::Type>::value] =
           folly::to<std::string>(SAI_NEXT_HOP_TYPE_SRV6_SIDLIST);
       object[AttributeName<
-          SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>::value] =
-          folly::to<std::string>(
-              std::get<
-                  SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>(
-                  *srv6Ahk)
-                  .value());
-      object
-          [AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::Ip>::value] =
-              std::get<SaiSrv6SidlistNextHopTraits::Attributes::Ip>(*srv6Ahk)
-                  .value()
-                  .str();
-      object[AttributeName<
           SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>::value] =
           folly::to<std::string>(
               std::get<SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>(
@@ -168,17 +156,6 @@ void follyDynamicToNhopSet(
       case SAI_NEXT_HOP_TYPE_SRV6_SIDLIST: {
         SaiSrv6SidlistNextHopTraits::AdapterHostKey srv6Ahk;
 
-        std::get<SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId>(
-            srv6Ahk) =
-            folly::to<sai_object_id_t>(
-                object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
-                                         RouterInterfaceId>::value]
-                    .asString());
-        std::get<SaiSrv6SidlistNextHopTraits::Attributes::Ip>(srv6Ahk) =
-            folly::IPAddress(
-                object[AttributeName<
-                           SaiSrv6SidlistNextHopTraits::Attributes::Ip>::value]
-                    .asString());
         std::get<SaiSrv6SidlistNextHopTraits::Attributes::TunnelId>(srv6Ahk) =
             folly::to<sai_object_id_t>(
                 object[AttributeName<SaiSrv6SidlistNextHopTraits::Attributes::
