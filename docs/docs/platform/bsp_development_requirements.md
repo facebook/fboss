@@ -758,10 +758,8 @@ LED Naming Conventions:
 * Any index (port num, fan num, led id) must be a 1-based integer.
 
 * **Port LEDs:**
-  * If there is one LED per port, the LED sysfs entry must be
-    `port%d_led:<color>:status`. E.g.: `port1_led:blue:status`.
-  * If there are multiple LEDs per port, the LED sysfs entries must be
-    `port%d_led%d:<color>:status`. E.g.: `port32_led1:blue:status`
+  * The LED sysfs entries must be `port%d_led%d:<color>:status`.
+    E.g.: `port1_led1:blue:status`, `port32_led2:amber:status`
   * Device name must match `port_led`
 * **Fan LEDs:**
   * The LED sysfs entry must be `fan%d_led:<color>:status`. For example,

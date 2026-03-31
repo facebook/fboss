@@ -261,16 +261,16 @@ symlinks are created by PlatformManager. All leds are found at `/sys/class/leds/
 
 LEDs are named with a common scheme:
 
-    <type><id?>_led:<color>:status
+    <type><id>_led<ledid>:<color>:status
 
 For example:
 
-    port10_led:blue:status
+    port10_led1:blue:status
+    port1_led2:amber:status
     sys_led:amber:status
-    port1_led::status
 
-If an LED has no `id` in the name, it is a system-level LED, for example
-front-panel LEDs.
+Port LEDs always include both a port number and a LED number (1-based).
+System-level LEDs (e.g. `sys_led`, `fan_led`) have no numeric id in the name.
 
 </TestCase>
 
