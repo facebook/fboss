@@ -266,7 +266,7 @@ LEDs are named with a common scheme:
 For example:
 
     port10_led:blue:status
-    sys_led:red:status
+    sys_led:amber:status
     port1_led::status
 
 If an LED has no `id` in the name, it is a system-level LED, for example
