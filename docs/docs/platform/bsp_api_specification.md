@@ -46,7 +46,7 @@ service.
 The PCIe FPGA driver registers a character device for each FPGA instance in the
 system with the following naming pattern:
 
-`fbiob_%04x.%04x.%04x.%04x% (vendor, device, subsystem_vendor, subsystem_device)`
+`fbiob_%04x.%04x.%04x.%04x (vendor, device, subsystem_vendor, subsystem_device)`
 
 </TestCase>
 
@@ -140,7 +140,7 @@ document for a full explanation.
 - **SPI EEPROMs**
   - Flashes and EEPROM devices must be managed by kernel drivers, and user space
     programs access devices through their client driver interfaces. Please see the
-    documentation for the eeprom driver interface defiition.
+    documentation for the eeprom driver interface definition.
 - **SPIDEV**
   - Such devices are accessed from user space via the character device
     `/dev/spidev[bus].[cs]`. Refer to below URL for details:
@@ -208,7 +208,7 @@ error code.
 
 FBOSS adopts the standard Linux watchdog daemon to feed watchdog via character
 device interface `/dev/watchdog#`. The watchdog API is defined here.
-[kernel.org/doc/html/v6.4/watchdog/watchdog-api](https://www.kernel.org/doc/html/v5.9/watchdog/watchdog-api.html)
+[kernel.org/doc/html/v6.4/watchdog/watchdog-api](https://www.kernel.org/doc/html/v6.4/watchdog/watchdog-api.html)
 
 </TestCase>
 
@@ -223,7 +223,7 @@ operations.
 
 When the watchdog expires and is subsequently kicked, the watchdog shall rearm
 itself. This behavior ensures that the watchdog remains active and continues
-to monitor system status after an expiration event subsequent service recovery.
+to monitor system status after an expiration event and subsequent service recovery.
 
 #### 2.2.8 Transceiver Controller (xcvr_ctrl)
 
@@ -235,7 +235,7 @@ The `xcvr_ctrl` driver exports following sysfs entries for each transceiver port
 (port_num is 1-based integer):
 
 - `xcvr_reset_<portnum>`
-  - **TYPE**: Bit
+  - **Type**: Bit
   - **Description**: Setting to 1 puts the optics in reset state, 0 takes it out
     of reset.
   - **Read/Write**: RW
@@ -285,11 +285,11 @@ System-level LEDs (e.g. `sys_led`, `fan_led`) have no numeric id in the name.
   the other colors.
   - This behavior must be reflected in the `brightness` file. For example,
     ```bash
-    $ echo 1 > /sys/class/leds/port1_led:blue:status/brightness
-    $ cat /sys/class/leds/port1_led:blue:status/brightness
+    $ echo 1 > /sys/class/leds/port1_led1:blue:status/brightness
+    $ cat /sys/class/leds/port1_led1:blue:status/brightness
     1
-    $ echo 1 > /sys/class/leds/port1_led:amber:status/brightness
-    $ cat /sys/class/leds/port1_led:blue:status/brightness
+    $ echo 1 > /sys/class/leds/port1_led1:amber:status/brightness
+    $ cat /sys/class/leds/port1_led1:blue:status/brightness
     0
     ```
 
