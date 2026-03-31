@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowHwAgentStatus.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "folly/Conv.h"
@@ -267,5 +268,11 @@ std::string CmdShowHwAgentStatus::getRunStateStr(
   }
   throw std::invalid_argument("Invalid Run State");
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowHwAgentStatus, CmdShowHwAgentStatusTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowHwAgentStatus, CmdShowHwAgentStatusTraits>::getValidFilters();
 
 } // namespace facebook::fboss

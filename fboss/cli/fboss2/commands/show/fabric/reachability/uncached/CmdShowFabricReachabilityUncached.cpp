@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 namespace facebook::fboss {
 
@@ -49,4 +50,12 @@ void CmdShowFabricReachabilityUncached::printOutput(
     std::ostream& out) {
   CmdShowFabricReachability::printOutput(model, out);
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdShowFabricReachabilityUncached,
+    CmdShowFabricReachabilityUncachedTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricReachabilityUncached,
+    CmdShowFabricReachabilityUncachedTraits>::getValidFilters();
 } // namespace facebook::fboss

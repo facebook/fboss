@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRoute.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -108,5 +109,10 @@ CmdShowRoute::RetType CmdShowRoute::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowRoute, CmdShowRouteTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowRoute, CmdShowRouteTraits>::getValidFilters();
 
 } // namespace facebook::fboss

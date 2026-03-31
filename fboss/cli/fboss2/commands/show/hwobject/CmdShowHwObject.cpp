@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowHwObject.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 
@@ -51,5 +52,8 @@ void CmdShowHwObject::printOutput(
     std::ostream& out) {
   out << hwObjectInfo << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowHwObject, CmdShowHwObjectTraits>::run();
 
 } // namespace facebook::fboss

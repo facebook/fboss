@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowPort.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <thrift/lib/cpp/transport/TTransportException.h>
 #include "fboss/cli/fboss2/commands/show/port/gen-cpp2/model_types.h"
@@ -764,5 +765,12 @@ void CmdShowPort::printOutput(const RetType& model, std::ostream& out) {
     out << table << std::endl;
   }
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowPort, CmdShowPortTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidFilters();
+template const ValidAggMapType
+CmdHandler<CmdShowPort, CmdShowPortTraits>::getValidAggs();
 
 } // namespace facebook::fboss

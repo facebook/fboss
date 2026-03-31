@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -84,5 +85,9 @@ void CmdShowProductDetails::printOutput(
       << std::endl;
   out << "Version: " << model.version().value() << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowProductDetails, CmdShowProductDetailsTraits>::run();
 
 } // namespace facebook::fboss

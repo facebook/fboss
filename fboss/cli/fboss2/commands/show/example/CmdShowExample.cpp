@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "CmdShowExample.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <map>
@@ -65,5 +66,8 @@ void CmdShowExample::printOutput(const RetType& model, std::ostream& out) {
 
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowExample, CmdShowExampleTraits>::run();
 
 } // namespace facebook::fboss

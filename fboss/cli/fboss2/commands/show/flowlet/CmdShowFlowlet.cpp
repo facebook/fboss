@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -50,5 +51,8 @@ CmdShowFlowlet::RetType CmdShowFlowlet::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowFlowlet, CmdShowFlowletTraits>::run();
 
 } // namespace facebook::fboss

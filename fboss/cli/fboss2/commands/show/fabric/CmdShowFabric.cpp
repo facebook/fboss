@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowFabric.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <re2/re2.h>
 #include <algorithm>
@@ -149,5 +150,10 @@ RetType CmdShowFabric::createModel(
 
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowFabric, CmdShowFabricTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowFabric, CmdShowFabricTraits>::getValidFilters();
 
 } // namespace facebook::fboss

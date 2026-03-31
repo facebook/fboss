@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbDataCommon.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
@@ -53,5 +54,9 @@ void CmdShowFsdbDataCommon::printOutput(
     dumpFsdbMetadata(*meta);
   }
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFsdbDataCommon, CmdShowFsdbDataCommonTraits>::run();
 
 } // namespace facebook::fboss

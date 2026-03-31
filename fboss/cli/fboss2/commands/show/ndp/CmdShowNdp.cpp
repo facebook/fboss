@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowNdp.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
@@ -137,5 +138,10 @@ RetType CmdShowNdp::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowNdp, CmdShowNdpTraits>::getValidFilters();
 
 } // namespace facebook::fboss
