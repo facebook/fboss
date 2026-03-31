@@ -72,7 +72,7 @@ RUN bash /tmp/setup_clang.sh && rm /tmp/setup_clang.sh
 WORKDIR /var/FBOSS/fboss
 COPY build/fbcode_builder /var/FBOSS/fboss/build/fbcode_builder
 RUN if [ "$USE_CLANG" = "true" ]; then \
-    sed 's/^binutils/#binutils/' -i build/fbcode_builder/manifests/*; \
+    find build/fbcode_builder/manifests -maxdepth 1 -type f -exec sed -i 's/^binutils/#binutils/' {} +; \
     fi && \
     ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss && \
     rm -rf build

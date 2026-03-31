@@ -334,6 +334,8 @@ def setup_clang_environment(toolchain_info):
     for manifest in glob.glob(
         os.path.join(path_to("build", "fbcode_builder", "manifests"), "*")
     ):
+        if not os.path.isfile(manifest):
+            continue
         with open(manifest, "r") as f:
             content = f.read()
         if "\nbinutils" in content:
