@@ -14,7 +14,7 @@ import tempfile
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from run_test import BenchmarkTestRunner
+from run_test import BenchmarkTestRunner, _load_from_file
 
 # Fixtures
 
@@ -342,6 +342,7 @@ def test_run_test_list_tests_mode(runner, mock_args, temp_benchmark_file, capsys
     assert "benchmark3" in captured.out
 
 
+@patch("run_test._load_from_file")
 @patch("os.path.exists")
 @patch("os.path.isfile")
 @patch.object(BenchmarkTestRunner, "_run_benchmark_binary")
@@ -351,6 +352,7 @@ def test_run_test_execution(
     mock_run_binary,
     mock_isfile,
     mock_exists,
+    mock_load,
     runner,
     mock_args,
     temp_benchmark_file,
@@ -361,6 +363,7 @@ def test_run_test_execution(
     # Mock that all benchmark binaries exist
     mock_exists.return_value = True
     mock_isfile.return_value = True
+    mock_load.return_value = ["benchmark1", "benchmark2", "benchmark3"]
 
     # Mock benchmark execution results
     mock_run_binary.side_effect = [
@@ -407,16 +410,19 @@ def test_run_test_execution(
     assert ".csv" in str(mock_open.call_args)
 
 
+@patch("run_test._load_from_file")
 @patch("os.path.exists")
 @patch("os.path.isfile")
 def test_run_test_no_existing_binaries(
-    mock_isfile, mock_exists, runner, mock_args, temp_benchmark_file, capsys
+    mock_isfile, mock_exists, mock_load, runner, mock_args, temp_benchmark_file, capsys
 ):
     """Test run_test when no benchmark binaries exist"""
     mock_args.filter_file = temp_benchmark_file
 
-    # Mock that benchmark binaries don't exist
-    mock_exists.return_value = False
+    # Mock loading benchmarks from filter file
+    mock_load.return_value = ["benchmark1", "benchmark2", "benchmark3"]
+    # Mock that the filter file exists but benchmark binaries don't
+    mock_exists.side_effect = lambda path: path == temp_benchmark_file
     mock_isfile.return_value = False
 
     runner.run_test(mock_args)
@@ -425,17 +431,20 @@ def test_run_test_no_existing_binaries(
     assert "Error: No benchmark binaries found" in captured.out
 
 
+@patch("run_test._load_from_file")
 @patch("os.path.exists")
 @patch("os.path.isfile")
 def test_run_test_some_missing_binaries(
-    mock_isfile, mock_exists, runner, mock_args, temp_benchmark_file, capsys
+    mock_isfile, mock_exists, mock_load, runner, mock_args, temp_benchmark_file, capsys
 ):
     """Test run_test when some benchmark binaries are missing"""
     mock_args.filter_file = temp_benchmark_file
 
-    # Mock that only benchmark1 exists
+    mock_load.return_value = ["benchmark1", "benchmark2", "benchmark3"]
+
+    # Mock that filter file exists and only benchmark1 binary exists
     def exists_side_effect(path):
-        return "benchmark1" in path
+        return path == temp_benchmark_file or "benchmark1" in path
 
     def isfile_side_effect(path):
         return "benchmark1" in path
@@ -486,3 +495,85 @@ def test_integration_default_configs_to_list_tests(
     assert "t1_bench" in captured.out
     assert "t2_bench" in captured.out
     assert "additional_bench" in captured.out
+
+
+# Tests for _load_from_file
+
+
+def test_load_from_file_basic():
+    """Test loading entries from a file with comments and blank lines"""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
+        f.write("# Comment line\n")
+        f.write("entry1\n")
+        f.write("\n")
+        f.write("entry2\n")
+        f.write("# Another comment\n")
+        f.write("entry3\n")
+        temp_file = f.name
+    try:
+        result = _load_from_file(temp_file)
+        assert result == ["entry1", "entry2", "entry3"]
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_from_file_nonexistent():
+    """Test loading from a nonexistent file returns empty list"""
+    result = _load_from_file("/nonexistent/path.conf")
+    assert result == []
+
+
+def test_load_from_file_empty():
+    """Test loading from an empty file returns empty list"""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
+        temp_file = f.name
+    try:
+        result = _load_from_file(temp_file)
+        assert result == []
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_from_file_with_profile():
+    """Test loading with profile filters to matching tagged lines"""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
+        f.write("entry_untagged\n")
+        f.write("entry_tagged_p1 p1\n")
+        f.write("entry_tagged_p2 p2\n")
+        f.write("entry_tagged_t t\n")
+        temp_file = f.name
+    try:
+        result = _load_from_file(temp_file, profile="p1")
+        assert result == ["entry_tagged_p1"]
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_from_file_no_profile_includes_untagged_and_t():
+    """Test that without profile, untagged and t-tagged lines are included"""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
+        f.write("entry_untagged\n")
+        f.write("entry_tagged_p1 p1\n")
+        f.write("entry_tagged_t t\n")
+        temp_file = f.name
+    try:
+        result = _load_from_file(temp_file)
+        assert result == ["entry_untagged", "entry_tagged_t"]
+    finally:
+        os.unlink(temp_file)
+
+
+def test_load_from_file_comments_and_whitespace():
+    """Test that comments and whitespace-only lines are skipped"""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".conf") as f:
+        f.write("# full comment\n")
+        f.write("   \n")
+        f.write("\n")
+        f.write("  # indented comment\n")
+        f.write("entry1\n")
+        temp_file = f.name
+    try:
+        result = _load_from_file(temp_file)
+        assert result == ["entry1"]
+    finally:
+        os.unlink(temp_file)
