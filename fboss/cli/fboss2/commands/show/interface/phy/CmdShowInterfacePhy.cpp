@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <folly/String.h>
@@ -487,5 +488,10 @@ CmdShowInterfacePhy::RetType CmdShowInterfacePhy::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowInterfacePhy, CmdShowInterfacePhyTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowInterfacePhy, CmdShowInterfacePhyTraits>::getValidFilters();
 
 } // namespace facebook::fboss

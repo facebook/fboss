@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/agent/AddressUtil.h"
 
@@ -340,5 +341,10 @@ std::string CmdShowRouteDetails::getClassID(cfg::AclLookupClass classID) {
   throw std::runtime_error(
       "Unsupported ClassID: " + std::to_string(static_cast<int>(classID)));
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowRouteDetails, CmdShowRouteDetailsTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowRouteDetails, CmdShowRouteDetailsTraits>::getValidFilters();
 
 } // namespace facebook::fboss

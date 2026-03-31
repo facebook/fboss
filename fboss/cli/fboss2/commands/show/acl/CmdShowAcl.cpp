@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowAcl.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <iostream>
@@ -166,5 +167,10 @@ RetType CmdShowAcl::createModel(facebook::fboss::AclTableThrift entries) {
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowAcl, CmdShowAclTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowAcl, CmdShowAclTraits>::getValidFilters();
 
 } // namespace facebook::fboss

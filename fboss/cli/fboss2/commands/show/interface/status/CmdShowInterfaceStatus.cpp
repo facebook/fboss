@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -147,5 +148,12 @@ void CmdShowInterfaceStatus::printOutput(
 
   out << outTable << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowInterfaceStatus, CmdShowInterfaceStatusTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceStatus,
+    CmdShowInterfaceStatusTraits>::getValidFilters();
 
 } // namespace facebook::fboss

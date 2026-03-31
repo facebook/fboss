@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -60,5 +61,13 @@ void CmdShowInterfaceCapabilities::printOutput(
   }
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdShowInterfaceCapabilities,
+    CmdShowInterfaceCapabilitiesTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceCapabilities,
+    CmdShowInterfaceCapabilitiesTraits>::getValidFilters();
 
 } // namespace facebook::fboss

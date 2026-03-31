@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowPortQueue.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
 
@@ -75,5 +76,10 @@ void CmdShowPortQueue::printOutput(
     out << "\n";
   }
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowPortQueue, CmdShowPortQueueTraits>::getValidFilters();
 
 } // namespace facebook::fboss

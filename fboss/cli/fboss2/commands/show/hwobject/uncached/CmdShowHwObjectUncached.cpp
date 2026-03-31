@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/show/hwobject/uncached/CmdShowHwObjectUncached.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 namespace facebook::fboss {
 
 CmdShowHwObjectUncached::RetType CmdShowHwObjectUncached::queryClient(
@@ -24,4 +26,7 @@ void CmdShowHwObjectUncached::printOutput(
   out << hwObjectInfo << std::endl;
 }
 
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowHwObjectUncached, CmdShowHwObjectUncachedTraits>::run();
 } // namespace facebook::fboss

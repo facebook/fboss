@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowRif.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
@@ -119,5 +120,10 @@ void CmdShowRif::printOutput(const RetType& model, std::ostream& out) {
 
   out << outTable << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowRif, CmdShowRifTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowRif, CmdShowRifTraits>::getValidFilters();
 
 } // namespace facebook::fboss

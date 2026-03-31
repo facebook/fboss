@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowCpuPort.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -74,5 +75,10 @@ RetType CmdShowCpuPort::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowCpuPort, CmdShowCpuPortTraits>::getValidFilters();
 
 } // namespace facebook::fboss

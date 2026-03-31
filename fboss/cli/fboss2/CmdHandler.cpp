@@ -29,7 +29,6 @@
 #include <folly/stop_watch.h>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <exception>
 #include <future>
 #include <iostream>
