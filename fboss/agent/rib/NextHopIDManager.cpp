@@ -391,9 +391,46 @@ std::optional<RouteNextHopSet> NextHopIDManager::getNextHopsIf(
   return RouteNextHopSet(nextHopVec.begin(), nextHopVec.end());
 }
 
+namespace {
+
+// Verifies that the idToNextHopMap and idToNextHopIdSetMap are identical
+// across all switchId -> fibInfo entries. In production, these maps are synced
+// from the global RIB and must be the same on every switch.
+bool assertNextHopIdMapsSame(
+    const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap) {
+  if (!fibsInfoMap || fibsInfoMap->size() <= 1) {
+    return true;
+  }
+
+  std::shared_ptr<IdToNextHopMap> referenceNhopMap;
+  std::shared_ptr<IdToNextHopIdSetMap> referenceNhopIdSetMap;
+
+  for (const auto& [switchId, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto nhopMap = fibInfo->getIdToNextHopMap();
+    auto nhopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
+    if (!nhopMap || !nhopIdSetMap) {
+      continue;
+    }
+    if (!referenceNhopMap) {
+      referenceNhopMap = nhopMap;
+      referenceNhopIdSetMap = nhopIdSetMap;
+      continue;
+    }
+    if (nhopMap->toThrift() != referenceNhopMap->toThrift() ||
+        nhopIdSetMap->toThrift() != referenceNhopIdSetMap->toThrift()) {
+      XLOG(ERR) << "NextHopIdMaps differ across switches";
+      return false;
+    }
+  }
+  return true;
+}
+
+} // namespace
+
 void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
+  DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
 
   NextHopID maxNextHopId = NextHopID(kNextHopIDStart - 1);
