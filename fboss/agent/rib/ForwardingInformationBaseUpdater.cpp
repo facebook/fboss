@@ -308,6 +308,20 @@ bool ForwardingInformationBaseUpdater::verifyNextHopIdConsistency(
       }
       const auto& fwdInfo = route->getForwardInfo();
 
+      // Every resolved NEXTHOPS route must have IDs assigned
+      if (fwdInfo.getAction() == RouteForwardAction::NEXTHOPS) {
+        if (!fwdInfo.getResolvedNextHopSetID().has_value()) {
+          XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
+                    << " is missing resolvedNextHopSetID";
+          return false;
+        }
+        if (!fwdInfo.getNormalizedResolvedNextHopSetID().has_value()) {
+          XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
+                    << " is missing normalizedResolvedNextHopSetID";
+          return false;
+        }
+      }
+
       if (!verifyNextHopIds(
               route,
               fwdInfo.getResolvedNextHopSetID(),
