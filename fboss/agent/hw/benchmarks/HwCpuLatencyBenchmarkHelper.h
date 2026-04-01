@@ -265,23 +265,45 @@ inline BatchLatencyResults measureCpuLatency(
 
   utility::SwSwitchPacketSnooper snooper(
       ensemble->getSw(), "cpuLatencyBenchmark");
+  snooper.ignoreUnclaimedRxPkts();
 
   for (int batch = 0; batch < numBatches; ++batch) {
     auto txPacket = createLatencyTestPacket(ensemble, batch);
     ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), portId);
     results.totalSent++;
 
-    auto rxBuf = snooper.waitForPacket(kBatchTimeoutSeconds);
-    auto rxTime = std::chrono::steady_clock::now();
+    // Wait for a valid test packet, skipping non-test packets (LLDP, NDP)
+    auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::seconds(kBatchTimeoutSeconds);
+    std::chrono::steady_clock::time_point rxTime;
+    DecodedPayload decoded;
+    bool gotValidPacket = false;
 
-    if (!rxBuf) {
+    while (!gotValidPacket) {
+      auto remaining = std::chrono::duration_cast<std::chrono::seconds>(
+          deadline - std::chrono::steady_clock::now());
+      if (remaining.count() <= 0) {
+        break;
+      }
+      auto rxBuf =
+          snooper.waitForPacket(static_cast<uint32_t>(remaining.count()));
+      if (!rxBuf) {
+        break;
+      }
+      rxTime = std::chrono::steady_clock::now();
+      decoded = decodePayload(**rxBuf);
+      if (!decoded.valid) {
+        XLOG(DBG2) << "Packet seq=" << batch << " skipping non-test packet";
+        continue;
+      }
+      gotValidPacket = true;
+    }
+
+    if (!gotValidPacket) {
       results.totalDropped++;
       XLOG(WARNING) << "Packet seq=" << batch << " dropped (timeout)";
       continue;
     }
-
-    auto decoded = decodePayload(**rxBuf);
-    CHECK(decoded.valid) << "Invalid payload in received packet";
     results.totalReceived++;
 
     uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -294,7 +316,7 @@ inline BatchLatencyResults measureCpuLatency(
     XLOG(INFO) << "Packet seq=" << batch << " latency=" << packetLatencyMs
                << "ms";
 
-    // Sleep between iterations to ensure the rxThread and snooper have fully
+    // Sleep between iterations to ensure the observer has fully
     // settled, preventing overlap with the next packet's measurement.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
