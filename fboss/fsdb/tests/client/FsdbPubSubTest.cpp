@@ -1365,6 +1365,16 @@ TYPED_TEST(FsdbPubSubTest, subscriberStreamMetadata) {
     // lastHeartbeatSentAt may or may not be set depending on heartbeat config
     ASSERT_EVENTUALLY_TRUE(info.lastHeartbeatSentAt().has_value());
     EXPECT_EVENTUALLY_GT(*info.lastHeartbeatSentAt(), 0);
+
+    // Stream-reader-side fields (from SubscriptionStreamInfo)
+    // lastUpdateWrittenAt should be set after data was yielded to stream
+    // (only for delta/patch subscriptions that have streamReader)
+    if (this->isDelta() || this->isPatch()) {
+      ASSERT_EVENTUALLY_TRUE(info.lastUpdateWrittenAt().has_value());
+      EXPECT_EVENTUALLY_GT(*info.lastUpdateWrittenAt(), 0);
+      ASSERT_EVENTUALLY_TRUE(info.numUpdatesServed().has_value());
+      EXPECT_EVENTUALLY_GE(*info.numUpdatesServed(), 1);
+    }
   });
 }
 

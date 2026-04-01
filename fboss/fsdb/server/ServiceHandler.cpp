@@ -1184,6 +1184,10 @@ ServiceHandler::co_subscribeOperStateDelta(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   (*item).allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
               co_yield std::move((*item).val);
             }
           })};
@@ -1270,6 +1274,10 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   item->allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
 
               auto&& delta = std::move(item->val);
 
@@ -1312,6 +1320,10 @@ ServiceHandler::co_subscribeOperStatsDelta(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   (*item).allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
               co_yield std::move((*item).val);
             }
           })};
@@ -1398,6 +1410,10 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   item->allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
               auto&& delta = std::move(item->val);
 
               OperSubDeltaUnit unit;
@@ -1449,6 +1465,10 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1496,6 +1516,10 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1545,6 +1569,10 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1594,6 +1622,10 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1772,6 +1804,12 @@ void mergeOperSubscriberInfo(
           if (subInfo.lastEnqueuedUpdatePublishedAt().has_value()) {
             sub.lastEnqueuedUpdatePublishedAt() =
                 *subInfo.lastEnqueuedUpdatePublishedAt();
+          }
+          if (subInfo.lastUpdateWrittenAt().has_value()) {
+            sub.lastUpdateWrittenAt() = *subInfo.lastUpdateWrittenAt();
+          }
+          if (subInfo.numUpdatesServed().has_value()) {
+            sub.numUpdatesServed() = *subInfo.numUpdatesServed();
           }
         }
       }

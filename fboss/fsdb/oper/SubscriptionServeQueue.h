@@ -11,6 +11,8 @@ namespace facebook::fboss::fsdb {
 struct SubscriptionStreamInfo {
   std::atomic<uint64_t> enqueuedDataSize{0};
   std::atomic<uint64_t> servedDataSize{0};
+  std::atomic<int64_t> lastUpdateWrittenAt{0}; // epoch ms
+  std::atomic<int64_t> numUpdatesServed{0};
 };
 
 template <typename generator_type>
