@@ -482,6 +482,12 @@ void RibRouteTables::updateFib(
       reconstructMySidTableFromSwitchState(
           hwUpdateError.appliedState->getMySids(),
           &lockedRouteTables->mySidTable);
+      // Reconstruct NextHopIDManager to match the rolled-back MySid table
+      if (nextHopIDManager_) {
+        nextHopIDManager_->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids());
+      }
     }
     throw;
   }
@@ -1081,18 +1087,50 @@ void RibRouteTables::update(
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
   updateRib([&](MySidTable* mySidTable) {
-    // Add new MySid entries
     for (const auto& entry : toAdd) {
       auto mySid = mySidFromEntry(entry);
-      auto cidr = mySid->getMySid();
-      folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      const auto cidr = mySid->getMySid();
+      const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      if (nextHopIDManager_) {
+        const auto existingIt = mySidTable->find(cidrV6);
+        const auto existingId = (existingIt != mySidTable->end())
+            ? existingIt->second->getUnresolveNextHopsId()
+            : std::nullopt;
+        if (!entry.nextHops()->empty()) {
+          const auto newNextHopSet =
+              util::toRouteNextHopSet(*entry.nextHops(), true);
+          const auto newId =
+              nextHopIDManager_->getOrAllocRouteNextHopSetID(newNextHopSet)
+                  .nextHopIdSetIter->second.id;
+          if (existingId.has_value() && newId == *existingId) {
+            // Same next hop set — undo the extra alloc and reuse existing ID
+            nextHopIDManager_->decrOrDeallocRouteNextHopSetID(newId);
+            mySid->setUnresolveNextHopsId(existingId);
+          } else {
+            if (existingId.has_value()) {
+              nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*existingId);
+            }
+            mySid->setUnresolveNextHopsId(newId);
+          }
+        } else if (existingId.has_value()) {
+          // New entry has no next hops but the old one did — release old ID
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*existingId);
+        }
+      }
       (*mySidTable)[cidrV6] = std::move(mySid);
     }
-    // Delete MySid entries
     for (const auto& prefix : toDelete) {
       auto ip = network::toIPAddress(*prefix.ip());
       auto mask = static_cast<uint8_t>(*prefix.prefixLength());
-      folly::CIDRNetworkV6 cidr(ip.asV6(), mask);
+      const folly::CIDRNetworkV6 cidr(ip.asV6(), mask);
+      if (nextHopIDManager_) {
+        const auto it = mySidTable->find(cidr);
+        if (it != mySidTable->end()) {
+          if (const auto id = it->second->getUnresolveNextHopsId()) {
+            nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+          }
+        }
+      }
       mySidTable->erase(cidr);
     }
   });
