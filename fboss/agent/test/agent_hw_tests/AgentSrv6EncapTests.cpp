@@ -43,6 +43,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
   const folly::IPAddressV6 kEncapRoutePrefix{"2800:2::"};
   static constexpr uint8_t kEncapRoutePrefixLen{64};
   const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
+  static constexpr int kNumNextHops{4};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -54,21 +55,17 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    cfg::SwitchConfig cfg;
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
     if constexpr (kIsTrunk) {
-      cfg = utility::oneL3IntfTwoPortConfig(
-          ensemble.getSw(),
-          ensemble.masterLogicalPortIds()[0],
-          ensemble.masterLogicalPortIds()[1]);
-      utility::addAggPort(
-          1, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[0])}, &cfg);
-      utility::addAggPort(
-          2, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[1])}, &cfg);
-    } else {
-      cfg = utility::onePortPerInterfaceConfig(
-          ensemble.getSw(),
-          ensemble.masterLogicalPortIds(),
-          true /*interfaceHasSubnet*/);
+      for (int i = 0; i < kNumNextHops; ++i) {
+        utility::addAggPort(
+            i + 1,
+            {static_cast<int32_t>(ensemble.masterLogicalPortIds()[i])},
+            &cfg);
+      }
     }
     addSrv6TunnelConfig(cfg);
     auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
@@ -109,30 +106,99 @@ class AgentSrv6EncapTest : public AgentHwTest {
     auto ecmpHelper4 = makeEcmpHelper<folly::IPAddressV4>();
     this->unresolveNeighbors(ecmpHelper4, numNextHops);
   }
-  void setupHelper(bool resolveNeighbors = true) {
+  void setupHelper(
+      bool resolveNeighbors = true,
+      bool programEncapRoutes = true) {
     if constexpr (kIsTrunk) {
       applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
     }
     if (resolveNeighbors) {
-      resolveV4AndV6NextHops(2);
+      resolveV4AndV6NextHops(kNumNextHops);
     }
-    // IPv6 encap routes (v6 next hops)
-    addEncapRoute<folly::CIDRNetworkV6>(
-        {kEncapRoutePrefix, kEncapRoutePrefixLen}, {{kSid0}});
-    addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:3::"), kEncapRoutePrefixLen},
-        {{kSid1}, {kSid2}});
-    addEncapRoute<folly::CIDRNetworkV6>(
-        {folly::IPAddressV6("2800:4::"), kEncapRoutePrefixLen},
-        {{kSid1}, {kSid2}});
-    // IPv4 encap routes (v4 next hops)
-    addEncapRoute<folly::CIDRNetworkV4>(
-        {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}});
-    addEncapRoute<folly::CIDRNetworkV4>(
-        {folly::IPAddressV4("200.0.0.0"), 24}, {{kSid1}, {kSid2}});
-    addEncapRoute<folly::CIDRNetworkV4>(
-        {folly::IPAddressV4("201.0.0.0"), 24}, {{kSid1}, {kSid2}});
+    if (programEncapRoutes) {
+      // IPv6 encap routes (v6 next hops)
+      addEncapRoute<folly::CIDRNetworkV6>(
+          {kEncapRoutePrefix, kEncapRoutePrefixLen}, {{kSid0}});
+      addEncapRoute<folly::CIDRNetworkV6>(
+          {folly::IPAddressV6("2800:3::"), kEncapRoutePrefixLen},
+          {{kSid1}, {kSid2}});
+      addEncapRoute<folly::CIDRNetworkV6>(
+          {folly::IPAddressV6("2800:4::"), kEncapRoutePrefixLen},
+          {{kSid1}, {kSid2}});
+      // IPv4 encap routes (v4 next hops)
+      addEncapRoute<folly::CIDRNetworkV4>(
+          {folly::IPAddressV4("100.0.0.0"), 24}, {{kSid0}});
+      addEncapRoute<folly::CIDRNetworkV4>(
+          {folly::IPAddressV4("200.0.0.0"), 24}, {{kSid1}, {kSid2}});
+      addEncapRoute<folly::CIDRNetworkV4>(
+          {folly::IPAddressV4("201.0.0.0"), 24}, {{kSid1}, {kSid2}});
+    }
+  }
+
+  // Programs recursive SRv6 routes for testing SID list preservation:
+  //   IGP route A (2901::/48) -> nhop(0), nhop(1) with igpSidListA
+  //   IGP route B (2902::/48) -> nhop(2), nhop(3) with igpSidListB
+  //   SRv6 route (routePrefix/kEncapRoutePrefixLen) -> 2901::1 (kSid0),
+  //     2902::1 (kSid1), resolving recursively through IGP routes.
+  // After resolution, the SRv6 route expands to 4 next hops preserving
+  // the original SID lists (kSid0/kSid1), not the IGP SID lists.
+  void addRecursiveSrv6Routes(const folly::IPAddressV6& routePrefix) {
+    auto ecmpHelper = makeEcmpHelper();
+    auto routeUpdater = this->getSw()->getRouteUpdater();
+
+    auto makeSrv6Nhop = [](const folly::IPAddress& ip,
+                           const std::vector<folly::IPAddressV6>& sidList,
+                           const std::string& tunnelId) {
+      return UnresolvedNextHop(
+          ip,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidList,
+          TunnelType::SRV6_ENCAP,
+          tunnelId);
+    };
+
+    // IGP route A (2901::/48) -> nhop(0), nhop(1) with igpSidListA
+    const std::vector<folly::IPAddressV6> igpSidListA{
+        folly::IPAddressV6("4001:db8:a1::")};
+    RouteNextHopSet igpNhopsA{
+        makeSrv6Nhop(ecmpHelper.nhop(0).ip, igpSidListA, "srv6Tunnel0"),
+        makeSrv6Nhop(ecmpHelper.nhop(1).ip, igpSidListA, "srv6Tunnel0")};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2901::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(igpNhopsA, AdminDistance::MAX_ADMIN_DISTANCE));
+
+    // IGP route B (2902::/48) -> nhop(2), nhop(3) with igpSidListB
+    const std::vector<folly::IPAddressV6> igpSidListB{
+        folly::IPAddressV6("4001:db8:b1::")};
+    RouteNextHopSet igpNhopsB{
+        makeSrv6Nhop(ecmpHelper.nhop(2).ip, igpSidListB, "srv6Tunnel0"),
+        makeSrv6Nhop(ecmpHelper.nhop(3).ip, igpSidListB, "srv6Tunnel0")};
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2902::"),
+        48,
+        ClientID::OPENR,
+        RouteNextHopEntry(igpNhopsB, AdminDistance::MAX_ADMIN_DISTANCE));
+
+    // SRv6 route -> 2901::1 (kSid0), 2902::1 (kSid1)
+    RouteNextHopSet srv6Nhops{
+        makeSrv6Nhop(folly::IPAddress("2901::1"), {kSid0}, "srv6Tunnel0"),
+        makeSrv6Nhop(folly::IPAddress("2902::1"), {kSid1}, "srv6Tunnel0")};
+    routeUpdater.addRoute(
+        RouterID(0),
+        routePrefix,
+        kEncapRoutePrefixLen,
+        ClientID::BGPD,
+        RouteNextHopEntry(srv6Nhops, AdminDistance::EBGP));
+    routeUpdater.program();
   }
 
   template <typename CIDRNetworkT>
@@ -176,15 +242,18 @@ class AgentSrv6EncapTest : public AgentHwTest {
   }
 
   void verifyEncapPacket(
-      PortID egressPort,
+      const std::vector<PortID>& egressPorts,
       bool ecnMarked,
       bool isV4 = false,
       const std::vector<folly::IPAddressV6>& expectedSids = {kSid0},
-      std::optional<PortID> injectPort = std::nullopt) {
+      std::optional<PortID> injectPort = std::nullopt,
+      std::optional<folly::IPAddress> dstIp = std::nullopt) {
     const auto& sids = expectedSids;
 
-    auto portStatsBefore = this->getLatestPortStats(egressPort);
-    auto bytesBefore = *portStatsBefore.outBytes_();
+    std::map<PortID, int64_t> bytesBefore;
+    for (auto port : egressPorts) {
+      bytesBefore[port] = *this->getLatestPortStats(port).outBytes_();
+    }
 
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
@@ -194,14 +263,17 @@ class AgentSrv6EncapTest : public AgentHwTest {
                              : static_cast<uint8_t>(kTc << 2);
     auto srcIp =
         isV4 ? folly::IPAddress("10.0.0.1") : folly::IPAddress("1::10");
-    auto dstIp = isV4 ? folly::IPAddress("100.0.0.1") : kEncapRouteDstIp;
+    auto pktDstIp = dstIp.has_value()
+        ? dstIp.value()
+        : (isV4 ? folly::IPAddress("100.0.0.1")
+                : folly::IPAddress(kEncapRouteDstIp));
     auto txPacket = utility::makeUDPTxPacket(
         this->getSw(),
         this->getVlanIDForTx(),
         intfMac,
         intfMac,
         srcIp,
-        dstIp,
+        pktDstIp,
         8000,
         8001,
         tcField,
@@ -220,9 +292,14 @@ class AgentSrv6EncapTest : public AgentHwTest {
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
-      auto portStatsAfter = this->getLatestPortStats(egressPort);
-      auto bytesAfter = *portStatsAfter.outBytes_();
-      EXPECT_EVENTUALLY_GT(bytesAfter, bytesBefore);
+      bool anyPortGotBytes = false;
+      for (auto port : egressPorts) {
+        auto bytesAfter = *this->getLatestPortStats(port).outBytes_();
+        if (bytesAfter > bytesBefore[port]) {
+          anyPortGotBytes = true;
+        }
+      }
+      EXPECT_EVENTUALLY_TRUE(anyPortGotBytes);
       if (!frameRx.has_value()) {
         frameRx = snooper.waitForPacket(1);
       }
@@ -271,29 +348,31 @@ class AgentSrv6EncapTest : public AgentHwTest {
   }
 
   void verifyEncapPacketCpuAndFrontPanel(
-      PortID egressPort,
+      const std::vector<PortID>& egressPorts,
       const std::vector<folly::IPAddressV6>& expectedSids = {kSid0}) {
-    auto injectPort = findInjectPort(egressPort);
+    auto injectPort = findInjectPort(egressPorts);
     for (bool isV4 : {false, true}) {
       // ECN not marked
-      verifyEncapPacket(egressPort, false, isV4, expectedSids);
-      verifyEncapPacket(egressPort, false, isV4, expectedSids, injectPort);
+      verifyEncapPacket(egressPorts, false, isV4, expectedSids);
+      verifyEncapPacket(egressPorts, false, isV4, expectedSids, injectPort);
       // ECN marked
-      verifyEncapPacket(egressPort, true, isV4, expectedSids);
-      verifyEncapPacket(egressPort, true, isV4, expectedSids, injectPort);
+      verifyEncapPacket(egressPorts, true, isV4, expectedSids);
+      verifyEncapPacket(egressPorts, true, isV4, expectedSids, injectPort);
     }
   }
 
-  PortID findInjectPort(PortID egressPort) {
+  PortID findInjectPort(const std::vector<PortID>& egressPorts) {
     for (const auto& portMap :
          std::as_const(*this->getProgrammedState()->getPorts())) {
       for (const auto& [_, port] : std::as_const(*portMap.second)) {
-        if (port->getID() != egressPort && port->isPortUp()) {
+        if (port->isPortUp() &&
+            std::find(egressPorts.begin(), egressPorts.end(), port->getID()) ==
+                egressPorts.end()) {
           return port->getID();
         }
       }
     }
-    throw FbossError("No UP port found besides egress port");
+    throw FbossError("No UP port found besides egress ports");
   }
 
  private:
@@ -314,7 +393,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRoute) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacketCpuAndFrontPanel(egressPort);
+    this->verifyEncapPacketCpuAndFrontPanel({egressPort});
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -354,7 +433,7 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacketCpuAndFrontPanel(egressPort);
+    this->verifyEncapPacketCpuAndFrontPanel({egressPort});
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
@@ -369,7 +448,7 @@ TYPED_TEST(AgentSrv6EncapTest, resolveNeighborsAfterRouteProgram) {
   auto verify = [this]() {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
-    this->verifyEncapPacketCpuAndFrontPanel(egressPort);
+    this->verifyEncapPacketCpuAndFrontPanel({egressPort});
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }
