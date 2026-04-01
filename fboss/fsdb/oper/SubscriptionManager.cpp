@@ -57,6 +57,13 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     info.lastHeartbeatSentAt() = subscription->getLastHeartbeatSentAt();
     info.lastEnqueuedUpdatePublishedAt() =
         subscription->getLastEnqueuedUpdatePublishedAt();
+    auto streamInfo = subscription->getSharedStreamInfo();
+    if (streamInfo) {
+      info.lastUpdateWrittenAt() =
+          streamInfo->lastUpdateWrittenAt.load(std::memory_order_relaxed);
+      info.numUpdatesServed() =
+          streamInfo->numUpdatesServed.load(std::memory_order_relaxed);
+    }
     toRet.push_back(std::move(info));
   }
   for (auto& [id, subscription] : store->extendedSubscriptions()) {
@@ -83,6 +90,13 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     info.lastHeartbeatSentAt() = subscription->getLastHeartbeatSentAt();
     info.lastEnqueuedUpdatePublishedAt() =
         subscription->getLastEnqueuedUpdatePublishedAt();
+    auto extStreamInfo = subscription->getSharedStreamInfo();
+    if (extStreamInfo) {
+      info.lastUpdateWrittenAt() =
+          extStreamInfo->lastUpdateWrittenAt.load(std::memory_order_relaxed);
+      info.numUpdatesServed() =
+          extStreamInfo->numUpdatesServed.load(std::memory_order_relaxed);
+    }
     toRet.push_back(std::move(info));
   }
   return toRet;
