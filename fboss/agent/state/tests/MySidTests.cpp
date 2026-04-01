@@ -213,53 +213,42 @@ TEST(MySidDeltaTest, ChangeEntry) {
   EXPECT_EQ(changed, (std::set<std::string>{"fc00:100::1/48"}));
 }
 
-TEST(MySidTest, ResolvedNextHop) {
+TEST(MySidTest, ResolvedNextHopsId) {
   auto mySid = makeMySid();
-  EXPECT_EQ(mySid->getResolvedNextHop(), nullptr);
+  EXPECT_EQ(mySid->getResolvedNextHopsId(), std::nullopt);
 
-  RouteNextHopEntry nhop(
-      RouteNextHopEntry::Action::DROP, AdminDistance::STATIC_ROUTE);
-  mySid->setResolvedNextHop(std::optional<RouteNextHopEntry>(nhop.toThrift()));
-  auto* got = mySid->getResolvedNextHop();
-  ASSERT_NE(got, nullptr);
-  EXPECT_EQ(got->getAction(), RouteNextHopEntry::Action::DROP);
+  mySid->setResolvedNextHopsId(std::optional<NextHopSetID>(NextHopSetID(42)));
+  auto got = mySid->getResolvedNextHopsId();
+  ASSERT_TRUE(got.has_value());
+  EXPECT_EQ(*got, NextHopSetID(42));
 }
 
-TEST(MySidTest, UnresolvedNextHop) {
+TEST(MySidTest, UnresolveNextHopsId) {
   auto mySid = makeMySid();
-  EXPECT_EQ(mySid->getUnresolvedNextHop(), nullptr);
+  EXPECT_EQ(mySid->getUnresolveNextHopsId(), std::nullopt);
 
-  RouteNextHopEntry nhop(
-      RouteNextHopEntry::Action::TO_CPU, AdminDistance::STATIC_ROUTE);
-  mySid->setUnresolvedNextHop(
-      std::optional<RouteNextHopEntry>(nhop.toThrift()));
-  auto* got = mySid->getUnresolvedNextHop();
-  ASSERT_NE(got, nullptr);
-  EXPECT_EQ(got->getAction(), RouteNextHopEntry::Action::TO_CPU);
+  mySid->setUnresolveNextHopsId(std::optional<NextHopSetID>(NextHopSetID(99)));
+  auto got = mySid->getUnresolveNextHopsId();
+  ASSERT_TRUE(got.has_value());
+  EXPECT_EQ(*got, NextHopSetID(99));
 }
 
-TEST(MySidTest, SerDeserWithNextHops) {
+TEST(MySidTest, SerDeserWithNextHopIds) {
   auto mySid = makeMySid();
-  RouteNextHopEntry resolved(
-      RouteNextHopEntry::Action::DROP, AdminDistance::STATIC_ROUTE);
-  RouteNextHopEntry unresolved(
-      RouteNextHopEntry::Action::TO_CPU, AdminDistance::STATIC_ROUTE);
-  mySid->setResolvedNextHop(
-      std::optional<RouteNextHopEntry>(resolved.toThrift()));
-  mySid->setUnresolvedNextHop(
-      std::optional<RouteNextHopEntry>(unresolved.toThrift()));
+  mySid->setResolvedNextHopsId(std::optional<NextHopSetID>(NextHopSetID(42)));
+  mySid->setUnresolveNextHopsId(std::optional<NextHopSetID>(NextHopSetID(99)));
 
   auto serialized = mySid->toThrift();
   auto mySidBack = std::make_shared<MySid>(serialized);
   EXPECT_TRUE(*mySid == *mySidBack);
 
-  auto* gotResolved = mySidBack->getResolvedNextHop();
-  ASSERT_NE(gotResolved, nullptr);
-  EXPECT_EQ(gotResolved->getAction(), RouteNextHopEntry::Action::DROP);
+  auto gotResolved = mySidBack->getResolvedNextHopsId();
+  ASSERT_TRUE(gotResolved.has_value());
+  EXPECT_EQ(*gotResolved, NextHopSetID(42));
 
-  auto* gotUnresolved = mySidBack->getUnresolvedNextHop();
-  ASSERT_NE(gotUnresolved, nullptr);
-  EXPECT_EQ(gotUnresolved->getAction(), RouteNextHopEntry::Action::TO_CPU);
+  auto gotUnresolved = mySidBack->getUnresolveNextHopsId();
+  ASSERT_TRUE(gotUnresolved.has_value());
+  EXPECT_EQ(*gotUnresolved, NextHopSetID(99));
 }
 
 TEST(MySidDeltaTest, MixedAddRemoveChange) {

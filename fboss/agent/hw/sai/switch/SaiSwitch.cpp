@@ -1635,7 +1635,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiSrv6MySidManager::changeMySidEntry,
       &SaiSrv6MySidManager::addMySidEntry,
-      &SaiSrv6MySidManager::removeMySidEntry);
+      &SaiSrv6MySidManager::removeMySidEntry,
+      delta.newState());
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_42_8)

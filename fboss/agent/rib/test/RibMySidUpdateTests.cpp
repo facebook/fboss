@@ -148,8 +148,8 @@ std::shared_ptr<MySid> makeMySid(
   thriftPrefix.prefixLength() = prefix.second;
   fields.mySid() = thriftPrefix;
   auto mySid = std::make_shared<MySid>(fields);
-  mySid->setUnresolvedNextHop(std::nullopt);
-  mySid->setResolvedNextHop(std::nullopt);
+  mySid->setUnresolveNextHopsId(std::nullopt);
+  mySid->setResolvedNextHopsId(std::nullopt);
   return mySid;
 }
 
