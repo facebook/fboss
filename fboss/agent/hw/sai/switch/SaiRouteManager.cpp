@@ -308,7 +308,7 @@ void SaiRouteManager::addOrUpdateRoute(
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               SaiNextHopGroupKey(
-                  fwd.normalizedNextHops(),
+                  getNormalizedNextHops(state, fwd),
                   fwd.getOverrideEcmpSwitchingMode()));
       NextHopGroupSaiId nextHopGroupId{
           nextHopGroupHandle->nextHopGroup->adapterKey()};
