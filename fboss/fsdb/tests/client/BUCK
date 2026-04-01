@@ -18,8 +18,10 @@ cpp_library(
         "//fboss/fsdb/if:fsdb_model",
         "//fboss/lib:common_utils",
         "//folly:synchronized",
+        "//folly:utility",
         "//folly/container:f14_hash",
         "//folly/logging:logging",
+        "//thrift/lib/cpp2/op:get",
         "//thrift/lib/cpp2/protocol:protocol",
     ],
 )

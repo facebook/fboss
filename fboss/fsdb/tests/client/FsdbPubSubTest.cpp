@@ -1302,4 +1302,46 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberQueueWatermark) {
   resumeDataCb.post();
 }
 
+TYPED_TEST(FsdbPubSubTest, publisherStreamMetadata) {
+  auto beforeConnect = std::time(nullptr);
+  // Set up publisher only - skip checkPublishing to avoid timeout
+  this->setupConnection(*this->publisher_);
+
+  // Publish data
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(1));
+  } else {
+    this->publishAgentConfig(makeAgentConfig({{"foo", "bar"}}));
+  }
+
+  // Brief wait for the update to be processed by the sink consumer
+  // @lint-ignore CLANGTIDY
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  // Verify publisher stream state via getActivePublishers
+  auto publisherId = this->publisher_->clientId();
+  auto activePublishers =
+      this->fsdbTestServer_->serviceHandler().getActivePublishers();
+  bool found = false;
+  for (const auto& [key, entry] : activePublishers) {
+    if (*entry.info.publisherId() == publisherId) {
+      found = true;
+      ASSERT_TRUE(entry.streamState);
+      auto state = entry.streamState->rlock();
+      // connectedAt should be set to a reasonable value
+      EXPECT_GE(state->connectedAt, beforeConnect);
+      EXPECT_LE(state->connectedAt, std::time(nullptr));
+      // Update timestamps should be set after publishing
+      EXPECT_GT(state->lastUpdateReceivedAt, 0);
+      EXPECT_GT(state->lastUpdatePublishedAt, 0);
+      EXPECT_GT(state->initialSyncCompletedAt, 0);
+      // At least 1 update received
+      EXPECT_GE(state->numUpdatesReceived, 1);
+      EXPECT_GE(state->receivedDataSize, 0);
+      break;
+    }
+  }
+  ASSERT_TRUE(found);
+}
+
 } // namespace facebook::fboss::fsdb::test

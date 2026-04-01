@@ -20,6 +20,15 @@ struct OperPublisherInfo {
   3: fsdb_oper.OperPath path;
   4: bool isStats;
   5: bool isExpectedPath;
+  // Timestamps
+  6: optional i64 connectedAt; // epoch seconds, when publisher connected
+  7: optional i64 initialSyncCompletedAt; // epoch ms, when first update was fully processed
+  8: optional i64 lastUpdateReceivedAt; // epoch ms, when last data update was received
+  9: optional i64 lastHeartbeatReceivedAt; // epoch ms, when last heartbeat was received
+  10: optional i64 lastUpdatePublishedAt; // epoch ms, when last update was applied to storage
+  // Counts
+  11: optional i64 numUpdatesReceived; // cumulative count of data updates received
+  12: optional i64 receivedDataSize; // cumulative bytes received from this publisher
 }
 
 // could probably reuse types between get/subscribe here, but easier
@@ -49,6 +58,14 @@ struct OperSubscriberInfo {
   10: optional i32 subscriptionChunksCoalesced;
   11: optional i64 enqueuedDataSize;
   12: optional i64 servedDataSize;
+  // Timestamps
+  13: optional i64 initialSyncCompletedAt; // epoch ms, when first chunk was served
+  14: optional i64 lastUpdateEnqueuedAt; // epoch ms, when last update was enqueued to pipe
+  15: optional i64 lastUpdateWrittenAt; // epoch ms, when last update was yielded to stream
+  16: optional i64 lastHeartbeatSentAt; // epoch ms, when last heartbeat was sent
+  17: optional i64 lastEnqueuedUpdatePublishedAt; // epoch ms, publisher timestamp of last enqueued update
+  // Counts
+  18: optional i64 numUpdatesServed; // cumulative count of updates served
 }
 
 @cpp.Type{template = "folly::F14FastMap"}
