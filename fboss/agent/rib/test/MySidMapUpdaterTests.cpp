@@ -53,39 +53,14 @@ std::shared_ptr<MySid> makeMySid(
   auto mySid = std::make_shared<MySid>(fields);
 
   if (type == MySidType::NODE_MICRO_SID) {
-    // Unresolved next hop: UnresolvedNextHops with resolvedNextHopSetID
-    state::RouteNextHopEntry unresolvedThrift;
-    unresolvedThrift.action() = RouteForwardAction::NEXTHOPS;
-    unresolvedThrift.adminDistance() = AdminDistance::STATIC_ROUTE;
-    unresolvedThrift.nexthops() = util::fromRouteNextHopSet(
-        {UnresolvedNextHop(folly::IPAddress("2001:db8::1"), ECMP_WEIGHT),
-         UnresolvedNextHop(folly::IPAddress("2001:db8::2"), ECMP_WEIGHT)});
-    std::optional<NextHopSetID> unresolvedSetID(NextHopSetID(100));
-    unresolvedThrift.resolvedNextHopSetID() =
-        static_cast<int64_t>(*unresolvedSetID);
-    mySid->setUnresolvedNextHop(
-        std::optional<RouteNextHopEntry>(std::move(unresolvedThrift)));
-
-    // Resolved next hop: ResolvedNextHops with resolvedNextHopSetID and
-    // normalizedResolvedNextHopSetID
-    state::RouteNextHopEntry resolvedThrift;
-    resolvedThrift.action() = RouteForwardAction::NEXTHOPS;
-    resolvedThrift.adminDistance() = AdminDistance::STATIC_ROUTE;
-    resolvedThrift.nexthops() = util::fromRouteNextHopSet(
-        {ResolvedNextHop(folly::IPAddress("fe80::1"), InterfaceID(1), 1),
-         ResolvedNextHop(folly::IPAddress("fe80::2"), InterfaceID(2), 1)});
-    std::optional<NextHopSetID> resolvedSetID(NextHopSetID(200));
-    std::optional<NextHopSetID> normalizedSetID(NextHopSetID(300));
-    resolvedThrift.resolvedNextHopSetID() =
-        static_cast<int64_t>(*resolvedSetID);
-    resolvedThrift.normalizedResolvedNextHopSetID() =
-        static_cast<int64_t>(*normalizedSetID);
-    mySid->setResolvedNextHop(
-        std::optional<RouteNextHopEntry>(std::move(resolvedThrift)));
+    mySid->setUnresolveNextHopsId(
+        std::optional<NextHopSetID>(NextHopSetID(100)));
+    mySid->setResolvedNextHopsId(
+        std::optional<NextHopSetID>(NextHopSetID(200)));
   } else {
     // DECAPSULATE_AND_LOOKUP: no next hops
-    mySid->setUnresolvedNextHop(std::nullopt);
-    mySid->setResolvedNextHop(std::nullopt);
+    mySid->setUnresolveNextHopsId(std::nullopt);
+    mySid->setResolvedNextHopsId(std::nullopt);
   }
 
   return mySid;

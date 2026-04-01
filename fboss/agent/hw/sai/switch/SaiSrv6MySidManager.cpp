@@ -4,6 +4,7 @@
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
@@ -11,6 +12,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/SwitchState.h"
 #endif
 
 namespace facebook::fboss {
@@ -159,7 +161,9 @@ SaiSrv6MySidManager::getMySidObject(
   return saiStore_->get<SaiMySidEntryTraits>().get(key);
 }
 
-void SaiSrv6MySidManager::addMySidEntry(const std::shared_ptr<MySid>& mySid) {
+void SaiSrv6MySidManager::addMySidEntry(
+    const std::shared_ptr<MySid>& mySid,
+    const std::shared_ptr<SwitchState>& state) {
   auto adapterHostKey = getMySidAdapterHostKey(*mySid, managerTable_);
   if (handles_.find(adapterHostKey) != handles_.end()) {
     throw FbossError("MySid entry already exists for ", mySid->getID());
@@ -171,19 +175,19 @@ void SaiSrv6MySidManager::addMySidEntry(const std::shared_ptr<MySid>& mySid) {
     return;
   }
 
-  auto* resolvedNextHop = mySid->getResolvedNextHop();
   std::optional<SaiMySidEntryHandle::NextHopHandle> nexthopHandle;
 
-  if (resolvedNextHop) {
-    const auto& nexthops = resolvedNextHop->getNextHopSet();
-    if (nexthops.size() > 1) {
+  auto resolvedNextHopsId = mySid->getResolvedNextHopsId();
+  if (resolvedNextHopsId) {
+    auto nhops = getNextHops(state, static_cast<int64_t>(*resolvedNextHopsId));
+    if (nhops.size() > 1) {
+      RouteNextHopSet nhopSet(nhops.begin(), nhops.end());
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
-              SaiNextHopGroupKey(
-                  resolvedNextHop->normalizedNextHops(), std::nullopt));
+              SaiNextHopGroupKey(nhopSet, std::nullopt));
       nexthopHandle = nextHopGroupHandle;
-    } else if (nexthops.size() == 1) {
-      auto resolvedNh = folly::poly_cast<ResolvedNextHop>(*nexthops.begin());
+    } else if (nhops.size() == 1) {
+      auto resolvedNh = folly::poly_cast<ResolvedNextHop>(nhops.front());
       auto managedSaiNextHop =
           managerTable_->nextHopManager().addManagedSaiNextHop(resolvedNh);
       auto* ipNextHop =
@@ -213,7 +217,8 @@ void SaiSrv6MySidManager::addMySidEntry(const std::shared_ptr<MySid>& mySid) {
 }
 
 void SaiSrv6MySidManager::removeMySidEntry(
-    const std::shared_ptr<MySid>& mySid) {
+    const std::shared_ptr<MySid>& mySid,
+    const std::shared_ptr<SwitchState>& /*state*/) {
   if (!mySid->resolved()) {
     return;
   }
@@ -227,9 +232,10 @@ void SaiSrv6MySidManager::removeMySidEntry(
 
 void SaiSrv6MySidManager::changeMySidEntry(
     const std::shared_ptr<MySid>& oldMySid,
-    const std::shared_ptr<MySid>& newMySid) {
-  removeMySidEntry(oldMySid);
-  addMySidEntry(newMySid);
+    const std::shared_ptr<MySid>& newMySid,
+    const std::shared_ptr<SwitchState>& state) {
+  removeMySidEntry(oldMySid, state);
+  addMySidEntry(newMySid, state);
 }
 
 #endif
