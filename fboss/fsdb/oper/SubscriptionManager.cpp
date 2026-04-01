@@ -52,6 +52,11 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     info.subscriptionChunksCoalesced() = subscription->getChunksCoalesced();
     info.enqueuedDataSize() = subscription->getEnqueuedDataSize();
     info.servedDataSize() = subscription->getServedDataSize();
+    info.initialSyncCompletedAt() = subscription->getInitialSyncCompletedAt();
+    info.lastUpdateEnqueuedAt() = subscription->getLastUpdateEnqueuedAt();
+    info.lastHeartbeatSentAt() = subscription->getLastHeartbeatSentAt();
+    info.lastEnqueuedUpdatePublishedAt() =
+        subscription->getLastEnqueuedUpdatePublishedAt();
     toRet.push_back(std::move(info));
   }
   for (auto& [id, subscription] : store->extendedSubscriptions()) {
@@ -73,6 +78,11 @@ std::vector<OperSubscriberInfo> SubscriptionManagerBase::getSubscriptions()
     info.subscriptionChunksCoalesced() = subscription->getChunksCoalesced();
     info.enqueuedDataSize() = subscription->getEnqueuedDataSize();
     info.servedDataSize() = subscription->getServedDataSize();
+    info.initialSyncCompletedAt() = subscription->getInitialSyncCompletedAt();
+    info.lastUpdateEnqueuedAt() = subscription->getLastUpdateEnqueuedAt();
+    info.lastHeartbeatSentAt() = subscription->getLastHeartbeatSentAt();
+    info.lastEnqueuedUpdatePublishedAt() =
+        subscription->getLastEnqueuedUpdatePublishedAt();
     toRet.push_back(std::move(info));
   }
   return toRet;

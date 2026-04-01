@@ -28,6 +28,12 @@ namespace facebook::fboss::fsdb {
 inline constexpr auto kNumSubscriptionServesCoalesced =
     "num_subscription_serves_coalesced";
 
+inline int64_t getCurrentTimeMs() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
+}
+
 class BaseSubscription {
  public:
   virtual PubSubType type() const = 0;
@@ -139,11 +145,32 @@ class BaseSubscription {
     return streamInfo_->servedDataSize.load();
   }
 
+  int64_t getInitialSyncCompletedAt() const {
+    return initialSyncCompletedAt_.load(std::memory_order_relaxed);
+  }
+
+  int64_t getLastUpdateEnqueuedAt() const {
+    return lastUpdateEnqueuedAt_.load(std::memory_order_relaxed);
+  }
+
+  int64_t getLastHeartbeatSentAt() const {
+    return lastHeartbeatSentAt_.load(std::memory_order_relaxed);
+  }
+
+  int64_t getLastEnqueuedUpdatePublishedAt() const {
+    return lastEnqueuedUpdatePublishedAt_.load(std::memory_order_relaxed);
+  }
+
   std::shared_ptr<SubscriptionStreamInfo> getSharedStreamInfo() {
     return streamInfo_;
   }
 
   void stop();
+
+  void recordInitialSyncCompleted() {
+    initialSyncCompletedAt_.store(
+        getCurrentTimeMs(), std::memory_order_relaxed);
+  }
 
  protected:
   BaseSubscription(
@@ -188,6 +215,13 @@ class BaseSubscription {
       }
     } else {
       streamInfo_->enqueuedDataSize.fetch_add(updateSize);
+      lastUpdateEnqueuedAt_.store(
+          getCurrentTimeMs(), std::memory_order_relaxed);
+      if (lastServedMetadata_.has_value() &&
+          lastServedMetadata_->lastPublishedAt().has_value()) {
+        lastEnqueuedUpdatePublishedAt_.store(
+            *lastServedMetadata_->lastPublishedAt(), std::memory_order_relaxed);
+      }
     }
     return ret;
   }
@@ -220,6 +254,13 @@ class BaseSubscription {
     // NOLINTNEXTLINE(bugprone-use-after-move)
     if (pipe.try_write(std::move(val.value()))) {
       val.reset();
+      lastUpdateEnqueuedAt_.store(
+          getCurrentTimeMs(), std::memory_order_relaxed);
+      if (lastServedMetadata_.has_value() &&
+          lastServedMetadata_->lastPublishedAt().has_value()) {
+        lastEnqueuedUpdatePublishedAt_.store(
+            *lastServedMetadata_->lastPublishedAt(), std::memory_order_relaxed);
+      }
     } else {
       XLOG(DBG0) << "Subscription " << subscriberId()
                  << " pipe closed, skip write";
@@ -242,6 +283,10 @@ class BaseSubscription {
   std::optional<FsdbErrorCode> pruneReason_{std::nullopt};
   std::optional<OperMetadata> lastServedMetadata_;
   std::shared_ptr<SubscriptionStreamInfo> streamInfo_;
+  std::atomic<int64_t> initialSyncCompletedAt_{0};
+  std::atomic<int64_t> lastUpdateEnqueuedAt_{0};
+  std::atomic<int64_t> lastHeartbeatSentAt_{0};
+  std::atomic<int64_t> lastEnqueuedUpdatePublishedAt_{0};
   bool isCurrentlyCoalescing_{false};
   fb303::ThreadCachedServiceData::TLTimeseries
       numSubscriptionServesCoalescedCounter_;
@@ -263,6 +308,7 @@ class Subscription : public BaseSubscription {
 
   void firstChunkSent() {
     needsFirstChunk_ = false;
+    recordInitialSyncCompleted();
   }
 
  protected:
