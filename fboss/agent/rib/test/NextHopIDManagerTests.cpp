@@ -1669,4 +1669,24 @@ TEST_F(NextHopIDManagerTest, assertNextHopIdMapsSameCheck) {
   EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId1), expectedSet1);
 }
 
+// Verify that lookupRouteNextHopSetID returns nullopt when any nexthop in the
+// set has not been allocated, rather than crashing.
+TEST_F(NextHopIDManagerTest, lookupRouteNextHopSetIDReturnsNulloptIfMissing) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nhUnknown =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.99", UCMP_DEFAULT_WEIGHT);
+
+  // Allocate nh1 and nh2, but not nhUnknown.
+  manager_->getOrAllocRouteNextHopSetID({nh1, nh2});
+
+  // Looking up a set containing an unallocated nexthop returns nullopt.
+  EXPECT_FALSE(manager_->lookupRouteNextHopSetID({nh1, nhUnknown}).has_value());
+
+  // Looking up the fully allocated set succeeds.
+  EXPECT_TRUE(manager_->lookupRouteNextHopSetID({nh1, nh2}).has_value());
+}
+
 } // namespace facebook::fboss
