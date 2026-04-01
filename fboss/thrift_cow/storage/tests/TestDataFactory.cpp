@@ -99,14 +99,14 @@ TestStruct TestDataFactory::buildTestData(
 }
 
 TaggedOperState FsdbStateDataFactory::getStateUpdate(
-    int /* unused */,
+    int version,
     bool /* unused */) {
   TaggedOperState state;
   OperState chunk;
   std::vector<std::string> basePath;
   chunk.protocol() = protocol_;
 
-  auto fsdbRoot = buildFsdbOperStateRoot();
+  auto fsdbRoot = buildFsdbOperStateRoot(version);
 
   chunk.contents() = facebook::fboss::thrift_cow::serialize<
       apache::thrift::type_class::structure>(protocol_, fsdbRoot);
@@ -116,11 +116,12 @@ TaggedOperState FsdbStateDataFactory::getStateUpdate(
   return state;
 }
 
-fsdb::FsdbOperStateRoot FsdbStateDataFactory::buildFsdbOperStateRoot() {
+fsdb::FsdbOperStateRoot FsdbStateDataFactory::buildFsdbOperStateRoot(
+    int version) {
   fsdb::FsdbOperStateRoot root;
 
   fsdb::AgentData agentData;
-  agentData.switchState() = buildSwitchState();
+  agentData.switchState() = buildSwitchState(version);
 
   root.agent() = std::move(agentData);
   root.bgp() = fsdb::BgpData{};
@@ -129,7 +130,7 @@ fsdb::FsdbOperStateRoot FsdbStateDataFactory::buildFsdbOperStateRoot() {
   return root;
 }
 
-SwitchState FsdbStateDataFactory::buildSwitchState() {
+SwitchState FsdbStateDataFactory::buildSwitchState(int version) {
   SwitchState switchState;
   SwitchStateScale scale = getRoleScale(selector_);
 
@@ -153,7 +154,7 @@ SwitchState FsdbStateDataFactory::buildSwitchState() {
   // fibsMap and remote port/interface maps use internal scales,
   // so check the filtered scale before calling them.
   if (scale.fibV4Size > 0 || scale.fibV6Size > 0) {
-    auto fibsData = buildFibData();
+    auto fibsData = buildFibData(version);
     std::string switchIdList = "Id:0";
     std::map<int16_t, FibContainerFields> FibsMap;
     FibsMap[0] = std::move(fibsData);
@@ -186,7 +187,7 @@ SwitchState FsdbStateDataFactory::buildSwitchState() {
   return switchState;
 }
 
-FibContainerFields FsdbStateDataFactory::buildFibData(void) {
+FibContainerFields FsdbStateDataFactory::buildFibData(int version) {
   FibContainerFields fibContainer;
   SwitchStateScale scale = getRoleScale(selector_);
 
@@ -198,10 +199,11 @@ FibContainerFields FsdbStateDataFactory::buildFibData(void) {
     if (i == 0) {
       prefix = "0.0.0.0/0";
     } else {
-      // Generate /24 routes in 10.0.0.0/8 space
-      int octet2 = (i / 256) % 256;
-      int octet3 = i % 256;
-      prefix = fmt::format("10.{}.{}.0/24", octet2, octet3);
+      // Generate /28 routes in 10.0.0.0/8 space
+      int octet4 = ((i % 32) << 3) + ((version % 4) << 1) + 1;
+      int octet3 = (i >> 5) % 256;
+      int octet2 = (i >> 13) % 256;
+      prefix = fmt::format("10.{}.{}.{}/28", octet2, octet3, octet4);
     }
 
     auto nexthops = createNextHops(scale.v4Nexthops, false);

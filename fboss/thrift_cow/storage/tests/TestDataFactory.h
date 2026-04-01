@@ -154,9 +154,9 @@ class FsdbStateDataFactory : public IDataGenerator {
   TaggedOperState getStateUpdate(int version, bool minimal) override;
 
  protected:
-  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot();
-  SwitchState buildSwitchState();
-  FibContainerFields buildFibData();
+  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot(int version);
+  SwitchState buildSwitchState(int version);
+  FibContainerFields buildFibData(int version);
   SwitchStateScale getRoleScale(RoleSelector role);
 
   RouteFields createRouteFields(
