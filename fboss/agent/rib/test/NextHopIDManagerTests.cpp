@@ -920,9 +920,9 @@ TEST_F(NextHopIDManagerTest, updateRouteNextHopSetID) {
       manager_->updateRouteNextHopSetID(nonExistentID, nhSet8), FbossError);
 }
 
-// This tests the single-phase reconstructFromFib which builds ID maps
-// and refcounts in a single pass through FIB routes
-TEST_F(NextHopIDManagerTest, reconstructFromFib) {
+// This tests the single-phase reconstructFromSwitchStateMaps which builds ID
+// maps and refcounts in a single pass through FIB routes
+TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMaps) {
   // Create IdToNextHopMap
   auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
   NextHop nh1 =
@@ -979,8 +979,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromFib) {
   auto multiSwitchFibInfoMap =
       createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
 
-  // Call reconstructFromFib (the full workflow)
-  manager_->reconstructFromFib(multiSwitchFibInfoMap);
+  // Call reconstructFromSwitchStateMaps with no MySid map (FIB-only case)
+  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
 
   // Verify maps are populated
   EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
@@ -1027,7 +1027,7 @@ TEST_F(NextHopIDManagerTest, reconstructFromFib) {
 //   nh2: 5 (from setId1 x2 on switch0 + setId2 x1 on switch0 + setId2 x2 on
 //   switch1) nh3: 4 (from setId2 x1 on switch0 + setId2 x2 on switch1 + setId3
 //   x1 on switch1) nh4: 1 (from setId3 x1 on switch1)
-TEST_F(NextHopIDManagerTest, reconstructFromFibMultiSwitch) {
+TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch) {
   NextHop nh1 =
       makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
   NextHop nh2 =
@@ -1126,7 +1126,7 @@ TEST_F(NextHopIDManagerTest, reconstructFromFibMultiSwitch) {
 
   EXPECT_EQ(multiSwitchFibInfoMap->size(), 2);
 
-  manager_->reconstructFromFib(multiSwitchFibInfoMap);
+  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
 
   // Verify all 4 NextHops are in idToNextHop map
   EXPECT_EQ(manager_->getIdToNextHop().size(), 4);

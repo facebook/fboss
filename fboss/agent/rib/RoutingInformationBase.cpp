@@ -446,13 +446,12 @@ void RibRouteTables::updateFib(
             std::move(labelFib), &routeTable.labelToRoute);
       }
 
-      // Reconstruct NextHopIDManager from the applied state's FIB
-      // This consolidates ID maps from all switches and recalculates ref counts
+      // Reconstruct NextHopIDManager from the applied state's FIB and MySid
+      // table
       if (nextHopIDManager_) {
-        auto fibsInfoMap = hwUpdateError.appliedState->getFibsInfoMap();
-        if (fibsInfoMap && !fibsInfoMap->empty()) {
-          nextHopIDManager_->reconstructFromFib(fibsInfoMap);
-        }
+        nextHopIDManager_->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids());
       }
 
       // Reconstruct MySidTable from the applied state
@@ -958,10 +957,11 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
   rib->ribTables_ = RibRouteTables::fromThrift(
       ribThrift, fibsInfoMap, labelFib, mySidMap, rib->nextHopIDManager_.get());
 
-  // Reconstruct NextHopIDManager state from FIB during warm boot
-  // This consolidates ID maps from all switches and reconstructs ref counts
-  if (rib->nextHopIDManager_ && fibsInfoMap && !fibsInfoMap->empty()) {
-    rib->nextHopIDManager_->reconstructFromFib(fibsInfoMap);
+  // Reconstruct NextHopIDManager state from FIB and MySid table during warm
+  // boot
+  if (rib->nextHopIDManager_) {
+    rib->nextHopIDManager_->reconstructFromSwitchStateMaps(
+        fibsInfoMap, mySidMap);
   }
 
   return rib;

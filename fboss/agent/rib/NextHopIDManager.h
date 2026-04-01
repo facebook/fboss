@@ -9,6 +9,7 @@
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -239,8 +240,9 @@ class NextHopIDManager {
    * switches. NextHopID manager is common across all switches, but the NextHop
    * ID maps in the switch state are specific to each switch.
    */
-  void reconstructFromFib(
-      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap);
+  void reconstructFromSwitchStateMaps(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
 
  private:
   static constexpr int64_t kNextHopIDStart = 1;
@@ -301,8 +303,8 @@ class NextHopIDManager {
       getOrAllocRouteNextHopSetIDSubSetSuperSetNextHops);
   FRIEND_TEST(NextHopIDManagerTest, delOrDecrRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
-  FRIEND_TEST(NextHopIDManagerTest, reconstructFromFib);
-  FRIEND_TEST(NextHopIDManagerTest, reconstructFromFibMultiSwitch);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
   FRIEND_TEST(NextHopIDManagerTest, allocateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, updateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, deallocateNamedNextHopGroup);
