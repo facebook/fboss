@@ -3054,7 +3054,7 @@ TEST_F(ThriftTest, deleteMySidEntries) {
   EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsNonDecapsulateType) {
+TEST_F(ThriftTest, addMySidEntryRejectsNodeTypeWithoutNextHops) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
@@ -3063,7 +3063,16 @@ TEST_F(ThriftTest, addMySidEntryRejectsNonDecapsulateType) {
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsEntryWithNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyTypeWithoutNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(
+      makeMySidEntry("2001:db8::1", 64, MySidType::ADJACENCY_MICRO_SID));
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsDecapsulateTypeWithNextHops) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
