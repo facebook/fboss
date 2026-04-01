@@ -438,6 +438,32 @@ TYPED_TEST(AgentSrv6EncapTest, sendPacketToEncapRouteAfterLinkFlap) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentSrv6EncapTest, recursiveResolutionPreservesSidList) {
+  auto setup = [this]() {
+    // Skip programming direct encap routes to avoid colliding
+    // SRv6 managed next hop keys with recursive resolution.
+    this->setupHelper(true /*resolveNeighbors*/, false /*programEncapRoutes*/);
+    this->addRecursiveSrv6Routes(this->kEncapRoutePrefix);
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    // Recursive resolution expands to kNumNextHops next hops —
+    // the packet may egress on any of these ports.
+    std::vector<PortID> egressPorts;
+    egressPorts.reserve(this->kNumNextHops);
+    for (int i = 0; i < this->kNumNextHops; ++i) {
+      egressPorts.push_back(this->getEgressPort(ecmpHelper.nhop(i).portDesc));
+    }
+    this->verifyEncapPacket(
+        egressPorts,
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid0, this->kSid1});
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 TYPED_TEST(AgentSrv6EncapTest, resolveNeighborsAfterRouteProgram) {
   auto setup = [this]() {
     this->setupHelper(false /*resolveNeighbors*/);
