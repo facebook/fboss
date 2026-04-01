@@ -7,6 +7,7 @@ load("@fbcode_macros//build_defs:ligen_library.bzl", "ligen_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude
 cpp_binary(
     name = "stress_test_client",
     srcs = ["stress_test_client.cpp"],
@@ -52,6 +53,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "fsdb_sub_manager_test",
     srcs = [
@@ -72,6 +74,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "test_cgo_client_lib",
     srcs = ["test_cgo_client.cpp"],
@@ -112,6 +115,7 @@ go_package(
 )
 
 # C++ library for the subscriber CGO wrapper
+# bazelify: exclude
 cpp_library(
     name = "cgo_subscriber_lib",
     srcs = ["cgo_subscriber.cpp"],

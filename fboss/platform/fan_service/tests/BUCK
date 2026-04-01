@@ -6,12 +6,12 @@ cpp_unittest(
     name = "fan_service_sw_test",
     srcs = [
         "BspTests.cpp",
-        "ConfigValidatorTest.cpp",
+        "ConfigValidatorTest.cpp",  # bazelify: exclude
         "ControlLogicTests.cpp",
-        "FsdbSensorSubscriberTests.cpp",
+        "FsdbSensorSubscriberTests.cpp",  # bazelify: exclude
         "OvertempTests.cpp",
-        "PidLogicTests.cpp",
-        "SensorDataTests.cpp",
+        "PidLogicTests.cpp",  # bazelify: exclude
+        "SensorDataTests.cpp",  # bazelify: exclude
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",

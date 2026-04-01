@@ -2,6 +2,9 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_optics_phy")
 
+
+# bazelify: exclude-all
+
 cpp_unittest(
     name = "parser_test",
     srcs = [

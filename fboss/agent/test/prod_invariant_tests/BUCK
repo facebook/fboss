@@ -6,6 +6,7 @@ load("//fboss/agent/hw/sai/switch:switch.bzl", "sai_switch_dependent_name")
 oncall("fboss_agent_push")
 
 [
+# bazelify: exclude
     cpp_binary(
         name = "bcm_invariant_agent_test{}".format(to_impl_suffix(sdk)),
         srcs = [

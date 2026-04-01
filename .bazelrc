@@ -1,0 +1,162 @@
+# FBOSS Bazel configuration
+# C++20 standard
+build --cxxopt=-std=c++20
+build --host_cxxopt=-std=c++20
+
+# Optimization: cmake uses -Os (optimize for size), override Bazel's default -O2.
+# Also enable sized deallocation (cmake uses this globally).
+build --cxxopt=-Os
+build --conlyopt=-Os
+build --cxxopt=-fsized-deallocation
+
+# Global defines matching the cmake build (see compile_commands.json).
+# These are applied to every compilation unit by cmake.
+build --cxxopt=-DBOOST_ATOMIC_NO_LIB
+build --cxxopt=-DBOOST_CONTEXT_NO_LIB
+build --cxxopt=-DBOOST_FILESYSTEM_NO_LIB
+build --cxxopt=-DBOOST_PROGRAM_OPTIONS_NO_LIB
+build --cxxopt=-DBOOST_REGEX_NO_LIB
+build --cxxopt=-DGFLAGS_IS_A_DLL=0
+build --cxxopt=-DGLOG_USE_GLOG_EXPORT
+build --cxxopt=-DIS_OSS_BRCM_SAI=true
+build --cxxopt=-DSAI_VERSION_13_3_0_0_ODP
+build --cxxopt=-DSAI_VER_MAJOR=1
+build --cxxopt=-DSAI_VER_MINOR=16
+build --cxxopt=-DSAI_VER_RELEASE=1
+
+# Warning flags matching cmake's clang build
+build --cxxopt=-Wall
+build --cxxopt=-Wno-sign-compare
+build --cxxopt=-Wunused-variable
+build --cxxopt=-Wno-deprecated-declarations
+build --cxxopt=-Wno-deprecated-literal-operator
+build --cxxopt=-Wno-unused-lambda-capture
+build --cxxopt=-Wno-vla-cxx-extension
+build --cxxopt=-Wno-unused-const-variable
+build --cxxopt=-Wno-unused-private-field
+build --cxxopt=-Wno-character-conversion
+build --cxxopt=-Wno-missing-template-arg-list-after-template-kw
+build --cxxopt=-Wno-tautological-constant-out-of-range-compare
+build --cxxopt=-Wno-inconsistent-missing-override
+build --cxxopt=-Wno-invalid-constexpr
+build --cxxopt=-Wno-unneeded-internal-declaration
+build --cxxopt=-Wno-nullability-completeness
+build --cxxopt=-Wunused-exception-parameter
+
+# Suppress Bazel's -U_FORTIFY_SOURCE warning (injected by the toolchain)
+build --cxxopt=-Wno-unused-command-line-argument
+build --conlyopt=-Wno-unused-command-line-argument
+
+# Additional clang flags needed for third-party deps (from run-getdeps.py)
+build --cxxopt=-Wno-deprecated-ofast
+build --cxxopt=-Wno-reserved-identifier
+build --cxxopt=-Wno-unsafe-buffer-usage
+build --cxxopt=-Wno-logical-op-parentheses
+build --cxxopt=-Wno-undef
+build --cxxopt=-DFMT_USE_CONSTEVAL=0
+
+# Disable sandboxing and strict header checking for now - FBOSS has undeclared header deps
+# TODO: properly declare all headers and re-enable these checks
+build --spawn_strategy=local
+build --features=-layering_check
+build --strict_system_includes=false
+
+# Add repo root as system include path (FBOSS uses #include <fboss/...> with angle brackets)
+build --cxxopt=-isystem.
+build --conlyopt=-isystem.
+# Add gendir as system include path (for angle-bracket includes of thrift-generated files)
+build --cxxopt=-isystembazel-out/k8-opt/bin
+build --conlyopt=-isystembazel-out/k8-opt/bin
+
+# OSS build flag (enables OSS code paths in #ifndef IS_OSS blocks)
+build --cxxopt=-DIS_OSS=true
+build --conlyopt=-DIS_OSS=true
+
+# System include paths for libraries installed in non-standard locations
+build --cxxopt=-isystem/usr/include/libnl3
+build --conlyopt=-isystem/usr/include/libnl3
+
+# CFLAGS
+build --conlyopt=-DHAVE_SETNS=1
+
+# Static linking for FBOSS code (matches cmake).  All deps including glog
+# and gflags are linked statically (BUILD_SHARED_LIBS=OFF).
+build --dynamic_mode=off
+
+# Linker flags
+build --linkopt=-fuse-ld=lld
+build --host_linkopt=-fuse-ld=lld
+build --linkopt=-Wl,-rpath,/usr/local/llvm/lib/x86_64-unknown-linux-gnu
+build --linkopt=-Wl,--allow-shlib-undefined
+# Note: third-party archives (folly, fbthrift, etc.) contain ~230MB of debug
+# sections because folly's cmake unconditionally adds -g via
+# apply_folly_compile_options_to_target. This is the same for both cmake and
+# Bazel builds (they share the same prebuilt .a files). Do NOT add -Wl,-S
+# here — it would make the Bazel build diverge from cmake.
+
+# Limit concurrent link jobs by declaring memory requirements on link actions.
+# Each FBOSS link needs ~11GB. Bazel uses this together with --local_resources
+# (set per-machine in .bazelrc.sccache, or the default below) to schedule
+# only as many concurrent links as RAM allows — analogous to heavy_genrule's
+# resource_set mechanism.
+build --modify_execution_info=CppLink=+resources:memory:11000
+# Conservative default (2 concurrent links on 24GB). Overridden per-machine
+# in .bazelrc.sccache by bazel-sccache-setup.sh with the actual machine RAM.
+build --local_resources=memory=24000
+
+# Use clang. cmake uses /usr/bin/c++ (which resolves to the same clang-21
+# via update-alternatives), but Bazel's toolchain auto-detection needs the
+# explicit LLVM path to correctly locate the resource directory for stddef.h.
+build --repo_env=CC=/usr/local/llvm/bin/clang
+build --repo_env=CXX=/usr/local/llvm/bin/clang++
+
+# Library path for LLVM runtime
+build --action_env=LD_LIBRARY_PATH=/usr/local/llvm/lib/x86_64-unknown-linux-gnu
+
+# Build with optimization by default.
+build --compilation_mode=opt
+# Bazel's auto-detected clang toolchain injects -g0 in opt mode (no debug
+# info), which matches cmake's MinSizeRel behavior. Do not add -g or -g1
+# here as that would override -g0 and inflate binary size.
+# -fomit-frame-pointer matches MinSizeRel behavior.
+build --copt=-fomit-frame-pointer
+# Disable Bazel's default -ffunction-sections/-fdata-sections (injected by the
+# opt toolchain) and the corresponding --gc-sections linker flag.  cmake doesn't
+# use these, and with sub-archives the linker already links only the objects it
+# needs.  Keeping these flags would make binaries smaller than cmake, which makes
+# size comparison harder and could mask issues.
+build --copt=-fno-function-sections
+build --copt=-fno-data-sections
+
+# Show test output on failure
+test --test_output=errors
+
+# Use bzlmod for dependency management (Bazel 9 default)
+
+# Import config fragments assembled from .bazel.d/*.bazelrc by bazel.sh.
+# bazelify.py writes folly F14 flags here; bazel-sccache-setup.sh writes
+# sccache compiler overrides here.  Add your own fragment under .bazel.d/
+# to customize the build.
+try-import %workspace%/.bazelrc.d
+# Legacy fallbacks for setups that still write to these locations:
+try-import %workspace%/.bazelrc.sccache
+build --host_cxxopt=-Wno-deprecated-literal-operator
+build --host_cxxopt=-Wno-unused-lambda-capture
+build --host_cxxopt=-Wno-vla-cxx-extension
+build --host_cxxopt=-Wno-unused-const-variable
+build --host_cxxopt=-Wno-unused-private-field
+build --host_cxxopt=-Wno-character-conversion
+build --host_cxxopt=-Wno-missing-template-arg-list-after-template-kw
+build --host_cxxopt=-Wno-tautological-constant-out-of-range-compare
+build --host_cxxopt=-Wno-inconsistent-missing-override
+build --host_cxxopt=-Wno-invalid-constexpr
+build --host_cxxopt=-Wno-unneeded-internal-declaration
+build --host_cxxopt=-Wno-nullability-completeness
+build --host_cxxopt=-Wunused-exception-parameter
+build --host_cxxopt=-Wno-unused-command-line-argument
+build --host_cxxopt=-Wno-deprecated-ofast
+build --host_cxxopt=-Wno-reserved-identifier
+build --host_cxxopt=-Wno-unsafe-buffer-usage
+build --host_cxxopt=-Wno-logical-op-parentheses
+build --host_cxxopt=-Wno-deprecated-declarations
+build --host_cxxopt=-Wno-undef

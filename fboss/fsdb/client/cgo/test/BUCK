@@ -2,6 +2,8 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude
+# Hangs in Bazel — the test starts an internal FSDB server that blocks.
 cpp_unittest(
     name = "fsdb_cgo_wrapper_test",
     srcs = [

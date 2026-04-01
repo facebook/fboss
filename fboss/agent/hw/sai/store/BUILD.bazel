@@ -1,0 +1,17 @@
+# Hand-written BUILD file for SAI store library.
+# Derived from cmake/AgentHwSaiStore.cmake
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "sai_store",
+    srcs = glob(["*.cpp"]),
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//fboss/agent/hw/sai/api:sai_api",
+        "//fboss/lib:ref_map",
+        "//fboss/lib:tuple_utils",
+        "@folly//:folly",
+    ],
+    visibility = ["//visibility:public"],
+)

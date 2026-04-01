@@ -4,9 +4,12 @@ load("//fboss/qsfp_service/platforms/wedge:platform.bzl", "all_platform_libs")
 
 oncall("fboss_optics_phy")
 
+# bazelify: include wedge_platform_impl.bzl:wedge_platform_impl
+
 # TODO(ccpowers): using this as a placeholder for now. Eventually all dependents
 # of :wedge-platform-default should link against a particular SAI SDK or link
 # without SAI
+# bazelify: exclude
 cpp_library(
     name = "wedge-platform-default",
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,

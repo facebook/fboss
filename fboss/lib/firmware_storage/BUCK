@@ -27,6 +27,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "firmware_storage_util",
     srcs = [

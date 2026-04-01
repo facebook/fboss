@@ -1,0 +1,10 @@
+# Hand-written BUILD file for common/network/if thrift
+# This is an FBOSS internal dependency that doesn't have a BUCK file
+
+load("//fboss/build_defs:thrift_library.bzl", "fboss_thrift_library")
+
+fboss_thrift_library(
+    name = "if",
+    thrift_srcs = ["Address.thrift"],
+    visibility = ["//visibility:public"],
+)

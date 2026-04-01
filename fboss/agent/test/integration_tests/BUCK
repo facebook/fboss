@@ -8,6 +8,8 @@ load(
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude-all
+
 cpp_library(
     name = "agent_integration_test",
     srcs = [

@@ -159,6 +159,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "test_client",
     srcs = ["test_client.cpp"],

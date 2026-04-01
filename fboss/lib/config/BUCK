@@ -22,6 +22,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "fboss_config_utils_tests",
     srcs = [

@@ -1,0 +1,11 @@
+# Hand-written BUILD file for common/stats
+# Header-only wrappers around fb303 stats
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "stats",
+    hdrs = glob(["*.h"]),
+    deps = ["@fb303//:fb303"],
+    visibility = ["//visibility:public"],
+)

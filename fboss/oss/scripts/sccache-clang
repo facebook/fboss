@@ -1,0 +1,3 @@
+#!/bin/bash
+echo 1000 >/proc/self/oom_score_adj 2>/dev/null
+exec sccache /usr/local/llvm/bin/clang "$@"

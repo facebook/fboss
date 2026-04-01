@@ -6,6 +6,7 @@ load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude
 cpp_library(
     name = "fboss_test_main",
     srcs = [
@@ -18,6 +19,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "ctrl_test",
     srcs = [
@@ -194,6 +196,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "srv6_tunnel_config_test",
     srcs = [
@@ -217,6 +220,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "lacp_test",
     srcs = [
@@ -300,6 +304,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_benchmark(
     name = "pkt_benchmark",
     srcs = [
@@ -321,6 +326,7 @@ cpp_benchmark(
     ],
 )
 
+# bazelify: exclude
 cpp_benchmark(
     name = "nexthop_benchmark",
     srcs = [
@@ -346,6 +352,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "resourcelibutil_test",
     srcs = [
@@ -376,6 +383,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "route_distribution_gen_test",
     srcs = [
@@ -405,6 +413,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "route_gen_test_utils",
     srcs = [
@@ -421,6 +430,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "route_scale_gen_test",
     srcs = [
@@ -459,6 +469,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "config_helper",
     srcs = [
@@ -494,6 +505,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "state_delta_logger_test",
     srcs = ["StateDeltaLoggerTest.cpp"],
@@ -672,7 +684,7 @@ cpp_library(
     srcs = [
         "MultiNodeLacpTests.cpp",
         "MultiNodeLoadBalancerTests.cpp",
-        "MultiNodeOpenrTests.cpp",
+        "MultiNodeOpenrTests.cpp",  # bazelify: exclude
     ],
     link_whole = True,
     # Need symbols from bcm, sai layers.
@@ -705,6 +717,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "macsec_multinode_tests",
     srcs = [
@@ -842,6 +855,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "fsdb_helper_tests",
     srcs = [
@@ -857,6 +871,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_benchmark(
     name = "fsdb_compute_oper_delta",
     srcs = [
@@ -874,6 +889,7 @@ cpp_benchmark(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "hwswitch_matcher_tests",
     srcs = [
@@ -928,6 +944,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "mock_agent_pre_exec_drainer",
     headers = [
@@ -939,6 +956,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "agent_pre_start_exec_tests",
     srcs = [
@@ -958,6 +976,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "agent_wrapper_test",
     srcs = [
@@ -981,6 +1000,7 @@ cpp_binary(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "agent_pre_exec_drainer_tests",
     srcs = [
@@ -1047,6 +1067,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "fboss_event_base_test",
     srcs = [
@@ -1058,6 +1079,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "ecmp_resource_manager_test",
     srcs = [

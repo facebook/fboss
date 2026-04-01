@@ -274,6 +274,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/SetupThrift.cpp
 cpp_library(
     name = "setup_thrift",
     srcs = [
@@ -306,6 +307,7 @@ cpp_library(
     ],
 )
 
+# bazelify: extra_dep = //fboss/lib/if:fboss_common
 cpp_library(
     name = "fboss_init_h",
     headers = [
@@ -316,6 +318,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/FbossInit.cpp
 cpp_library(
     name = "fboss_init",
     srcs = [
@@ -345,6 +348,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/CommonInit.cpp
 cpp_library(
     name = "fboss_common_init",
     srcs = [
@@ -373,6 +377,9 @@ cpp_library(
 )
 
 # TODO: deprecate main-common as it leads to a dependency mess
+# bazelify: add_src = oss/CommonInit.cpp
+# bazelify: add_src = oss/Main.cpp
+# bazelify: extra_dep = :fboss_common_init
 cpp_library(
     name = "main-common",
     srcs = [
@@ -388,6 +395,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/Main.cpp
 cpp_library(
     name = "main-bcm",
     srcs = [
@@ -590,6 +598,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/Utils.cpp
 cpp_library(
     name = "utils",
     srcs = [
@@ -687,6 +696,8 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/AggregatePortStats.cpp
+# bazelify: add_src = oss/SwitchStats.cpp
 cpp_library(
     name = "stats",
     srcs = [
@@ -877,6 +888,8 @@ cpp_library(
     ],
 )
 
+# bazelify: extra_dep = //fboss/agent/hw:hw_cpu_fb303_stats
+# bazelify: extra_dep = @fb303//:fb303
 cpp_library(
     name = "cpu_latency_manager",
     headers = [
@@ -895,6 +908,10 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/PacketLogger.cpp
+# bazelify: add_src = oss/RouteUpdateLogger.cpp
+# bazelify: add_src = oss/SwSwitch.cpp
+# bazelify: extra_dep = :cpu_latency_manager
 cpp_library(
     name = "core",
     srcs = [
@@ -1226,6 +1243,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/BuildInfoWrapper.cpp
 cpp_library(
     name = "build_info_wrapper",
     srcs = [
@@ -1647,6 +1665,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/Main.cpp
 cpp_library(
     name = "hwagent-main",
     srcs = [
@@ -1989,6 +2008,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "agent_pre_start_exec",
     srcs = [
@@ -2014,6 +2034,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "agent_pre_start_exec_runner",
     srcs = [
@@ -2031,6 +2052,7 @@ cpp_binary(
     ],
 )
 
+# bazelify: add_src = oss/AgentNetWhoAmI.cpp
 cpp_library(
     name = "agent_netwhoami",
     srcs = [
@@ -2065,6 +2087,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "agent_command_executor",
     srcs = [
@@ -2128,6 +2151,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "tx_packet_utils",
     srcs = [
@@ -2141,6 +2165,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "ipc_health_monitor_test",
     srcs = [

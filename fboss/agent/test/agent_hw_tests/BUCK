@@ -11,7 +11,7 @@ cpp_library(
     srcs = [
         "AgentArsBase.cpp",
         "AgentArsFlowletTest.cpp",
-        "AgentArsSprayTest.cpp",
+        "AgentArsSprayTest.cpp",  # bazelify: exclude
         "AgentEcmpSpilloverTests.cpp",
         "AgentFlowletSwitchingTests.cpp",
     ],
@@ -167,10 +167,10 @@ cpp_library(
         "AgentAclPriorityTests.cpp",
         "AgentAclTableGroupTests.cpp",
         "AgentAclTableTests.cpp",
-        "AgentAmIdlesTests.cpp",
+        "AgentAmIdlesTests.cpp",  # bazelify: exclude
         "AgentAqmTests.cpp",
-        "AgentConfigSetupTest.cpp",
-        "AgentConfigVerifyQosTests.cpp",
+        "AgentConfigSetupTest.cpp",  # bazelify: exclude
+        "AgentConfigVerifyQosTests.cpp",  # bazelify: exclude
         "AgentCoppTests.cpp",
         "AgentDeepPacketInspectionTests.cpp",
         "AgentDiagShellStressTests.cpp",
@@ -179,7 +179,7 @@ cpp_library(
         "AgentEcmpTests.cpp",
         "AgentEgressForwardingDiscardCounterTests.cpp",
         "AgentEmptyTests.cpp",
-        "AgentHighFrequencyStatsTests.cpp",
+        "AgentHighFrequencyStatsTests.cpp",  # bazelify: exclude
         "AgentHwAclMatchActionsTest.cpp",
         "AgentHwAclQualifierTest.cpp",
         "AgentHwAclStatTests.cpp",
@@ -191,27 +191,27 @@ cpp_library(
         "AgentInNullRouteDiscardsTest.cpp",
         "AgentInTrapDiscardsTest.cpp",
         "AgentIngressBufferTests.cpp",
-        "AgentInterPacketGapTests.cpp",
+        "AgentInterPacketGapTests.cpp",  # bazelify: exclude
         "AgentIpInIpTunnelTests.cpp",
         "AgentJumboFramesTests.cpp",
         "AgentL3ForwardingTests.cpp",
         "AgentL4PortBlackholingTests.cpp",
-        "AgentLoadBalancerTests.cpp",
+        "AgentLoadBalancerTests.cpp",  # bazelify: exclude
         "AgentLoopBackTests.cpp",
         "AgentMPLSTests.cpp",
         "AgentMacLearningAndNeighborResolutionTests.cpp",
         "AgentMacLearningTests.cpp",
-        "AgentMemoryUsageTests.cpp",
-        "AgentMirrorOnDropDnxTests.cpp",
-        "AgentMirrorOnDropTestBase.cpp",
-        "AgentMirrorOnDropXgsTests.cpp",
+        "AgentMemoryUsageTests.cpp",  # bazelify: exclude
+        "AgentMirrorOnDropDnxTests.cpp",  # bazelify: exclude
+        "AgentMirrorOnDropTestBase.cpp",  # bazelify: exclude
+        "AgentMirrorOnDropXgsTests.cpp",  # bazelify: exclude
         "AgentMirroringTests.cpp",
         "AgentMmuTuningTests.cpp",
         "AgentNeighborTests.cpp",
         "AgentOverflowTestBase.cpp",
         "AgentPacketSendTests.cpp",
         "AgentPacketStreamHandlerTests.cpp",
-        "AgentPfcTests.cpp",
+        "AgentPfcTests.cpp",  # bazelify: exclude
         "AgentPortBandWidthTests.cpp",
         "AgentPortLedTests.cpp",
         "AgentPrbsTests.cpp",
@@ -232,8 +232,8 @@ cpp_library(
         "AgentSrv6EncapTests.cpp",
         "AgentSrv6MidpointTest.cpp",
         "AgentSrv6ResourceUsageTests.cpp",
-        "AgentStateReconstructionTests.cpp",
-        "AgentSwitchStateReplayTest.cpp",
+        "AgentStateReconstructionTests.cpp",  # bazelify: exclude
+        "AgentSwitchStateReplayTest.cpp",  # bazelify: exclude
         "AgentSwitchStatsTxCounterTests.cpp",
         "AgentSwitchingModeTests.cpp",
         "AgentTrafficPauseTests.cpp",
@@ -381,8 +381,8 @@ cpp_library(
         "AgentMirroringScaleTests.cpp",
         "AgentNSFScaleTests.cpp",
         "AgentRouteScaleTests.cpp",
-        "AgentVoqSwitchEcmpCompressionTests.cpp",
-        "AgentVoqSwitchScaleTests.cpp",
+        "AgentVoqSwitchEcmpCompressionTests.cpp",  # bazelify: exclude
+        "AgentVoqSwitchScaleTests.cpp",  # bazelify: exclude
     ],
     headers = [
         "AgentVoqSwitchFullScaleDsfTests.h",
@@ -453,6 +453,7 @@ cpp_binary(
 )
 
 [
+# bazelify: exclude
     cpp_binary(
         name = "bcm_agent_hw_test{}".format(to_impl_suffix(sdk)),
         srcs = [

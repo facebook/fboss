@@ -27,6 +27,7 @@ cpp_unittest(
     srcs = [
         "BidirectionalPacketStreamTest.cpp",
     ],
+    size = "large",
     deps = [
         "//fboss/agent/thrift_packet_stream:bidirectional_packet_stream",
         "//fboss/lib:common_utils",

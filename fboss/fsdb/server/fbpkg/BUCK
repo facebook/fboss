@@ -2,6 +2,9 @@ load("//fboss/build:fbpkg.bzl", "fboss_fbpkg_builder")
 
 oncall("fboss_agent_push")
 
+
+# bazelify: exclude-all
+
 fboss_fbpkg_builder(
     name = "neteng.fboss.fsdb",
     architectures = [

@@ -3,6 +3,7 @@ load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
+# bazelify: add_src = oss/QsfpClient.cpp
 cpp_library(
     name = "qsfp-service-client",
     srcs = [

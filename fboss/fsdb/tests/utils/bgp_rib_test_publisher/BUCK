@@ -3,6 +3,8 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude-all
+
 cpp_library(
     name = "bgp_rib_test_publisher_lib",
     srcs = ["BgpRibTestPublisher.cpp"],

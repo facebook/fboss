@@ -17,6 +17,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "config_validator_test",
     srcs = [

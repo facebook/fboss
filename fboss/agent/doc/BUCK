@@ -1,5 +1,8 @@
 load("//folly/docs:defs.bzl", "copy", "html")
 
+
+# bazelify: exclude-all
+
 #
 # Actual listing of source files
 #

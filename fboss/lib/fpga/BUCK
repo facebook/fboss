@@ -103,6 +103,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "minipack_base_container",
     srcs = [
@@ -130,6 +131,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "minipack_container",
     srcs = [

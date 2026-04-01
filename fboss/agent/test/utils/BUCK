@@ -666,6 +666,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "ecmp_resource_mgr_test_utils",
     srcs = [

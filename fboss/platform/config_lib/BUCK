@@ -57,6 +57,7 @@ cpp_library(
     ],
 )
 
+# bazelify: extra_dep = :config_generator_h
 cpp_library(
     name = "config_lib",
     srcs = [

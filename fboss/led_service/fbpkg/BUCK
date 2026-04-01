@@ -2,6 +2,9 @@ load("//fbpkg:fbpkg.bzl", "fbpkg")
 
 oncall("fboss_optics_phy")
 
+
+# bazelify: exclude-all
+
 fbpkg.builder(
     name = "neteng.fboss.led_service",
     expire_days = 20,

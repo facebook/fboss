@@ -5,6 +5,7 @@ load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
 
 oncall("fboss_agent_push")
 
+# bazelify: exclude
 cpp_unittest(
     name = "test-physical-memory",
     srcs = [
@@ -20,6 +21,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "test-radixtree",
     srcs = [
@@ -33,6 +35,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "time_series_with_min_max",
     srcs = [
@@ -43,6 +46,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_benchmark(
     name = "time_series_with_min_max-benchmark",
     srcs = ["TimeSeriesWithMinMaxBenchmark.cpp"],
@@ -54,6 +58,7 @@ cpp_benchmark(
     ],
 )
 
+# bazelify: exclude
 cpp_benchmark(
     name = "radixtree-benchmark",
     srcs = ["RadixTreeBenchmark.cpp"],
@@ -67,6 +72,7 @@ cpp_benchmark(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "radixtree-profile",
     srcs = ["RadixTreeProfile.cpp"],
@@ -79,6 +85,7 @@ cpp_binary(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "pci_device_tests",
     srcs = [
@@ -94,6 +101,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "ref_map_test",
     srcs = [
@@ -104,6 +112,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "unique_ref_map_test",
     srcs = [
@@ -114,6 +123,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "tuple_utils_test",
     srcs = [
@@ -124,6 +134,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "exponential_backoff_test",
     srcs = [
@@ -138,6 +149,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "thrift_method_rate_limit_test",
     srcs = [
@@ -174,6 +186,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "thread_heartbeat_test",
     srcs = [
@@ -185,6 +198,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "common_utils_tests",
     srcs = [

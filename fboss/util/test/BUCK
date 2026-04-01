@@ -3,6 +3,8 @@ load("//fboss/qsfp_service:qsfp_service.bzl", "QSFP_COMMON_COMPILER_FLAGS")
 
 oncall("fboss_optics_phy")
 
+# bazelify: exclude-all
+
 cpp_unittest(
     name = "qsfp_util_test",
     srcs = [

@@ -60,6 +60,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/Server.cpp
 cpp_library(
     name = "fsdb_server",
     srcs = [

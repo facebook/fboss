@@ -2,6 +2,7 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
 
+# bazelify: add_src = oss/Morgan800ccPlatformMapping.cpp
 cpp_library(
     name = "morgan800cc_platform_mapping",
     srcs = [

@@ -39,6 +39,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "extpath_visitor_tests",
     srcs = [
@@ -95,6 +96,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "patch_visitor_tests",
     srcs = [

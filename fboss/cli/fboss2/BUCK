@@ -7,6 +7,8 @@ load("//fastcli:defs.bzl", "auto_tab_complete")
 
 oncall("fboss_agent_push")
 
+# bazelify: include fboss2_config_impl.bzl:fboss2_config_impl
+
 thrift_library(
     name = "cli",
     languages = [
@@ -99,6 +101,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = utils/oss/CmdInitUtils.cpp
 cpp_library(
     name = "cmd-init-utils",
     srcs = [
@@ -359,6 +362,11 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/CmdGlobalOptions.cpp
+# bazelify: add_src = oss/CmdList.cpp
+# bazelify: add_src = oss/CmdListImpl.cpp
+# bazelify: add_src = utils/oss/CmdClientUtils.cpp
+# bazelify: add_src = utils/oss/CmdUtils.cpp
 cpp_library(
     name = "fboss2-lib",
     srcs = [
@@ -560,11 +568,11 @@ cpp_library(
         "facebook/CmdStreamHandler.cpp",
         "utils/CmdClientUtils.cpp",
         "utils/CmdUtils.cpp",
-        "utils/NetwhoamiUtils.cpp",
+        "utils/NetwhoamiUtils.cpp",  # bazelify: exclude
         "utils/PortMap.cpp",
         "utils/PrbsUtils.cpp",
-        "utils/TeFlowUtils.cpp",
-        "utils/clients/BmcClient.cpp",
+        "utils/TeFlowUtils.cpp",  # bazelify: exclude
+        "utils/clients/BmcClient.cpp",  # bazelify: exclude
         "utils/facebook/CmdClientUtils.cpp",
         "utils/facebook/CmdUtils.cpp",
     ],
@@ -750,7 +758,7 @@ cpp_library(
         "commands/stream/fsdb/CmdStreamSubFsdbOperState.h",
         "commands/stream/fsdb/CmdStreamSubFsdbOperStats.h",
         "utils/CmdUtils.h",
-        "utils/clients/BmcClient.h",
+        "utils/clients/BmcClient.h",  # bazelify: exclude
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
@@ -1204,6 +1212,7 @@ export_file(
     src = "facebook/config/CmdListImpl.cpp",
 )
 
+# bazelify: extra_dep = //fboss/cli/fboss2:cmd-list-config-impl-oss
 cpp_binary(
     name = "fboss2-dev",
     srcs = [
@@ -1222,6 +1231,7 @@ cpp_binary(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "fboss2-routing-protocol",
     srcs = [

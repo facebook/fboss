@@ -8,6 +8,8 @@ oncall("fboss_optics_phy")
 # Default qsfp service binary
 # TODO(ccpowers): remove thisonce we support deploying a different qsfp service
 # for each phy SDK version
+# bazelify: extra_dep = :core-default
+# bazelify: extra_dep = //fboss/qsfp_service/platforms/wedge:wedge-platform-default
 cpp_binary(
     name = "qsfp_service",
     srcs = [
@@ -57,6 +59,10 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = QsfpServer.cpp
+# bazelify: add_src = QsfpServiceSignalHandler.cpp
+# bazelify: add_src = oss/QsfpServer.cpp
+# bazelify: extra_dep = :handler
 cpp_library(
     name = "core-default",
     exported_deps = [
@@ -83,6 +89,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/StatsPublisher.cpp
 cpp_library(
     name = "stats",
     srcs = [

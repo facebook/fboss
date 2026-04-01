@@ -3,6 +3,9 @@ load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
 
 oncall("fboss_agent_push")
 
+
+# bazelify: exclude-all
+
 cpp_library(
     name = "state_generator",
     srcs = ["StateGenerator.cpp"],

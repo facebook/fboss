@@ -1,0 +1,5 @@
+filegroup(
+    name = "link_test_configs",
+    srcs = glob(["*.materialized_JSON"]),
+    visibility = ["//visibility:public"],
+)

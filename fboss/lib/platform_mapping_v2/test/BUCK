@@ -2,6 +2,9 @@ load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
 
 oncall("fboss_optics_phy")
 
+
+# bazelify: exclude-all
+
 python_unittest(
     name = "test",
     srcs = ["test.py"],

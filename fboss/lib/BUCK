@@ -104,6 +104,9 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/LogThriftCall.cpp
+# bazelify: extra_dep = @folly//:folly
+# bazelify: extra_dep = @fbthrift//:fbthrift
 cpp_library(
     name = "thrift_call_duration_logger",
     headers = [
@@ -168,6 +171,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "common_utils",
     srcs = [
@@ -328,6 +332,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "devmap",
     srcs = [
@@ -383,6 +388,7 @@ cpp_library(
     ],
 )
 
+# bazelify: add_src = oss/ThriftServiceUtils.cpp
 cpp_library(
     name = "thrift_service_utils",
     srcs = [

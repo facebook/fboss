@@ -21,11 +21,11 @@ import tempfile
 
 
 def print_info(msg):
-    print(f"\033[93m{msg}\033[0m")
+    print(f"\033[93m{msg}\033[0m", file=sys.stderr)
 
 
 def print_error(msg):
-    print(f"\033[91m{msg}\033[0m")
+    print(f"\033[91m{msg}\033[0m", file=sys.stderr)
 
 
 # SDK Related Flags
@@ -247,14 +247,19 @@ def detect_toolchain():
     }
 
 
-def _extract_clang_cxxflags():
+def _extract_clang_cxxflags(repo_root=None):
     """Read clang-specific CXXFLAGS from CMakeLists.txt.
+
+    Args:
+        repo_root: path to the repo root containing CMakeLists.txt. Defaults
+                   to os.getcwd() if not provided (e.g., during Docker build).
 
     Returns the list of flags, or None if CMakeLists.txt is not found.
     """
     cxxflags = []
     try:
-        with open(os.path.join(os.getcwd(), "CMakeLists.txt")) as f:
+        cmake_dir = repo_root if repo_root else os.getcwd()
+        with open(os.path.join(cmake_dir, "CMakeLists.txt")) as f:
             content = f.read()
     except FileNotFoundError:
         print_info("Warning: CMakeLists.txt not found, skipping clang-specific flags")
@@ -321,7 +326,7 @@ def _patch_manifests_disable_binutils():
             print_info(f"Patching manifest {manifest} to disable binutils")
 
 
-def setup_clang_environment(toolchain_info):
+def setup_clang_environment(toolchain_info, repo_root=None):
     """
     Set up the environment for building with clang.
     This reads the clang-specific flags from CMakeLists.txt to avoid duplication.
@@ -329,6 +334,8 @@ def setup_clang_environment(toolchain_info):
 
     Args:
         toolchain_info: dict with 'target_triple' and 'install_dir' from detect_toolchain()
+        repo_root: path to the repo root containing CMakeLists.txt.
+                   Defaults to os.getcwd() if not provided.
     """
     print_info("Detected clang compiler, setting clang-specific flags")
 
@@ -343,7 +350,7 @@ def setup_clang_environment(toolchain_info):
         return
 
     # Read clang-specific CXXFLAGS from CMakeLists.txt using regex
-    cxxflags = _extract_clang_cxxflags()
+    cxxflags = _extract_clang_cxxflags(repo_root)
     if cxxflags is None:
         return
 

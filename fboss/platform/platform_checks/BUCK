@@ -33,7 +33,7 @@ cpp_library(
 cpp_library(
     name = "platform_checks",
     srcs = [
-        "checks/KernelVersionCheck.cpp",
+        "checks/KernelVersionCheck.cpp",  # bazelify: exclude
         "checks/MacAddressCheck.cpp",
         "checks/PciDeviceCheck.cpp",
         "checks/PowerResetCheck.cpp",
@@ -84,6 +84,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "power_reset_check_test",
     srcs = [
@@ -97,6 +98,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "kernel_version_check_test",
     srcs = [
@@ -108,6 +110,7 @@ cpp_unittest(
     ],
 )
 
+# bazelify: exclude
 cpp_unittest(
     name = "i801_smbus_timeout_check_test",
     srcs = [

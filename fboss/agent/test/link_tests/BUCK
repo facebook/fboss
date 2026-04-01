@@ -19,12 +19,12 @@ cpp_library(
         "LinkTest.cpp",
         "LinkTestUtils.cpp",
         "MacLearningTests.cpp",
-        "OpenBmcUpgradeTests.cpp",
+        "OpenBmcUpgradeTests.cpp",  # bazelify: exclude
         "OpticsTest.cpp",
         "PhyInfoTest.cpp",
         "PrbsTest.cpp",
         "PtpTests.cpp",
-        "QsfpServiceThriftDeadlockTest.cpp",
+        "QsfpServiceThriftDeadlockTest.cpp",  # bazelify: exclude
         "SpeedChangeTest.cpp",
         "facebook/FsdbTests.cpp",
         "facebook/MacsecFsdbTests.cpp",
@@ -295,6 +295,7 @@ cpp_library(
 )
 
 [
+# bazelify: exclude
     cpp_binary(
         name = "bcm_link_test{}".format(to_impl_suffix(sdk)),
         srcs = [
@@ -323,6 +324,7 @@ cpp_library(
 ]
 
 [
+# bazelify: exclude
     cpp_binary(
         name = "agent_ensemble_bcm_link_test{}".format(to_impl_suffix(sdk)),
         srcs = [
@@ -352,6 +354,7 @@ cpp_library(
 ]
 
 [
+# bazelify: exclude
     cpp_binary(
         name = "bcm_dependency_test{}".format(to_impl_suffix(sdk)),
         srcs = [

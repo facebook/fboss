@@ -20,6 +20,7 @@ cpp_library(
     ],
 )
 
+# bazelify: exclude
 cpp_binary(
     name = "mdio_util",
     srcs = [
@@ -40,6 +41,7 @@ cpp_binary(
     ],
 )
 
+# bazelify: exclude
 cpp_library(
     name = "facebook_fpga_mdio",
     srcs = [

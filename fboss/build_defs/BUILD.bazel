@@ -1,0 +1,10 @@
+# Hand-written package marker for fboss/build_defs/.
+#
+# Portable across both the legacy OSS Bazel 8 build (Monobuild) and the pure
+# Bazel 9 build driven by bazelify.py.  Contains no rules — Bazel-9-only
+# tooling (e.g. refresh_compile_commands) lives under //fboss/oss/refresh
+# instead so this file stays untouched by bazelify.py.
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(glob(["*.bzl"]))
