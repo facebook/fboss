@@ -172,7 +172,7 @@ SaiYangraPlatform::getSaiProfileVendorExtensionValues() const {
           "SAI_KEY_PFC_WD_FORWARD_ACTION_BEHAVIOR",
           "PFC_WD_FORWARD_ACTION_IMMEDIATE_RECOVERY"));
 
-#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0)
+#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_19)
   // Disable creation of Linux netdev interfaces for PORT and LAG type
   // host interfaces. FBOSS uses callback-based packet I/O and does not
   // need per-port netdevs. Also passes WITHOUT_SX_NETDEV=1 to the
