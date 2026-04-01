@@ -1083,6 +1083,7 @@ add_dependencies(fboss_platform_services
   fan_service_sw_test
   data_corral_service_hw_test
   fan_service_hw_test
+  fan_service_integration_test
   sensor_service_hw_test
   weutil_hw_test
   platform_hw_test
