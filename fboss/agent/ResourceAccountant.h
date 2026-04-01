@@ -14,6 +14,7 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <gtest/gtest.h>
 
@@ -34,7 +35,9 @@ class ResourceAccountant {
       std::optional<int32_t> maxArsVirtualGroupWidth);
 
  private:
-  size_t getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
+  size_t getMemberCountForEcmpGroup(
+      const RouteNextHopEntry& fwd,
+      const std::shared_ptr<SwitchState>& state) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkArsResource(bool intermediateState) const;
   bool isVirtualArsGroup(const RouteNextHopEntry::NextHopSet& nhSet) const;
@@ -42,25 +45,31 @@ class ResourceAccountant {
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool isValidRouteUpdate(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
-  bool isEcmp(const RouteNextHopEntry& fwd) const;
+  bool isEcmp(
+      const RouteNextHopEntry& fwd,
+      const std::shared_ptr<SwitchState>& state) const;
   size_t computeWeightedEcmpMemberCount(
       const RouteNextHopEntry& fwd,
-      const cfg::AsicType& asicType) const;
+      const cfg::AsicType& asicType,
+      const std::shared_ptr<SwitchState>& state) const;
 
   template <typename AddrT>
   bool checkAndUpdateGenericEcmpResource(
       const std::shared_ptr<Route<AddrT>>& route,
-      bool add);
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename AddrT>
   bool checkAndUpdateArsEcmpResource(
       const std::shared_ptr<Route<AddrT>>& route,
-      bool add);
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename AddrT>
   bool checkAndUpdateEcmpResource(
       const std::shared_ptr<Route<AddrT>>& route,
-      bool add);
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
 
   bool checkAndUpdateRouteResource(bool add);
 

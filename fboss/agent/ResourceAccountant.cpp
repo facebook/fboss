@@ -42,8 +42,10 @@ bool ResourceAccountant::isVirtualArsGroup(
       nhSet.size() >= static_cast<size_t>(minWidthForArsVirtualGroup_.value());
 }
 
-bool ResourceAccountant::isEcmp(const RouteNextHopEntry& fwd) const {
-  for (const auto& nhop : fwd.normalizedNextHops()) {
+bool ResourceAccountant::isEcmp(
+    const RouteNextHopEntry& fwd,
+    const std::shared_ptr<SwitchState>& state) const {
+  for (const auto& nhop : getNormalizedNextHops(state, fwd)) {
     if (nhop.weight() && nhop.weight() > 1) {
       return false;
     }
@@ -53,24 +55,25 @@ bool ResourceAccountant::isEcmp(const RouteNextHopEntry& fwd) const {
 
 size_t ResourceAccountant::computeWeightedEcmpMemberCount(
     const RouteNextHopEntry& fwd,
-    const cfg::AsicType& asicType) const {
+    const cfg::AsicType& asicType,
+    const std::shared_ptr<SwitchState>& state) const {
   switch (asicType) {
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
       // For TH4, UCMP members take 4x of ECMP members in the same table.
-      return 4 * fwd.normalizedNextHops().size();
+      return 4 * getNormalizedNextHops(state, fwd).size();
     case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
       // For TH5, UCMP members take 4x of ECMP members in the same table.
-      return 4 * fwd.normalizedNextHops().size();
+      return 4 * getNormalizedNextHops(state, fwd).size();
     case cfg::AsicType::ASIC_TYPE_YUBA:
     case cfg::AsicType::ASIC_TYPE_G202X:
       // Yuba asic natively supports UCMP members with no extra cost.
-      return fwd.normalizedNextHops().size();
+      return getNormalizedNextHops(state, fwd).size();
     default:
       XLOG(
           WARNING,
           "Unsupported ASIC type for Ucmp member resource computation. Assuming UCMP member usage is computed by ECMP replication");
       auto totalWeight = 0;
-      for (const auto& nhop : fwd.normalizedNextHops()) {
+      for (const auto& nhop : getNormalizedNextHops(state, fwd)) {
         totalWeight += nhop.weight() ? nhop.weight() : 1;
       }
       return totalWeight;
@@ -78,13 +81,14 @@ size_t ResourceAccountant::computeWeightedEcmpMemberCount(
 }
 
 size_t ResourceAccountant::getMemberCountForEcmpGroup(
-    const RouteNextHopEntry& fwd) const {
+    const RouteNextHopEntry& fwd,
+    const std::shared_ptr<SwitchState>& state) const {
   // Virtual ARS groups do not use ECMP member objects individually.
-  if (isVirtualArsGroup(fwd.normalizedNextHops())) {
+  if (isVirtualArsGroup(getNormalizedNextHops(state, fwd))) {
     return 0;
   }
-  if (isEcmp(fwd)) {
-    return fwd.normalizedNextHops().size();
+  if (isEcmp(fwd, state)) {
+    return getNormalizedNextHops(state, fwd).size();
   }
   if (nativeWeightedEcmp_) {
     // Different asic supports native WeightedEcmp in different ways.
@@ -97,12 +101,12 @@ size_t ResourceAccountant::getMemberCountForEcmpGroup(
             asics.begin(), asics.end(), [&asicType](const auto& idAndAsic) {
               return idAndAsic.second->getAsicType() == asicType;
             }));
-    return computeWeightedEcmpMemberCount(fwd, asicType);
+    return computeWeightedEcmpMemberCount(fwd, asicType, state);
   }
   // No native weighted ECMP support. Members are replicated to support
   // weighted ECMP.
   auto totalWeight = 0;
-  for (const auto& nhop : fwd.normalizedNextHops()) {
+  for (const auto& nhop : getNormalizedNextHops(state, fwd)) {
     totalWeight += nhop.weight() ? nhop.weight() : 1;
   }
   return totalWeight;
@@ -211,10 +215,11 @@ bool ResourceAccountant::checkArsResource(bool intermediateState) const {
 template <typename AddrT>
 bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     const std::shared_ptr<Route<AddrT>>& route,
-    bool add) {
+    bool add,
+    const std::shared_ptr<SwitchState>& state) {
   const auto& fwd = route->getForwardInfo();
 
-  const auto nhSet = fwd.normalizedNextHops();
+  const auto nhSet = getNormalizedNextHops(state, fwd);
   // Forwarding to nextHops and more than one nextHop - use ECMP
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
     if (auto it = ecmpGroupRefMap_.find(nhSet); it != ecmpGroupRefMap_.end()) {
@@ -222,7 +227,7 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
       CHECK(it->second >= 0);
       if (!add && it->second == 0) {
         ecmpGroupRefMap_.erase(it);
-        ecmpMemberUsage_ -= getMemberCountForEcmpGroup(fwd);
+        ecmpMemberUsage_ -= getMemberCountForEcmpGroup(fwd, state);
         if (isVirtualArsGroup(nhSet)) {
           virtualArsGroupCount_--;
         }
@@ -233,7 +238,7 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
     // limit
     CHECK(add);
     ecmpGroupRefMap_[nhSet] = 1;
-    ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd);
+    ecmpMemberUsage_ += getMemberCountForEcmpGroup(fwd, state);
     if (isVirtualArsGroup(nhSet)) {
       virtualArsGroupCount_++;
     }
@@ -245,10 +250,11 @@ bool ResourceAccountant::checkAndUpdateGenericEcmpResource(
 template <typename AddrT>
 bool ResourceAccountant::checkAndUpdateArsEcmpResource(
     const std::shared_ptr<Route<AddrT>>& route,
-    bool add) {
+    bool add,
+    const std::shared_ptr<SwitchState>& state) {
   if (FLAGS_dlbResourceCheckEnable && FLAGS_flowletSwitchingEnable) {
     const auto& fwd = route->getForwardInfo();
-    const auto nhSet = fwd.normalizedNextHops();
+    const auto nhSet = getNormalizedNextHops(state, fwd);
     // Forwarding to nextHops and more than one nextHop - use ECMP
     if (fwd.getAction() == RouteForwardAction::NEXTHOPS && nhSet.size() > 1) {
       // If ERM were disabled, then arsEcmpGroupRefMap_ and ecmpGroupRefMap_
@@ -286,10 +292,11 @@ bool ResourceAccountant::checkAndUpdateArsEcmpResource(
 template <typename AddrT>
 bool ResourceAccountant::checkAndUpdateEcmpResource(
     const std::shared_ptr<Route<AddrT>>& route,
-    bool add) {
+    bool add,
+    const std::shared_ptr<SwitchState>& state) {
   bool valid = true;
-  valid &= checkAndUpdateGenericEcmpResource(route, add);
-  valid &= checkAndUpdateArsEcmpResource(route, add);
+  valid &= checkAndUpdateGenericEcmpResource(route, add, state);
+  valid &= checkAndUpdateArsEcmpResource(route, add, state);
   return valid;
 }
 
@@ -332,6 +339,8 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
     return true;
   }
   bool validRouteUpdate = true;
+  auto oldState = delta.oldState();
+  auto newState = delta.newState();
 
   processFibsDeltaInHwSwitchOrder(
       delta,
@@ -341,37 +350,37 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
         }
         if (oldRoute->isResolved() && !newRoute->isResolved()) {
           validRouteUpdate &=
-              checkAndUpdateEcmpResource(oldRoute, false /* add */);
+              checkAndUpdateEcmpResource(oldRoute, false /* add */, oldState);
           validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
           return;
         }
         if (!oldRoute->isResolved() && newRoute->isResolved()) {
           validRouteUpdate &=
-              checkAndUpdateEcmpResource(newRoute, true /* add */);
+              checkAndUpdateEcmpResource(newRoute, true /* add */, newState);
           validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
           return;
         }
         // Both old and new are resolved
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
-        validRouteUpdate &= checkAndUpdateEcmpResource(newRoute, true);
-        validRouteUpdate &= checkAndUpdateEcmpResource(oldRoute, false);
+        validRouteUpdate &=
+            checkAndUpdateEcmpResource(newRoute, true, newState);
+        validRouteUpdate &=
+            checkAndUpdateEcmpResource(oldRoute, false, oldState);
       },
       [&](RouterID /*rid*/, const auto& newRoute) {
         if (newRoute->isResolved()) {
           validRouteUpdate &=
-              checkAndUpdateEcmpResource(newRoute, true /* add */);
+              checkAndUpdateEcmpResource(newRoute, true /* add */, newState);
           validRouteUpdate &= checkAndUpdateRouteResource(true /* add */);
         }
       },
       [&](RouterID /*rid*/, const auto& delRoute) {
         if (delRoute->isResolved()) {
           validRouteUpdate &=
-              checkAndUpdateEcmpResource(delRoute, false /* add */);
+              checkAndUpdateEcmpResource(delRoute, false /* add */, oldState);
           validRouteUpdate &= checkAndUpdateRouteResource(false /* add */);
         }
-      }
-
-  );
+      });
 
   // Ensure new state usage does not exceed ecmp_resource_percentage
   validRouteUpdate &= checkEcmpResource(false /* intermediateState */);
@@ -430,12 +439,14 @@ bool ResourceAccountant::isValidRouteUpdate(const StateDelta& delta) {
 template bool
 ResourceAccountant::checkAndUpdateEcmpResource<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& route,
-    bool add);
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
 
 template bool
 ResourceAccountant::checkAndUpdateEcmpResource<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& route,
-    bool add);
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
 
 // calculate new update for l2 entries from the delta
 // check l2Entries_ in the switchState
