@@ -12,6 +12,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/ValidateStateUpdate.h"
@@ -5512,7 +5513,7 @@ cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
     const RouteNextHopEntry& fwd) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return managerTable_->nextHopGroupManager().getNextHopGroupSwitchingMode(
-      fwd.normalizedNextHops());
+      getNormalizedNextHops(getProgrammedState(), fwd));
 }
 
 HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {
