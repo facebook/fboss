@@ -178,12 +178,6 @@ Path buildPathUnion(facebook::fboss::fsdb::OperPublisherInfo info) {
   return pathUnion;
 }
 
-int64_t getCurrentTimeMs() {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::system_clock::now().time_since_epoch())
-      .count();
-}
-
 void updateMetadata(facebook::fboss::fsdb::OperMetadata& metadata) {
   // Timestamp at server if chunk was not timestamped
   // by publisher
@@ -1765,6 +1759,19 @@ void mergeOperSubscriberInfo(
           }
           if (subInfo.servedDataSize().has_value()) {
             sub.servedDataSize() = *subInfo.servedDataSize();
+          }
+          if (subInfo.initialSyncCompletedAt().has_value()) {
+            sub.initialSyncCompletedAt() = *subInfo.initialSyncCompletedAt();
+          }
+          if (subInfo.lastUpdateEnqueuedAt().has_value()) {
+            sub.lastUpdateEnqueuedAt() = *subInfo.lastUpdateEnqueuedAt();
+          }
+          if (subInfo.lastHeartbeatSentAt().has_value()) {
+            sub.lastHeartbeatSentAt() = *subInfo.lastHeartbeatSentAt();
+          }
+          if (subInfo.lastEnqueuedUpdatePublishedAt().has_value()) {
+            sub.lastEnqueuedUpdatePublishedAt() =
+                *subInfo.lastEnqueuedUpdatePublishedAt();
           }
         }
       }

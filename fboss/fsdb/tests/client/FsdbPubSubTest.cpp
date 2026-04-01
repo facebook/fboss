@@ -9,6 +9,7 @@
 #include "fboss/lib/CommonUtils.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 
+#include <folly/ScopeGuard.h>
 #include <folly/coro/BlockingWait.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <folly/logging/LogLevel.h>
@@ -1300,6 +1301,71 @@ TYPED_TEST(FsdbSlowDeltaSubscriberTest, slowSubscriberQueueWatermark) {
   });
   // resume subscriber data callback after all updates are published
   resumeDataCb.post();
+}
+
+TYPED_TEST(FsdbPubSubTest, subscriberStreamMetadata) {
+  // Enable heartbeats with short interval for this test.
+  auto origServeHeartbeats = FLAGS_serveHeartbeats;
+  auto origStateHeartbeat = FLAGS_stateSubscriptionHeartbeat_s;
+  auto origStatsHeartbeat = FLAGS_statsSubscriptionHeartbeat_s;
+  FLAGS_serveHeartbeats = true;
+  FLAGS_stateSubscriptionHeartbeat_s = 1;
+  FLAGS_statsSubscriptionHeartbeat_s = 1;
+  SCOPE_EXIT {
+    FLAGS_serveHeartbeats = origServeHeartbeats;
+    FLAGS_stateSubscriptionHeartbeat_s = origStateHeartbeat;
+    FLAGS_statsSubscriptionHeartbeat_s = origStatsHeartbeat;
+  };
+
+  // Recreate server with heartbeats enabled (flag is read at construction).
+  this->publisher_.reset();
+  this->subscriber_.reset();
+  this->fsdbTestServer_.reset();
+  auto config = this->getFsdbConfig();
+  this->fsdbTestServer_ = std::make_unique<FsdbTestServer>(
+      std::move(config),
+      0,
+      kStateServeIntervalMs,
+      kStatsServeIntervalMs,
+      kSubscriptionServeQueueSize);
+  this->subscriber_ = this->createSubscriber(kSubscriberId);
+  this->publisher_ = this->createPublisher(kPublisherId);
+
+  // Set up publisher and subscriber separately, skip checkPublishing
+  this->setupConnection(*this->publisher_);
+  this->setupConnection(*this->subscriber_);
+
+  // Publish data
+  if (this->pubSubStats()) {
+    this->publishPortStats(makePortStats(1));
+  } else {
+    this->publishAgentConfig(makeAgentConfig({{"foo", "bar"}}));
+  }
+
+  // Wait for data to be processed and served to subscriber, then verify
+  auto subscriberId = this->subscriber_->clientId();
+  WITH_RETRIES_N(30, {
+    auto subInfos = folly::coro::blockingWait(
+        this->fsdbTestServer_->getClient()->co_getAllOperSubscriberInfos());
+    auto sitr = subInfos.find(subscriberId);
+    ASSERT_EVENTUALLY_NE(sitr, subInfos.end());
+    ASSERT_EVENTUALLY_GE(sitr->second.size(), 1);
+    auto& info = sitr->second[0];
+
+    // initialSyncCompletedAt is set on simple subscriptions (Delta, Path).
+    // For Patch (ExtendedSubscription), initial sync happens on
+    // fully-resolved child subscriptions, not the parent.
+    ASSERT_EVENTUALLY_TRUE(info.initialSyncCompletedAt().has_value());
+    EXPECT_EVENTUALLY_GT(*info.initialSyncCompletedAt(), 0);
+
+    // lastUpdateEnqueuedAt should be set after data was enqueued
+    ASSERT_EVENTUALLY_TRUE(info.lastUpdateEnqueuedAt().has_value());
+    EXPECT_EVENTUALLY_GT(*info.lastUpdateEnqueuedAt(), 0);
+
+    // lastHeartbeatSentAt may or may not be set depending on heartbeat config
+    ASSERT_EVENTUALLY_TRUE(info.lastHeartbeatSentAt().has_value());
+    EXPECT_EVENTUALLY_GT(*info.lastHeartbeatSentAt(), 0);
+  });
 }
 
 TYPED_TEST(FsdbPubSubTest, publisherStreamMetadata) {
