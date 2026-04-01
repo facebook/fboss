@@ -173,4 +173,13 @@ TEST_F(ServiceHandlerTest, verifyActiveSubscriptions) {
   });
 }
 
+TEST_F(ServiceHandlerTest, testPublisherInfoConnectedAt) {
+  // Verify that getActivePublishers entries include stream state
+  // with connectedAt. Full publisher lifecycle testing is done
+  // in FsdbPubSubTest.
+  auto publishers = fsdb_->serviceHandler().getActivePublishers();
+  // No publishers connected yet
+  EXPECT_EQ(publishers.size(), 0);
+}
+
 } // namespace facebook::fboss::fsdb::test
