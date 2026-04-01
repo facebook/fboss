@@ -131,12 +131,20 @@ class Timer {
 };
 
 std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
-  if (*entry.type() != MySidType::DECAPSULATE_AND_LOOKUP) {
-    throw FbossError(
-        "Only DECAPSULATE_AND_LOOKUP MySid type is currently supported");
-  }
-  if (!entry.nextHops()->empty()) {
-    throw FbossError("NextHops are not supported for MySid entries");
+  auto type = *entry.type();
+  if (type == MySidType::ADJACENCY_MICRO_SID ||
+      type == MySidType::NODE_MICRO_SID) {
+    if (entry.nextHops()->empty()) {
+      throw FbossError(
+          "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
+    }
+  } else if (type == MySidType::DECAPSULATE_AND_LOOKUP) {
+    if (!entry.nextHops()->empty()) {
+      throw FbossError(
+          "NextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+    }
+  } else {
+    throw FbossError("Unsupported MySid type: ", static_cast<int>(type));
   }
   state::MySidFields fields;
   fields.type() = *entry.type();
