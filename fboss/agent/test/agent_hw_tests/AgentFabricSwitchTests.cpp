@@ -404,32 +404,30 @@ TEST_F(AgentFabricSwitchTest, reachDiscard) {
 
 TEST_F(AgentFabricSwitchTest, dtlQueueWatermarks) {
   auto verify = [this]() {
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
     std::string out;
-    for (auto switchId : getFabricSwitchIdsWithPorts()) {
-      utility::checkFabricPortsActiveState(
-          getAgentEnsemble(),
-          masterLogicalFabricPortIds(),
-          true /*expectActive*/);
-      WITH_RETRIES({
-        auto beforeWatermarks = getAllSwitchWatermarkStats()[switchId];
-        ASSERT_EVENTUALLY_TRUE(
-            beforeWatermarks.dtlQueueWatermarkBytes().has_value());
-        EXPECT_EVENTUALLY_EQ(*beforeWatermarks.dtlQueueWatermarkBytes(), 0);
-      });
-      WITH_RETRIES({
-        getAgentEnsemble()->runDiagCommand(
-            "modify RTP_RMHMT 5 1 LINK_BIT_MAP=1\ntx 1000 DeSTination=13 DeSTinationModid=5 flags=0x8000\n",
-            out,
-            switchId);
-        auto afterWatermarks = getAllSwitchWatermarkStats()[switchId];
-        ASSERT_EVENTUALLY_TRUE(
-            afterWatermarks.dtlQueueWatermarkBytes().has_value());
-        EXPECT_EVENTUALLY_GT(*afterWatermarks.dtlQueueWatermarkBytes(), 0);
-        XLOG(INFO) << "SwitchId: " << switchId
-                   << " After DTL queue watermarks: "
-                   << *afterWatermarks.dtlQueueWatermarkBytes();
-      });
-    }
+    utility::checkFabricPortsActiveState(
+        getAgentEnsemble(), fabricPortIdsForTesting(), true /*expectActive*/);
+    WITH_RETRIES({
+      auto beforeWatermarks = getAllSwitchWatermarkStats()[switchIndex];
+      ASSERT_EVENTUALLY_TRUE(
+          beforeWatermarks.dtlQueueWatermarkBytes().has_value());
+      EXPECT_EVENTUALLY_EQ(*beforeWatermarks.dtlQueueWatermarkBytes(), 0);
+    });
+    WITH_RETRIES({
+      getAgentEnsemble()->runDiagCommand(
+          "modify RTP_RMHMT 5 1 LINK_BIT_MAP=1\ntx 1000 DeSTination=13 DeSTinationModid=5 flags=0x8000\n",
+          out,
+          switchId);
+      auto afterWatermarks = getAllSwitchWatermarkStats()[switchIndex];
+      ASSERT_EVENTUALLY_TRUE(
+          afterWatermarks.dtlQueueWatermarkBytes().has_value());
+      EXPECT_EVENTUALLY_GT(*afterWatermarks.dtlQueueWatermarkBytes(), 0);
+      XLOG(INFO) << "SwitchId: " << switchId << " After DTL queue watermarks: "
+                 << *afterWatermarks.dtlQueueWatermarkBytes();
+    });
   };
 
   verifyAcrossWarmBoots([]() {}, verify);
