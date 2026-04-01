@@ -1688,8 +1688,9 @@ class BenchmarkTestRunner:
             r"^([A-Za-z0-9_]+)\s+(\d+\.?\d*[a-z]?s)\s+(\d+\.?\d*[a-z]?)$"
         )
 
-        # Look for JSON output with cpu_time_usec and max_rss (multiline pattern)
-        json_pattern = r'\{[^}]*"cpu_time_usec":\s*(\d+)[^}]*"max_rss":\s*(\d+)[^}]*\}'
+        # Look for cpu_time_usec and max_rss in JSON output (separate patterns so order doesn't matter)
+        cpu_time_pattern = r'"cpu_time_usec":\s*(\d+)'
+        max_rss_pattern = r'"max_rss":\s*(\d+)'
 
         found_benchmark_line = False
         found_json = False
@@ -1702,11 +1703,12 @@ class BenchmarkTestRunner:
             result["iters_per_sec"] = match.group(3)
             found_benchmark_line = True
 
-        # Parse JSON output (can be multiline)
-        match = re.search(json_pattern, stdout, re.DOTALL)
-        if match:
-            result["cpu_time_usec"] = match.group(1)
-            result["max_rss"] = match.group(2)
+        # Parse JSON output for cpu_time_usec and max_rss independently
+        cpu_match = re.search(cpu_time_pattern, stdout)
+        rss_match = re.search(max_rss_pattern, stdout)
+        if cpu_match and rss_match:
+            result["cpu_time_usec"] = cpu_match.group(1)
+            result["max_rss"] = rss_match.group(1)
             found_json = True
 
         # Only mark as OK if we found both the benchmark line and JSON
