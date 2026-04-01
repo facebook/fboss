@@ -450,11 +450,21 @@ sai_status_t __wrap_sai_api_query(
   return rv;
 }
 
-bool should_log(sai_object_type_t object_type) {
+bool shouldLogObjectKey(sai_object_type_t object_type) {
+  /*
+   * Currently we only log oid based object keys.
+   * TODO: Start logging non oid based keys as well
+   * they are part of the sai_object_key object
+   * https://github.com/opencomputeproject/SAI/blob/master/inc/saiobject.h#L68
+   */
   return object_type != SAI_OBJECT_TYPE_INSEG_ENTRY &&
       object_type != SAI_OBJECT_TYPE_FDB_ENTRY &&
       object_type != SAI_OBJECT_TYPE_NEIGHBOR_ENTRY &&
-      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY;
+      object_type != SAI_OBJECT_TYPE_ROUTE_ENTRY
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+      && object_type != SAI_OBJECT_TYPE_MY_SID_ENTRY
+#endif
+      ;
 }
 
 sai_status_t __wrap_sai_get_object_key(
@@ -466,7 +476,7 @@ sai_status_t __wrap_sai_get_object_key(
       switch_id, object_type, object_count, object_list);
 
   if (!FLAGS_enable_replayer || *object_count == 0 ||
-      !should_log(object_type)) {
+      !shouldLogObjectKey(object_type)) {
     return rv;
   }
 
