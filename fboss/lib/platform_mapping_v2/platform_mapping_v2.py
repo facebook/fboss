@@ -74,6 +74,7 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "tahansb800bc": [
         "tahansb800bc_rack",
         "tahansb800bc_test_fixture",
+        "tahansb800bc_link_training",
     ],
     "montblanc": [
         "montblanc_odd_ports_8x100G",
