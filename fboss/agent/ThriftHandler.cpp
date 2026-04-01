@@ -2023,7 +2023,7 @@ void ThriftHandler::getRouteTableDetails(std::vector<RouteDetails>& routes) {
       state, [&routes, &state](const RouterID& /*rid*/, const auto& route) {
         routes.emplace_back(route->toRouteDetails(
             getNonOverrideNormalizedNextHops(state, route->getForwardInfo()),
-            true));
+            getNormalizedNextHops(state, route->getForwardInfo())));
       });
 }
 
@@ -2108,14 +2108,14 @@ void ThriftHandler::getIpRouteDetails(
     if (match && match->isResolved()) {
       route = match->toRouteDetails(
           getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          true);
+          getNormalizedNextHops(state, match->getForwardInfo()));
     }
   } else {
     auto match = sw_->longestMatch(state, ipAddr.asV6(), RouterID(vrfId));
     if (match && match->isResolved()) {
       route = match->toRouteDetails(
           getNonOverrideNormalizedNextHops(state, match->getForwardInfo()),
-          true);
+          getNormalizedNextHops(state, match->getForwardInfo()));
     }
   }
 }

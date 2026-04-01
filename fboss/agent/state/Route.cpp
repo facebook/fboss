@@ -37,7 +37,7 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails(
     const RouteNextHopSet& nhopSet,
-    bool normalizedNhopWeights) const {
+    const std::optional<RouteNextHopSet>& normalizedNhopSet) const {
   RouteDetails rd;
   if constexpr (
       std::is_same_v<folly::IPAddressV6, AddrT> ||
@@ -78,9 +78,9 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     rd.overridenEcmpMode() = *fwd().getOverrideEcmpSwitchingMode();
   }
   if (isResolved() && fwd().getOverrideNextHops().has_value()) {
-    auto overrideNhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
-                                                 : *fwd().getOverrideNextHops();
-    rd.overridenNextHops() = fillNextHops(overrideNhopSet, rd);
+    auto nhops = normalizedNhopSet.has_value() ? *normalizedNhopSet
+                                               : *fwd().getOverrideNextHops();
+    rd.overridenNextHops() = fillNextHops(nhops, rd);
   }
   return rd;
 }
@@ -168,9 +168,9 @@ template struct RouteFields<LabelID>;
 template <typename AddrT>
 RouteDetails Route<AddrT>::toRouteDetails(
     const RouteNextHopSet& nhopSet,
-    bool normalizedNhopWeights) const {
+    const std::optional<RouteNextHopSet>& normalizedNhopSet) const {
   RouteFields<AddrT> fields{this->toThrift()};
-  return fields.toRouteDetails(nhopSet, normalizedNhopWeights);
+  return fields.toRouteDetails(nhopSet, normalizedNhopSet);
 }
 
 template <typename AddrT>
