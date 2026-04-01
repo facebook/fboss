@@ -479,4 +479,118 @@ TYPED_TEST(AgentSrv6EncapTest, resolveNeighborsAfterRouteProgram) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentSrv6EncapTest, multipleSidListsSameNextHop) {
+  auto setup = [this]() {
+    this->setupHelper(true /*resolveNeighbors*/, false /*programEncapRoutes*/);
+
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto nhop0 = ecmpHelper.nhop(0);
+    auto nhop1 = ecmpHelper.nhop(1);
+
+    // Phase 1: Two routes with different SID lists both via nhop(0)
+    // Route A: kEncapRoutePrefix/64 -> nhop(0) with kSid0
+    // Route B: 2800:3::/64 -> nhop(0) with kSid1
+    {
+      auto routeUpdater = this->getSw()->getRouteUpdater();
+      RouteNextHopSet nhopsA;
+      nhopsA.insert(ResolvedNextHop(
+          nhop0.ip,
+          nhop0.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{this->kSid0},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0")));
+      routeUpdater.addRoute(
+          RouterID(0),
+          this->kEncapRoutePrefix,
+          this->kEncapRoutePrefixLen,
+          ClientID::BGPD,
+          RouteNextHopEntry(nhopsA, AdminDistance::EBGP));
+
+      RouteNextHopSet nhopsB;
+      nhopsB.insert(ResolvedNextHop(
+          nhop0.ip,
+          nhop0.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{this->kSid1},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0")));
+      routeUpdater.addRoute(
+          RouterID(0),
+          folly::IPAddressV6("2800:3::"),
+          this->kEncapRoutePrefixLen,
+          ClientID::BGPD,
+          RouteNextHopEntry(nhopsB, AdminDistance::EBGP));
+      routeUpdater.program();
+    }
+
+    // Verify both routes encap correctly while sharing nhop(0)
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    this->verifyEncapPacket(
+        {egressPort}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+    this->verifyEncapPacket(
+        {egressPort},
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid1},
+        std::nullopt /*injectPort*/,
+        folly::IPAddress("2800:3::1"));
+
+    // Phase 2: Change route B to use nhop(1) instead of nhop(0)
+    {
+      auto routeUpdater = this->getSw()->getRouteUpdater();
+      RouteNextHopSet nhopsBNew;
+      nhopsBNew.insert(ResolvedNextHop(
+          nhop1.ip,
+          nhop1.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::vector<folly::IPAddressV6>{this->kSid1},
+          TunnelType::SRV6_ENCAP,
+          std::string("srv6Tunnel0")));
+      routeUpdater.addRoute(
+          RouterID(0),
+          folly::IPAddressV6("2800:3::"),
+          this->kEncapRoutePrefixLen,
+          ClientID::BGPD,
+          RouteNextHopEntry(nhopsBNew, AdminDistance::EBGP));
+      routeUpdater.program();
+    }
+  };
+
+  // After warmboot, final state:
+  //   Route A: kEncapRoutePrefix/64 -> nhop(0) with kSid0
+  //   Route B: 2800:3::/64 -> nhop(1) with kSid1
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort0 = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto egressPort1 = this->getEgressPort(ecmpHelper.nhop(1).portDesc);
+
+    // Route A encaps with kSid0 via nhop(0)
+    this->verifyEncapPacket(
+        {egressPort0}, false /*ecnMarked*/, false /*isV4*/, {this->kSid0});
+
+    // Route B encaps with kSid1 via nhop(1)
+    this->verifyEncapPacket(
+        {egressPort1},
+        false /*ecnMarked*/,
+        false /*isV4*/,
+        {this->kSid1},
+        std::nullopt /*injectPort*/,
+        folly::IPAddress("2800:3::1"));
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
