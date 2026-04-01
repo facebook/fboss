@@ -145,6 +145,9 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // in those managers
   routeManager().clear();
   inSegEntryManager_.reset();
+  // MySid handles reference managed next hops and next hop groups,
+  // so must be reset before those managers
+  srv6MySidManager_.reset();
   // Reset neighbor mgr before reseting rif mgr, since the
   // neighbor entries refer to rifs. While at it, also reset fdb
   // and next hop mgrs. Fdb is reset after neighbor mgr since
