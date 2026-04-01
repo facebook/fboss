@@ -47,6 +47,7 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "tahansb800bc",
             "tahansb800bc_rack",
             "tahansb800bc_test_fixture",
+            "tahansb800bc_link_training",
             "wedge800bact",
             "wedge800cact",
             "blackwolf800banw",

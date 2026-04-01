@@ -8,6 +8,7 @@ cpp_library(
         "Tahansb800bcPlatformMapping.cpp",
     ],
     headers = [
+        "Tahansb800bcLinkTrainingPlatformMapping.h",
         "Tahansb800bcPlatformMapping.h",
         "Tahansb800bcProdPlatformMapping.h",
         "Tahansb800bcTestPlatformMapping.h",
