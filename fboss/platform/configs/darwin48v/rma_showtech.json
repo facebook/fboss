@@ -70,14 +70,7 @@
       ]
     }
   ],
-  "pems": [
-    {
-      "name": "PEM1",
-      "presenceSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_present",
-      "statusSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_status",
-      "inputOkSysfsPath": "/run/devmap/fpgas/SCD_FPGA/pem_input_ok"
-    }
-  ],
+  "pems": [],
   "fanspinners": [
     {
       "path": "/run/devmap/sensors/FS_FAN_SLG4F4527",
