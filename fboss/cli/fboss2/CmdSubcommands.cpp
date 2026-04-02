@@ -41,6 +41,8 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
       {"stop", "Stop event"},
       {"get", "Get object"},
       {"reload", "Reload object"},
+      {"clear_and_override",
+       "Clear and override object to prevent external writers from re-setting"},
       // Only implemented in fboss2-dev for now.
       {"config", "Configuration commands"},
   };
