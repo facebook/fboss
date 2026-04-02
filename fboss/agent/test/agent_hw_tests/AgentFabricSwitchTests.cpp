@@ -244,12 +244,12 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
     WITH_RETRIES_N(180, {
       if (desiredState == cfg::PortState::DISABLED) {
         auto numPorts = ports.size();
-        auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
-        int missingConnectivity{0};
-        for (const auto& [_, switchStats] : switch2SwitchStats) {
-          missingConnectivity +=
-              *switchStats.fabricReachabilityStats()->missingCount();
-        }
+        auto switchId = getCurrentSwitchIdForTesting();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+        auto missingConnectivity = *getHwSwitchStats(switchIndex)
+                                        .fabricReachabilityStats()
+                                        ->missingCount();
         // When disabled all ports should lose connectivity info
         EXPECT_EVENTUALLY_EQ(missingConnectivity, numPorts);
       }
@@ -310,19 +310,19 @@ class AgentFabricSwitchSelfLoopTest : public AgentFabricSwitchTest {
 
 TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
   auto setup = [this]() {
-    auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
+    auto ports = fabricPortIdsForTesting();
     // Since switch is drained, ports should stay enabled
-    verifyState(cfg::PortState::ENABLED, *allPorts);
+    verifyState(cfg::PortState::ENABLED, ports);
     // Data filter should be turned off since we never enabled
     // wrong_fabric_connections
-    checkDataCellFilter(false /*expectFilterOn*/);
+    checkDataCellFilter(false /*expectFilterOn*/, fabricPortIdsForTesting());
     // Undrain
     setSwitchDrainState(getSw()->getConfig(), cfg::SwitchDrainState::UNDRAINED);
   };
   auto verify = [this]() {
-    auto allPorts = getProgrammedState()->getPorts()->getAllNodes();
+    auto ports = fabricPortIdsForTesting();
     // Ports should now get disabled
-    verifyState(cfg::PortState::DISABLED, *allPorts);
+    verifyState(cfg::PortState::DISABLED, ports);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
