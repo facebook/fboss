@@ -470,12 +470,16 @@ TEST_F(AgentFabricSwitchTest, ValidateFecErrorDetect) {
   auto verify = [this]() {
     utility::setupFecErrorDetectEnable(
         getAgentEnsemble(), true /*fecErrorDetectEnable*/);
-    utility::validateFecErrorDetectInState(
-        getProgrammedState().get(), true /*fecErrorDetectEnable*/);
+    for (auto portId : fabricPortIdsForTesting()) {
+      auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
+      EXPECT_EQ(*port->getFecErrorDetectEnable(), true);
+    }
     utility::setupFecErrorDetectEnable(
         getAgentEnsemble(), false /*fecErrorDetectEnable*/);
-    utility::validateFecErrorDetectInState(
-        getProgrammedState().get(), false /*fecErrorDetectEnable*/);
+    for (auto portId : fabricPortIdsForTesting()) {
+      auto port = getProgrammedState()->getPorts()->getNodeIf(portId);
+      EXPECT_EQ(*port->getFecErrorDetectEnable(), false);
+    }
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
