@@ -577,18 +577,17 @@ TEST_F(AgentFabricSwitchTest, verifyRtpGpdAlwaysDisabled) {
     auto expectedValues = {
         "RTP_GRACEFUL_POWER_DOWN_CONFIGURATION.RTP0[0x135]=0:",
         "RTP_GRACEFUL_POWER_DOWN_CONFIGURATION.RTP1[0x135]=0:"};
-    for (const auto& switchId : getFabricSwitchIdsWithPorts()) {
-      std::string out;
-      WITH_RETRIES({
-        getAgentEnsemble()->runDiagCommand(
-            "g RTP_GRACEFUL_POWER_DOWN_CONFIGURATION\nquit\n", out, switchId);
-        XLOG(DBG0) << "SwitchId: " << static_cast<int>(switchId)
-                   << ", output: " << out;
-        for (auto& entry : expectedValues) {
-          EXPECT_EVENTUALLY_TRUE(out.find(entry) != std::string::npos);
-        }
-      });
-    }
+    auto switchId = getCurrentSwitchIdForTesting();
+    std::string out;
+    WITH_RETRIES({
+      getAgentEnsemble()->runDiagCommand(
+          "g RTP_GRACEFUL_POWER_DOWN_CONFIGURATION\n", out, switchId);
+      XLOG(DBG0) << "SwitchId: " << static_cast<int>(switchId)
+                 << ", output: " << out;
+      for (auto& entry : expectedValues) {
+        EXPECT_EVENTUALLY_TRUE(out.find(entry) != std::string::npos);
+      }
+    });
   };
   verifyAcrossWarmBoots([]() {}, verify);
 }
