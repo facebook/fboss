@@ -92648,6 +92648,27 @@
         },
         {
           "test_name_regex": "roundtrip.*qsfpWarmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentEnsembleEmptyLinkTest.CheckInit$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentEnsembleFsdbTest.statsPublishSubscribe$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentEnsembleLinkSanityTestDataPlaneFlood.warmbootIsHitLess$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentEnsembleLinkTest.ecmpShrink$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentEnsembleLinkTest.trafficRxTx$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentEnsembleSpeedChangeTest.*$"
+        },
+        {
+          "test_name_regex": "roundtrip.preprod.*cold_boot.AgentFabricLinkTest.linkActiveAndLoopStatus$"
         }
     ],
     "wedge400/bcm/asicsdk-6.5.26/6.5.26/physdk-credo-0.7.2/credo-0.7.2": [
