@@ -36,6 +36,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/state/TeFlowTable.h"
@@ -491,6 +492,132 @@ std::shared_ptr<InterfaceMap> SwitchState::getInterfaces(
 const std::shared_ptr<MultiSwitchSettings>& SwitchState::getSwitchSettings()
     const {
   return safe_cref<switch_state_tags::switchSettingsMap>();
+}
+
+namespace {
+std::shared_ptr<SwitchSettings> getFirstSwitchSettingsOrDefault(
+    const SwitchState& state) {
+  auto first = utility::getFirstNodeIf(state.getSwitchSettings());
+  return first ? first : std::make_shared<SwitchSettings>();
+}
+} // namespace
+
+const std::shared_ptr<QosPolicy> SwitchState::getDefaultDataPlaneQosPolicy()
+    const {
+  return getFirstSwitchSettingsOrDefault(*this)->getDefaultDataPlaneQosPolicy();
+}
+
+std::chrono::seconds SwitchState::getArpTimeout() const {
+  auto arpTimeoutSwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getArpTimeout();
+  if (arpTimeoutSwSettings.has_value()) {
+    return arpTimeoutSwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::arpTimeoutDefault());
+}
+
+const std::shared_ptr<QcmCfg> SwitchState::getQcmCfg() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getQcmCfg();
+}
+
+std::chrono::seconds SwitchState::getNdpTimeout() const {
+  auto ndpTimeoutSwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getNdpTimeout();
+  if (ndpTimeoutSwSettings.has_value()) {
+    return ndpTimeoutSwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::ndpTimeoutDefault());
+}
+
+std::chrono::seconds SwitchState::getArpAgerInterval() const {
+  auto arpAgeSwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getArpAgerInterval();
+  if (arpAgeSwSettings.has_value()) {
+    return arpAgeSwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::arpAgerIntervalDefault());
+}
+
+uint32_t SwitchState::getMaxNeighborProbes() const {
+  auto maxNeighborProbes =
+      getFirstSwitchSettingsOrDefault(*this)->getMaxNeighborProbes();
+  if (maxNeighborProbes.has_value()) {
+    return maxNeighborProbes.value();
+  }
+  return cfg::switch_config_constants::maxNeighborProbesDefault();
+}
+
+std::chrono::seconds SwitchState::getStaleEntryInterval() const {
+  auto staleEntrySwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getStaleEntryInterval();
+  if (staleEntrySwSettings.has_value()) {
+    return staleEntrySwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::staleEntryIntervalDefault());
+}
+
+folly::IPAddressV4 SwitchState::getDhcpV4RelaySrc() const {
+  auto dhcpV4RelaySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV4RelaySrc();
+  if (dhcpV4RelaySrc.has_value()) {
+    return dhcpV4RelaySrc.value();
+  }
+  return folly::IPAddressV4("0.0.0.0");
+}
+
+folly::IPAddressV6 SwitchState::getDhcpV6RelaySrc() const {
+  auto dhcpV6RelaySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV6RelaySrc();
+  if (dhcpV6RelaySrc.has_value()) {
+    return dhcpV6RelaySrc.value();
+  }
+  return folly::IPAddressV6("::");
+}
+
+folly::IPAddressV4 SwitchState::getDhcpV4ReplySrc() const {
+  auto dhcpV4ReplySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV4ReplySrc();
+  if (dhcpV4ReplySrc.has_value()) {
+    return dhcpV4ReplySrc.value();
+  }
+  return folly::IPAddressV4("0.0.0.0");
+}
+
+folly::IPAddressV6 SwitchState::getDhcpV6ReplySrc() const {
+  auto dhcpV6ReplySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV6ReplySrc();
+  if (dhcpV6ReplySrc.has_value()) {
+    return dhcpV6ReplySrc.value();
+  }
+  return folly::IPAddressV6("::");
+}
+
+std::string SwitchState::getHostname() const {
+  auto hostname = getFirstSwitchSettingsOrDefault(*this)->getHostname();
+  if (hostname != std::nullopt) {
+    return (*hostname).cref();
+  }
+  // Should never really be hit as ApplyThriftConfig will use the system
+  // hostname by default
+  return "";
+}
+
+folly::IPAddressV4 SwitchState::getIcmpV4UnavailableSrcAddress() const {
+  return getFirstSwitchSettingsOrDefault(*this)
+      ->getIcmpV4UnavailableSrcAddress();
+}
+
+const std::shared_ptr<UdfConfig> SwitchState::getUdfConfig() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getUdfConfig();
+}
+
+const std::shared_ptr<FlowletSwitchingConfig>
+SwitchState::getFlowletSwitchingConfig() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
 }
 
 void SwitchState::revertNewTeFlowEntry(
