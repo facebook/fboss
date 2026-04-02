@@ -1805,7 +1805,7 @@ class BenchmarkTestRunner:
         Returns:
             List of benchmark names to run, or None if no benchmarks found
         """
-        benchmarks_to_run = set()
+        benchmarks_to_run = []
 
         if filter_file:
             # User specified a custom filter file
@@ -1822,7 +1822,7 @@ class BenchmarkTestRunner:
             ]:
                 if os.path.exists(conf_file):
                     benchmarks_from_file = _load_from_file(conf_file)
-                    benchmarks_to_run.update(benchmarks_from_file)
+                    benchmarks_to_run.extend(benchmarks_from_file)
                 else:
                     print(f"  Warning: Configuration file not found: {conf_file}")
 
@@ -1830,7 +1830,7 @@ class BenchmarkTestRunner:
             print("Error: No benchmarks found in configuration files")
             return None
 
-        return list(benchmarks_to_run)
+        return benchmarks_to_run
 
     def run_test(self, args):  # noqa: PLR0912 - complex benchmark orchestration; splitting would harm readability
         """Run benchmark test binaries"""
