@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowMirror.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -206,5 +207,8 @@ CmdShowMirror::RetType CmdShowMirror::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowMirror, CmdShowMirrorTraits>::run();
 
 } // namespace facebook::fboss

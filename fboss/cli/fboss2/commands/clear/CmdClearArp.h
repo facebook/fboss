@@ -10,11 +10,7 @@
 
 #pragma once
 
-#include <folly/IPAddress.h>
-#include <algorithm>
-
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/commands/clear/CmdClearUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
@@ -32,17 +28,9 @@ class CmdClearArp : public CmdHandler<CmdClearArp, CmdClearArpTraits> {
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const ObjectArgType& queriedNetworks) {
-    auto client =
-        utils::createClient<facebook::fboss::FbossCtrlAsyncClient>(hostInfo);
-    std::vector<facebook::fboss::ArpEntryThrift> arpEntries;
-    client->sync_getArpTable(arpEntries);
-    return utils::flushNeighborEntries(client, arpEntries, queriedNetworks);
-  }
+      const ObjectArgType& queriedNetworks);
 
-  void printOutput(const RetType& logMsg) {
-    std::cout << logMsg << std::endl;
-  }
+  void printOutput(const RetType& logMsg);
 };
 
 } // namespace facebook::fboss

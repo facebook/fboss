@@ -51,6 +51,7 @@
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
+#include "fboss/cli/fboss2/commands/show/hwobject/uncached/CmdShowHwObjectUncached.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
@@ -435,7 +436,11 @@ const CommandTree& kCommandTree() {
        "hw-object",
        "Show HW Objects",
        commandHandler<CmdShowHwObject>,
-       argTypeHandler<CmdShowHwObjectTraits>},
+       argTypeHandler<CmdShowHwObjectTraits>,
+       {{"uncached",
+         "Query hardware directly instead of cache",
+         commandHandler<CmdShowHwObjectUncached>,
+         argTypeHandler<CmdShowHwObjectUncachedTraits>}}},
 
       {"show",
        "hw-agent",

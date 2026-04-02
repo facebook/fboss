@@ -2,7 +2,6 @@
 
 #include "fboss/agent/ResolvedNexthopMonitor.h"
 
-#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/ResolvedNexthopProbeScheduler.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -69,16 +68,19 @@ ResolvedNexthopMonitor::~ResolvedNexthopMonitor() {
 
 void ResolvedNexthopMonitor::stateUpdated(const StateDelta& delta) {
   scheduleProbes_ = false;
+  auto oldState = delta.oldState();
+  auto newState = delta.newState();
   forEachChangedRoute(
       delta,
-      [this](auto rid, const auto& oldRoute, const auto& newRoute) {
-        processChangedRouteNextHops(oldRoute, newRoute);
+      [this, &oldState, &newState](
+          auto /*rid*/, const auto& oldRoute, const auto& newRoute) {
+        processChangedRouteNextHops(oldRoute, newRoute, oldState, newState);
       },
-      [this](auto rid, const auto& newRoute) {
-        processAddedRouteNextHops(newRoute);
+      [this, &newState](auto /*rid*/, const auto& newRoute) {
+        processAddedRouteNextHops(newRoute, newState);
       },
-      [this](auto rid, const auto& oldRoute) {
-        processRemovedRouteNextHops(oldRoute);
+      [this, &oldState](auto /*rid*/, const auto& oldRoute) {
+        processRemovedRouteNextHops(oldRoute, oldState);
       });
   forEachChanged(
       delta.getLabelForwardingInformationBaseDelta(),

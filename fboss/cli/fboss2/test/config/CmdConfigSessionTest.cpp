@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <folly/json.h>
+
 #include "fboss/cli/fboss2/test/TestableConfigSession.h"
 
 namespace fs = std::filesystem;
@@ -215,6 +217,8 @@ TEST_F(ConfigSessionTestFixture, commitOnNewlyInitializedSession) {
   auto& ports = *config.sw()->ports();
   ASSERT_FALSE(ports.empty());
   ports[0].description() = "Test change for commit";
+  session.setCommandLine(
+      "config interface eth1/1/1 description Test change for commit");
   session.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // Commit should succeed
@@ -355,6 +359,8 @@ TEST_F(ConfigSessionTestFixture, concurrentCommits) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "First commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description First commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -373,6 +379,8 @@ TEST_F(ConfigSessionTestFixture, concurrentCommits) {
     auto& ports = *config.sw()->ports();
     ASSERT_FALSE(ports.empty());
     ports[0].description() = "Second commit";
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second commit");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
@@ -461,12 +469,32 @@ TEST_F(ConfigSessionTestFixture, rollbackToSpecificCommit) {
     // Verify config content is now "First version"
     EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First version"));
 
-    // Verify metadata was also rolled back to first version
+    // Verify system metadata (in /etc/coop) was also rolled back to first
+    // version
     std::string metadataContent = readFile(metadataPath);
     EXPECT_THAT(metadataContent, ::testing::HasSubstr("description First"));
     EXPECT_THAT(
         metadataContent,
         ::testing::Not(::testing::HasSubstr("description Second")));
+
+    // Verify session config was updated to match the rolled-back config
+    fs::path sessionConfigPath = sessionDir / "agent.conf";
+    EXPECT_THAT(
+        readFile(sessionConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify session metadata was updated with the new base and empty commands
+    fs::path sessionMetadataPath = sessionDir / "cli_metadata.json";
+    std::string sessionMetadataContent = readFile(sessionMetadataPath);
+    folly::dynamic sessionMetadata = folly::parseJson(sessionMetadataContent);
+    // The base should be set to the rollback commit SHA
+    EXPECT_EQ(sessionMetadata["base"].asString(), rollbackSha)
+        << "Session metadata base should be set to the rollback commit SHA";
+    // Commands should be empty (clean session)
+    EXPECT_TRUE(sessionMetadata["commands"].isArray())
+        << "Session metadata commands should be an array";
+    EXPECT_EQ(sessionMetadata["commands"].size(), 0)
+        << "Session metadata commands array should be empty after rollback to "
+           "clean session";
 
     // Verify Git history has the rollback commit
     auto& git = session.getGit();
@@ -497,6 +525,8 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
 
     auto& config1 = session.getAgentConfig();
     (*config1.sw()->ports())[0].description() = "First version";
+    session.setCommandLine(
+        "config interface eth1/1/1 description First version");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session.commit(localhost());
@@ -507,6 +537,8 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
 
     auto& config2 = session.getAgentConfig();
     (*config2.sw()->ports())[0].description() = "Second version";
+    session.setCommandLine(
+        "config interface eth1/1/1 description Second version");
     session.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session.commit(localhost());
@@ -527,6 +559,25 @@ TEST_F(ConfigSessionTestFixture, rollbackToPreviousCommit) {
 
     // Verify content is now "First version" (from previous commit)
     EXPECT_THAT(readFile(cliConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify session config was updated to match the rolled-back config
+    fs::path sessionConfigPath = sessionDir / "agent.conf";
+    EXPECT_THAT(
+        readFile(sessionConfigPath), ::testing::HasSubstr("First version"));
+
+    // Verify session metadata was updated with the new base and empty commands
+    fs::path sessionMetadataPath = sessionDir / "cli_metadata.json";
+    std::string sessionMetadataContent = readFile(sessionMetadataPath);
+    folly::dynamic sessionMetadata = folly::parseJson(sessionMetadataContent);
+    // The base should be set to the rollback commit SHA
+    EXPECT_EQ(sessionMetadata["base"].asString(), rollbackSha)
+        << "Session metadata base should be set to the rollback commit SHA";
+    // Commands should be empty (clean session)
+    EXPECT_TRUE(sessionMetadata["commands"].isArray())
+        << "Session metadata commands should be an array";
+    EXPECT_EQ(sessionMetadata["commands"].size(), 0)
+        << "Session metadata commands array should be empty after rollback to "
+           "clean session";
   }
 }
 
@@ -868,6 +919,7 @@ TEST_F(ConfigSessionTestFixture, concurrentSessionConflict) {
   // User1 makes a change and commits
   auto& config1 = session1.getAgentConfig();
   (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.setCommandLine("config interface eth1/1/1 description User1 change");
   session1.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   auto result1 = session1.commit(localhost());
   EXPECT_FALSE(result1.commitSha.empty());
@@ -875,6 +927,7 @@ TEST_F(ConfigSessionTestFixture, concurrentSessionConflict) {
   // User2 makes a different change
   auto& config2 = session2.getAgentConfig();
   (*config2.sw()->ports())[0].description() = "User2 change";
+  session2.setCommandLine("config interface eth1/1/1 description User2 change");
   session2.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // User2 tries to commit but should fail because user1 already committed
@@ -920,6 +973,7 @@ TEST_F(ConfigSessionTestFixture, rebaseSuccessNoConflict) {
   // User1 changes port[0] description and commits
   auto& config1 = session1.getAgentConfig();
   (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.setCommandLine("config interface eth1/1/1 description User1 change");
   session1.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   auto result1 = session1.commit(localhost());
   EXPECT_FALSE(result1.commitSha.empty());
@@ -928,6 +982,7 @@ TEST_F(ConfigSessionTestFixture, rebaseSuccessNoConflict) {
   auto& config2 = session2.getAgentConfig();
   ASSERT_GE(config2.sw()->ports()->size(), 2) << "Need at least 2 ports";
   (*config2.sw()->ports())[1].description() = "User2 change";
+  session2.setCommandLine("config interface eth1/1/2 description User2 change");
   session2.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // User2 tries to commit but fails due to stale base
@@ -968,6 +1023,7 @@ TEST_F(ConfigSessionTestFixture, rebaseFailsOnConflict) {
   // User1 changes port[0] description to "User1 change"
   auto& config1 = session1.getAgentConfig();
   (*config1.sw()->ports())[0].description() = "User1 change";
+  session1.setCommandLine("config interface eth1/1/1 description User1 change");
   session1.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
   auto result1 = session1.commit(localhost());
   EXPECT_FALSE(result1.commitSha.empty());
@@ -975,6 +1031,7 @@ TEST_F(ConfigSessionTestFixture, rebaseFailsOnConflict) {
   // User2 changes the SAME port[0] description to "User2 change" (conflict!)
   auto& config2 = session2.getAgentConfig();
   (*config2.sw()->ports())[0].description() = "User2 change";
+  session2.setCommandLine("config interface eth1/1/1 description User2 change");
   session2.saveConfig(cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
 
   // User2 tries to rebase but should fail due to conflict
@@ -1041,11 +1098,13 @@ TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
         sessionDir2.string(), (getTestEtcDir() / "coop").string());
 
     (*session1.getAgentConfig().sw()->ports())[0].name() = "port0_renamed";
+    session1.setCommandLine("config interface eth1/1/1 name port0_renamed");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session1.commit(localhost());
 
     (*session2.getAgentConfig().sw()->ports())[1].description() = "port1_desc";
+    session2.setCommandLine("config interface eth1/1/2 description port1_desc");
     session2.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     EXPECT_NO_THROW(session2.rebase());
@@ -1065,11 +1124,13 @@ TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
         sessionDir2.string(), (getTestEtcDir() / "coop").string());
 
     (*session1.getAgentConfig().sw()->ports())[0].description() = "same_value";
+    session1.setCommandLine("config interface eth1/1/1 description same_value");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session1.commit(localhost());
 
     (*session2.getAgentConfig().sw()->ports())[0].description() = "same_value";
+    session2.setCommandLine("config interface eth1/1/1 description same_value");
     session2.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     EXPECT_NO_THROW(session2.rebase());
@@ -1088,11 +1149,15 @@ TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
         sessionDir2.string(), (getTestEtcDir() / "coop").string());
 
     (*session1.getAgentConfig().sw()->ports())[0].description() = "user1_value";
+    session1.setCommandLine(
+        "config interface eth1/1/1 description user1_value");
     session1.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     session1.commit(localhost());
 
     (*session2.getAgentConfig().sw()->ports())[0].description() = "user2_value";
+    session2.setCommandLine(
+        "config interface eth1/1/1 description user2_value");
     session2.saveConfig(
         cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
     EXPECT_THROW(
@@ -1105,6 +1170,81 @@ TEST_F(ConfigSessionTestFixture, threeWayMergeScenarios) {
           }
         },
         std::runtime_error);
+  }
+}
+
+// Test that committing an empty session (no changes) returns an empty result
+// and doesn't create a git commit
+TEST_F(ConfigSessionTestFixture, emptyCommit) {
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+
+  // Setup mock agent server (should not be called for empty commit)
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(0);
+
+  // Create a session but don't make any changes
+  TestableConfigSession session(
+      sessionDir.string(), (getTestEtcDir() / "coop").string());
+
+  // Get the current git HEAD before commit
+  Git git((getTestEtcDir() / "coop").string());
+  auto commitsBefore = git.log(cliConfigPath.string(), 10);
+
+  // Commit without making any changes
+  auto result = session.commit(localhost());
+
+  // Verify the result indicates no commit was made
+  EXPECT_TRUE(result.commitSha.empty());
+  EXPECT_TRUE(result.actions.empty());
+
+  // Verify no new git commit was created
+  auto commitsAfter = git.log(cliConfigPath.string(), 10);
+  EXPECT_EQ(commitsBefore.size(), commitsAfter.size());
+
+  // Verify session still exists (not removed on empty commit)
+  EXPECT_TRUE(session.sessionExists());
+}
+
+// Test that committing twice in a row - second commit should be empty
+TEST_F(ConfigSessionTestFixture, commitTwiceSecondIsEmpty) {
+  fs::path sessionDir = getTestHomeDir() / ".fboss2";
+  fs::path cliConfigPath = getTestEtcDir() / "coop" / "cli" / "agent.conf";
+
+  // Setup mock agent server (should only be called once for the first commit)
+  setupMockedAgentServer();
+  EXPECT_CALL(getMockAgent(), reloadConfig()).Times(1);
+
+  // First commit: make a change and commit
+  {
+    TestableConfigSession session(
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
+
+    auto& config = session.getAgentConfig();
+    auto& ports = *config.sw()->ports();
+    ASSERT_FALSE(ports.empty());
+    ports[0].description() = "First commit change";
+    session.setCommandLine(
+        "config interface eth1/1/1 description \"First commit change\"");
+    session.saveConfig(
+        cli::ServiceType::AGENT, cli::ConfigActionLevel::HITLESS);
+
+    auto result = session.commit(localhost());
+    EXPECT_FALSE(result.commitSha.empty());
+    EXPECT_FALSE(result.actions.empty());
+  }
+
+  // Second commit: try to commit again without making changes
+  {
+    TestableConfigSession session(
+        sessionDir.string(), (getTestEtcDir() / "coop").string());
+
+    // Don't make any changes, just try to commit
+    auto result = session.commit(localhost());
+
+    // Verify the result indicates no commit was made
+    EXPECT_TRUE(result.commitSha.empty());
+    EXPECT_TRUE(result.actions.empty());
   }
 }
 

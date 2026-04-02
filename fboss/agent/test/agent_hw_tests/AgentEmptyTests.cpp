@@ -10,7 +10,7 @@ class AgentEmptyTestBase : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    return {};
+    return {ProductionFeature::HW_SWITCH};
   }
   void AgentEmptyTest() {
     auto verify = [this]() {

@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowTransceiver.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
 
@@ -357,5 +358,10 @@ CmdShowTransceiver::RetType CmdShowTransceiver::createModel(
 
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowTransceiver, CmdShowTransceiverTraits>::getValidFilters();
 
 } // namespace facebook::fboss

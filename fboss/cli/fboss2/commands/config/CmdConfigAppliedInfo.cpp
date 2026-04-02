@@ -9,7 +9,9 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigAppliedInfo.h"
-#include <folly/Conv.h>
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -66,5 +68,9 @@ void CmdConfigAppliedInfo::printOutput(const RetType& configAppliedInfo) {
     std::cout << "Not available (warmboot)" << std::endl;
   }
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigAppliedInfo, CmdConfigAppliedInfoTraits>::run();
 
 } // namespace facebook::fboss

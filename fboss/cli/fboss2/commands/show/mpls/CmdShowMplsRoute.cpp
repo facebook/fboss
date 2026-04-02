@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -103,5 +104,8 @@ CmdShowMplsRoute::RetType CmdShowMplsRoute::createModel(
 
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowMplsRoute, CmdShowMplsRouteTraits>::run();
 
 } // namespace facebook::fboss

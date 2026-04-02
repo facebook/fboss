@@ -38,8 +38,17 @@ inline const folly::MacAddress kSrcMac{"fa:ce:b0:00:00:0c"};
 constexpr uint8_t kNetworkControlDscp = 48;
 constexpr size_t kPayloadSize = 12;
 constexpr int kBatchTimeoutSeconds = 120;
-constexpr uint16_t kTestSrcPort = 8000;
-constexpr uint16_t kTestDstPort = 8001;
+constexpr uint16_t kTestSrcPort = 49109;
+constexpr uint16_t kTestDstPort = 49110;
+constexpr uint16_t kEtherTypeIPv6 = 0x86DD;
+constexpr uint16_t kEtherTypeVlan = 0x8100;
+constexpr uint16_t kEtherTypeQinQ = 0x88A8;
+constexpr size_t kEthMacsSize = 12; // dst(6) + src(6)
+constexpr size_t kVlanTciSize = 2;
+constexpr size_t kIPv6HdrSize = 40;
+constexpr size_t kUdpHdrSize = 8;
+constexpr size_t kMinTestPacketSize =
+    kEthMacsSize + 2 + kIPv6HdrSize + kUdpHdrSize + kPayloadSize; // 74
 
 // ===== Structs =====
 
@@ -92,23 +101,55 @@ inline std::vector<uint8_t> encodePayload(uint32_t sequenceNumber) {
   return std::vector(buf.data(), buf.data() + buf.length());
 }
 
+// Parse headers from the beginning to find the UDP payload.
+// Validates: EtherType is IPv6, UDP dst port matches kTestDstPort.
+// Returns valid=false for non-test packets (LLDP, NDP, etc.).
+// Parse headers from the beginning to find the UDP payload.
+// Validates: EtherType is IPv6, UDP dst port matches kTestDstPort.
+// Returns valid=false for non-test packets (LLDP, NDP, etc.).
 inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
   DecodedPayload result;
 
-  size_t kMinUdpPacketSize = static_cast<size_t>(EthHdr::UNTAGGED_PKT_SIZE) +
-      static_cast<size_t>(IPv6Hdr::SIZE) + UDPHeader::size() + kPayloadSize;
+  folly::io::Cursor cursor(&rxBuf);
   size_t totalLength = rxBuf.computeChainDataLength();
 
-  if (totalLength < kMinUdpPacketSize) {
-    XLOG(DBG4) << "Packet too small: " << totalLength
-               << " bytes, minimum required: " << kMinUdpPacketSize;
+  if (totalLength < kMinTestPacketSize) {
     return result;
   }
 
-  folly::io::Cursor cursor(&rxBuf);
+  // Parse Ethernet header: skip dst + src MAC, read EtherType
+  cursor.skip(kEthMacsSize);
+  uint16_t etherType = cursor.readBE<uint16_t>();
 
-  size_t payloadOffset = totalLength - kPayloadSize;
-  cursor.skip(payloadOffset);
+  // Skip VLAN tags if present
+  while (etherType == kEtherTypeVlan || etherType == kEtherTypeQinQ) {
+    cursor.skip(kVlanTciSize);
+    etherType = cursor.readBE<uint16_t>();
+  }
+
+  if (etherType != kEtherTypeIPv6) {
+    return result;
+  }
+
+  // Skip IPv6 header
+  cursor.skip(kIPv6HdrSize);
+
+  // Read UDP src port, dst port (first 4 bytes of UDP header)
+  auto udpSrcPort = cursor.readBE<uint16_t>();
+  auto udpDstPort = cursor.readBE<uint16_t>();
+  (void)udpSrcPort;
+
+  if (udpDstPort != kTestDstPort) {
+    return result;
+  }
+
+  // Skip UDP length(2) + checksum(2) to reach payload
+  cursor.skip(kUdpHdrSize - 4);
+
+  // Read our payload: timestamp(8) + sequence(4)
+  if (cursor.totalLength() < kPayloadSize) {
+    return result;
+  }
   result.timestampNs = cursor.readBE<uint64_t>();
   result.sequenceNumber = cursor.readBE<uint32_t>();
   result.valid = true;
@@ -120,8 +161,12 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
 
 inline std::unique_ptr<TxPacket> createLatencyTestPacket(
     AgentEnsemble* ensemble,
-    uint32_t sequenceNumber) {
-  auto vlanId = ensemble->getVlanIDForTx();
+    uint32_t sequenceNumber,
+    const folly::IPAddressV6& dstIp = kDstIp,
+    std::optional<VlanID> vlanId = std::nullopt) {
+  if (!vlanId) {
+    vlanId = ensemble->getVlanIDForTx();
+  }
   auto intfMac =
       utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
 
@@ -134,7 +179,7 @@ inline std::unique_ptr<TxPacket> createLatencyTestPacket(
       kSrcMac,
       intfMac,
       kSrcIp,
-      kDstIp,
+      dstIp,
       kTestSrcPort,
       kTestDstPort,
       trafficClass,
@@ -265,23 +310,45 @@ inline BatchLatencyResults measureCpuLatency(
 
   utility::SwSwitchPacketSnooper snooper(
       ensemble->getSw(), "cpuLatencyBenchmark");
+  snooper.ignoreUnclaimedRxPkts();
 
   for (int batch = 0; batch < numBatches; ++batch) {
     auto txPacket = createLatencyTestPacket(ensemble, batch);
     ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), portId);
     results.totalSent++;
 
-    auto rxBuf = snooper.waitForPacket(kBatchTimeoutSeconds);
-    auto rxTime = std::chrono::steady_clock::now();
+    // Wait for a valid test packet, skipping non-test packets (LLDP, NDP)
+    auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::seconds(kBatchTimeoutSeconds);
+    std::chrono::steady_clock::time_point rxTime;
+    DecodedPayload decoded;
+    bool gotValidPacket = false;
 
-    if (!rxBuf) {
+    while (!gotValidPacket) {
+      auto remaining = std::chrono::duration_cast<std::chrono::seconds>(
+          deadline - std::chrono::steady_clock::now());
+      if (remaining.count() <= 0) {
+        break;
+      }
+      auto rxBuf =
+          snooper.waitForPacket(static_cast<uint32_t>(remaining.count()));
+      if (!rxBuf) {
+        break;
+      }
+      rxTime = std::chrono::steady_clock::now();
+      decoded = decodePayload(**rxBuf);
+      if (!decoded.valid) {
+        XLOG(DBG2) << "Packet seq=" << batch << " skipping non-test packet";
+        continue;
+      }
+      gotValidPacket = true;
+    }
+
+    if (!gotValidPacket) {
       results.totalDropped++;
       XLOG(WARNING) << "Packet seq=" << batch << " dropped (timeout)";
       continue;
     }
-
-    auto decoded = decodePayload(**rxBuf);
-    CHECK(decoded.valid) << "Invalid payload in received packet";
     results.totalReceived++;
 
     uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -294,7 +361,7 @@ inline BatchLatencyResults measureCpuLatency(
     XLOG(INFO) << "Packet seq=" << batch << " latency=" << packetLatencyMs
                << "ms";
 
-    // Sleep between iterations to ensure the rxThread and snooper have fully
+    // Sleep between iterations to ensure the observer has fully
     // settled, preventing overlap with the next packet's measurement.
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }

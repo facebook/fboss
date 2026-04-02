@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -130,6 +132,15 @@ class Git {
    * @return true if the repository has at least one commit, false otherwise
    */
   bool hasCommits() const;
+
+  /**
+   * Get a short (8-character) version of a SHA1 hash for display purposes.
+   * This provides a consistent way to abbreviate commit hashes across the CLI.
+   *
+   * @param sha1 Full or partial SHA1 hash
+   * @return First 8 characters of the SHA1, or the full string if shorter
+   */
+  static std::string shortSha1(const std::string& sha1);
 
  private:
   /**

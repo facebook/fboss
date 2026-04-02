@@ -131,19 +131,27 @@ class Timer {
 };
 
 std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
-  if (*entry.type() != MySidType::DECAPSULATE_AND_LOOKUP) {
-    throw FbossError(
-        "Only DECAPSULATE_AND_LOOKUP MySid type is currently supported");
-  }
-  if (!entry.nextHops()->empty()) {
-    throw FbossError("NextHops are not supported for MySid entries");
+  auto type = *entry.type();
+  if (type == MySidType::ADJACENCY_MICRO_SID ||
+      type == MySidType::NODE_MICRO_SID) {
+    if (entry.nextHops()->empty()) {
+      throw FbossError(
+          "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
+    }
+  } else if (type == MySidType::DECAPSULATE_AND_LOOKUP) {
+    if (!entry.nextHops()->empty()) {
+      throw FbossError(
+          "NextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+    }
+  } else {
+    throw FbossError("Unsupported MySid type: ", static_cast<int>(type));
   }
   state::MySidFields fields;
   fields.type() = *entry.type();
   fields.mySid() = *entry.mySid();
   auto mySid = std::make_shared<MySid>(fields);
-  mySid->setUnresolvedNextHop(std::nullopt);
-  mySid->setResolvedNextHop(std::nullopt);
+  mySid->setUnresolveNextHopsId(std::nullopt);
+  mySid->setResolvedNextHopsId(std::nullopt);
   return mySid;
 }
 
@@ -438,13 +446,12 @@ void RibRouteTables::updateFib(
             std::move(labelFib), &routeTable.labelToRoute);
       }
 
-      // Reconstruct NextHopIDManager from the applied state's FIB
-      // This consolidates ID maps from all switches and recalculates ref counts
+      // Reconstruct NextHopIDManager from the applied state's FIB and MySid
+      // table
       if (nextHopIDManager_) {
-        auto fibsInfoMap = hwUpdateError.appliedState->getFibsInfoMap();
-        if (fibsInfoMap && !fibsInfoMap->empty()) {
-          nextHopIDManager_->reconstructFromFib(fibsInfoMap);
-        }
+        nextHopIDManager_->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids());
       }
 
       // Reconstruct MySidTable from the applied state
@@ -475,6 +482,12 @@ void RibRouteTables::updateFib(
       reconstructMySidTableFromSwitchState(
           hwUpdateError.appliedState->getMySids(),
           &lockedRouteTables->mySidTable);
+      // Reconstruct NextHopIDManager to match the rolled-back MySid table
+      if (nextHopIDManager_) {
+        nextHopIDManager_->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids());
+      }
     }
     throw;
   }
@@ -950,10 +963,11 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
   rib->ribTables_ = RibRouteTables::fromThrift(
       ribThrift, fibsInfoMap, labelFib, mySidMap, rib->nextHopIDManager_.get());
 
-  // Reconstruct NextHopIDManager state from FIB during warm boot
-  // This consolidates ID maps from all switches and reconstructs ref counts
-  if (rib->nextHopIDManager_ && fibsInfoMap && !fibsInfoMap->empty()) {
-    rib->nextHopIDManager_->reconstructFromFib(fibsInfoMap);
+  // Reconstruct NextHopIDManager state from FIB and MySid table during warm
+  // boot
+  if (rib->nextHopIDManager_) {
+    rib->nextHopIDManager_->reconstructFromSwitchStateMaps(
+        fibsInfoMap, mySidMap);
   }
 
   return rib;
@@ -1073,18 +1087,50 @@ void RibRouteTables::update(
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
   updateRib([&](MySidTable* mySidTable) {
-    // Add new MySid entries
     for (const auto& entry : toAdd) {
       auto mySid = mySidFromEntry(entry);
-      auto cidr = mySid->getMySid();
-      folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      const auto cidr = mySid->getMySid();
+      const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      if (nextHopIDManager_) {
+        const auto existingIt = mySidTable->find(cidrV6);
+        const auto existingId = (existingIt != mySidTable->end())
+            ? existingIt->second->getUnresolveNextHopsId()
+            : std::nullopt;
+        if (!entry.nextHops()->empty()) {
+          const auto newNextHopSet =
+              util::toRouteNextHopSet(*entry.nextHops(), true);
+          const auto newId =
+              nextHopIDManager_->getOrAllocRouteNextHopSetID(newNextHopSet)
+                  .nextHopIdSetIter->second.id;
+          if (existingId.has_value() && newId == *existingId) {
+            // Same next hop set — undo the extra alloc and reuse existing ID
+            nextHopIDManager_->decrOrDeallocRouteNextHopSetID(newId);
+            mySid->setUnresolveNextHopsId(existingId);
+          } else {
+            if (existingId.has_value()) {
+              nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*existingId);
+            }
+            mySid->setUnresolveNextHopsId(newId);
+          }
+        } else if (existingId.has_value()) {
+          // New entry has no next hops but the old one did — release old ID
+          nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*existingId);
+        }
+      }
       (*mySidTable)[cidrV6] = std::move(mySid);
     }
-    // Delete MySid entries
     for (const auto& prefix : toDelete) {
       auto ip = network::toIPAddress(*prefix.ip());
       auto mask = static_cast<uint8_t>(*prefix.prefixLength());
-      folly::CIDRNetworkV6 cidr(ip.asV6(), mask);
+      const folly::CIDRNetworkV6 cidr(ip.asV6(), mask);
+      if (nextHopIDManager_) {
+        const auto it = mySidTable->find(cidr);
+        if (it != mySidTable->end()) {
+          if (const auto id = it->second->getUnresolveNextHopsId()) {
+            nextHopIDManager_->decrOrDeallocRouteNextHopSetID(*id);
+          }
+        }
+      }
       mySidTable->erase(cidr);
     }
   });

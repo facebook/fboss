@@ -1,6 +1,4 @@
 "Test Case","Platform","PHY SDK","Status"
-"warm_boot.EmptyHwTest.CheckInit","janga800bic","credo-0.7.2","PASSED"
-"cold_boot.EmptyHwTest.CheckInit","janga800bic","credo-0.7.2","PASSED"
 "warm_boot.HwTransceiverThermalDataTest.thermalDataValidate","janga800bic","credo-0.7.2","PASSED"
 "cold_boot.HwTransceiverThermalDataTest.thermalDataValidate","janga800bic","credo-0.7.2","PASSED"
 "warm_boot.HwTransceiverThermalDataTest.systemConfigTest","janga800bic","credo-0.7.2","PASSED"
@@ -47,3 +45,5 @@
 "cold_boot.HwStateMachineTest.CheckPortStatusUpdated","janga800bic","credo-0.7.2","PASSED"
 "warm_boot.HwStateMachineTest.CheckAgentConfigChanged","janga800bic","credo-0.7.2","PASSED"
 "cold_boot.HwStateMachineTest.CheckAgentConfigChanged","janga800bic","credo-0.7.2","PASSED"
+"warm_boot.EmptyHwTest.CheckInit","janga800bic","credo-0.7.2","PASSED"
+"cold_boot.EmptyHwTest.CheckInit","janga800bic","credo-0.7.2","PASSED"

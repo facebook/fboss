@@ -1,6 +1,4 @@
 "Test Case","Platform","PHY SDK","Status"
-"warm_boot.EmptyHwTest.CheckInit","minipack3n","credo-0.7.2","PASSED"
-"cold_boot.EmptyHwTest.CheckInit","minipack3n","credo-0.7.2","PASSED"
 "warm_boot.HwTransceiverThermalDataTest.thermalDataValidate","minipack3n","credo-0.7.2","PASSED"
 "cold_boot.HwTransceiverThermalDataTest.thermalDataValidate","minipack3n","credo-0.7.2","PASSED"
 "warm_boot.HwTransceiverThermalDataTest.systemConfigTest","minipack3n","credo-0.7.2","PASSED"
@@ -47,3 +45,5 @@
 "cold_boot.HwStateMachineTest.CheckPortStatusUpdated","minipack3n","credo-0.7.2","PASSED"
 "warm_boot.HwStateMachineTest.CheckAgentConfigChanged","minipack3n","credo-0.7.2","PASSED"
 "cold_boot.HwStateMachineTest.CheckAgentConfigChanged","minipack3n","credo-0.7.2","PASSED"
+"warm_boot.EmptyHwTest.CheckInit","minipack3n","credo-0.7.2","PASSED"
+"cold_boot.EmptyHwTest.CheckInit","minipack3n","credo-0.7.2","PASSED"

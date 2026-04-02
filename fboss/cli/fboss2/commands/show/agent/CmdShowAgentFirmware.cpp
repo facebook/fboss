@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "CmdShowAgentFirmware.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -53,5 +54,9 @@ void CmdShowAgentFirmware::printOutput(
     out << "Functional Status: " << entry.funcStatus().value() << std::endl;
   }
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowAgentFirmware, CmdShowAgentFirmwareTraits>::run();
 
 } // namespace facebook::fboss

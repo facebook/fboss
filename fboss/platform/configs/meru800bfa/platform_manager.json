@@ -105,8 +105,169 @@
         {
           "busName": "INCOMING@0",
           "address": "0x23",
-          "kernelDeviceName": "decker_cpld",
-          "pmUnitScopedName": "SMB_CPLD"
+          "kernelDeviceName": "fbg_smbcpld",
+          "pmUnitScopedName": "SMB_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x00",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 8,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "switch_card_pwr_status",
+              "regAddr": "0x05",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: switch card power bad\n1: switch card power good"
+            },
+            {
+              "name": "scd_config_done",
+              "regAddr": "0x0A",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: SCD FPGA configuration not done yet\n1: SCD FPGA configuration done"
+            },
+            {
+              "name": "scd_config",
+              "mode": "rw",
+              "regAddr": "0x0A",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: initiate SCD FPGA re-configuration"
+            },
+            {
+              "name": "scd_hold",
+              "mode": "rw",
+              "regAddr": "0x0A",
+              "bitOffset": 4,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: hold SCD output for SCD hitless update"
+            },
+            {
+              "name": "scd_reset",
+              "mode": "rw",
+              "regAddr": "0x0A",
+              "bitOffset": 5,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: reset SCD"
+            },
+            {
+              "name": "jtag_mux_sel",
+              "mode": "rw",
+              "regAddr": "0x0C",
+              "numBits": 4,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: No connection (default)\n1: JTAG connected to Blackcomb SCD 0\n2: JTAG connected to Blackcomb SCD 1\n3: JTAG connected to Blackcomb SCD 2\n4: JTAG connected to Blackcomb SCD 3\n5: JTAG connected to Oasis CPLD 0\n6: JTAG connected to Oasis CPLD 1\n7: JTAG connected to Oasis CPLD 2\n8: JTAG connected to Ramon ASIC 0\n9: JTAG connected to Ramon ASIC 1"
+            },
+            {
+              "name": "cpld_jtag_sel",
+              "mode": "rw",
+              "regAddr": "0x0C",
+              "bitOffset": 7,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: CPU -> external JTAG selected\n1: CPU -> CPLD JTAG selected, bits[6:0] are ignored"
+            },
+            {
+              "name": "scd0_config_done",
+              "regAddr": "0xA0",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: SCD0 configuration not done yet\n1: SCD0 configuration done"
+            },
+            {
+              "name": "scd0_config",
+              "mode": "rw",
+              "regAddr": "0xA0",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: initiate SCD0 re-configuration"
+            },
+            {
+              "name": "scd1_config_done",
+              "regAddr": "0xA1",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: SCD1 configuration not done yet\n1: SCD1 configuration done"
+            },
+            {
+              "name": "scd1_config",
+              "mode": "rw",
+              "regAddr": "0xA1",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: initiate SCD1 re-configuration"
+            },
+            {
+              "name": "scd2_config_done",
+              "regAddr": "0xA2",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: SCD2 configuration not done yet\n1: SCD2 configuration done"
+            },
+            {
+              "name": "scd2_config",
+              "mode": "rw",
+              "regAddr": "0xA2",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: initiate SCD2 re-configuration"
+            },
+            {
+              "name": "scd3_config_done",
+              "regAddr": "0xA3",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: SCD3 configuration not done yet\n1: SCD3 configuration done"
+            },
+            {
+              "name": "scd3_config",
+              "mode": "rw",
+              "regAddr": "0xA3",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: normal operation. Default\n1: initiate SCD3 re-configuration"
+            },
+            {
+              "name": "idprom_wp",
+              "mode": "rw",
+              "regAddr": "0x22",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: IDPROM write-protect disabled\n1: IDPROM write-protect enabled (default)"
+            }
+          ]
         },
         {
           "busName": "INCOMING@0",
@@ -1618,7 +1779,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 128,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.20-1",
+  "bspKmodsRpmVersion": "0.7.21-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",

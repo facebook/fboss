@@ -67,6 +67,8 @@ long swAgentMemThreshold(facebook::fboss::PlatformType platform) {
     case facebook::fboss::PlatformType::PLATFORM_MORGAN800CC:
       return 5 * 1000 * 1000 * 1000L; // 5GB
     case facebook::fboss::PlatformType::PLATFORM_MERU800BIA:
+    case facebook::fboss::PlatformType::PLATFORM_ICECUBE800BC:
+    case facebook::fboss::PlatformType::PLATFORM_ICECUBE800BANW:
       return 6 * 1000 * 1000 * 1000L; // 6GB
     default:
       return 4 * 1000 * 1000 * 1000L; // 4GB

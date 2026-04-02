@@ -19,6 +19,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <algorithm>
+#include <cerrno>
 #include <cstddef>
 #include <exception>
 #include <filesystem>
@@ -307,6 +309,12 @@ std::string Git::runGitCommand(const std::vector<std::string>& args) const {
             folly::trimWhitespace(result.stderrStr)));
   }
   return folly::trimWhitespace(result.stdoutStr).str();
+}
+
+std::string Git::shortSha1(const std::string& sha1) {
+  // Return first 8 characters for consistency across the CLI
+  // If the string is shorter than 8 characters, return the whole string
+  return sha1.substr(0, std::min(sha1.length(), size_t(8)));
 }
 
 } // namespace facebook::fboss

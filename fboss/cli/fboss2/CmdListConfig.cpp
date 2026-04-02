@@ -89,6 +89,7 @@
 #include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
+#include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionRebase.h"
@@ -691,6 +692,12 @@ const CommandTree& kConfigCommandTree() {
           "session",
           "Manage config session",
           {{
+               "clear",
+               "Clear the current config session",
+               commandHandler<CmdConfigSessionClear>,
+               argTypeHandler<CmdConfigSessionClearTraits>,
+           },
+           {
                "commit",
                "Commit the current config session",
                commandHandler<CmdConfigSessionCommit>,

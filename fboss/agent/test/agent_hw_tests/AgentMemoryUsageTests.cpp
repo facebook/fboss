@@ -21,7 +21,7 @@ class AgentMemoryUsageTest : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    return {};
+    return {ProductionFeature::HW_SWITCH};
   }
 
  protected:

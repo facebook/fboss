@@ -31,6 +31,25 @@ DECLARE_bool(checkOperOwnership);
 DECLARE_bool(enforcePublisherConfig);
 
 namespace facebook::fboss::fsdb {
+
+// Per-publisher-stream runtime state, protected by folly::Synchronized
+// for consistent snapshots. Only the sink consumer coroutine writes;
+// management API reads are infrequent, so contention is negligible.
+struct PublisherStreamState {
+  int64_t connectedAt{0}; // epoch seconds
+  int64_t initialSyncCompletedAt{0}; // epoch ms
+  int64_t lastUpdateReceivedAt{0}; // epoch ms
+  int64_t lastHeartbeatReceivedAt{0}; // epoch ms
+  int64_t lastUpdatePublishedAt{0}; // epoch ms
+  int64_t numUpdatesReceived{0};
+  int64_t receivedDataSize{0};
+};
+
+struct ActivePublisherEntry {
+  OperPublisherInfo info;
+  std::shared_ptr<folly::Synchronized<PublisherStreamState>> streamState;
+};
+
 class ServiceHandler : public FsdbServiceSvIf,
                        public facebook::fb303::FacebookBase2,
                        public apache::thrift::server::TServerEventHandler,
@@ -211,7 +230,7 @@ class ServiceHandler : public FsdbServiceSvIf,
   using ClientKey = std::tuple<std::string, Path, PubSubType, bool>;
   using ActiveSubscriptions =
       std::map<ClientKey, std::vector<OperSubscriberInfo>>;
-  using ActivePublishers = std::map<ClientKey, OperPublisherInfo>;
+  using ActivePublishers = std::map<ClientKey, ActivePublisherEntry>;
 
   ActiveSubscriptions getActiveSubscriptions() const {
     return activeSubscriptions_.copy();
@@ -237,7 +256,9 @@ class ServiceHandler : public FsdbServiceSvIf,
       const OperSubscriberInfo& info,
       bool isConnected,
       bool uniqueSubForClient);
-  void registerPublisher(const OperPublisherInfo& info);
+  void registerPublisher(
+      const OperPublisherInfo& info,
+      std::shared_ptr<folly::Synchronized<PublisherStreamState>> streamState);
   void unregisterPublisher(
       const OperPublisherInfo& info,
       FsdbErrorCode disconnectReason);

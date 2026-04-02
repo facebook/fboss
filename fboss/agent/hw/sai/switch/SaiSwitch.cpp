@@ -12,6 +12,7 @@
 
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LockPolicy.h"
 #include "fboss/agent/Utils.h"
 #include "fboss/agent/ValidateStateUpdate.h"
@@ -1635,7 +1636,8 @@ std::shared_ptr<SwitchState> SaiSwitch::stateChangedImplLocked(
       lockPolicy,
       &SaiSrv6MySidManager::changeMySidEntry,
       &SaiSrv6MySidManager::addMySidEntry,
-      &SaiSrv6MySidManager::removeMySidEntry);
+      &SaiSrv6MySidManager::removeMySidEntry,
+      delta.newState());
 #endif
 
 #if defined(TAJO_SDK_VERSION_1_42_8)
@@ -5511,7 +5513,7 @@ cfg::SwitchingMode SaiSwitch::getFwdSwitchingMode(
     const RouteNextHopEntry& fwd) {
   std::lock_guard<std::mutex> lock(saiSwitchMutex_);
   return managerTable_->nextHopGroupManager().getNextHopGroupSwitchingMode(
-      fwd.normalizedNextHops());
+      getNormalizedNextHops(getProgrammedState(), fwd));
 }
 
 HwSwitchWatermarkStats SaiSwitch::getSwitchWatermarkStats() const {

@@ -68,11 +68,22 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
   for (const auto& swNextHop : swNextHops) {
     // Compute the sai id of the next hop's router interface
-    InterfaceID interfaceId = swNextHop.intf();
+    const InterfaceID interfaceId = swNextHop.intf();
     auto routerInterfaceHandle =
         managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
             interfaceId);
     if (!routerInterfaceHandle) {
+      // For multi-NPU switches, skip next hops whose interface is not on this
+      // ASIC. The route will still be programmed with the remaining next hops
+      // that are local to this ASIC.
+      if (platform_->hasMultipleSwitches()) {
+        XLOG(DBG3)
+            << "Skipping next hop without sai_router_interface for InterfaceID: "
+            << interfaceId
+            << " on switchId: " << platform_->getAsic()->getSwitchId().value();
+        continue;
+      }
+      // For single switch cases, this is an error
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
     resolvedNextHops.emplace_back(folly::poly_cast<ResolvedNextHop>(swNextHop));
@@ -96,6 +107,17 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
     nextHopGroupAdapterHostKey.nhopMemberSet.insert(
         std::make_pair(nhk, swNextHop.weight()));
+  }
+
+  // For multi-NPU switches, if all next hops were filtered out (none have
+  // router interfaces on this ASIC), we should not create an empty group.
+  // Return the existing handle which will be empty/null.
+  if (nextHopGroupAdapterHostKey.nhopMemberSet.empty() &&
+      platform_->hasMultipleSwitches()) {
+    XLOG(DBG3) << "All next hops filtered out on switchId: "
+               << platform_->getAsic()->getSwitchId().value()
+               << ", not creating empty next hop group";
+    return nextHopGroupHandle;
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)

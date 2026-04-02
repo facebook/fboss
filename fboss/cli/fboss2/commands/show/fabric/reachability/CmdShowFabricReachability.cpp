@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/CmdShowFabricReachability.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -67,4 +68,11 @@ void CmdShowFabricReachability::printOutput(
   }
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFabricReachability, CmdShowFabricReachabilityTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricReachability,
+    CmdShowFabricReachabilityTraits>::getValidFilters();
 } // namespace facebook::fboss

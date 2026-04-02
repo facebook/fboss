@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -333,5 +334,10 @@ Table::StyledCell CmdShowInterface::colorStatusCell(const std::string& status) {
   }
   return Table::StyledCell(status, cellStyle);
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowInterface, CmdShowInterfaceTraits>::getValidFilters();
 
 } // namespace facebook::fboss

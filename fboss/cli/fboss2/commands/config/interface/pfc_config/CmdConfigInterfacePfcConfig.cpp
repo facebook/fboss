@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include <folly/Conv.h>
 #include <folly/String.h>
@@ -181,5 +183,10 @@ CmdConfigInterfacePfcConfig::queryClient(
 void CmdConfigInterfacePfcConfig::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigInterfacePfcConfig,
+    CmdConfigInterfacePfcConfigTraits>::run();
 
 } // namespace facebook::fboss

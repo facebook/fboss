@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include <fb303/ServiceData.h>
 #include "fboss/agent/DsfSubscriber.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/SwitchStats.h"
@@ -221,4 +222,17 @@ TEST_F(SwitchStatsObserverTest, remoteInterfaceCounters) {
   EXPECT_EQ(counters.value(remoteNdpCounter), 0);
   EXPECT_EQ(counters.value(remoteArpCounter), 0);
 }
+TEST_F(SwitchStatsObserverTest, ribRouteProgrammingTimeUs) {
+  sw_->stats()->ribRouteProgrammingTimeUs(std::chrono::microseconds(5000));
+  fb303::ServiceData::get()->flushAllData();
+
+  std::map<std::string, int64_t> counters;
+  fb303::fbData->getCounters(counters);
+
+  auto counterName =
+      SwitchStats::kCounterPrefix + "rib_route_programming_time.us.p100";
+  ASSERT_TRUE(counters.count(counterName));
+  EXPECT_EQ(counters[counterName], 5000);
+}
+
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigRunningAgent.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <folly/json/json.h>
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -35,5 +36,9 @@ void CmdShowConfigRunningAgent::printOutput(
     std::ostream& out) {
   out << folly::toPrettyJson(agentConfig) << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowConfigRunningAgent, CmdShowConfigDynamicTraits>::run();
 
 } // namespace facebook::fboss

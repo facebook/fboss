@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/AddressUtil.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -13,6 +14,8 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+
+DECLARE_bool(enable_nexthop_id_manager);
 
 using namespace facebook::fboss;
 
@@ -51,6 +54,22 @@ MySidEntry makeMySidEntry(
       facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
   prefix.prefixLength() = len;
   entry.mySid() = prefix;
+  return entry;
+}
+
+MySidEntry makeMySidEntryWithNextHops(
+    const std::string& addr,
+    uint8_t len,
+    const std::vector<std::string>& nextHopAddrs) {
+  MySidEntry entry = makeMySidEntry(addr, len, MySidType::NODE_MICRO_SID);
+  std::vector<NextHopThrift> nextHops;
+  for (const auto& nhAddr : nextHopAddrs) {
+    NextHopThrift nh;
+    nh.address() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6(nhAddr));
+    nextHops.push_back(std::move(nh));
+  }
+  entry.nextHops() = std::move(nextHops);
   return entry;
 }
 
@@ -148,8 +167,8 @@ std::shared_ptr<MySid> makeMySid(
   thriftPrefix.prefixLength() = prefix.second;
   fields.mySid() = thriftPrefix;
   auto mySid = std::make_shared<MySid>(fields);
-  mySid->setUnresolvedNextHop(std::nullopt);
-  mySid->setResolvedNextHop(std::nullopt);
+  mySid->setUnresolveNextHopsId(std::nullopt);
+  mySid->setResolvedNextHopsId(std::nullopt);
   return mySid;
 }
 
@@ -677,4 +696,262 @@ TEST(RibMySidUpdate, emptyUpdate) {
   EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
   // switchState should not change on empty update
   EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+}
+
+class RibMySidNextHopTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    rib_ = std::make_unique<RoutingInformationBase>();
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+    rib_->ensureVrf(kRid);
+  }
+
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+
+  std::unique_ptr<RoutingInformationBase> rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibMySidNextHopTest, newEntryWithNextHopsAllocatesNextHopSetId) {
+  // Adding a MySid entry with next hops should allocate a NextHopSetID.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto mySidTable = rib_->getMySidTableCopy();
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  EXPECT_TRUE(mySidTable.at(prefix).unresolveNextHopsId().has_value());
+}
+
+TEST_F(RibMySidNextHopTest, replaceMySidWithSameNextHopsReusesNextHopSetId) {
+  // Replacing a MySid entry with identical next hops should reuse the same ID.
+  const std::vector<std::string> nextHops = {"2001:db8::1"};
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, nextHops)},
+      {},
+      "add mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto tableAfterFirst = rib_->getMySidTableCopy();
+  const auto idAfterFirstAdd =
+      tableAfterFirst.at(makeSidPrefix("fc00:100::1", 48))
+          .unresolveNextHopsId();
+  ASSERT_TRUE(idAfterFirstAdd.has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, nextHops)},
+      {},
+      "re-add mysid same nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto tableAfterSecond = rib_->getMySidTableCopy();
+  const auto idAfterSecondAdd =
+      tableAfterSecond.at(makeSidPrefix("fc00:100::1", 48))
+          .unresolveNextHopsId();
+  EXPECT_EQ(idAfterFirstAdd, idAfterSecondAdd);
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    replaceMySidWithDifferentNextHopsUpdatesNextHopSetId) {
+  // Replacing a MySid entry with different next hops should allocate a new ID.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto tableAfterFirst = rib_->getMySidTableCopy();
+  const auto idAfterFirstAdd =
+      tableAfterFirst.at(makeSidPrefix("fc00:100::1", 48))
+          .unresolveNextHopsId();
+  ASSERT_TRUE(idAfterFirstAdd.has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops(
+          "fc00:100::1", 48, {"2001:db8::3", "2001:db8::4"})},
+      {},
+      "re-add mysid different nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto tableAfterSecond = rib_->getMySidTableCopy();
+  const auto idAfterSecondAdd =
+      tableAfterSecond.at(makeSidPrefix("fc00:100::1", 48))
+          .unresolveNextHopsId();
+  ASSERT_TRUE(idAfterSecondAdd.has_value());
+  EXPECT_NE(idAfterFirstAdd, idAfterSecondAdd);
+}
+
+TEST_F(RibMySidNextHopTest, replaceMySidWithNoNextHopsClearsNextHopSetId) {
+  // Replacing a MySid entry with an entry that has no next hops should clear
+  // unresolveNextHopsId and release the old ID without crash.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48, MySidType::DECAPSULATE_AND_LOOKUP)},
+      {},
+      "replace mysid with no nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+}
+
+TEST_F(RibMySidNextHopTest, deleteMySidWithNextHopsReleasesNextHopSetId) {
+  // Deleting a MySid entry that has next hops should release the ID.
+  // Verified by re-adding the same entry after deletion — no crash expected.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {},
+      {toIpPrefix("fc00:100::1", 48)},
+      "delete mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_EQ(rib_->getMySidTableCopy().count(prefix), 0);
+
+  // Re-add after delete should succeed and allocate a fresh ID.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "re-add mysid after delete",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    updateFibFailureRestoresMySidTableAndNextHopIdManager) {
+  // Add entry A with nexthops — succeeds, allocates ID_A in the manager
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid A",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefixA = makeSidPrefix("fc00:100::1", 48);
+
+  // Fail adding entry B — FailMySidUpdate uses the current switchState_ (with
+  // A) as the applied state, so rollback should restore to A-only state
+  FailMySidUpdate failUpdate;
+  EXPECT_THROW(
+      rib_->update(
+          scopeResolver(),
+          {makeMySidEntryWithNextHops("fc00:200::1", 64, {"2001:db8::2"})},
+          {},
+          "fail adding mysid B",
+          failUpdate,
+          &switchState_),
+      FbossHwUpdateError);
+
+  // mySidTable should be restored to only contain A
+  const auto mySidTable = rib_->getMySidTableCopy();
+  EXPECT_EQ(mySidTable.size(), 1);
+  EXPECT_NE(mySidTable.find(prefixA), mySidTable.end());
+
+  // A subsequent successful add of B confirms the manager fully recovered
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:200::1", 64, {"2001:db8::2"})},
+      {},
+      "add mysid B after recovery",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefixB = makeSidPrefix("fc00:200::1", 64);
+  const auto tableAfter = rib_->getMySidTableCopy();
+  EXPECT_EQ(tableAfter.size(), 2);
+  const auto idBOpt = tableAfter.at(prefixB).unresolveNextHopsId();
+  EXPECT_TRUE(idBOpt.has_value());
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    replaceNextHopsDecrementsOldAndIncrementsNewRefCount) {
+  // Replacing next hops on a MySid entry should:
+  // 1. Deallocate the old NextHopSetID (getNextHopsIf returns nullopt)
+  // 2. Keep the new NextHopSetID alive (getNextHopsIf returns non-null)
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops(
+          "fc00:100::1", 48, {"2001:db8::1", "2001:db8::2"})},
+      {},
+      "add mysid with nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto tableAfterFirst = rib_->getMySidTableCopy();
+  const auto oldIdOpt = tableAfterFirst.at(makeSidPrefix("fc00:100::1", 48))
+                            .unresolveNextHopsId();
+  ASSERT_TRUE(oldIdOpt.has_value());
+  const auto oldId = NextHopSetID(*oldIdOpt);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops(
+          "fc00:100::1", 48, {"2001:db8::3", "2001:db8::4"})},
+      {},
+      "replace mysid with different nexthops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto tableAfterSecond = rib_->getMySidTableCopy();
+  const auto newIdOpt = tableAfterSecond.at(makeSidPrefix("fc00:100::1", 48))
+                            .unresolveNextHopsId();
+  ASSERT_TRUE(newIdOpt.has_value());
+  const auto newId = NextHopSetID(*newIdOpt);
+
+  const auto* manager = rib_->getNextHopIDManager();
+  ASSERT_NE(manager, nullptr);
+  // Old next hop set should have been deallocated (refcount dropped to 0)
+  EXPECT_FALSE(manager->getNextHopsIf(oldId).has_value());
+  // New next hop set should still be allocated
+  EXPECT_TRUE(manager->getNextHopsIf(newId).has_value());
 }

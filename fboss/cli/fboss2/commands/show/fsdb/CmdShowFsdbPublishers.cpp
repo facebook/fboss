@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <folly/coro/BlockingWait.h>
 #include <unistd.h>
@@ -56,5 +57,9 @@ void CmdShowFsdbPublishers::printOutput(
   }
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFsdbPublishers, CmdShowFsdbPublisherTraits>::run();
 
 } // namespace facebook::fboss

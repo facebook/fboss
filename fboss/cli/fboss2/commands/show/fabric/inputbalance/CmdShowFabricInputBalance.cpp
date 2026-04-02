@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fabric/inputbalance/CmdShowFabricInputBalance.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -277,4 +278,10 @@ CmdShowFabricInputBalance::getNeighborReachability(
   return neighborReachability;
 }
 
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFabricInputBalance, CmdShowFabricInputBalanceTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricInputBalance,
+    CmdShowFabricInputBalanceTraits>::getValidFilters();
 } // namespace facebook::fboss

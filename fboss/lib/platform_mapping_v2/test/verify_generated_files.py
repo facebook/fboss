@@ -45,6 +45,9 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "icecube800bc",
             "icetea800bc",
             "tahansb800bc",
+            "tahansb800bc_rack",
+            "tahansb800bc_test_fixture",
+            "tahansb800bc_link_training",
             "wedge800bact",
             "wedge800cact",
             "blackwolf800banw",
@@ -56,6 +59,8 @@ class TestVerifyPlatformMappingGeneratedFiles(unittest.TestCase):
             "janga800bic_dctypef_prod",
             "janga800bic_dctypef_test_fixture",
             "ladakh800bcls",
+            "ladakh800bcls_rack",
+            "ladakh800bcls_test_fixture",
         ],
     }
     _FBCODE_GENERATED_DIR: str = (

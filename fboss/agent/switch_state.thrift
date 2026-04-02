@@ -610,8 +610,8 @@ struct MySidFields {
   # MySid entry in ip/mask format. 32 bits of this are
   # locator block len and 32-maskLen are sid bits
   2: Address.IPPrefix mySid;
-  3: optional RouteNextHopEntry unresolveNextHop;
-  4: optional RouteNextHopEntry resolvedNextHop;
+  3: optional i64 unresolveNextHopsId;
+  4: optional i64 resolvedNextHopsId;
 }
 
 struct QosPolicyFields {

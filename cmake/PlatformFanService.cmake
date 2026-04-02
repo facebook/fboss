@@ -109,3 +109,20 @@ target_link_libraries(fan_service_hw_test
 )
 
 install(TARGETS fan_service_hw_test)
+
+add_executable(fan_service_integration_test
+  fboss/platform/fan_service/hw_test/integration_tests/FanSensorFsdbIntegrationTests.cpp
+)
+
+target_link_libraries(fan_service_integration_test
+  fan_service_lib
+  platform_config_lib
+  platform_utils
+  common_utils
+  fb303::fb303
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+install(TARGETS fan_service_integration_test)

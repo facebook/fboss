@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowAggregatePort.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <unordered_set>
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -105,5 +106,11 @@ RetType CmdShowAggregatePort::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowAggregatePort, CmdShowAggregatePortTraits>::getValidFilters();
 
 } // namespace facebook::fboss

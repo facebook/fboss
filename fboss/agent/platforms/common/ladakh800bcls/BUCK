@@ -9,8 +9,12 @@ cpp_library(
     ],
     headers = [
         "Ladakh800bclsPlatformMapping.h",
+        "Ladakh800bclsProdPlatformMapping.h",
+        "Ladakh800bclsTestPlatformMapping.h",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//folly/logging:logging",
     ],
 )

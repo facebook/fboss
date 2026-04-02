@@ -270,6 +270,10 @@ class SwitchStats : public boost::noncopyable {
     updateState_.addValue(us.count());
   }
 
+  void ribRouteProgrammingTimeUs(std::chrono::microseconds us) {
+    ribRouteProgrammingTimeUs_.addValue(us.count());
+  }
+
   void bgHeartbeatDelay(int delay) {
     bgHeartbeatDelay_.addValue(delay);
   }
@@ -963,6 +967,11 @@ class SwitchStats : public boost::noncopyable {
    * Histogram for time used for SwSwitch::updateState() (in microsecond)
    */
   fb303::detail::QuantileStatWrapper updateState_;
+
+  /**
+   * Histogram for RIB route programming time (in microseconds)
+   */
+  fb303::detail::QuantileStatWrapper ribRouteProgrammingTimeUs_;
 
   /**
    * Histogram for time used for thrift request completion time (milliseconds)

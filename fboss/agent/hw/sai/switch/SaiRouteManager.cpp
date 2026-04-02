@@ -308,22 +308,41 @@ void SaiRouteManager::addOrUpdateRoute(
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               SaiNextHopGroupKey(
-                  fwd.normalizedNextHops(),
+                  getNormalizedNextHops(state, fwd),
                   fwd.getOverrideEcmpSwitchingMode()));
-      NextHopGroupSaiId nextHopGroupId{
-          nextHopGroupHandle->nextHopGroup->adapterKey()};
+
+      // For multi-NPU switches, if all next hops were filtered out (none have
+      // router interfaces on this ASIC), the nextHopGroup will be null.
+      // Set the route to DROP in this case.
+      if (!nextHopGroupHandle->nextHopGroup &&
+          platform_->hasMultipleSwitches()) {
+        packetAction = SAI_PACKET_ACTION_DROP;
+        XLOG(DBG3) << "All next hops filtered out on switchId: "
+                   << platform_->getAsic()->getSwitchId().value()
+                   << ", setting route to DROP: " << newRoute->str();
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+#else
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata};
+#endif
+      } else {
+        NextHopGroupSaiId nextHopGroupId{
+            nextHopGroupHandle->nextHopGroup->adapterKey()};
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, nextHopGroupId, metadata, counterID};
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, nextHopGroupId, metadata, counterID};
 #else
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, nextHopGroupId, metadata};
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, nextHopGroupId, metadata};
 #endif
-      nextHopHandle = nextHopGroupHandle;
+        nextHopHandle = nextHopGroupHandle;
 
-      XLOG(DBG3) << "Route nhops > 1: " << newRoute->str()
-                 << " nextHopGroupId: " << nextHopGroupId;
+        XLOG(DBG3) << "Route nhops > 1: " << newRoute->str()
+                   << " nextHopGroupId: " << nextHopGroupId;
+      }
     } else {
       CHECK_EQ(nhops.size(), 1);
       /* A route which has only one next hop, create a subscriber for next hop

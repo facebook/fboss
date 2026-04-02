@@ -76,7 +76,19 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
   void verifyL2EntryValidated(PortID txPort, MacAddress srcMac) {
     // send packets whose src mac matches L2 entry and verify no drops,
     // if L2 entry is in pending state, these packets would be dropped
-    auto ecmpPorts = getSingleVlanOrRoutedCabledPorts();
+    // Only use ports on the same switch as txPort for ECMP group
+    auto txPortSwitchId = getSw()->getScopeResolver()->scope(txPort).switchId();
+    auto ecmpPorts = getSingleVlanOrRoutedCabledPorts(txPortSwitchId);
+    XLOG(DBG2) << "Verify L2Entry ecmpPorts.size()=" << ecmpPorts.size()
+               << " on switchId=" << txPortSwitchId << " (txPort=" << txPort
+               << ", srcMac=" << srcMac << ")";
+
+    if (ecmpPorts.empty()) {
+      FAIL() << "verifyL2EntryValidated: No ECMP ports found on the same "
+             << "switch as txPort " << txPort << " (switchId=" << txPortSwitchId
+             << "). Cannot verify L2 entry.";
+    }
+
     auto switchId = scope(ecmpPorts);
     utility::EcmpSetupTargetedPorts6 ecmp6(
         getSw()->getState(),
@@ -92,8 +104,8 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
       programDefaultRoute(ecmpPorts, ecmp6);
       utility::disableTTLDecrements(getSw(), ecmpPorts);
     }
-    // wait long enough for all L2 entries learned/validated, port stats updated
-    // sleep override
+    // wait long enough for all L2 entries learned/validated, port stats
+    // updated sleep override
     sleep(5);
     // get discards before pump traffic
     std::map<std::string, HwPortStats> portStats;

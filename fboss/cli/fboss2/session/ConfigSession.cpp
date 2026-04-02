@@ -326,6 +326,19 @@ void ConfigSession::setInstance(std::unique_ptr<ConfigSession> newInstance) {
   getInstancePtr() = std::move(newInstance);
 }
 
+// Static path getters - can be called without creating a session instance
+std::string ConfigSession::getSessionDir() {
+  return getHomeDirectory() + "/.fboss2";
+}
+
+std::string ConfigSession::getSessionConfigPathStatic() {
+  return getSessionDir() + "/agent.conf";
+}
+
+std::string ConfigSession::getSessionMetadataPathStatic() {
+  return getSessionDir() + "/cli_metadata.json";
+}
+
 std::string ConfigSession::getSessionConfigPath() const {
   return sessionConfigDir_ + "/agent.conf";
 }
@@ -803,6 +816,12 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
         "No config session exists. Make a config change first.");
   }
 
+  if (commands_.empty()) {
+    // Config session is clean, nothing to commit.
+    // Return an empty CommitResult to signal no action was taken.
+    return CommitResult{"", {}};
+  }
+
   // Check if someone else committed changes while this session was in progress
   std::string currentHead = git_->getHead();
   if (!base_.empty() && currentHead != base_) {
@@ -813,8 +832,8 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
             "current HEAD is {}. Run 'config session rebase' to rebase your "
             "changes onto the current configuration, or discard your session "
             "and start over.",
-            base_.substr(0, 7),
-            currentHead.substr(0, 7)));
+            Git::shortSha1(base_),
+            Git::shortSha1(currentHead)));
   }
 
   std::string cliConfigDir = getCliConfigDir();
@@ -891,7 +910,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
         commitMessage,
         username_,
         "");
-    LOG(INFO) << "Config committed as " << commitSha.substr(0, 8);
+    LOG(INFO) << "Config committed as " << Git::shortSha1(commitSha);
   } catch (const std::exception& ex) {
     // Rollback: restore the old config, then re-apply actions
     // on the old config so services pick up the previous configuration
@@ -1073,13 +1092,13 @@ std::string ConfigSession::rollback(
 
     // Create a Git commit for the rollback with all relevant files
     std::string commitMessage = fmt::format(
-        "Rollback to {} by {}", resolvedSha.substr(0, 8), username_);
+        "Rollback to {} by {}", Git::shortSha1(resolvedSha), username_);
     newCommitSha = git_->commit(
         {cliConfigPath, metadataPath, systemConfigPath},
         commitMessage,
         username_,
         "");
-    LOG(INFO) << "Rollback committed as " << newCommitSha.substr(0, 8);
+    LOG(INFO) << "Rollback committed as " << Git::shortSha1(newCommitSha);
   } catch (const std::exception& ex) {
     // Rollback: restore the old config and metadata
     try {
@@ -1103,6 +1122,37 @@ std::string ConfigSession::rollback(
         fmt::format(
             "Failed to reload config, config was restored automatically: {}",
             ex.what()));
+  }
+
+  // Update the session state after rollback
+  // Check if the current session is clean (no pending changes)
+  if (commands_.empty()) {
+    // Session is clean - update base to the new rollback commit and sync the
+    // session config to match the rolled-back configuration
+    base_ = newCommitSha;
+
+    // Copy the rolled-back config to the session config
+    folly::writeFileAtomic(
+        getSessionConfigPath(),
+        targetConfigData,
+        0644,
+        folly::SyncType::WITH_SYNC);
+
+    // Save the updated metadata (with new base)
+    saveMetadata();
+
+    // Force config reload from session config on next access
+    configLoaded_ = false;
+
+    LOG(INFO) << "Session updated to rollback commit "
+              << Git::shortSha1(newCommitSha);
+  } else {
+    // Session has pending changes - warn that it needs to be rebased
+    LOG(WARNING) << fmt::format(
+        "Current session contains {} pending change(s) and needs to be rebased. "
+        "Run 'fboss2-dev config session rebase' or 'fboss2-dev config session clear' "
+        "before making new changes.",
+        commands_.size());
   }
 
   return newCommitSha;

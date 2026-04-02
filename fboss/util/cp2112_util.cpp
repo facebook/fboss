@@ -117,7 +117,7 @@ long parseInt(StringPiece str, StringPiece name, long min, long max) {
   return value;
 }
 
-typedef int (*CommandFn)(CP2112*, const std::vector<StringPiece>& args);
+using CommandFn = int (*)(CP2112*, const std::vector<StringPiece>&);
 
 int cmdVersion(CP2112* dev, const vector<StringPiece>& args) {
   if (!args.empty()) {

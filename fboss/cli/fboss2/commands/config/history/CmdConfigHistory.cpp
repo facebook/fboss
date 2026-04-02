@@ -9,9 +9,18 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
+#include <cstdint>
 #include <ctime>
+#include <iostream>
+#include <ostream>
 #include <sstream>
+#include <string>
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/Table.h"
 
 namespace facebook::fboss {
@@ -47,10 +56,8 @@ CmdConfigHistoryTraits::RetType CmdConfigHistory::queryClient(
   table.setHeader({"Commit", "Author", "Commit Time", "Message"});
 
   for (const auto& commit : commits) {
-    // Use short SHA1 (first 8 characters)
-    std::string shortSha = commit.sha1.substr(0, 8);
     table.addRow(
-        {shortSha,
+        {Git::shortSha1(commit.sha1),
          commit.authorName,
          formatTime(commit.timestamp),
          commit.subject});
@@ -65,5 +72,8 @@ CmdConfigHistoryTraits::RetType CmdConfigHistory::queryClient(
 void CmdConfigHistory::printOutput(const RetType& tableOutput) {
   std::cout << tableOutput << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdConfigHistory, CmdConfigHistoryTraits>::run();
 
 } // namespace facebook::fboss

@@ -220,6 +220,12 @@ class AgentHwTest : public ::testing::Test {
     });
   }
   template <typename EcmpHelperT>
+  void unresolveNeighbors(const EcmpHelperT& ecmp, int width) {
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.unresolveNextHops(in, width);
+    });
+  }
+  template <typename EcmpHelperT>
   void unprogramRoutes(const EcmpHelperT& ecmp) {
     auto wrapper = getSw()->getRouteUpdater();
     ecmp.unprogramRoutes(&wrapper);

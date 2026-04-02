@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowMacDetails.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <cstdint>
@@ -92,5 +93,8 @@ RetType CmdShowMacDetails::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowMacDetails, CmdShowMacDetailsTraits>::run();
 
 } // namespace facebook::fboss

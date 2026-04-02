@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/format.h>
 #include <folly/String.h>
 #include <vector>
@@ -26,6 +28,11 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
   }
 
   auto result = session.commit(hostInfo);
+
+  // Check if this was an empty commit (no changes to commit)
+  if (result.commitSha.empty()) {
+    return "Nothing to commit. Config session is clean.";
+  }
 
   // Categorize services by action type
   std::vector<std::string> restartedServices;
@@ -76,5 +83,9 @@ CmdConfigSessionCommitTraits::RetType CmdConfigSessionCommit::queryClient(
 void CmdConfigSessionCommit::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigSessionCommit, CmdConfigSessionCommitTraits>::run();
 
 } // namespace facebook::fboss

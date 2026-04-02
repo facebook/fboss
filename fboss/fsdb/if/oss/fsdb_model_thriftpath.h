@@ -6581,8 +6581,8 @@ class ChildThriftPath<::facebook::fboss::state::MySidFields, ::facebook::fboss::
   >;
   using Children = thriftpath::TypeMap<std::pair<apache::thrift::ident::type, Child<::facebook::fboss::MySidType, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::MySidType>>>,
 std::pair<apache::thrift::ident::mySid, ChildThriftPath<::facebook::network::thrift::IPPrefix, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::unresolveNextHop, ChildThriftPath<::facebook::fboss::state::RouteNextHopEntry, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::resolvedNextHop, ChildThriftPath<::facebook::fboss::state::RouteNextHopEntry, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::unresolveNextHopsId, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::resolvedNextHopsId, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -6590,15 +6590,15 @@ std::pair<apache::thrift::ident::resolvedNextHop, ChildThriftPath<::facebook::fb
   
     STRUCT_CHILD_GETTERS(type, 1);
     STRUCT_CHILD_GETTERS(mySid, 2);
-    STRUCT_CHILD_GETTERS(unresolveNextHop, 3);
-    STRUCT_CHILD_GETTERS(resolvedNextHop, 4);
+    STRUCT_CHILD_GETTERS(unresolveNextHopsId, 3);
+    STRUCT_CHILD_GETTERS(resolvedNextHopsId, 4);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
     if constexpr (__id == apache::thrift::FieldId{1}) { return type(); }
     else if constexpr (__id == apache::thrift::FieldId{2}) { return mySid(); }
-    else if constexpr (__id == apache::thrift::FieldId{3}) { return unresolveNextHop(); }
-    else if constexpr (__id == apache::thrift::FieldId{4}) { return resolvedNextHop(); }
+    else if constexpr (__id == apache::thrift::FieldId{3}) { return unresolveNextHopsId(); }
+    else if constexpr (__id == apache::thrift::FieldId{4}) { return resolvedNextHopsId(); }
   }
 };
 

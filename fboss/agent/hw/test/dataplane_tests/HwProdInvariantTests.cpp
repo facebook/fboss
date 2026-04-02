@@ -107,7 +107,7 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         false /* Strict priority disabled */);
     return config;
@@ -141,7 +141,7 @@ class HwProdInvariantsRswStrictPriorityTest : public HwProdInvariantsRswTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         true /* Strict priority enabled */);
     return config;
@@ -158,7 +158,7 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdFswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         false /* Strict priority disabled */);
     return config;
@@ -208,7 +208,9 @@ class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswMhnicConfig(
-        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
+        getHwSwitch(),
+        masterLogicalInterfacePortIds(),
+        getHwSwitchEnsemble()->isSai());
     return config;
   }
 

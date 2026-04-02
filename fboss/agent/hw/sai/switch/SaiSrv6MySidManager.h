@@ -19,6 +19,7 @@ class SaiManagerTable;
 class SaiPlatform;
 class SaiStore;
 class SaiSrv6MySidManager;
+class SwitchState;
 struct SaiNextHopGroupHandle;
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -68,11 +69,16 @@ class SaiSrv6MySidManager {
       SaiPlatform* platform);
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  void addMySidEntry(const std::shared_ptr<MySid>& mySid);
-  void removeMySidEntry(const std::shared_ptr<MySid>& mySid);
+  void addMySidEntry(
+      const std::shared_ptr<MySid>& mySid,
+      const std::shared_ptr<SwitchState>& state);
+  void removeMySidEntry(
+      const std::shared_ptr<MySid>& mySid,
+      const std::shared_ptr<SwitchState>& state);
   void changeMySidEntry(
       const std::shared_ptr<MySid>& oldMySid,
-      const std::shared_ptr<MySid>& newMySid);
+      const std::shared_ptr<MySid>& newMySid,
+      const std::shared_ptr<SwitchState>& state);
 
   std::shared_ptr<SaiObject<SaiMySidEntryTraits>> getMySidObject(
       const SaiMySidEntryTraits::AdapterHostKey& key);

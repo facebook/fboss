@@ -79,7 +79,7 @@ SaiNextHopTraits::AdapterHostKey SaiNextHopManager::getAdapterHostKey(
         << "sidListId must be provided for next hop with non-empty srv6SegmentList";
     auto sidListSaiId = sidListId.value();
     return SaiSrv6SidlistNextHopTraits::AdapterHostKey{
-        rifId, ip, tunnelSaiId, sidListSaiId};
+        tunnelSaiId, sidListSaiId};
   }
 #endif
 
@@ -207,11 +207,17 @@ ManagedSaiNextHop SaiNextHopManager::addManagedSaiNextHop(
     auto underlayNextHop =
         addManagedSaiNextHop(getSrv6UnderlayNextHop(swNextHop));
     CHECK(std::get<std::shared_ptr<ManagedIpNextHop>>(underlayNextHop));
+    auto interfaceId = swNextHop.intfID().value();
+    auto routerInterfaceHandle =
+        managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
+            interfaceId);
+    CHECK(routerInterfaceHandle)
+        << "Missing SAI router interface for " << interfaceId;
+    auto rifId = routerInterfaceHandle->adapterKey();
     auto [entry, emplaced] = managedSrv6NextHops_.refOrEmplace(
         *srv6NextHopKey,
         this,
-        SaiNeighborTraits::NeighborEntry{
-            switchId, std::get<0>(*srv6NextHopKey).value(), ip},
+        SaiNeighborTraits::NeighborEntry{switchId, rifId, ip},
         *srv6NextHopKey,
         swNextHop.disableTTLDecrement());
 
@@ -314,8 +320,6 @@ void ManagedNextHop<NextHopTraits>::createObject(PublishedObjects added) {
     object = manager_->createSaiObject<NextHopTraits>(
         key_,
         {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST,
-         std::get<typename NextHopTraits::Attributes::RouterInterfaceId>(key_),
-         std::get<typename NextHopTraits::Attributes::Ip>(key_),
          std::get<typename NextHopTraits::Attributes::TunnelId>(key_),
          std::get<typename NextHopTraits::Attributes::Srv6SidlistId>(key_),
          std::nullopt});
@@ -362,10 +366,6 @@ std::string ManagedNextHop<NextHopTraits>::toString() const {
     return folly::to<std::string>(
         this->getObject() ? "active " : "inactive ",
         "managed srv6 nexthop: "
-        "ip: ",
-        GET_ATTR(Srv6SidlistNextHop, Ip, adapterHostKey()).str(),
-        " routerInterfaceId:",
-        GET_ATTR(Srv6SidlistNextHop, RouterInterfaceId, adapterHostKey()),
         " tunnelId:",
         GET_ATTR(Srv6SidlistNextHop, TunnelId, adapterHostKey()),
         " srv6SidlistId:",

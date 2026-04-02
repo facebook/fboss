@@ -5,7 +5,6 @@
 #include <common/network/if/gen-cpp2/Address_types.h>
 #include "fboss/agent/gen-cpp2/switch_state_types.h"
 #include "fboss/agent/state/NodeBase.h"
-#include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
@@ -41,39 +40,39 @@ class MySid : public ThriftStructNode<MySid, state::MySidFields> {
     return std::make_pair(ip, static_cast<uint8_t>(len));
   }
 
-  const RouteNextHopEntry* getResolvedNextHop() const {
-    if (auto nhop = safe_cref<switch_state_tags::resolvedNextHop>()) {
-      return &(*nhop);
+  std::optional<NextHopSetID> getResolvedNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::resolvedNextHopsId>()) {
+      return NextHopSetID(id->cref());
     }
-    return nullptr;
+    return std::nullopt;
   }
 
-  void setResolvedNextHop(const std::optional<RouteNextHopEntry>& nhop) {
-    if (nhop) {
-      set<switch_state_tags::resolvedNextHop>(nhop->toThrift());
+  void setResolvedNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::resolvedNextHopsId>(static_cast<int64_t>(*id));
     } else {
-      ref<switch_state_tags::resolvedNextHop>().reset();
+      ref<switch_state_tags::resolvedNextHopsId>().reset();
     }
   }
 
-  const RouteNextHopEntry* getUnresolvedNextHop() const {
-    if (auto nhop = safe_cref<switch_state_tags::unresolveNextHop>()) {
-      return &(*nhop);
+  std::optional<NextHopSetID> getUnresolveNextHopsId() const {
+    if (auto id = safe_cref<switch_state_tags::unresolveNextHopsId>()) {
+      return NextHopSetID(id->cref());
     }
-    return nullptr;
+    return std::nullopt;
   }
 
-  void setUnresolvedNextHop(const std::optional<RouteNextHopEntry>& nhop) {
-    if (nhop) {
-      set<switch_state_tags::unresolveNextHop>(nhop->toThrift());
+  void setUnresolveNextHopsId(std::optional<NextHopSetID> id) {
+    if (id) {
+      set<switch_state_tags::unresolveNextHopsId>(static_cast<int64_t>(*id));
     } else {
-      ref<switch_state_tags::unresolveNextHop>().reset();
+      ref<switch_state_tags::unresolveNextHopsId>().reset();
     }
   }
 
   bool resolved() const {
     return getType() == MySidType::DECAPSULATE_AND_LOOKUP ||
-        getResolvedNextHop() != nullptr;
+        getResolvedNextHopsId().has_value();
   }
 
  private:
