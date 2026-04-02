@@ -177,7 +177,7 @@ class AgentWatermarkTest : public AgentHwTest {
     bool watermarkAsExpected = false;
     WITH_RETRIES({
       auto switchWatermarkStats = getAllSwitchWatermarkStats();
-      if (switchWatermarkStats.find(switchId) == switchWatermarkStats.end()) {
+      if (!switchWatermarkStats.contains(switchId)) {
         continue;
       }
       auto deviceWatermarkBytes =
