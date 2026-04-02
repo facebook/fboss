@@ -588,16 +588,29 @@ class TestRunner(abc.ABC):
                 flush=True,
             )
 
+            start_time = time.time()
             run_test_output = subprocess.check_output(
                 test_run_cmd,
                 timeout=test_run_timeout_in_second,
                 env=self.ENV_VAR,
             )
+            elapsed_ms = int((time.time() - start_time) * 1000)
 
             # Add test prefix to test name in the result
             run_test_result = self._add_test_prefix_to_gtest_result(
                 run_test_output, test_prefix
             )
+            # If no gtest result line found (e.g. --setup-for-warmboot
+            # causes early exit), use return code to synthesize result
+            if run_test_result == run_test_output:
+                run_test_result = (
+                    "[       OK ] "
+                    + test_prefix
+                    + test_to_run
+                    + " ("
+                    + str(elapsed_ms)
+                    + " ms)"
+                ).encode("utf-8")
         except subprocess.TimeoutExpired as e:
             # Test timed out, mark it as TIMEOUT
             print("Test timeout!", flush=True)
