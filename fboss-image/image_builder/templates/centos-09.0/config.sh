@@ -434,4 +434,9 @@ if [ "$JQ_INSTALLED" = true ]; then
   dnf remove -y jq
 fi
 
+# Make all yum repos optional. The network is not available in all deployments or early in boot. The CentOS default is
+# to fail out if any RPM repo is not available, but that can cause platform_manager to fail to install the BSP RPM and
+# thus fail booting.
+sed -i 's/skip_if_unavailable=False/skip_if_unavailable=True/' /etc/dnf/dnf.conf
+
 exit 0
