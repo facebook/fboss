@@ -12,8 +12,6 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/state/SwitchState.h"
 
-#include <folly/logging/xlog.h>
-
 namespace facebook::fboss {
 
 int getLocalPortNumVoqs(cfg::PortType portType, cfg::Scope portScope) {
@@ -59,8 +57,6 @@ void processRemoteInterfaceRoutes(
   // as local interface. They will be used for route resolution as directly
   // connected routes. Hence no need to process as remote interfaces.
   if (state->getInterfaces()->getNodeIf(remoteIntf->getID())) {
-    XLOG(DBG3) << "processRemoteInterfaceRoutes: skip local interface "
-               << remoteIntf->getID() << " (" << remoteIntf->getName() << ")";
     return;
   }
 
@@ -72,53 +68,25 @@ void processRemoteInterfaceRoutes(
     }
     auto prefix = folly::IPAddress::createNetwork(
         folly::to<std::string>(addr, "/", static_cast<int>(mask->cref())));
-    auto prefixStr =
-        folly::to<std::string>(prefix.first.str(), "/", prefix.second);
     IntfAddress intfAddr = std::make_pair(remoteIntf->getID(), ipAddr);
     if (add) {
-      // Cancel any pending delete for this prefix to prevent the delete
-      // from removing the route after the add (RIB processes adds then
-      // deletes). Always add to toAdd so addOrReplaceRouteImpl re-points
-      // the route to the correct interface.
+      // Check if route already in remoteIntfRoutesToDel
       auto& toDel = remoteIntfRoutesToDel[remoteIntf->getRouterID()];
       auto iter = std::find(toDel.begin(), toDel.end(), prefix);
       if (iter != toDel.end()) {
         toDel.erase(iter);
-        XLOG(DBG3) << "processRemoteInterfaceRoutes: add route " << prefixStr
-                   << " for intf " << remoteIntf->getID() << " ("
-                   << remoteIntf->getName()
-                   << "), cancelled pending delete for same prefix";
       } else {
-        XLOG(DBG3) << "processRemoteInterfaceRoutes: add route " << prefixStr
-                   << " for intf " << remoteIntf->getID() << " ("
-                   << remoteIntf->getName() << ")";
+        remoteIntfRoutesToAdd[remoteIntf->getRouterID()].emplace(
+            prefix, intfAddr);
       }
-      remoteIntfRoutesToAdd[remoteIntf->getRouterID()].emplace(
-          prefix, intfAddr);
     } else {
       // Check if route already in remoteIntfRoutesToAdd
       auto& toAdd = remoteIntfRoutesToAdd[remoteIntf->getRouterID()];
       auto iter = toAdd.find(prefix);
-      if (iter != toAdd.end() && iter->second.first == remoteIntf->getID()) {
-        // Same interface: cancel the add (route stays unchanged)
-        XLOG(DBG3) << "processRemoteInterfaceRoutes: cancel pending add for "
-                   << prefixStr << " on same intf " << remoteIntf->getID()
-                   << " (" << remoteIntf->getName() << ")";
+      if (iter != toAdd.end()) {
         toAdd.erase(iter);
-      } else if (iter == toAdd.end()) {
-        // No pending add: schedule a delete
-        XLOG(DBG3) << "processRemoteInterfaceRoutes: delete route " << prefixStr
-                   << " for intf " << remoteIntf->getID() << " ("
-                   << remoteIntf->getName() << ")";
-        remoteIntfRoutesToDel[remoteIntf->getRouterID()].push_back(prefix);
       } else {
-        // Pending add for different interface — the add will replace
-        // the route via addOrReplaceRouteImpl, so no delete needed
-        XLOG(DBG3) << "processRemoteInterfaceRoutes: skip delete for "
-                   << prefixStr << " from intf " << remoteIntf->getID() << " ("
-                   << remoteIntf->getName()
-                   << "), pending add exists for different intf "
-                   << iter->second.first;
+        remoteIntfRoutesToDel[remoteIntf->getRouterID()].push_back(prefix);
       }
     }
   }

@@ -90,11 +90,6 @@ void DsfStateUpdaterUtil::updateNeighborEntry(
     if (skipProgramming(nbrEntryIter)) {
       XLOG(DBG2) << "Skip programming remote neighbor: "
                  << nbrEntryIter->second->str();
-      XLOG(DBG3) << "Skip remote neighbor " << nbrEntryIter->second->getIP()
-                 << " on intf " << nbrEntryIter->second->getIntfID()
-                 << " (linkLocal="
-                 << nbrEntryIter->second->getIP().isLinkLocal() << ", state="
-                 << static_cast<int>(nbrEntryIter->second->getState()) << ")";
       nbrEntryIter = clonedTable->erase(nbrEntryIter);
     } else {
       // Entries received from remote are non-Local on current node
@@ -103,12 +98,6 @@ void DsfStateUpdaterUtil::updateNeighborEntry(
       nbrEntryIter->second->setNoHostRoute(false);
       updateResolvedTimestamp(oldTable, nbrEntryIter);
       XLOG(DBG2) << "Program remote neighbor: " << nbrEntryIter->second->str();
-      XLOG(DBG3) << "Program remote neighbor " << nbrEntryIter->second->getIP()
-                 << " on intf " << nbrEntryIter->second->getIntfID()
-                 << " mac=" << nbrEntryIter->second->getMac() << " isNew="
-                 << (!oldTable ||
-                     oldTable->find(nbrEntryIter->second->getID()) ==
-                         oldTable->cend());
       ++nbrEntryIter;
     }
   }

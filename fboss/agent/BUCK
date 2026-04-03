@@ -500,7 +500,6 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//folly:network_address",
-        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
