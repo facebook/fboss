@@ -12,11 +12,6 @@
 
 #include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
-#include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
-#include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
-#include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
-#include "fboss/cli/fboss2/commands/set/port/CmdSetPort.h"
-#include "fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h"
 #include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
@@ -89,12 +84,6 @@ CmdHandler<CmdShowInterfacePrbsStats, CmdShowInterfacePrbsStatsTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
 template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
-template void CmdHandler<CmdSetPort, CmdSetPortTraits>::run();
-template void CmdHandler<CmdSetPortState, CmdSetPortStateTraits>::run();
-template void CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::run();
-template void CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::run();
-template void
-CmdHandler<CmdSetInterfacePrbsState, CmdSetInterfacePrbsStateTraits>::run();
 template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
 template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 
@@ -137,16 +126,5 @@ template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePhymapTraits>::getValidFilters();
 template const ValidFilterMapType
 CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdSetPort, CmdSetPortTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdSetPortState, CmdSetPortStateTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdSetInterface, CmdSetInterfaceTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdSetInterfacePrbsState,
-    CmdSetInterfacePrbsStateTraits>::getValidFilters();
 
 } // namespace facebook::fboss

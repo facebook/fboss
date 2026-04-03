@@ -406,8 +406,15 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.cpp
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
+  fboss/cli/fboss2/commands/set/interface/CmdSetInterface.cpp
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
+  fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.cpp
   fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h
+  fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.cpp
+  fboss/cli/fboss2/commands/set/port/CmdSetPort.h
+  fboss/cli/fboss2/commands/set/port/CmdSetPort.cpp
+  fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.h
+  fboss/cli/fboss2/commands/set/port/state/CmdSetPortState.cpp
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.h
   fboss/cli/fboss2/commands/show/acl/CmdShowAcl.cpp
   fboss/cli/fboss2/commands/show/agent/CmdShowAgentSsl.h

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <boost/algorithm/string.hpp>
+
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/gen-cpp2/model_types.h"
