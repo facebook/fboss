@@ -251,6 +251,13 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
             {"speed": 200000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x19}, "mediaInterfaceCode": 21},
             {"speed": 400000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x1E}, "mediaInterfaceCode": 6}
           ]
+        },
+        {
+          "combinationName": "2x100G-CWDM4",
+          "ports": [
+            {"speed": 100000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1},
+            {"speed": 100000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1}
+          ]
         }
       ],
       "speedChangeTransitions": [
