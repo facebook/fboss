@@ -199,7 +199,8 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     }
     int parallelLinkOffset =
         calculateParallelLinkOffset(port, remoteSwitchId, vd, maxParallelLinks);
-    int offset = switchIdOffset * maxParallelLinks + vd + parallelLinkOffset;
+    // Offset should be unique for each link in case of parallel links per VD
+    int offset = (switchIdOffset + vd) * maxParallelLinks + parallelLinkOffset;
     // SwitchID allocated should be in the specific range bounded by the maximum
     // number of switchIDs possible for the 2 roles connected by the port/link.
     CHECK_LE(linksAtLevel, maxNumSwitchIds)
