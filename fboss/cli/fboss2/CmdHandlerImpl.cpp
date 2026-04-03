@@ -10,8 +10,6 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
-#include "fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h"
-#include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
 #include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
@@ -35,8 +33,6 @@
 #include "fboss/cli/fboss2/commands/show/interface/prbs/state/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/show/interface/prbs/stats/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
-#include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
@@ -50,7 +46,6 @@ namespace facebook::fboss {
 
 // Avoid template linker error
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
-template void CmdHandler<CmdGetPcap, CmdGetPcapTraits>::run();
 template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
 template void CmdHandler<
     CmdShowInterfaceCountersFec,
@@ -83,9 +78,6 @@ template void
 CmdHandler<CmdShowInterfacePrbsStats, CmdShowInterfacePrbsStatsTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
-template void CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::run();
-template void CmdHandler<CmdStartPcap, CmdStartPcapTraits>::run();
-template void CmdHandler<CmdStopPcap, CmdStopPcapTraits>::run();
 
 template const ValidFilterMapType
 CmdHandler<CmdShowDsf, CmdShowDsfTraits>::getValidFilters();
@@ -124,7 +116,5 @@ template const ValidFilterMapType CmdHandler<
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfacePhymap,
     CmdShowInterfacePhymapTraits>::getValidFilters();
-template const ValidFilterMapType
-CmdHandler<CmdBounceInterface, CmdBounceInterfaceTraits>::getValidFilters();
 
 } // namespace facebook::fboss

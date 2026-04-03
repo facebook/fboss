@@ -378,6 +378,7 @@ find_package(CLI11 CONFIG REQUIRED)
 
 add_library(fboss2_lib
   fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.h
+  fboss/cli/fboss2/commands/bounce/interface/CmdBounceInterface.cpp
   fboss/cli/fboss2/commands/clear/CmdClearArp.h
   fboss/cli/fboss2/commands/clear/CmdClearArp.cpp
   fboss/cli/fboss2/commands/clear/CmdClearInterfaceCounters.h
@@ -405,6 +406,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.cpp
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
+  fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.cpp
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.cpp
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
@@ -544,7 +546,9 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h
   fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.cpp
   fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h
+  fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.cpp
   fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h
+  fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.cpp
   fboss/cli/fboss2/CmdSubcommands.cpp
   fboss/cli/fboss2/oss/CmdGlobalOptions.cpp
   fboss/cli/fboss2/oss/CmdList.cpp
