@@ -10,18 +10,6 @@
 
 #include "fboss/cli/fboss2/CmdHandler.cpp"
 
-#include "fboss/cli/fboss2/commands/show/dsf/CmdShowDsf.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/CmdShowInterfaceCountersFec.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/CmdShowInterfaceCountersFecBer.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/ber/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/CmdShowInterfaceCountersFecHistogram.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/histogram/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/tail/CmdShowInterfaceCountersFecTail.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/tail/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/CmdShowInterfaceCountersFecUncorrectable.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/fec/uncorrectable/gen-cpp2/model_visitation.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/mka/CmdShowInterfaceCountersMKA.h"
-#include "fboss/cli/fboss2/commands/show/interface/counters/mka/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h"
 #include "fboss/cli/fboss2/commands/show/interface/flaps/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h"
@@ -46,25 +34,6 @@ namespace facebook::fboss {
 
 // Avoid template linker error
 // https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
-template void CmdHandler<CmdShowDsf, CmdShowDsfTraits>::run();
-template void CmdHandler<
-    CmdShowInterfaceCountersFec,
-    CmdShowInterfaceCountersFecTraits>::run();
-template void CmdHandler<
-    CmdShowInterfaceCountersFecBer,
-    CmdShowInterfaceCountersFecBerTraits>::run();
-template void CmdHandler<
-    CmdShowInterfaceCountersFecTail,
-    CmdShowInterfaceCountersFecTailTraits>::run();
-template void CmdHandler<
-    CmdShowInterfaceCountersFecUncorrectable,
-    CmdShowInterfaceCountersFecUncorrectableTraits>::run();
-template void CmdHandler<
-    CmdShowInterfaceCountersFecHistogram,
-    CmdShowInterfaceCountersFecHistogramTraits>::run();
-template void CmdHandler<
-    CmdShowInterfaceCountersMKA,
-    CmdShowInterfaceCountersMKATraits>::run();
 template void
 CmdHandler<CmdShowInterfaceFlaps, CmdShowInterfaceFlapsTraits>::run();
 template void
@@ -79,26 +48,6 @@ CmdHandler<CmdShowInterfacePrbsStats, CmdShowInterfacePrbsStatsTraits>::run();
 template void
 CmdHandler<CmdShowInterfacePhymap, CmdShowInterfacePhymapTraits>::run();
 
-template const ValidFilterMapType
-CmdHandler<CmdShowDsf, CmdShowDsfTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdShowInterfaceCountersFec,
-    CmdShowInterfaceCountersFecTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdShowInterfaceCountersFecBer,
-    CmdShowInterfaceCountersFecBerTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdShowInterfaceCountersFecTail,
-    CmdShowInterfaceCountersFecTailTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdShowInterfaceCountersFecUncorrectable,
-    CmdShowInterfaceCountersFecUncorrectableTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdShowInterfaceCountersFecHistogram,
-    CmdShowInterfaceCountersFecHistogramTraits>::getValidFilters();
-template const ValidFilterMapType CmdHandler<
-    CmdShowInterfaceCountersMKA,
-    CmdShowInterfaceCountersMKATraits>::getValidFilters();
 template const ValidFilterMapType CmdHandler<
     CmdShowInterfaceFlaps,
     CmdShowInterfaceFlapsTraits>::getValidFilters();
