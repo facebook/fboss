@@ -205,7 +205,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else if (
         modelName.find("Icecube800banw") == 0 ||
-        modelName.find("ICECUBE800BANW") == 0) {
+        modelName.find("ICECUBE800BANW") == 0 ||
+        modelName.find("ASY-92647-101") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
     } else if (modelName.find("J4Sim") == 0 || modelName.find("J4SIM") == 0) {
       type_ = PlatformType::PLATFORM_J4SIM;
