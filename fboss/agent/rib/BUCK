@@ -88,6 +88,7 @@ cpp_unittest(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",

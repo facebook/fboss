@@ -581,18 +581,19 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
     }
   }
 
-  // MySid pass: register/bump refcounts for MySid entries' unresolveNextHopsId.
+  // MySid pass: register/bump refcounts for MySid entries' nexthop set IDs.
   // FibInfo contains all MySid nexthop IDs in its id maps, but those sets may
   // not be referenced by any routes. processNhopSetId handles both new
   // registration and refcount-bumping for already-registered sets.
   if (mySidMap && fibId2NhopMap && fibId2NhopIdSetMap) {
     for (const auto& miter : std::as_const(*mySidMap)) {
       for (const auto& [key, mySid] : std::as_const(*miter.second)) {
-        auto setIdOpt = mySid->getUnresolveNextHopsId();
-        if (!setIdOpt) {
-          continue;
+        if (auto setIdOpt = mySid->getResolvedNextHopsId()) {
+          processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
         }
-        processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
+        if (auto setIdOpt = mySid->getUnresolveNextHopsId()) {
+          processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
+        }
       }
     }
   }

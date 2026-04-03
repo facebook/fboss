@@ -305,6 +305,12 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMaps_MySidResolvedNextHopsId);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMaps_MySidBothNextHopIds);
   FRIEND_TEST(NextHopIDManagerTest, allocateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, updateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, deallocateNamedNextHopGroup);
