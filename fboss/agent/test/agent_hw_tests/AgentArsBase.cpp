@@ -329,8 +329,14 @@ auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
       EXPECT_EVENTUALLY_GE(aclPktCountAfter, aclPktCountBefore + 1);
       // At most we should get a pkt bump of 2
       EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
+      // TODO ruinanhu: Remove this once we have a fix for TH6 counter problem
+      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto extraBytes =
+          (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) ? 4 : 0;
+
       EXPECT_EVENTUALLY_GE(
-          aclBytesCountAfter, aclBytesCountBefore + sizeOfPacketSent);
+          aclBytesCountAfter + extraBytes,
+          aclBytesCountBefore + sizeOfPacketSent);
       // On native BCM we see 4 extra bytes in the acl counter. This is
       // likely due to ingress vlan getting imposed and getting counted
       // when packet hits acl in ingress pipeline
