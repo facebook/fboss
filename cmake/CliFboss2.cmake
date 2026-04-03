@@ -396,7 +396,6 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/clear/interface/counters/phy/CmdClearInterfaceCountersPhy.cpp
   fboss/cli/fboss2/CmdGlobalOptions.cpp
   fboss/cli/fboss2/CmdHandler.cpp
-  fboss/cli/fboss2/CmdHandlerImpl.cpp
   fboss/cli/fboss2/CmdStreamHandler.h
   fboss/cli/fboss2/CmdStreamHandler.cpp
   fboss/cli/fboss2/CmdStreamHandlerImpl.cpp
@@ -511,6 +510,7 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h
   fboss/cli/fboss2/commands/show/interface/CmdShowInterface.cpp
   fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.h
+  fboss/cli/fboss2/commands/show/interface/flaps/CmdShowInterfaceFlaps.cpp
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h
   fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.cpp
   fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h
@@ -532,14 +532,19 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.h
   fboss/cli/fboss2/commands/show/interface/phy/CmdShowInterfacePhy.cpp
   fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.h
+  fboss/cli/fboss2/commands/show/interface/phymap/CmdShowInterfacePhymap.cpp
   fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h
   fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.cpp
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.h
   fboss/cli/fboss2/commands/show/interface/status/CmdShowInterfaceStatus.cpp
   fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.h
+  fboss/cli/fboss2/commands/show/interface/prbs/CmdShowInterfacePrbs.cpp
   fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.h
+  fboss/cli/fboss2/commands/show/interface/prbs/capabilities/CmdShowInterfacePrbsCapabilities.cpp
   fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.h
+  fboss/cli/fboss2/commands/show/interface/prbs/state/CmdShowInterfacePrbsState.cpp
   fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.h
+  fboss/cli/fboss2/commands/show/interface/prbs/stats/CmdShowInterfacePrbsStats.cpp
   fboss/cli/fboss2/commands/show/rif/CmdShowRif.h
   fboss/cli/fboss2/commands/show/rif/CmdShowRif.cpp
   fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h

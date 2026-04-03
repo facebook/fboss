@@ -70,14 +70,12 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, queryClient) {
 
   /* queryClient returns the output from createModel so this is a bit of a
   duplicate test as the one below but still worth checking */
-  auto cmd = CmdShowInterfaceFlaps();
-  auto model = cmd.createModel(ifNames, queriedData, queriedPorts);
+  auto model = createModel(ifNames, queriedData, queriedPorts);
   EXPECT_THRIFT_EQ(model, results);
 }
 
 TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
-  auto cmd = CmdShowInterfaceFlaps();
-  auto model = cmd.createModel(ifNames, queriedData, queriedPorts);
+  auto model = createModel(ifNames, queriedData, queriedPorts);
   auto flapsEntries = model.flap_counters().value();
 
   EXPECT_EQ(flapsEntries.size(), 3);
@@ -103,7 +101,7 @@ TEST_F(CmdShowInterfaceFlapsTestFixture, createModel) {
 
 TEST_F(CmdShowInterfaceFlapsTestFixture, printOutput) {
   auto cmd = CmdShowInterfaceFlaps();
-  auto model = cmd.createModel(ifNames, queriedData, queriedPorts);
+  auto model = createModel(ifNames, queriedData, queriedPorts);
 
   std::stringstream ss;
   cmd.printOutput(model, ss);
