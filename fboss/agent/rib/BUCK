@@ -29,6 +29,7 @@ cpp_library(
     name = "standalone_rib",
     srcs = [
         "ConfigApplier.cpp",
+        "RibMySidUpdater.cpp",
         "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
         "RoutingInformationBase.cpp",
@@ -70,6 +71,7 @@ cpp_unittest(
         "test/ReconstructRibFromSwitchStateTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibMySidUpdateTests.cpp",
+        "test/RibMySidUpdaterTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
         "test/RibToSwitchStateUpdaterTests.cpp",

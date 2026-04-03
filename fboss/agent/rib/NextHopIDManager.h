@@ -317,6 +317,12 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupWarmBoot);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes);
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      nhopRefCountBumped_afterResolvingNhopWithIntfId);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
 };
 
 } // namespace facebook::fboss
