@@ -8,9 +8,11 @@
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -20,8 +22,20 @@
 
 namespace facebook::fboss {
 
+struct PhysicalPortSrv6Midpoint {
+  static constexpr bool isTrunk = false;
+};
+struct AggregatePortSrv6Midpoint {
+  static constexpr bool isTrunk = true;
+};
+using Srv6MidpointPortTypes =
+    ::testing::Types<PhysicalPortSrv6Midpoint, AggregatePortSrv6Midpoint>;
+
+template <typename PortType>
 class AgentSrv6MidpointTest : public AgentHwTest {
  protected:
+  static constexpr bool kIsTrunk = PortType::isTrunk;
+
   // MySid prefix: 3001:db8:e001:: /48
   // Locator block: 3001:db8:: (32 bits), function: e001 (16 bits)
   const folly::IPAddressV6 kMySidPrefix{"3001:db8:e001::"};
@@ -37,6 +51,9 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
+    if constexpr (kIsTrunk) {
+      return {ProductionFeature::SRV6_MIDPOINT, ProductionFeature::LAG};
+    }
     return {ProductionFeature::SRV6_MIDPOINT};
   }
 
@@ -48,10 +65,22 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto cfg = utility::onePortPerInterfaceConfig(
-        ensemble.getSw(),
-        ensemble.masterLogicalPortIds(),
-        true /*interfaceHasSubnet*/);
+    cfg::SwitchConfig cfg;
+    if constexpr (kIsTrunk) {
+      cfg = utility::oneL3IntfTwoPortConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds()[0],
+          ensemble.masterLogicalPortIds()[1]);
+      utility::addAggPort(
+          1, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[0])}, &cfg);
+      utility::addAggPort(
+          2, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[1])}, &cfg);
+    } else {
+      cfg = utility::onePortPerInterfaceConfig(
+          ensemble.getSw(),
+          ensemble.masterLogicalPortIds(),
+          true /*interfaceHasSubnet*/);
+    }
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
     auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
@@ -64,6 +93,15 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     return cfg;
   }
 
+  void applyConfigAndEnableTrunks(const cfg::SwitchConfig& config) {
+    this->applyNewConfig(config);
+    this->applyNewState(
+        [](const std::shared_ptr<SwitchState> state) {
+          return utility::enableTrunkPorts(state);
+        },
+        "enable trunk ports");
+  }
+
   utility::EcmpSetupAnyNPorts<folly::IPAddressV6> makeEcmpHelper() {
     return utility::EcmpSetupAnyNPorts<folly::IPAddressV6>(
         this->getProgrammedState(),
@@ -72,6 +110,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   }
 
   void setupHelper() {
+    if constexpr (kIsTrunk) {
+      applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
     auto ecmpHelper = makeEcmpHelper();
     this->resolveNeighbors(ecmpHelper, 1);
     addAdjacencyMySidEntry(ecmpHelper.nhop(0).ip);
@@ -85,6 +127,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         facebook::network::toBinaryAddress(folly::IPAddress(kMySidPrefix));
     prefix.prefixLength() = kMySidPrefixLen;
     entry.mySid() = prefix;
+    XLOG(INFO) << "ADDING MY SID WITH NHOP: " << nexthopIp;
 
     NextHopThrift nhop;
     nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
@@ -103,7 +146,30 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         sw);
   }
 
-  void verifyMidpointForwarding(PortID egressPort) {
+  PortID getEgressPort(const PortDescriptor& portDesc) const {
+    if (portDesc.isPhysicalPort()) {
+      return portDesc.phyPortID();
+    }
+    auto aggPort = this->getProgrammedState()->getAggregatePorts()->getNodeIf(
+        portDesc.aggPortID());
+    return aggPort->sortedSubports().front().portID;
+  }
+
+  PortID findInjectPort(PortID egressPort) {
+    for (const auto& portMap :
+         std::as_const(*this->getProgrammedState()->getPorts())) {
+      for (const auto& [_, port] : std::as_const(*portMap.second)) {
+        if (port->getID() != egressPort && port->isPortUp()) {
+          return port->getID();
+        }
+      }
+    }
+    throw FbossError("No UP port found besides egress port");
+  }
+
+  void verifyMidpointForwarding(
+      PortID egressPort,
+      std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
 
@@ -132,7 +198,13 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
     utility::SwSwitchPacketSnooper snooper(
         this->getSw(), "srv6MidpointSnooper");
-    this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+
+    if (injectPort.has_value()) {
+      this->getSw()->sendPacketOutOfPortAsync(
+          std::move(txPacket), injectPort.value());
+    } else {
+      this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    }
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -156,15 +228,25 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     // The active uSID (e001) has been popped; outer dst is now the next SID.
     EXPECT_EQ(rxV6->header().dstAddr, kExpectedOuterDst);
   }
+
+  void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
+    auto injectPort = findInjectPort(egressPort);
+    // From CPU (switched)
+    verifyMidpointForwarding(egressPort);
+    // From front panel port
+    verifyMidpointForwarding(egressPort, injectPort);
+  }
 };
 
-TEST_F(AgentSrv6MidpointTest, midpointUsiShift) {
+TYPED_TEST_SUITE(AgentSrv6MidpointTest, Srv6MidpointPortTypes);
+
+TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASid) {
   auto setup = [this]() { this->setupHelper(); };
 
   auto verify = [this]() {
-    auto ecmpHelper = makeEcmpHelper();
-    auto egressPort = ecmpHelper.nhop(0).portDesc.phyPortID();
-    this->verifyMidpointForwarding(egressPort);
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    this->verifyMidpointCpuAndFrontPanel(egressPort);
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
