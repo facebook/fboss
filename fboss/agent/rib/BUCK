@@ -147,6 +147,7 @@ cpp_library(
         "ForwardingInformationBaseUpdater.cpp",
         "MySidMapUpdater.cpp",
         "RibToSwitchStateUpdater.cpp",
+        "SwitchStateNextHopIdUpdater.cpp",
     ],
     exported_deps = [
         ":network_to_route_map",

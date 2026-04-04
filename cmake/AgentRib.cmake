@@ -42,6 +42,7 @@ add_library(fib_updater
   fboss/agent/rib/ForwardingInformationBaseUpdater.cpp
   fboss/agent/rib/MySidMapUpdater.cpp
   fboss/agent/rib/RibToSwitchStateUpdater.cpp
+  fboss/agent/rib/SwitchStateNextHopIdUpdater.cpp
 )
 
 target_link_libraries(fib_updater
