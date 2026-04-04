@@ -169,6 +169,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
   void verifyMidpointForwarding(
       PortID egressPort,
+      bool ecnMarked,
       std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
@@ -176,6 +177,9 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     auto intfMac =
         utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
     constexpr uint8_t kHopLimit{24};
+    constexpr uint8_t kTc{42};
+    auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
+                             : static_cast<uint8_t>(kTc << 2);
 
     // Outer IPv6 dst = kPktOuterDst triggers the ADJACENCY MySid at
     // kMySidPrefix. The ASIC pops uSID e001, rewrites dst to kExpectedOuterDst,
@@ -191,7 +195,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         folly::IPAddressV6("2001:db8::2") /* innerDst */,
         8000 /* srcPort */,
         8001 /* dstPort */,
-        0 /* outerTrafficClass */,
+        tcField /* outerTrafficClass */,
         0 /* innerTrafficClass */,
         kHopLimit,
         64 /* innerHopLimit */);
@@ -225,16 +229,24 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
     auto rxV6 = frame.v6PayLoad();
     ASSERT_TRUE(rxV6.has_value());
+    auto v6Hdr = rxV6->header();
     // The active uSID (e001) has been popped; outer dst is now the next SID.
-    EXPECT_EQ(rxV6->header().dstAddr, kExpectedOuterDst);
+    EXPECT_EQ(v6Hdr.dstAddr, kExpectedOuterDst);
+    // Hop limit decremented by 1 during midpoint forwarding.
+    EXPECT_EQ(v6Hdr.hopLimit, kHopLimit - 1);
+    // DSCP and ECN are preserved in the outer header.
+    EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
+    EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
   }
 
   void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
     auto injectPort = findInjectPort(egressPort);
-    // From CPU (switched)
-    verifyMidpointForwarding(egressPort);
-    // From front panel port
-    verifyMidpointForwarding(egressPort, injectPort);
+    // ECN not marked
+    verifyMidpointForwarding(egressPort, false);
+    verifyMidpointForwarding(egressPort, false, injectPort);
+    // ECN marked
+    verifyMidpointForwarding(egressPort, true);
+    verifyMidpointForwarding(egressPort, true, injectPort);
   }
 };
 
