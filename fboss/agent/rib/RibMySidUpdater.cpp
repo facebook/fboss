@@ -20,27 +20,42 @@ RibMySidUpdater::RibMySidUpdater(
 
 void RibMySidUpdater::resolve() {
   for (auto& [prefix, mySid] : *mySidTable_) {
-    auto unresolvedId = mySid->getUnresolveNextHopsId();
-    if (!unresolvedId.has_value()) {
+    resolveOneMySid(mySid);
+  }
+}
+
+void RibMySidUpdater::resolve(
+    const std::set<folly::CIDRNetwork>& mySidsToResolve) {
+  for (const auto& cidr : mySidsToResolve) {
+    const folly::CIDRNetworkV6 cidrV6{cidr.first.asV6(), cidr.second};
+    auto it = mySidTable_->find(cidrV6);
+    if (it == mySidTable_->end()) {
       continue;
     }
-    updateResolvedNextHopSetId(
-        mySid,
-        resolveNextHopSet(nextHopIDManager_->getNextHops(*unresolvedId)));
+    resolveOneMySid(it->second);
   }
+}
+
+void RibMySidUpdater::resolveOneMySid(std::shared_ptr<MySid>& mySid) {
+  auto unresolvedId = mySid->getUnresolveNextHopsId();
+  if (!unresolvedId.has_value()) {
+    return;
+  }
+  updateResolvedNextHopSetId(
+      mySid, resolveNextHopSet(nextHopIDManager_->getNextHops(*unresolvedId)));
 }
 
 RouteNextHopSet RibMySidUpdater::resolveNextHopSet(
     const RouteNextHopSet& unresolvedNhops) const {
   RouteNextHopSet resolved;
   for (const auto& nh : unresolvedNhops) {
-    auto nhResolved = resolvedForNhop(nh);
+    auto nhResolved = resolveNhop(nh);
     resolved.insert(nhResolved.begin(), nhResolved.end());
   }
   return resolved;
 }
 
-RouteNextHopSet RibMySidUpdater::resolvedForNhop(const NextHop& nh) const {
+RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
   if (nh.intfID().has_value()) {
     return {nh};
   }
@@ -94,9 +109,7 @@ void RibMySidUpdater::updateResolvedNextHopSetId(
     return;
   }
 
-  if (mySidPtr->isPublished()) {
-    mySidPtr = mySidPtr->clone();
-  }
+  mySidPtr = mySidPtr->clone();
   mySidPtr->setResolvedNextHopsId(newId);
 }
 

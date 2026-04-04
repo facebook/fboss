@@ -283,4 +283,61 @@ TEST_F(
   EXPECT_EQ(manager().getNextHopIDSetRefCount(nhIdSet), 2);
 }
 
+TEST_F(RibMySidUpdaterTest, resolveFiltered_onlyMatchingEntryResolved) {
+  // Two MySid entries; only the one in the filter set should be resolved.
+  const auto nhops1 = makeResolvedNhops({{"fe80::1", InterfaceID(1)}});
+  const auto nhops2 = makeResolvedNhops({{"fe80::2", InterfaceID(2)}});
+  const auto unresolvedId1 = allocUnresolvedSet(nhops1);
+  const auto unresolvedId2 = allocUnresolvedSet(nhops2);
+
+  const folly::CIDRNetworkV6 key1{folly::IPAddressV6("fc00:100::1"), 48};
+  const folly::CIDRNetworkV6 key2{folly::IPAddressV6("fc00:200::1"), 48};
+
+  auto mySid1 = makeMySid("fc00:100::1", 48);
+  mySid1->setUnresolveNextHopsId(unresolvedId1);
+  mySidTable_[key1] = mySid1;
+
+  auto mySid2 = makeMySid("fc00:200::1", 48);
+  mySid2->setUnresolveNextHopsId(unresolvedId2);
+  mySidTable_[key2] = mySid2;
+
+  const std::set<folly::CIDRNetwork> filter{
+      {folly::IPAddress("fc00:100::1"), 48}};
+
+  RibMySidUpdater updater(&v4Routes_, &v6Routes_, &manager(), &mySidTable_);
+  updater.resolve(filter);
+
+  EXPECT_TRUE(mySidTable_.at(key1)->getResolvedNextHopsId().has_value());
+  EXPECT_FALSE(mySidTable_.at(key2)->getResolvedNextHopsId().has_value());
+}
+
+TEST_F(RibMySidUpdaterTest, resolveFiltered_cidrNotInTable_skipped) {
+  // A CIDR in the filter that does not exist in the MySidTable should be
+  // gracefully skipped (no crash, table unchanged).
+  const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
+  mySidTable_[key] = makeMySid("fc00:100::1", 48);
+
+  const std::set<folly::CIDRNetwork> filter{
+      {folly::IPAddress("fc00:999::1"), 48}};
+
+  RibMySidUpdater updater(&v4Routes_, &v6Routes_, &manager(), &mySidTable_);
+  updater.resolve(filter);
+
+  EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
+}
+
+TEST_F(RibMySidUpdaterTest, resolveFiltered_entryWithNoUnresolvedId_skipped) {
+  // An entry in the filter that has no unresolvedNextHopsId should be skipped.
+  const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
+  mySidTable_[key] = makeMySid("fc00:100::1", 48); // no unresolvedId set
+
+  const std::set<folly::CIDRNetwork> filter{
+      {folly::IPAddress("fc00:100::1"), 48}};
+
+  RibMySidUpdater updater(&v4Routes_, &v6Routes_, &manager(), &mySidTable_);
+  updater.resolve(filter);
+
+  EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
+}
+
 } // namespace facebook::fboss

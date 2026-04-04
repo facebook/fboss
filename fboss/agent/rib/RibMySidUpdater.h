@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <optional>
+#include <set>
 
 namespace facebook::fboss {
 
@@ -33,11 +34,13 @@ class RibMySidUpdater {
       MySidTable* mySidTable);
 
   void resolve();
+  void resolve(const std::set<folly::CIDRNetwork>& mySidsToResolve);
 
  private:
+  void resolveOneMySid(std::shared_ptr<MySid>& mySid);
   RouteNextHopSet resolveNextHopSet(
       const RouteNextHopSet& unresolvedNhops) const;
-  RouteNextHopSet resolvedForNhop(const NextHop& nh) const;
+  RouteNextHopSet resolveNhop(const NextHop& nh) const;
   void updateResolvedNextHopSetId(
       std::shared_ptr<MySid>& mySidPtr,
       const RouteNextHopSet& resolvedNhops);
