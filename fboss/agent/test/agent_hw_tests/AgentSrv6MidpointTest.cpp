@@ -65,21 +65,18 @@ class AgentSrv6MidpointTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    cfg::SwitchConfig cfg;
+    constexpr auto kNumNextHops = 4;
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
     if constexpr (kIsTrunk) {
-      cfg = utility::oneL3IntfTwoPortConfig(
-          ensemble.getSw(),
-          ensemble.masterLogicalPortIds()[0],
-          ensemble.masterLogicalPortIds()[1]);
-      utility::addAggPort(
-          1, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[0])}, &cfg);
-      utility::addAggPort(
-          2, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[1])}, &cfg);
-    } else {
-      cfg = utility::onePortPerInterfaceConfig(
-          ensemble.getSw(),
-          ensemble.masterLogicalPortIds(),
-          true /*interfaceHasSubnet*/);
+      for (int i = 0; i < kNumNextHops; ++i) {
+        utility::addAggPort(
+            i + 1,
+            {static_cast<int32_t>(ensemble.masterLogicalPortIds()[i])},
+            &cfg);
+      }
     }
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
