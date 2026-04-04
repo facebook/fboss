@@ -193,6 +193,12 @@ void aclEntryFieldIpV6Attr(
       to<string>(prefix, "enable=", attr_list[i].value.aclfield.enable));
 
   // The underlying implementation of sai_ip6_t is uint8_t[16]
+  attrLines.push_back(
+      to<string>(
+          "// data=",
+          facebook::fboss::fromSaiIpAddress(
+              attr_list[i].value.aclfield.data.ip6)
+              .str()));
   for (int j = 0; j < 16; ++j) {
     attrLines.push_back(
         to<string>(
@@ -203,6 +209,12 @@ void aclEntryFieldIpV6Attr(
             attr_list[i].value.aclfield.data.ip6[j]));
   }
 
+  attrLines.push_back(
+      to<string>(
+          "// mask=",
+          facebook::fboss::fromSaiIpAddress(
+              attr_list[i].value.aclfield.mask.ip6)
+              .str()));
   for (int j = 0; j < 16; ++j) {
     attrLines.push_back(
         to<string>(
