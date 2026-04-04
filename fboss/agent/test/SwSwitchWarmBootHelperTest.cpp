@@ -78,21 +78,39 @@ class SwSwitchWarmBootHelperTest : public ::testing::Test {
     folly::writeFileAtomic(path, "test");
   }
 
-  void createTestWarmbootState(const std::string& path) {
-    state::WarmbootState warmbootState;
-    state::SwitchState switchState;
-    warmbootState.swSwitchState() = switchState;
-
-    std::map<int32_t, state::RouteTableFields> routeTables;
-    routeTables.emplace(0, state::RouteTableFields{});
-    warmbootState.routeTables() = routeTables;
-
+  void writeWarmbootStateToFile(const std::string& path) {
+    auto warmbootState = createWarmbootState(createSwitchState(0, ""));
     auto serialized =
         apache::thrift::BinarySerializer::serialize<std::string>(warmbootState);
     folly::writeFileAtomic(path, serialized);
   }
 
-  void setupForWarmBootFromFile() {
+  state::SwitchState createSwitchState(
+      int16_t portId,
+      const std::string& portName) {
+    state::SwitchState switchState;
+    state::PortFields port;
+    port.portId() = portId;
+    port.portName() = portName;
+    std::map<int16_t, state::PortFields> portMap;
+    portMap[portId] = port;
+    switchState.portMaps()["id=0"] = portMap;
+    return switchState;
+  }
+
+  state::WarmbootState createWarmbootState(
+      const state::SwitchState& switchState) {
+    state::WarmbootState warmbootState;
+    warmbootState.swSwitchState() = switchState;
+    std::map<int32_t, state::RouteTableFields> routeTables;
+    routeTables.emplace(0, state::RouteTableFields{});
+    warmbootState.routeTables() = routeTables;
+    return warmbootState;
+  }
+
+  void setupForWarmBootFromFile(
+      int16_t portId = 0,
+      const std::string& portName = "") {
     // Create warmboot flag
     auto warmbootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
     createDir(std::filesystem::path(warmbootFlagPath).parent_path().string());
@@ -101,14 +119,20 @@ class SwSwitchWarmBootHelperTest : public ::testing::Test {
     // Create warmboot state file
     auto stateFilePath = folly::to<std::string>(
         directoryUtil_->getWarmBootDir(), "/", FLAGS_thrift_switch_state_file);
-    createTestWarmbootState(stateFilePath);
+    auto warmbootState =
+        createWarmbootState(createSwitchState(portId, portName));
+    auto serialized =
+        apache::thrift::BinarySerializer::serialize<std::string>(warmbootState);
+    folly::writeFileAtomic(stateFilePath, serialized);
   }
 
-  void setupForWarmBootFromThrift() {
+  void setupForWarmBootFromThrift(
+      int16_t portId = 0,
+      const std::string& portName = "") {
     FLAGS_recover_from_hw_switch = true;
     testThriftClientTable_->setRunState(SwitchRunState::CONFIGURED);
-    state::SwitchState mockState;
-    testThriftClientTable_->setProgrammedState(mockState);
+    testThriftClientTable_->setProgrammedState(
+        createSwitchState(portId, portName));
   }
 
  protected:
@@ -160,7 +184,7 @@ TEST_F(
   // Setup state file but NOT warmboot flag
   auto stateFilePath = folly::to<std::string>(
       directoryUtil_->getWarmBootDir(), "/", FLAGS_thrift_switch_state_file);
-  createTestWarmbootState(stateFilePath);
+  writeWarmbootStateToFile(stateFilePath);
 
   SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
   bool result = helper.canWarmBoot(false, nullptr);
@@ -461,23 +485,12 @@ TEST_F(SwSwitchWarmBootHelperTest, StoreAndGetWarmBootState) {
 }
 
 TEST_F(SwSwitchWarmBootHelperTest, GetWarmBootStateReturnsThriftState) {
-  // Setup thrift-based warmboot with a specific state
-  setupForWarmBootFromThrift();
-  state::SwitchState hwState;
-  state::PortFields port;
-  port.portId() = 42;
-  port.portName() = "thrift_port";
-  std::map<int16_t, state::PortFields> portMap;
-  portMap[42] = port;
-  hwState.portMaps()["id=0"] = portMap;
-  testThriftClientTable_->setProgrammedState(hwState);
+  setupForWarmBootFromThrift(42, "thrift_port");
 
   SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
   helper.canWarmBoot(true, testThriftClientTable_.get());
 
-  // getWarmBootState should return the thrift-recovered state, not file
   auto warmBootState = helper.getWarmBootState();
-  EXPECT_EQ(warmBootState.swSwitchState()->portMaps()->size(), 1);
   auto& ports = warmBootState.swSwitchState()->portMaps()->at("id=0");
   EXPECT_EQ(ports.at(42).portName(), "thrift_port");
 }
@@ -624,6 +637,43 @@ TEST_F(
 
   EXPECT_FALSE(canWarmBoot);
   EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
+// ============================================================================
+// getWarmBootState SOURCE VERIFICATION TESTS
+// ============================================================================
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    GetWarmBootStateReturnsFileStateWhenBothAvailable) {
+  setupForWarmBootFromFile(1, "file_port");
+  setupForWarmBootFromThrift(2, "thrift_port");
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+  EXPECT_TRUE(result);
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+
+  auto warmBootState = helper.getWarmBootState();
+  auto& ports = warmBootState.swSwitchState()->portMaps()->at("id=0");
+  EXPECT_EQ(ports.size(), 1);
+  EXPECT_EQ(ports.at(1).portName(), "file_port");
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    GetWarmBootStateReturnsThriftStateWhenFileNotAvailable) {
+  setupForWarmBootFromThrift(2, "thrift_port");
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(helper.isWarmBootFromHwSwitch());
+
+  auto warmBootState = helper.getWarmBootState();
+  auto& ports = warmBootState.swSwitchState()->portMaps()->at("id=0");
+  EXPECT_EQ(ports.size(), 1);
+  EXPECT_EQ(ports.at(2).portName(), "thrift_port");
 }
 
 } // namespace facebook::fboss
