@@ -359,4 +359,173 @@ TEST_F(
   EXPECT_TRUE(helper.isWarmBootFromHwSwitch());
 }
 
+// ============================================================================
+// FORCE COLD BOOT TESTS
+// ============================================================================
+
+TEST_F(SwSwitchWarmBootHelperTest, ForceColdBootOverridesFileWarmBoot) {
+  setupForWarmBootFromFile();
+
+  // Create force cold boot flag
+  auto forceColdBootPath = directoryUtil_->getSwColdBootOnceFile();
+  createTestFile(forceColdBootPath);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(SwSwitchWarmBootHelperTest, ForceColdBootOverridesThriftWarmBoot) {
+  setupForWarmBootFromThrift();
+
+  // Create force cold boot flag
+  auto forceColdBootPath = directoryUtil_->getSwColdBootOnceFile();
+  createTestFile(forceColdBootPath);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(SwSwitchWarmBootHelperTest, LegacyForceColdBootFlagAlsoWorks) {
+  setupForWarmBootFromFile();
+
+  // Create legacy force cold boot flag
+  auto legacyForceColdBootPath =
+      getForceColdBootOnceFlagLegacy(directoryUtil_.get());
+  createTestFile(legacyForceColdBootPath);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_FALSE(result);
+}
+
+// ============================================================================
+// FLAG OVERRIDE TESTS
+// ============================================================================
+
+TEST_F(SwSwitchWarmBootHelperTest, CanWarmBootFlagFalseOverridesEverything) {
+  setupForWarmBootFromFile();
+  setupForWarmBootFromThrift();
+  FLAGS_can_warm_boot = false;
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+// ============================================================================
+// WARMBOOT DIR TESTS
+// ============================================================================
+
+TEST_F(SwSwitchWarmBootHelperTest, WarmBootDirReturnedCorrectly) {
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  EXPECT_EQ(helper.warmBootDir(), directoryUtil_->getWarmBootDir());
+}
+
+TEST_F(SwSwitchWarmBootHelperTest, WarmBootThriftSwitchStateFileCorrect) {
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  auto expectedPath = folly::to<std::string>(
+      directoryUtil_->getWarmBootDir(), "/", FLAGS_thrift_switch_state_file);
+  EXPECT_EQ(helper.warmBootThriftSwitchStateFile(), expectedPath);
+}
+
+// ============================================================================
+// STORE AND GET WARMBOOT STATE TESTS
+// ============================================================================
+
+TEST_F(SwSwitchWarmBootHelperTest, StoreAndGetWarmBootState) {
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  // Create a warmboot state
+  state::WarmbootState warmbootState;
+  state::SwitchState switchState;
+  warmbootState.swSwitchState() = switchState;
+
+  std::map<int32_t, state::RouteTableFields> routeTables;
+  routeTables.emplace(0, state::RouteTableFields{});
+  warmbootState.routeTables() = routeTables;
+
+  // Store it
+  helper.storeWarmBootState(warmbootState);
+
+  // Get it back
+  auto retrievedState = helper.getWarmBootState();
+  EXPECT_EQ(retrievedState.routeTables()->size(), 1);
+}
+
+TEST_F(SwSwitchWarmBootHelperTest, StoreWarmBootStateSetsCanWarmBootFlag) {
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  state::WarmbootState warmbootState;
+  helper.storeWarmBootState(warmbootState);
+
+  // Check that warmboot flag was created
+  auto warmbootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
+  EXPECT_TRUE(checkFileExists(warmbootFlagPath));
+}
+
+// ============================================================================
+// MULTIPLE CONSECUTIVE CANWARMBOOT CALLS TESTS
+// ============================================================================
+
+TEST_F(SwSwitchWarmBootHelperTest, WarmBootFlagConsumedAfterConstruction) {
+  setupForWarmBootFromFile();
+
+  // First helper consumes the warmboot flags during construction
+  SwSwitchWarmBootHelper helper1(directoryUtil_.get(), asicTable_.get());
+  bool result1 = helper1.canWarmBoot(false, nullptr);
+  EXPECT_TRUE(result1);
+
+  // Second helper sees no flags — they were consumed by the first
+  SwSwitchWarmBootHelper helper2(directoryUtil_.get(), asicTable_.get());
+  bool result2 = helper2.canWarmBoot(false, nullptr);
+  EXPECT_FALSE(result2);
+}
+
+TEST_F(SwSwitchWarmBootHelperTest, ConsecutiveCanWarmBootCallsFromThrift) {
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  // Multiple calls should return consistent results
+  bool result1 = helper.canWarmBoot(true, testThriftClientTable_.get());
+  bool result2 = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_TRUE(result1);
+  EXPECT_TRUE(result2);
+}
+
+// ============================================================================
+// ASIC WARMBOOT SUPPORT TESTS
+// ============================================================================
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFailsWhenAsicDoesNotSupportWarmboot) {
+  // Create asic table with ASIC type that doesn't support warmboot
+  std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+  cfg::SwitchInfo switchInfo;
+  switchInfo.switchIndex() = 0;
+  switchInfo.switchType() = cfg::SwitchType::NPU;
+  switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT;
+  switchIdToSwitchInfo[0] = switchInfo;
+
+  auto fakeAsicTable = std::make_unique<HwAsicTable>(
+      switchIdToSwitchInfo, std::nullopt, std::map<int64_t, cfg::DsfNode>());
+
+  setupForWarmBootFromFile();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), fakeAsicTable.get());
+  bool result = helper.canWarmBoot(false, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
 } // namespace facebook::fboss
