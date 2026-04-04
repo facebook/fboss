@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -46,6 +47,12 @@ class AgentSrv6DecapTest : public AgentHwTest {
       return {ProductionFeature::SRV6_DECAP, ProductionFeature::LAG};
     }
     return {ProductionFeature::SRV6_DECAP};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_resolve_nexthops_from_id = true;
   }
 
   cfg::SwitchConfig initialConfig(
