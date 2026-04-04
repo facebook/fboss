@@ -119,6 +119,7 @@ enum ProductionFeature {
   AIFM_PACKET_STREAM_HANDLER = 101,
   SRV6_DECAP = 102,
   CUT_THROUGH = 103,
+  SRV6_MIDPOINT = 104,
   # production feature which is present on all platforms, keep it at the end
   HW_SWITCH = 65536,
 }
