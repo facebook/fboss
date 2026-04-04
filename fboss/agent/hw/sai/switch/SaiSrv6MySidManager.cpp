@@ -200,6 +200,8 @@ void SaiSrv6MySidManager::addMySidEntry(
           ->get<SaiIpNextHopTraits>()
           .subscribe(managedMySidNextHop);
       nexthopHandle = managedMySidNextHop;
+    } else {
+      throw FbossError("Resolved nhops Id set, but no next hops found");
     }
   }
 

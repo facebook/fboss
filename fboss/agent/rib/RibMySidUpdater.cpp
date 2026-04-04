@@ -63,7 +63,7 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
   const auto& addr = nh.addr();
   RouteNextHopSet resolved;
 
-  auto collectResolved = [&resolved](auto* routeMap, const auto& nhAddr) {
+  auto collectResolved = [&resolved, &nh](auto* routeMap, const auto& nhAddr) {
     if (!routeMap) {
       return;
     }
@@ -75,8 +75,14 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
     if (!route || !route->isResolved()) {
       return;
     }
+
     const auto& fwdNhops = route->getForwardInfo().normalizedNextHops();
-    resolved.insert(fwdNhops.begin(), fwdNhops.end());
+    if (route->isConnected()) {
+      resolved.insert(ResolvedNextHop(
+          nh.addr(), fwdNhops.begin()->intf(), fwdNhops.begin()->weight()));
+    } else {
+      resolved.insert(fwdNhops.begin(), fwdNhops.end());
+    }
   };
 
   if (addr.isV4()) {

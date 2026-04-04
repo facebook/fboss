@@ -55,6 +55,22 @@ std::shared_ptr<Route<folly::IPAddressV6>> makeResolvedV6Route(
   return route;
 }
 
+std::shared_ptr<Route<folly::IPAddressV6>> makeConnectedV6Route(
+    const folly::IPAddressV6& network,
+    uint8_t mask,
+    InterfaceID intfId) {
+  RoutePrefix<folly::IPAddressV6> prefix{network, mask};
+  auto thrift = Route<folly::IPAddressV6>::makeThrift(prefix);
+  auto route = std::make_shared<Route<folly::IPAddressV6>>(thrift);
+  RouteNextHopSet nhops{
+      ResolvedNextHop(folly::IPAddress(network), intfId, ECMP_WEIGHT)};
+  route->setResolved(
+      RouteNextHopEntry(nhops, AdminDistance::DIRECTLY_CONNECTED));
+  route->setConnected();
+  route->publish();
+  return route;
+}
+
 RouteNextHopSet makeResolvedNhops(
     const std::vector<std::pair<std::string, InterfaceID>>& nhops) {
   RouteNextHopSet result;
@@ -338,6 +354,43 @@ TEST_F(RibMySidUpdaterTest, resolveFiltered_entryWithNoUnresolvedId_skipped) {
   updater.resolve(filter);
 
   EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
+}
+
+TEST_F(
+    RibMySidUpdaterTest,
+    gatewayNhopMatchingConnectedRoute_resolvedWithGatewayAddr) {
+  // Gateway nexthop resolved via a connected (interface) route. The resolved
+  // next hop must use the original gateway address paired with the connected
+  // route's interface — not the route's own forwarding next hop address.
+  const InterfaceID connectedIntf{10};
+  const folly::IPAddress gatewayAddr("2001:db8::1");
+
+  auto connectedRoute =
+      makeConnectedV6Route(folly::IPAddressV6("2001:db8::"), 32, connectedIntf);
+  v6Routes_.insert(connectedRoute->prefix(), connectedRoute);
+
+  const RouteNextHopSet unresolvedNhops{
+      UnresolvedNextHop(gatewayAddr, ECMP_WEIGHT)};
+  const auto unresolvedId = allocUnresolvedSet(unresolvedNhops);
+
+  auto mySid = makeMySid("fc00:100::1", 48);
+  mySid->setUnresolveNextHopsId(unresolvedId);
+  const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
+  mySidTable_[key] = mySid;
+
+  RibMySidUpdater updater(&v4Routes_, &v6Routes_, &manager(), &mySidTable_);
+  updater.resolve();
+
+  const auto resolvedId = mySidTable_.at(key)->getResolvedNextHopsId();
+  ASSERT_TRUE(resolvedId.has_value());
+  const auto resolvedNhops = manager().getNextHopsIf(*resolvedId);
+  ASSERT_TRUE(resolvedNhops.has_value());
+  ASSERT_EQ(resolvedNhops->size(), 1);
+
+  // normalizedNextHops() converts ECMP_WEIGHT(0) to 1 for a single next hop.
+  const RouteNextHopSet expected{
+      ResolvedNextHop(gatewayAddr, connectedIntf, NextHopWeight(1))};
+  EXPECT_EQ(*resolvedNhops, expected);
 }
 
 } // namespace facebook::fboss
