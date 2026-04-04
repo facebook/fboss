@@ -125,4 +125,86 @@ class SwSwitchWarmBootHelperTest : public ::testing::Test {
 
 int SwSwitchWarmBootHelperTest::testCounter_ = 0;
 
+// ============================================================================
+// canWarmBootFromFile TESTS - via canWarmBoot() interface
+// ============================================================================
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromFileSuccessWhenAllConditionsMet) {
+  setupForWarmBootFromFile();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  // isRunModeMultiSwitch = false, so thrift path won't be tried
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_TRUE(result);
+}
+
+TEST_F(SwSwitchWarmBootHelperTest, CanWarmBootFromFileFailsWhenForceColdBoot) {
+  setupForWarmBootFromFile();
+
+  // Create force cold boot flag
+  auto forceColdBootPath = directoryUtil_->getSwColdBootOnceFile();
+  createTestFile(forceColdBootPath);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromFileFailsWhenCanWarmBootFlagNotSet) {
+  // Setup state file but NOT warmboot flag
+  auto stateFilePath = folly::to<std::string>(
+      directoryUtil_->getWarmBootDir(), "/", FLAGS_thrift_switch_state_file);
+  createTestWarmbootState(stateFilePath);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromFileFailsWhenFlagCanWarmBootDisabled) {
+  setupForWarmBootFromFile();
+  FLAGS_can_warm_boot = false;
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromFileFailsWhenStateFileNotExists) {
+  // Setup warmboot flag but NOT state file
+  auto warmbootFlagPath = directoryUtil_->getSwSwitchCanWarmBootFile();
+  createDir(std::filesystem::path(warmbootFlagPath).parent_path().string());
+  createTestFile(warmbootFlagPath);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  // This should crash with CHECK failure since state file doesn't exist
+  // when other conditions are met
+  EXPECT_DEATH(helper.canWarmBoot(false, nullptr), "");
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromFileWithCustomThriftStateFile) {
+  FLAGS_thrift_switch_state_file = "custom_state_file";
+  setupForWarmBootFromFile();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_TRUE(result);
+}
+
 } // namespace facebook::fboss
