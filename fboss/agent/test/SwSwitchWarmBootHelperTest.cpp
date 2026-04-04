@@ -324,4 +324,39 @@ TEST_F(
   EXPECT_FALSE(result);
 }
 
+// ============================================================================
+// PRIORITY TESTS - File vs Thrift
+// ============================================================================
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootPrefersFileOverThriftWhenBothAvailable) {
+  // Setup both file-based and thrift-based warmboot
+  setupForWarmBootFromFile();
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  // Even in multi-switch mode, file-based warmboot takes precedence
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_TRUE(result);
+  // Verify file-based warmboot was used, not thrift-based
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFallsBackToThriftWhenFileNotAvailable) {
+  // Only setup thrift-based warmboot (no file-based warmboot)
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_TRUE(result);
+  // Verify thrift-based warmboot was used
+  EXPECT_TRUE(helper.isWarmBootFromHwSwitch());
+}
+
 } // namespace facebook::fboss
