@@ -3025,6 +3025,9 @@ void SwSwitch::publishBootTypeStats() {
         break;
       case BootType::WARM_BOOT:
         stats()->warmBoot();
+        if (swSwitchWarmbootHelper_->isWarmBootFromHwSwitch()) {
+          stats()->warmBootFromHwSwitch();
+        }
         break;
       case BootType::UNINITIALIZED:
         CHECK(0);

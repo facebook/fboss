@@ -469,6 +469,10 @@ class SwitchStats : public boost::noncopyable {
     coldBoot_.addValue(1);
   }
 
+  void warmBootFromHwSwitch() {
+    warmBootFromHwSwitch_.addValue(1);
+  }
+
   void probedStateCleanedUp() {
     probedStateCleanupStatus_.incrementValue(1);
   }
@@ -1143,6 +1147,7 @@ class SwitchStats : public boost::noncopyable {
 
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
+  TLTimeseries warmBootFromHwSwitch_;
   TLCounter probedStateCleanupStatus_;
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;
