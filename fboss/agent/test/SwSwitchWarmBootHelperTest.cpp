@@ -207,4 +207,121 @@ TEST_F(
   EXPECT_TRUE(result);
 }
 
+// ============================================================================
+// canWarmBootFromThrift TESTS - via canWarmBoot() interface
+// ============================================================================
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftSuccessWhenHwSwitchConfigured) {
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  // isRunModeMultiSwitch = true to trigger thrift path
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_TRUE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftFailsWhenNotMultiSwitchMode) {
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  // isRunModeMultiSwitch = false, should not try thrift path
+  bool result = helper.canWarmBoot(false, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftFailsWhenHwSwitchNotConfigured) {
+  FLAGS_recover_from_hw_switch = true;
+  testThriftClientTable_->setRunState(SwitchRunState::INITIALIZED);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftFailsWhenHwSwitchExiting) {
+  FLAGS_recover_from_hw_switch = true;
+  testThriftClientTable_->setRunState(SwitchRunState::EXITING);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftFailsWhenGetRunStateThrows) {
+  FLAGS_recover_from_hw_switch = true;
+  testThriftClientTable_->setRunState(SwitchRunState::CONFIGURED);
+  testThriftClientTable_->setShouldThrowOnGetRunState(true);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftFailsWhenGetProgrammedStateThrows) {
+  FLAGS_recover_from_hw_switch = true;
+  testThriftClientTable_->setRunState(SwitchRunState::CONFIGURED);
+  testThriftClientTable_->setShouldThrowOnGetProgrammedState(true);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftFailsWhenFlagRecoverFromHwSwitchDisabled) {
+  FLAGS_recover_from_hw_switch = false;
+  testThriftClientTable_->setRunState(SwitchRunState::CONFIGURED);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(result);
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    CanWarmBootFromThriftWithMultipleSwitchesFails) {
+  FLAGS_recover_from_hw_switch = true;
+  testThriftClientTable_->setRunState(SwitchRunState::CONFIGURED);
+
+  // Create multi-switch asic table
+  std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo;
+  for (int i = 0; i < 2; i++) {
+    cfg::SwitchInfo switchInfo;
+    switchInfo.switchIndex() = i;
+    switchInfo.switchType() = cfg::SwitchType::NPU;
+    switchInfo.asicType() = cfg::AsicType::ASIC_TYPE_MOCK;
+    switchIdToSwitchInfo[i] = switchInfo;
+  }
+  auto multiSwitchAsicTable = std::make_unique<HwAsicTable>(
+      switchIdToSwitchInfo, std::nullopt, std::map<int64_t, cfg::DsfNode>());
+
+  SwSwitchWarmBootHelper helper(
+      directoryUtil_.get(), multiSwitchAsicTable.get());
+  bool result = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  // Warmboot from multiple HW Agents is not supported yet.
+  // TODO(zecheng): Update this UT when multi HW Agent is supported.
+  EXPECT_FALSE(result);
+}
+
 } // namespace facebook::fboss
