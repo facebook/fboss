@@ -460,6 +460,28 @@ TEST_F(SwSwitchWarmBootHelperTest, StoreAndGetWarmBootState) {
   EXPECT_EQ(retrievedState.routeTables()->size(), 1);
 }
 
+TEST_F(SwSwitchWarmBootHelperTest, GetWarmBootStateReturnsThriftState) {
+  // Setup thrift-based warmboot with a specific state
+  setupForWarmBootFromThrift();
+  state::SwitchState hwState;
+  state::PortFields port;
+  port.portId() = 42;
+  port.portName() = "thrift_port";
+  std::map<int16_t, state::PortFields> portMap;
+  portMap[42] = port;
+  hwState.portMaps()["id=0"] = portMap;
+  testThriftClientTable_->setProgrammedState(hwState);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  // getWarmBootState should return the thrift-recovered state, not file
+  auto warmBootState = helper.getWarmBootState();
+  EXPECT_EQ(warmBootState.swSwitchState()->portMaps()->size(), 1);
+  auto& ports = warmBootState.swSwitchState()->portMaps()->at("id=0");
+  EXPECT_EQ(ports.at(42).portName(), "thrift_port");
+}
+
 TEST_F(SwSwitchWarmBootHelperTest, StoreWarmBootStateSetsCanWarmBootFlag) {
   SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
 
