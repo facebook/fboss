@@ -528,4 +528,80 @@ TEST_F(
   EXPECT_FALSE(result);
 }
 
+// ============================================================================
+// isWarmBootFromHwSwitch TESTS
+// ============================================================================
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    IsWarmBootFromHwSwitchReturnsFalseBeforeCanWarmBoot) {
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+
+  // Before canWarmBoot() is called, isWarmBootFromHwSwitch should be false
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    IsWarmBootFromHwSwitchReturnsFalseAfterColdBoot) {
+  // No warmboot setup — will result in cold boot
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    IsWarmBootFromHwSwitchReturnsTrueAfterThriftWarmBoot) {
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool canWarmBoot = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_TRUE(canWarmBoot);
+  EXPECT_TRUE(helper.isWarmBootFromHwSwitch());
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    IsWarmBootFromHwSwitchReturnsFalseAfterFileWarmBoot) {
+  setupForWarmBootFromFile();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool canWarmBoot = helper.canWarmBoot(false, nullptr);
+
+  EXPECT_TRUE(canWarmBoot);
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    IsWarmBootFromHwSwitchReturnsFalseWhenFileTakesPrecedence) {
+  // Both file and thrift warmboot available — file takes precedence
+  setupForWarmBootFromFile();
+  setupForWarmBootFromThrift();
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool canWarmBoot = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_TRUE(canWarmBoot);
+  // File-based warmboot was used, so isWarmBootFromHwSwitch should be false
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
+TEST_F(
+    SwSwitchWarmBootHelperTest,
+    IsWarmBootFromHwSwitchReturnsFalseWhenThriftFails) {
+  FLAGS_recover_from_hw_switch = true;
+  testThriftClientTable_->setRunState(SwitchRunState::CONFIGURED);
+  testThriftClientTable_->setShouldThrowOnGetProgrammedState(true);
+
+  SwSwitchWarmBootHelper helper(directoryUtil_.get(), asicTable_.get());
+  bool canWarmBoot = helper.canWarmBoot(true, testThriftClientTable_.get());
+
+  EXPECT_FALSE(canWarmBoot);
+  EXPECT_FALSE(helper.isWarmBootFromHwSwitch());
+}
+
 } // namespace facebook::fboss
