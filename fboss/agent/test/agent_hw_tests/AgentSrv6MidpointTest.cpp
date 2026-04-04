@@ -200,6 +200,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         kHopLimit,
         64 /* innerHopLimit */);
 
+    // Capture original frame before moving txPacket, for inner packet
+    // comparison.
+    auto origFrame = utility::makeEthFrame(*txPacket);
+
     utility::SwSwitchPacketSnooper snooper(
         this->getSw(), "srv6MidpointSnooper");
 
@@ -237,6 +241,14 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     // DSCP and ECN are preserved in the outer header.
     EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
     EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
+    // Inner packet should be unchanged after midpoint uSID shift.
+    auto origOuterV6 = origFrame.v6PayLoad();
+    ASSERT_TRUE(origOuterV6.has_value());
+    auto expectedInnerV6 = origOuterV6->v6PayLoad();
+    ASSERT_NE(expectedInnerV6, nullptr);
+    auto rxInnerV6 = rxV6->v6PayLoad();
+    ASSERT_NE(rxInnerV6, nullptr);
+    EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
   }
 
   void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
