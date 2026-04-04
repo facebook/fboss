@@ -83,6 +83,7 @@ IpPrefix toIpPrefix(const std::string& addr, uint8_t len) {
 // Callback that uses MySidMapUpdater to apply RIB MySid to SwitchState.
 StateDelta mySidToSwitchStateUpdate(
     const SwitchIdScopeResolver* resolver,
+    const NextHopIDManager* /*nextHopIDManager*/,
     const MySidTable& mySidTable,
     void* cookie) {
   auto switchState =
@@ -103,6 +104,7 @@ class FailMySidUpdate {
  public:
   StateDelta operator()(
       const SwitchIdScopeResolver* resolver,
+      const NextHopIDManager* /*nextHopIDManager*/,
       const MySidTable& mySidTable,
       void* cookie) {
     auto switchState =
@@ -128,6 +130,7 @@ class FailWithMySidInAppliedState {
 
   StateDelta operator()(
       const SwitchIdScopeResolver* resolver,
+      const NextHopIDManager* /*nextHopIDManager*/,
       const MySidTable& mySidTable,
       void* cookie) {
     auto switchState =

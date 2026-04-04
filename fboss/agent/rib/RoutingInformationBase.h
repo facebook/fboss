@@ -58,6 +58,7 @@ using RibToSwitchStateFunction = std::function<StateDelta(
 
 using RibMySidToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
+    const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
     void* cookie)>;
 /*

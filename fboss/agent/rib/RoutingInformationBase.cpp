@@ -479,7 +479,8 @@ void RibRouteTables::updateFib(
     void* cookie) {
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
-    ribMySidToSwitchStateFunc(resolver, lockedRouteTables->mySidTable, cookie);
+    ribMySidToSwitchStateFunc(
+        resolver, nextHopIDManager_, lockedRouteTables->mySidTable, cookie);
   } catch (const FbossHwUpdateError& hwUpdateError) {
     {
       SCOPE_FAIL {
