@@ -914,10 +914,62 @@ TEST_F(
 
 TEST_F(
     RibMySidNextHopTest,
+    addMySidWithGatewayNextHop_noRoutes_resolvedSetIdNotSet) {
+  // Gateway nexthop (no interface ID) with no matching VRF 0 route → resolve
+  // finds nothing, so resolvedNextHopsId should remain unset.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with unresolvable gateway nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    addMySidWithGatewayNextHop_withMatchingRoute_resolvedSetIdSet) {
+  // Inject a resolved interface route covering the gateway nexthop's address
+  // via reconfigure, then add the MySid entry → resolvedNextHopsId is set.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      noopFibUpdate,
+      &switchState_);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with resolvable gateway nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  EXPECT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+// Replacing next hops on a MySid entry should:
+// 1. Deallocate the old NextHopSetID (getNextHopsIf returns nullopt)
+// 2. Keep the new NextHopSetID alive (getNextHopsIf returns non-null)
+TEST_F(
+    RibMySidNextHopTest,
     replaceNextHopsDecrementsOldAndIncrementsNewRefCount) {
-  // Replacing next hops on a MySid entry should:
-  // 1. Deallocate the old NextHopSetID (getNextHopsIf returns nullopt)
-  // 2. Keep the new NextHopSetID alive (getNextHopsIf returns non-null)
   rib_->update(
       scopeResolver(),
       {makeMySidEntryWithNextHops(

@@ -28,6 +28,7 @@
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include "fboss/agent/rib/RibMySidUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 
 #include <exception>
@@ -222,7 +223,14 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
 template <typename RibUpdateFn>
 void RibRouteTables::updateRib(const RibUpdateFn& updateRibFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  updateRibFn(&lockedRouteTables->mySidTable);
+  IPv4NetworkToRouteMap* v4Routes = nullptr;
+  IPv6NetworkToRouteMap* v6Routes = nullptr;
+  auto it = lockedRouteTables->routerIDToRouteTable.find(RouterID(0));
+  if (it != lockedRouteTables->routerIDToRouteTable.end()) {
+    v4Routes = &it->second.v4NetworkToRoute;
+    v6Routes = &it->second.v6NetworkToRoute;
+  }
+  updateRibFn(v4Routes, v6Routes, &lockedRouteTables->mySidTable);
 }
 
 void RibRouteTables::reconfigure(
@@ -1086,10 +1094,14 @@ void RibRouteTables::update(
     const std::vector<IpPrefix>& toDelete,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
-  updateRib([&](MySidTable* mySidTable) {
+  updateRib([&](IPv4NetworkToRouteMap* v4Routes,
+                IPv6NetworkToRouteMap* v6Routes,
+                MySidTable* mySidTable) {
+    std::set<folly::CIDRNetwork> addedPrefixes;
     for (const auto& entry : toAdd) {
       auto mySid = mySidFromEntry(entry);
       const auto cidr = mySid->getMySid();
+      addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
       if (nextHopIDManager_) {
         const auto existingIt = mySidTable->find(cidrV6);
@@ -1132,6 +1144,11 @@ void RibRouteTables::update(
         }
       }
       mySidTable->erase(cidr);
+    }
+    if (nextHopIDManager_ && !addedPrefixes.empty()) {
+      RibMySidUpdater updater(
+          v4Routes, v6Routes, nextHopIDManager_, mySidTable);
+      updater.resolve(addedPrefixes);
     }
   });
   updateFib(resolver, ribMySidToSwitchStateFunc, cookie);
