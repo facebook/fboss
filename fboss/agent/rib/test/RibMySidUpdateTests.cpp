@@ -7,9 +7,14 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/MySidMapUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/MySidMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>
@@ -173,6 +178,36 @@ std::shared_ptr<MySid> makeMySid(
   mySid->setUnresolveNextHopsId(std::nullopt);
   mySid->setResolvedNextHopsId(std::nullopt);
   return mySid;
+}
+
+// Callback that uses RibToSwitchStateUpdater with UPDATE_MYSID, so that
+// SwitchStateNextHopIdUpdater runs and populates FibInfo id2NextHopSet maps.
+StateDelta mySidToSwitchStateUpdateViaRibUpdater(
+    const SwitchIdScopeResolver* resolver,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
+    void* cookie) {
+  auto switchState =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+  auto oldState = *switchState;
+
+  IPv4NetworkToRouteMap emptyV4;
+  IPv6NetworkToRouteMap emptyV6;
+  LabelToRouteMap emptyLabel;
+  RibToSwitchStateUpdater updater(
+      resolver,
+      RouterID(0), // don't care
+      emptyV4,
+      emptyV6,
+      emptyLabel,
+      nextHopIDManager,
+      mySidTable,
+      RibToSwitchStateUpdater::UPDATE_MYSID);
+
+  auto newState = updater(*switchState);
+  newState->publish();
+  *switchState = newState;
+  return StateDelta(oldState, newState);
 }
 
 } // namespace
@@ -1009,4 +1044,163 @@ TEST_F(
   EXPECT_FALSE(manager->getNextHopsIf(oldId).has_value());
   // New next hop set should still be allocated
   EXPECT_TRUE(manager->getNextHopsIf(newId).has_value());
+}
+
+// Test fixture that sets up a SwitchState with a FibInfo node so that
+// SwitchStateNextHopIdUpdater (called via RibToSwitchStateUpdater with
+// UPDATE_MYSID) can populate FibInfo's id2NextHopSet maps.
+class RibMySidFibInfoTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    rib_ = std::make_unique<RoutingInformationBase>();
+    switchState_ = std::make_shared<SwitchState>();
+    // Add a FibInfo node so SwitchStateNextHopIdUpdater has a node to write to.
+    auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    fibsInfoMap->addNode("id=0", std::make_shared<FibInfo>());
+    switchState_->resetFibsInfoMap(fibsInfoMap);
+    switchState_->publish();
+    rib_->ensureVrf(kRid);
+  }
+
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+
+  // Returns the IdToNextHopIdSetMap from the FibInfo node in the SwitchState.
+  std::shared_ptr<IdToNextHopIdSetMap> getIdToNextHopIdSetMap() {
+    auto fibInfo = switchState_->getFibsInfoMap()->getNodeIf("id=0");
+    return fibInfo ? fibInfo->getIdToNextHopIdSetMap() : nullptr;
+  }
+
+  std::unique_ptr<RoutingInformationBase> rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibMySidFibInfoTest, mySidNextHopSetIdReflectedInFibInfo) {
+  // Adding a MySid entry with next hops allocates a NextHopSetID.  Verify that
+  // the allocated ID is written into FibInfo->id2NextHopIdSet by
+  // SwitchStateNextHopIdUpdater (called through RibToSwitchStateUpdater with
+  // UPDATE_MYSID).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with nexthops",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  const auto unresolvedId = mySidTable.at(prefix).unresolveNextHopsId();
+  ASSERT_TRUE(unresolvedId.has_value());
+
+  // The allocated NextHopSetID must appear in FibInfo's id2NextHopIdSet.
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr)
+      << "MySid unresolvedNextHopsId not found in FibInfo id2NextHopIdSet";
+}
+
+TEST_F(RibMySidFibInfoTest, deleteMySidClearsFibInfoNextHopSetId) {
+  // After deleting a MySid entry, its NextHopSetID should be removed from
+  // FibInfo->id2NextHopIdSet.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto tableAfterAdd = rib_->getMySidTableCopy();
+  ASSERT_NE(tableAfterAdd.find(prefix), tableAfterAdd.end());
+  const auto idAfterAdd = tableAfterAdd.at(prefix).unresolveNextHopsId();
+  ASSERT_TRUE(idAfterAdd.has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {},
+      {toIpPrefix("fc00:100::1", 48)},
+      "delete mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  // After deletion the NextHopSetID must be absent from FibInfo.
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(*idAfterAdd), nullptr)
+      << "MySid NextHopSetId should have been removed from FibInfo after delete";
+}
+
+TEST_F(RibMySidFibInfoTest, mySidOnlyNextHopSetIdsInFibInfo) {
+  // With no routes present, only MySid-allocated NextHopSetIDs should appear
+  // in FibInfo id2NextHopIdSet (i.e. they are not shared with any route).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops(
+          "fc00:100::1", 48, {"2001:db8::1", "2001:db8::2"})},
+      {},
+      "add mysid with two nexthops",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  const auto unresolvedId = mySidTable.at(prefix).unresolveNextHopsId();
+  ASSERT_TRUE(unresolvedId.has_value());
+
+  // FibInfo should have exactly one NextHopSetID entry — the MySid's unresolved
+  // set — confirming it is not shared with any route.
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->size(), 1u);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr);
+}
+
+TEST_F(RibMySidFibInfoTest, resolvedNextHopSetIdReflectedInFibInfo) {
+  // When a MySid entry's gateway nexthop can be resolved via an interface
+  // route, both unresolvedNextHopsId and resolvedNextHopsId should appear in
+  // FibInfo->id2NextHopIdSet.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      noopFibUpdate,
+      &switchState_);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with resolvable gateway nexthop",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  const auto unresolvedId = mySidTable.at(prefix).unresolveNextHopsId();
+  const auto resolvedId = mySidTable.at(prefix).resolvedNextHopsId();
+  ASSERT_TRUE(unresolvedId.has_value());
+  ASSERT_TRUE(resolvedId.has_value());
+
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr)
+      << "MySid unresolvedNextHopsId not found in FibInfo id2NextHopIdSet";
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*resolvedId), nullptr)
+      << "MySid resolvedNextHopsId not found in FibInfo id2NextHopIdSet";
 }
