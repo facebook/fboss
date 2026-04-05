@@ -170,14 +170,12 @@ struct ValidPacketResult {
   std::chrono::steady_clock::time_point rxTime;
 };
 
-// Waits up to kBatchTimeoutSeconds for a valid test packet, skipping
+// Waits for a valid test packet until the given deadline, skipping
 // non-test packets (LLDP, NDP, etc.). Returns received=false on timeout.
-inline ValidPacketResult waitForValidPacket(
+inline ValidPacketResult waitForValidPacketUntil(
     utility::SwSwitchPacketSnooper& snooper,
+    std::chrono::steady_clock::time_point deadline,
     folly::StringPiece context) {
-  auto deadline = std::chrono::steady_clock::now() +
-      std::chrono::seconds(kBatchTimeoutSeconds);
-
   while (true) {
     auto remaining = std::chrono::duration_cast<std::chrono::seconds>(
         deadline - std::chrono::steady_clock::now());
@@ -196,6 +194,17 @@ inline ValidPacketResult waitForValidPacket(
     }
     return {true, decoded, std::chrono::steady_clock::now()};
   }
+}
+
+// Waits up to kBatchTimeoutSeconds for a valid test packet.
+inline ValidPacketResult waitForValidPacket(
+    utility::SwSwitchPacketSnooper& snooper,
+    folly::StringPiece context) {
+  return waitForValidPacketUntil(
+      snooper,
+      std::chrono::steady_clock::now() +
+          std::chrono::seconds(kBatchTimeoutSeconds),
+      context);
 }
 
 // ===== Packet Creation =====
@@ -338,6 +347,7 @@ inline BatchLatencyResults measureCpuLatency(
       XLOG(WARNING) << "Packet seq=" << batch << " dropped (timeout)";
       continue;
     }
+
     results.totalReceived++;
 
     uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -672,6 +682,113 @@ inline void cpuLatencySequentialAllPortsBenchmark(
   reportMultiPortResults(results, numBatches, "sequential");
 }
 
+// ===== Concurrent All-Port Measurement =====
+//
+// Each round: send one packet on every port, then collect all responses
+// via waitForAnyPacket(), attribute by returned portId.
+
+inline MultiPortLatencyResults measureCpuLatencyConcurrentAllPorts(
+    AgentEnsemble* ensemble,
+    const std::vector<PortID>& ports,
+    const std::map<PortID, folly::IPAddressV6>& portToIp,
+    const std::map<PortID, VlanID>& portToVlan,
+    int numBatches) {
+  MultiPortLatencyResults results;
+
+  utility::SwSwitchPacketSnooper snooper(
+      ensemble->getSw(), "cpuLatencyConcurrentBenchmark");
+  snooper.ignoreUnclaimedRxPkts();
+
+  for (int batch = 0; batch < numBatches; ++batch) {
+    // Send one packet on every port
+    XLOG(INFO) << "Concurrent batch " << batch << " sending on " << ports.size()
+               << " ports";
+    for (const auto& portId : ports) {
+      auto dstIp = portToIp.at(portId);
+      auto vlanId = portToVlan.at(portId);
+      auto txPacket = createLatencyTestPacket(ensemble, batch, dstIp, vlanId);
+      ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), portId);
+    }
+
+    // Collect all responses, skipping non-test packets (LLDP, NDP, etc.)
+    int collected = 0;
+    int expectedResponses = static_cast<int>(ports.size());
+    auto deadline = std::chrono::steady_clock::now() +
+        std::chrono::seconds(kBatchTimeoutSeconds);
+    while (collected < expectedResponses) {
+      auto rx = waitForValidPacketUntil(
+          snooper,
+          deadline,
+          folly::to<std::string>("Concurrent batch=", batch));
+      if (!rx.received) {
+        break;
+      }
+
+      if (rx.decoded.sequenceNumber != static_cast<uint32_t>(batch)) {
+        XLOG(WARNING) << "Concurrent batch=" << batch
+                      << " seq mismatch: got=" << rx.decoded.sequenceNumber;
+        results.aggregate.outOfOrder++;
+        continue;
+      }
+
+      collected++;
+      results.aggregate.totalReceived++;
+      uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                              rx.rxTime.time_since_epoch())
+                              .count();
+      double packetLatencyMs =
+          static_cast<double>(rxTimeNs - rx.decoded.timestampNs) / 1'000'000.0;
+      results.aggregate.perBatchLatenciesMs.push_back(packetLatencyMs);
+
+      XLOG(INFO) << "Concurrent batch=" << batch
+                 << " latency=" << packetLatencyMs << "ms";
+    }
+
+    // Check for drops this round
+    int sentThisRound = static_cast<int>(ports.size());
+    int droppedThisRound = sentThisRound - collected;
+    if (droppedThisRound > 0) {
+      results.aggregate.totalDropped += droppedThisRound;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // Compute aggregate stats
+  results.aggregate.totalSent = numBatches * static_cast<int>(ports.size());
+  computeStats(results.aggregate);
+
+  return results;
+}
+
+// ===== Concurrent All-Port Benchmark Function =====
+
+inline void cpuLatencyConcurrentAllPortsBenchmark(
+    int numBatches,
+    int /*batchSize*/) {
+  folly::BenchmarkSuspender suspender;
+  auto setup = createAllPortCpuLatencyEnsemble();
+  suspender.dismiss();
+
+  auto results = measureCpuLatencyConcurrentAllPorts(
+      setup.ensemble.get(),
+      setup.ports,
+      setup.portToIp,
+      setup.portToVlan,
+      numBatches);
+
+  suspender.rehire();
+
+  CHECK_GT(results.aggregate.totalReceived, 0) << "No packets received";
+
+  if (results.aggregate.totalDropped > 0) {
+    XLOG(WARNING) << "Concurrent benchmark: " << results.aggregate.totalDropped
+                  << "/" << results.aggregate.totalSent << " packets dropped";
+  }
+
+  reportMultiPortResults(results, numBatches, "concurrent");
+}
+
 } // namespace
 
 // ===== Benchmark Macros =====
@@ -684,6 +801,12 @@ inline void cpuLatencySequentialAllPortsBenchmark(
 #define CPU_LATENCY_SEQ_ALL_PORTS_BENCHMARK(name, numBatches, batchSize) \
   BENCHMARK(name) {                                                      \
     cpuLatencySequentialAllPortsBenchmark(numBatches, batchSize);        \
+  }
+
+#define CPU_LATENCY_CONCURRENT_ALL_PORTS_BENCHMARK(               \
+    name, numBatches, batchSize)                                  \
+  BENCHMARK(name) {                                               \
+    cpuLatencyConcurrentAllPortsBenchmark(numBatches, batchSize); \
   }
 
 } // namespace facebook::fboss

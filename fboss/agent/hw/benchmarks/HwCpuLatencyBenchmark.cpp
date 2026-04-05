@@ -22,4 +22,16 @@ CPU_LATENCY_SEQ_ALL_PORTS_BENCHMARK(
     10,
     1)
 
+// Concurrent all-port - single iteration baseline
+CPU_LATENCY_CONCURRENT_ALL_PORTS_BENCHMARK(
+    cpuLatencyConcurrentAllPorts1Batch1Packet,
+    1,
+    1)
+
+// Concurrent all-port - consistency measurement
+CPU_LATENCY_CONCURRENT_ALL_PORTS_BENCHMARK(
+    cpuLatencyConcurrentAllPorts10Batches1Packet,
+    10,
+    1)
+
 } // namespace facebook::fboss
