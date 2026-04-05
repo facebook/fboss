@@ -16,6 +16,7 @@
 
 #include <boost/container/flat_set.hpp>
 #include <folly/Benchmark.h>
+#include <folly/Conv.h>
 #include <folly/IPAddress.h>
 #include <folly/io/Cursor.h>
 #include <folly/json/dynamic.h>
@@ -25,6 +26,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <map>
 #include <vector>
 
 namespace facebook::fboss {
@@ -104,9 +106,6 @@ inline std::vector<uint8_t> encodePayload(uint32_t sequenceNumber) {
 // Parse headers from the beginning to find the UDP payload.
 // Validates: EtherType is IPv6, UDP dst port matches kTestDstPort.
 // Returns valid=false for non-test packets (LLDP, NDP, etc.).
-// Parse headers from the beginning to find the UDP payload.
-// Validates: EtherType is IPv6, UDP dst port matches kTestDstPort.
-// Returns valid=false for non-test packets (LLDP, NDP, etc.).
 inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
   DecodedPayload result;
 
@@ -114,6 +113,7 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
   size_t totalLength = rxBuf.computeChainDataLength();
 
   if (totalLength < kMinTestPacketSize) {
+    XLOG(DBG3) << "Packet too small: " << totalLength << " bytes";
     return result;
   }
 
@@ -128,6 +128,7 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
   }
 
   if (etherType != kEtherTypeIPv6) {
+    XLOG(DBG3) << "etherType=" << etherType << " != expected IPv6";
     return result;
   }
 
@@ -140,6 +141,8 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
   (void)udpSrcPort;
 
   if (udpDstPort != kTestDstPort) {
+    XLOG(DBG3) << "udpDstPort=" << udpDstPort << " != expected "
+               << kTestDstPort;
     return result;
   }
 
@@ -148,6 +151,8 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
 
   // Read our payload: timestamp(8) + sequence(4)
   if (cursor.totalLength() < kPayloadSize) {
+    XLOG(DBG3) << "Packet too small for cursor be placed in the right place: "
+               << cursor.totalLength() << " bytes";
     return result;
   }
   result.timestampNs = cursor.readBE<uint64_t>();
@@ -155,6 +160,42 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
   result.valid = true;
 
   return result;
+}
+
+// ===== Packet Wait Helper =====
+
+struct ValidPacketResult {
+  bool received{false};
+  DecodedPayload decoded;
+  std::chrono::steady_clock::time_point rxTime;
+};
+
+// Waits up to kBatchTimeoutSeconds for a valid test packet, skipping
+// non-test packets (LLDP, NDP, etc.). Returns received=false on timeout.
+inline ValidPacketResult waitForValidPacket(
+    utility::SwSwitchPacketSnooper& snooper,
+    folly::StringPiece context) {
+  auto deadline = std::chrono::steady_clock::now() +
+      std::chrono::seconds(kBatchTimeoutSeconds);
+
+  while (true) {
+    auto remaining = std::chrono::duration_cast<std::chrono::seconds>(
+        deadline - std::chrono::steady_clock::now());
+    if (remaining.count() <= 0) {
+      return {};
+    }
+    auto rxBuf =
+        snooper.waitForPacket(static_cast<uint32_t>(remaining.count()));
+    if (!rxBuf) {
+      return {};
+    }
+    auto decoded = decodePayload(**rxBuf);
+    if (!decoded.valid) {
+      XLOG(DBG3) << context << " skipping non-test packet";
+      continue;
+    }
+    return {true, decoded, std::chrono::steady_clock::now()};
+  }
 }
 
 // ===== Packet Creation =====
@@ -212,8 +253,6 @@ inline CpuLatencyBenchmarkSetup createCpuLatencyEnsemble() {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   auto portId = ensemble->masterLogicalInterfacePortIds()[0];
-  auto dstMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
 
   // Add DstIP-based trap ACL with TRAP action (DstMac not supported on
   // Gibraltar/Graphene200).
@@ -224,32 +263,7 @@ inline CpuLatencyBenchmarkSetup createCpuLatencyEnsemble() {
 
   ensemble->applyNewConfig(config);
 
-  auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
-      ensemble->getProgrammedState(),
-      ensemble->getSw()->needL2EntryForNeighbor(),
-      dstMac);
-
-  flat_set<PortDescriptor> portSet{PortDescriptor(portId)};
-
-  ensemble->applyNewState(
-      [&](const std::shared_ptr<SwitchState>& in)
-          -> std::shared_ptr<SwitchState> {
-        return ecmpHelper.resolveNextHops(in, portSet);
-      });
-
-  ecmpHelper.programRoutes(
-      std::make_unique<SwSwitchRouteUpdateWrapper>(
-          ensemble->getSw(), ensemble->getSw()->getRib()),
-      portSet,
-      {RoutePrefixV6{folly::IPAddressV6(), 0}},
-      {},
-      true);
-  utility::disablePortTTLDecrementIfSupported(
-      ensemble.get(), ecmpHelper.getRouterId(), ecmpHelper.getNextHops()[0]);
-
-  XLOG(DBG2) << "Loopback traffic path setup complete for port " << portId;
-
-  // Log port state for debugging
+  XLOG(INFO) << "Loopback traffic path setup complete for port " << portId;
 
   return {std::move(ensemble), portId};
 }
@@ -317,34 +331,9 @@ inline BatchLatencyResults measureCpuLatency(
     ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), portId);
     results.totalSent++;
 
-    // Wait for a valid test packet, skipping non-test packets (LLDP, NDP)
-    auto deadline = std::chrono::steady_clock::now() +
-        std::chrono::seconds(kBatchTimeoutSeconds);
-    std::chrono::steady_clock::time_point rxTime;
-    DecodedPayload decoded;
-    bool gotValidPacket = false;
-
-    while (!gotValidPacket) {
-      auto remaining = std::chrono::duration_cast<std::chrono::seconds>(
-          deadline - std::chrono::steady_clock::now());
-      if (remaining.count() <= 0) {
-        break;
-      }
-      auto rxBuf =
-          snooper.waitForPacket(static_cast<uint32_t>(remaining.count()));
-      if (!rxBuf) {
-        break;
-      }
-      rxTime = std::chrono::steady_clock::now();
-      decoded = decodePayload(**rxBuf);
-      if (!decoded.valid) {
-        XLOG(DBG2) << "Packet seq=" << batch << " skipping non-test packet";
-        continue;
-      }
-      gotValidPacket = true;
-    }
-
-    if (!gotValidPacket) {
+    auto rx =
+        waitForValidPacket(snooper, folly::to<std::string>("seq=", batch));
+    if (!rx.received) {
       results.totalDropped++;
       XLOG(WARNING) << "Packet seq=" << batch << " dropped (timeout)";
       continue;
@@ -352,10 +341,10 @@ inline BatchLatencyResults measureCpuLatency(
     results.totalReceived++;
 
     uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            rxTime.time_since_epoch())
+                            rx.rxTime.time_since_epoch())
                             .count();
     double packetLatencyMs =
-        static_cast<double>(rxTimeNs - decoded.timestampNs) / 1'000'000.0;
+        static_cast<double>(rxTimeNs - rx.decoded.timestampNs) / 1'000'000.0;
     results.perBatchLatenciesMs.push_back(packetLatencyMs);
 
     XLOG(INFO) << "Packet seq=" << batch << " latency=" << packetLatencyMs
@@ -429,13 +418,272 @@ inline void cpuLatencyBenchmark(int numBatches, int batchSize) {
   reportResults(results, numBatches, batchSize);
 }
 
+// =============================================================================
+// All-Port CPU Latency Benchmark
+// =============================================================================
+
+struct MultiPortCpuLatencySetup {
+  std::unique_ptr<AgentEnsemble> ensemble;
+  std::vector<PortID> ports;
+  std::map<PortID, folly::IPAddressV6> portToIp;
+  std::map<PortID, VlanID> portToVlan;
+};
+
+struct MultiPortLatencyResults {
+  std::map<PortID, BatchLatencyResults> perPort;
+  BatchLatencyResults aggregate;
+};
+
+// ===== All-Port Ensemble Setup =====
+//
+// Configures all interface ports with loopback routes.
+// Pattern inlined from setupEcmpDataplaneLoopOnAllPorts() to avoid
+// gtest dependency (MultiPortTrafficTestUtils.h includes AgentHwTest.h).
+
+inline MultiPortCpuLatencySetup createAllPortCpuLatencyEnsemble() {
+  AgentEnsembleSwitchConfigFn initialConfigFn =
+      [](const AgentEnsemble& ensemble) -> cfg::SwitchConfig {
+    auto allPorts = ensemble.masterLogicalInterfacePortIds();
+    CHECK_GE(allPorts.size(), 1);
+
+    auto config = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(), allPorts, true /*interfaceHasSubnet*/);
+
+    utility::addOlympicQosMaps(config, ensemble.getL3Asics());
+    utility::setDefaultCpuTrafficPolicyConfig(
+        config, ensemble.getL3Asics(), ensemble.isSai());
+    utility::addCpuQueueConfig(config, ensemble.getL3Asics(), ensemble.isSai());
+
+    return config;
+  };
+
+  auto ensemble =
+      createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
+
+  auto allPorts = ensemble->masterLogicalInterfacePortIds();
+  auto intfMac =
+      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+
+  // Per-port IP and VLAN mappings
+  // onePortPerInterfaceConfig assigns VlanID(kBaseVlanId + index) per port
+  constexpr int kBaseVlanId = 2000;
+  std::map<PortID, folly::IPAddressV6> portToIp;
+  std::map<PortID, VlanID> portToVlan;
+  for (int idx = 0; idx < allPorts.size(); idx++) {
+    portToIp[allPorts[idx]] =
+        folly::IPAddressV6(folly::to<std::string>("2401::", idx + 1));
+    portToVlan[allPorts[idx]] = VlanID(kBaseVlanId + idx);
+  }
+
+  // Per-port /128 TRAP ACL for each port's IP.
+  // addTrapPacketAcl discards prefix length, so /64 doesn't work.
+  auto config = ensemble->getCurrentConfig();
+  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+  for (auto& [portId, ip] : portToIp) {
+    utility::addTrapPacketAcl(
+        asic, &config, folly::CIDRNetwork(ip, 128), cfg::ToCpuAction::TRAP);
+  }
+  ensemble->applyNewConfig(config);
+
+  // Setup ECMP loopback routes (inlined from setupEcmpDataplaneLoopOnAllPorts)
+  utility::EcmpSetupTargetedPorts6 ecmpHelper(
+      ensemble->getProgrammedState(),
+      ensemble->getSw()->needL2EntryForNeighbor(),
+      intfMac);
+
+  std::vector<PortDescriptor> portDescriptors;
+  std::vector<flat_set<PortDescriptor>> portDescSets;
+  for (auto& portId : allPorts) {
+    portDescriptors.emplace_back(portId);
+    portDescSets.push_back(flat_set<PortDescriptor>{PortDescriptor(portId)});
+  }
+
+  ensemble->applyNewState(
+      [&portDescriptors, &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
+        return ecmpHelper.resolveNextHops(
+            in,
+            flat_set<PortDescriptor>(
+                std::make_move_iterator(portDescriptors.begin()),
+                std::make_move_iterator(portDescriptors.end())));
+      });
+
+  std::vector<RoutePrefixV6> routePrefixes;
+  routePrefixes.reserve(portToIp.size());
+  for (auto& [portId, ip] : portToIp) {
+    routePrefixes.emplace_back(ip, 128);
+  }
+  auto routeUpdater = ensemble->getSw()->getRouteUpdater();
+  ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);
+
+  for (auto& nhop : ecmpHelper.getNextHops()) {
+    utility::disablePortTTLDecrementIfSupported(
+        ensemble.get(), ecmpHelper.getRouterId(), nhop);
+  }
+
+  XLOG(INFO) << "All-port loopback setup complete for " << allPorts.size()
+             << " ports";
+
+  return {std::move(ensemble), allPorts, portToIp, portToVlan};
+}
+
+// ===== Sequential All-Port Measurement =====
+
+inline MultiPortLatencyResults measureCpuLatencySequentialAllPorts(
+    AgentEnsemble* ensemble,
+    const std::vector<PortID>& ports,
+    const std::map<PortID, folly::IPAddressV6>& portToIp,
+    const std::map<PortID, VlanID>& portToVlan,
+    int numBatches) {
+  MultiPortLatencyResults results;
+
+  utility::SwSwitchPacketSnooper snooper(
+      ensemble->getSw(), "cpuLatencyAllPortsBenchmark");
+  snooper.ignoreUnclaimedRxPkts();
+
+  for (auto portId : ports) {
+    BatchLatencyResults portResults;
+    auto dstIp = portToIp.at(portId);
+    auto vlanId = portToVlan.at(portId);
+
+    for (int batch = 0; batch < numBatches; ++batch) {
+      auto txPacket = createLatencyTestPacket(ensemble, batch, dstIp, vlanId);
+      ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), portId);
+      portResults.totalSent++;
+
+      auto rx = waitForValidPacket(
+          snooper, folly::to<std::string>("Port ", portId, " seq=", batch));
+      if (!rx.received) {
+        portResults.totalDropped++;
+        XLOG(WARNING) << "Port " << portId << " seq=" << batch
+                      << " dropped (timeout)";
+        continue;
+      }
+
+      if (rx.decoded.sequenceNumber != static_cast<uint32_t>(batch)) {
+        XLOG(WARNING) << "Port " << portId
+                      << " seq mismatch: expected=" << batch
+                      << " got=" << rx.decoded.sequenceNumber;
+        portResults.outOfOrder++;
+      }
+      portResults.totalReceived++;
+
+      uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                              rx.rxTime.time_since_epoch())
+                              .count();
+      double packetLatencyMs =
+          static_cast<double>(rxTimeNs - rx.decoded.timestampNs) / 1'000'000.0;
+      portResults.perBatchLatenciesMs.push_back(packetLatencyMs);
+
+      XLOG(INFO) << "Port " << portId << " seq=" << batch
+                 << " latency=" << packetLatencyMs << "ms";
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    computeStats(portResults);
+    results.perPort[portId] = portResults;
+
+    for (auto latency : portResults.perBatchLatenciesMs) {
+      results.aggregate.perBatchLatenciesMs.push_back(latency);
+    }
+    results.aggregate.totalSent += portResults.totalSent;
+    results.aggregate.totalReceived += portResults.totalReceived;
+    results.aggregate.totalDropped += portResults.totalDropped;
+    results.aggregate.outOfOrder += portResults.outOfOrder;
+  }
+
+  computeStats(results.aggregate);
+  return results;
+}
+
+// ===== Multi-Port Results Reporting =====
+
+inline void reportMultiPortResults(
+    const MultiPortLatencyResults& results,
+    int numBatches,
+    const std::string& mode) {
+  // Log per-port details via XLOG
+  for (auto& [portId, portResults] : results.perPort) {
+    XLOG(INFO) << "Port " << portId << ": sent=" << portResults.totalSent
+               << " received=" << portResults.totalReceived
+               << " dropped=" << portResults.totalDropped
+               << " outOfOrder=" << portResults.outOfOrder
+               << " avg=" << portResults.avgMs << "ms"
+               << " p99=" << portResults.p99Ms << "ms";
+  }
+
+  auto& agg = results.aggregate;
+  if (FLAGS_json) {
+    // Flat JSON only — no nested objects (netcastle compatibility)
+    folly::dynamic json = folly::dynamic::object;
+    json["mode"] = mode;
+    json["num_batches"] = numBatches;
+    json["num_ports"] = static_cast<int>(results.perPort.size());
+    json["total_sent"] = agg.totalSent;
+    json["total_received"] = agg.totalReceived;
+    json["total_dropped"] = agg.totalDropped;
+    json["out_of_order"] = agg.outOfOrder;
+    json["latency_min_ms"] = agg.minMs;
+    json["latency_max_ms"] = agg.maxMs;
+    json["latency_avg_ms"] = agg.avgMs;
+    json["latency_p50_ms"] = agg.p50Ms;
+    json["latency_p99_ms"] = agg.p99Ms;
+    json["latency_ci_95_lower_ms"] = agg.ciLowerMs;
+    json["latency_ci_95_upper_ms"] = agg.ciUpperMs;
+
+    std::cout << toPrettyJson(json) << std::endl;
+  } else {
+    XLOG(INFO) << "=== All-Port CPU Latency (" << mode << ") ===";
+    XLOG(INFO) << "Ports=" << results.perPort.size()
+               << " Batches=" << numBatches;
+    XLOG(INFO) << "Aggregate: Sent=" << agg.totalSent
+               << " Received=" << agg.totalReceived
+               << " Dropped=" << agg.totalDropped
+               << " OutOfOrder=" << agg.outOfOrder;
+    XLOG(INFO) << "Latency(ms): min=" << agg.minMs << " max=" << agg.maxMs
+               << " avg=" << agg.avgMs << " p50=" << agg.p50Ms
+               << " p99=" << agg.p99Ms;
+    XLOG(INFO) << "95% CI: [" << agg.ciLowerMs << ", " << agg.ciUpperMs << "]";
+  }
+}
+
+// ===== Sequential All-Port Benchmark Function =====
+
+inline void cpuLatencySequentialAllPortsBenchmark(
+    int numBatches,
+    int /*batchSize*/) {
+  folly::BenchmarkSuspender suspender;
+  auto setup = createAllPortCpuLatencyEnsemble();
+  suspender.dismiss();
+
+  auto results = measureCpuLatencySequentialAllPorts(
+      setup.ensemble.get(),
+      setup.ports,
+      setup.portToIp,
+      setup.portToVlan,
+      numBatches);
+
+  suspender.rehire();
+
+  CHECK_GT(results.aggregate.totalReceived, 0) << "No packets received";
+  CHECK_EQ(results.aggregate.totalDropped, 0)
+      << "Packets dropped in lab environment";
+
+  reportMultiPortResults(results, numBatches, "sequential");
+}
+
 } // namespace
 
-// ===== Benchmark Macro =====
+// ===== Benchmark Macros =====
 
 #define CPU_LATENCY_BENCHMARK(name, numBatches, batchSize) \
   BENCHMARK(name) {                                        \
     cpuLatencyBenchmark(numBatches, batchSize);            \
+  }
+
+#define CPU_LATENCY_SEQ_ALL_PORTS_BENCHMARK(name, numBatches, batchSize) \
+  BENCHMARK(name) {                                                      \
+    cpuLatencySequentialAllPortsBenchmark(numBatches, batchSize);        \
   }
 
 } // namespace facebook::fboss
