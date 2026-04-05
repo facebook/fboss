@@ -124,7 +124,6 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         facebook::network::toBinaryAddress(folly::IPAddress(kMySidPrefix));
     prefix.prefixLength() = kMySidPrefixLen;
     entry.mySid() = prefix;
-    XLOG(INFO) << "ADDING MY SID WITH NHOP: " << nexthopIp;
 
     NextHopThrift nhop;
     nhop.address() = facebook::network::toBinaryAddress(nexthopIp);
