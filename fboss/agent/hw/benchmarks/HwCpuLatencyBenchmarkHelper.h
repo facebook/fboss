@@ -612,19 +612,19 @@ inline void reportMultiPortResults(
     const MultiPortLatencyResults& results,
     int numBatches,
     const std::string& mode) {
-  // Log per-port details via XLOG
+  // Per-port results: avg latency and timestamp pairs
   for (auto& [portId, portResults] : results.perPort) {
-    XLOG(INFO) << "Port " << portId << ": sent=" << portResults.totalSent
+    XLOG(INFO) << "Port " << portId << ": sent=" << portResults.totalSent;
+    XLOG(INFO) << "Port " << portId << ": avg=" << portResults.avgMs
+               << "ms p99=" << portResults.p99Ms << "ms"
+               << " sent=" << portResults.totalSent
                << " received=" << portResults.totalReceived
-               << " dropped=" << portResults.totalDropped
-               << " outOfOrder=" << portResults.outOfOrder
-               << " avg=" << portResults.avgMs << "ms"
-               << " p99=" << portResults.p99Ms << "ms";
+               << " dropped=" << portResults.totalDropped;
   }
 
   auto& agg = results.aggregate;
   if (FLAGS_json) {
-    // Flat JSON only — no nested objects (netcastle compatibility)
+    // Flat JSON with per-port averages (no nested objects for netcastle)
     folly::dynamic json = folly::dynamic::object;
     json["mode"] = mode;
     json["num_batches"] = numBatches;
@@ -633,6 +633,15 @@ inline void reportMultiPortResults(
     json["total_received"] = agg.totalReceived;
     json["total_dropped"] = agg.totalDropped;
     json["out_of_order"] = agg.outOfOrder;
+
+    // Per-port average latency as flat keys: port_<id>_avg_ms
+    for (auto& [portId, portResults] : results.perPort) {
+      auto key =
+          folly::to<std::string>("port_", static_cast<int>(portId), "_avg_ms");
+      json[key] = portResults.avgMs;
+    }
+
+    // Aggregate stats
     json["latency_min_ms"] = agg.minMs;
     json["latency_max_ms"] = agg.maxMs;
     json["latency_avg_ms"] = agg.avgMs;
