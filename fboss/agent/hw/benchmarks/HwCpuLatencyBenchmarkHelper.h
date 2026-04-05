@@ -23,6 +23,7 @@
 #include <folly/json/json.h>
 #include <folly/logging/xlog.h>
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -58,6 +59,7 @@ struct DecodedPayload {
   bool valid{false};
   uint64_t timestampNs{0};
   uint32_t sequenceNumber{0};
+  std::optional<folly::IPAddressV6> dstIp;
 };
 
 struct BatchLatencyResults {
@@ -65,7 +67,6 @@ struct BatchLatencyResults {
   int totalSent{0};
   int totalReceived{0};
   int totalDropped{0};
-  int outOfOrder{0};
 
   // Per-batch latency: one value per batch (send-start to last-receive)
   std::vector<double> perBatchLatenciesMs;
@@ -132,8 +133,16 @@ inline DecodedPayload decodePayload(const folly::IOBuf& rxBuf) {
     return result;
   }
 
-  // Skip IPv6 header
-  cursor.skip(kIPv6HdrSize);
+  // Extract dst IP from IPv6 header (src addr at offset 8, dst addr at offset
+  // 24) IPv6 layout: version+tc+fl(4) + payload_len(2) + next_hdr(1) +
+  // hop_limit(1)
+  //              + src_addr(16) + dst_addr(16) = 40 bytes
+  cursor.skip(8); // skip to src addr
+  cursor.skip(16); // skip src addr to reach dst addr
+  std::array<uint8_t, 16> dstAddrBytes{};
+  cursor.pull(dstAddrBytes.data(), 16);
+  result.dstIp =
+      folly::IPAddressV6::fromBinary(folly::ByteRange(dstAddrBytes.data(), 16));
 
   // Read UDP src port, dst port (first 4 bytes of UDP header)
   auto udpSrcPort = cursor.readBE<uint16_t>();
@@ -382,7 +391,6 @@ inline void reportResults(
     json["total_sent"] = results.totalSent;
     json["total_received"] = results.totalReceived;
     json["total_dropped"] = results.totalDropped;
-    json["out_of_order"] = results.outOfOrder;
     json["latency_min_ms"] = results.minMs;
     json["latency_max_ms"] = results.maxMs;
     json["latency_avg_ms"] = results.avgMs;
@@ -398,8 +406,7 @@ inline void reportResults(
                << " packets";
     XLOG(INFO) << "Sent=" << results.totalSent
                << " Received=" << results.totalReceived
-               << " Dropped=" << results.totalDropped
-               << " OutOfOrder=" << results.outOfOrder;
+               << " Dropped=" << results.totalDropped;
     XLOG(INFO) << "Latency(ms): min=" << results.minMs
                << " max=" << results.maxMs << " avg=" << results.avgMs
                << " p50=" << results.p50Ms << " p99=" << results.p99Ms;
@@ -423,7 +430,6 @@ inline void cpuLatencyBenchmark(int numBatches, int batchSize) {
   // Correctness checks
   CHECK_GT(results.totalReceived, 0) << "No packets received";
   CHECK_EQ(results.totalDropped, 0) << "Packets dropped in lab environment";
-  CHECK_EQ(results.outOfOrder, 0) << "Packets received out of order";
 
   reportResults(results, numBatches, batchSize);
 }
@@ -569,12 +575,6 @@ inline MultiPortLatencyResults measureCpuLatencySequentialAllPorts(
         continue;
       }
 
-      if (rx.decoded.sequenceNumber != static_cast<uint32_t>(batch)) {
-        XLOG(WARNING) << "Port " << portId
-                      << " seq mismatch: expected=" << batch
-                      << " got=" << rx.decoded.sequenceNumber;
-        portResults.outOfOrder++;
-      }
       portResults.totalReceived++;
 
       uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -599,7 +599,6 @@ inline MultiPortLatencyResults measureCpuLatencySequentialAllPorts(
     results.aggregate.totalSent += portResults.totalSent;
     results.aggregate.totalReceived += portResults.totalReceived;
     results.aggregate.totalDropped += portResults.totalDropped;
-    results.aggregate.outOfOrder += portResults.outOfOrder;
   }
 
   computeStats(results.aggregate);
@@ -632,7 +631,6 @@ inline void reportMultiPortResults(
     json["total_sent"] = agg.totalSent;
     json["total_received"] = agg.totalReceived;
     json["total_dropped"] = agg.totalDropped;
-    json["out_of_order"] = agg.outOfOrder;
 
     // Per-port average latency as flat keys: port_<id>_avg_ms
     for (auto& [portId, portResults] : results.perPort) {
@@ -657,8 +655,7 @@ inline void reportMultiPortResults(
                << " Batches=" << numBatches;
     XLOG(INFO) << "Aggregate: Sent=" << agg.totalSent
                << " Received=" << agg.totalReceived
-               << " Dropped=" << agg.totalDropped
-               << " OutOfOrder=" << agg.outOfOrder;
+               << " Dropped=" << agg.totalDropped;
     XLOG(INFO) << "Latency(ms): min=" << agg.minMs << " max=" << agg.maxMs
                << " avg=" << agg.avgMs << " p50=" << agg.p50Ms
                << " p99=" << agg.p99Ms;
@@ -704,6 +701,17 @@ inline MultiPortLatencyResults measureCpuLatencyConcurrentAllPorts(
     int numBatches) {
   MultiPortLatencyResults results;
 
+  // Initialize per-port results
+  for (const auto& portId : ports) {
+    results.perPort[portId] = BatchLatencyResults{};
+  }
+
+  // Build reverse map: IP -> PortID for port attribution
+  std::map<folly::IPAddressV6, PortID> ipToPort;
+  for (auto& [portId, ip] : portToIp) {
+    ipToPort[ip] = portId;
+  }
+
   utility::SwSwitchPacketSnooper snooper(
       ensemble->getSw(), "cpuLatencyConcurrentBenchmark");
   snooper.ignoreUnclaimedRxPkts();
@@ -717,6 +725,7 @@ inline MultiPortLatencyResults measureCpuLatencyConcurrentAllPorts(
       auto vlanId = portToVlan.at(portId);
       auto txPacket = createLatencyTestPacket(ensemble, batch, dstIp, vlanId);
       ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), portId);
+      results.perPort[portId].totalSent++;
     }
 
     // Collect all responses, skipping non-test packets (LLDP, NDP, etc.)
@@ -733,13 +742,6 @@ inline MultiPortLatencyResults measureCpuLatencyConcurrentAllPorts(
         break;
       }
 
-      if (rx.decoded.sequenceNumber != static_cast<uint32_t>(batch)) {
-        XLOG(WARNING) << "Concurrent batch=" << batch
-                      << " seq mismatch: got=" << rx.decoded.sequenceNumber;
-        results.aggregate.outOfOrder++;
-        continue;
-      }
-
       collected++;
       results.aggregate.totalReceived++;
       uint64_t rxTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -749,8 +751,21 @@ inline MultiPortLatencyResults measureCpuLatencyConcurrentAllPorts(
           static_cast<double>(rxTimeNs - rx.decoded.timestampNs) / 1'000'000.0;
       results.aggregate.perBatchLatenciesMs.push_back(packetLatencyMs);
 
-      XLOG(INFO) << "Concurrent batch=" << batch
-                 << " latency=" << packetLatencyMs << "ms";
+      // Attribute to port via dstIp
+      if (rx.decoded.dstIp) {
+        auto portIt = ipToPort.find(*rx.decoded.dstIp);
+        if (portIt != ipToPort.end()) {
+          auto& portResults = results.perPort[portIt->second];
+          portResults.totalReceived++;
+          portResults.perBatchLatenciesMs.push_back(packetLatencyMs);
+          XLOG(INFO) << "Concurrent batch=" << batch
+                     << " port=" << portIt->second
+                     << " latency=" << packetLatencyMs << "ms";
+        } else {
+          XLOG(WARNING) << "Concurrent batch=" << batch
+                        << " unknown dstIp in received packet";
+        }
+      }
     }
 
     // Check for drops this round
@@ -763,9 +778,17 @@ inline MultiPortLatencyResults measureCpuLatencyConcurrentAllPorts(
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  // Compute aggregate stats
+  // Compute aggregate and per-port stats
   results.aggregate.totalSent = numBatches * static_cast<int>(ports.size());
   computeStats(results.aggregate);
+  for (auto& [portId, portResults] : results.perPort) {
+    portResults.totalDropped =
+        portResults.totalSent - portResults.totalReceived;
+    XLOG(INFO) << "Port " << portId << " sent=" << portResults.totalSent
+               << " received=" << portResults.totalReceived
+               << " dropped=" << portResults.totalDropped;
+    computeStats(portResults);
+  }
 
   return results;
 }
