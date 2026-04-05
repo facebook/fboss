@@ -186,9 +186,11 @@ class AgentSrv6DecapTest : public AgentHwTest {
     constexpr uint16_t kDstPort{8001};
     constexpr uint8_t kInnerHopLimit{64};
     constexpr uint8_t kOuterHopLimit{24};
-    constexpr uint8_t kTc{42};
-    auto outerTcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
-                                  : static_cast<uint8_t>(kTc << 2);
+    constexpr uint8_t kInnerPktTc{42};
+    constexpr uint8_t kOuterPktTc{24};
+    auto outerTcField = ecnMarked
+        ? static_cast<uint8_t>((kOuterPktTc << 2) | 0x3)
+        : static_cast<uint8_t>(kOuterPktTc << 2);
 
     // Outer IPv6: dst = mySid address (triggers decap)
     // Inner IP: dst matches route prefix (forwarded after decap)
@@ -207,7 +209,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kSrcPort,
           kDstPort,
           outerTcField,
-          kTc /* innerDscp */,
+          kInnerPktTc /* innerDscp */,
           kOuterHopLimit,
           kInnerHopLimit);
     } else {
@@ -223,7 +225,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kSrcPort,
           kDstPort,
           outerTcField,
-          kTc << 2 /* innerTrafficClass */,
+          kInnerPktTc << 2 /* innerTrafficClass */,
           kOuterHopLimit,
           kInnerHopLimit);
     }
@@ -285,7 +287,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       // MT-878 is fixed
       EXPECT_EQ(v4Hdr.ttl, kInnerHopLimit - 1);
       // DSCP is preserved
-      EXPECT_EQ(v4Hdr.dscp, kTc);
+      EXPECT_EQ(v4Hdr.dscp, kOuterPktTc);
       EXPECT_EQ(v4Hdr.ecn, ecnMarked ? 0x3 : 0);
       rxUdp = rxV4->udpPayload();
     } else {
@@ -304,7 +306,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       // MT-878 is fixed
       EXPECT_EQ(v6Hdr.hopLimit, kInnerHopLimit - 1);
       // DSCP is preserved
-      EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
+      EXPECT_EQ(v6Hdr.trafficClass >> 2, kOuterPktTc);
       EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
       rxUdp = rxV6->udpPayload();
     }
