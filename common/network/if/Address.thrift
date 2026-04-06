@@ -4,6 +4,7 @@
 namespace cpp2 facebook.network.thrift
 namespace cpp facebook.network.thrift
 namespace py facebook.network.Address
+namespace py3 facebook.network
 
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
