@@ -310,8 +310,7 @@ class AgentVoqSwitchIsolationFirmwareWBEventsTest
             "bcm.isolationFirmwareCrash.sum";
         auto fwCrashedCounters =
             this->getAgentEnsemble()->getFb303RegexCounters(
-                crashCounterRegex,
-                *this->getSw()->getHwAsicTable()->getSwitchIDs().begin());
+                crashCounterRegex, this->getCurrentSwitchIdForTesting());
         EXPECT_EVENTUALLY_TRUE(
             fwCrashedCounters.size() == 1 &&
             fwCrashedCounters.begin()->second == 0);

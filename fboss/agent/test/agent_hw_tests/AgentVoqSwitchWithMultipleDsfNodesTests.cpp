@@ -104,7 +104,7 @@ TEST_F(AgentVoqSwitchWithMultipleDsfNodesTest, remoteSystemPort) {
     int numCores =
         checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
     auto getStats = [this] {
-      auto switchID = *getSw()->getHwAsicTable()->getSwitchIDs().begin();
+      auto switchID = getCurrentSwitchIdForTesting();
       return std::make_tuple(
           getAgentEnsemble()->getFb303Counter(
               std::string(kSystemPortsFree), switchID),
