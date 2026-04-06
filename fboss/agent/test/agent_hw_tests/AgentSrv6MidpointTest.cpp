@@ -36,18 +36,18 @@ class AgentSrv6MidpointTest : public AgentHwTest {
  protected:
   static constexpr bool kIsTrunk = PortType::isTrunk;
 
-  // MySid prefix: 3001:db8:e001:: /48
-  // Locator block: 3001:db8:: (32 bits), function: e001 (16 bits)
-  const folly::IPAddressV6 kMySidPrefix{"3001:db8:e001::"};
+  // MySid prefix: 3001:db8:1:: /48
+  // Locator block: 3001:db8:: (32 bits), function: 1 (16 bits)
+  const folly::IPAddressV6 kMySidPrefix{"3001:db8:1::"};
   static constexpr uint8_t kMySidPrefixLen{48};
 
   // Input outer dst: the SID being processed at this midpoint node.
-  // uSID format: [locator 3001:db8:][active uSID e001:][next uSIDs e002::]
-  const folly::IPAddressV6 kPktOuterDst{"3001:db8:e001:e002::"};
+  // uSID format: [locator 3001:db8:][active uSID 1:][next uSIDs e002::]
+  const folly::IPAddressV6 kPktOuterDst{"3001:db8:1:2::"};
 
-  // After the active uSID e001 is processed and shifted out,
+  // After the active uSID 1 is processed and shifted out,
   // the rewritten outer dst forwarded to the next hop.
-  const folly::IPAddressV6 kExpectedOuterDst{"3001:db8:e002::"};
+  const folly::IPAddressV6 kExpectedOuterDst{"3001:db8:2::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -85,8 +85,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
         asic,
         &cfg,
         // change mask to 128 when uSid shift is working
-        std::set<folly::CIDRNetwork>{
-            {folly::IPAddress("3001:db8:e002::"), 32}});
+        std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 32}});
     return cfg;
   }
 
@@ -178,7 +177,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
                              : static_cast<uint8_t>(kTc << 2);
 
     // Outer IPv6 dst = kPktOuterDst triggers the ADJACENCY MySid at
-    // kMySidPrefix. The ASIC pops uSID e001, rewrites dst to kExpectedOuterDst,
+    // kMySidPrefix. The ASIC pops uSID 1, rewrites dst to kExpectedOuterDst,
     // and forwards out the adjacency port.
     auto txPacket = utility::makeIpInIpTxPacket(
         this->getSw(),
@@ -230,7 +229,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     auto rxV6 = frame.v6PayLoad();
     ASSERT_TRUE(rxV6.has_value());
     auto v6Hdr = rxV6->header();
-    // The active uSID (e001) has been popped; outer dst is now the next SID.
+    // The active uSID (1) has been popped; outer dst is now the next SID.
     EXPECT_EQ(v6Hdr.dstAddr, kExpectedOuterDst);
     // Hop limit decremented by 1 during midpoint forwarding.
     EXPECT_EQ(v6Hdr.hopLimit, kHopLimit - 1);

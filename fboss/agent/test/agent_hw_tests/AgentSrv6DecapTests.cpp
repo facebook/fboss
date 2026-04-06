@@ -39,7 +39,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
   const folly::IPAddressV6 kV6RouteDstIp{"2800:2::1"};
   const folly::IPAddressV4 kV4RoutePrefix{"100.0.0.0"};
   const folly::IPAddressV4 kV4RouteDstIp{"100.0.0.1"};
-  const folly::IPAddressV6 kMySidAddr{"3001:db8:e001::"};
+  const folly::IPAddressV6 kMySidAddr{"3001:db8:ffff::"};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
@@ -117,10 +117,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // IPv4 route with regular next hops (no SID lists)
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
-    // Add a mySid entry for decapsulation
-    // G200 required use of local uSid range 0xe000 - 0xffff
-    // for uA, uA part of uNuA, uDT*, B6_ENCAPS_RED
-    addMySidEntry("3001:db8:e001::", 48);
+    addMySidEntry("3001:db8:ffff::", 48);
   }
 
   template <typename CIDRNetworkT>
