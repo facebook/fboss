@@ -458,6 +458,18 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
   }
 };
 
+// MPLS Trunk + ECMP load balancing
+class AgentMplsTrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::MPLS,
+        ProductionFeature::LAG,
+        ProductionFeature::LAG_LOAD_BALANCER};
+  }
+};
+
 // SRv6 Trunk + ECMP load balancing
 class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
  protected:
@@ -627,7 +639,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv6MPLS,
@@ -637,7 +649,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv4MPLS,
@@ -647,7 +659,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv6MPLS,
@@ -657,7 +669,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv4MPLS,
@@ -667,7 +679,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Swap,
@@ -677,7 +689,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Swap,
@@ -687,7 +699,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Swap,
@@ -697,7 +709,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Swap,
@@ -707,7 +719,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Php,
@@ -717,7 +729,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Php,
@@ -727,7 +739,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Php,
@@ -737,7 +749,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Php,
