@@ -769,6 +769,16 @@ TEST_F(
       true /* loopThroughFrontPanelPort */);
 }
 
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV4MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4MPLS,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
 TEST_F(AgentSrv6TrunkLoadBalancerTest, Srv6TrunkEcmpLoadBalance) {
   auto setup = [this]() { setupSrv6TrunkECMP(); };
   auto verify = [this]() {
