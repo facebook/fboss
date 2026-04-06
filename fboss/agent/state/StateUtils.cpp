@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -49,32 +50,28 @@ folly::MacAddress getInterfaceMac(
 
 folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> switchId) {
-  auto intfID = firstInterfaceIDWithPorts(state, switchId);
+    std::optional<SwitchID> /*switchId*/) {
+  auto intfID = firstInterfaceIDWithPorts(state);
   return getInterfaceMac(state, intfID);
 }
 
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> switchId) {
-  for (const auto& [matcher, intfMap] :
-       std::as_const(*state->getInterfaces())) {
-    if (switchId.has_value() && !HwSwitchMatcher(matcher).has(*switchId)) {
-      continue;
-    }
+    std::optional<SwitchID> /*switchId*/) {
+  HwSwitchMatcher matcher(
+      std::unordered_set<SwitchID>{SwitchID(FLAGS_switch_id_for_testing)});
+  auto intfMap = state->getInterfaces()->getMapNodeIf(matcher);
+  if (intfMap) {
     for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
       if (intf->isVirtual()) {
-        // virtual interfaces do not have associated ports
         continue;
       }
       return InterfaceID(intfID);
     }
   }
-  if (switchId.has_value()) {
-    throw FbossError(
-        "No interface found in state for switchId: ", switchId.value());
-  }
-  throw FbossError("No interface found in state");
+  throw FbossError(
+      "No interface found in state for switchId: ",
+      FLAGS_switch_id_for_testing);
 }
 
 std::vector<folly::IPAddress> getIntfAddrs(

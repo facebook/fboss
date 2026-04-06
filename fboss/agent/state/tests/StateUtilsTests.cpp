@@ -10,6 +10,7 @@
 
 #include "fboss/agent/state/StateUtils.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
@@ -345,12 +346,15 @@ TEST_F(FirstInterfaceIDWithPortsTest, FindFirstInterfaceForSpecificSwitchId) {
   });
 
   // Should find interface for switch 0
-  auto result0 = utility::firstInterfaceIDWithPorts(state, SwitchID(0));
+  FLAGS_switch_id_for_testing = 0;
+  auto result0 = utility::firstInterfaceIDWithPorts(state);
   EXPECT_EQ(result0, InterfaceID(100));
 
   // Should find interface for switch 1
-  auto result1 = utility::firstInterfaceIDWithPorts(state, SwitchID(1));
+  FLAGS_switch_id_for_testing = 1;
+  auto result1 = utility::firstInterfaceIDWithPorts(state);
   EXPECT_EQ(result1, InterfaceID(200));
+  FLAGS_switch_id_for_testing = 0;
 }
 
 TEST_F(FirstInterfaceIDWithPortsTest, SkipVirtualInterfaces) {
@@ -373,8 +377,10 @@ TEST_F(FirstInterfaceIDWithPortsTest, SkipVirtualInterfacesWithSwitchId) {
   });
 
   // Should skip virtual interface and return non-virtual one for switch 1
-  auto result = utility::firstInterfaceIDWithPorts(state, SwitchID(1));
+  FLAGS_switch_id_for_testing = 1;
+  auto result = utility::firstInterfaceIDWithPorts(state);
   EXPECT_EQ(result, InterfaceID(101));
+  FLAGS_switch_id_for_testing = 0;
 }
 
 TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenNoInterfaceFoundForSwitchId) {
@@ -384,8 +390,9 @@ TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenNoInterfaceFoundForSwitchId) {
 
   // Should throw when looking for interface on switch 1 (which has no
   // interfaces)
-  EXPECT_THROW(
-      utility::firstInterfaceIDWithPorts(state, SwitchID(1)), FbossError);
+  FLAGS_switch_id_for_testing = 1;
+  EXPECT_THROW(utility::firstInterfaceIDWithPorts(state), FbossError);
+  FLAGS_switch_id_for_testing = 0;
 }
 
 TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenNoInterfaceFoundAtAll) {
@@ -416,6 +423,5 @@ TEST_F(
   });
 
   // Should throw when only virtual interfaces exist for the specified switch
-  EXPECT_THROW(
-      utility::firstInterfaceIDWithPorts(state, SwitchID(0)), FbossError);
+  EXPECT_THROW(utility::firstInterfaceIDWithPorts(state), FbossError);
 }
