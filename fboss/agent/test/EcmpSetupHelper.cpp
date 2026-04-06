@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <iterator>
@@ -136,9 +138,12 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
     const std::shared_ptr<SwitchState>& inputState,
     const std::set<cfg::PortType>& portTypes) const {
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
+  HwSwitchMatcher matcher(
+      std::unordered_set<SwitchID>{SwitchID(FLAGS_switch_id_for_testing)});
   std::set<PortID> portIds;
-  for (const auto& portMap : std::as_const(*inputState->getPorts())) {
-    for (const auto& port : std::as_const(*portMap.second)) {
+  auto portMap = inputState->getPorts()->getMapNodeIf(matcher);
+  if (portMap) {
+    for (const auto& port : std::as_const(*portMap)) {
       if (portTypes.find(port.second->getPortType()) != portTypes.end()) {
         portIds.insert(port.second->getID());
       }
@@ -155,19 +160,26 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
       portDesc2Interface.insert(std::make_pair(portDesc, *intf));
     }
   }
-  // SystemPorts
-  auto findPortDesc2Interface = [&](const auto& systemPortMaps) {
-    for (const auto& systemPortMap : std::as_const(*systemPortMaps)) {
-      for (const auto& systemPort : std::as_const(*systemPortMap.second)) {
-        PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
-        if (auto intf = getInterface(portDesc, inputState)) {
-          portDesc2Interface.insert(std::make_pair(portDesc, *intf));
-        }
+  // Local SystemPorts (scoped to NPU under test)
+  auto sysPortMap = inputState->getSystemPorts()->getMapNodeIf(matcher);
+  if (sysPortMap) {
+    for (const auto& systemPort : std::as_const(*sysPortMap)) {
+      PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
+      if (auto intf = getInterface(portDesc, inputState)) {
+        portDesc2Interface.insert(std::make_pair(portDesc, *intf));
       }
     }
-  };
-  findPortDesc2Interface(inputState->getSystemPorts());
-  findPortDesc2Interface(inputState->getRemoteSystemPorts());
+  }
+  // Remote SystemPorts (from other DSF nodes, not filtered by local switch ID)
+  for (const auto& remoteSysPortMap :
+       std::as_const(*inputState->getRemoteSystemPorts())) {
+    for (const auto& systemPort : std::as_const(*remoteSysPortMap.second)) {
+      PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
+      if (auto intf = getInterface(portDesc, inputState)) {
+        portDesc2Interface.insert(std::make_pair(portDesc, *intf));
+      }
+    }
+  }
   return portDesc2Interface;
 }
 

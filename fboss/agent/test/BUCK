@@ -415,9 +415,11 @@ cpp_library(
         "EcmpSetupHelper.cpp",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent:apply_thrift_config",
         "//fboss/agent:core",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:route_update_wrapper",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/switch_asics:switch_asics",
