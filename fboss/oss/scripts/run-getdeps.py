@@ -312,6 +312,31 @@ def setup_clang_environment(toolchain_info):
     cflags = ["-DHAVE_SETNS=1"]
     prepend_env(" ".join(cflags), "CFLAGS")
 
+    # Match Python's -march flag to avoid ABI mismatch between C++ libraries
+    # and Cython extensions.  Python sysconfig on some distros (e.g. CentOS
+    # Stream 9) embeds -march=x86-64-v2.  Cython inherits this, but cmake
+    # does not.  Without matching, folly's F14 hash tables use different
+    # intrinsics modes causing undefined symbol errors at runtime.
+    # This propagates -march to CXXFLAGS for ALL getdeps dependency builds
+    # (folly-python, fbthrift-python, fizz-python, etc.) so their libfolly.so
+    # and Cython extensions agree on F14IntrinsicsMode.  The same detection
+    # also exists in fboss/github/CMakeLists.txt for direct cmake invocations.
+    try:
+        import sysconfig
+
+        py_cflags = sysconfig.get_config_var("CFLAGS") or ""
+        for token in py_cflags.split():
+            if token.startswith("-march="):
+                if token not in cxxflags:
+                    cxxflags.append(token)
+                    print_info(
+                        f"Added {token} from Python sysconfig"
+                        " to match Cython extensions"
+                    )
+                break
+    except Exception as e:
+        print_info(f"WARNING: failed to detect -march from Python sysconfig: {e}")
+
     # Set CXXFLAGS - prepend to existing flags
     prepend_env(" ".join(cxxflags), "CXXFLAGS")
 
