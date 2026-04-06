@@ -328,44 +328,39 @@ TEST_F(AgentFabricSwitchSelfLoopTest, selfLoopDetection) {
 }
 
 TEST_F(AgentFabricSwitchSelfLoopTest, portDrained) {
-  std::set<PortID> drainedPorts;
-  for (const auto& [_, ports] : switch2FabricPortIds()) {
-    drainedPorts.insert(ports[0]);
-  }
-  auto setup = [this, drainedPorts]() {
+  auto drainedPortId = fabricPortIdsForTesting()[0];
+  auto setup = [this, drainedPortId]() {
     // Drain port
     auto newCfg = getSw()->getConfig();
     for (auto& port : *newCfg.ports()) {
-      if (drainedPorts.find(PortID(*port.logicalID())) != drainedPorts.end()) {
+      if (PortID(*port.logicalID()) == drainedPortId) {
         port.drainState() = cfg::PortDrainState::DRAINED;
       }
     }
     applyNewConfig(newCfg);
-    auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
+    auto ports = fabricPortIdsForTesting();
     // Since switch is drained, ports should stay enabled
-    verifyState(cfg::PortState::ENABLED, *portsToCheck);
+    verifyState(cfg::PortState::ENABLED, ports);
     // Data filter should be turned off since we never enabled
     // wrong_fabric_connections
-    checkDataCellFilter(false /*expectFilterOn*/);
+    checkDataCellFilter(false /*expectFilterOn*/, fabricPortIdsForTesting());
     // Undrain
     setSwitchDrainState(newCfg, cfg::SwitchDrainState::UNDRAINED);
   };
-  auto verify = [this, drainedPorts]() {
-    auto portsToCheck = getProgrammedState()->getPorts()->getAllNodes();
+  auto verify = [this, drainedPortId]() {
+    auto ports = fabricPortIdsForTesting();
     // All but the drained ports should now get disabled
-    for (auto port : drainedPorts) {
-      portsToCheck->removeNode(port);
-    }
-    verifyState(cfg::PortState::DISABLED, *portsToCheck);
+    std::erase(ports, drainedPortId);
+    verifyState(cfg::PortState::DISABLED, ports);
     // Data filter should be turned off since we never enabled
     // wrong_fabric_connections
-    checkDataCellFilter(false /*expectFilterOn*/);
+    checkDataCellFilter(false /*expectFilterOn*/, fabricPortIdsForTesting());
     // Verify that global drops are zero
-    auto switch2SwitchStats = getSw()->getHwSwitchStatsExpensive();
-    for (const auto& [_, switchStats] : switch2SwitchStats) {
-      const auto& dropStats = *switchStats.switchDropStats();
-      EXPECT_EQ(*dropStats.globalDrops(), 0);
-    }
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto switchIndex =
+        getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
+    const auto& dropStats = *getHwSwitchStats(switchIndex).switchDropStats();
+    EXPECT_EQ(*dropStats.globalDrops(), 0);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
