@@ -165,6 +165,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
   void verifyMidpointForwarding(
       PortID egressPort,
       bool ecnMarked,
+      bool isV4,
       std::optional<PortID> injectPort = std::nullopt) {
     auto portStatsBefore = this->getLatestPortStats(egressPort);
     auto bytesBefore = *portStatsBefore.outBytes_();
@@ -179,21 +180,40 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     // Outer IPv6 dst = kPktOuterDst triggers the ADJACENCY MySid at
     // kMySidPrefix. The ASIC pops uSID 1, rewrites dst to kExpectedOuterDst,
     // and forwards out the adjacency port.
-    auto txPacket = utility::makeIpInIpTxPacket(
-        this->getSw(),
-        this->getVlanIDForTx().value(),
-        intfMac,
-        intfMac,
-        folly::IPAddressV6("100::1") /* outerSrc */,
-        kPktOuterDst /* outerDst */,
-        folly::IPAddressV6("2001:db8::1") /* innerSrc */,
-        folly::IPAddressV6("2001:db8::2") /* innerDst */,
-        8000 /* srcPort */,
-        8001 /* dstPort */,
-        tcField /* outerTrafficClass */,
-        0 /* innerTrafficClass */,
-        kHopLimit,
-        64 /* innerHopLimit */);
+    std::unique_ptr<TxPacket> txPacket;
+    if (isV4) {
+      txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("100::1") /* outerSrc */,
+          kPktOuterDst /* outerDst */,
+          folly::IPAddressV4("10.0.0.1") /* innerSrc */,
+          folly::IPAddressV4("10.0.0.2") /* innerDst */,
+          8000 /* srcPort */,
+          8001 /* dstPort */,
+          tcField /* outerTrafficClass */,
+          0 /* innerTrafficClass */,
+          kHopLimit,
+          64 /* innerHopLimit */);
+    } else {
+      txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("100::1") /* outerSrc */,
+          kPktOuterDst /* outerDst */,
+          folly::IPAddressV6("2001:db8::1") /* innerSrc */,
+          folly::IPAddressV6("2001:db8::2") /* innerDst */,
+          8000 /* srcPort */,
+          8001 /* dstPort */,
+          tcField /* outerTrafficClass */,
+          0 /* innerTrafficClass */,
+          kHopLimit,
+          64 /* innerHopLimit */);
+    }
 
     // Capture original frame before moving txPacket, for inner packet
     // comparison.
@@ -239,21 +259,31 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     // Inner packet should be unchanged after midpoint uSID shift.
     auto origOuterV6 = origFrame.v6PayLoad();
     ASSERT_TRUE(origOuterV6.has_value());
-    auto expectedInnerV6 = origOuterV6->v6PayLoad();
-    ASSERT_NE(expectedInnerV6, nullptr);
-    auto rxInnerV6 = rxV6->v6PayLoad();
-    ASSERT_NE(rxInnerV6, nullptr);
-    EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
+    if (isV4) {
+      auto expectedInnerV4 = origOuterV6->v4PayLoad();
+      ASSERT_NE(expectedInnerV4, nullptr);
+      auto rxInnerV4 = rxV6->v4PayLoad();
+      ASSERT_NE(rxInnerV4, nullptr);
+      EXPECT_EQ(*rxInnerV4, *expectedInnerV4);
+    } else {
+      auto expectedInnerV6 = origOuterV6->v6PayLoad();
+      ASSERT_NE(expectedInnerV6, nullptr);
+      auto rxInnerV6 = rxV6->v6PayLoad();
+      ASSERT_NE(rxInnerV6, nullptr);
+      EXPECT_EQ(*rxInnerV6, *expectedInnerV6);
+    }
   }
 
   void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
     auto injectPort = findInjectPort(egressPort);
-    // ECN not marked
-    verifyMidpointForwarding(egressPort, false);
-    verifyMidpointForwarding(egressPort, false, injectPort);
-    // ECN marked
-    verifyMidpointForwarding(egressPort, true);
-    verifyMidpointForwarding(egressPort, true, injectPort);
+    for (bool isV4 : {false, true}) {
+      // ECN not marked
+      verifyMidpointForwarding(egressPort, false, isV4);
+      verifyMidpointForwarding(egressPort, false, isV4, injectPort);
+      // ECN marked
+      verifyMidpointForwarding(egressPort, true, isV4);
+      verifyMidpointForwarding(egressPort, true, isV4, injectPort);
+    }
   }
 };
 
