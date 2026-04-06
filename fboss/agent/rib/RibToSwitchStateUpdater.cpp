@@ -10,6 +10,7 @@
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/state/SwitchState.h"
 
 namespace facebook::fboss {
 
@@ -41,7 +42,7 @@ std::shared_ptr<SwitchState> RibToSwitchStateUpdater::operator()(
   if (actions_ & UPDATE_MYSID) {
     nextState = mySidUpdater_(nextState);
   }
-  if (actions_) {
+  if (actions_ && (!state->isPublished() || nextState != state)) {
     nextState = nhopIdUpdater_(nextState);
     // This will run on every unit test. We add this check to ensure that DCHECK
     // does not run when developers manually build and run agent-hw-tests in dev

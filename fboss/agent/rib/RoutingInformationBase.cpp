@@ -459,7 +459,8 @@ void RibRouteTables::updateFib(
       if (nextHopIDManager_) {
         nextHopIDManager_->reconstructFromSwitchStateMaps(
             hwUpdateError.appliedState->getFibsInfoMap(),
-            hwUpdateError.appliedState->getMySids());
+            hwUpdateError.appliedState->getMySids(),
+            hwUpdateError.appliedState->getLabelForwardingInformationBase());
       }
 
       // Reconstruct MySidTable from the applied state
@@ -495,7 +496,8 @@ void RibRouteTables::updateFib(
       if (nextHopIDManager_) {
         nextHopIDManager_->reconstructFromSwitchStateMaps(
             hwUpdateError.appliedState->getFibsInfoMap(),
-            hwUpdateError.appliedState->getMySids());
+            hwUpdateError.appliedState->getMySids(),
+            hwUpdateError.appliedState->getLabelForwardingInformationBase());
       }
     }
     throw;
@@ -976,7 +978,7 @@ std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
   // boot
   if (rib->nextHopIDManager_) {
     rib->nextHopIDManager_->reconstructFromSwitchStateMaps(
-        fibsInfoMap, mySidMap);
+        fibsInfoMap, mySidMap, labelFib);
   }
 
   return rib;

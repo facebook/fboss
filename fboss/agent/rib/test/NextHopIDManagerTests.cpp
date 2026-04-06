@@ -1007,7 +1007,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMaps) {
       createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
 
   // Call reconstructFromSwitchStateMaps with no MySid map (FIB-only case)
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
 
   // Verify maps are populated
   EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
@@ -1144,7 +1145,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch) {
 
   EXPECT_EQ(multiSwitchFibInfoMap->size(), 2);
 
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
 
   // Verify all 4 NextHops are in idToNextHop map
   EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
@@ -1685,7 +1687,8 @@ TEST_F(NextHopIDManagerTest, assertNextHopIdMapsSameCheck) {
       idToNextHopIdSetMap);
 
   // Reconstruction should succeed: identical maps pass the DCHECK.
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
 
   EXPECT_EQ(manager_->getIdToNextHop().size(), 2);
   EXPECT_EQ(manager_->getIdToNextHop().at(nhId1), nh1);
@@ -1749,7 +1752,8 @@ TEST_F(
   auto mySid = makeMySidEntry(setId1, std::nullopt);
   auto mySidMap = makeMySidMap(mySid);
 
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, mySidMap);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, mySidMap, nullptr);
 
   EXPECT_EQ(manager_->getIdToNextHop().size(), 2);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
@@ -1801,7 +1805,8 @@ TEST_F(
   auto mySid = makeMySidEntry(setId1, setId2);
   auto mySidMap = makeMySidMap(mySid);
 
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, mySidMap);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, mySidMap, nullptr);
 
   EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
   EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);

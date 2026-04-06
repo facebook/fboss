@@ -9,6 +9,7 @@
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -242,7 +243,8 @@ class NextHopIDManager {
    */
   void reconstructFromSwitchStateMaps(
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
  private:
   static constexpr int64_t kNextHopIDStart = 1;
