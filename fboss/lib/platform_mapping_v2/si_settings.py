@@ -1,13 +1,13 @@
 # pyre-strict
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from neteng.fboss.platform_mapping_config.ttypes import (
+from neteng.fboss.platform_mapping_config.thrift_types import (
     SiFactorAndSetting,
     SiSettingPinConnection,
     SiSettingRow,
 )
-from neteng.fboss.switch_config.ttypes import PortSpeed
-from neteng.fboss.transceiver.ttypes import TransmitterTechnology
+from neteng.fboss.switch_config.thrift_types import PortSpeed
+from neteng.fboss.transceiver.thrift_types import TransmitterTechnology
 
 
 class SiSettings:

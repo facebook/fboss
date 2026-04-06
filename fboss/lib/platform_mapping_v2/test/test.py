@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.gen import read_vendor_data
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
-from neteng.fboss.phy.ttypes import (
+from neteng.fboss.phy.phy.thrift_types import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     FecMode,
@@ -22,7 +22,7 @@ from neteng.fboss.phy.ttypes import (
     ProfileSideConfig,
     TxSettings,
 )
-from neteng.fboss.platform_config.ttypes import (
+from neteng.fboss.platform_config.platform_config.thrift_types import (
     PlatformPortConfig,
     PlatformPortConfigFactor,
     PlatformPortConfigOverride,
@@ -31,12 +31,13 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
 )
-from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed, PortType, Scope
-from neteng.fboss.transceiver.ttypes import (
-    MediaInterfaceCode,
-    TransmitterTechnology,
-    Vendor,
+from neteng.fboss.switch_config.thrift_types import (
+    PortProfileID,
+    PortSpeed,
+    PortType,
+    Scope,
 )
+from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
 
 
 class TestPlatformMappingGeneration(unittest.TestCase):

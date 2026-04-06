@@ -7,12 +7,12 @@ python_unittest(
     srcs = ["test.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        "//fboss/agent:platform_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
-        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/agent:platform_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
         "//fboss/lib/platform_mapping_v2:gen-library",
         "//fboss/lib/platform_mapping_v2:platform_mapping_v2",
-        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+        "//fboss/qsfp_service/if:transceiver-python-types",
     ],
 )
 
