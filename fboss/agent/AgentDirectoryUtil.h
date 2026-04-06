@@ -23,6 +23,18 @@ DECLARE_string(volatile_state_dir_phy);
 DECLARE_string(persistent_state_dir_phy);
 
 namespace facebook::fboss {
+
+// Directory path constants
+inline constexpr auto kPkgDir =
+    "/etc/packages/neteng-fboss-wedge_agent/current";
+inline constexpr auto kSystemdDir = "/etc/systemd/system";
+inline constexpr auto kCoopAgentDir = "/etc/coop/agent";
+inline constexpr auto kCoopAgentDrainDir = "/etc/coop/agent_drain";
+
+// Service name constants
+inline constexpr auto kSwAgentService = "fboss_sw_agent.service";
+inline constexpr auto kHwAgentService = "fboss_hw_agent@.service";
+
 class AgentDirectoryUtil {
  public:
   AgentDirectoryUtil();

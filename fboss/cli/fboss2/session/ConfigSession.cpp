@@ -126,6 +126,19 @@ std::string getHomeDirectory() {
   return std::string(home);
 }
 
+// Helper function to get base config directory with environment variable
+// override. This allows tests to redirect config paths to temporary directories
+// by setting FBOSS_CONFIG_BASE_DIR environment variable. If not set, defaults
+// to "/etc/coop"
+std::string getBaseConfigDir() {
+  // NOLINTNEXTLINE(concurrency-mt-unsafe): Used only during initialization
+  const char* envOverride = std::getenv("FBOSS_CONFIG_BASE_DIR");
+  if (envOverride != nullptr && !std::string(envOverride).empty()) {
+    return {envOverride};
+  }
+  return "/etc/coop";
+}
+
 void ensureDirectoryExists(const std::string& dirPath) {
   std::error_code ec;
   fs::create_directories(dirPath, ec);
@@ -284,10 +297,19 @@ ConfigSession::ConfigSession() {
   username_ = getUsername();
   std::string homeDir = getHomeDirectory();
 
-  // Use AgentDirectoryUtil to get the config directory path
-  // getConfigDirectory() returns /etc/coop/agent, so we get the parent to get
-  // /etc/coop
-  AgentDirectoryUtil dirUtil;
+  // Create AgentDirectoryUtil with environment-aware config directory
+  // This allows tests to override config paths via FBOSS_CONFIG_BASE_DIR
+  std::string baseConfigDir = getBaseConfigDir();
+  AgentDirectoryUtil dirUtil(
+      FLAGS_volatile_state_dir,
+      FLAGS_persistent_state_dir,
+      kPkgDir,
+      kSystemdDir,
+      getBaseConfigDir() + "/agent", // configDirectory_
+      getBaseConfigDir() + "/agent_drain"); // drainConfigDirectory_
+
+  // getConfigDirectory() returns /etc/coop/agent (or override), get parent to
+  // get /etc/coop
   std::string coopDir =
       fs::path(dirUtil.getConfigDirectory()).parent_path().string();
 

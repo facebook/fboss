@@ -53,29 +53,6 @@ DEFINE_string(
 
 using namespace std;
 
-namespace {
-auto constexpr kPkgDir = "/etc/packages/neteng-fboss-wedge_agent/current";
-auto constexpr kSystemdDir = "/etc/systemd/system";
-auto constexpr kCoopAgentDir = "/etc/coop/agent";
-auto constexpr kCoopAgentDrainDir = "/etc/coop/agent_drain";
-auto constexpr kSwAgentService = "fboss_sw_agent.service";
-auto constexpr kHwAgentService = "fboss_hw_agent@.service";
-
-// Helper function to get base config directory with environment variable
-// override This allows tests to redirect config paths to temporary directories
-// by setting FBOSS_CONFIG_BASE_DIR environment variable. If not set, defaults
-// to "/etc/coop"
-std::string getBaseConfigDir() {
-  // NOLINTNEXTLINE(concurrency-mt-unsafe): Used only during initialization
-  const char* envOverride = std::getenv("FBOSS_CONFIG_BASE_DIR");
-  if (envOverride != nullptr && !std::string(envOverride).empty()) {
-    return {envOverride};
-  }
-  return "/etc/coop";
-}
-
-} // namespace
-
 namespace facebook::fboss {
 
 AgentDirectoryUtil::AgentDirectoryUtil(
@@ -86,8 +63,8 @@ AgentDirectoryUtil::AgentDirectoryUtil(
           persistentStateDir,
           kPkgDir, // packageDirectory_
           kSystemdDir, // systemdDirectory_
-          getBaseConfigDir() + "/agent", // configDirectory_
-          getBaseConfigDir() + "/agent_drain" // drainConfigDirectory_
+          kCoopAgentDir, // configDirectory_
+          kCoopAgentDrainDir // drainConfigDirectory_
       ) {}
 
 AgentDirectoryUtil::AgentDirectoryUtil()
