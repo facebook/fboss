@@ -758,6 +758,17 @@ TEST_F(
       true /* loopThroughFrontPanelPort*/);
 }
 
+// ECMP half hash, Trunk full hash tests
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV6MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6MPLS,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
 TEST_F(AgentSrv6TrunkLoadBalancerTest, Srv6TrunkEcmpLoadBalance) {
   auto setup = [this]() { setupSrv6TrunkECMP(); };
   auto verify = [this]() {
