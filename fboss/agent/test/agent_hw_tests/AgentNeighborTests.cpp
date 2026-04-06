@@ -604,15 +604,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto switchId = getSwitchIdUnderTest(ensemble);
-    auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
     return utility::onePortPerInterfaceConfig(
-        ensemble.getPlatformMapping(),
-        asic,
-        ensemble.masterLogicalPortIds(),
-        ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-        asic->desiredLoopbackModes(),
-        ensemble.getSw()->getPlatformType());
+        ensemble.getSw(), ensemble.masterLogicalPortIds());
   }
   folly::IPAddressV6 neighborIP(PortID port) const {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6(
