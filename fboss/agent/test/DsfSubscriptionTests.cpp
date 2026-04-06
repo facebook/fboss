@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentFsdbSyncManager.h"
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -86,6 +87,27 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
     rifs->addNode(rif);
   }
   return rifs;
+}
+std::shared_ptr<Interface> makeRemoteIntf(
+    const InterfaceID& intfId,
+    const folly::IPAddressV4& v4Addr,
+    uint8_t v4Mask,
+    const folly::IPAddressV6& v6Addr,
+    uint8_t v6Mask) {
+  auto intf = std::make_shared<Interface>(
+      intfId,
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("rif"),
+      folly::MacAddress("01:02:03:04:05:06"),
+      9000,
+      false,
+      true,
+      cfg::InterfaceType::SYSTEM_PORT);
+  Interface::Addresses addresses{{v4Addr, v4Mask}, {v6Addr, v6Mask}};
+  intf->setAddresses(addresses);
+  intf->setScope(cfg::Scope::GLOBAL);
+  return intf;
 }
 } // namespace
 
@@ -1593,6 +1615,194 @@ TYPED_TEST(DsfSubscriptionTest, NewUpdateAfterProcessingSchedulesNewLambda) {
         this->getRemoteInterfaces()->size(),
         beforeNumRifs + (this->kNumRemoteSwitchAsics * 2));
   });
+}
+
+TYPED_TEST(DsfSubscriptionTest, RouteDeleteCancelsRouteAdd) {
+  // Reproduce bug where the cancel-out logic in processRemoteInterfaceRoutes
+  // incorrectly cancels a route add for a changed RIF when a different RIF
+  // with the same prefix is simultaneously removed.
+  //
+  // Scenario:
+  //   Old state: RIF 6040 (prefix 42.42.42.100/31), RIF 6043 (prefix
+  //   42.42.42.200/31)
+  //   New state: RIF 6040 (prefix 42.42.42.200/31), RIF 6043 removed
+  //
+  // In processDelta, changed nodes are processed before removed nodes:
+  //   Changed RIF 6040: delete 100/31, add 200/31
+  //   Removed RIF 6043: delete 200/31 -> finds 200/31 in toAdd -> BUG: cancels
+  //   the add!
+  //
+  // Result: the route for 42.42.42.200/31 is never added for RIF 6040.
+
+  auto state = this->sw_->getState();
+
+  // Old RIF 6040 with prefix X (42.42.42.100/31, 42::100/127)
+  auto oldRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.100"),
+      31,
+      folly::IPAddressV6("42::100"),
+      127);
+  // New RIF 6040 with prefix Y (42.42.42.200/31, 42::200/127)
+  auto newRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.200"),
+      31,
+      folly::IPAddressV6("42::200"),
+      127);
+  // RIF 6043 with prefix Y (being removed)
+  auto rifB = makeRemoteIntf(
+      InterfaceID(6043),
+      folly::IPAddressV4("42.42.42.200"),
+      31,
+      folly::IPAddressV6("42::200"),
+      127);
+
+  IntfRouteTable remoteIntfRoutesToAdd;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
+
+  // Simulate processDelta order: changed nodes first, then removed nodes.
+  // Changed RIF 6040: delete old routes (prefix X), add new routes (prefix Y)
+  processRemoteInterfaceRoutes(
+      oldRifA, state, false, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+  processRemoteInterfaceRoutes(
+      newRifA, state, true, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // Verify intermediate state: prefix Y in toAdd, prefix X in toDel
+  auto prefixY_v4 = folly::IPAddress::createNetwork("42.42.42.200/31");
+  auto prefixY_v6 = folly::IPAddress::createNetwork("42::200/127");
+  auto prefixX_v4 = folly::IPAddress::createNetwork("42.42.42.100/31");
+  auto prefixX_v6 = folly::IPAddress::createNetwork("42::100/127");
+
+  {
+    auto& toAdd = remoteIntfRoutesToAdd[RouterID(0)];
+    EXPECT_NE(toAdd.find(prefixY_v4), toAdd.end());
+    EXPECT_NE(toAdd.find(prefixY_v6), toAdd.end());
+    auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end());
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end());
+  }
+
+  // Removed RIF 6043: delete routes (prefix Y)
+  processRemoteInterfaceRoutes(
+      rifB, state, false, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // After processing the removal, prefix Y should STILL be in toAdd for
+  // RIF 6040. The delete of prefix Y from RIF 6043 should not cancel the
+  // add of prefix Y for the different RIF 6040.
+  auto& toAdd = remoteIntfRoutesToAdd[RouterID(0)];
+  EXPECT_NE(toAdd.find(prefixY_v4), toAdd.end())
+      << "Route add for 42.42.42.200/31 (RIF 6040) was incorrectly cancelled "
+      << "by removal of RIF 6043 with the same prefix";
+  EXPECT_NE(toAdd.find(prefixY_v6), toAdd.end())
+      << "Route add for 42::200/127 (RIF 6040) was incorrectly cancelled "
+      << "by removal of RIF 6043 with the same prefix";
+
+  // Verify the add entries are for RIF 6040 (not RIF 6043)
+  if (toAdd.find(prefixY_v4) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixY_v4].first, InterfaceID(6040));
+  }
+  if (toAdd.find(prefixY_v6) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixY_v6].first, InterfaceID(6040));
+  }
+}
+
+TYPED_TEST(DsfSubscriptionTest, RouteAddCancelsRouteDelete) {
+  // Reproduce the symmetric bug where the cancel-out logic in
+  // processRemoteInterfaceRoutes incorrectly cancels a pending route delete
+  // when a new RIF with the same prefix is added.
+  //
+  // Scenario:
+  //   Old state: RIF 6040 (prefix 42.42.42.100/31)
+  //   New state: RIF 6040 (prefix 42.42.42.200/31), RIF 6043 added with prefix
+  //   42.42.42.100/31
+  //
+  // In processDelta, changed nodes are processed before added nodes:
+  //   Changed RIF 6040: delete 100/31, add 200/31
+  //   Added RIF 6043:   add 100/31 -> finds 100/31 in toDel -> BUG: cancels
+  //   the delete!
+  //
+  // Result: the stale route for 42.42.42.100/31 pointing to old RIF 6040 is
+  // never deleted, and the new route for RIF 6043 is never added.
+
+  auto state = this->sw_->getState();
+
+  // Old RIF 6040 with prefix X (42.42.42.100/31, 42::100/127)
+  auto oldRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.100"),
+      31,
+      folly::IPAddressV6("42::100"),
+      127);
+  // New RIF 6040 with prefix Y (42.42.42.200/31, 42::200/127)
+  auto newRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.200"),
+      31,
+      folly::IPAddressV6("42::200"),
+      127);
+  // New RIF 6043 with prefix X (being added)
+  auto newRifB = makeRemoteIntf(
+      InterfaceID(6043),
+      folly::IPAddressV4("42.42.42.100"),
+      31,
+      folly::IPAddressV6("42::100"),
+      127);
+
+  IntfRouteTable remoteIntfRoutesToAdd;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
+
+  auto prefixX_v4 = folly::IPAddress::createNetwork("42.42.42.100/31");
+  auto prefixX_v6 = folly::IPAddress::createNetwork("42::100/127");
+
+  // Simulate processDelta order: changed nodes first, then added nodes.
+  // Changed RIF 6040: delete old routes (prefix X), add new routes (prefix Y)
+  processRemoteInterfaceRoutes(
+      oldRifA, state, false, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+  processRemoteInterfaceRoutes(
+      newRifA, state, true, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // Verify intermediate state: prefix X in toDel
+  {
+    auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end());
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end());
+  }
+
+  // Added RIF 6043: add routes (prefix X)
+  processRemoteInterfaceRoutes(
+      newRifB, state, true, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // After processing the addition, prefix X should be in toAdd for RIF 6043.
+  // The add of prefix X for RIF 6043 should not cancel the pending delete
+  // of prefix X from the different RIF 6040.
+  auto& toAdd = remoteIntfRoutesToAdd[RouterID(0)];
+  EXPECT_NE(toAdd.find(prefixX_v4), toAdd.end())
+      << "Route add for 42.42.42.100/31 (RIF 6043) was incorrectly cancelled "
+      << "by pending delete of the same prefix from RIF 6040";
+  EXPECT_NE(toAdd.find(prefixX_v6), toAdd.end())
+      << "Route add for 42::100/127 (RIF 6043) was incorrectly cancelled "
+      << "by pending delete of the same prefix from RIF 6040";
+
+  // Verify the add entries are for RIF 6043 (not RIF 6040)
+  if (toAdd.find(prefixX_v4) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixX_v4].first, InterfaceID(6043));
+  }
+  if (toAdd.find(prefixX_v6) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixX_v6].first, InterfaceID(6043));
+  }
+
+  // Prefix X should NOT be in toDel — the pending delete was cancelled because
+  // the add for RIF 6043 will replace the route via addOrReplaceRouteImpl.
+  // Having prefix X in both toAdd and toDel would cause the delete to win
+  // (RIB processes adds first, then deletes), removing the route entirely.
+  auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
+  EXPECT_EQ(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end())
+      << "Route delete for 42.42.42.100/31 should have been cancelled "
+      << "because the add for RIF 6043 will replace the route";
+  EXPECT_EQ(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end())
+      << "Route delete for 42::100/127 should have been cancelled "
+      << "because the add for RIF 6043 will replace the route";
 }
 
 } // namespace facebook::fboss
