@@ -202,6 +202,11 @@ std::map<std::string, PmUnitInfo> DataStore::getSlotPathToPmUnitInfo() const {
   return slotPathToPmUnitInfo;
 }
 
+const std::map<std::pair<std::optional<std::string>, std::string>, uint16_t>
+DataStore::getI2cBusNums() const {
+  return i2cBusNums_;
+}
+
 void DataStore::updateFirmwareVersion(
     const std::string& deviceName,
     const std::string& firmwareVersion) {

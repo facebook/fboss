@@ -57,7 +57,6 @@ thrift_library(
         ":platform_manager_config",
         ":platform_manager_snapshot",
         "//fboss/platform/weutil/if:eeprom_contents",
-        "//thrift/annotation:cpp",
         "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
@@ -178,6 +177,22 @@ cpp_library(
 )
 
 cpp_library(
+    name = "platform_snapshot_builder",
+    srcs = [
+        "PlatformSnapshotBuilder.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":data_store",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":platform_manager_snapshot-cpp2-types",
+        ":utils",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "platform_explorer",
     srcs = [
         "ExplorationSummary.cpp",
@@ -283,6 +298,7 @@ cpp_library(
         ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_service-cpp2-services",
+        ":platform_snapshot_builder",
     ],
 )
 
