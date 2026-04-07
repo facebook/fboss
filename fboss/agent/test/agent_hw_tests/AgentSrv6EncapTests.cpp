@@ -14,7 +14,10 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -45,13 +48,21 @@ class AgentSrv6EncapTest : public AgentHwTest {
   static constexpr uint8_t kEncapRoutePrefixLen{64};
   const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
   static constexpr int kNumNextHops{4};
+  static constexpr uint8_t kECT1{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
-      return {ProductionFeature::SRV6_ENCAP, ProductionFeature::LAG};
+      return {
+          ProductionFeature::SRV6_ENCAP,
+          ProductionFeature::L3_QOS,
+          ProductionFeature::ECN,
+          ProductionFeature::LAG};
     }
-    return {ProductionFeature::SRV6_ENCAP};
+    return {
+        ProductionFeature::SRV6_ENCAP,
+        ProductionFeature::L3_QOS,
+        ProductionFeature::ECN};
   }
 
   void setCmdLineFlagOverrides() const override {
@@ -82,6 +93,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
         {folly::CIDRNetwork{kSid0, 128},
          folly::CIDRNetwork{kSid1, 128},
          folly::CIDRNetwork{kSid2, 128}});
+    utility::addOlympicQueueConfig(
+        &cfg,
+        ensemble.getL3Asics(),
+        /*addWredConfig=*/false,
+        /*addEcnConfig=*/true);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     return cfg;
   }
 
@@ -597,6 +614,57 @@ TYPED_TEST(AgentSrv6EncapTest, multipleSidListsSameNextHop) {
         std::nullopt /*injectPort*/,
         folly::IPAddress("2800:3::1"));
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
+  auto setup = [this]() {
+    if constexpr (TestFixture::kIsTrunk) {
+      this->applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
+    this->resolveV4AndV6NextHops(2);
+    this->template addEncapRoute<folly::CIDRNetworkV6>(
+        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen}, {{this->kSid0}});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+
+    // Send 512 SRv6 packets (DSCP 5, ECN ECT1, ~7000B payload).
+    // In UNIFORM mode, outer header copies DSCP+ECN bits from inner.
+    auto sendFloodPackets = [this, &intfMac]() {
+      auto tcField = static_cast<uint8_t>((5 << 2) | this->kECT1);
+      for (int i = 0; i < 512; ++i) {
+        auto txPacket = utility::makeUDPTxPacket(
+            this->getSw(),
+            this->getVlanIDForTx(),
+            intfMac,
+            intfMac,
+            folly::IPAddressV6("1::10"),
+            this->kEncapRouteDstIp,
+            8000,
+            8001,
+            tcField,
+            64,
+            std::vector<uint8_t>(7000, 0xff));
+        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    };
+
+    // After encap, outer dst = SID, ECN CE = 0x3
+    auto isEcnMarked = [this](
+                           const folly::IPAddressV6& dstAddr, uint8_t ecnBits) {
+      return dstAddr == this->kSid0 && ecnBits == 0x3;
+    };
+
+    utility::verifySrv6EcnMarking(
+        this->getAgentEnsemble(), egressPort, sendFloodPackets, isEcnMarked);
+  };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
