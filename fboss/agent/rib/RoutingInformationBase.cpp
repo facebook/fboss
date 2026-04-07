@@ -133,8 +133,13 @@ class Timer {
 
 std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
   auto type = *entry.type();
+  if (entry.namedNextHops().has_value() && !entry.nextHops()->empty()) {
+    throw FbossError(
+        "Only one of nextHops or namedNextHops must be set in MySidEntry");
+  }
   if (type == MySidType::ADJACENCY_MICRO_SID ||
       type == MySidType::NODE_MICRO_SID) {
+    // TODO Support named nhop groups
     if (entry.nextHops()->empty()) {
       throw FbossError(
           "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
@@ -143,6 +148,10 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
     if (!entry.nextHops()->empty()) {
       throw FbossError(
           "NextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+    }
+    if (entry.namedNextHops().has_value()) {
+      throw FbossError(
+          "NamedNextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
     }
   } else {
     throw FbossError("Unsupported MySid type: ", static_cast<int>(type));

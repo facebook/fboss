@@ -3139,3 +3139,16 @@ TEST_F(ThriftTest, mySidEntryReflectedInRib) {
   auto state = sw_->getState();
   EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
 }
+
+TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  // DECAP type with namedNextHops set — should be rejected
+  NamedRouteDestination named;
+  named.nextHopGroups() = {"group1"};
+  entry.namedNextHops() = named;
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
