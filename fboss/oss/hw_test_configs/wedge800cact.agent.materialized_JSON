@@ -1,0 +1,204 @@
+{
+  "defaultCommandLineArgs": {
+    "check_wb_handles": "true",
+    "classid_for_unresolved_routes": "true",
+    "counter_refresh_interval": "0",
+    "enable_acl_table_group": "true",
+    "intf_nbr_tables": "true",
+    "log_variable_name": "true",
+    "skip_transceiver_programming": "true",
+    "use_full_dlb_scale": "true"
+  },
+  "sw": {
+    "version": 0,
+    "ports": [
+      
+    ],
+    "vlans": [
+      
+    ],
+    "vlanPorts": [
+      
+    ],
+    "defaultVlan": 0,
+    "interfaces": [
+      
+    ],
+    "arpTimeoutSeconds": 60,
+    "arpRefreshSeconds": 20,
+    "arpAgerInterval": 5,
+    "proactiveArp": false,
+    "staticRoutesWithNhops": [
+      
+    ],
+    "staticRoutesToNull": [
+      
+    ],
+    "staticRoutesToCPU": [
+      
+    ],
+    "acls": [
+      
+    ],
+    "maxNeighborProbes": 300,
+    "staleEntryInterval": 10,
+    "aggregatePorts": [
+      
+    ],
+    "clientIdToAdminDistance": {
+      "0": 20,
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "700": 255,
+      "786": 10
+    },
+    "sFlowCollectors": [
+      
+    ],
+    "cpuQueues": [
+      
+    ],
+    "loadBalancers": [
+      
+    ],
+    "mirrors": [
+      
+    ],
+    "trafficCounters": [
+      
+    ],
+    "qosPolicies": [
+      
+    ],
+    "defaultPortQueues": [
+      
+    ],
+    "staticMplsRoutesWithNhops": [
+      
+    ],
+    "staticMplsRoutesToNull": [
+      
+    ],
+    "staticMplsRoutesToCPU": [
+      
+    ],
+    "staticIp2MplsRoutes": [
+      
+    ],
+    "portQueueConfigs": {
+      
+    },
+    "switchSettings": {
+      "l2LearningMode": 0,
+      "qcmEnable": false,
+      "ptpTcEnable": false,
+      "l2AgeTimerSeconds": 300,
+      "maxRouteCounterIDs": 0,
+      "blockNeighbors": [
+        
+      ],
+      "macAddrsToBlock": [
+        
+      ],
+      "switchType": 0,
+      "exactMatchTableConfigs": [
+        
+      ],
+      "switchIdToSwitchType_DEPRECATED": {
+        
+      },
+      "switchDrainState": 0,
+      "switchIdToSwitchInfo": {
+        "0": {
+            "switchType": 0,
+            "asicType": 20,
+            "switchIndex": 0,
+            "portIdRange": {
+              "minimum": 0,
+              "maximum": 2047
+            },
+            "connectionHandle": "/dev/uio0",
+            "firmwareNameToFirmwareInfo": {
+              
+            }
+        }
+      },
+      "vendorMacOuis": [
+        
+      ],
+      "metaMacOuis": [
+        
+      ],
+      "needL2EntryForNeighbor": true
+    },
+    "aclTableGroup": {
+      "name": "acl-table-group-ingress",
+      "aclTables": [
+        {
+          "name": "AclTable1",
+          "priority": 0,
+          "aclEntries": [
+            
+          ],
+          "actionTypes": [
+            
+          ],
+          "qualifiers": [
+            
+          ],
+          "udfGroups": [
+            
+          ]
+        }
+      ],
+      "stage": 0
+    },
+    "dsfNodes": {
+      
+    },
+    "defaultVoqConfig": [
+      
+    ],
+    "aclTableGroups": [
+      {
+        "name": "acl-table-group-ingress",
+        "aclTables": [
+          {
+            "name": "AclTable1",
+            "priority": 0,
+            "aclEntries": [
+              
+            ],
+            "actionTypes": [
+              
+            ],
+            "qualifiers": [
+              
+            ],
+            "udfGroups": [
+              
+            ]
+          }
+        ],
+        "stage": 0
+      }
+    ],
+    "mirrorOnDropReports": [
+      
+    ]
+  },
+  "platform": {
+    "chip": {
+      "asicConfig": {
+        "common": {
+          "jsonConfig": "{\"board-type\":\"85-RP-O\",\"python-shell-server\":{\"enable\":false},\"cli-server\":{\"enable\":true,\"address\":\"127.0.0.1:50051\"},\"devices\":[{\"device_property\":{\"allow_smac_equals_dmac\":true,\"enable_forwarding_route_counter\":true,\"trap_lpts_after_post_fwd_acl\":true,\"enable_ingress_l2_port_counters\":false,\"enable_ingress_tunnel_counters\":false,\"device_frequency\":1093750,\"cem_num_banks\":2,\"mac_frequency\":1601562,\"enable_d2d_mac_low_power_over_latency\":true,\"optimized_flow\":true,\"oq_bypass_enable\":false,\"enable_compatible_prbs\":true,\"is_lpts_high_priority\":false,\"l2_service_port_gid_limit\":1024,\"prefix_object_gid_limit\":0,\"next_hop_gid_limit\":512,\"ip_hosts_limit\":512,\"max_mp_group_size\":128},\"id\":1,\"type\":\"g2ll\",\"rev\":1,\"ifg_swap_lists\":[{\"slice\":0,\"ifg\":0,\"swap\":[2,0,5,1,4,3,6,7,8,9,10,12,14,11,13,15,23,17,19,16,22,20,21,18,28,26,24,30,31,25,27,29],\"anlt_order\":[0,2,7,1,4,6,5,3,15,10,11,13,8,9,14,12,18,23,21,22,20,19,16,17,31,24,26,25,30,29,27,28],\"serdes_polarity_inverse_rx\":[0,1,2,6,7,9,10,12,13,14,15,18,19,20,24,25,26,27,28,29,30,31],\"serdes_polarity_inverse_tx\":[0,1,4,5,7,8,10,12,13,15,16,17,18,21,22,23,24,25,26,27,28,29]},{\"slice\":1,\"ifg\":0,\"swap\":[2,6,0,1,4,3,5,7,10,8,12,9,13,15,11,14,17,23,22,19,20,16,21,18,25,30,26,29,27,24,28,31],\"anlt_order\":[2,3,1,4,0,7,5,6,10,8,9,13,11,14,15,12,23,22,21,18,16,19,20,17,28,31,29,27,24,30,25,26],\"serdes_polarity_inverse_rx\":[0,1,6,10,11,13,14,15,17,20,22,27,28,29,30],\"serdes_polarity_inverse_tx\":[0,1,2,3,4,7,8,9,10,14,18,21,22,24,25,26,27,31]},{\"slice\":2,\"ifg\":0,\"swap\":[2,0,5,1,4,3,6,7,8,9,10,12,14,11,13,15,23,17,19,16,22,20,21,18,28,26,24,30,31,25,27,29],\"anlt_order\":[0,2,7,1,4,6,5,3,15,10,11,13,8,9,14,12,18,23,21,22,20,19,16,17,31,24,26,25,30,29,27,28],\"serdes_polarity_inverse_rx\":[0,1,2,6,7,9,10,12,13,14,15,18,19,20,24,25,26,27,28,29,30,31],\"serdes_polarity_inverse_tx\":[0,1,4,5,7,8,10,12,13,15,16,17,18,21,22,23,24,25,26,27,28,29]},{\"slice\":3,\"ifg\":0,\"swap\":[2,6,0,1,4,3,5,7,10,8,12,9,13,15,11,14,17,23,22,19,20,16,21,18,25,30,26,29,27,24,28,31],\"anlt_order\":[2,3,1,4,0,7,5,6,10,8,9,13,11,14,15,12,23,22,21,18,16,19,20,17,28,31,29,27,24,30,25,26],\"serdes_polarity_inverse_rx\":[0,1,6,10,11,13,14,15,17,20,22,27,28,29,30],\"serdes_polarity_inverse_tx\":[0,1,2,3,4,7,8,9,10,14,18,21,22,24,25,26,27,31]},{\"slice\":4,\"ifg\":0,\"swap\":[1,4,0,5,3,6,2,7,11,10,14,8,15,9,13,12,21,17,22,16,19,18,23,20,30,28,26,29,31,25,27,24],\"anlt_order\":[4,2,5,1,3,6,0,7,10,9,13,12,8,15,14,11,18,23,21,22,20,19,16,17,24,31,29,26,25,30,28,27],\"serdes_polarity_inverse_rx\":[2,3,4,5,7,9,10,12,13,14,15,18,19,20,25,27,29,31],\"serdes_polarity_inverse_tx\":[0,1,3,4,5,8,10,12,13,15,16,17,18,21,22,23,27,30,31]},{\"slice\":5,\"ifg\":0,\"swap\":[7,2,3,0,1,5,6,4,13,8,11,9,12,15,10,14,16,22,18,17,20,23,21,19,24,26,29,25,30,28,31,27],\"anlt_order\":[2,3,1,0,6,4,5,7,10,8,9,12,11,13,15,14,23,22,21,18,16,19,20,17,28,31,29,27,24,30,25,26],\"serdes_polarity_inverse_rx\":[2,3,4,5,7,10,11,13,14,15,17,20,22,24,25,26,31],\"serdes_polarity_inverse_tx\":[0,1,2,3,4,6,7,8,9,10,14,18,21,22,24,25,26,27,31]},{\"slice\":6,\"ifg\":0,\"swap\":[1,4,0,5,3,6,2,7,11,10,14,8,15,9,13,12,21,17,22,16,19,18,23,20,30,28,26,29,31,25,27,24],\"anlt_order\":[4,2,5,1,3,6,0,7,10,9,13,12,8,15,14,11,18,23,21,22,20,19,16,17,24,31,29,26,25,30,28,27],\"serdes_polarity_inverse_rx\":[2,3,4,5,7,9,10,12,13,14,15,18,19,20,25,27,29,31],\"serdes_polarity_inverse_tx\":[0,1,3,4,5,8,10,12,13,15,16,17,18,21,22,23,27,30,31]},{\"slice\":7,\"ifg\":0,\"swap\":[7,2,3,0,1,5,6,4,13,8,11,9,12,15,10,14,16,22,18,17,20,23,21,19,24,26,31,25,29,28,30,27],\"anlt_order\":[2,3,1,0,6,4,5,7,10,8,9,12,11,13,15,14,23,22,21,18,16,19,20,17,28,31,29,27,24,30,25,26],\"serdes_polarity_inverse_rx\":[2,3,4,5,7,10,11,13,14,15,17,20,22,24,25,26,31],\"serdes_polarity_inverse_tx\":[0,1,2,3,4,6,7,8,9,10,14,18,21,22,24,25,26,27,31]}]}]}"
+        }
+      }
+    }
+  },
+  "thriftApiToRateLimitInQps": {
+    
+  }
+}
