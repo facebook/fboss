@@ -973,11 +973,49 @@ void ThriftHandler::deleteMySidEntries(
       sw_);
 }
 
-void ThriftHandler::getMySidEntries(std::vector<MySidEntry>& /* entries */) {
+void ThriftHandler::getMySidEntries(std::vector<MySidEntry>& entries) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
-  // TODO: implement
-  throw FbossError("getMySidEntries not yet implemented");
+  auto state = sw_->getState();
+
+  // MySids are replicated across per-switch maps in MultiSwitchMySidMap.
+  // Deduplicate by prefix string key.
+  std::set<std::string> seen;
+  for (const auto& miter : std::as_const(*state->getMySids())) {
+    for (const auto& [key, mySid] : std::as_const(*miter.second)) {
+      if (!seen.insert(key).second) {
+        continue;
+      }
+      MySidEntry entry;
+      entry.type() = mySid->getType();
+
+      auto [ip, prefixLen] = mySid->getMySid();
+      entry.mySid()->prefixAddress() = toBinaryAddress(ip);
+      entry.mySid()->prefixLength() = prefixLen;
+
+      // Populate unresolved next hops (what the caller originally provided).
+      if (auto unresolvedId = mySid->getUnresolveNextHopsId()) {
+        auto nhops = getNextHops(
+            state,
+            static_cast<NextHopSetId>(static_cast<int64_t>(*unresolvedId)));
+        RouteNextHopSet nhopSet;
+        nhopSet.insert(nhops.begin(), nhops.end());
+        entry.nextHops() = util::fromRouteNextHopSet(nhopSet);
+      }
+
+      // Populate resolved next hops (resolved to actual hardware next hops).
+      if (auto resolvedId = mySid->getResolvedNextHopsId()) {
+        auto nhops = getNextHops(
+            state,
+            static_cast<NextHopSetId>(static_cast<int64_t>(*resolvedId)));
+        RouteNextHopSet nhopSet;
+        nhopSet.insert(nhops.begin(), nhops.end());
+        entry.resolvedNextHops() = util::fromRouteNextHopSet(nhopSet);
+      }
+
+      entries.emplace_back(std::move(entry));
+    }
+  }
 }
 
 static void populateInterfaceDetail(
