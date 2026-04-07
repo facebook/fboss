@@ -36,11 +36,12 @@ void RibMySidUpdater::resolve(
 
 void RibMySidUpdater::resolveOneMySid(std::shared_ptr<MySid>& mySid) {
   auto unresolvedId = mySid->getUnresolveNextHopsId();
-  if (!unresolvedId.has_value()) {
-    return;
+  if (unresolvedId.has_value()) {
+    updateResolvedNextHopSetId(
+        mySid,
+        resolveNextHopSet(nextHopIDManager_->getNextHops(*unresolvedId)));
   }
-  updateResolvedNextHopSetId(
-      mySid, resolveNextHopSet(nextHopIDManager_->getNextHops(*unresolvedId)));
+  mySid->publish();
 }
 
 RouteNextHopSet RibMySidUpdater::resolveNextHopSet(

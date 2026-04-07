@@ -472,4 +472,52 @@ TEST_F(RibMySidUpdaterTest, multiVrf_nhopMatchInFirstVrf_firstVrfWins) {
   EXPECT_EQ(resolvedNhops->begin()->addr(), folly::IPAddress("fe80::1"));
 }
 
+TEST_F(RibMySidUpdaterTest, resolve_publishesEntryWithNoUnresolvedId) {
+  // An entry with no unresolvedNextHopsId should still be published after
+  // resolve() — matching the RouteUpdater pattern of publishing all processed
+  // nodes regardless of whether they changed.
+  const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
+  mySidTable_[key] = makeMySid("fc00:100::1", 48); // no unresolvedId
+
+  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  updater.resolve();
+
+  EXPECT_TRUE(mySidTable_.at(key)->isPublished());
+}
+
+TEST_F(RibMySidUpdaterTest, resolve_publishesEntryAfterResolvingNhops) {
+  // An entry whose nexthops are resolved should be published after resolve().
+  const auto nhops = makeResolvedNhops({{"fe80::1", InterfaceID(1)}});
+  const auto unresolvedId = allocUnresolvedSet(nhops);
+
+  auto mySid = makeMySid("fc00:100::1", 48);
+  mySid->setUnresolveNextHopsId(unresolvedId);
+  const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
+  mySidTable_[key] = mySid;
+
+  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  updater.resolve();
+
+  EXPECT_TRUE(mySidTable_.at(key)->isPublished());
+}
+
+TEST_F(RibMySidUpdaterTest, resolve_publishesEntryWhenNhopCantBeResolved) {
+  // An entry whose gateway nexthop has no matching route (empty resolved set)
+  // should still be published after resolve().
+  const RouteNextHopSet unresolvedNhops{
+      UnresolvedNextHop(folly::IPAddress("2001:db8::1"), ECMP_WEIGHT)};
+  const auto unresolvedId = allocUnresolvedSet(unresolvedNhops);
+
+  auto mySid = makeMySid("fc00:100::1", 48);
+  mySid->setUnresolveNextHopsId(unresolvedId);
+  const folly::CIDRNetworkV6 key{folly::IPAddressV6("fc00:100::1"), 48};
+  mySidTable_[key] = mySid;
+
+  RibMySidUpdater updater({{&v4Routes_, &v6Routes_}}, &manager(), &mySidTable_);
+  updater.resolve();
+
+  EXPECT_FALSE(mySidTable_.at(key)->getResolvedNextHopsId().has_value());
+  EXPECT_TRUE(mySidTable_.at(key)->isPublished());
+}
+
 } // namespace facebook::fboss
