@@ -69,6 +69,13 @@ update_docker() {
     syslinux \
     btrfs-progs \
     glibc-static
+
+  # The python3-kiwi RPM installs for the system Python 3.9, but python3 may
+  # resolve to a newer version (e.g. 3.12) via update-alternatives. The
+  # kiwi-ng-3 shebang uses "python3 -s" which excludes /usr/local/lib paths.
+  # Install kiwi to the system site-packages visible under -s.
+  KIWI_SITE_PKG=$(python3 -s -c "import site; print(site.getsitepackages()[0])")
+  python3 -m pip install kiwi --target "${KIWI_SITE_PKG}"
 }
 
 build_zstd() {
