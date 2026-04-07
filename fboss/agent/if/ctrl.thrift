@@ -113,7 +113,13 @@ struct MySidEntry {
   # MySid entry in ip/mask format. 32 bits of this are
   # locator block len and 32-maskLen are sid bits
   2: Address.IPPrefix mySid;
+  # Only one of nextHops or namedNextHops must be set
   3: list<common.NextHopThrift> nextHops;
+  4: optional common.NamedRouteDestination namedNextHops;
+  # Resolved next hops are next hops post resolution.
+  # Must not be set in addMySidEntries. These are populated
+  # when reporting nexthops back to the client
+  5: list<common.NextHopThrift> resolvedNextHops;
 }
 
 struct ClientAndNextHops {
