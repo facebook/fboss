@@ -9,12 +9,10 @@
 namespace facebook::fboss {
 
 RibMySidUpdater::RibMySidUpdater(
-    IPv4NetworkToRouteMap* v4Routes,
-    IPv6NetworkToRouteMap* v6Routes,
+    const VrfRouteTables& routeTables,
     NextHopIDManager* nextHopIDManager,
     MySidTable* mySidTable)
-    : v4Routes_{v4Routes},
-      v6Routes_{v6Routes},
+    : routeTables_{routeTables},
       nextHopIDManager_{nextHopIDManager},
       mySidTable_{mySidTable} {}
 
@@ -65,15 +63,15 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
 
   auto collectResolved = [&resolved, &nh](auto* routeMap, const auto& nhAddr) {
     if (!routeMap) {
-      return;
+      return false;
     }
     auto it = routeMap->longestMatch(nhAddr, nhAddr.bitCount());
     if (it == routeMap->end()) {
-      return;
+      return false;
     }
     const auto& route = it->value();
     if (!route || !route->isResolved()) {
-      return;
+      return false;
     }
 
     const auto& fwdNhops = route->getForwardInfo().normalizedNextHops();
@@ -83,12 +81,19 @@ RouteNextHopSet RibMySidUpdater::resolveNhop(const NextHop& nh) const {
     } else {
       resolved.insert(fwdNhops.begin(), fwdNhops.end());
     }
+    return true;
   };
 
-  if (addr.isV4()) {
-    collectResolved(v4Routes_, addr.asV4());
-  } else {
-    collectResolved(v6Routes_, addr.asV6());
+  for (const auto& [v4Routes, v6Routes] : routeTables_) {
+    bool found = false;
+    if (addr.isV4()) {
+      found = collectResolved(v4Routes, addr.asV4());
+    } else {
+      found = collectResolved(v6Routes, addr.asV6());
+    }
+    if (found) {
+      break;
+    }
   }
   return resolved;
 }

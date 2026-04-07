@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -20,16 +21,21 @@ class MySid;
  *
  * For each MySid entry that has an unresolvedNextHopsId, it:
  *   1. Retrieves the unresolved RouteNextHopSet from NextHopIDManager.
- *   2. Resolves each member next hop against the v4/v6 route tables
- *      (which must already be resolved by RibRouteUpdater).
+ *   2. Resolves each member next hop against the v4/v6 route tables from all
+ *      VRFs (which must already be resolved by RibRouteUpdater). The first
+ *      VRF that contains a matching route wins.
  *   3. Allocates or updates the resolvedNextHopsId in NextHopIDManager.
  *   4. Updates mySid.resolvedNextHopsId if the resolved set changed.
  */
 class RibMySidUpdater {
  public:
+  // Each element is a (v4RouteMap, v6RouteMap) pair for one VRF. The updater
+  // tries each VRF in order and uses the first matching route.
+  using VrfRouteTables =
+      std::vector<std::pair<IPv4NetworkToRouteMap*, IPv6NetworkToRouteMap*>>;
+
   RibMySidUpdater(
-      IPv4NetworkToRouteMap* v4Routes,
-      IPv6NetworkToRouteMap* v6Routes,
+      const VrfRouteTables& routeTables,
       NextHopIDManager* nextHopIDManager,
       MySidTable* mySidTable);
 
@@ -45,8 +51,7 @@ class RibMySidUpdater {
       std::shared_ptr<MySid>& mySidPtr,
       const RouteNextHopSet& resolvedNhops);
 
-  IPv4NetworkToRouteMap* v4Routes_{nullptr};
-  IPv6NetworkToRouteMap* v6Routes_{nullptr};
+  VrfRouteTables routeTables_;
   NextHopIDManager* nextHopIDManager_{nullptr};
   MySidTable* mySidTable_{nullptr};
 };

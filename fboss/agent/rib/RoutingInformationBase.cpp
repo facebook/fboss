@@ -232,14 +232,12 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
 template <typename RibUpdateFn>
 void RibRouteTables::updateRib(const RibUpdateFn& updateRibFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  IPv4NetworkToRouteMap* v4Routes = nullptr;
-  IPv6NetworkToRouteMap* v6Routes = nullptr;
-  auto it = lockedRouteTables->routerIDToRouteTable.find(RouterID(0));
-  if (it != lockedRouteTables->routerIDToRouteTable.end()) {
-    v4Routes = &it->second.v4NetworkToRoute;
-    v6Routes = &it->second.v6NetworkToRoute;
+  RibMySidUpdater::VrfRouteTables routeTables;
+  for (auto& [rid, routeTable] : lockedRouteTables->routerIDToRouteTable) {
+    routeTables.emplace_back(
+        &routeTable.v4NetworkToRoute, &routeTable.v6NetworkToRoute);
   }
-  updateRibFn(v4Routes, v6Routes, &lockedRouteTables->mySidTable);
+  updateRibFn(routeTables, &lockedRouteTables->mySidTable);
 }
 
 void RibRouteTables::reconfigure(
@@ -1106,8 +1104,7 @@ void RibRouteTables::update(
     const std::vector<IpPrefix>& toDelete,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
-  updateRib([&](IPv4NetworkToRouteMap* v4Routes,
-                IPv6NetworkToRouteMap* v6Routes,
+  updateRib([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                 MySidTable* mySidTable) {
     std::set<folly::CIDRNetwork> addedPrefixes;
     for (const auto& entry : toAdd) {
@@ -1158,8 +1155,7 @@ void RibRouteTables::update(
       mySidTable->erase(cidr);
     }
     if (nextHopIDManager_ && !addedPrefixes.empty()) {
-      RibMySidUpdater updater(
-          v4Routes, v6Routes, nextHopIDManager_, mySidTable);
+      RibMySidUpdater updater(routeTables, nextHopIDManager_, mySidTable);
       updater.resolve(addedPrefixes);
     }
   });
