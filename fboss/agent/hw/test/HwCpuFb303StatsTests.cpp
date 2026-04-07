@@ -94,6 +94,8 @@ HwPortStats getInitedStats() {
       0, // fabricControlTxPackets_
       {{1, 0}}, // txPfcDurationUsec_
       {{1, 0}}, // rxPfcDurationUsec_
+      0, // outDiscardsSll_
+      0, // outDiscardsHll_
   };
 }
 

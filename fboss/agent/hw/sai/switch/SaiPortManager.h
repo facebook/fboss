@@ -381,6 +381,7 @@ class SaiPortManager {
           bufferProfileHandles);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
+  void fillInSupportedVendorExtStats(std::vector<sai_stat_id_t>& counterIds);
   bool fecStatsSupported(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(

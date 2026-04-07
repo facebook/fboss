@@ -343,4 +343,12 @@ inline folly::StringPiece constexpr kRxPfcDurationUsec() {
 inline folly::StringPiece constexpr kTxPfcDurationUsec() {
   return "tx_pfc_duration_usec";
 }
+
+inline folly::StringPiece constexpr kOutDiscardsSll() {
+  return "out_discards_switch_lifetime_limit";
+}
+
+inline folly::StringPiece constexpr kOutDiscardsHll() {
+  return "out_discards_headroom_lifetime_limit";
+}
 } // namespace facebook::fboss

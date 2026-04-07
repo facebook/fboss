@@ -2,6 +2,8 @@
 
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 
+#include "saiportcustom.h"
+
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
@@ -83,5 +85,11 @@ SaiPortSerdesTraits::Attributes::RxReach::ValueType
 SaiPortManager::getSaiRxReach(
     const std::vector<phy::RxReach>& /* rxReaches */) const {
   throw FbossError("RxReach is not supported on this platform");
+}
+
+void SaiPortManager::fillInSupportedVendorExtStats(
+    std::vector<sai_stat_id_t>& counterIds) {
+  counterIds.emplace_back(SAI_PORT_STAT_IF_OUT_DISCARDS_SLL);
+  counterIds.emplace_back(SAI_PORT_STAT_IF_OUT_DISCARDS_HLL);
 }
 } // namespace facebook::fboss

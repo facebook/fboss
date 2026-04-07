@@ -57,6 +57,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
+      kOutDiscardsSll(),
+      kOutDiscardsHll(),
   };
   return kPortKeys;
 }
@@ -281,6 +283,14 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kFabricControlTxPackets(),
         *curPortStats.fabricControlTxPackets_());
+  }
+  if (curPortStats.outDiscardsSll_().has_value()) {
+    updateStat(
+        timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
+  }
+  if (curPortStats.outDiscardsHll_().has_value()) {
+    updateStat(
+        timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
   }
 
   // Update queue stats

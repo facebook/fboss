@@ -47,6 +47,10 @@
 #endif
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+#include "saiportcustom.h"
+#endif
+
 DEFINE_bool(
     sai_configure_six_tap,
     false,
@@ -461,6 +465,14 @@ void fillHwPortStats(
         hwPortStats.txPfcDurationUsec_()[priority] = value;
         break;
       }
+#endif
+#if defined(CHENAB_SAI_SDK)
+      case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
+        hwPortStats.outDiscardsSll_() = value;
+        break;
+      case SAI_PORT_STAT_IF_OUT_DISCARDS_HLL:
+        hwPortStats.outDiscardsHll_() = value;
+        break;
 #endif
       default:
         auto configuredDebugCounters =
