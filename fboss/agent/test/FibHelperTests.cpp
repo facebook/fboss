@@ -10,12 +10,14 @@
 
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/LookupClassRouteUpdater.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 
 #include "fboss/agent/test/HwTestHandle.h"
@@ -632,6 +634,129 @@ TYPED_TEST(FibHelperTest, getNormalizedNextHopsWithOverrides) {
       EXPECT_NE(result, nonOverrideResult);
     }
   }
+}
+
+namespace {
+
+NextHopThrift makeNextHop(const std::string& ip, int weight = 1) {
+  NextHopThrift nh;
+  nh.address() = network::toBinaryAddress(folly::IPAddress(ip));
+  nh.weight() = weight;
+  return nh;
+}
+
+// Verify that every set ID and nhop ID from a source map exists in the
+// merged map with matching values (nhop IDs in each set, nhop thrift data).
+void verifyMergedMapsContain(
+    const std::shared_ptr<IdToNextHopIdSetMap>& mergedSetMap,
+    const std::shared_ptr<IdToNextHopMap>& mergedNhMap,
+    const std::shared_ptr<IdToNextHopIdSetMap>& sourceSetMap,
+    const std::shared_ptr<IdToNextHopMap>& sourceNhMap) {
+  if (!sourceSetMap) {
+    return;
+  }
+  for (const auto& [setId, setNode] : std::as_const(*sourceSetMap)) {
+    auto mergedSetNode = mergedSetMap->getNextHopIdSetIf(setId);
+    ASSERT_NE(mergedSetNode, nullptr)
+        << "SetId " << setId << " missing from merged set map";
+    // Verify the nhop ID sets are identical
+    EXPECT_EQ(mergedSetNode->toThrift(), setNode->toThrift())
+        << "SetId " << setId << " nhop IDs mismatch in merged set map";
+  }
+  if (!sourceNhMap) {
+    return;
+  }
+  for (const auto& [nhId, nhNode] : std::as_const(*sourceNhMap)) {
+    auto mergedNhNode = mergedNhMap->getNextHopIf(nhId);
+    ASSERT_NE(mergedNhNode, nullptr)
+        << "NhopId " << nhId << " missing from merged nhop map";
+    EXPECT_EQ(mergedNhNode->toThrift(), nhNode->toThrift())
+        << "NhopId " << nhId << " value mismatch in merged nhop map";
+  }
+}
+
+} // namespace
+
+class MergeNextHopIdMapsTest : public ::testing::Test {
+ protected:
+  NextHopThrift nh1_ = makeNextHop("10.0.0.1");
+  NextHopThrift nh2_ = makeNextHop("10.0.0.2");
+  NextHopThrift nh3_ = makeNextHop("10.0.0.3");
+  NextHopThrift nh4_ = makeNextHop("10.0.0.4");
+};
+
+TEST_F(MergeNextHopIdMapsTest, EmptyAndPartialInputs) {
+  // Both null — returns empty maps
+  auto [emptySet, emptyNh] =
+      mergeNextHopIdMaps(nullptr, nullptr, nullptr, nullptr);
+  EXPECT_EQ(emptySet->size(), 0);
+  EXPECT_EQ(emptyNh->size(), 0);
+
+  // Primary only, secondary null — returns primary's entries
+  auto primarySetMap = std::make_shared<IdToNextHopIdSetMap>();
+  auto primaryNhMap = std::make_shared<IdToNextHopMap>();
+  primarySetMap->addNextHopIdSet(100, {1, 2});
+  primaryNhMap->addNextHop(1, nh1_);
+  primaryNhMap->addNextHop(2, nh2_);
+
+  auto [pSet, pNh] =
+      mergeNextHopIdMaps(primarySetMap, primaryNhMap, nullptr, nullptr);
+  verifyMergedMapsContain(pSet, pNh, primarySetMap, primaryNhMap);
+  EXPECT_EQ(pSet->size(), 1);
+  EXPECT_EQ(pNh->size(), 2);
+
+  // Secondary only, primary null — returns secondary's entries
+  auto secondarySetMap = std::make_shared<IdToNextHopIdSetMap>();
+  auto secondaryNhMap = std::make_shared<IdToNextHopMap>();
+  secondarySetMap->addNextHopIdSet(200, {3, 4});
+  secondaryNhMap->addNextHop(3, nh3_);
+  secondaryNhMap->addNextHop(4, nh4_);
+
+  auto [sSet, sNh] =
+      mergeNextHopIdMaps(nullptr, nullptr, secondarySetMap, secondaryNhMap);
+  verifyMergedMapsContain(sSet, sNh, secondarySetMap, secondaryNhMap);
+  EXPECT_EQ(sSet->size(), 1);
+  EXPECT_EQ(sNh->size(), 2);
+}
+
+TEST_F(MergeNextHopIdMapsTest, MergeWithBothIdMapsFilled) {
+  // Simulates consolidate path: primary = new state (has added routes),
+  // secondary = old state (has a deleted route not in primary).
+  //
+  // Primary (new state): setId 100 → {1, 2}, setId 200 → {3} (newly added)
+  auto primarySetMap = std::make_shared<IdToNextHopIdSetMap>();
+  auto primaryNhMap = std::make_shared<IdToNextHopMap>();
+  primarySetMap->addNextHopIdSet(100, {1, 2});
+  primarySetMap->addNextHopIdSet(200, {3}); // new route added
+  primaryNhMap->addNextHop(1, nh1_);
+  primaryNhMap->addNextHop(2, nh2_);
+  primaryNhMap->addNextHop(3, nh3_);
+
+  // Secondary (old state): setId 100 → {1, 2} (same), setId 300 → {4}
+  // (deleted from new state — only in old)
+  auto secondarySetMap = std::make_shared<IdToNextHopIdSetMap>();
+  auto secondaryNhMap = std::make_shared<IdToNextHopMap>();
+  secondarySetMap->addNextHopIdSet(100, {1, 2}); // unchanged route
+  secondarySetMap->addNextHopIdSet(300, {4}); // deleted route, only in old
+  secondaryNhMap->addNextHop(1, nh1_);
+  secondaryNhMap->addNextHop(2, nh2_);
+  secondaryNhMap->addNextHop(4, nh4_);
+
+  auto [mergedSet, mergedNh] = mergeNextHopIdMaps(
+      primarySetMap, primaryNhMap, secondarySetMap, secondaryNhMap);
+
+  // All IDs and values from both primary and secondary exist in merged
+  verifyMergedMapsContain(mergedSet, mergedNh, primarySetMap, primaryNhMap);
+  verifyMergedMapsContain(mergedSet, mergedNh, secondarySetMap, secondaryNhMap);
+
+  // Merged is the union: 3 sets (100, 200, 300), 4 nhops (1, 2, 3, 4)
+  EXPECT_EQ(mergedSet->size(), 3);
+  EXPECT_EQ(mergedNh->size(), 4);
+
+  // Original primary is NOT mutated
+  EXPECT_EQ(primarySetMap->size(), 2);
+  EXPECT_EQ(primaryNhMap->size(), 3);
+  EXPECT_EQ(primarySetMap->getNextHopIdSetIf(300), nullptr);
 }
 
 } // namespace facebook::fboss

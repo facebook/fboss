@@ -232,6 +232,38 @@ std::shared_ptr<SwitchState> getNewStateWithOldFibInfo(
   return result;
 }
 
+std::pair<std::shared_ptr<IdToNextHopIdSetMap>, std::shared_ptr<IdToNextHopMap>>
+mergeNextHopIdMaps(
+    const std::shared_ptr<IdToNextHopIdSetMap>& primarySetMap,
+    const std::shared_ptr<IdToNextHopMap>& primaryNhMap,
+    const std::shared_ptr<IdToNextHopIdSetMap>& secondarySetMap,
+    const std::shared_ptr<IdToNextHopMap>& secondaryNhMap) {
+  CHECK(!secondarySetMap || secondaryNhMap)
+      << "idToNextHopMap missing but idToNextHopIdSetMap exists";
+  auto mergedSetMap = primarySetMap ? primarySetMap->clone()
+                                    : std::make_shared<IdToNextHopIdSetMap>();
+  auto mergedNhMap =
+      primaryNhMap ? primaryNhMap->clone() : std::make_shared<IdToNextHopMap>();
+  if (secondarySetMap) {
+    for (const auto& [setId, setNode] : std::as_const(*secondarySetMap)) {
+      if (mergedSetMap->getNextHopIdSetIf(setId)) {
+        continue;
+      }
+      auto nextHopIds = setNode->toThrift();
+      mergedSetMap->addNextHopIdSet(setId, nextHopIds);
+      for (auto nhId : nextHopIds) {
+        if (!mergedNhMap->getNextHopIf(nhId)) {
+          auto nhNode = secondaryNhMap->getNextHopIf(nhId);
+          CHECK(nhNode) << "NextHopId " << nhId
+                        << " missing from secondary idToNextHopMap";
+          mergedNhMap->addNextHop(nhId, nhNode->toThrift());
+        }
+      }
+    }
+  }
+  return {std::move(mergedSetMap), std::move(mergedNhMap)};
+}
+
 std::shared_ptr<SwitchState> syncIdMapsFromState(
     const std::shared_ptr<SwitchState>& sourceState,
     const std::shared_ptr<SwitchState>& dstState) {
