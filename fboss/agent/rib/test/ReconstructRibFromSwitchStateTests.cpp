@@ -428,7 +428,7 @@ TEST(FromThriftWithFibsInfoMap, NextHopIDManagerPopulatedViaMySid) {
   auto rib = RoutingInformationBase::fromThrift(
       ribThrift, fibsInfoMap, nullptr, mySidMap);
 
-  const auto* idManager = rib->getNextHopIDManager();
+  auto idManager = rib->getNextHopIDManagerCopy();
   ASSERT_NE(idManager, nullptr);
   EXPECT_NE(
       idManager->getIdToNextHop().find(NextHopID(kNhopId)),

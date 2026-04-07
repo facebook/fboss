@@ -1334,7 +1334,7 @@ RouteNextHopEntry makeExpectedRouteNextHopEntry(
 
   CHECK(sw);
   CHECK(sw->getRib());
-  auto* idManager = sw->getRib()->getNextHopIDManager();
+  auto idManager = sw->getRib()->getNextHopIDManagerCopy();
   if (idManager) {
     // Lookup resolvedNextHopSetID for the nhops
     auto resolvedId = idManager->lookupRouteNextHopSetID(entry.getNextHopSet());

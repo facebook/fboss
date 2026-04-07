@@ -1088,7 +1088,7 @@ TEST_F(
   ASSERT_TRUE(newIdOpt.has_value());
   const auto newId = NextHopSetID(*newIdOpt);
 
-  const auto* manager = rib_->getNextHopIDManager();
+  auto manager = rib_->getNextHopIDManagerCopy();
   ASSERT_NE(manager, nullptr);
   // Old next hop set should have been deallocated (refcount dropped to 0)
   EXPECT_FALSE(manager->getNextHopsIf(oldId).has_value());
