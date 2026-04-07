@@ -973,6 +973,13 @@ void ThriftHandler::deleteMySidEntries(
       sw_);
 }
 
+void ThriftHandler::getMySidEntries(std::vector<MySidEntry>& /* entries */) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+  // TODO: implement
+  throw FbossError("getMySidEntries not yet implemented");
+}
+
 static void populateInterfaceDetail(
     InterfaceDetail& interfaceDetail,
     const std::shared_ptr<Interface> intf,
