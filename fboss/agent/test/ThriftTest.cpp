@@ -3054,7 +3054,7 @@ TEST_F(ThriftTest, deleteMySidEntries) {
   EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsNodeTypeWithoutNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsNodeType) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
@@ -3063,7 +3063,7 @@ TEST_F(ThriftTest, addMySidEntryRejectsNodeTypeWithoutNextHops) {
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyTypeWithoutNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyType) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();

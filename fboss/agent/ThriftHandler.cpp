@@ -932,6 +932,13 @@ void ThriftHandler::addMySidEntries(
     std::unique_ptr<std::vector<MySidEntry>> mySidEntries) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   ensureConfigured(__func__);
+  for (const auto& entry : *mySidEntries) {
+    if (*entry.type() == MySidType::ADJACENCY_MICRO_SID ||
+        *entry.type() == MySidType::NODE_MICRO_SID) {
+      throw FbossError(
+          "ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types are not supported via ThriftHandler");
+    }
+  }
   auto rib = sw_->getRib();
   if (!rib) {
     throw FbossError("RIB not initialized");

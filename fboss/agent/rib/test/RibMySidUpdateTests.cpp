@@ -512,6 +512,31 @@ TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
   EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
 }
 
+TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48);
+  NamedRouteDestination named;
+  named.nextHopGroups() = {"group1"};
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "add decap mysid with named nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+}
+
 TEST(RibMySidUpdate, switchStateUpdatedOnAdd) {
   RoutingInformationBase rib;
   rib.ensureVrf(kRid);
