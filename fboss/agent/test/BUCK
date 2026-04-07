@@ -6,6 +6,21 @@ load("@fbcode_macros//build_defs:thrift_library.bzl", "thrift_library")
 
 oncall("fboss_agent_push")
 
+cpp_library(
+    name = "fboss_test_main",
+    srcs = [
+        "FbossTestMain.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest",
+        "//common/init:light",
+        "//fboss/agent:agent_features",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
 cpp_unittest(
     name = "ctrl_test",
     srcs = [
@@ -81,6 +96,7 @@ cpp_unittest(
         "--log_to_scribe=false",
     ],
     supports_static_listing = False,
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/re2:re2",
@@ -180,6 +196,7 @@ cpp_unittest(
     srcs = [
         "Srv6TunnelConfigTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":utils",
         "//fboss/agent/hw/mock:mock",
@@ -202,6 +219,7 @@ cpp_unittest(
     srcs = [
         "LacpTest.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "fbsource//third-party/googletest:gmock",
         ":hw_test_handle",
@@ -327,6 +345,7 @@ cpp_unittest(
     srcs = [
         "ResourceLibUtilTest.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":resourcelibutil",
     ],
@@ -356,6 +375,7 @@ cpp_unittest(
     srcs = [
         "RouteDistributionGeneratorTest.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
         ":route_distribution_gen",
@@ -400,6 +420,7 @@ cpp_unittest(
     srcs = [
         "RouteScaleGeneratorsTest.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
         ":route_gen_test_utils",
@@ -461,6 +482,7 @@ cpp_library(
 cpp_unittest(
     name = "async_logger_test",
     srcs = ["AsyncLoggerTest.cpp"],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:async_logger",
     ],
@@ -469,6 +491,7 @@ cpp_unittest(
 cpp_unittest(
     name = "state_delta_logger_test",
     srcs = ["StateDeltaLoggerTest.cpp"],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":utils",
         "//fboss/agent:agent_features",
@@ -816,6 +839,7 @@ cpp_unittest(
     srcs = [
         "FsdbHelperTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
         ":route_scale_gen",
@@ -847,6 +871,7 @@ cpp_unittest(
     srcs = [
         "HwSwitchMatcherTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:fboss-error",
         "//fboss/agent:hwswitch_matcher",
@@ -911,6 +936,7 @@ cpp_unittest(
     srcs = [
         "AgentPreStartExecTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":mock_agent_command_executor",
         ":mock_agent_netwhoami",
@@ -952,6 +978,7 @@ cpp_unittest(
     srcs = [
         "AgentPreExecDrainerTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":mock_agent_netwhoami",
         "//fboss/agent:agent_dir_util",
@@ -1017,6 +1044,7 @@ cpp_unittest(
     srcs = [
         "FbossEventBaseTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//fboss/agent:fboss_event_base",
     ],
@@ -1038,6 +1066,7 @@ cpp_unittest(
         "BaseEcmpResourceManagerTest.h",
         "BaseEcmpResourceMgrMergeGroupsTests.h",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":hw_test_handle",
         ":utils",

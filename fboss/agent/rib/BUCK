@@ -78,6 +78,7 @@ cpp_unittest(
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":fib_updater",
         ":network_to_route_map",

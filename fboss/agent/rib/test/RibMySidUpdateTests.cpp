@@ -800,10 +800,6 @@ class RibMySidNextHopTest : public ::testing::Test {
     rib_->ensureVrf(kRid);
   }
 
-  void TearDown() override {
-    FLAGS_enable_nexthop_id_manager = false;
-  }
-
   std::unique_ptr<RoutingInformationBase> rib_;
   std::shared_ptr<SwitchState> switchState_;
 };
@@ -1115,10 +1111,6 @@ class RibMySidFibInfoTest : public ::testing::Test {
     switchState_->resetFibsInfoMap(fibsInfoMap);
     switchState_->publish();
     rib_->ensureVrf(kRid);
-  }
-
-  void TearDown() override {
-    FLAGS_enable_nexthop_id_manager = false;
   }
 
   // Returns the IdToNextHopIdSetMap from the FibInfo node in the SwitchState.
