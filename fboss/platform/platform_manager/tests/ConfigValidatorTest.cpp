@@ -189,13 +189,24 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 3: Mismatched pluggedInSlotType
+  // Test 3: Negative field in pmUnitVersion
+  auto versionedPmUnitConfigNegPmUv = VersionedPmUnitConfig();
+  PmUnitVersion negPmUv;
+  negPmUv.productionState() = 0;
+  negPmUv.productionSubState() = -1;
+  negPmUv.respinVariantIndicator() = 0;
+  versionedPmUnitConfigNegPmUv.pmUnitVersion() = negPmUv;
+  versionedPmUnitConfigNegPmUv.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfigNegPmUv}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 4: Mismatched pluggedInSlotType
   versionedPmUnitConfig.productSubVersion() = 1;
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "PIM_SLOT";
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 4: Mismatched outgoingSlotConfigs
+  // Test 5: Mismatched outgoingSlotConfigs
   versionedPmUnitConfig.pmUnitConfig()->pluggedInSlotType() = "SCM_SLOT";
   auto slotConfig = SlotConfig();
   slotConfig.slotType() = "EXTRA_SLOT";
@@ -204,7 +215,7 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
-  // Test 5: Mismatched pciDeviceConfigs
+  // Test 6: Mismatched pciDeviceConfigs
   versionedPmUnitConfig.pmUnitConfig()->outgoingSlotConfigs() = {};
   versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {
       getValidPciDeviceConfig()};
