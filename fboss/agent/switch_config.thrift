@@ -1338,6 +1338,14 @@ struct Port {
    * Controls whether cable length measurement is enabled on the port.
    */
   38: optional bool clmEnable;
+
+  /*
+   * Link Training (IEEE 802.3 Cl.72/93/162) enable configuration.
+   * Controls whether link training is enabled on the port.
+   * When enabled, TX equalization is negotiated between link partners.
+   * When not set, the agent uses ASIC-level default behavior (disabled).
+   */
+  39: optional bool linkTraining;
 }
 
 enum LacpPortRate {
