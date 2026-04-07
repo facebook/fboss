@@ -76,6 +76,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
         {SMFMediaInterfaceCode::DR4_800G, MediaInterfaceCode::DR4_800G},
         {SMFMediaInterfaceCode::DR2_400G, MediaInterfaceCode::DR2_400G},
+        {SMFMediaInterfaceCode::DR2_200G, MediaInterfaceCode::DR2_200G},
         {SMFMediaInterfaceCode::DR1_200G, MediaInterfaceCode::DR1_200G},
         {SMFMediaInterfaceCode::DR1_100G, MediaInterfaceCode::DR1_100G},
         {SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
