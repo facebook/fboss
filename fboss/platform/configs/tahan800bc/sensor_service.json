@@ -7462,7 +7462,7 @@
     "perSlotPowerConfigs": [
       {
         "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
-        "name": "HSC",
+        "name": "HSC1",
         "powerSensorName": "SMB_HOTSWAP_PIN"
       }
     ],

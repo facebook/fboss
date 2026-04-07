@@ -102,7 +102,7 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
 
 bool ConfigValidator::isValidPowerConfig(
     const sensor_config::SensorConfig& sensorConfig) {
-  re2::RE2 psuPattern("((PSU|PEM)([1-9][0-9]*)|HSC)");
+  re2::RE2 psuPattern("(PSU|PEM|HSC)([1-9][0-9]*)");
 
   XLOG(DBG1) << "Validating Power Config";
 
@@ -138,7 +138,8 @@ bool ConfigValidator::isValidPowerConfig(
     // Validate name pattern (PSU/PEM/HSC)
     if (!RE2::FullMatch(*perSlotConfig.name(), psuPattern)) {
       XLOG(ERR) << fmt::format(
-          "perSlotPowerConfig name {} should be PSU[number], PEM[number], or HSC",
+          "perSlotPowerConfig name {} should be "
+          "PSU[number], PEM[number], or HSC[number]",
           *perSlotConfig.name());
       return false;
     }

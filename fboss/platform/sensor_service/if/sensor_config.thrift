@@ -130,7 +130,8 @@ struct AsicCommand {
 // `PerSlotPowerConfig`: Describes power consumption of individual slots.
 // This is used for PSU/PEM/HSC which are useful to monitor individually.
 //
-// `name`: Unique name of the power component (e.g., PSU1, PSU2, PEM1, PEM2, HSC).
+// `name`: Unique name of the power component
+//         (e.g., PSU1, PSU2, PEM1, PEM2, HSC1, HSC2).
 //
 // `powerSensorName`: Name of the power sensor if available. This should be set
 //                    if the component has a direct power measurement sensor.

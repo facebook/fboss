@@ -4201,7 +4201,7 @@
     "perSlotPowerConfigs": [
       {
         "__comment__": "Hot-swap VRM chip ltc4287 monitors the main power consumption of the system",
-        "name": "HSC",
+        "name": "HSC1",
         "powerSensorName": "MCB_PU1066_XP48R0V_HOTSWAP_PIN"
       }
     ],

@@ -6230,7 +6230,7 @@
     "perSlotPowerConfigs": [
       {
         "__comment__": "48V HOTSWAP LTC4287 monitors the power consumption of the main input",
-        "name": "HSC",
+        "name": "HSC1",
         "powerSensorName": "HSCB_UP1_XP48R0V_HOTSWAP_PIN"
       }
     ],
