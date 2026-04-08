@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+# pyre-unsafe
 """
 Link Explorer - Core logic for querying FBOSS switches.
 

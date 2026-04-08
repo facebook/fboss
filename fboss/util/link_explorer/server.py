@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+# pyre-unsafe
 """
 Link Explorer — Flask web server for FBOSS switch topology exploration.
 
