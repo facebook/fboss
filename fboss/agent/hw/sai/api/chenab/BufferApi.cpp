@@ -2,9 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/BufferApi.h"
 
-#if !defined(CHENAB_SAI_SDK_VERSION_116_133_2509_6)
 #include "saibuffercustom.h"
-#endif
 
 namespace facebook::fboss {
 
@@ -75,20 +73,12 @@ std::optional<sai_attr_id_t> SaiIngressPriorityGroupTraits::Attributes::
 
 std::optional<sai_attr_id_t> SaiStaticBufferProfileTraits::Attributes::
     AttributePgPipelineLatencyBytes::operator()() {
-#if !defined(CHENAB_SAI_SDK_VERSION_116_133_2509_6)
   return SAI_BUFFER_PROFILE_ATTR_PG_PIPELINE_LATENCY_SIZE;
-#else
-  return std::nullopt;
-#endif
 }
 
 std::optional<sai_attr_id_t> SaiDynamicBufferProfileTraits::Attributes::
     AttributePgPipelineLatencyBytes::operator()() {
-#if !defined(CHENAB_SAI_SDK_VERSION_116_133_2509_6)
   return SAI_BUFFER_PROFILE_ATTR_PG_PIPELINE_LATENCY_SIZE;
-#else
-  return std::nullopt;
-#endif
 }
 
 std::optional<sai_attr_id_t>
