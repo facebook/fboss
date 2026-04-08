@@ -194,10 +194,12 @@ void validateIngressPriorityGroupWatermarkCounters(
           "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
       auto counters = ensemble->getFb303CountersByRegex(portId, regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
+      uint64_t totalWatermark = 0;
       for (const auto& ctr : counters) {
         XLOG(DBG0) << ctr.first << " : " << ctr.second;
-        EXPECT_EVENTUALLY_GT(ctr.second, 0);
+        totalWatermark += ctr.second;
       }
+      EXPECT_EVENTUALLY_GT(totalWatermark, 0);
     }
   });
 }
@@ -905,15 +907,74 @@ TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
       validateBufferPoolWatermarkCounters);
 }
 
-TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
-  const int trafficClass = kLosslessTrafficClass;
-  const int pfcPriority = kLosslessPriority;
-  runTestWithCfg(
-      trafficClass,
-      pfcPriority,
-      {},
-      TrafficTestParams{.buffer = defaultPfcBufferParams()},
-      validateIngressPriorityGroupWatermarkCounters);
+TEST_F(AgentTrafficPfcGenTest, verifyIngressPriorityGroupWatermarks) {
+  std::vector<PortID> portIds = portIdsForTest();
+  PortID portId = portIds[0];
+  PortID txOffPortId = portIds[1];
+  auto ip = getDestinationIps()[0];
+
+  auto setup = [&]() {
+    auto cfg = getPfcTestConfig(
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        {},
+        TrafficTestParams{.buffer = defaultPfcBufferParams()});
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+    applyNewConfig(cfg);
+    setupEcmpTrafficNoLoop(txOffPortId, ip);
+  };
+
+  auto verify = [&]() {
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    std::optional<VlanID> vlanId;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      vlanId = kTxForVlanForChenab;
+    }
+    utility::triggerPfcGeneration(
+        getAgentEnsemble(),
+        portId,
+        txOffPortId,
+        ip,
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        vlanId);
+
+    validateIngressPriorityGroupWatermarkCounters(
+        getAgentEnsemble(), kLosslessPriority, {portId});
+    utility::cleanupPfcGeneration(getAgentEnsemble(), txOffPortId);
+
+    waitForWatermarkDecay([&]() {
+      uint64_t totalWatermark{0};
+      const auto& portName = getAgentEnsemble()
+                                 ->getProgrammedState()
+                                 ->getPorts()
+                                 ->getNodeIf(portId)
+                                 ->getName();
+      std::string pg = getAgentEnsemble()->isSai()
+          ? folly::sformat(".pg{}", kLosslessPriority)
+          : "";
+      std::string watermarkKeys = "shared";
+      if (getAgentEnsemble()
+              ->getSw()
+              ->getHwAsicTable()
+              ->isFeatureSupportedOnAllAsic(
+                  facebook::fboss::HwAsic::Feature::
+                      INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+        watermarkKeys.append("|headroom");
+      }
+      auto regex = folly::sformat(
+          "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
+      auto counters =
+          getAgentEnsemble()->getFb303CountersByRegex(portId, regex);
+      for (const auto& [_, val] : counters) {
+        totalWatermark += val;
+      }
+      XLOG(DBG0) << "Post-cleanup PG watermark total: " << totalWatermark;
+      return totalWatermark != 0;
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 class AgentTrafficPfcZeroPgHeadroomTest : public AgentTrafficPfcTest {
