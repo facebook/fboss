@@ -380,9 +380,21 @@
       "priority": 7
     },
     "psu": {
+      "upgrade": [
+        {
+          "commandType": "psu_util",
+          "psuUtilArgs": {
+            "psuUtilExtraArgs": [
+              "--psu",
+              "auto",
+              "upgrade"
+            ]
+          }
+        }
+      ],
       "version": {
         "versionType": "full_command",
-        "getVersionCmd": "EEPROM=$(ls /run/devmap/eeproms/PSU*_EEPROM_PARSED 2>/dev/null | head -1); if [ -n \"$EEPROM\" ] && grep -q DC3K12V_M_L \"$EEPROM\"; then PSU_NUM=$(echo \"$EEPROM\" | grep -oP 'PSU\\K\\d'); if [ \"$PSU_NUM\" = \"1\" ]; then P=0xfb504400; else P=0xfb504500; fi; BUS=$(i2cdetect -l | grep \"iob_i2c.*$P\" | awk '{print $1}' | sed 's/i2c-//'); i2cget -y -f $BUS 0x59 0xd9 s | perl -ane 'print join(\".\", map { hex($_) } reverse @F)'; else echo 'Not Supported'; fi"
+        "getVersionCmd": "EEPROM=/run/devmap/eeproms/PSU2_EEPROM_PARSED; if [ -f \"$EEPROM\" ] && grep -q DC3K12V_M_L \"$EEPROM\"; then BUS=$(i2cdetect -l | grep 'iob_i2c.*0xfb504500' | awk '{print $1}' | sed 's/i2c-//'); i2cget -y -f $BUS 0x59 0xd9 s | perl -ane 'print join(\".\", map { hex($_) } reverse @F)'; else echo 'Not Supported'; fi"
       },
       "priority": 8
     }
