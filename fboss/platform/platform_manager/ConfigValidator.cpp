@@ -32,6 +32,7 @@ const re2::RE2 kSlotNameRegex{"(?P<SlotType>.([A-Z]+_)+SLOT)@\\d+"};
 const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
 const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
 const re2::RE2 kI2cAdapterNameRegex{"(?P<PmUnitScopedName>.+)@(?P<Num>\\d+)"};
+const re2::RE2 kIncomingBusRegex{"INCOMING@(?P<Index>\\d+)"};
 const re2::RE2 kRpmNameRegex{"(?P<KEYWORD>[a-z]+)_bsp_kmods"};
 constexpr auto kSymlinkDirs = {
     "eeproms",
@@ -897,6 +898,36 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
         "Validating SlotTypeConfig for Slot {}...", slotName);
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
       return false;
+    }
+    // Validate IDPROM busName is directly connected (no MUX/FPGA in between)
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& busName = *slotTypeConfig.idpromConfig()->busName();
+      int index;
+      bool isIncomingBus =
+          re2::RE2::FullMatch(busName, kIncomingBusRegex, &index);
+      bool isCpuBus = std::find(
+                          config.i2cAdaptersFromCpu()->begin(),
+                          config.i2cAdaptersFromCpu()->end(),
+                          busName) != config.i2cAdaptersFromCpu()->end();
+      if (!isIncomingBus && !isCpuBus) {
+        XLOG(ERR) << fmt::format(
+            "IDPROM busName '{}' in SlotTypeConfig '{}' must be either an "
+            "INCOMING@N bus or a CPU I2C adapter from i2cAdaptersFromCpu. "
+            "IDPROM must be directly connected without MUX or FPGA in between.",
+            busName,
+            slotName);
+        return false;
+      }
+      if (isIncomingBus && index >= *slotTypeConfig.numOutgoingI2cBuses()) {
+        XLOG(ERR) << fmt::format(
+            "IDPROM busName '{}' in SlotTypeConfig '{}' references bus index "
+            "{} but numOutgoingI2cBuses is {}",
+            busName,
+            slotName,
+            index,
+            *slotTypeConfig.numOutgoingI2cBuses());
+        return false;
+      }
     }
     // Validate that pmUnitName in slotTypeConfig exists in pmUnitConfigs
     if (slotTypeConfig.pmUnitName() &&
