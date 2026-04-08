@@ -537,6 +537,53 @@ TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
   EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
 }
 
+TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
+  // Verify that if any entry in toAdd is invalid, mySidFromEntry throws before
+  // updateRibMySids is called, leaving mySidTable completely unmodified.
+  // Without the pre-build fix, the valid entry (first in the vector) would be
+  // written to mySidTable before the invalid entry throws. With the fix,
+  // neither entry is written.
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  // Add an initial valid entry so the table is non-empty going in
+  rib.update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48)},
+      {},
+      "add initial mysid",
+      mySidToSwitchStateUpdate,
+      &switchState);
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+
+  // Batch: valid entry first, then invalid (NODE_MICRO_SID with no nexthops)
+  std::vector<MySidEntry> toAdd = {
+      makeMySidEntry("fc00:200::1", 64), // valid
+      makeMySidEntry(
+          "fc00:300::1", 48, MySidType::NODE_MICRO_SID), // invalid: no nexthops
+  };
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          toAdd,
+          {},
+          "batch with invalid entry",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  // mySidTable must contain only the original entry — the valid entry from
+  // the failed batch must not have been inserted
+  auto mySidTable = rib.getMySidTableCopy();
+  EXPECT_EQ(mySidTable.size(), 1);
+  EXPECT_NE(
+      mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
+  EXPECT_EQ(
+      mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
+}
+
 TEST(RibMySidUpdate, switchStateUpdatedOnAdd) {
   RoutingInformationBase rib;
   rib.ensureVrf(kRid);

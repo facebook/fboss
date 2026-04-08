@@ -1137,12 +1137,21 @@ void RibRouteTables::update(
     const std::vector<IpPrefix>& toDelete,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
+  // Pre-validate and construct all MySid objects before touching mySidTable.
+  // If any entry is invalid, mySidFromEntry throws here before any partial
+  // state is written.
+  std::vector<std::shared_ptr<MySid>> mySids;
+  mySids.reserve(toAdd.size());
+  for (const auto& entry : toAdd) {
+    mySids.push_back(mySidFromEntry(entry));
+  }
   updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                       MySidTable* mySidTable,
                       NextHopIDManager* nextHopIDManager) {
     std::set<folly::CIDRNetwork> addedPrefixes;
-    for (const auto& entry : toAdd) {
-      auto mySid = mySidFromEntry(entry);
+    for (size_t i = 0; i < mySids.size(); ++i) {
+      auto mySid = mySids[i];
+      const auto& entry = toAdd[i];
       const auto cidr = mySid->getMySid();
       addedPrefixes.emplace(cidr.first, cidr.second);
       const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
