@@ -256,6 +256,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);
     assertResourceMgrCorrectness(*consolidator_, deltas.back().newState());
+    assertAllDeltaIdsResolvable(deltas);
   }
   XLOG(DBG2) << " Consolidator update done";
   CHECK(state_->isPublished());
