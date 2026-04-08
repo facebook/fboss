@@ -603,3 +603,8 @@ agent_benchmark_lib(
         "//fboss/agent/test/utils:srv6_test_utils",
     ],
 )
+
+agent_benchmark_lib(
+    name = "hw_srv6_mysid_scale_benchmark",
+    srcs = ["HwSrv6MySidScaleBenchmark.cpp"],
+)
