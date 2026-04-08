@@ -595,3 +595,11 @@ agent_benchmark_lib(
         "//fboss/agent/hw/test:config_factory",
     ],
 )
+
+agent_benchmark_lib(
+    name = "hw_srv6_scale_benchmark",
+    srcs = ["HwSrv6ScaleBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/test/utils:srv6_test_utils",
+    ],
+)

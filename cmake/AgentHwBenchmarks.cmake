@@ -537,3 +537,18 @@ target_link_libraries(hw_ucmp_scale_benchmark
   Folly::folly
   Folly::follybenchmark
 )
+
+add_library(hw_srv6_scale_benchmark
+  fboss/agent/hw/benchmarks/HwSrv6ScaleBenchmark.cpp
+)
+
+target_link_libraries(hw_srv6_scale_benchmark
+  mono_agent_ensemble
+  mono_agent_benchmarks
+  config_factory
+  ecmp_helper
+  scale_test_utils
+  srv6_test_utils
+  Folly::folly
+  Folly::follybenchmark
+)
