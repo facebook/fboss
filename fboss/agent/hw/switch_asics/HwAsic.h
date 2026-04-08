@@ -536,6 +536,7 @@ class HwAsic {
     // Cut-through starts forwarding after reading just the header,
     // reducing latency for scale-up switches.
     CUT_THROUGH_FORWARDING,
+    SRV6_MYSID_DISCARD_COUNTER,
   };
 
   enum class AsicMode {

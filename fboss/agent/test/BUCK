@@ -16,9 +16,6 @@ cpp_library(
         "//common/init:light",
         "//fboss/agent:agent_features",
     ],
-    exported_external_deps = [
-        "gflags",
-    ],
 )
 
 cpp_unittest(
