@@ -1012,6 +1012,7 @@ std::string runShellCmd(const std::string& cmd) {
     result += buffer.data();
   }
 
+  XLOG(DBG4) << "Command: [ " << cmd << " ] output: [ " << result << " ]";
   return result;
 }
 
