@@ -45,6 +45,15 @@ bool isExpectedError(
     }
   }
 
+  // These idproms do not support Meta EEPROM format, but can still provide
+  // useful info through WeutilDarwin
+  if (*platformConfig.platformName() == "DARWIN" &&
+      errorType == ExplorationErrorType::IDPROM_READ &&
+      (devicePath == "/RACKMON_SLOT@0/[IDPROM]" ||
+       devicePath == "/PEM_SLOT@0/[IDPROM]")) {
+    return true;
+  }
+
   return false;
 }
 
