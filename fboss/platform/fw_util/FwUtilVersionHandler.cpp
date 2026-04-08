@@ -76,10 +76,20 @@ std::string FwUtilVersionHandler::getSingleVersion(const std::string& fpd) {
     }
     version = content.value();
     globfree(&globbuf);
+  } else if (
+      *versionConfig.versionType() == "full_command" &&
+      versionConfig.getVersionCmd().has_value()) {
+    auto [exitStatus, cmdOutput] =
+        PlatformUtils().execCommand(*versionConfig.getVersionCmd());
+    if (exitStatus != 0) {
+      throw std::runtime_error(
+          "Running version command failed for " + fpd + ": " +
+          *versionConfig.getVersionCmd());
+    }
+    version = folly::trimWhitespace(cmdOutput).str();
   } else {
-    XLOG(ERR)
-        << "Only reading Version through sysfs is support and the path is not set for "
-        << fpd;
+    XLOG(ERR) << "Unsupported versionType or missing required fields for "
+              << fpd;
     return "";
   }
   return version;
