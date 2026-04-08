@@ -719,6 +719,138 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 };
 
+class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
+ protected:
+  // Set up ECMP routing to direct traffic to the specified port without
+  // creating a MAC loopback. We use a MAC address different from the
+  // interface MAC so the resolved neighbor has a distinct destination,
+  // preventing the switch from looping the packet back to the CPU.
+  void setupEcmpTrafficNoLoop(
+      const PortID& portId,
+      const folly::IPAddressV6& ip) {
+    auto noLoopMac = folly::MacAddress::fromHBO(
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+            .u64HBO() +
+        1);
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), noLoopMac};
+
+    const PortDescriptor port(portId);
+    RoutePrefixV6 route{ip, 128};
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
+  }
+
+  // Wait for p100.60 watermark counters to decay after cleanup,
+  // to avoid stale values bleeding into subsequent warm boot runs.
+  // Since these are p100.60 stats (60-second window), we wait up to
+  // 70 seconds total (14 iterations x 5 seconds) to ensure the window
+  // has fully elapsed. We poll every 5 seconds to exit early if the
+  // counters have already reached zero.
+  template <typename Fn>
+  void waitForWatermarkDecay(Fn&& countersNonZero) {
+    for (int i = 0; i < 14; i++) {
+      /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(5));
+      getAgentEnsemble()->getSw()->updateStats();
+      if (!countersNonZero()) {
+        break;
+      }
+    }
+  }
+
+  void setupTxVlanForChenab(
+      cfg::SwitchConfig& cfg,
+      const PortID& portId,
+      const VlanID& vlanId) {
+    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB2) {
+      return;
+    }
+    // For Chenab, we need to create a VLAN so that packets that are switched
+    // hit the VLAN before hitting the route, egressing out of the first port.
+
+    cfg::Vlan vlan;
+    vlan.id() = vlanId;
+    vlan.name() = folly::sformat("vlan{}", static_cast<int>(vlanId));
+    vlan.routable() = false; // No routing needed, just isolation
+    // Set the interface ID for the VLAN
+    vlan.intfID() = kTxForVlanForChenab;
+    cfg.vlans()->push_back(vlan);
+
+    // Max: we need to add an interface, otherwise warmboot will fail.
+    cfg::Interface interface;
+    interface.name() = folly::to<std::string>(vlanId);
+    interface.type() = cfg::InterfaceType::VLAN;
+    interface.scope() = cfg::Scope::LOCAL;
+    interface.intfID() = kTxForVlanForChenab;
+    interface.vlanID() = vlanId;
+    interface.routerID() = 0;
+    // Deliberately choose MAC that doesn't match local CPU MAC used for other
+    // Router Interfaces (utility::kLocalCpuMac().toString()) This ensures
+    // switched packet from CPU gets forwarded by VLAN out of front panel port
+    // and not to this RIF.
+    interface.mac() = "00:11:22:33:44:55";
+    interface.mtu() = 9000;
+    interface.ipAddresses().ensure().emplace_back("200.0.0.1/24");
+    interface.ipAddresses().ensure().emplace_back("200::1/64");
+    cfg.interfaces()->push_back(interface);
+
+    // Change vlan port mapping so the portId is an untagged member
+    // of the test VLAN.
+    auto vlanPort = std::find_if(
+        cfg.vlanPorts()->begin(),
+        cfg.vlanPorts()->end(),
+        [portId](auto vlanPort) {
+          return vlanPort.logicalPort() == static_cast<int>(portId);
+        });
+
+    if (vlanPort != cfg.vlanPorts()->end()) {
+      XLOG(INFO) << "Found existing VLAN port entry for portId " << portId
+                 << ", changing from VLAN " << *vlanPort->vlanID()
+                 << " to VLAN " << vlanId;
+      vlanPort->vlanID() = vlanId;
+      vlanPort->spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      vlanPort->emitTags() = false; // Untagged port
+    } else {
+      XLOG(INFO) << "No existing VLAN port entry found for portId " << portId
+                 << ", creating new entry for VLAN " << vlanId;
+      cfg::VlanPort testVlanPort;
+      testVlanPort.vlanID() = vlanId;
+      testVlanPort.logicalPort() = static_cast<int>(portId);
+      testVlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      testVlanPort.emitTags() = false; // Untagged port
+      cfg.vlanPorts()->push_back(testVlanPort);
+    }
+  }
+
+  void setupConfigAndEcmpTraffic(
+      const PortID& portId,
+      const PortID& txOffPortId,
+      const folly::IPAddressV6& ip) {
+    cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
+    PfcBufferParams buffer = defaultPfcBufferParams();
+    buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        cfg,
+        {portId},
+        kLosslessPgIds,
+        kLossyPgIds,
+        {},
+        buffer);
+
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+
+    applyNewConfig(cfg);
+    setupEcmpTrafficNoLoop(txOffPortId, ip);
+  }
+};
+
 TEST_F(AgentTrafficPfcTest, verifyPfcWithDefaultCfg) {
   TrafficTestParams param{
       .buffer = defaultPfcBufferParams(),
@@ -884,95 +1016,8 @@ TEST_F(AgentTrafficPfcRxTxDurationTest, verifyPfcRxTxDuration) {
       validatePfcDurationCounters);
 }
 
-class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
+class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
  protected:
-  void setupConfigAndEcmpTraffic(
-      const PortID& portId,
-      const PortID& txOffPortId,
-      const folly::IPAddressV6& ip) {
-    cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
-    PfcBufferParams buffer = defaultPfcBufferParams();
-    buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
-    utility::setupPfcBuffers(
-        getAgentEnsemble(),
-        cfg,
-        {portId},
-        kLosslessPgIds,
-        kLossyPgIds,
-        {},
-        buffer);
-
-    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
-
-    applyNewConfig(cfg);
-    setupEcmpTraffic(txOffPortId, ip);
-  }
-
-  void setupTxVlanForChenab(
-      cfg::SwitchConfig& cfg,
-      const PortID& portId,
-      const VlanID& vlanId) {
-    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB &&
-        checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB2) {
-      return;
-    }
-    // For Chenab, we need to create a VLAN so that packets that are switched
-    // hit the VLAN before hitting the route, egressing out of the first port.
-
-    cfg::Vlan vlan;
-    vlan.id() = vlanId;
-    vlan.name() = folly::sformat("vlan{}", static_cast<int>(vlanId));
-    vlan.routable() = false; // No routing needed, just isolation
-    // Set the interface ID for the VLAN
-    vlan.intfID() = kTxForVlanForChenab;
-    cfg.vlans()->push_back(vlan);
-
-    // Max: we need to add an interface, otherwise warmboot will fail.
-    cfg::Interface interface;
-    interface.name() = folly::to<std::string>(vlanId);
-    interface.type() = cfg::InterfaceType::VLAN;
-    interface.scope() = cfg::Scope::LOCAL;
-    interface.intfID() = kTxForVlanForChenab;
-    interface.vlanID() = vlanId;
-    interface.routerID() = 0;
-    // Deliberately choose MAC that doesn't match local CPU MAC used for other
-    // Router Interfaces (utility::kLocalCpuMac().toString()) This ensures
-    // switched packet from CPU gets forwarded by VLAN out of front panel port
-    // and not to this RIF.
-    interface.mac() = "00:11:22:33:44:55";
-    interface.mtu() = 9000;
-    interface.ipAddresses().ensure().emplace_back("200.0.0.1/24");
-    interface.ipAddresses().ensure().emplace_back("200::1/64");
-    cfg.interfaces()->push_back(interface);
-
-    // Change vlan port mapping so the portId is an untagged member
-    // of the test VLAN.
-    auto vlanPort = std::find_if(
-        cfg.vlanPorts()->begin(),
-        cfg.vlanPorts()->end(),
-        [portId](auto vlanPort) {
-          return vlanPort.logicalPort() == static_cast<int>(portId);
-        });
-
-    if (vlanPort != cfg.vlanPorts()->end()) {
-      XLOG(INFO) << "Found existing VLAN port entry for portId " << portId
-                 << ", changing from VLAN " << *vlanPort->vlanID()
-                 << " to VLAN " << vlanId;
-      vlanPort->vlanID() = vlanId;
-      vlanPort->spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-      vlanPort->emitTags() = false; // Untagged port
-    } else {
-      XLOG(INFO) << "No existing VLAN port entry found for portId " << portId
-                 << ", creating new entry for VLAN " << vlanId;
-      cfg::VlanPort testVlanPort;
-      testVlanPort.vlanID() = vlanId;
-      testVlanPort.logicalPort() = static_cast<int>(portId);
-      testVlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-      testVlanPort.emitTags() = false; // Untagged port
-      cfg.vlanPorts()->push_back(testVlanPort);
-    }
-  }
-
   void setupWatchdog(const std::vector<PortID>& portIds, bool enable) {
     cfg::PfcWatchdog pfcWatchdog;
     if (enable) {
