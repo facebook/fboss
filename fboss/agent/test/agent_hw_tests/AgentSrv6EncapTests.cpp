@@ -18,6 +18,7 @@
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -663,6 +664,65 @@ TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
 
     utility::verifySrv6EcnMarking(
         this->getAgentEnsemble(), egressPort, sendFloodPackets, isEcnMarked);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verify that SRv6-encapsulated packets are placed in the correct egress
+// queue based on the inner packet's DSCP. In UNIFORM mode, inner DSCP is
+// copied to the outer header, so the egress queue is determined by the
+// inner DSCP value.
+TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
+  auto setup = [this]() {
+    if constexpr (TestFixture::kIsTrunk) {
+      this->applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
+    this->resolveV4AndV6NextHops(this->kNumNextHops);
+    this->template addEncapRoute<folly::CIDRNetworkV6>(
+        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen}, {{this->kSid0}});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort({egressPort});
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+
+    auto sendPacket = [this, &intfMac](int dscp, bool frontPanel, PortID port) {
+      auto txPacket = utility::makeUDPTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("1::10"),
+          this->kEncapRouteDstIp,
+          8000,
+          8001,
+          dscp << 2,
+          255);
+      if (frontPanel) {
+        this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
+      } else {
+        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    };
+
+    // Send all packets first, then verify queue counters
+    for (bool frontPanel : {false, true}) {
+      auto portStatsBefore = this->getLatestPortStats(egressPort);
+      for (const auto& [queue, dscps] : utility::kOlympicQueueToDscp()) {
+        for (auto dscp : dscps) {
+          sendPacket(dscp, frontPanel, injectPort);
+        }
+      }
+      for (const auto& [queue, dscps] : utility::kOlympicQueueToDscp()) {
+        utility::verifyQueueHit(
+            portStatsBefore, queue, this->getSw(), egressPort, dscps.size());
+      }
+    }
   };
 
   this->verifyAcrossWarmBoots(setup, verify);
