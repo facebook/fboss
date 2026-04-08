@@ -18,8 +18,10 @@
 
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <string>
 #include "fboss/cli/fboss2/test/integration_test/Fboss2IntegrationTest.h"
+#include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 
 using namespace facebook::fboss;
 
@@ -46,6 +48,9 @@ TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
   XLOG(INFO) << "[Step 2] Getting current MTU...";
   int originalMtu = interface.mtu;
   XLOG(INFO) << "  Current MTU: " << originalMtu;
+
+  // Clamp originalMtu to valid range in case it was set out of band
+  originalMtu = std::clamp(originalMtu, utils::kMtuMin, utils::kMtuMax);
 
   // Step 3: Set a new MTU (toggle between 1500 and 9000)
   int newMtu = (originalMtu != 9000) ? 9000 : 1500;
