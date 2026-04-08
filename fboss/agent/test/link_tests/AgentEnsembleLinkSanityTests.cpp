@@ -187,7 +187,10 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, warmbootIsHitLess) {
   // traffic bearing ports loss traffic.
   // TODO: Assert that all (non downlink) cabled ports get traffic.
   verifyAcrossWarmBoots(
-      [this]() { createL3DataplaneFlood(); },
+      [this]() {
+        XLOG(DBG2) << "Test duration flag set: " << FLAGS_link_stress_duration;
+        createL3DataplaneFlood(FLAGS_link_stress_duration);
+      },
       [this]() {
         // Assert no traffic loss and no ecmp shrink. If ports flap
         // these conditions will not be true
@@ -213,7 +216,8 @@ TEST_F(AgentEnsembleLinkSanityTestDataPlaneFlood, qsfpWarmbootIsHitLess) {
   // that none of the traffic bearing ports loss traffic.
   verifyAcrossWarmBoots(
       [this]() {
-        createL3DataplaneFlood();
+        XLOG(DBG2) << "Test duration flag set: " << FLAGS_link_stress_duration;
+        createL3DataplaneFlood(FLAGS_link_stress_duration);
         utility::restartQsfpService(false /* coldboot */);
         // Wait for all transceivers to converge to Active state
         EXPECT_NO_THROW(

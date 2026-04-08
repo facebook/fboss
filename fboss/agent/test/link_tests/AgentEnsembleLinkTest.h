@@ -123,9 +123,13 @@ class AgentEnsembleLinkTest : public AgentEnsembleTest {
    * Create a L3 data plane loop and seed it with traffic
    */
   void createL3DataplaneFlood(
+      uint32_t duration,
       const boost::container::flat_set<PortDescriptor>& inPorts);
+  void createL3DataplaneFlood(uint32_t duration) {
+    createL3DataplaneFlood(duration, getSingleVlanOrRoutedCabledPorts());
+  }
   void createL3DataplaneFlood() {
-    createL3DataplaneFlood(getSingleVlanOrRoutedCabledPorts());
+    createL3DataplaneFlood(0, getSingleVlanOrRoutedCabledPorts());
   }
 
   std::optional<PortID> getPeerPortID(
