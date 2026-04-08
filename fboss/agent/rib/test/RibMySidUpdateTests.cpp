@@ -1250,3 +1250,61 @@ TEST_F(RibMySidFibInfoTest, resolvedNextHopSetIdReflectedInFibInfo) {
   EXPECT_NE(idSetMap->getNextHopIdSetIf(*resolvedId), nullptr)
       << "MySid resolvedNextHopsId not found in FibInfo id2NextHopIdSet";
 }
+
+TEST_F(RibMySidNextHopTest, routeUpdateResolvesMySidNextHops) {
+  // Add a MySid entry whose nexthop can't be resolved yet (no route exists).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with unresolvable nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+
+  // Add an interface route covering the MySid nexthop address.
+  // This route update must trigger re-resolution of MySid entries.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::2")};
+  rib_->updateRemoteInterfaceRoutes(
+      scopeResolver(), interfaceRoutes, {}, noopFibUpdate, &switchState_);
+
+  EXPECT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+TEST_F(RibMySidNextHopTest, routeDeleteUnresolvesMySidNextHops) {
+  // Add an interface route and a MySid whose nexthop resolves through it.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::2")};
+  rib_->updateRemoteInterfaceRoutes(
+      scopeResolver(), interfaceRoutes, {}, noopFibUpdate, &switchState_);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with resolvable nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+
+  // Delete the interface route. MySid nexthop should become unresolved.
+  boost::container::flat_map<RouterID, std::vector<folly::CIDRNetwork>> toDel;
+  toDel[kRid].push_back({folly::IPAddress("2001:db8::"), 64});
+  rib_->updateRemoteInterfaceRoutes(
+      scopeResolver(), {}, toDel, noopFibUpdate, &switchState_);
+
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}

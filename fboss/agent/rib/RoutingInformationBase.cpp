@@ -230,10 +230,22 @@ void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
       routeTable,
       &lockedRouteTables->mySidTable,
       lockedRouteTables->nextHopIDManager.get());
+  if (lockedRouteTables->nextHopIDManager &&
+      !lockedRouteTables->mySidTable.empty()) {
+    RibMySidUpdater::VrfRouteTables routeTables;
+    for (auto& [rid, rt] : lockedRouteTables->routerIDToRouteTable) {
+      routeTables.emplace_back(&rt.v4NetworkToRoute, &rt.v6NetworkToRoute);
+    }
+    RibMySidUpdater mySidUpdater(
+        routeTables,
+        lockedRouteTables->nextHopIDManager.get(),
+        &lockedRouteTables->mySidTable);
+    mySidUpdater.resolve();
+  }
 }
 
 template <typename RibUpdateFn>
-void RibRouteTables::updateRib(const RibUpdateFn& updateRibFn) {
+void RibRouteTables::updateRibMySids(const RibUpdateFn& updateRibFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
   RibMySidUpdater::VrfRouteTables routeTables;
   for (auto& [rid, routeTable] : lockedRouteTables->routerIDToRouteTable) {
@@ -1125,9 +1137,9 @@ void RibRouteTables::update(
     const std::vector<IpPrefix>& toDelete,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
-  updateRib([&](const RibMySidUpdater::VrfRouteTables& routeTables,
-                MySidTable* mySidTable,
-                NextHopIDManager* nextHopIDManager) {
+  updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
+                      MySidTable* mySidTable,
+                      NextHopIDManager* nextHopIDManager) {
     std::set<folly::CIDRNetwork> addedPrefixes;
     for (const auto& entry : toAdd) {
       auto mySid = mySidFromEntry(entry);

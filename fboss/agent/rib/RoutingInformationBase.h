@@ -250,7 +250,7 @@ class RibRouteTables {
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
   template <typename RibUpdateFn>
-  void updateRib(const RibUpdateFn& updateRib);
+  void updateRibMySids(const RibUpdateFn& updateRibFn);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
