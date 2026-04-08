@@ -12,6 +12,7 @@
 #include <memory>
 #include <ostream>
 #include "fboss/agent/EcmpResourceManagerConfig.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/types.h"
@@ -245,9 +246,17 @@ class EcmpResourceManager {
     uint32_t ecmpMemberCnt{0};
     bool updated{false};
 
+    std::shared_ptr<SwitchState> getInputNewState() const {
+      return inputDelta_.newState();
+    }
+    std::shared_ptr<SwitchState> getInputOldState() const {
+      return inputDelta_.oldState();
+    }
+
    private:
     std::vector<StateDelta> out_;
     bool rollingBack_{false};
+    StateDelta inputDelta_;
   };
   std::pair<std::shared_ptr<NextHopGroupInfo>, bool> getOrCreateGroupInfo(
       const RouteNextHopSet& nhops,
@@ -256,7 +265,8 @@ class EcmpResourceManager {
   template <typename AddrT>
   bool routeFwdEqual(
       const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::shared_ptr<Route<AddrT>>& newRoute) const;
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const InputOutputState& inOutState) const;
 
   void decRouteUsageCount(NextHopGroupInfo& groupInfo);
   void updateConsolidationPenalty(NextHopGroupInfo& groupInfo);
