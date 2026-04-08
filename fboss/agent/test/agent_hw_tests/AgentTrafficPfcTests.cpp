@@ -137,7 +137,7 @@ void validateBufferPoolWatermarkCounters(
     ensemble->getSw()->updateStats();
     // Watermarks may be cleared on read by the stats thread, so read the
     // cached p100 value from fb303 instead.
-    for (auto asic : ensemble->getL3Asics()) {
+    for (const auto& asic : ensemble->getL3Asics()) {
       facebook::fboss::SwitchID switchId(*asic->getSwitchId());
       auto sharedCounters = ensemble->getFb303RegexCounters(
           "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId);
@@ -151,7 +151,7 @@ void validateBufferPoolWatermarkCounters(
       }
     }
 
-    for (auto portId : portIds) {
+    for (const auto& portId : portIds) {
       XLOG(INFO) << "validateBufferPoolWatermarkCounters: Port " << portId
                  << ": "
                  << facebook::fboss::utility::pfcStatsString(
@@ -491,7 +491,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
           }
         }
       }
-      for (auto [switchId, asic] : getAsics()) {
+      for (const auto& [switchId, asic] : getAsics()) {
         if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
           // Jericho3 has additional VSQ drops counters which accounts for
           // ingress buffer drops.
@@ -598,7 +598,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
 
   void stopTraffic(const std::vector<PortID>& portIds) {
     // Toggle the link to break looping traffic
-    for (auto portId : portIds) {
+    for (const auto& portId : portIds) {
       bringDownPort(portId);
       bringUpPort(portId);
     }
@@ -1119,7 +1119,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
         : "pfc_deadlock_recovery.sum";
     int deadlockCtr = 0;
     int recoveryCtr = 0;
-    for (auto [switchId, asic] : getAsics()) {
+    for (const auto& [switchId, asic] : getAsics()) {
       deadlockCtr +=
           getAgentEnsemble()->getFb303Counter(detectionCtrName, switchId);
       recoveryCtr +=

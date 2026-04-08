@@ -4,6 +4,8 @@
 
 #include <memory>
 
+#include <folly/IPAddressV6.h>
+
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
@@ -57,5 +59,20 @@ std::string pfcStatsString(const HwPortStats& stats);
 std::unique_ptr<TxPacket> makePfcFramePacket(
     const AgentEnsemble& ensemble,
     uint8_t classVector);
+
+// Trigger PFC generation by disabling TX on txDisablePort and sending traffic
+// to cause queue buildup. This is a utility version of the logic in
+// triggerPfcDeadlockDetection for use in watermark tests.
+void triggerPfcGeneration(
+    AgentEnsemble* ensemble,
+    const PortID& port,
+    const PortID& txDisablePort,
+    const folly::IPAddressV6& destIp,
+    int trafficClass,
+    int pfcPriority,
+    const std::optional<VlanID>& vlanId = std::nullopt);
+
+// Cleanup PFC generation by re-enabling TX on the port
+void cleanupPfcGeneration(AgentEnsemble* ensemble, const PortID& txDisablePort);
 
 } // namespace facebook::fboss::utility
