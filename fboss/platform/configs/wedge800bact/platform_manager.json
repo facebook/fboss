@@ -31,7 +31,7 @@
       "pmUnitName": "BMC"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 9,
+      "numOutgoingI2cBuses": 10,
       "idpromConfig": {
         "busName": "INCOMING@3",
         "address": "0x50",

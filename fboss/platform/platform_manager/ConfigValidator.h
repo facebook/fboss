@@ -24,7 +24,10 @@ class ConfigValidator {
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
       const PmUnitConfig& pmUnitConfig);
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
-  bool isValidSlotConfig(const SlotConfig& slotConfig);
+  bool isValidSlotConfig(
+      const SlotConfig& slotConfig,
+      const std::string& slotName,
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidXcvrCtrlBlockConfig(

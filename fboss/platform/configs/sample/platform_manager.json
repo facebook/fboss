@@ -13,7 +13,7 @@
       }
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 8,
+      "numOutgoingI2cBuses": 3,
       "idpromConfig": {
         "busName": "INCOMING@2",
         "address": "0x11",

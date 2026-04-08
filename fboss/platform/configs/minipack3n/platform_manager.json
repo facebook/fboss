@@ -58,7 +58,7 @@
       "pmUnitName": "PSU"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 6,
+      "numOutgoingI2cBuses": 8,
       "idpromConfig": {
         "busName": "INCOMING@3",
         "address": "0x50",

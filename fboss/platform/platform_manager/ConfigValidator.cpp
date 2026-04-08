@@ -122,13 +122,53 @@ bool ConfigValidator::isValidSlotTypeConfig(
   return true;
 }
 
-bool ConfigValidator::isValidSlotConfig(const SlotConfig& slotConfig) {
+bool ConfigValidator::isValidSlotConfig(
+    const SlotConfig& slotConfig,
+    const std::string& slotName,
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs) {
   if (slotConfig.slotType()->empty()) {
     XLOG(ERR) << "SlotType in SlotConfig must be a non-empty string";
     return false;
   }
+  auto slotType = extractSlotType(slotName);
+  if (!slotType) {
+    XLOG(ERR) << fmt::format(
+        "Invalid SlotName format {}. Must follow <SlotType>@<Num>", slotName);
+    return false;
+  }
+  if (*slotType != *slotConfig.slotType()) {
+    XLOG(ERR) << fmt::format(
+        "SlotName must contain the SlotType {} instead contains {}",
+        *slotConfig.slotType(),
+        *slotType);
+    return false;
+  }
   if (slotConfig.presenceDetection()) {
     return isValidPresenceDetection(*slotConfig.presenceDetection());
+  }
+  // Validate outgoingI2cBusNames size matches numOutgoingI2cBuses in
+  // the corresponding SlotTypeConfig
+  if (!slotTypeConfigs.contains(*slotConfig.slotType())) {
+    XLOG(ERR) << fmt::format(
+        "SlotConfig '{}' references SlotType '{}' which has no "
+        "SlotTypeConfig definition",
+        slotName,
+        *slotConfig.slotType());
+    return false;
+  }
+  const auto& slotTypeConfig = slotTypeConfigs.at(*slotConfig.slotType());
+  auto actualBuses =
+      static_cast<int32_t>(slotConfig.outgoingI2cBusNames()->size());
+  auto expectedBuses = *slotTypeConfig.numOutgoingI2cBuses();
+  if (actualBuses != expectedBuses) {
+    XLOG(ERR) << fmt::format(
+        "SlotConfig '{}' has {} outgoingI2cBusNames but SlotTypeConfig "
+        "'{}' expects {} (numOutgoingI2cBuses)",
+        slotName,
+        actualBuses,
+        *slotConfig.slotType(),
+        expectedBuses);
+    return false;
   }
   return true;
 }
@@ -1047,20 +1087,7 @@ bool ConfigValidator::isValidPmUnitConfig(
   // Validate SlotConfigs
   for (const auto& [slotName, slotConfig] :
        *pmUnitConfig.outgoingSlotConfigs()) {
-    auto slotType = extractSlotType(slotName);
-    if (!slotType) {
-      XLOG(ERR) << fmt::format(
-          "Invalid SlotName format {}. Must follow <SlotType>@<Num>", slotName);
-      return false;
-    }
-    if (*slotType != *slotConfig.slotType()) {
-      XLOG(ERR) << fmt::format(
-          "SlotName must contain the SlotType {} instead contains {}",
-          *slotConfig.slotType(),
-          *slotType);
-      return false;
-    }
-    if (!isValidSlotConfig(slotConfig)) {
+    if (!isValidSlotConfig(slotConfig, slotName, slotTypeConfigs)) {
       return false;
     }
   }
