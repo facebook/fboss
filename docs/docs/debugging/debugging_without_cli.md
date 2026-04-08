@@ -233,12 +233,12 @@ Collects comprehensive system information for troubleshooting:
 
 ```bash
 # Collect all system information
-/opt/fboss/bin/showtech --details all
+/opt/fboss/bin/rma-showtech --details all
 
 # Collect specific information (fboss, logs, sensors, etc.)
-/opt/fboss/bin/showtech --details fboss
-/opt/fboss/bin/showtech --details logs
-/opt/fboss/bin/showtech --details sensor
+/opt/fboss/bin/rma-showtech --details fboss
+/opt/fboss/bin/rma-showtech --details logs
+/opt/fboss/bin/rma-showtech --details sensor
 
 # Available options: all, fan, fanspinner, fboss, fwutil, gpio, host, i2c,
 # i2cdump, logs, lspci, nvme, pem, port, powergood, psu, sensor, weutil
