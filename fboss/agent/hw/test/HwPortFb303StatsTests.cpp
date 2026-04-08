@@ -166,6 +166,7 @@ HwPortStats getInitedStats() {
       {{1, 0}}, // rxPfcDurationUsec_
       0, // outDiscardsSll_
       0, // outDiscardsHll_
+      0, // inSrv6MySidDiscards_
   };
 }
 
@@ -180,6 +181,7 @@ HwPortStats resetOptionals(HwPortStats stats) {
   stats.pgInCongestionDiscardSeen_()->clear();
   stats.outDiscardsSll_().reset();
   stats.outDiscardsHll_().reset();
+  stats.inSrv6MySidDiscards_().reset();
   return stats;
 }
 

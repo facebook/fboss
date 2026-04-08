@@ -204,6 +204,13 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           managerTable_->debugCounterManager().getTrapDropCounterStatId());
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+      counterIds.emplace_back(
+          managerTable_->debugCounterManager().getSrv6MySidDropCounterStatId());
+    }
+#endif
     if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
       counterIds.reserve(
           counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());

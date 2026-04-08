@@ -96,6 +96,7 @@ HwPortStats getInitedStats() {
       {{1, 0}}, // rxPfcDurationUsec_
       0, // outDiscardsSll_
       0, // outDiscardsHll_
+      0, // inSrv6MySidDiscards_
   };
 }
 

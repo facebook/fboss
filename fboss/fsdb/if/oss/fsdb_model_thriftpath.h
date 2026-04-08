@@ -19485,7 +19485,8 @@ std::pair<apache::thrift::ident::fabricControlTxPackets_, Child<::std::int64_t, 
 std::pair<apache::thrift::ident::txPfcDurationUsec_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<apache::thrift::ident::rxPfcDurationUsec_, ChildThriftPath<::std::map<::std::int16_t, ::std::int64_t>, ::facebook::fboss::fsdb::FsdbOperStatsRoot, Self>>,
 std::pair<apache::thrift::ident::outDiscardsSll_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
-std::pair<apache::thrift::ident::outDiscardsHll_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
+std::pair<apache::thrift::ident::outDiscardsHll_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>,
+std::pair<apache::thrift::ident::inSrv6MySidDiscards_, Child<::std::int64_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i64_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -19559,6 +19560,7 @@ std::pair<apache::thrift::ident::outDiscardsHll_, Child<::std::int64_t, ::apache
     STRUCT_CHILD_GETTERS(rxPfcDurationUsec_, 75);
     STRUCT_CHILD_GETTERS(outDiscardsSll_, 76);
     STRUCT_CHILD_GETTERS(outDiscardsHll_, 77);
+    STRUCT_CHILD_GETTERS(inSrv6MySidDiscards_, 78);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -19630,6 +19632,7 @@ std::pair<apache::thrift::ident::outDiscardsHll_, Child<::std::int64_t, ::apache
     else if constexpr (__id == apache::thrift::FieldId{75}) { return rxPfcDurationUsec_(); }
     else if constexpr (__id == apache::thrift::FieldId{76}) { return outDiscardsSll_(); }
     else if constexpr (__id == apache::thrift::FieldId{77}) { return outDiscardsHll_(); }
+    else if constexpr (__id == apache::thrift::FieldId{78}) { return inSrv6MySidDiscards_(); }
   }
 };
 
