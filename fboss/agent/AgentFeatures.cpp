@@ -450,6 +450,12 @@ DEFINE_bool(
     " switches and recover from it. This enables hitless restarts"
     " on SW agent. This is only used for Sw Switch.");
 
+DEFINE_bool(
+    verify_recover_from_hw_switch,
+    false,
+    "When set, assert that SW agent actually warmbooted from HW switch."
+    " Used in tests to verify the warmboot-from-HW-switch path.");
+
 DEFINE_int32(
     fabric_link_monitoring_max_l1_l2_switch_ids,
     facebook::fboss::kDualStageMaxL1L2FabricLinkMonitoringSwitchIds,
