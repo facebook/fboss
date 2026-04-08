@@ -896,15 +896,86 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
       TrafficTestParams{.buffer = defaultPfcBufferParams()});
 }
 
-TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
-  const int trafficClass = kLosslessTrafficClass;
-  const int pfcPriority = kLosslessPriority;
-  runTestWithCfg(
-      trafficClass,
-      pfcPriority,
-      {},
-      TrafficTestParams{.buffer = defaultPfcBufferParams()},
-      validateBufferPoolWatermarkCounters);
+TEST_F(AgentTrafficPfcGenTest, verifyBufferPoolWatermarks) {
+  std::vector<PortID> portIds = portIdsForTest();
+  PortID portId = portIds[0];
+  PortID txOffPortId = portIds[1];
+  auto ip = getDestinationIps()[0];
+
+  auto setup = [&]() {
+    auto cfg = getPfcTestConfig(
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        {},
+        TrafficTestParams{.buffer = defaultPfcBufferParams()});
+    // Disable PFC RX on the injection port for VOQ platforms
+    // (e.g. Jericho3) where queues fill up and cause test failures.
+    // Only PFC TX is needed; RX can interfere with headroom watermark
+    // behavior. Skip for Chenab as it does not support independent
+    // PFC RX disable.
+    auto asicType = checkSameAndGetAsicType(cfg);
+    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) {
+      for (auto& port : *cfg.ports()) {
+        if (PortID(*port.logicalID()) == portId && port.pfc().has_value()) {
+          port.pfc()->rx() = false;
+        }
+      }
+    }
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+    applyNewConfig(cfg);
+    setupEcmpTrafficNoLoop(txOffPortId, ip);
+  };
+
+  auto verify = [&]() {
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    std::optional<VlanID> vlanId;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      vlanId = kTxForVlanForChenab;
+    }
+    utility::triggerPfcGeneration(
+        getAgentEnsemble(),
+        portId,
+        txOffPortId,
+        ip,
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        vlanId);
+
+    validateBufferPoolWatermarkCounters(
+        getAgentEnsemble(), kLosslessPriority, {portId});
+    utility::cleanupPfcGeneration(getAgentEnsemble(), txOffPortId);
+
+    waitForWatermarkDecay([&]() {
+      uint64_t globalSharedWatermark{0};
+      uint64_t globalHeadroomWatermark{0};
+      for (const auto& switchAsic : getAgentEnsemble()->getL3Asics()) {
+        facebook::fboss::SwitchID switchId(*switchAsic->getSwitchId());
+        for (const auto& [_, val] : getAgentEnsemble()->getFb303RegexCounters(
+                 "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId)) {
+          globalSharedWatermark += val;
+        }
+        if (getAgentEnsemble()
+                ->getSw()
+                ->getHwAsicTable()
+                ->isFeatureSupportedOnAllAsic(
+                    facebook::fboss::HwAsic::Feature::
+                        BUFFER_POOL_HEADROOM_WATERMARK)) {
+          for (const auto& [_, val] : getAgentEnsemble()->getFb303RegexCounters(
+                   "buffer_watermark_global_headroom(.itm.*)?.p100.60",
+                   switchId)) {
+            globalHeadroomWatermark += val;
+          }
+        }
+      }
+      XLOG(DBG0) << "Post-cleanup global headroom watermark: "
+                 << globalHeadroomWatermark
+                 << ", global shared watermark: " << globalSharedWatermark;
+      return globalSharedWatermark != 0 || globalHeadroomWatermark != 0;
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentTrafficPfcGenTest, verifyIngressPriorityGroupWatermarks) {
