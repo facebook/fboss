@@ -413,6 +413,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.cpp
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.cpp
+  fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h
+  fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.cpp
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
   fboss/cli/fboss2/commands/set/interface/CmdSetInterface.cpp
   fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h

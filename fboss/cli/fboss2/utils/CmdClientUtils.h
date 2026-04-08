@@ -16,6 +16,7 @@
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
 #include "fboss/led_service/if/gen-cpp2/LedService.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/FanService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 namespace facebook::fboss::utils {
@@ -50,6 +51,10 @@ createLedClient(const HostInfo& hostInfo);
 
 std::unique_ptr<apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>
 createFsdbClient(const HostInfo& hostInfo);
+
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::platform::fan_service::FanService>>
+createFanServiceClient(const HostInfo& hostInfo);
 
 int getNumHwSwitches(const HostInfo& hostInfo);
 bool isMultiSwitchEnabled(const HostInfo& hostInfo);
