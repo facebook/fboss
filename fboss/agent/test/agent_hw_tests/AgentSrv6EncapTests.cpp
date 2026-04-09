@@ -312,7 +312,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
       this->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), injectPort.value());
     } else {
-      this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      this->sendPacketSwitchedAsync(std::move(txPacket));
     }
 
     auto frameRx = snooper.waitForPacket(1);
