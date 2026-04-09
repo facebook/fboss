@@ -73,6 +73,9 @@ class ResourceAccountant {
 
   bool checkAndUpdateRouteResource(bool add);
 
+  void mySidStateChangedImpl(const StateDelta& delta);
+  bool checkMySidResource(bool intermediateState);
+
   bool checkNeighborResource();
 
   bool l2StateChangedImpl(const StateDelta& delta);
@@ -114,6 +117,7 @@ class ResourceAccountant {
   uint32_t ecmpMemberUsage_{0};
   uint32_t virtualArsGroupCount_{0};
   uint32_t routeUsage_{0};
+  uint32_t mySidUsage_{0};
   std::optional<int32_t> minWidthForArsVirtualGroup_;
   std::optional<int32_t> maxArsVirtualGroups_;
   std::optional<int32_t> maxArsVirtualGroupWidth_;
@@ -135,6 +139,9 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, checkNeighborResource);
   FRIEND_TEST(ResourceAccountantTest, routeWithAdjustedWeightZero);
   FRIEND_TEST(ResourceAccountantTest, resolvedAndUnresolvedRoutes);
+  FRIEND_TEST(ResourceAccountantTest, checkMySidResource);
+  FRIEND_TEST(ResourceAccountantTest, mySidStateChanged);
+  FRIEND_TEST(ResourceAccountantTest, mySidResourceExceeded);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
 };
 } // namespace facebook::fboss
