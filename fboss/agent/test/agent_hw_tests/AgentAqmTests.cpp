@@ -164,7 +164,7 @@ class AgentAqmTest : public AgentHwTest {
     if (outPort) {
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 

@@ -93,7 +93,7 @@ class AgentWatermarkTest : public AgentHwTest {
     if (port.has_value()) {
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *port);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 

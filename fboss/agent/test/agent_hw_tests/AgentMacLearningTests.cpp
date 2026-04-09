@@ -388,7 +388,7 @@ class AgentMacLearningTest : public AgentHwTest {
         mac,
         ETHERTYPE::ETHERTYPE_LLDP);
 
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
     auto newPortStats =
         getAgentEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
 
@@ -1191,7 +1191,7 @@ class AgentMacLearningBatchEntriesTest : public AgentMacLearningTest {
           getSw()->sendPacketOutOfPortAsync(
               std::move(txPacket), outPort.value());
         } else {
-          getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+          sendPacketSwitchedAsync(std::move(txPacket));
         }
 
         ++numSentPackets;
@@ -1724,7 +1724,7 @@ class AgentMacLearningStaticConfigTest : public AgentMacLearnDisabledTest {
         ETHERTYPE::ETHERTYPE_LLDP);
 
     // Send packet out via packet switching (not via a specific port)
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
 
     // Wait for packet processing and get new stats
     WITH_RETRIES({

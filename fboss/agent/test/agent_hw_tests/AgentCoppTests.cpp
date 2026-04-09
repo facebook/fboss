@@ -264,8 +264,7 @@ class AgentCoppTest : public AgentHwTest {
     if (outOfPort) {
       getSw()->sendPacketOutOfPortAsync(std::move(pkt), portIdsForTest()[0]);
     } else {
-      getSw()->sendPacketSwitchedAsync(
-          std::move(pkt), {getSwitchIdUnderTest(*getAgentEnsemble())});
+      sendPacketSwitchedAsync(std::move(pkt));
     }
     if (expectRxPacket) {
       WITH_RETRIES({

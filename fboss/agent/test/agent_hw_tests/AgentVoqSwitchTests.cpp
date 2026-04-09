@@ -221,7 +221,7 @@ int AgentVoqSwitchTest::sendPacket(
   if (frontPanelPort.has_value()) {
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *frontPanelPort);
   } else {
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
   }
   return txPacketSize;
 }

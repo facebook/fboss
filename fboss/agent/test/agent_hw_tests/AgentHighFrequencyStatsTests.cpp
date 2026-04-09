@@ -139,7 +139,7 @@ class AgentHighFrequencyStatsTest : public AgentHwTest {
     auto dscpsIt = kOlympicQueueToDscp.find(queueId);
     ASSERT_NE(dscpsIt, kOlympicQueueToDscp.end());
     for (int i = 0; i < cnt; i++) {
-      getSw()->sendPacketSwitchedAsync(
+      sendPacketSwitchedAsync(
           utility::makeUDPTxPacket(
               getSw(),
               getVlanIDForTx() /*vlan*/,

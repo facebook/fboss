@@ -73,7 +73,7 @@ void AgentQosTestBase::sendPacket(uint8_t dscp, bool frontPanel) {
         ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
     getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
   } else {
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
   }
 }
 

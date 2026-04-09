@@ -67,8 +67,8 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
           std::move(txPacket2), PortID(masterLogicalPortIds()[1]));
     } else {
       XLOG(DBG2) << "verify send packets switched";
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket2));
+      sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket2));
     }
 
     /*

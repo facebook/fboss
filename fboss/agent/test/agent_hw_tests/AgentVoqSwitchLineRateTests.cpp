@@ -42,7 +42,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
         255, // hopLimit
         std::move(payload));
     // Forward the packet in the pipeline
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
   }
 
   std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort() {

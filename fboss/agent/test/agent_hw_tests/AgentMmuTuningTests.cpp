@@ -113,7 +113,7 @@ class AgentMmuTuningTest : public AgentHwTest {
       for (auto dscp : dscpsToSend) {
         auto pkt = createUdpPkt(dscp);
         bytesSent += pkt->buf()->computeChainDataLength();
-        getSw()->sendPacketSwitchedAsync(std::move(pkt));
+        sendPacketSwitchedAsync(std::move(pkt));
       }
     }
 

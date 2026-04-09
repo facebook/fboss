@@ -603,7 +603,7 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         randomIP,
         ARP_OPER::ARP_OPER_REQUEST,
         std::nullopt);
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
     WITH_RETRIES({
       auto portStatsAfter =
           getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0]);
