@@ -129,6 +129,13 @@ class MultiHwSwitchHandler {
   state::SwitchState reconstructSwitchState(SwitchID id);
 
  private:
+  // Shared implementation for sendPacketSwitchedSync/Async
+  template <typename SendFn>
+  bool sendPacketSwitchedImpl(
+      std::unique_ptr<TxPacket> pkt,
+      const SwitchIDs& switchIds,
+      SendFn sendFn) noexcept;
+
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
 
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);

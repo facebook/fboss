@@ -292,10 +292,12 @@ bool MultiHwSwitchHandler::sendPacketOutOfPortAsync(
   return iter->second->sendPacketOutOfPortAsync(std::move(pkt), portID, queue);
 }
 
-bool MultiHwSwitchHandler::sendPacketSwitchedSync(
+template <typename SendFn>
+bool MultiHwSwitchHandler::sendPacketSwitchedImpl(
     std::unique_ptr<TxPacket> pkt,
-    const SwitchIDs& switchIds) noexcept {
-  if (hwSwitchSyncers_.size() < 1) {
+    const SwitchIDs& switchIds,
+    SendFn sendFn) noexcept {
+  if (hwSwitchSyncers_.empty()) {
     XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
     return false;
   }
@@ -317,61 +319,42 @@ bool MultiHwSwitchHandler::sendPacketSwitchedSync(
     }
     // Send to each target, cloning packet for all but the last
     for (size_t i = 0; i + 1 < targets.size(); i++) {
-      sent |= targets[i]->sendPacketSwitchedSync(pkt->clone());
+      sent |= sendFn(targets[i], pkt->clone());
     }
     if (!targets.empty()) {
-      sent |= targets.back()->sendPacketSwitchedSync(std::move(pkt));
+      sent |= sendFn(targets.back(), std::move(pkt));
     }
     return sent;
   }
   // Fallback: use first available connected switch to send pkt
   for (auto& hwSwitchHandler : hwSwitchSyncers_) {
     if (isHwSwitchConnected(hwSwitchHandler.first)) {
-      return hwSwitchHandler.second->sendPacketSwitchedSync(std::move(pkt));
+      return sendFn(hwSwitchHandler.second.get(), std::move(pkt));
     }
   }
   return false;
 }
 
+bool MultiHwSwitchHandler::sendPacketSwitchedSync(
+    std::unique_ptr<TxPacket> pkt,
+    const SwitchIDs& switchIds) noexcept {
+  return sendPacketSwitchedImpl(
+      std::move(pkt),
+      switchIds,
+      [](HwSwitchHandler* handler, std::unique_ptr<TxPacket> p) {
+        return handler->sendPacketSwitchedSync(std::move(p));
+      });
+}
+
 bool MultiHwSwitchHandler::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt,
     const SwitchIDs& switchIds) noexcept {
-  if (hwSwitchSyncers_.size() < 1) {
-    XLOG_EVERY_MS(WARNING, 5000) << "no hw switch syncers available";
-    return false;
-  }
-  if (!switchIds.empty()) {
-    bool sent = false;
-    // Collect valid connected targets
-    std::vector<HwSwitchHandler*> targets;
-    for (auto switchId : switchIds) {
-      auto iter = hwSwitchSyncers_.find(switchId);
-      if (iter == hwSwitchSyncers_.end()) {
-        XLOG_EVERY_MS(WARNING, 5000)
-            << "hw switch syncer for switch id " << switchId << " not found";
-        continue;
-      }
-      if (!isHwSwitchConnected(switchId)) {
-        continue;
-      }
-      targets.push_back(iter->second.get());
-    }
-    // Send to each target, cloning packet for all but the last
-    for (size_t i = 0; i + 1 < targets.size(); i++) {
-      sent |= targets[i]->sendPacketSwitchedAsync(pkt->clone());
-    }
-    if (!targets.empty()) {
-      sent |= targets.back()->sendPacketSwitchedAsync(std::move(pkt));
-    }
-    return sent;
-  }
-  // Fallback: use first available connected switch to send pkt
-  for (auto& hwSwitchHandler : hwSwitchSyncers_) {
-    if (isHwSwitchConnected(hwSwitchHandler.first)) {
-      return hwSwitchHandler.second->sendPacketSwitchedAsync(std::move(pkt));
-    }
-  }
-  return false;
+  return sendPacketSwitchedImpl(
+      std::move(pkt),
+      switchIds,
+      [](HwSwitchHandler* handler, std::unique_ptr<TxPacket> p) {
+        return handler->sendPacketSwitchedAsync(std::move(p));
+      });
 }
 
 bool MultiHwSwitchHandler::sendPacketOutOfPortSyncForPktType(
