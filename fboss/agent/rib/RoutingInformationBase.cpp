@@ -137,23 +137,30 @@ std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
     throw FbossError(
         "Only one of nextHops or namedNextHops must be set in MySidEntry");
   }
-  if (type == MySidType::ADJACENCY_MICRO_SID ||
-      type == MySidType::NODE_MICRO_SID) {
-    // TODO Support named nhop groups
-    if (entry.nextHops()->empty()) {
-      throw FbossError(
-          "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
-    }
-  } else if (type == MySidType::DECAPSULATE_AND_LOOKUP) {
-    if (!entry.nextHops()->empty()) {
-      throw FbossError(
-          "NextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
-    }
-    if (entry.namedNextHops().has_value()) {
-      throw FbossError(
-          "NamedNextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
-    }
-  } else {
+  bool handled = false;
+  switch (type) {
+    case MySidType::ADJACENCY_MICRO_SID:
+    case MySidType::NODE_MICRO_SID:
+      // TODO Support named nhop groups
+      if (entry.nextHops()->empty()) {
+        throw FbossError(
+            "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
+      }
+      handled = true;
+      break;
+    case MySidType::DECAPSULATE_AND_LOOKUP:
+      if (!entry.nextHops()->empty()) {
+        throw FbossError(
+            "NextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+      }
+      if (entry.namedNextHops().has_value()) {
+        throw FbossError(
+            "NamedNextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+      }
+      handled = true;
+      break;
+  }
+  if (!handled) {
     throw FbossError("Unsupported MySid type: ", static_cast<int>(type));
   }
   state::MySidFields fields;
