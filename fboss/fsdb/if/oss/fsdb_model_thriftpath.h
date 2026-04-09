@@ -2847,7 +2847,8 @@ std::pair<apache::thrift::ident::remoteIntfLivenessStatus, Child<::facebook::fbo
 std::pair<apache::thrift::ident::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
 std::pair<apache::thrift::ident::portId, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::desiredPeerName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<apache::thrift::ident::desiredPeerAddressIPv4, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2878,6 +2879,7 @@ std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::
     STRUCT_CHILD_GETTERS(portId, 23);
     STRUCT_CHILD_GETTERS(desiredPeerName, 24);
     STRUCT_CHILD_GETTERS(desiredPeerAddressIPv6, 25);
+    STRUCT_CHILD_GETTERS(desiredPeerAddressIPv4, 26);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -2906,6 +2908,7 @@ std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::
     else if constexpr (__id == apache::thrift::FieldId{23}) { return portId(); }
     else if constexpr (__id == apache::thrift::FieldId{24}) { return desiredPeerName(); }
     else if constexpr (__id == apache::thrift::FieldId{25}) { return desiredPeerAddressIPv6(); }
+    else if constexpr (__id == apache::thrift::FieldId{26}) { return desiredPeerAddressIPv4(); }
   }
 };
 
@@ -14440,7 +14443,8 @@ std::pair<apache::thrift::ident::dhcpRelayOverridesV6, ChildThriftPath<::std::ma
 std::pair<apache::thrift::ident::scope, Child<::facebook::fboss::cfg::Scope, ::apache::thrift::type_class::enumeration, ::apache::thrift::type::enum_t<::facebook::fboss::cfg::Scope>>>,
 std::pair<apache::thrift::ident::portID, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::desiredPeerName, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
-std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
+std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>,
+std::pair<apache::thrift::ident::desiredPeerAddressIPv4, Child<::std::string, ::apache::thrift::type_class::string, ::apache::thrift::type::string_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -14465,6 +14469,7 @@ std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::
     STRUCT_CHILD_GETTERS(portID, 17);
     STRUCT_CHILD_GETTERS(desiredPeerName, 18);
     STRUCT_CHILD_GETTERS(desiredPeerAddressIPv6, 19);
+    STRUCT_CHILD_GETTERS(desiredPeerAddressIPv4, 20);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -14487,6 +14492,7 @@ std::pair<apache::thrift::ident::desiredPeerAddressIPv6, Child<::std::string, ::
     else if constexpr (__id == apache::thrift::FieldId{17}) { return portID(); }
     else if constexpr (__id == apache::thrift::FieldId{18}) { return desiredPeerName(); }
     else if constexpr (__id == apache::thrift::FieldId{19}) { return desiredPeerAddressIPv6(); }
+    else if constexpr (__id == apache::thrift::FieldId{20}) { return desiredPeerAddressIPv4(); }
   }
 };
 

@@ -678,6 +678,7 @@ struct InterfaceFields {
   /* These fields contains information of remote GPU */
   24: optional string desiredPeerName;
   25: optional string desiredPeerAddressIPv6;
+  26: optional string desiredPeerAddressIPv4;
 }
 
 enum LacpState {
