@@ -158,11 +158,6 @@ void PortUpdateHandler::clearErrorDisableLoopDetected(
 void PortUpdateHandler::handlePortUp(
     const std::shared_ptr<Port>& newPort,
     const std::shared_ptr<SwitchState>& state) {
-  // Check if NDP static neighbor is enabled
-  if (!FLAGS_ndp_static_neighbor) {
-    return;
-  }
-  // Call neighbor solicitation when port comes UP
   XLOG(DBG4) << "handlePortUp - Port " << newPort->getID()
              << " is now UP, checking for associated interfaces";
 
@@ -171,20 +166,45 @@ void PortUpdateHandler::handlePortUp(
   for (const auto& interfaceID : interfaceIDs) {
     auto interface =
         state->getInterfaces()->getNodeIf(InterfaceID(interfaceID));
-    if (interface && interface->getDesiredPeerAddressIPv6().has_value()) {
-      // Store the string to avoid use-after-free with StringPiece
+    if (!interface) {
+      continue;
+    }
+
+    // NDP cold start: send neighbor solicitation for configured IPv6 peers
+    if (FLAGS_ndp_static_neighbor &&
+        interface->getDesiredPeerAddressIPv6().has_value()) {
       auto desiredPeerAddressString = interface->getDesiredPeerAddressIPv6();
-      // Use folly's built-in network parsing for CIDR notation
       auto cidrNetwork =
           folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
       auto desiredPeerAddressIPv6 = cidrNetwork.first.asV6();
-      // subnet suffix would be available as cidrNetwork.second (prefix length)
       if (interface->canReachAddress(desiredPeerAddressIPv6)) {
         XLOG(DBG4) << "Calling sendNdpSolicitationHelper for interface "
                    << interface->getID() << " when port " << newPort->getID()
                    << " comes UP";
         sw_->sendNdpSolicitationHelper(
             interface, state, desiredPeerAddressIPv6);
+      }
+    }
+
+    // ARP cold start: send ARP request for configured IPv4 peers
+    if (FLAGS_arp_static_neighbor &&
+        interface->getDesiredPeerAddressIPv4().has_value()) {
+      auto desiredPeerAddressString = interface->getDesiredPeerAddressIPv4();
+      auto cidrNetwork =
+          folly::IPAddress::createNetwork(*desiredPeerAddressString, -1, false);
+      auto desiredPeerAddressIPv4 = cidrNetwork.first.asV4();
+      if (interface->canReachAddress(desiredPeerAddressIPv4)) {
+        auto sourceAddr = interface->getAddressToReach(desiredPeerAddressIPv4);
+        if (sourceAddr.has_value()) {
+          XLOG(DBG4) << "Calling sendArpRequestHelper for interface "
+                     << interface->getID() << " when port " << newPort->getID()
+                     << " comes UP";
+          sw_->sendArpRequestHelper(
+              interface,
+              state,
+              sourceAddr->first.asV4(),
+              desiredPeerAddressIPv4);
+        }
       }
     }
   }
