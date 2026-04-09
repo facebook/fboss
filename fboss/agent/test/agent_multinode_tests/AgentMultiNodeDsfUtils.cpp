@@ -517,9 +517,15 @@ bool verifyPortActiveStateForSwitch(const std::string& switchName) {
 }
 
 bool verifyNoPortErrorsForSwitch(const std::string& switchName) {
-  // No ports should have errors
+  // No connected fabric ports should have errors
   XLOG(DBG2) << "Verifying Fabric Port No Error: " << switchName;
-  for (const auto& [_, portInfo] : getPortIdToPortInfo(switchName)) {
+  auto connectedPorts = getConnectedFabricPorts(switchName);
+  CHECK(connectedPorts.size());
+  for (const auto& [portName, portInfo] :
+       getFabricPortNameToPortInfo(switchName)) {
+    if (connectedPorts.count(portName) == 0) {
+      continue;
+    }
     if (portInfo.activeErrors()->size() != 0) {
       XLOG(DBG2) << "From " << switchName
                  << " Port: " << portInfo.name().value() << " has errors: "
