@@ -11,11 +11,14 @@
 #include <fmt/core.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/ResourceAccountant.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -1176,6 +1179,101 @@ TEST_F(ResourceAccountantTest, checkMySidResource) {
       true /* intermediateState */));
   EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
       false /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, mySidStateChanged) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  HwSwitchMatcher mySidScope(std::unordered_set<SwitchID>{SwitchID(10)});
+
+  auto makeMySidEntry = [](const std::string& addr, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix thriftPrefix;
+    thriftPrefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    thriftPrefix.prefixLength() = len;
+    fields.mySid() = thriftPrefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  // Add 2 entries
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto mySids = newState->getMySids()->modify(&newState);
+  mySids->addNode(makeMySidEntry("fc00:100::1", 48), mySidScope);
+  mySids->addNode(makeMySidEntry("fc00:200::1", 48), mySidScope);
+  newState->publish();
+
+  StateDelta addDelta(oldState, newState);
+  this->resourceAccountant_->mySidStateChangedImpl(addDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 2);
+
+  // Remove one entry
+  auto newState2 = newState->clone();
+  auto mySids2 = newState2->getMySids()->modify(&newState2);
+  mySids2->removeNode("fc00:100::1/48");
+  newState2->publish();
+
+  StateDelta removeDelta(newState, newState2);
+  this->resourceAccountant_->mySidStateChangedImpl(removeDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 1);
+
+  // Change type (should not affect count)
+  auto newState3 = newState2->clone();
+  auto mySids3 = newState3->getMySids()->modify(&newState3);
+  auto updated = mySids3->getNode("fc00:200::1/48")->clone();
+  updated->setType(MySidType::DECAPSULATE_AND_LOOKUP);
+  mySids3->updateNode(updated, mySidScope);
+  newState3->publish();
+
+  StateDelta changeDelta(newState2, newState3);
+  this->resourceAccountant_->mySidStateChangedImpl(changeDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 1);
+}
+
+TEST_F(ResourceAccountantTest, mySidResourceExceeded) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  // MockAsic supports 8 MySID entries, 75% = 6 allowed
+  HwSwitchMatcher mySidScope(std::unordered_set<SwitchID>{SwitchID(10)});
+
+  auto makeMySidEntry = [](const std::string& addr, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix thriftPrefix;
+    thriftPrefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    thriftPrefix.prefixLength() = len;
+    fields.mySid() = thriftPrefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  // Add 6 entries (exactly 75% of 8) — should be accepted
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto stateWith6 = oldState->clone();
+  auto mySids6 = stateWith6->getMySids()->modify(&stateWith6);
+  for (int i = 0; i < 6; ++i) {
+    mySids6->addNode(
+        makeMySidEntry(fmt::format("fc00:{:x}::1", i + 1), 48), mySidScope);
+  }
+  stateWith6->publish();
+
+  StateDelta delta6(oldState, stateWith6);
+  EXPECT_TRUE(this->resourceAccountant_->isValidUpdate(delta6));
+
+  // Add 1 more entry (7/8 = 87.5%, exceeds 75%) — should be rejected
+  auto stateWith7 = stateWith6->clone();
+  auto mySids7 = stateWith7->getMySids()->modify(&stateWith7);
+  mySids7->addNode(makeMySidEntry("fc00:7::1", 48), mySidScope);
+  stateWith7->publish();
+
+  StateDelta delta7(stateWith6, stateWith7);
+  EXPECT_FALSE(this->resourceAccountant_->isValidUpdate(delta7));
 }
 
 } // namespace facebook::fboss
