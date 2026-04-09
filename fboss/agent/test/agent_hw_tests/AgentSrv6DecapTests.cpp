@@ -44,7 +44,8 @@ class AgentSrv6DecapTest : public AgentHwTest {
   const folly::IPAddressV6 kV6RouteDstIp{"2800:2::1"};
   const folly::IPAddressV4 kV4RoutePrefix{"100.0.0.0"};
   const folly::IPAddressV4 kV4RouteDstIp{"100.0.0.1"};
-  const folly::IPAddressV6 kMySidAddr{"3001:db8:ffff::"};
+  const folly::IPAddressV6 kMySidAddr{"3001:db8:efff::"};
+  static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr uint8_t kECT1{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -136,7 +137,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // IPv4 route with regular next hops (no SID lists)
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
-    addMySidEntry("3001:db8:ffff::", 48);
+    addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
   }
 
   template <typename CIDRNetworkT>
