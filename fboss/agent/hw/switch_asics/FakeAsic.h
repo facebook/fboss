@@ -156,6 +156,9 @@ class FakeAsic : public HwAsic {
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     return 128;
   }
+  std::optional<uint32_t> getMaxMySidEntries() const override {
+    return 8;
+  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8192;
   }

@@ -109,6 +109,9 @@ class G202xAsic : public TajoAsic {
   std::optional<uint32_t> getMaxEcmpGroups() const override {
     return 1024;
   }
+  std::optional<uint32_t> getMaxMySidEntries() const override {
+    return 2048;
+  }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     /*
      * G202x supports ~20K next hop group(NHG) members, but we are limiting it
