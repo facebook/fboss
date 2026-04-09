@@ -280,6 +280,16 @@ DEFINE_int32(
     75,
     "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
+DEFINE_bool(
+    enable_mysid_resource_protection,
+    false,
+    "Enable MySID resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    mysid_resource_percentage,
+    75,
+    "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
 DEFINE_int32(
     switch_index_for_testing,
     0,
