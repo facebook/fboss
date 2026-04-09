@@ -765,6 +765,25 @@ SwitchID getRemoteVoqSwitchId(SwSwitch* sw) {
   return SwitchID(switchId);
 }
 
+// Compute the first system port ID outside all local NPU ranges.
+// This is max(local_system_port_ranges) + 1, which equals the first
+// remote DSF node's system port range minimum for contiguous allocations.
+SystemPortID getFirstRemoteGlobalSystemPortId(const SwSwitch& sw) {
+  const auto& switchIdToSwitchInfo =
+      sw.getSwitchInfoTable().getSwitchIdToSwitchInfo();
+  int64_t myGlobalSysPort = 0;
+  for (const auto& [switchId, info] : switchIdToSwitchInfo) {
+    if (*info.switchType() != cfg::SwitchType::VOQ) {
+      continue;
+    }
+    for (const auto& range : *info.systemPortRanges()->systemPortRanges()) {
+      myGlobalSysPort = std::max(myGlobalSysPort, *range.maximum());
+    }
+  }
+  CHECK_GT(myGlobalSysPort, 0) << "No local VOQ system port ranges found";
+  return SystemPortID(myGlobalSysPort + 1);
+}
+
 // Add remote system port and interface for a remote switch. Creates the
 // necessary state for forwarding traffic to a remote VOQ switch.
 void addRemoteSysPortAndInterface(
