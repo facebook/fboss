@@ -8,6 +8,7 @@
  *
  */
 
+#include <fmt/core.h>
 #include <gtest/gtest.h>
 
 #include "fboss/agent/HwAsicTable.h"
@@ -1132,6 +1133,49 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   this->resourceAccountant_->arsEcmpGroupRefMap_[extraNhSet] = 1;
   EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
       true /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, checkMySidResource) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  // MockAsic supports 8 MySID entries
+  auto maxMySid = asicTable_->getHwAsic(SwitchID(0))->getMaxMySidEntries();
+  ASSERT_TRUE(maxMySid.has_value());
+  EXPECT_EQ(maxMySid.value(), 8);
+
+  // Empty state passes both checks
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 75% (6/8) - passes both
+  this->resourceAccountant_->mySidUsage_ = 6;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 87.5% (7/8) - passes intermediate (100%), fails final (75%)
+  this->resourceAccountant_->mySidUsage_ = 7;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 100% (8/8) - passes intermediate, fails final
+  this->resourceAccountant_->mySidUsage_ = 8;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // Above 100% (9/8) - fails both
+  this->resourceAccountant_->mySidUsage_ = 9;
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
 }
 
 } // namespace facebook::fboss
