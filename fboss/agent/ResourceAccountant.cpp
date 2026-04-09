@@ -749,6 +749,10 @@ void ResourceAccountant::stateChanged(const StateDelta& delta) {
     neighborStateChangedImpl<NdpTable>(delta);
     neighborStateChangedImpl<ArpTable>(delta);
   }
+
+  if (FLAGS_enable_mysid_resource_protection) {
+    mySidStateChangedImpl(delta);
+  }
 }
 
 // check if the resource is available for the update as per fboss limits
@@ -761,6 +765,11 @@ bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
     neighborStateChangedImpl<NdpTable>(delta);
     neighborStateChangedImpl<ArpTable>(delta);
     isValidUpdate &= checkNeighborResource();
+  }
+
+  if (FLAGS_enable_mysid_resource_protection) {
+    mySidStateChangedImpl(delta);
+    isValidUpdate &= checkMySidResource(false /* intermediateState */);
   }
 
   return isValidUpdate;
