@@ -249,7 +249,7 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
             255,
             std::vector<uint8_t>(kPayLoadLen, 0xff));
 
-        ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+        sendPacketSwitchedAsync(std::move(txPacket));
       };
       utility::createTrafficOnMultiplePorts(
           getAgentEnsemble(), 2, sendPacket, 10 /* desiredPct*/

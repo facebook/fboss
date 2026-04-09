@@ -219,7 +219,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
     if (portId.has_value()) {
       ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *portId);
     } else {
-      ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   };
 
