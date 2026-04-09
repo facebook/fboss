@@ -660,7 +660,7 @@ class ThriftConfigApplier {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
-  std::optional<SwitchID> getAnyVoqSwitchId();
+  std::optional<SwitchID> getAnySwitchId(cfg::SwitchType switchType);
   std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
@@ -997,7 +997,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto voqSwitchId = getAnyVoqSwitchId();
+    auto voqSwitchId = getAnySwitchId(cfg::SwitchType::VOQ);
     std::shared_ptr<SwitchSettings> origSwitchSettings{};
     if (voqSwitchId.has_value()) {
       auto matcher =
@@ -1039,16 +1039,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   return new_;
 }
 
-std::optional<SwitchID> ThriftConfigApplier::getAnyVoqSwitchId() {
+std::optional<SwitchID> ThriftConfigApplier::getAnySwitchId(
+    cfg::SwitchType switchType) {
   std::optional<SwitchID> switchId;
   for (const auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
-    if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::VOQ) {
+    if (switchIdAndSwitchInfo.second.switchType() == switchType) {
       switchId = static_cast<SwitchID>(switchIdAndSwitchInfo.first);
       break;
     }
   }
-  // Returns a switchId only if we have a VoQ switch in config!
   return switchId;
 }
 
@@ -6072,7 +6072,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
   folly::IPAddress localSrcIp;
   auto collectorIp = folly::IPAddress(*config->collectorIp());
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    auto switchId = getAnyVoqSwitchId();
+    auto switchId = getAnySwitchId(cfg::SwitchType::VOQ);
     if (!switchId.has_value()) {
       throw FbossError("No VOQ switchId found");
     }
@@ -6094,6 +6094,9 @@ ThriftConfigApplier::createMirrorOnDropReport(
     }
     localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
   }
+
+  // Determine the switchId for looking up the first interface MAC.
+  std::optional<SwitchID> modSwitchId = getAnySwitchId(asic->getSwitchType());
 
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
@@ -6178,7 +6181,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
-      utility::getMacForFirstInterfaceWithPorts(new_).toString(),
+      utility::getMacForFirstInterfaceWithPorts(new_, modSwitchId).toString(),
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs(),
       config->samplingRate().to_optional());
@@ -6606,7 +6609,7 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
 
 void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(
     bool enable) {
-  CHECK(getAnyVoqSwitchId().has_value());
+  CHECK(getAnySwitchId(cfg::SwitchType::VOQ).has_value());
   for (const auto& [id, dsfNode] : *cfg_->dsfNodes()) {
     if (dsfNode.type().value() != cfg::DsfNodeType::INTERFACE_NODE) {
       continue;

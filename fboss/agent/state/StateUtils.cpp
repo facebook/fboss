@@ -50,16 +50,18 @@ folly::MacAddress getInterfaceMac(
 
 folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> /*switchId*/) {
-  auto intfID = firstInterfaceIDWithPorts(state);
+    std::optional<SwitchID> switchId) {
+  auto intfID = firstInterfaceIDWithPorts(state, switchId);
   return getInterfaceMac(state, intfID);
 }
 
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> /*switchId*/) {
-  HwSwitchMatcher matcher(
-      std::unordered_set<SwitchID>{SwitchID(FLAGS_switch_id_for_testing)});
+    std::optional<SwitchID> switchId) {
+  // Use the passed switchId if provided, otherwise fall back to the test gflag.
+  auto effectiveSwitchId =
+      switchId.has_value() ? *switchId : SwitchID(FLAGS_switch_id_for_testing);
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>{effectiveSwitchId});
   auto intfMap = state->getInterfaces()->getMapNodeIf(matcher);
   if (intfMap) {
     for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
@@ -71,7 +73,7 @@ InterfaceID firstInterfaceIDWithPorts(
   }
   throw FbossError(
       "No interface found in state for switchId: ",
-      FLAGS_switch_id_for_testing);
+      static_cast<int64_t>(effectiveSwitchId));
 }
 
 std::vector<folly::IPAddress> getIntfAddrs(
