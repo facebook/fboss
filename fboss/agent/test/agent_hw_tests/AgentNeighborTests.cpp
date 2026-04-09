@@ -125,28 +125,16 @@ class AgentNeighborTest : public AgentHwTest {
       const AgentEnsemble& ensemble) const override {
     auto switchId = getSwitchIdUnderTest(ensemble);
     auto asic = ensemble.getSw()->getHwAsicTable()->getHwAsic(switchId);
+    auto ports = ensemble.masterLogicalPortIds({switchId});
     auto cfg = programToTrunk
-        ? utility::oneL3IntfTwoPortConfig(
-              ensemble.getPlatformMapping(),
-              asic,
-              ensemble.masterLogicalPortIds()[0],
-              ensemble.masterLogicalPortIds()[1],
-              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-              asic->desiredLoopbackModes(),
-              ensemble.getSw()->getPlatformType())
-        : utility::onePortPerInterfaceConfig(
-              ensemble.getPlatformMapping(),
-              asic,
-              ensemble.masterLogicalPortIds(),
-              ensemble.getSw()->getPlatformSupportsAddRemovePort(),
-              asic->desiredLoopbackModes(),
-              ensemble.getSw()->getPlatformType());
+        ? utility::oneL3IntfTwoPortConfig(ensemble.getSw(), ports[0], ports[1])
+        : utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
     if (programToTrunk) {
       // Keep member size to be less than/equal to HW limitation, but first add
       // the two ports for testing. Only use ports from masterLogicalPortIds()
       // which are scoped to the test switch ID, to avoid adding ports from
       // other switches in multi-NPU setups.
-      auto masterPorts = ensemble.masterLogicalPortIds();
+      auto masterPorts = ensemble.masterLogicalPortIds({switchId});
       std::set<int> portSet{masterPorts[0], masterPorts[1]};
       int idx = 0;
       while (portSet.size() < std::min(
@@ -155,8 +143,8 @@ class AgentNeighborTest : public AgentHwTest {
         portSet.insert(masterPorts[idx]);
         idx++;
       }
-      std::vector<int> ports(portSet.begin(), portSet.end());
-      facebook::fboss::utility::addAggPort(kAggID, ports, &cfg);
+      std::vector<int> aggPorts(portSet.begin(), portSet.end());
+      facebook::fboss::utility::addAggPort(kAggID, aggPorts, &cfg);
     }
     return cfg;
   }
@@ -604,8 +592,9 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    return utility::onePortPerInterfaceConfig(
-        ensemble.getSw(), ensemble.masterLogicalPortIds());
+    auto switchId = getSwitchIdUnderTest(ensemble);
+    auto ports = ensemble.masterLogicalPortIds({switchId});
+    return utility::onePortPerInterfaceConfig(ensemble.getSw(), ports);
   }
   folly::IPAddressV6 neighborIP(PortID port) const {
     utility::EcmpSetupAnyNPorts6 ecmpHelper6(
