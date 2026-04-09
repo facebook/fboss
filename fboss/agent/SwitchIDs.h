@@ -6,7 +6,7 @@
 #include <initializer_list>
 
 #include <boost/container/static_vector.hpp>
-#include <folly/logging/xlog.h>
+#include "fboss/agent/FbossError.h"
 
 #include "fboss/agent/types.h"
 
@@ -48,7 +48,8 @@ class SwitchIDs {
     std::sort(ids_.begin(), ids_.end());
     auto dupIt = std::adjacent_find(ids_.begin(), ids_.end());
     if (dupIt != ids_.end()) {
-      XLOG(ERR) << "Duplicate SwitchID " << *dupIt << " in packet send targets";
+      throw FbossError(
+          "Duplicate SwitchID ", *dupIt, " in packet send targets");
     }
     ids_.erase(std::unique(ids_.begin(), ids_.end()), ids_.end());
   }
