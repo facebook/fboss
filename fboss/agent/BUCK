@@ -1222,6 +1222,7 @@ cpp_library(
     ],
     headers = [
         "PortDescriptorTemplate.h",
+        "SwitchIDs.h",
         "types.h",
     ],
     exported_deps = [
@@ -1233,6 +1234,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
+        ("boost", None, "boost_container"),
         ("boost", None, "boost_serialization"),
     ],
 )
