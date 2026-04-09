@@ -508,6 +508,17 @@ bool ResourceAccountant::checkMySidResource(bool intermediateState) {
   return true;
 }
 
+size_t ResourceAccountant::countSrv6NextHops(
+    const RouteNextHopSet& nhSet) const {
+  size_t count = 0;
+  for (const auto& nhop : nhSet) {
+    if (nhop.tunnelType() == TunnelType::SRV6_ENCAP) {
+      count++;
+    }
+  }
+  return count;
+}
+
 // Neighbor table resoure accounting
 
 // get switchId from neighbor entry

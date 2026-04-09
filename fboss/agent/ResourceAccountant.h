@@ -76,6 +76,8 @@ class ResourceAccountant {
   void mySidStateChangedImpl(const StateDelta& delta);
   bool checkMySidResource(bool intermediateState);
 
+  size_t countSrv6NextHops(const RouteNextHopSet& nhSet) const;
+
   bool checkNeighborResource();
 
   bool l2StateChangedImpl(const StateDelta& delta);
