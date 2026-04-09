@@ -15,8 +15,8 @@
 #include <vector>
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
-#include "fboss/cli/fboss2/session/SystemdInterface.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
 
@@ -188,11 +188,11 @@ class ConfigSession {
   // Constructor for testing with custom paths
   ConfigSession(std::string sessionConfigDir, std::string systemConfigDir);
 
-  // Constructor for testing with custom paths and mock systemd
+  // Constructor for testing with custom paths and mock FbossServiceUtil
   ConfigSession(
       std::string sessionConfigDir,
       std::string systemConfigDir,
-      std::unique_ptr<SystemdInterface> systemd);
+      std::unique_ptr<FbossServiceUtil> fbossServiceUtil);
 
   // Set the singleton instance (for testing only)
   static void setInstance(std::unique_ptr<ConfigSession> instance);
@@ -204,19 +204,13 @@ class ConfigSession {
   // Virtual to allow tests to override with mock command lines.
   virtual std::string readCommandLineFromProc() const;
 
-  // Detect if running in split mode by checking if fboss_sw_agent is enabled.
-  // Returns true if fboss_sw_agent is enabled (split mode), false otherwise
-  // (monolithic mode).
-  // Virtual to allow tests to override with mock implementations.
-  virtual bool isSplitMode() const;
-
-  // Restart a service via systemd and wait for it to be active
-  // For AGENT_WARMBOOT, does a simple restart.
-  // For AGENT_COLDBOOT, creates cold_boot_once files before restarting.
-  // Returns the list of actual systemd service names that were restarted.
-  std::vector<std::string> restartService(
-      cli::ServiceType service,
-      cli::ConfigActionLevel level);
+  // Apply actions (restart or reload) to all services based on their action
+  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
+  // the config.
+  // Returns a map of service type to list of actual systemd service names.
+  std::map<cli::ServiceType, std::vector<std::string>> applyServiceActions(
+      const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
+      const HostInfo& hostInfo);
 
  private:
   std::string sessionConfigDir_; // Typically ~/.fboss2
@@ -226,8 +220,8 @@ class ConfigSession {
   // Git instance for version control operations
   std::unique_ptr<Git> git_;
 
-  // Systemd interface for service management operations
-  std::unique_ptr<SystemdInterface> systemd_;
+  // Service orchestration for systemd operations
+  std::unique_ptr<FbossServiceUtil> fbossServiceUtil_;
 
   // Lazy-initialized configuration and port map
   cfg::AgentConfig agentConfig_;
@@ -257,61 +251,8 @@ class ConfigSession {
   void loadMetadata();
   void saveMetadata();
 
-  // Reload config for a service without restart (for HITLESS changes).
-  // Each service type has its own reload mechanism.
-  // Returns the list of actual systemd service names that were reloaded.
-  std::vector<std::string> reloadServiceConfig(
-      cli::ServiceType service,
-      const HostInfo& hostInfo);
-
-  // Apply actions (restart or reload) to all services based on their action
-  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
-  // the config.
-  // Returns a map of service type to list of actual systemd service names.
-  std::map<cli::ServiceType, std::vector<std::string>> applyServiceActions(
-      const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
-      const HostInfo& hostInfo);
-
-  // Helper function to get coldboot marker file path for a single service.
-  // Uses AgentDirectoryUtil to get the correct file path for the service.
-  // @param service Service name (e.g., "fboss_sw_agent", "fboss_hw_agent@0")
-  // @return Coldboot marker file path
-  // @throws std::runtime_error if service type is unknown
-  static std::string getColdbootFileForService(const std::string& service);
-
-  // Helper function to create a coldboot marker file.
-  // Creates parent directories if needed and handles permission errors.
-  // @param coldbootFile File path to create
-  // @throws std::runtime_error if file creation fails
-  static void createColdbootMarkerFile(const std::string& coldbootFile);
-
-  // Helper function to perform coldboot for a list of services.
-  // Implements the common coldboot sequence:
-  // 1. Stop all services
-  // 2. Create coldboot marker files
-  // 3. Start all services
-  // 4. Wait for all services to become active
-  // @param services List of service names to coldboot
-  // @param systemd SystemdInterface to use for service operations
-  void performColdboot(
-      const std::vector<std::string>& services,
-      SystemdInterface* systemd);
-
-  // Helper function to perform warmboot for a list of services.
-  // Implements the common warmboot sequence:
-  // 1. Restart all services
-  // 2. Wait for all services to become active
-  // @param services List of service names to warmboot
-  // @param systemd SystemdInterface to use for service operations
-  void performWarmboot(
-      const std::vector<std::string>& services,
-      SystemdInterface* systemd);
-
-  // Helper function to get the list of services to restart based on mode.
-  // Detects split vs monolithic mode and returns the appropriate service list.
-  // @param service The service type to restart
-  // @return List of systemd service names to restart
-  std::vector<std::string> getServicesToRestart(cli::ServiceType service);
+  // Lazily initialize fbossServiceUtil_ from the loaded agent config.
+  void ensureFbossServiceUtil();
 
   // Initialize the session (creates session config file if it doesn't exist)
   void initializeSession();

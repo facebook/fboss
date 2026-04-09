@@ -19,6 +19,7 @@ cpp_unittest(
         "CmdConfigTestBase.cpp",
         "CmdConfigVlanPortTaggingModeTest.cpp",
         "CmdConfigVlanStaticMacTest.cpp",
+        "ConfigSessionSystemdTest.cpp",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",

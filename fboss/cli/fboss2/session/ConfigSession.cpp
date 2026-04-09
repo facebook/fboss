@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
-#include <folly/Subprocess.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <glog/logging.h>
@@ -44,8 +43,8 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
-#include "fboss/cli/fboss2/session/SystemdInterface.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
@@ -295,7 +294,6 @@ ConfigSession::ConfigSession() {
   sessionConfigDir_ = homeDir + "/.fboss2";
   systemConfigDir_ = coopDir;
   git_ = std::make_unique<Git>(coopDir);
-  systemd_ = std::make_unique<SystemdInterface>();
   initializeSession();
 }
 
@@ -305,20 +303,19 @@ ConfigSession::ConfigSession(
     : sessionConfigDir_(std::move(sessionConfigDir)),
       systemConfigDir_(std::move(systemConfigDir)),
       username_(getUsername()),
-      git_(std::make_unique<Git>(systemConfigDir_)),
-      systemd_(std::make_unique<SystemdInterface>()) {
+      git_(std::make_unique<Git>(systemConfigDir_)) {
   initializeSession();
 }
 
 ConfigSession::ConfigSession(
     std::string sessionConfigDir,
     std::string systemConfigDir,
-    std::unique_ptr<SystemdInterface> systemd)
+    std::unique_ptr<FbossServiceUtil> fbossServiceUtil)
     : sessionConfigDir_(std::move(sessionConfigDir)),
       systemConfigDir_(std::move(systemConfigDir)),
       username_(getUsername()),
       git_(std::make_unique<Git>(systemConfigDir_)),
-      systemd_(std::move(systemd)) {
+      fbossServiceUtil_(std::move(fbossServiceUtil)) {
   // Don't call initializeSession() - this constructor is for testing only
   // and tests don't need git initialization or config file copying
 }
@@ -476,15 +473,6 @@ std::string ConfigSession::getSystemMetadataPath() const {
   return getCliConfigDir() + "/cli_metadata.json";
 }
 
-std::string ConfigSession::getServiceName(cli::ServiceType service) {
-  // TODO: Add support for multi_switch mode with sw_agent and hw_agent
-  switch (service) {
-    case cli::ServiceType::AGENT:
-      return "wedge_agent";
-  }
-  throw std::runtime_error("Unknown service type");
-}
-
 void ConfigSession::loadMetadata() {
   std::string metadataPath = getMetadataPath();
   // Note: We don't initialize requiredActions_ here since getRequiredAction()
@@ -537,6 +525,10 @@ void ConfigSession::saveMetadata() {
       metadataPath, prettyJson, 0644, folly::SyncType::WITH_SYNC);
 }
 
+std::string ConfigSession::getServiceName(cli::ServiceType service) {
+  return FbossServiceUtil::getServiceName(service);
+}
+
 void ConfigSession::updateRequiredAction(
     cli::ServiceType service,
     cli::ConfigActionLevel actionLevel) {
@@ -587,218 +579,33 @@ const std::vector<std::string>& ConfigSession::getCommands() const {
   return commands_;
 }
 
-bool ConfigSession::isSplitMode() const {
-  try {
-    // Check if fboss_sw_agent service is enabled
-    return systemd_->isServiceEnabled("fboss_sw_agent");
-  } catch (const std::exception& ex) {
-    LOG(WARNING) << "Failed to detect split mode: " << ex.what()
-                 << ". Assuming monolithic mode.";
-    return false;
-  }
-}
-
-std::string ConfigSession::getColdbootFileForService(
-    const std::string& service) {
-  AgentDirectoryUtil dirUtil;
-
-  if (service == "fboss_sw_agent") {
-    // Split mode sw_agent
-    return dirUtil.getSwColdBootOnceFile();
-  } else if (service.find("fboss_hw_agent@") == 0) {
-    // Split mode hw_agent - extract switch index
-    std::string indexStr = service.substr(strlen("fboss_hw_agent@"));
-    int switchIndex = folly::to<int>(indexStr);
-    return dirUtil.getHwColdBootOnceFile(switchIndex);
-  } else if (service == "wedge_agent") {
-    // Monolithic mode - use legacy coldboot file
-    return dirUtil.getColdBootOnceFile();
-  } else {
-    throw std::runtime_error(
-        fmt::format("Unknown service type for coldboot: {}", service));
-  }
-}
-
-void ConfigSession::createColdbootMarkerFile(const std::string& coldbootFile) {
-  // Ensure parent directory exists
-  fs::path filePath(coldbootFile);
-  std::error_code ec;
-  fs::create_directories(filePath.parent_path(), ec);
-  if (ec) {
-    throw std::runtime_error(
-        fmt::format(
-            "Failed to create directory for coldboot file {}: {}",
-            coldbootFile,
-            ec.message()));
-  }
-  // Create the file (touch equivalent)
-  std::ofstream touchFile(coldbootFile);
-  if (!touchFile.good()) {
-    // If we failed due to permissions, try using sudo touch
-    int savedErrno = errno;
-    if (savedErrno == EACCES || savedErrno == EPERM) {
-      try {
-        folly::Subprocess touchProc(
-            {"/usr/bin/sudo", "/usr/bin/touch", coldbootFile});
-        touchProc.waitChecked();
-      } catch (const std::exception& ex) {
-        throw std::runtime_error(
-            fmt::format(
-                "Failed to create coldboot file {} (permission denied, sudo touch also failed): {}",
-                coldbootFile,
-                ex.what()));
-      }
-    } else {
-      throw std::runtime_error(
-          fmt::format(
-              "Failed to create coldboot file {}: {}",
-              coldbootFile,
-              folly::errnoStr(savedErrno)));
-    }
-  } else {
-    touchFile.close();
-  }
-  if (!fs::exists(coldbootFile)) {
-    throw std::runtime_error(
-        fmt::format(
-            "Failed to create coldboot file {}: file does not exist after creation",
-            coldbootFile));
-  }
-}
-
-void ConfigSession::performColdboot(
-    const std::vector<std::string>& services,
-    SystemdInterface* systemd) {
-  // Process each service sequentially: stop -> create marker -> start -> wait
-  for (const auto& service : services) {
-    LOG(INFO) << "Performing coldboot for service: " << service;
-
-    // Step 1: Stop the service
-    systemd->stopService(service);
-
-    // Step 2: Create coldboot marker file for this service
-    std::string coldbootFile = getColdbootFileForService(service);
-    createColdbootMarkerFile(coldbootFile);
-
-    // Step 3: Start the service
-    systemd->startService(service);
-
-    // Step 4: Wait for the service to become active
-    systemd->waitForServiceActive(service);
-
-    LOG(INFO) << "Coldboot completed for service: " << service;
-  }
-}
-
-void ConfigSession::performWarmboot(
-    const std::vector<std::string>& services,
-    SystemdInterface* systemd) {
-  // Step 1: Restart all services
-  for (const auto& service : services) {
-    systemd->restartService(service);
-  }
-
-  // Step 2: Wait for all services to become active
-  for (const auto& service : services) {
-    systemd->waitForServiceActive(service);
-  }
-}
-
-std::vector<std::string> ConfigSession::getServicesToRestart(
-    cli::ServiceType service) {
-  std::vector<std::string> services;
-
-  // Detect if running in split mode
-  bool splitMode = isSplitMode();
-
-  if (splitMode) {
-    LOG(INFO) << "Detected split mode (fboss_sw_agent is enabled)";
-
-    // Add sw_agent
-    services.emplace_back("fboss_sw_agent");
-
-    // Get all switch indexes from the config and add hw_agent instances
+void ConfigSession::ensureFbossServiceUtil() {
+  if (!fbossServiceUtil_) {
     auto& config = getAgentConfig();
-    auto switchInfoMap = getSwitchInfoFromConfig(&(*config.sw()));
-    for (const auto& [switchId, switchInfo] : switchInfoMap) {
-      if (switchInfo.switchIndex().has_value()) {
-        services.emplace_back(
-            fmt::format("fboss_hw_agent@{}", *switchInfo.switchIndex()));
-      }
-    }
-    LOG(INFO) << "Found " << (services.size() - 1) << " hw_agent instances";
-  } else {
-    LOG(INFO) << "Detected monolithic mode (fboss_sw_agent is not enabled)";
-    // Monolithic mode: just wedge_agent
-    services.emplace_back(getServiceName(service));
+    const auto& args = *config.defaultCommandLineArgs();
+    bool multiSwitch =
+        args.count("multi_switch") && args.at("multi_switch") == "true";
+    fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+        getSwitchInfoFromConfig(&(*config.sw())), multiSwitch);
   }
-
-  return services;
-}
-
-std::vector<std::string> ConfigSession::restartService(
-    cli::ServiceType service,
-    cli::ConfigActionLevel level) {
-  std::string restartType = (level == cli::ConfigActionLevel::AGENT_COLDBOOT)
-      ? "coldboot"
-      : "warmboot";
-
-  // Get the list of services to restart based on mode (split vs monolithic)
-  auto services = getServicesToRestart(service);
-
-  LOG(INFO) << "Restarting agents (" << restartType << ")...";
-
-  // Perform coldboot or warmboot using common helper functions
-  if (level == cli::ConfigActionLevel::AGENT_COLDBOOT) {
-    performColdboot(services, systemd_.get());
-  } else {
-    performWarmboot(services, systemd_.get());
-  }
-
-  return services;
-}
-
-std::vector<std::string> ConfigSession::reloadServiceConfig(
-    cli::ServiceType service,
-    const HostInfo& hostInfo) {
-  std::vector<std::string> reloadedServices;
-  switch (service) {
-    case cli::ServiceType::AGENT: {
-      // Get the primary service name based on mode (split vs monolithic)
-      // For config reload, we only need the primary service (sw_agent or
-      // wedge_agent)
-      std::string serviceName =
-          isSplitMode() ? "fboss_sw_agent" : getServiceName(service);
-
-      LOG(INFO) << "Reloading config for " << serviceName;
-
-      // Call sync_reloadConfig() on the agent
-      auto client = utils::createClient<
-          apache::thrift::Client<facebook::fboss::FbossCtrl>>(hostInfo);
-      client->sync_reloadConfig();
-
-      LOG(INFO) << "Config reloaded for " << serviceName;
-      reloadedServices.emplace_back(serviceName);
-      break;
-    }
-      // TODO: Add cases for future services (e.g., BGP)
-  }
-  return reloadedServices;
 }
 
 std::map<cli::ServiceType, std::vector<std::string>>
 ConfigSession::applyServiceActions(
     const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
     const HostInfo& hostInfo) {
+  ensureFbossServiceUtil();
   std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   for (const auto& [service, level] : actions) {
     switch (level) {
       case cli::ConfigActionLevel::AGENT_COLDBOOT:
       case cli::ConfigActionLevel::AGENT_WARMBOOT:
-        serviceNames[service] = restartService(service, level);
+        serviceNames[service] =
+            fbossServiceUtil_->restartService(service, level);
         break;
       case cli::ConfigActionLevel::HITLESS:
-        serviceNames[service] = reloadServiceConfig(service, hostInfo);
+        serviceNames[service] =
+            fbossServiceUtil_->reloadConfig(service, hostInfo);
         break;
     }
   }

@@ -16,6 +16,7 @@
 #include <fmt/format.h>
 #include <folly/Subprocess.h>
 #include <folly/logging/xlog.h>
+#include <unistd.h>
 
 namespace facebook::fboss {
 
@@ -39,8 +40,12 @@ void runSystemctlAction(
     folly::StringPiece action,
     const std::string& serviceName) {
   try {
-    folly::Subprocess proc(
-        {"/usr/bin/sudo", "/usr/bin/systemctl", action.str(), serviceName});
+    std::vector<std::string> cmd;
+    if (getuid() != 0) {
+      cmd.emplace_back("/usr/bin/sudo");
+    }
+    cmd.insert(cmd.end(), {"/usr/bin/systemctl", action.str(), serviceName});
+    folly::Subprocess proc(cmd);
     proc.waitChecked();
   } catch (const folly::CalledProcessError& ex) {
     throw std::runtime_error(
