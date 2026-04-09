@@ -125,10 +125,15 @@ void setupPfc(
         setupQosPolicy(true /*isCpuQosMap*/, kCpuQueueingPolicy);
     cfg.cpuTrafficPolicy() = std::move(cpuPolicy);
     std::map<int, std::string> portIdToQosPolicy{};
-    for (const auto& portId : ensemble->masterLogicalPortIds(
-             std::set<cfg::PortType>{
-                 cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
-      portIdToQosPolicy[static_cast<int>(portId)] = kCpuQueueingPolicy;
+    // Iterate over all ports in config to find CPU/recycle ports across
+    // all NPUs. masterLogicalPortIds() only returns ports for the NPU
+    // under test (FLAGS_switch_id_for_testing), which misses recycle
+    // ports on other NPUs in multi-switch mode.
+    for (const auto& port : *cfg.ports()) {
+      if (*port.portType() == cfg::PortType::CPU_PORT ||
+          *port.portType() == cfg::PortType::RECYCLE_PORT) {
+        portIdToQosPolicy[*port.logicalID()] = kCpuQueueingPolicy;
+      }
     }
     if (portIdToQosPolicy.size()) {
       dataTrafficPolicy.portIdToQosPolicy() = std::move(portIdToQosPolicy);
