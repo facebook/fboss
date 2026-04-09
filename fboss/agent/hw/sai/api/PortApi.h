@@ -565,6 +565,13 @@ struct SaiPortTraits {
         sai_uint16_t,
         AttributePfcPauseDurationOverride,
         SaiIntDefault<sai_uint16_t>>;
+    struct AttributeCablePropagationDelayMeasure {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CablePropagationDelayMeasure = SaiExtensionAttribute<
+        bool,
+        AttributeCablePropagationDelayMeasure,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = PortSaiId;
 
@@ -872,6 +879,7 @@ SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
 SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
 SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
+SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
