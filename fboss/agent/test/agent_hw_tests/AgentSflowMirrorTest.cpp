@@ -1286,7 +1286,8 @@ class AgentSflowMirrorWithLineRateTrafficTest
         255, // hopLimit
         std::vector<uint8_t>(4500));
     // Forward the packet in the pipeline
-    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    ensemble->getSw()->sendPacketSwitchedAsync(
+        std::move(txPacket), {getSwitchIdUnderTest(*ensemble)});
   }
 
   void verifySflowEgressPortNotStuck(int iterations) {

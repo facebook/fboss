@@ -79,7 +79,8 @@ class AgentTrafficPauseTest : public AgentHwTest {
         dscp << 2,
         255,
         std::vector<uint8_t>(2000, 0xff));
-    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    ensemble->getSw()->sendPacketSwitchedAsync(
+        std::move(txPacket), {getSwitchIdUnderTest(*ensemble)});
   }
 
   // Ensure that ports which dont have pause received can

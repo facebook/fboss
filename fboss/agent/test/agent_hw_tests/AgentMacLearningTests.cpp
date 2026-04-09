@@ -153,7 +153,7 @@ class AgentMacLearningTest : public AgentHwTest {
      *  and all devices).
      */
 
-    // State udpate that will add/remove MacEntry happens asynchronously in
+    // State update that will add/remove MacEntry happens asynchronously in
     // Event base. Give it chance to run.
     // Typically the MAC learning is immediate post a packet sent, but retries
     // help avoid test noise.
@@ -466,7 +466,7 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  // After the initial sw learning, expect no more l2 udpate as aging is
+  // After the initial sw learning, expect no more l2 update as aging is
   // disabled.
   void testSwLearningNoCycleHelper(PortDescriptor portDescr) {
     auto setup = [this, portDescr]() {
