@@ -1,4 +1,5 @@
 #include "fboss/agent/TxPacket.h"
+#include <folly/io/Cursor.h>
 #include "fboss/agent/TxPacketObserver.h"
 
 namespace facebook::fboss {
@@ -12,6 +13,14 @@ TxPacket::TxPacket(size_t size) {
   buf_ = folly::IOBuf::create(size);
   buf_->append(size);
   buf_->appendSharedInfoObserver(TxPacketObserver());
+}
+
+std::unique_ptr<TxPacket> TxPacket::clone() const {
+  auto size = buf_->computeChainDataLength();
+  auto clonedPkt = allocateTxPacket(size);
+  folly::io::Cursor cursor(buf_.get());
+  cursor.pull(clonedPkt->buf()->writableData(), size);
+  return clonedPkt;
 }
 
 std::atomic<size_t>* TxPacket::getPacketCounter() {

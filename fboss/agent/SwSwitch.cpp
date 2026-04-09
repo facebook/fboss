@@ -3395,10 +3395,10 @@ bool SwSwitch::sendPacketOutViaThriftStream(
 
 bool SwSwitch::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt,
-    std::optional<SwitchID> switchId) noexcept {
+    const SwitchIDs& switchIds) noexcept {
   pcapMgr_->packetSent(pkt.get());
   if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(
-          std::move(pkt), switchId)) {
+          std::move(pkt), switchIds)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the
