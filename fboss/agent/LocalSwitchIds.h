@@ -13,37 +13,37 @@
 namespace facebook::fboss {
 
 /*
- * Maximum number of local switch IDs (NPUs) that SwitchIDs can hold.
+ * Maximum number of local switch IDs (NPUs) that LocalSwitchIDs can hold.
  * Sized to cover foreseeable multi-NPU platforms. static_vector throws
  * on overflow; the runtime CHECK in MultiHwSwitchHandler also fires on
  * startup if a platform exceeds this.
  */
-inline constexpr size_t kMaxSwitchIds = 32;
+inline constexpr size_t kMaxLocalSwitchIds = 32;
 
 /*
- * A stack-allocated, sorted, deduplicated collection of SwitchIDs for
+ * A stack-allocated, sorted, deduplicated collection of LocalSwitchIDs for
  * use in performance-sensitive packet TX paths.
  *
  * Backed by boost::container::static_vector with capacity for up to
- * kMaxSwitchIds elements, eliminating heap allocation for all
+ * kMaxLocalSwitchIds elements, eliminating heap allocation for all
  * foreseeable NPU counts. Call-site syntax is unchanged:
  *
  *   sendPacketSwitchedAsync(std::move(pkt), {switchId});
  *   sendPacketSwitchedAsync(std::move(pkt), {id1, id2});
  *   sendPacketSwitchedAsync(std::move(pkt));
  *
- * Duplicate SwitchIDs are detected, logged as errors, and
+ * Duplicate LocalSwitchIDs are detected, logged as errors, and
  * deduplicated — packets are sent exactly once per unique SwitchID.
  */
-class SwitchIDs {
+class LocalSwitchIDs {
  public:
   using container_type =
-      boost::container::static_vector<SwitchID, kMaxSwitchIds>;
+      boost::container::static_vector<SwitchID, kMaxLocalSwitchIds>;
   using const_iterator = container_type::const_iterator;
 
-  SwitchIDs() = default;
+  LocalSwitchIDs() = default;
 
-  /* implicit */ SwitchIDs(std::initializer_list<SwitchID> ids)
+  /* implicit */ LocalSwitchIDs(std::initializer_list<SwitchID> ids)
       : ids_(ids.begin(), ids.end()) {
     std::sort(ids_.begin(), ids_.end());
     auto dupIt = std::adjacent_find(ids_.begin(), ids_.end());

@@ -1221,8 +1221,8 @@ cpp_library(
         "types.cpp",
     ],
     headers = [
+        "LocalSwitchIds.h",
         "PortDescriptorTemplate.h",
-        "SwitchIDs.h",
         "types.h",
     ],
     exported_deps = [
