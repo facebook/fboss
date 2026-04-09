@@ -388,6 +388,11 @@ DEFINE_bool(
     "Initiate neighbor solicitation for static neighbors");
 
 DEFINE_bool(
+    arp_static_neighbor,
+    false,
+    "Initiate ARP request for static neighbors");
+
+DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
