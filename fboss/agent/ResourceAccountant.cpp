@@ -519,6 +519,73 @@ size_t ResourceAccountant::countSrv6NextHops(
   return count;
 }
 
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateSrv6NextHopResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state) {
+  const auto& fwd = route->getForwardInfo();
+  if (fwd.getAction() != RouteForwardAction::NEXTHOPS) {
+    return true;
+  }
+
+  auto nhSetId = fwd.getNormalizedResolvedNextHopSetID();
+  if (!nhSetId.has_value()) {
+    return true;
+  }
+  auto setIdVal = static_cast<int64_t>(nhSetId.value());
+
+  // Check if this NextHopSetID is already tracked
+  if (auto it = srv6NextHopSetRefMap_.find(setIdVal);
+      it != srv6NextHopSetRefMap_.end()) {
+    it->second.refCount += (add ? 1 : -1);
+    CHECK_GE(it->second.refCount, 0);
+    if (!add && it->second.refCount == 0) {
+      if (it->second.isEcmp) {
+        srv6EcmpNextHopUsage_ -= it->second.srv6Count;
+      } else {
+        srv6SingleNextHopUsage_ -= it->second.srv6Count;
+      }
+      srv6NextHopSetRefMap_.erase(it);
+    }
+    return true;
+  }
+
+  // NextHopSetID not in map. For remove, this means the route had no SRv6
+  // next hops when it was added (srv6Count was 0), so nothing to undo.
+  if (!add) {
+    return true;
+  }
+
+  // New NextHopSetID on add — resolve nhops to count SRv6
+  auto nhSet = getNormalizedNextHops(state, fwd);
+  auto srv6Count = countSrv6NextHops(nhSet);
+  if (srv6Count == 0) {
+    return true;
+  }
+
+  bool isEcmpRoute = nhSet.size() > 1;
+  srv6NextHopSetRefMap_[setIdVal] = {1, srv6Count, isEcmpRoute};
+  if (isEcmpRoute) {
+    srv6EcmpNextHopUsage_ += srv6Count;
+  } else {
+    srv6SingleNextHopUsage_ += srv6Count;
+  }
+  return true;
+}
+
+template bool
+ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV6>(
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
+
+template bool
+ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV4>(
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
+
 // Neighbor table resoure accounting
 
 // get switchId from neighbor entry
