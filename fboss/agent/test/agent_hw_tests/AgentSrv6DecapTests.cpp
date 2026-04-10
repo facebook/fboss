@@ -469,7 +469,54 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
       }
     }
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 
+TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
+  auto setup = [this]() { this->setupHelper(); };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort(egressPort);
+
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+
+    // Outer dst IP matches the mySid /48 prefix but is not the last uSid.
+    // The packet should be dropped.
+    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:ffff:1:2::"};
+
+    auto txPacket = utility::makeIpInIpTxPacket(
+        this->getSw(),
+        this->getVlanIDForTx().value(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("1::1"),
+        kNonLastSegmentDst,
+        folly::IPAddressV6("1::10"),
+        this->kV6RouteDstIp,
+        8000,
+        8001,
+        0 /* outerTcField */,
+        0 /* innerTrafficClass */,
+        64,
+        64);
+
+    this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
+      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+    });
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
