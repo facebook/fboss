@@ -419,4 +419,9 @@ SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
   return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+  return std::nullopt;
+}
+
 } // namespace facebook::fboss

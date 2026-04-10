@@ -443,7 +443,7 @@ void TransceiverManager::triggerQsfpHardReset(int idx) {
       idx,
       false /*holdInReset*/,
       true /*RemoveTransceiver*/);
-  XLOG(INFO) << "triggerQsfpHardReset called for Transceiver: " << idx;
+  MODULE_LOG(INFO, "", idx) << "triggerQsfpHardReset called";
 }
 
 void TransceiverManager::holdTransceiverReset(int idx) {
@@ -452,7 +452,7 @@ void TransceiverManager::holdTransceiverReset(int idx) {
       idx,
       true /*holdInReset*/,
       true /*RemoveTransceiver*/);
-  XLOG(INFO) << "holdTransceiverReset called for Transceiver: " << idx;
+  MODULE_LOG(INFO, "", idx) << "holdTransceiverReset called";
 }
 
 void TransceiverManager::releaseTransceiverReset(int idx) {
@@ -461,7 +461,7 @@ void TransceiverManager::releaseTransceiverReset(int idx) {
       idx,
       false /*holdInReset*/,
       false /*RemoveTransceiver*/);
-  XLOG(INFO) << "releaseTransceiverReset called for Transceiver: " << idx;
+  MODULE_LOG(INFO, "", idx) << "releaseTransceiverReset called";
 }
 
 void TransceiverManager::gracefulExit() {
@@ -1162,8 +1162,8 @@ void TransceiverManager::handlePendingUpdates() {
   for (auto& [tcvrID, stateMachineController] : stateMachineControllers_) {
     auto* eventBase = getEventBaseForTcvr(qsfpServiceThreads_, tcvrID);
     if (!eventBase) {
-      XLOG(WARN) << "Unrecognize Transceiver: " << tcvrID
-                 << ", can't find EventBase for it. Skip updating.";
+      MODULE_LOG(WARN, "", tcvrID)
+          << "Unrecognized, can't find EventBase for it. Skip updating.";
       continue;
     }
 
@@ -1407,8 +1407,8 @@ void TransceiverManager::programExternalPhyPorts(
   const auto& programmedPortToPortInfo = getProgrammedIphyPortToPortInfo(id);
   if (programmedPortToPortInfo.empty()) {
     // This is due to the iphy ports are disabled. So no need to program xphy
-    XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << id
-               << ". Can't find programmed iphy port and port info";
+    MODULE_LOG(DBG2, "", id)
+        << "Skip programming xphy ports. Can't find programmed iphy port and port info";
     return;
   }
   const auto& supportedXphyPorts = phyManager->getXphyPorts();
@@ -1417,17 +1417,18 @@ void TransceiverManager::programExternalPhyPorts(
     if (std::find(
             supportedXphyPorts.begin(), supportedXphyPorts.end(), portID) ==
         supportedXphyPorts.end()) {
-      XLOG(DBG2) << "Skip programming xphy ports for Transceiver=" << id
-                 << ", Port=" << portID << ". Can't find supported xphy";
+      MODULE_LOG(DBG2, "", id)
+          << "Skip programming xphy ports, Port=" << portID
+          << ". Can't find supported xphy";
       continue;
     }
 
     phyManager->programOnePort(
         portID, portInfo.profile, transceiver, needResetDataPath);
-    XLOG(INFO) << "Programmed XPHY port for Transceiver=" << id
-               << ", Port=" << portID << ", Profile="
-               << apache::thrift::util::enumNameSafe(portInfo.profile)
-               << ", needResetDataPath=" << needResetDataPath;
+    MODULE_LOG(INFO, "", id) << "Programmed XPHY port, Port=" << portID
+                        << ", Profile="
+                        << apache::thrift::util::enumNameSafe(portInfo.profile)
+                        << ", needResetDataPath=" << needResetDataPath;
   }
 }
 
@@ -1624,9 +1625,9 @@ TransceiverManager::getDriverPeakingOverrides(
       continue;
     }
     if (driverPeakingOpt->size() != numberOfLanes) {
-      XLOG(ERR)
-          << "Warning: Driver Peaking overrides do not match the number of lanes: transceiver "
-          << tcvrId << " port " << port << ". Not overriding";
+      MODULE_LOG(ERR, "", tcvrId)
+          << "Driver Peaking overrides do not match the number of lanes: port "
+          << port << ". Not overriding";
       continue;
     }
     overridesFound = true;
@@ -1683,11 +1684,11 @@ TransceiverManager::getOpticalChannelConfig(TransceiverID id) const {
     return std::nullopt;
   }
 
-  XLOG(DBG2) << "Tunable Optics config is present id " << id;
+  MODULE_LOG(DBG2, "", id) << "Tunable Optics config is present";
   auto portNames = getPortNames(id);
   for (const auto& portName : portNames) {
-    XLOG(DBG2) << "Tunable Optics config is present id " << id << " port_name "
-               << folly::join(",", portNames);
+    MODULE_LOG(DBG2, "", id) << "Tunable Optics config is present, port_name "
+                        << folly::join(",", portNames);
     auto tunableOpticsConfigInCfgIt = qsfpCfgTunableOptics->find(portName);
     if (tunableOpticsConfigInCfgIt != qsfpCfgTunableOptics->end()) {
       const auto& opticalChannelConfig = tunableOpticsConfigInCfgIt->second;
@@ -1696,8 +1697,8 @@ TransceiverManager::getOpticalChannelConfig(TransceiverID id) const {
       if (centerFreq->getType() ==
           facebook::fboss::cfg::CenterFrequencyConfig::Type::frequencyMhz) {
         int freqMhz = centerFreq->get_frequencyMhz();
-        XLOG(DBG2) << "The frequency is  " << freqMhz << " id " << id
-                   << " port_name " << portName;
+        MODULE_LOG(DBG2, "", id) << "The frequency is " << freqMhz
+                            << " port_name " << portName;
       }
       // Use the frequency config from tunable optics config
       return opticalChannelConfig;
@@ -1713,8 +1714,8 @@ void TransceiverManager::programTransceiver(
   const auto& programmedPortToPortInfo = getProgrammedIphyPortToPortInfo(id);
   if (programmedPortToPortInfo.empty()) {
     // This is due to the iphy ports are disabled. So no need to program tcvr
-    XLOG(DBG2) << "Skip programming Transceiver=" << id
-               << ". Can't find programmed iphy port and port info";
+    MODULE_LOG(DBG2, "", id)
+        << "Skip programming. Can't find programmed iphy port and port info";
     return;
   }
 
@@ -1772,8 +1773,7 @@ void TransceiverManager::programTransceiver(
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt == lockedTransceivers->end()) {
-    XLOG(DBG2) << "Skip programming Transceiver=" << id
-               << ". Transeciver is not present";
+    MODULE_LOG(DBG2, "", id) << "Skip programming. Not present";
     return;
   }
 
@@ -1783,9 +1783,9 @@ void TransceiverManager::programTransceiver(
   // (start of programming time, end of programming time) to the
   // fsdb.
   publishPortStatesToFsdb(id, tcvrIt->second->getPortState());
-  XLOG(INFO) << "Programmed Transceiver for Transceiver=" << id
-             << (needResetDataPath ? " with" : " without")
-             << " resetting data path";
+  MODULE_LOG(INFO, "", id) << "Programmed"
+                      << (needResetDataPath ? " with" : " without")
+                      << " resetting data path";
 
   // We also want to remove this transceiver from tcvrsReadyForProgramming_ to
   // avoid programming with old settings received from PortManager.
@@ -1810,8 +1810,7 @@ bool TransceiverManager::readyTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt == lockedTransceivers->end()) {
-    XLOG(DBG2) << "Skip Ready Checking Transceiver=" << id
-               << ". Transeciver is not present";
+    MODULE_LOG(DBG2, "", id) << "Skip Ready Checking. Not present";
     return true;
   }
 
@@ -1851,8 +1850,7 @@ bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt == lockedTransceivers->end()) {
-    XLOG(DBG2) << "Skip remediating Transceiver=" << id
-               << ". Transeciver is not present";
+    MODULE_LOG(DBG2, "", id) << "Skip remediating. Not present";
     return false;
   }
   bool allPortsDown;
@@ -1860,9 +1858,8 @@ bool TransceiverManager::tryRemediateTransceiver(TransceiverID id) {
   std::tie(allPortsDown, portsToRemediate) = areAllPortsDown(id);
   bool didRemediate = tcvrIt->second->tryRemediate(
       allPortsDown, pauseRemediationUntil_, portsToRemediate);
-  XLOG_IF(INFO, didRemediate)
-      << "Remediated Transceiver for Transceiver=" << id
-      << " and ports=" << folly::join(",", portsToRemediate);
+  MODULE_LOG_IF(INFO, "", didRemediate, id)
+      << "Remediated, ports=" << folly::join(",", portsToRemediate);
   return didRemediate;
 }
 
@@ -1870,8 +1867,7 @@ bool TransceiverManager::supportRemediateTransceiver(TransceiverID id) {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt == lockedTransceivers->end()) {
-    XLOG(DBG2) << "Transceiver=" << id
-               << " is not present and can't support remediate";
+    MODULE_LOG(DBG2, "", id) << "is not present and can't support remediate";
     return false;
   }
   return tcvrIt->second->supportRemediate();
@@ -2148,11 +2144,11 @@ void TransceiverManager::updateTransceiverActiveState(
   for (auto tcvrID : tcvrs) {
     auto tcvrToPortInfoIt = tcvrToPortInfo_.find(tcvrID);
     if (tcvrToPortInfoIt == tcvrToPortInfo_.end()) {
-      XLOG(WARN) << "Unrecoginized Transceiver:" << tcvrID
-                 << ", skip updateTransceiverActiveState()";
+      MODULE_LOG(WARN, "", tcvrID)
+          << "Unrecognized, skip updateTransceiverActiveState()";
       continue;
     }
-    XLOG(INFO) << "Syncing ports of transceiver " << tcvrID;
+    MODULE_LOG(INFO, "", tcvrID) << "Syncing ports";
     std::unordered_set<PortID> statusChangedPorts;
     bool anyPortUp = false;
     bool isTcvrJustProgrammed =
@@ -2396,9 +2392,8 @@ TransceiverManager::findPotentialTcvrsForFirmwareUpgrade(
         FLAGS_firmware_upgrade_on_link_down) {
       // Anytime a module is in inactive state (link down), it's a candidate
       // for fw upgrade.
-      XLOG(INFO)
-          << "Transceiver " << static_cast<int>(tcvrId)
-          << " is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
+      MODULE_LOG(INFO, "", tcvrId)
+          << "is in INACTIVE state, adding it to list of potentialTcvrsForFwUpgrade";
       potentialTcvrsForFwUpgrade.insert(tcvrId);
     } else if (curState == TransceiverStateMachineState::DISCOVERED) {
       if (FLAGS_firmware_upgrade_on_coldboot && firstRefreshAfterColdboot) {
@@ -2687,14 +2682,12 @@ std::pair<bool, std::vector<std::string>> TransceiverManager::areAllPortsDown(
     TransceiverID id) const noexcept {
   auto portToPortInfoIt = tcvrToPortInfo_.find(id);
   if (portToPortInfoIt == tcvrToPortInfo_.end()) {
-    XLOG(WARN) << "Can't find Transceiver:" << id
-               << " in cached tcvrToPortInfo_";
+    MODULE_LOG(WARN, "", id) << "Can't find in cached tcvrToPortInfo_";
     return {false, {}};
   }
   auto portToPortInfoWithLock = portToPortInfoIt->second->rlock();
   if (portToPortInfoWithLock->empty()) {
-    XLOG(WARN) << "Can't find any programmed port for Transceiver:" << id
-               << " in cached tcvrToPortInfo_";
+    MODULE_LOG(WARN, "", id) << "Can't find any programmed port in cached tcvrToPortInfo_";
     //  If no port information for the transceiver is found, we must assume that
     //  ports are up to ensure we don't accidentally remediate on warmboot. This
     //  is consistent for Port Manager mode and non-Port Manager mode.
@@ -2748,8 +2741,8 @@ void TransceiverManager::triggerRemediateEvents(
     // Check if any of the ports are running ASIC PRBS. If yes, skip
     // triggering remediation on transceiver.
     if (isRunningAsicPrbs(tcvrID)) {
-      XLOG(DBG2) << "Skip remediating Transceiver=" << tcvrID
-                 << ". Transceiver is running ASIC PRBS";
+      MODULE_LOG(DBG2, "", tcvrID)
+          << "Skip remediating. Transceiver is running ASIC PRBS";
       continue;
     }
 
@@ -2785,8 +2778,8 @@ void TransceiverManager::triggerRemediateEvents(
     auto lockedTransceivers = transceivers_.rlock();
     auto tcvrIt = lockedTransceivers->find(tcvrID);
     if (tcvrIt == lockedTransceivers->end()) {
-      XLOG(DBG2) << "Skip remediating Transceiver=" << tcvrID
-                 << ". Transceiver is not present";
+      MODULE_LOG(DBG2, "", tcvrID)
+          << "Skip remediating. Not present";
       continue;
     }
     if (!tcvrIt->second->shouldRemediate(pauseRemediationUntil_)) {
@@ -2808,8 +2801,8 @@ void TransceiverManager::markLastDownTime(TransceiverID id) noexcept {
   auto lockedTransceivers = transceivers_.rlock();
   auto tcvrIt = lockedTransceivers->find(id);
   if (tcvrIt == lockedTransceivers->end()) {
-    XLOG(DBG2) << "Skip markLastDownTime for Transceiver=" << id
-               << ". Transeciver is not present";
+    MODULE_LOG(DBG2, "", id)
+        << "Skip markLastDownTime. Not present";
     return;
   }
   tcvrIt->second->markLastDownTime();
@@ -2820,9 +2813,8 @@ void TransceiverManager::updateLastDownTimeFromPortStatus(
   for (const auto& [tcvrId, portsNowActive] : tcvrPortStatusChanges) {
     auto stateMachineItr = stateMachineControllers_.find(tcvrId);
     if (stateMachineItr == stateMachineControllers_.end()) {
-      XLOG(DBG2) << "[Transceiver:" << tcvrId
-                 << "] Skip updateLastDownTimeFromPortStatus, "
-                 << "state machine not found";
+      MODULE_LOG(DBG2, "", tcvrId)
+          << "Skip updateLastDownTimeFromPortStatus, state machine not found";
       continue;
     }
 
@@ -2832,22 +2824,19 @@ void TransceiverManager::updateLastDownTimeFromPortStatus(
     if (portsNowActive) {
       // Equivalent to activeStateEntry: enable marking for next DOWN transition
       lockedStateMachine->get_attribute(needMarkLastDownTime) = true;
-      XLOG(DBG2) << "[Transceiver:" << tcvrId
-                 << "] Port Manager mode: Port(s) now active, "
-                 << "set needMarkLastDownTime=true";
+      MODULE_LOG(DBG2, "", tcvrId)
+          << "Port Manager mode: Port(s) now active, set needMarkLastDownTime=true";
     } else {
       // Equivalent to markLastDownTime (INACTIVE state entry):
       // Only mark if needMarkLastDownTime is true, then clear it
       if (lockedStateMachine->get_attribute(needMarkLastDownTime)) {
         markLastDownTime(tcvrId);
         lockedStateMachine->get_attribute(needMarkLastDownTime) = false;
-        XLOG(DBG2)
-            << "[Transceiver:" << tcvrId
-            << "] Port Manager mode: All ports down, marked lastDownTime";
+        MODULE_LOG(DBG2, "", tcvrId)
+            << "Port Manager mode: All ports down, marked lastDownTime";
       } else {
-        XLOG(DBG3) << "[Transceiver:" << tcvrId
-                   << "] Port Manager mode: All ports down, "
-                   << "but needMarkLastDownTime=false, skipping";
+        MODULE_LOG(DBG3, "", tcvrId)
+            << "Port Manager mode: All ports down, but needMarkLastDownTime=false, skipping";
       }
     }
   }
@@ -2929,8 +2918,8 @@ bool TransceiverManager::verifyEepromChecksumsLocked(TransceiverID id) {
       "verifyEepromChecksumsLocked: transceivers_ is not locked.");
   auto tcvrIt = transceivers_.unsafeGetUnlocked().find(id);
   if (tcvrIt == transceivers_.unsafeGetUnlocked().end()) {
-    XLOG(DBG2) << "Skip verifying eeprom checksum for Transceiver=" << id
-               << ". Transceiver is not present";
+    MODULE_LOG(DBG2, "", id)
+        << "Skip verifying eeprom checksum. Not present";
     return true;
   }
   return tcvrIt->second->verifyEepromChecksums();
@@ -3366,8 +3355,7 @@ std::optional<DiagsCapability> TransceiverManager::getDiagsCapability(
   if (auto it = lockedTransceivers->find(id); it != lockedTransceivers->end()) {
     return it->second->getDiagsCapability();
   }
-  XLOG(WARN) << "Return nullopt DiagsCapability for Transceiver=" << id
-             << ". Transeciver is not present";
+  MODULE_LOG(WARN, "", id) << "Return nullopt DiagsCapability. Not present";
   return std::nullopt;
 }
 
@@ -3378,8 +3366,7 @@ void TransceiverManager::setDiagsCapabilityLocked(TransceiverID id) {
   if (tcvrIt != transceivers_.unsafeGetUnlocked().end()) {
     return tcvrIt->second->setDiagsCapability();
   }
-  XLOG(DBG2) << "Skip setting DiagsCapability for Transceiver=" << id
-             << ". Transceiver is not present";
+  MODULE_LOG(DBG2, "", id) << "Skip setting DiagsCapability. Not present";
 }
 
 Transceiver* FOLLY_NULLABLE TransceiverManager::overrideTransceiverForTesting(
@@ -3420,7 +3407,7 @@ std::vector<TransceiverID> TransceiverManager::refreshTransceivers(
           transceivers.find(id) == transceivers.end()) {
         continue;
       }
-      XLOG(DBG3) << "Fired to refresh TransceiverID=" << id;
+      MODULE_LOG(DBG3, "", id) << "Fired to refresh";
       transceiverIds.push_back(id);
       futs.push_back(transceiver.second->futureRefresh());
     }

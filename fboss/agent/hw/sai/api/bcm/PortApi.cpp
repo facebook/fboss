@@ -601,6 +601,15 @@ SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0) || defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE;
+#else
+  return std::nullopt;
+#endif
+}
+
 const std::vector<sai_stat_id_t>&
 SaiPortTraits::macTxDataQueueMinWatermarkStats() {
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)

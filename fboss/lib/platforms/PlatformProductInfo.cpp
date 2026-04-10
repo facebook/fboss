@@ -165,7 +165,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Meru800biac") == 0 ||
         modelName.find("MERU800BIAC") == 0 ||
-        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0) {
+        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0 ||
+        modelName.find("FB-DL-7700R4C-38PE-C-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIAC;
     } else if (
         modelName.find("Meru800bfa") == 0 ||

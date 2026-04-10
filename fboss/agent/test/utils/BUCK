@@ -16,6 +16,7 @@ cpp_library(
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/test:agent_ensemble",
         "//fboss/lib:common_utils",
+        "//folly:network_address",
     ],
 )
 

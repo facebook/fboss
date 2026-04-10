@@ -290,6 +290,16 @@ DEFINE_int32(
     75,
     "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
+DEFINE_bool(
+    enable_srv6_nexthop_resource_protection,
+    false,
+    "Enable SRv6 next hop resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    srv6_nexthop_resource_percentage,
+    75,
+    "Percentage of SRv6 next hop resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
 DEFINE_int32(
     switch_index_for_testing,
     0,

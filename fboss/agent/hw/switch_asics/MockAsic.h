@@ -152,6 +152,12 @@ class MockAsic : public HwAsic {
   std::optional<uint32_t> getMaxMySidEntries() const override {
     return 8;
   }
+  std::optional<uint32_t> getMaxSrv6EcmpNextHops() const override {
+    return 16;
+  }
+  std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
+    return 8;
+  }
   std::optional<uint32_t> getMaxNdpTableSize() const override {
     return 8;
   }

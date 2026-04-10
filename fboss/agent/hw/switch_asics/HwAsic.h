@@ -715,6 +715,16 @@ class HwAsic {
     return std::nullopt;
   }
 
+  // SRv6 next hops used as ECMP group members (NextHopSet size > 1)
+  virtual std::optional<uint32_t> getMaxSrv6EcmpNextHops() const {
+    return std::nullopt;
+  }
+
+  // SRv6 next hops used by single-nhop routes (NextHopSet size == 1)
+  virtual std::optional<uint32_t> getMaxSrv6SingleNextHops() const {
+    return std::nullopt;
+  }
+
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(

@@ -59,6 +59,9 @@ static const std::map<std::tuple<int, int>, std::string>
         {std::make_tuple(1, 2), "0x40000000000000000"},
         // Janga: portID=3, port_first_phy=8, core_first_phy=0 P1842843423
         {std::make_tuple(3, 2), "0x40000000000000000"},
+        // Janga ASIC 1: portID=32779 (eth1/63/1), port_first_phy=8,
+        // core_first_phy=0
+        {std::make_tuple(32779, 2), "0x40000000000000000"},
 };
 
 struct TrafficTestParams {
@@ -493,25 +496,30 @@ class AgentTrafficPfcTest : public AgentHwTest {
           }
         }
       }
-      for (const auto& [switchId, asic] : getAsics()) {
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-          // Jericho3 has additional VSQ drops counters which accounts for
-          // ingress buffer drops.
-          getSw()->updateStats();
-          fb303::ThreadCachedServiceData::get()->publishStats();
-          auto switchIndex =
-              getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
-                  switchId);
-          auto vsqResourcesExhautionDrops =
-              *getSw()
-                   ->getHwSwitchStatsExpensive()[switchIndex]
-                   .fb303GlobalStats()
-                   ->vsq_resource_exhaustion_drops();
-          XLOG(DBG0)
-              << " validateIngressDropCounters: vsqResourceExhaustionDrops: "
-              << vsqResourcesExhautionDrops;
-          EXPECT_EVENTUALLY_GT(vsqResourcesExhautionDrops, 0);
-        }
+      // Only validate VSQ drops on the ASIC under test. In multi-switch
+      // mode, traffic flows through one ASIC only, so the other ASIC
+      // will have 0 drops.
+      auto testSwitchId = scopeResolver().scope(portIds[0]).switchId();
+      auto asics = getAsics();
+      auto asicIt = asics.find(testSwitchId);
+      if (asicIt != asics.end() &&
+          asicIt->second->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        // Jericho3 has additional VSQ drops counters which accounts for
+        // ingress buffer drops.
+        getSw()->updateStats();
+        fb303::ThreadCachedServiceData::get()->publishStats();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+                testSwitchId);
+        auto vsqResourcesExhautionDrops =
+            *getSw()
+                 ->getHwSwitchStatsExpensive()[switchIndex]
+                 .fb303GlobalStats()
+                 ->vsq_resource_exhaustion_drops();
+        XLOG(DBG0)
+            << " validateIngressDropCounters: vsqResourceExhaustionDrops: "
+            << vsqResourcesExhautionDrops;
+        EXPECT_EVENTUALLY_GT(vsqResourcesExhautionDrops, 0);
       }
     });
   }
@@ -1288,20 +1296,28 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
   }
 
   std::tuple<int, int> getSwitchPfcDeadlockCounters() {
-    auto detectionCtrName = getAgentEnsemble()->isSai()
+    auto detectionCtrBase = getAgentEnsemble()->isSai()
         ? "pfc_deadlock_detection_count.sum"
         : "pfc_deadlock_detection.sum";
-    auto recoveryCtrName = getAgentEnsemble()->isSai()
+    auto recoveryCtrBase = getAgentEnsemble()->isSai()
         ? "pfc_deadlock_recovery_count.sum"
         : "pfc_deadlock_recovery.sum";
-    int deadlockCtr = 0;
-    int recoveryCtr = 0;
-    for (const auto& [switchId, asic] : getAsics()) {
-      deadlockCtr +=
-          getAgentEnsemble()->getFb303Counter(detectionCtrName, switchId);
-      recoveryCtr +=
-          getAgentEnsemble()->getFb303Counter(recoveryCtrName, switchId);
+    // Only query the ASIC under test. PFC deadlock is only triggered
+    // on this ASIC, so other ASICs always have 0 counters.
+    auto testSwitchId = SwitchID(FLAGS_switch_id_for_testing);
+    // In multi-switch mode, hw_agent registers counters with a
+    // "switch.<switchIndex>." prefix. Prepend it when querying.
+    std::string prefix;
+    if (getAsics().size() > 1) {
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+              testSwitchId);
+      prefix = folly::to<std::string>("switch.", switchIndex, ".");
     }
+    int deadlockCtr = getAgentEnsemble()->getFb303Counter(
+        prefix + detectionCtrBase, testSwitchId);
+    int recoveryCtr = getAgentEnsemble()->getFb303Counter(
+        prefix + recoveryCtrBase, testSwitchId);
     return {deadlockCtr, recoveryCtr};
   }
 

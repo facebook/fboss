@@ -1090,6 +1090,10 @@ void populateSwitchInfo(
     }
     return firstHwAsicTableItr->second;
   }();
+  // In production, all NPUs on the same device share the same DSF node name.
+  // Use the smallest switchId as the device identifier to match this behavior.
+  auto deviceSwitchId =
+      static_cast<int64_t>(switchIdToSwitchInfo.begin()->first);
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -1099,8 +1103,9 @@ void populateSwitchInfo(
     const auto& hwAsic = hwAsicTableItr->second;
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
-      newDsfNodes.insert(
-          {switchId, dsfNodeConfig(*firstHwAsic, switchId, platformType)});
+      auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
+      dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
+      newDsfNodes.insert({switchId, std::move(dsfNode)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;

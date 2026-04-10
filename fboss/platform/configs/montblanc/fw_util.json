@@ -394,7 +394,7 @@
       ],
       "version": {
         "versionType": "full_command",
-        "getVersionCmd": "EEPROM=/run/devmap/eeproms/PSU2_EEPROM_PARSED; if [ -f \"$EEPROM\" ] && grep -q DC3K12V_M_L \"$EEPROM\"; then BUS=$(i2cdetect -l | grep 'iob_i2c.*0xfb504500' | awk '{print $1}' | sed 's/i2c-//'); i2cget -y -f $BUS 0x59 0xd9 s | perl -ane 'print join(\".\", map { hex($_) } reverse @F)'; else echo 'Not Supported'; fi"
+        "getVersionCmd": "EEPROM=/run/devmap/eeproms/PSU2_EEPROM_PARSED; if [ -f \"$EEPROM\" ] && grep -q DC3K12V_M_L \"$EEPROM\"; then BUS=$(i2cdetect -l | grep 'iob_i2c.*0xfb504500' | awk '{print $1}' | sed 's/i2c-//'); OUTPUT=$(i2cget -y -f $BUS 0x59 0xd9 s); RESULT=\"\"; for h in $OUTPUT; do D=$(printf '%d' \"$h\"); RESULT=\"${D}${RESULT:+.}${RESULT}\"; done; echo \"$RESULT\"; else echo 'Not Supported'; fi"
       },
       "priority": 8
     }

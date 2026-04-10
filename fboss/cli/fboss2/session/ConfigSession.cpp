@@ -702,12 +702,6 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
         "No config session exists. Make a config change first.");
   }
 
-  if (commands_.empty()) {
-    // Config session is clean, nothing to commit.
-    // Return an empty CommitResult to signal no action was taken.
-    return CommitResult{"", {}};
-  }
-
   // Check if someone else committed changes while this session was in progress
   std::string currentHead = git_->getHead();
   if (!base_.empty() && currentHead != base_) {
@@ -744,6 +738,11 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
       throw std::runtime_error(
           fmt::format("Failed to read CLI config from {}", cliConfigPath));
     }
+  }
+
+  // Early return if there are no changes to commit
+  if (sessionConfigData == oldConfigData && requiredActions_.empty()) {
+    return CommitResult{"", {}};
   }
 
   // Copy the metadata file alongside the config revision

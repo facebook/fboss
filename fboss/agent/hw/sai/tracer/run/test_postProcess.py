@@ -6,6 +6,8 @@
 # Verifies that string-op replacements produce identical output
 # to the original regex-based logic.
 
+# pyre-unsafe
+
 import os
 import re
 import shutil

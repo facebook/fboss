@@ -676,7 +676,7 @@ class SwSwitch : public HwSwitchCallback {
   // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt,
-      const SwitchIDs& switchIds = {}) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
   /**
    * Send out L3 packet through HW

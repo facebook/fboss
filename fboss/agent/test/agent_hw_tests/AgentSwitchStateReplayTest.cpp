@@ -80,11 +80,15 @@ class AgentSwitchStateReplayTest : public AgentHwTest {
   void runTest() {
     auto setup = [=, this]() {
       auto wbState = getWarmBootState();
+      auto switchId = getCurrentSwitchIdForTesting();
       for (auto portMap : std::as_const(*wbState->getPorts())) {
         for (auto [_, port] : std::as_const(*portMap.second)) {
           if (port->isUp()) {
             auto portSwitchId =
                 getSw()->getScopeResolver()->scope(port->getID()).switchId();
+            if (portSwitchId != switchId) {
+              continue;
+            }
             auto portAsic = getSw()->getHwAsicTable()->getHwAsic(portSwitchId);
             auto newPort = port->modify(&wbState);
             newPort->setLoopbackMode(

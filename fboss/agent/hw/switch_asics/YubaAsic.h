@@ -116,6 +116,12 @@ class YubaAsic : public TajoAsic {
   std::optional<uint32_t> getMaxMySidEntries() const override {
     return 2048;
   }
+  std::optional<uint32_t> getMaxSrv6EcmpNextHops() const override {
+    return 8000;
+  }
+  std::optional<uint32_t> getMaxSrv6SingleNextHops() const override {
+    return 3000;
+  }
   std::optional<uint32_t> getMaxEcmpMembers() const override {
     /*
      * G200 supports ~20K next hop group(NHG) members, but we are limiting it to
