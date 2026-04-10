@@ -493,25 +493,30 @@ class AgentTrafficPfcTest : public AgentHwTest {
           }
         }
       }
-      for (const auto& [switchId, asic] : getAsics()) {
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-          // Jericho3 has additional VSQ drops counters which accounts for
-          // ingress buffer drops.
-          getSw()->updateStats();
-          fb303::ThreadCachedServiceData::get()->publishStats();
-          auto switchIndex =
-              getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
-                  switchId);
-          auto vsqResourcesExhautionDrops =
-              *getSw()
-                   ->getHwSwitchStatsExpensive()[switchIndex]
-                   .fb303GlobalStats()
-                   ->vsq_resource_exhaustion_drops();
-          XLOG(DBG0)
-              << " validateIngressDropCounters: vsqResourceExhaustionDrops: "
-              << vsqResourcesExhautionDrops;
-          EXPECT_EVENTUALLY_GT(vsqResourcesExhautionDrops, 0);
-        }
+      // Only validate VSQ drops on the ASIC under test. In multi-switch
+      // mode, traffic flows through one ASIC only, so the other ASIC
+      // will have 0 drops.
+      auto testSwitchId = scopeResolver().scope(portIds[0]).switchId();
+      auto asics = getAsics();
+      auto asicIt = asics.find(testSwitchId);
+      if (asicIt != asics.end() &&
+          asicIt->second->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        // Jericho3 has additional VSQ drops counters which accounts for
+        // ingress buffer drops.
+        getSw()->updateStats();
+        fb303::ThreadCachedServiceData::get()->publishStats();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+                testSwitchId);
+        auto vsqResourcesExhautionDrops =
+            *getSw()
+                 ->getHwSwitchStatsExpensive()[switchIndex]
+                 .fb303GlobalStats()
+                 ->vsq_resource_exhaustion_drops();
+        XLOG(DBG0)
+            << " validateIngressDropCounters: vsqResourceExhaustionDrops: "
+            << vsqResourcesExhautionDrops;
+        EXPECT_EVENTUALLY_GT(vsqResourcesExhautionDrops, 0);
       }
     });
   }
