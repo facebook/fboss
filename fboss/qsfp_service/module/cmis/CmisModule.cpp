@@ -3109,7 +3109,11 @@ void CmisModule::setApplicationCodeLocked(
   if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
       !isRequestValidMultiportSpeedConfig(
           state.speed, state.startHostLane, numHostLanes)) {
-    QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Programming App sel on ALL lanes: speed={}, startHostLane={}, numHostLanes={}",
+        apache::thrift::util::enumNameSafe(state.speed),
+        state.startHostLane,
+        numHostLanes);
     uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
