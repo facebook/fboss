@@ -297,6 +297,9 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
   bool valid = true;
   valid &= checkAndUpdateGenericEcmpResource(route, add, state);
   valid &= checkAndUpdateArsEcmpResource(route, add, state);
+  if (FLAGS_enable_srv6_nexthop_resource_protection) {
+    valid &= checkAndUpdateSrv6NextHopResource(route, add, state);
+  }
   return valid;
 }
 
@@ -385,6 +388,9 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   // Ensure new state usage does not exceed ecmp_resource_percentage
   validRouteUpdate &= checkEcmpResource(false /* intermediateState */);
   validRouteUpdate &= checkArsResource(false /* intermediateState */);
+  if (FLAGS_enable_srv6_nexthop_resource_protection) {
+    validRouteUpdate &= checkSrv6NextHopResource(false /* intermediateState */);
+  }
   return validRouteUpdate;
 }
 
@@ -585,6 +591,38 @@ ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& route,
     bool add,
     const std::shared_ptr<SwitchState>& state);
+
+bool ResourceAccountant::checkSrv6NextHopResource(
+    bool intermediateState) const {
+  uint32_t resourcePercentage = intermediateState
+      ? kHundredPercentage
+      : FLAGS_srv6_nexthop_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    auto ecmpLimit = hwAsic->getMaxSrv6EcmpNextHops();
+    if (ecmpLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (ecmpLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (srv6EcmpNextHopUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "SRv6 ECMP next hop limit exceeded. Usage: "
+                   << srv6EcmpNextHopUsage_ << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+    auto singleLimit = hwAsic->getMaxSrv6SingleNextHops();
+    if (singleLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (singleLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (srv6SingleNextHopUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "SRv6 single next hop limit exceeded. Usage: "
+                   << srv6SingleNextHopUsage_
+                   << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 // Neighbor table resoure accounting
 

@@ -84,6 +84,8 @@ class ResourceAccountant {
       bool add,
       const std::shared_ptr<SwitchState>& state);
 
+  bool checkSrv6NextHopResource(bool intermediateState) const;
+
   bool checkNeighborResource();
 
   bool l2StateChangedImpl(const StateDelta& delta);
