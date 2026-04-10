@@ -1378,4 +1378,51 @@ TEST_F(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource) {
   EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
 }
 
+TEST_F(ResourceAccountantTest, srv6NextHopResourceExceeded) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+
+  // MockAsic: ECMP=16 (75%=12), Single=8 (75%=6)
+  auto makeSrv6Nhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", idx + 1)),
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{
+            folly::IPAddressV6(fmt::format("3001:db8:{:x}::", idx + 1))},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  };
+
+  // Add ECMP routes: 4 groups x 3 SRv6 nhops = 12 (exactly 75% of 16)
+  for (int i = 0; i < 4; ++i) {
+    RouteNextHopSet nhops{
+        makeSrv6Nhop(i * 3), makeSrv6Nhop(i * 3 + 1), makeSrv6Nhop(i * 3 + 2)};
+    RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+    auto route = makeV6Route(
+        {folly::IPAddressV6(fmt::format("2800:{:x}::", i)), 48}, entry, nhops);
+    EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+        route, true, state_));
+  }
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 12);
+
+  // At 75% — final check passes
+  EXPECT_TRUE(this->resourceAccountant_->checkSrv6NextHopResource(
+      false /* intermediateState */));
+
+  // Add 1 more group (total = 15) — intermediate passes, final fails
+  RouteNextHopSet overflowNhops{
+      makeSrv6Nhop(100), makeSrv6Nhop(101), makeSrv6Nhop(102)};
+  RouteNextHopEntry overflowEntry(overflowNhops, AdminDistance::EBGP);
+  auto overflowRoute = makeV6Route(
+      {folly::IPAddressV6("2800:ff::"), 48}, overflowEntry, overflowNhops);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      overflowRoute, true, state_));
+  EXPECT_FALSE(this->resourceAccountant_->checkSrv6NextHopResource(
+      false /* intermediateState */));
+}
+
 } // namespace facebook::fboss
