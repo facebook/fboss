@@ -27,7 +27,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
@@ -41,7 +40,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::TRAFFIC_HASHING:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
@@ -65,7 +63,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
-    case HwAsic::Feature::MEDIA_TYPE:
     case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_MPLS_QOS:
@@ -76,7 +73,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ROUTE_METADATA:
     case HwAsic::Feature::NON_UNICAST_HASH:
     case HwAsic::Feature::WEIGHTED_NEXTHOPGROUP_MEMBER:
-    case HwAsic::Feature::ARS:
     case HwAsic::Feature::IN_PAUSE_INCREMENTS_DISCARDS:
     case HwAsic::Feature::IN_DISCARDS_EXCLUDES_PFC:
     case HwAsic::Feature::WARMBOOT:
@@ -86,7 +82,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_UDF_HASH:
     case HwAsic::Feature::SEPARATE_BYTE_AND_PACKET_ACL_COUNTER:
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
-    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
     case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
@@ -113,9 +108,7 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::RX_SERDES_PARAMETERS:
     case HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS:
     case HwAsic::Feature::TEMPERATURE_MONITORING:
-    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
-    case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
@@ -234,6 +227,14 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
+
+    case HwAsic::Feature::MEDIA_TYPE:
+    case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
+    case HwAsic::Feature::ARS:
+    case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
+    case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
       return false;
   }
   return false;
