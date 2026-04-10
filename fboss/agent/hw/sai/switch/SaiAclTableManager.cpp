@@ -1696,6 +1696,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   bool isTomahawk6 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6;
+  bool isTomahawkUltra1 = platform_->getAsic()->getAsicType() ==
+      cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1;
   bool isChenab = platform_->getAsic()->getAsicVendor() ==
       HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
@@ -1847,6 +1849,19 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // ETHER_TYPE required for Aifm controller packets using 0x88B6
     if (isTomahawk6) {
       bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
+    }
+    // TomahawkUltra1 does not support these qualifiers
+    if (isTomahawkUltra1) {
+      bcmQualifiers.erase(cfg::AclTableQualifier::TCP_FLAGS);
+      bcmQualifiers.erase(cfg::AclTableQualifier::OUT_PORT);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV4_TYPE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV4_CODE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV6_TYPE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::ICMPV6_CODE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR);
+      bcmQualifiers.erase(cfg::AclTableQualifier::LOOKUP_CLASS_ROUTE);
+      bcmQualifiers.erase(cfg::AclTableQualifier::TTL);
     }
 
     return bcmQualifiers;
