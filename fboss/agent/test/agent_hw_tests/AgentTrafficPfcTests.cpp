@@ -1293,20 +1293,28 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
   }
 
   std::tuple<int, int> getSwitchPfcDeadlockCounters() {
-    auto detectionCtrName = getAgentEnsemble()->isSai()
+    auto detectionCtrBase = getAgentEnsemble()->isSai()
         ? "pfc_deadlock_detection_count.sum"
         : "pfc_deadlock_detection.sum";
-    auto recoveryCtrName = getAgentEnsemble()->isSai()
+    auto recoveryCtrBase = getAgentEnsemble()->isSai()
         ? "pfc_deadlock_recovery_count.sum"
         : "pfc_deadlock_recovery.sum";
-    int deadlockCtr = 0;
-    int recoveryCtr = 0;
-    for (const auto& [switchId, asic] : getAsics()) {
-      deadlockCtr +=
-          getAgentEnsemble()->getFb303Counter(detectionCtrName, switchId);
-      recoveryCtr +=
-          getAgentEnsemble()->getFb303Counter(recoveryCtrName, switchId);
+    // Only query the ASIC under test. PFC deadlock is only triggered
+    // on this ASIC, so other ASICs always have 0 counters.
+    auto testSwitchId = SwitchID(FLAGS_switch_id_for_testing);
+    // In multi-switch mode, hw_agent registers counters with a
+    // "switch.<switchIndex>." prefix. Prepend it when querying.
+    std::string prefix;
+    if (getAsics().size() > 1) {
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+              testSwitchId);
+      prefix = folly::to<std::string>("switch.", switchIndex, ".");
     }
+    int deadlockCtr = getAgentEnsemble()->getFb303Counter(
+        prefix + detectionCtrBase, testSwitchId);
+    int recoveryCtr = getAgentEnsemble()->getFb303Counter(
+        prefix + recoveryCtrBase, testSwitchId);
     return {deadlockCtr, recoveryCtr};
   }
 
