@@ -1,0 +1,53 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_distro")
+
+python_library(
+    name = "artifact",
+    srcs = ["artifact.py"],
+    base_module = "distro_cli.lib",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/lib:exceptions",
+        "//fboss/github/fboss-image/distro_cli/lib:paths",
+    ],
+)
+
+python_library(
+    name = "cli",
+    srcs = ["cli.py"],
+    base_module = "distro_cli.lib",
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
+    name = "constants",
+    srcs = ["constants.py"],
+    base_module = "distro_cli.lib",
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
+    name = "distro_infra",
+    srcs = ["distro_infra.py"],
+    base_module = "distro_cli.lib",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/lib:exceptions",
+        "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+    ],
+)
+
+python_library(
+    name = "exceptions",
+    srcs = ["exceptions.py"],
+    base_module = "distro_cli.lib",
+    labels = ["autodeps2_generated"],
+)
+
+python_library(
+    name = "paths",
+    srcs = ["paths.py"],
+    base_module = "distro_cli.lib",
+    labels = ["autodeps2_generated"],
+)
