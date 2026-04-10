@@ -1276,4 +1276,106 @@ TEST_F(ResourceAccountantTest, mySidResourceExceeded) {
   EXPECT_FALSE(this->resourceAccountant_->isValidUpdate(delta7));
 }
 
+TEST_F(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+
+  auto makeSrv6Nhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", idx + 1)),
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{
+            folly::IPAddressV6(fmt::format("3001:db8:{:x}::", idx + 1))},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  };
+
+  auto makeRegularNhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("2.2.2.", idx + 1)),
+        InterfaceID(2),
+        ECMP_WEIGHT);
+  };
+
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+
+  // Single SRv6 nhop route
+  RouteNextHopSet singleSrv6{makeSrv6Nhop(0)};
+  RouteNextHopEntry singleEntry(singleSrv6, AdminDistance::EBGP);
+  auto singleRoute = makeV6Route(
+      {folly::IPAddressV6("2800:1::"), 48}, singleEntry, singleSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      singleRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // ECMP SRv6 route (3 nhops)
+  RouteNextHopSet ecmpSrv6{
+      makeSrv6Nhop(10), makeSrv6Nhop(11), makeSrv6Nhop(12)};
+  RouteNextHopEntry ecmpEntry(ecmpSrv6, AdminDistance::EBGP);
+  auto ecmpRoute =
+      makeV6Route({folly::IPAddressV6("2800:2::"), 48}, ecmpEntry, ecmpSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Second route sharing same ECMP nhops — no additional count
+  auto ecmpRoute2 =
+      makeV6Route({folly::IPAddressV6("2800:3::"), 48}, ecmpEntry, ecmpSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute2, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+
+  // Remove first ECMP route — still ref'd, no decrement
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+
+  // Remove second ECMP route — ref count reaches 0, decrement
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute2, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+
+  // Regular (non-SRv6) ECMP route — not counted
+  RouteNextHopSet regularSet{makeRegularNhop(20), makeRegularNhop(21)};
+  RouteNextHopEntry regularEntry(regularSet, AdminDistance::EBGP);
+  auto regularRoute = makeV6Route(
+      {folly::IPAddressV6("2800:4::"), 48}, regularEntry, regularSet);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      regularRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Same SRv6 nhop used in both single-nhop route and ECMP route.
+  // nhop(0) is already in singleSrv6 route above (single pool).
+  // Now add it in an ECMP route too — it should count in ECMP pool as well.
+  RouteNextHopSet ecmpWithShared{makeSrv6Nhop(0), makeSrv6Nhop(30)};
+  RouteNextHopEntry ecmpSharedEntry(ecmpWithShared, AdminDistance::EBGP);
+  auto ecmpSharedRoute = makeV6Route(
+      {folly::IPAddressV6("2800:5::"), 48}, ecmpSharedEntry, ecmpWithShared);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpSharedRoute, true, state_));
+  // nhop(0) counted in both pools: single(1) + ecmp(2)
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 2);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Remove the single-nhop route — single pool decrements
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      singleRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 2);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+
+  // Remove the ECMP route — ecmp pool decrements
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpSharedRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+}
+
 } // namespace facebook::fboss
