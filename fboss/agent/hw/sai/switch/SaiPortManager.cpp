@@ -2257,8 +2257,11 @@ void SaiPortManager::updatePrbsStats(PortID portId) {
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   auto* handle = getPortHandleImpl(PortID(portId));
-  auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, handle->port->attributes());
-  if (prbsConfig == SAI_PORT_PRBS_CONFIG_DISABLE) {
+  auto prbsConfigOpt =
+      std::get<std::optional<SaiPortTraits::Attributes::PrbsConfig>>(
+          handle->port->attributes());
+  if (!prbsConfigOpt.has_value() ||
+      prbsConfigOpt.value().value() == SAI_PORT_PRBS_CONFIG_DISABLE) {
     return;
   }
   auto prbsRxState = SaiApiTable::getInstance()->portApi().getAttribute(
