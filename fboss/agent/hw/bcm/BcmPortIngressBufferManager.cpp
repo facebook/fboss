@@ -545,7 +545,7 @@ PortPgConfigs BcmPortIngressBufferManager::getCurrentProgrammedPgSettingsHw()
   PortPgConfigs pgs = {};
 
   // walk all programmed list of the pgIds in the order {0 -> 7}
-  // Retrive copy of pgIdsListInHw_
+  // Retrieve copy of pgIdsListInHw_
   // But if pgIdsListInHw_ is not programmed, we return back empty
   auto pgIdList = getPgIdListInHw();
   for (const auto pgId : pgIdList) {

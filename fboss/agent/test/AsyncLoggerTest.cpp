@@ -49,7 +49,7 @@ TEST_F(AsyncLoggerTest, logTimeoutTest) {
   EXPECT_EQ(asyncLogger->getFlushCount(), 0);
 
   // Wait for one log timeout and then check
-  // Add 20ms of boundry to let background thread flush data
+  // Add 20ms of boundary to let background thread flush data
   std::unique_lock<std::mutex> lock(latch);
   cv.wait_for(lock, std::chrono::milliseconds(logTimeout + 20));
   EXPECT_EQ(asyncLogger->getFlushCount(), 1);
@@ -97,7 +97,7 @@ TEST_F(AsyncLoggerTest, emptyBufferTest) {
   EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 
   // Wait for one log timeout and then check empty buffer
-  // Add 20ms of boundry to let background thread flush data
+  // Add 20ms of boundary to let background thread flush data
   cv.wait_for(lock, std::chrono::milliseconds(logTimeout + 20));
   EXPECT_EQ(asyncLogger->getFlushCount(), 1);
 

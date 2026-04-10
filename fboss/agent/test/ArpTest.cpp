@@ -1242,9 +1242,9 @@ TEST_F(ArpTest, PortFlapRecover) {
   EXPECT_STATE_UPDATE_TIMES_ATLEAST(sw, 1);
   sw->linkStateChanged(PortID(1), false, cfg::PortType::INTERFACE_PORT);
 
-  // purging neighbor entries occurs on the background EVB via NeighorUpdater as
-  // a StateObserver.
-  // block until NeighborUpdater::stateChanged() has been invoked
+  // purging neighbor entries occurs on the background EVB via NeighborUpdater
+  // as a StateObserver. block until NeighborUpdater::stateChanged() has been
+  // invoked
   waitForStateUpdates(sw);
   // block until neighbor purging logic has been executed on the background evb
   waitForBackgroundThread(sw);

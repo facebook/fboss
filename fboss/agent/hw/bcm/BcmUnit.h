@@ -66,7 +66,7 @@ class BcmUnit {
    *
    * This is useful for use in Broadcom SDK callbacks that do not support
    * their own user cookie.  As long as the callback returns the unit ID,
-   * the BcmUnit cookie can be retrived by calling
+   * the BcmUnit cookie can be retrieved by calling
    * BcmAPI::getUnit(unitNum)->getCookie();
    *
    * Only a single cookie may be defined.  Generally the owner of the BcmUnit

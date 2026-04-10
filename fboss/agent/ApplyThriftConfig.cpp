@@ -4824,7 +4824,7 @@ ThriftConfigApplier::updatePortFlowletConfigs(bool* changed) {
 
   // origPortFlowletConfigs, newPortFlowletConfigs both are configured
   // and with with same size
-  // check if there is any upate on it when compared
+  // check if there is any update on it when compared
   // with last one
   for (auto& portFlowletConfig : *newCfgedPortFlowlets) {
     auto newPortFlowletConfig = createPortFlowletConfig(
@@ -4889,7 +4889,7 @@ ThriftConfigApplier::updateBufferPoolConfigs(bool* changed) {
 
   // origBufferPoolConfigs, newBufferPoolConfigs both are configured
   // and with with same size
-  // check if there is any upate on it when compared
+  // check if there is any update on it when compared
   // with last one
   for (auto& bufferPoolConfig : *newCfgedBufferPools) {
     auto newBufferPoolConfig =

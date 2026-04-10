@@ -324,7 +324,7 @@ class RoutingInformationBase {
    * admin distance via its clientID.  This is accomplished by a mapping from
    * client IDs to admin distances provided in configuration. Unfortunately,
    * this mapping is exposed via SwSwitch, which we can't a dependency on here.
-   * The adminDistanceFromClientID allows callsites to propogate admin distances
+   * The adminDistanceFromClientID allows callsites to propagate admin distances
    * per client.
    */
   UpdateStatistics update(

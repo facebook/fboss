@@ -174,7 +174,7 @@ void IPv4Handler::sendICMPTimeExceeded(
     }
   }
 
-  // Caluclate the size of the payload, excluding first 32 bits of of the header
+  // Calculate the size of the payload, excluding first 32 bits of of the header
   // which is landed by the createICMPv4Pkt.
   uint32_t bodyLength =
       ICMPHdr::ICMPV4_UNUSED_LEN // For {unused, length, unused}
