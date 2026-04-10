@@ -535,6 +535,10 @@ struct LedCtrlConfig {
 //  portNum=2, ledNum=2, startPort=1:
 //    iobufOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
 //    iobufOffsetCalc: "0x100c"
+//
+// `lanesPerPort`: Number of transceiver lanes per port in this block.
+//  Used to build the lane-to-LED mapping in BspPlatformMapping.
+//
 struct LedCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -543,6 +547,7 @@ struct LedCtrlBlockConfig {
   5: i32 ledPerPort;
   6: i32 startPort;
   7: string iobufOffsetCalc;
+  8: i32 lanesPerPort = 8;
 }
 
 // Defines generic MDIO BUS Controller block in FPGAs.
