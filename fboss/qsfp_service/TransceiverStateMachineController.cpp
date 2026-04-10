@@ -49,17 +49,14 @@ TransceiverStateMachineState TransceiverStateMachineController::getStateByOrder(
 template <>
 std::string TransceiverStateMachineController::getUpdateString(
     TransceiverStateMachineEvent event) const {
-  return fmt::format(
-      "Transceiver:{} Event:{} ",
-      (int)id_,
-      apache::thrift::util::enumNameSafe(event));
+  return fmt::format("Event:{} ", apache::thrift::util::enumNameSafe(event));
 };
 
 template <>
 void TransceiverStateMachineController::applyUpdate(
     TransceiverStateMachineEvent event) {
-  XLOG(INFO) << getUpdateString(event)
-             << "Applying TransceiverStateMachine Update";
+  TCVR_LOG_BASE(INFO, "[SM]", id_)
+      << getUpdateString(event) << "Applying TransceiverStateMachine Update";
   auto lockedStateMachine = stateMachine_.wlock();
   auto preState = *lockedStateMachine->current_state();
 
@@ -104,22 +101,23 @@ void TransceiverStateMachineController::applyUpdate(
       lockedStateMachine->process_event(UPGRADE_FIRMWARE);
       break;
     default:
-      XLOG(ERR) << getUpdateString(event)
-                << "Unsupported TransceiverStateMachineEvent";
+      TCVR_LOG_BASE(ERR, "[SM]", id_)
+          << getUpdateString(event)
+          << "Unsupported TransceiverStateMachineEvent";
   }
 
   auto postState = *lockedStateMachine->current_state();
   if (preState != postState) {
     // We only log successful state changes.
-    XLOG(INFO) << getUpdateString(event)
-               << "Successfully applied state update from "
-               << apache::thrift::util::enumNameSafe(getStateByOrder(preState))
-               << " to "
-               << apache::thrift::util::enumNameSafe(
-                      getStateByOrder(postState));
+    TCVR_LOG_BASE(INFO, "[SM]", id_)
+        << getUpdateString(event) << "Successfully applied state update from "
+        << apache::thrift::util::enumNameSafe(getStateByOrder(preState))
+        << " to "
+        << apache::thrift::util::enumNameSafe(getStateByOrder(postState));
   } else {
-    XLOG(ERR) << getUpdateString(event)
-              << "Failed to apply TransceiverStateMachineUpdate ";
+    TCVR_LOG_BASE(ERR, "[SM]", id_)
+        << getUpdateString(event)
+        << "Failed to apply TransceiverStateMachineUpdate ";
   }
 };
 
@@ -127,9 +125,9 @@ template <>
 void TransceiverStateMachineController::logCurrentState(
     int curStateOrder,
     TransceiverStateMachineState state) const {
-  XLOG(DBG4) << "Transceiver:" << static_cast<int32_t>(id_)
-             << " , state order:" << curStateOrder
-             << " , state:" << apache::thrift::util::enumNameSafe(state);
+  TCVR_LOG_BASE(DBG4, "[SM]", id_)
+      << "state order:" << curStateOrder
+      << " , state:" << apache::thrift::util::enumNameSafe(state);
 }
 
 template <>
