@@ -12,6 +12,9 @@ using namespace sensor_config;
 
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   XLOG(INFO) << "Validating sensor_service config";
+  if (!isValidPlatformName(sensorConfig)) {
+    return false;
+  }
   if (!isValidPmUnitSensorsList(*sensorConfig.pmUnitSensorsList())) {
     return false;
   }
@@ -23,6 +26,25 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   }
   if (!isValidAsicCommand(sensorConfig)) {
     return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidPlatformName(const SensorConfig& sensorConfig) {
+  XLOG(DBG1) << "Validating platform name";
+  if (sensorConfig.platformName()->empty()) {
+    XLOG(ERR) << "platformName must be non-empty";
+    return false;
+  }
+  const auto& name = *sensorConfig.platformName();
+  for (char c : name) {
+    if (!std::isupper(c) && c != '_' && !std::isdigit(c)) {
+      XLOG(ERR) << fmt::format(
+          "platformName '{}' must contain only uppercase letters, digits,"
+          " and underscores",
+          name);
+      return false;
+    }
   }
   return true;
 }

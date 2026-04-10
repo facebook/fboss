@@ -61,6 +61,7 @@ SensorConfig createBasicSensorConfig() {
       createPmSensor("POWER_SENSOR", "/run/devmap/sensors/POWER"),
       createPmSensor("TEMP_SENSOR", "/run/devmap/sensors/TEMP")};
   config.pmUnitSensorsList() = {pmUnitSensors};
+  config.platformName() = "TEST_PLATFORM";
   config.temperatureConfigs() = {
       createTemperatureConfig("ASIC", {"TEMP_SENSOR"})};
   config.powerConfig() = createPowerConfig(
@@ -86,6 +87,7 @@ TEST(ConfigValidatorTest, ValidConfig) {
   pmUnitSensors2.sensors() = {
       createPmSensor("SENSOR2", "/run/devmap/sensors/BCB_FAN_CPLD")};
   config.pmUnitSensorsList() = {pmUnitSensors1, pmUnitSensors2};
+  config.platformName() = "TEST_PLATFORM";
   config.temperatureConfigs() = {createTemperatureConfig("ASIC", {"SENSOR1"})};
   config.powerConfig() = createPowerConfig(
       {createPerSlotPowerConfig("PSU1", "POWER_SENSOR")},
@@ -113,6 +115,7 @@ TEST(ConfigValidatorTest, SlotPaths) {
 
 TEST(ConfigValidatorTest, InvalidPmSensors) {
   auto config = SensorConfig();
+  config.platformName() = "TEST_PLATFORM";
   PmUnitSensors pmUnitSensors;
   pmUnitSensors.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors.sensors() = {
@@ -305,6 +308,7 @@ TEST(ConfigValidatorTest, InvalidPowerConfigMissingSensors) {
 
 TEST(ConfigValidatorTest, InValidPowerConfigWithVersionedSensors) {
   SensorConfig config;
+  config.platformName() = "TEST_PLATFORM";
   PmUnitSensors pmUnitSensors;
   pmUnitSensors.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors.pmUnitName() = "BCB";
@@ -644,6 +648,7 @@ TEST(ConfigValidatorTest, InvalidTemperatureConfigEmptySensorList) {
 
 TEST(ConfigValidatorTest, InvalidTemperatureConfigWithVersionedSensors) {
   SensorConfig config;
+  config.platformName() = "TEST_PLATFORM";
   PmUnitSensors pmUnitSensors;
   pmUnitSensors.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors.pmUnitName() = "BCB";
@@ -808,4 +813,24 @@ TEST(ConfigValidatorTest, isValidPmSensor) {
       createPmSensor("VERSIONED_SENSOR", "/run/devmap/sensors/VERSIONED")};
   pmUnitSensors.versionedSensors() = {versionedSensor};
   EXPECT_TRUE(ConfigValidator().isValidPmUnitSensorsList({pmUnitSensors}));
+}
+
+TEST(ConfigValidatorTest, PlatformNameValidation) {
+  auto config = createBasicSensorConfig();
+
+  // Valid uppercase name
+  config.platformName() = "MONTBLANC";
+  EXPECT_TRUE(ConfigValidator().isValidPlatformName(config));
+
+  // Empty name
+  config.platformName() = "";
+  EXPECT_FALSE(ConfigValidator().isValidPlatformName(config));
+
+  // Lowercase name
+  config.platformName() = "montblanc";
+  EXPECT_FALSE(ConfigValidator().isValidPlatformName(config));
+
+  // Mixed case name
+  config.platformName() = "Montblanc";
+  EXPECT_FALSE(ConfigValidator().isValidPlatformName(config));
 }
