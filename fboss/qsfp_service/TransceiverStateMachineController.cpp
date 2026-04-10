@@ -50,16 +50,16 @@ template <>
 std::string TransceiverStateMachineController::getUpdateString(
     TransceiverStateMachineEvent event) const {
   return fmt::format(
-      "[Transceiver: {}, Event:{}]",
-      id_,
+      "Transceiver:{} Event:{} ",
+      (int)id_,
       apache::thrift::util::enumNameSafe(event));
 };
 
 template <>
 void TransceiverStateMachineController::applyUpdate(
     TransceiverStateMachineEvent event) {
-  XLOG(INFO) << "Applying TransceiverStateMachine Update for "
-             << getUpdateString(event);
+  XLOG(INFO) << getUpdateString(event)
+             << "Applying TransceiverStateMachine Update";
   auto lockedStateMachine = stateMachine_.wlock();
   auto preState = *lockedStateMachine->current_state();
 
@@ -104,22 +104,22 @@ void TransceiverStateMachineController::applyUpdate(
       lockedStateMachine->process_event(UPGRADE_FIRMWARE);
       break;
     default:
-      XLOG(ERR) << "Unsupported TransceiverStateMachineEvent for "
-                << getUpdateString(event);
+      XLOG(ERR) << getUpdateString(event)
+                << "Unsupported TransceiverStateMachineEvent";
   }
 
   auto postState = *lockedStateMachine->current_state();
   if (preState != postState) {
     // We only log successful state changes.
-    XLOG(INFO) << "Successfully applied state update for "
-               << getUpdateString(event) << " from "
+    XLOG(INFO) << getUpdateString(event)
+               << "Successfully applied state update from "
                << apache::thrift::util::enumNameSafe(getStateByOrder(preState))
                << " to "
                << apache::thrift::util::enumNameSafe(
                       getStateByOrder(postState));
   } else {
-    XLOG(ERR) << "Failed to apply TransceiverStateMachineUpdate "
-              << getUpdateString(event);
+    XLOG(ERR) << getUpdateString(event)
+              << "Failed to apply TransceiverStateMachineUpdate ";
   }
 };
 
@@ -127,9 +127,9 @@ template <>
 void TransceiverStateMachineController::logCurrentState(
     int curStateOrder,
     TransceiverStateMachineState state) const {
-  XLOG(DBG4) << "Current transceiver:" << static_cast<int32_t>(id_)
-             << ", state order:" << curStateOrder
-             << ", state:" << apache::thrift::util::enumNameSafe(state);
+  XLOG(DBG4) << "Transceiver:" << static_cast<int32_t>(id_)
+             << " , state order:" << curStateOrder
+             << " , state:" << apache::thrift::util::enumNameSafe(state);
 }
 
 template <>
