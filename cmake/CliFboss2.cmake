@@ -696,6 +696,8 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
+  fboss/cli/fboss2/commands/config/interface/SpeedValidation.cpp
+  fboss/cli/fboss2/commands/config/interface/SpeedValidation.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
@@ -880,6 +882,7 @@ target_link_libraries(fboss2_config_lib
   cli_metadata
   fboss2_lib
   agent_dir_util
+  platform_mapping
   switch_config_cpp2
   Folly::folly
 )
