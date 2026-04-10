@@ -381,7 +381,8 @@
               "csrOffsetCalc": "0x40590 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
               "ledPerPort": 1,
-              "startPort": 33
+              "startPort": 33,
+              "lanesPerPort": 4
             }
           ],
           "infoRomConfigs": [
