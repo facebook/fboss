@@ -59,6 +59,9 @@ static const std::map<std::tuple<int, int>, std::string>
         {std::make_tuple(1, 2), "0x40000000000000000"},
         // Janga: portID=3, port_first_phy=8, core_first_phy=0 P1842843423
         {std::make_tuple(3, 2), "0x40000000000000000"},
+        // Janga ASIC 1: portID=32779 (eth1/63/1), port_first_phy=8,
+        // core_first_phy=0
+        {std::make_tuple(32779, 2), "0x40000000000000000"},
 };
 
 struct TrafficTestParams {
