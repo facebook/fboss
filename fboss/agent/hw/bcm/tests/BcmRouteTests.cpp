@@ -26,10 +26,10 @@
 #include "fboss/agent/hw/test/HwSwitchEnsembleRouteUpdateWrapper.h"
 #include "fboss/agent/platforms/tests/utils/BcmTestPlatform.h"
 #include "fboss/agent/state/Interface.h"
+#include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
-#include "fboss/agent/state/VlanMap.h"
+
 #include "fboss/agent/test/EcmpSetupHelper.h"
 
 #include <boost/range/combine.hpp>
@@ -40,8 +40,6 @@
 extern "C" {
 #include <bcm/l3.h>
 }
-
-DECLARE_bool(intf_nbr_tables);
 
 using folly::ByteRange;
 using folly::CIDRNetwork;
@@ -1026,32 +1024,9 @@ TEST_F(BcmTest, VerifyDropEgress) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
+class BcmRouteNeighborTest : public BcmRouteTest {};
 
-using NeighborTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
-class BcmRouteNeighborTest : public BcmRouteTest {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
-  void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
-    HwTest::SetUp();
-  }
-
- public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-};
-
-TYPED_TEST_SUITE(BcmRouteNeighborTest, NeighborTableTypes);
-
-TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
+TEST_F(BcmRouteNeighborTest, UnresolveResolveNextHop) {
   auto config = this->initialConfig();
   boost::container::flat_set<PortDescriptor> ports;
   for (auto i = 0; i < 2; i++) {
@@ -1077,19 +1052,13 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
       auto ecmpNextHop = helper.nhop(port);
 
       NdpTable* ntable;
-      if (this->isIntfNbrTable()) {
-        EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
-        auto interfaceID =
-            this->getProgrammedState()->getInterfaceIDForPort(port);
-        ntable = state0->getInterfaces()
-                     ->getNode(interfaceID)
-                     ->getNdpTable()
-                     ->modify(interfaceID, &state0);
-      } else {
-        auto vlanId = helper.getVlan(port, this->getProgrammedState());
-        ntable = state0->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-            *vlanId, &state0);
-      }
+      EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
+      auto interfaceID =
+          this->getProgrammedState()->getInterfaceIDForPort(port);
+      ntable = state0->getInterfaces()
+                   ->getNode(interfaceID)
+                   ->getNdpTable()
+                   ->modify(interfaceID, &state0);
 
       auto entry = ntable->getEntry(ecmpNextHop.ip);
       auto intfId = entry->getIntfID();
@@ -1103,19 +1072,13 @@ TYPED_TEST(BcmRouteNeighborTest, UnresolveResolveNextHop) {
     auto state1 = this->getProgrammedState();
     for (auto port : ports) {
       NdpTable* ntable;
-      if (this->isIntfNbrTable()) {
-        EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
-        auto interfaceID =
-            this->getProgrammedState()->getInterfaceIDForPort(port);
-        ntable = state1->getInterfaces()
-                     ->getNode(interfaceID)
-                     ->getNdpTable()
-                     ->modify(interfaceID, &state1);
-      } else {
-        auto vlanId = helper.getVlan(port, this->getProgrammedState());
-        ntable = state1->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-            *vlanId, &state1);
-      }
+      EXPECT_EQ(port.type(), PortDescriptor::PortType::PHYSICAL);
+      auto interfaceID =
+          this->getProgrammedState()->getInterfaceIDForPort(port);
+      ntable = state1->getInterfaces()
+                   ->getNode(interfaceID)
+                   ->getNdpTable()
+                   ->modify(interfaceID, &state1);
 
       auto entry = entries[port];
       ntable->updateEntry(

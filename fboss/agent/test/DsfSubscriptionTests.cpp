@@ -4,6 +4,7 @@
 #include "fboss/agent/AgentFsdbSyncManager.h"
 #include "fboss/agent/DsfSubscription.h"
 #include "fboss/agent/SwitchStats.h"
+#include "fboss/agent/VoqUtils.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -86,6 +87,27 @@ std::shared_ptr<InterfaceMap> makeRifs(const SystemPortMap* sysPorts) {
     rifs->addNode(rif);
   }
   return rifs;
+}
+std::shared_ptr<Interface> makeRemoteIntf(
+    const InterfaceID& intfId,
+    const folly::IPAddressV4& v4Addr,
+    uint8_t v4Mask,
+    const folly::IPAddressV6& v6Addr,
+    uint8_t v6Mask) {
+  auto intf = std::make_shared<Interface>(
+      intfId,
+      RouterID(0),
+      std::optional<VlanID>(std::nullopt),
+      folly::StringPiece("rif"),
+      folly::MacAddress("01:02:03:04:05:06"),
+      9000,
+      false,
+      true,
+      cfg::InterfaceType::SYSTEM_PORT);
+  Interface::Addresses addresses{{v4Addr, v4Mask}, {v6Addr, v6Mask}};
+  intf->setAddresses(addresses);
+  intf->setScope(cfg::Scope::GLOBAL);
+  return intf;
 }
 } // namespace
 
@@ -560,7 +582,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
   const auto prevState = this->sw_->getState();
   this->subscription_ = this->createSubscription();
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   const auto addedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(StateDelta(prevState, addedState), 2, 0);
@@ -590,7 +612,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       ->second->setAddresses(updatedAddresses);
 
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   auto modifiedState = this->sw_->getState();
   this->verifyRemoteIntfRouteDelta(
@@ -603,7 +625,7 @@ TYPED_TEST(DsfSubscriptionTest, updateWithRollbackProtection) {
       std::make_shared<InterfaceMap>();
 
   this->subscription_->updateWithRollbackProtection(
-      switchId2SystemPorts, switchId2Intfs);
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
   waitForStateUpdates(this->sw_);
   auto deletedState = this->sw_->getState();
@@ -643,7 +665,7 @@ TYPED_TEST(DsfSubscriptionTest, setupNeighbors) {
     switchId2Intfs[SwitchID(kRemoteSwitchIdBegin)] = rifs;
 
     this->subscription_->updateWithRollbackProtection(
-        switchId2SystemPorts, switchId2Intfs);
+        switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
 
     waitForStateUpdates(this->sw_);
 
@@ -885,22 +907,17 @@ TYPED_TEST(DsfSubscriptionTest, QueueDsfUpdateRaceCondition) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
   EXPECT_EQ(queueSizeAfterFirst, initialQueueSize + 1);
 
-  // Step 2: Call processGRHoldTimerExpired - should queue another event
+  // Step 2: Call processGRHoldTimerExpired - should override the DsfUpdate
   this->subscription_->processGRHoldTimerExpired();
-
-  // Verify second event was queued
   auto queueSizeAfterGR =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-  EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 2);
+  EXPECT_EQ(queueSizeAfterGR, initialQueueSize + 1);
 
-  // Step 3: Second queueDsfUpdate call - should queue a third event.
-  queueSysPortUpdate(finalNumSysPorts);
-
-  // Verify the fix of race condition: there should be only 3 events in the
-  // queue. The GR expiry should not be the last event.
+  // Step 3: Second queueDsfUpdate call - should override the DsfUpdate
   auto finalQueueSize =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-  EXPECT_EQ(finalQueueSize, initialQueueSize + 3);
+  queueSysPortUpdate(finalNumSysPorts);
+  EXPECT_EQ(finalQueueSize, initialQueueSize + 1);
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -966,7 +983,8 @@ TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Queue second update with 2 sysports per switch - should coalesce
+  // Queue second update with 2 sysports per switch - should override the
+  // dsfUpdate
   queueSysPortUpdate(2 /*numSysPorts*/);
 
   // Second update should NOT add a new event (coalesced with first)
@@ -974,7 +992,8 @@ TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Queue third update with 3 sysports per switch - should also coalesce
+  // Queue third update with 3 sysports per switch - should override the
+  // dsfUpdate
   queueSysPortUpdate(3 /*numSysPorts*/);
 
   // Third update should still be coalesced - only 1 event total
@@ -1003,8 +1022,6 @@ TYPED_TEST(DsfSubscriptionTest, MultipleQueuedDsfUpdatesCoalesce) {
 }
 
 TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
-  // Test that when a GR event occurs between DSF updates, both updates
-  // are processed separately (not coalesced).
   this->subscription_ = this->createSubscription();
 
   // Use Baton to block hwUpdateEvb_
@@ -1041,28 +1058,28 @@ TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Trigger GR event - this should set lastEventGR_ flag
+  // Trigger GR event - this should queue GR update
   this->subscription_->processGRHoldTimerExpired();
 
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 2);
+      initialQueueSize + 1);
 
-  // Queue second update - should NOT coalesce due to GR event
+  // Queue second update
   queueSysPortUpdate(2 /*numSysPorts*/);
 
-  // Should have 3 events: first update, GR, second update
+  // Should have only 1 event with second update
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
 
   // Queue third update - should coalesce with second (no GR between them)
   queueSysPortUpdate(3 /*numSysPorts*/);
 
-  // Still 3 events (third coalesced with second)
+  // Still 1 events (third should overwrite the second)
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -1085,8 +1102,6 @@ TYPED_TEST(DsfSubscriptionTest, GREventSeparatesUpdates) {
 }
 
 TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
-  // Test that multiple GR events each cause subsequent updates to be
-  // queued separately.
   this->subscription_ = this->createSubscription();
 
   // Use Baton to block hwUpdateEvb_
@@ -1116,7 +1131,7 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
   };
 
   // Sequence: Update1 -> GR1 -> Update2 -> GR2 -> Update3
-  // Expected events: 5 total
+  // Expected events: only 1 - Update 3 will overwrite previous updates
 
   // Update 1
   queueSysPortUpdate(1 /*numSysPorts*/);
@@ -1128,25 +1143,25 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
   this->subscription_->processGRHoldTimerExpired();
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 2);
+      initialQueueSize + 1);
 
-  // Update 2 (should not coalesce due to GR1)
+  // Update 2
   queueSysPortUpdate(2 /*numSysPorts*/);
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
 
   // GR 2
   this->subscription_->processGRHoldTimerExpired();
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 4);
+      initialQueueSize + 1);
 
-  // Update 3 (should not coalesce due to GR2)
+  // Update 3
   queueSysPortUpdate(3 /*numSysPorts*/);
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 5);
+      initialQueueSize + 1);
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -1168,18 +1183,6 @@ TYPED_TEST(DsfSubscriptionTest, MultipleGREventsSeparateUpdates) {
 }
 
 TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
-  // Test that an update is skipped when newer updates exist in the queue
-  // after a GR event. This verifies the optimization in queueDsfUpdate where
-  // needsUpdate = dsfUpdateQueue_.empty() - if the queue is not empty after
-  // dequeueing the current update, the current update is skipped.
-  //
-  // Scenario: Update1 -> GR -> Update2
-  // When Update1's event runs, it dequeues Update1 but sees Update2 still in
-  // the queue, so it skips processing (needsUpdate = false).
-  //
-  // We verify this by checking the SW switch state generation number:
-  // - If Update1 is skipped: 2 state updates (GR + Update2)
-  // - If Update1 is NOT skipped: 3 state updates (Update1 + GR + Update2)
   this->subscription_ = this->createSubscription();
 
   // Use Baton to block hwUpdateEvb_ and simulate the race condition
@@ -1194,9 +1197,6 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
 
   auto initialQueueSize =
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize();
-
-  // Record the initial state generation
-  auto initialStateGeneration = this->sw_->getState()->getGeneration();
 
   auto queueSysPortUpdate = [&](int numSysPorts) {
     DsfSubscription::DsfUpdate update;
@@ -1215,19 +1215,20 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
       initialQueueSize + 1);
 
-  // Trigger GR event - this sets lastEventGR_ flag
+  // Trigger GR event
   this->subscription_->processGRHoldTimerExpired();
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 2);
+      initialQueueSize + 1);
 
-  // Queue Update2 with 2 sysports per switch - because of GR, this will
-  // be queued as a separate entry. When Update1's event runs, it will see
-  // Update2 in the queue and skip processing Update1.
+  // Queue Update2 with 2 sysports per switch
   queueSysPortUpdate(2);
   EXPECT_EQ(
       this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(),
-      initialQueueSize + 3);
+      initialQueueSize + 1);
+
+  // Record the initial state generation
+  auto initialStateGeneration = this->sw_->getState()->getGeneration();
 
   // Unblock the event base to process all queued events
   baton.post();
@@ -1241,17 +1242,13 @@ TYPED_TEST(DsfSubscriptionTest, UpdateSkippedWhenNewerUpdatesQueued) {
   // Wait for state updates to complete
   waitForStateUpdates(this->sw_);
 
-  // Verify the state generation only incremented by 2 (GR + Update2).
-  // If Update1 was NOT skipped, the generation would increment by 3.
-  // This proves Update1 was skipped because the queue was not empty after
-  // dequeueing it (Update2 was still in the queue).
+  // Verify that only one event is being enqueued and updated.
   auto finalStateGeneration = this->sw_->getState()->getGeneration();
   auto stateUpdates = finalStateGeneration - initialStateGeneration;
 
-  // We expect exactly 2 state updates:
-  // 1. GR event (processGRHoldTimerExpired calls updateDsfState)
-  // 2. Update2 event (queue was empty after dequeue, so needsUpdate = true)
-  // Update1 is skipped because queue was NOT empty after dequeue.
+  // We expect one update from the last DsfUpdate.
+  // Due to the state observer of AclNexthopHandler, it will schedule another
+  // update for fib change
   EXPECT_EQ(stateUpdates, 2);
 }
 
@@ -1375,6 +1372,437 @@ TYPED_TEST(DsfSubscriptionTest, ConcurrentQueueDsfUpdateAndGRExpiry) {
   // Verify final state
   this->verifySysPortAndRif(
       beforeNumSysPorts, beforeNumRifs, kFinalNumSysPorts);
+}
+
+TYPED_TEST(DsfSubscriptionTest, GRExpiryProcessedViaQueueDsfUpdate) {
+  // Verify that GR expiry going through queueDsfUpdate (the new unified path)
+  // actually marks remote ports/interfaces as STALE and clears neighbor tables.
+  // Existing queue tests always end with a regular update overwriting GR,
+  // so GR's effects are never verified through this path.
+  this->subscription_ = this->createSubscription();
+
+  // Add remote system ports and interfaces directly
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId});
+    auto rifs = makeRifs(sysPorts.get());
+    switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
+  waitForStateUpdates(this->sw_);
+
+  // Verify remote ports are added and LIVE
+  auto sysPortsBefore = this->getRemoteSystemPorts();
+  ASSERT_GT(sysPortsBefore->size(), 0);
+  for (const auto& [_, sysPort] : *sysPortsBefore) {
+    if (sysPort->getRemoteSystemPortType().has_value() &&
+        sysPort->getRemoteSystemPortType().value() ==
+            RemoteSystemPortType::DYNAMIC_ENTRY) {
+      EXPECT_EQ(sysPort->getRemoteLivenessStatus(), LivenessStatus::LIVE);
+    }
+  }
+
+  // Trigger GR expiry through queueDsfUpdate (the new unified path)
+  this->subscription_->processGRHoldTimerExpired();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify remote system ports are marked as STALE
+  WITH_RETRIES({
+    auto remotePorts = this->getRemoteSystemPorts();
+    for (const auto& [_, sysPort] : *remotePorts) {
+      if (sysPort->getRemoteSystemPortType().has_value() &&
+          sysPort->getRemoteSystemPortType().value() ==
+              RemoteSystemPortType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            sysPort->getRemoteLivenessStatus(), LivenessStatus::STALE);
+      }
+    }
+    // Verify remote interfaces are STALE with cleared neighbor tables
+    auto remoteIntfs = this->getRemoteInterfaces();
+    for (const auto& [_, rif] : *remoteIntfs) {
+      if (rif->getRemoteInterfaceType().has_value() &&
+          rif->getRemoteInterfaceType().value() ==
+              RemoteInterfaceType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            rif->getRemoteLivenessStatus(), LivenessStatus::STALE);
+        EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+        EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      }
+    }
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, GROverwritesPendingRegularUpdate) {
+  // Test that when a regular update is queued and GR fires before processing,
+  // the GR overwrites the regular update. The GR effects (marking ports STALE)
+  // should be observed, not the regular update's new ports.
+  this->subscription_ = this->createSubscription();
+
+  // First add ports directly so GR has something to mark STALE
+  std::map<SwitchID, std::shared_ptr<SystemPortMap>> switchId2SystemPorts;
+  std::map<SwitchID, std::shared_ptr<InterfaceMap>> switchId2Intfs;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId});
+    auto rifs = makeRifs(sysPorts.get());
+    switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->updateWithRollbackProtection(
+      switchId2SystemPorts, switchId2Intfs, false /*grExpiry*/);
+  waitForStateUpdates(this->sw_);
+
+  auto sysPortCountBefore = this->getRemoteSystemPorts()->size();
+  auto rifCountBefore = this->getRemoteInterfaces()->size();
+  ASSERT_GT(sysPortCountBefore, 0);
+
+  // Block hwUpdateEvb to prevent processing
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Queue a regular update that would add MORE ports (3 per switch)
+  DsfSubscription::DsfUpdate regularUpdate;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, 3);
+    auto rifs = makeRifs(sysPorts.get());
+    regularUpdate.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    regularUpdate.switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->queueDsfUpdate(std::move(regularUpdate));
+
+  // Fire GR - should overwrite the regular update
+  this->subscription_->processGRHoldTimerExpired();
+
+  // Unblock to process the GR update (the last writer)
+  baton.post();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify GR effects: ports should be STALE, no new ports added
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(), sysPortCountBefore);
+    EXPECT_EVENTUALLY_EQ(this->getRemoteInterfaces()->size(), rifCountBefore);
+    auto remotePorts = this->getRemoteSystemPorts();
+    for (const auto& [_, sysPort] : *remotePorts) {
+      if (sysPort->getRemoteSystemPortType().has_value() &&
+          sysPort->getRemoteSystemPortType().value() ==
+              RemoteSystemPortType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            sysPort->getRemoteLivenessStatus(), LivenessStatus::STALE);
+      }
+    }
+    auto remoteIntfs = this->getRemoteInterfaces();
+    for (const auto& [_, rif] : *remoteIntfs) {
+      if (rif->getRemoteInterfaceType().has_value() &&
+          rif->getRemoteInterfaceType().value() ==
+              RemoteInterfaceType::DYNAMIC_ENTRY) {
+        EXPECT_EVENTUALLY_EQ(
+            rif->getRemoteLivenessStatus(), LivenessStatus::STALE);
+        EXPECT_EVENTUALLY_EQ(rif->getArpTable()->size(), 0);
+        EXPECT_EVENTUALLY_EQ(rif->getNdpTable()->size(), 0);
+      }
+    }
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, StopCancelsPendingDsfUpdate) {
+  // Test that stop() cancels a pending update by resetting nextDsfUpdate_.
+  // The lambda on hwUpdateEvb_ should find null and return early.
+  this->subscription_ = this->createSubscription();
+  auto sysPortCountBefore = this->getRemoteSystemPorts()->size();
+
+  // Block hwUpdateEvb to prevent processing
+  folly::Baton<> baton;
+  this->hwUpdatePool_->getEventBase()->runInEventBaseThread(
+      [&]() { baton.wait(); });
+  WITH_RETRIES({
+    ASSERT_EVENTUALLY_EQ(
+        this->hwUpdatePool_->getEventBase()->getNotificationQueueSize(), 0);
+  });
+
+  // Queue a regular update that would add ports
+  DsfSubscription::DsfUpdate update;
+  for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+    auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, 3);
+    auto rifs = makeRifs(sysPorts.get());
+    update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+    update.switchId2Intfs[remoteSwitchId] = rifs;
+  }
+  this->subscription_->queueDsfUpdate(std::move(update));
+
+  // Verify update is pending
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_NE(*rlock, nullptr);
+  }
+
+  // Stop the subscription - should cancel the pending update
+  this->subscription_->stop();
+
+  // Verify update is cancelled
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_EQ(*rlock, nullptr);
+  }
+
+  // Unblock - the lambda should find null and return early
+  baton.post();
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify state unchanged - no new ports added
+  EXPECT_EQ(this->getRemoteSystemPorts()->size(), sysPortCountBefore);
+}
+
+TYPED_TEST(DsfSubscriptionTest, NewUpdateAfterProcessingSchedulesNewLambda) {
+  // After one update is fully processed (nextDsfUpdate_ becomes null),
+  // a new update should schedule a new lambda and be processed correctly.
+  // This verifies the re-scheduling logic in queueDsfUpdate.
+  this->subscription_ = this->createSubscription();
+  auto beforeNumSysPorts = this->getRemoteSystemPorts()->size();
+  auto beforeNumRifs = this->getRemoteInterfaces()->size();
+
+  auto queueSysPortUpdate = [&](int numSysPorts) {
+    DsfSubscription::DsfUpdate update;
+    for (const auto& remoteSwitchId : this->remoteSwitchIds()) {
+      auto sysPorts = makeSysPortsForSwitchIds({remoteSwitchId}, numSysPorts);
+      auto rifs = makeRifs(sysPorts.get());
+      update.switchId2SystemPorts[remoteSwitchId] = sysPorts;
+      update.switchId2Intfs[remoteSwitchId] = rifs;
+    }
+    this->subscription_->queueDsfUpdate(std::move(update));
+  };
+
+  // Queue first update and let it process
+  queueSysPortUpdate(1);
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify first update was applied
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + this->kNumRemoteSwitchAsics);
+  });
+
+  // Verify nextDsfUpdate_ is null after processing
+  {
+    auto rlock = this->subscription_->nextDsfUpdate_.rlock();
+    EXPECT_EQ(*rlock, nullptr);
+  }
+
+  // Queue second update - should schedule a NEW lambda since
+  // nextDsfUpdate_ was null
+  queueSysPortUpdate(2);
+  this->waitForQueueDrain();
+  waitForStateUpdates(this->sw_);
+
+  // Verify second update was applied
+  WITH_RETRIES({
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteSystemPorts()->size(),
+        beforeNumSysPorts + (this->kNumRemoteSwitchAsics * 2));
+    EXPECT_EVENTUALLY_EQ(
+        this->getRemoteInterfaces()->size(),
+        beforeNumRifs + (this->kNumRemoteSwitchAsics * 2));
+  });
+}
+
+TYPED_TEST(DsfSubscriptionTest, RouteDeleteCancelsRouteAdd) {
+  // Reproduce bug where the cancel-out logic in processRemoteInterfaceRoutes
+  // incorrectly cancels a route add for a changed RIF when a different RIF
+  // with the same prefix is simultaneously removed.
+  //
+  // Scenario:
+  //   Old state: RIF 6040 (prefix 42.42.42.100/31), RIF 6043 (prefix
+  //   42.42.42.200/31)
+  //   New state: RIF 6040 (prefix 42.42.42.200/31), RIF 6043 removed
+  //
+  // In processDelta, changed nodes are processed before removed nodes:
+  //   Changed RIF 6040: delete 100/31, add 200/31
+  //   Removed RIF 6043: delete 200/31 -> finds 200/31 in toAdd -> BUG: cancels
+  //   the add!
+  //
+  // Result: the route for 42.42.42.200/31 is never added for RIF 6040.
+
+  auto state = this->sw_->getState();
+
+  // Old RIF 6040 with prefix X (42.42.42.100/31, 42::100/127)
+  auto oldRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.100"),
+      31,
+      folly::IPAddressV6("42::100"),
+      127);
+  // New RIF 6040 with prefix Y (42.42.42.200/31, 42::200/127)
+  auto newRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.200"),
+      31,
+      folly::IPAddressV6("42::200"),
+      127);
+  // RIF 6043 with prefix Y (being removed)
+  auto rifB = makeRemoteIntf(
+      InterfaceID(6043),
+      folly::IPAddressV4("42.42.42.200"),
+      31,
+      folly::IPAddressV6("42::200"),
+      127);
+
+  IntfRouteTable remoteIntfRoutesToAdd;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
+
+  // Simulate processDelta order: changed nodes first, then removed nodes.
+  // Changed RIF 6040: delete old routes (prefix X), add new routes (prefix Y)
+  processRemoteInterfaceRoutes(
+      oldRifA, state, false, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+  processRemoteInterfaceRoutes(
+      newRifA, state, true, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // Verify intermediate state: prefix Y in toAdd, prefix X in toDel
+  auto prefixY_v4 = folly::IPAddress::createNetwork("42.42.42.200/31");
+  auto prefixY_v6 = folly::IPAddress::createNetwork("42::200/127");
+  auto prefixX_v4 = folly::IPAddress::createNetwork("42.42.42.100/31");
+  auto prefixX_v6 = folly::IPAddress::createNetwork("42::100/127");
+
+  {
+    auto& toAdd = remoteIntfRoutesToAdd[RouterID(0)];
+    EXPECT_NE(toAdd.find(prefixY_v4), toAdd.end());
+    EXPECT_NE(toAdd.find(prefixY_v6), toAdd.end());
+    auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end());
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end());
+  }
+
+  // Removed RIF 6043: delete routes (prefix Y)
+  processRemoteInterfaceRoutes(
+      rifB, state, false, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // After processing the removal, prefix Y should STILL be in toAdd for
+  // RIF 6040. The delete of prefix Y from RIF 6043 should not cancel the
+  // add of prefix Y for the different RIF 6040.
+  auto& toAdd = remoteIntfRoutesToAdd[RouterID(0)];
+  EXPECT_NE(toAdd.find(prefixY_v4), toAdd.end())
+      << "Route add for 42.42.42.200/31 (RIF 6040) was incorrectly cancelled "
+      << "by removal of RIF 6043 with the same prefix";
+  EXPECT_NE(toAdd.find(prefixY_v6), toAdd.end())
+      << "Route add for 42::200/127 (RIF 6040) was incorrectly cancelled "
+      << "by removal of RIF 6043 with the same prefix";
+
+  // Verify the add entries are for RIF 6040 (not RIF 6043)
+  if (toAdd.find(prefixY_v4) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixY_v4].first, InterfaceID(6040));
+  }
+  if (toAdd.find(prefixY_v6) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixY_v6].first, InterfaceID(6040));
+  }
+}
+
+TYPED_TEST(DsfSubscriptionTest, RouteAddCancelsRouteDelete) {
+  // Reproduce the symmetric bug where the cancel-out logic in
+  // processRemoteInterfaceRoutes incorrectly cancels a pending route delete
+  // when a new RIF with the same prefix is added.
+  //
+  // Scenario:
+  //   Old state: RIF 6040 (prefix 42.42.42.100/31)
+  //   New state: RIF 6040 (prefix 42.42.42.200/31), RIF 6043 added with prefix
+  //   42.42.42.100/31
+  //
+  // In processDelta, changed nodes are processed before added nodes:
+  //   Changed RIF 6040: delete 100/31, add 200/31
+  //   Added RIF 6043:   add 100/31 -> finds 100/31 in toDel -> BUG: cancels
+  //   the delete!
+  //
+  // Result: the stale route for 42.42.42.100/31 pointing to old RIF 6040 is
+  // never deleted, and the new route for RIF 6043 is never added.
+
+  auto state = this->sw_->getState();
+
+  // Old RIF 6040 with prefix X (42.42.42.100/31, 42::100/127)
+  auto oldRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.100"),
+      31,
+      folly::IPAddressV6("42::100"),
+      127);
+  // New RIF 6040 with prefix Y (42.42.42.200/31, 42::200/127)
+  auto newRifA = makeRemoteIntf(
+      InterfaceID(6040),
+      folly::IPAddressV4("42.42.42.200"),
+      31,
+      folly::IPAddressV6("42::200"),
+      127);
+  // New RIF 6043 with prefix X (being added)
+  auto newRifB = makeRemoteIntf(
+      InterfaceID(6043),
+      folly::IPAddressV4("42.42.42.100"),
+      31,
+      folly::IPAddressV6("42::100"),
+      127);
+
+  IntfRouteTable remoteIntfRoutesToAdd;
+  RouterIDToPrefixes remoteIntfRoutesToDel;
+
+  auto prefixX_v4 = folly::IPAddress::createNetwork("42.42.42.100/31");
+  auto prefixX_v6 = folly::IPAddress::createNetwork("42::100/127");
+
+  // Simulate processDelta order: changed nodes first, then added nodes.
+  // Changed RIF 6040: delete old routes (prefix X), add new routes (prefix Y)
+  processRemoteInterfaceRoutes(
+      oldRifA, state, false, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+  processRemoteInterfaceRoutes(
+      newRifA, state, true, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // Verify intermediate state: prefix X in toDel
+  {
+    auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end());
+    EXPECT_NE(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end());
+  }
+
+  // Added RIF 6043: add routes (prefix X)
+  processRemoteInterfaceRoutes(
+      newRifB, state, true, remoteIntfRoutesToAdd, remoteIntfRoutesToDel);
+
+  // After processing the addition, prefix X should be in toAdd for RIF 6043.
+  // The add of prefix X for RIF 6043 should not cancel the pending delete
+  // of prefix X from the different RIF 6040.
+  auto& toAdd = remoteIntfRoutesToAdd[RouterID(0)];
+  EXPECT_NE(toAdd.find(prefixX_v4), toAdd.end())
+      << "Route add for 42.42.42.100/31 (RIF 6043) was incorrectly cancelled "
+      << "by pending delete of the same prefix from RIF 6040";
+  EXPECT_NE(toAdd.find(prefixX_v6), toAdd.end())
+      << "Route add for 42::100/127 (RIF 6043) was incorrectly cancelled "
+      << "by pending delete of the same prefix from RIF 6040";
+
+  // Verify the add entries are for RIF 6043 (not RIF 6040)
+  if (toAdd.find(prefixX_v4) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixX_v4].first, InterfaceID(6043));
+  }
+  if (toAdd.find(prefixX_v6) != toAdd.end()) {
+    EXPECT_EQ(toAdd[prefixX_v6].first, InterfaceID(6043));
+  }
+
+  // Prefix X should NOT be in toDel — the pending delete was cancelled because
+  // the add for RIF 6043 will replace the route via addOrReplaceRouteImpl.
+  // Having prefix X in both toAdd and toDel would cause the delete to win
+  // (RIB processes adds first, then deletes), removing the route entirely.
+  auto& toDel = remoteIntfRoutesToDel[RouterID(0)];
+  EXPECT_EQ(std::find(toDel.begin(), toDel.end(), prefixX_v4), toDel.end())
+      << "Route delete for 42.42.42.100/31 should have been cancelled "
+      << "because the add for RIF 6043 will replace the route";
+  EXPECT_EQ(std::find(toDel.begin(), toDel.end(), prefixX_v6), toDel.end())
+      << "Route delete for 42::100/127 should have been cancelled "
+      << "because the add for RIF 6043 will replace the route";
 }
 
 } // namespace facebook::fboss

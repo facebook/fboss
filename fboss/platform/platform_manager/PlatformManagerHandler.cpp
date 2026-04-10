@@ -3,6 +3,8 @@
 
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
 
+#include "fboss/platform/platform_manager/PlatformSnapshotBuilder.h"
+
 namespace facebook::fboss::platform::platform_manager {
 PlatformManagerHandler::PlatformManagerHandler(
     const PlatformExplorer& platformExplorer,
@@ -12,7 +14,9 @@ PlatformManagerHandler::PlatformManagerHandler(
       dataStore_(dataStore),
       platformConfig_(config) {}
 
-void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot&) {}
+void PlatformManagerHandler::getPlatformSnapshot(PlatformSnapshot& response) {
+  response = PlatformSnapshotBuilder(platformConfig_, dataStore_).build();
+}
 
 void PlatformManagerHandler::getLastPMStatus(PlatformManagerStatus& pmStatus) {
   pmStatus = platformExplorer_.getPMStatus();
@@ -78,5 +82,12 @@ void PlatformManagerHandler::getEepromContents(
         "Unable to get EepromContents. Reason: Invalid SlotPath {}.", slotPath);
     throw error;
   }
+}
+
+void PlatformManagerHandler::getFirmwareVersions(
+    FirmwareVersionsResponse& response) {
+  auto versions = dataStore_.getFirmwareVersions();
+  response.firmwareVersions() =
+      std::map<std::string, std::string>(versions.begin(), versions.end());
 }
 } // namespace facebook::fboss::platform::platform_manager

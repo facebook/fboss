@@ -87,3 +87,32 @@ TEST_F(AddressUtilTest, MacAddress) {
   folly::MacAddress reverseMac = fromSaiMacAddress(saiMac);
   EXPECT_EQ(mac, reverseMac);
 }
+
+TEST_F(AddressUtilTest, toSaiIp6ListEmpty) {
+  std::vector<folly::IPAddressV6> addrs;
+  auto result = toSaiIp6List(addrs);
+  EXPECT_TRUE(result.empty());
+}
+
+TEST_F(AddressUtilTest, toSaiIp6ListSingle) {
+  folly::IPAddressV6 addr6(str6);
+  auto result = toSaiIp6List({addr6});
+  ASSERT_EQ(result.size(), 1);
+  auto reversed =
+      fromSaiIpAddress(*reinterpret_cast<const sai_ip6_t*>(result[0].data()));
+  EXPECT_EQ(addr6, reversed);
+}
+
+TEST_F(AddressUtilTest, toSaiIp6ListMultiple) {
+  folly::IPAddressV6 addr1("2001:db8::1");
+  folly::IPAddressV6 addr2("2001:db8::2");
+  folly::IPAddressV6 addr3("fe80::1");
+  std::vector<folly::IPAddressV6> addrs = {addr1, addr2, addr3};
+  auto result = toSaiIp6List(addrs);
+  ASSERT_EQ(result.size(), 3);
+  for (size_t i = 0; i < addrs.size(); i++) {
+    auto reversed =
+        fromSaiIpAddress(*reinterpret_cast<const sai_ip6_t*>(result[i].data()));
+    EXPECT_EQ(addrs[i], reversed);
+  }
+}

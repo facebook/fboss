@@ -1,8 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/hw/sai/fake/FakeSaiSrv6.h"
-#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
+
+#include <cstring>
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 namespace {
@@ -16,7 +17,7 @@ sai_status_t create_srv6_sidlist_fn(
     const sai_attribute_t* attr_list) {
   auto fs = FakeSai::getInstance();
   sai_int32_t type{};
-  std::vector<folly::IPAddressV6> segmentList;
+  std::vector<std::array<uint8_t, 16>> segmentList;
   sai_object_id_t nextHopId{SAI_NULL_OBJECT_ID};
   for (uint32_t i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
@@ -25,10 +26,10 @@ sai_status_t create_srv6_sidlist_fn(
         break;
       case SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST: {
         const auto& list = attr_list[i].value.segmentlist;
-        segmentList.reserve(list.count);
+        segmentList.resize(list.count);
         for (uint32_t j = 0; j < list.count; j++) {
-          segmentList.push_back(
-              facebook::fboss::fromSaiIpAddress(list.list[j]));
+          // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
+          std::memcpy(segmentList[j].data(), &list.list[j], 16);
         }
         break;
       }
@@ -71,8 +72,10 @@ sai_status_t get_srv6_sidlist_attribute_fn(
         attr[i].value.segmentlist.count =
             static_cast<uint32_t>(sidList.segmentList.size());
         for (size_t j = 0; j < sidList.segmentList.size(); j++) {
-          facebook::fboss::toSaiIpAddressV6(
-              sidList.segmentList[j], &attr[i].value.segmentlist.list[j]);
+          std::memcpy(
+              &attr[i].value.segmentlist.list[j],
+              sidList.segmentList[j].data(),
+              16);
         }
         break;
       }
@@ -97,11 +100,9 @@ sai_status_t set_srv6_sidlist_attribute_fn(
       break;
     case SAI_SRV6_SIDLIST_ATTR_SEGMENT_LIST: {
       const auto& list = attr->value.segmentlist;
-      sidList.segmentList.clear();
-      sidList.segmentList.reserve(list.count);
+      sidList.segmentList.resize(list.count);
       for (uint32_t j = 0; j < list.count; j++) {
-        sidList.segmentList.push_back(
-            facebook::fboss::fromSaiIpAddress(list.list[j]));
+        std::memcpy(sidList.segmentList[j].data(), &list.list[j], 16);
       }
       break;
     }
@@ -142,6 +143,91 @@ sai_status_t clear_srv6_sidlist_stats_fn(
   return SAI_STATUS_SUCCESS;
 }
 
+sai_status_t set_my_sid_entry_attribute_fn(
+    const sai_my_sid_entry_t* my_sid_entry,
+    const sai_attribute_t* attr) {
+  auto fs = FakeSai::getInstance();
+  auto& entry = fs->mySidEntryManager.get(
+      facebook::fboss::FakeSaiMySidEntry(*my_sid_entry));
+  switch (attr->id) {
+    case SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR:
+      entry.endpointBehavior = attr->value.s32;
+      break;
+    case SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR_FLAVOR:
+      entry.endpointBehaviorFlavor = attr->value.s32;
+      break;
+    case SAI_MY_SID_ENTRY_ATTR_NEXT_HOP_ID:
+      entry.nextHopId = attr->value.oid;
+      break;
+    case SAI_MY_SID_ENTRY_ATTR_VRF:
+      entry.vrf = attr->value.oid;
+      break;
+    case SAI_MY_SID_ENTRY_ATTR_PACKET_ACTION:
+      entry.packetAction = attr->value.s32;
+      break;
+    default:
+      return SAI_STATUS_INVALID_PARAMETER;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t get_my_sid_entry_attribute_fn(
+    const sai_my_sid_entry_t* my_sid_entry,
+    uint32_t attr_count,
+    sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  auto& entry = fs->mySidEntryManager.get(
+      facebook::fboss::FakeSaiMySidEntry(*my_sid_entry));
+  for (uint32_t i = 0; i < attr_count; i++) {
+    switch (attr_list[i].id) {
+      case SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR:
+        attr_list[i].value.s32 = entry.endpointBehavior;
+        break;
+      case SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR_FLAVOR:
+        attr_list[i].value.s32 = entry.endpointBehaviorFlavor;
+        break;
+      case SAI_MY_SID_ENTRY_ATTR_NEXT_HOP_ID:
+        attr_list[i].value.oid = entry.nextHopId;
+        break;
+      case SAI_MY_SID_ENTRY_ATTR_VRF:
+        attr_list[i].value.oid = entry.vrf;
+        break;
+      case SAI_MY_SID_ENTRY_ATTR_PACKET_ACTION:
+        attr_list[i].value.s32 = entry.packetAction;
+        break;
+      default:
+        return SAI_STATUS_INVALID_PARAMETER;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t create_my_sid_entry_fn(
+    const sai_my_sid_entry_t* my_sid_entry,
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+  fs->mySidEntryManager.create(
+      facebook::fboss::FakeSaiMySidEntry(*my_sid_entry));
+  for (uint32_t i = 0; i < attr_count; i++) {
+    sai_status_t status =
+        set_my_sid_entry_attribute_fn(my_sid_entry, &attr_list[i]);
+    if (status != SAI_STATUS_SUCCESS) {
+      return status;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
+sai_status_t remove_my_sid_entry_fn(const sai_my_sid_entry_t* my_sid_entry) {
+  auto fs = FakeSai::getInstance();
+  if (fs->mySidEntryManager.remove(
+          facebook::fboss::FakeSaiMySidEntry(*my_sid_entry)) == 0) {
+    return SAI_STATUS_FAILURE;
+  }
+  return SAI_STATUS_SUCCESS;
+}
+
 } // namespace
 
 namespace facebook::fboss {
@@ -157,6 +243,11 @@ void populate_srv6_api(sai_srv6_api_t** srv6_api) {
   _srv6_api.get_srv6_sidlist_stats = &get_srv6_sidlist_stats_fn;
   _srv6_api.get_srv6_sidlist_stats_ext = &get_srv6_sidlist_stats_ext_fn;
   _srv6_api.clear_srv6_sidlist_stats = &clear_srv6_sidlist_stats_fn;
+
+  _srv6_api.create_my_sid_entry = &create_my_sid_entry_fn;
+  _srv6_api.remove_my_sid_entry = &remove_my_sid_entry_fn;
+  _srv6_api.set_my_sid_entry_attribute = &set_my_sid_entry_attribute_fn;
+  _srv6_api.get_my_sid_entry_attribute = &get_my_sid_entry_attribute_fn;
 
   *srv6_api = &_srv6_api;
 }

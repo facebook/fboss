@@ -8,6 +8,7 @@
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/lib/TupleUtils.h"
 
 extern "C" {
 #include <experimental/sai_attr_ext.h>
@@ -80,7 +81,10 @@ SaiTamManager::SaiTamManager(
   std::get<std::optional<SaiTamEventTraits::Attributes::SwitchEventType>>(
       eventTraits) = eventTypes;
   auto& eventStore = saiStore_->get<SaiTamEventTraits>();
-  auto event = eventStore.setObject(eventTraits, eventTraits);
+  auto eventAdapterHostKey = tupleProjection<
+      SaiTamEventTraits::CreateAttributes,
+      SaiTamEventTraits::AdapterHostKey>(eventTraits);
+  auto event = eventStore.setObject(eventAdapterHostKey, eventTraits);
 
   // create tam
   std::vector<sai_object_id_t> events = {event->adapterKey()};

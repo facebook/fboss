@@ -54,6 +54,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "ipfix_header",
+    srcs = [
+        "IpfixHeader.cpp",
+    ],
+    exported_deps = [
+        ":hdr_parse_error",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
     name = "pktutil",
     srcs = [
         "PktUtil.cpp",
@@ -76,18 +87,18 @@ cpp_library(
         "TCPPacket.cpp",
         "UDPDatagram.cpp",
     ],
-    deps = [
-        "//common/logging:logging",
-        "//fboss/agent:fboss-error",
-        "//fboss/agent:hw_switch",
-        "//folly:network_address",
-    ],
     exported_deps = [
         ":ether_type",
+        ":ipproto",
         ":packet",
+        ":pktutil",
+        ":sflow_structs",
+        "//common/logging:logging",
+        "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
+        "//fboss/agent:hw_switch",
         "//fboss/agent:packet",
-        "//fboss/agent/packet:sflow_structs",
+        "//folly:network_address",
         "//folly/io:iobuf",
     ],
 )

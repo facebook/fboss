@@ -497,17 +497,17 @@ class EcmpSetupAnyNPorts {
       std::unique_ptr<RouteUpdateWrapper> wrapper,
       size_t width,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const {
-    programRoutes(wrapper.get(), width, prefixes, weights);
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const {
+    programRoutes(wrapper.get(), width, prefixes, weights, disableTTLDecrement);
   }
 
   void programRoutes(
       RouteUpdateWrapper* wrapper,
       size_t width,
       const std::vector<RouteT>& prefixes = {RouteT{IPAddrT(), 0}},
-      const std::vector<NextHopWeight>& weights =
-          std::vector<NextHopWeight>()) const;
+      const std::vector<NextHopWeight>& weights = std::vector<NextHopWeight>(),
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) const;
 
   void programRoutes(
       std::unique_ptr<RouteUpdateWrapper> updater,

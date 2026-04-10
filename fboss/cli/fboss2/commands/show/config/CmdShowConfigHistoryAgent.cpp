@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigHistoryAgent.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/commands/show/config/CmdShowConfigUtils.h"
 
@@ -27,5 +28,8 @@ void CmdShowConfigHistoryAgent::printOutput(
     std::ostream& out) {
   out << agentConfigVersionHistory << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowConfigHistoryAgent, CmdShowConfigTraits>::run();
 
 } // namespace facebook::fboss

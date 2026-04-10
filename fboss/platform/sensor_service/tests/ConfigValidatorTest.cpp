@@ -166,7 +166,33 @@ TEST(ConfigValidatorTest, ValidPowerConfig) {
 
   config.powerConfig() = createPowerConfig(
       {createPerSlotPowerConfig(
-          "HSC", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+          "HSC1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidPowerConfigMultipleHSC) {
+  auto config = createBasicSensorConfig();
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig(
+           "HSC1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR"),
+       createPerSlotPowerConfig(
+           "HSC2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
+      {},
+      0.0,
+      {"VOLTAGE_SENSOR"});
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidPowerConfigPWRBRK) {
+  auto config = createBasicSensorConfig();
+  config.powerConfig() = createPowerConfig(
+      {createPerSlotPowerConfig(
+           "PWRBRK1", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR"),
+       createPerSlotPowerConfig(
+           "PWRBRK2", std::nullopt, "VOLTAGE_SENSOR", "CURRENT_SENSOR")},
       {},
       0.0,
       {"VOLTAGE_SENSOR"});
@@ -214,7 +240,11 @@ TEST(ConfigValidatorTest, InvalidPowerConfigNaming) {
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
   config.powerConfig() =
-      createPowerConfig({createPerSlotPowerConfig("HSC1", "power_sensor")});
+      createPowerConfig({createPerSlotPowerConfig("PWRBRK", "power_sensor")});
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  config.powerConfig() =
+      createPowerConfig({createPerSlotPowerConfig("PWRBRK0", "power_sensor")});
   EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 

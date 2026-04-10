@@ -9,7 +9,18 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
+#include <exception>
+#include <iostream>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss {
 
@@ -40,7 +51,7 @@ CmdConfigRollbackTraits::RetType CmdConfigRollback::queryClient(
     }
     if (!newCommitSha.empty()) {
       return "Successfully rolled back. New commit: " +
-          newCommitSha.substr(0, 8) + ". Config reloaded.";
+          Git::shortSha1(newCommitSha) + ". Config reloaded.";
     } else {
       return "Failed to create a new commit after rollback.";
     }
@@ -53,5 +64,8 @@ CmdConfigRollbackTraits::RetType CmdConfigRollback::queryClient(
 void CmdConfigRollback::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdConfigRollback, CmdConfigRollbackTraits>::run();
 
 } // namespace facebook::fboss

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/state/StateUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/StateDelta.h"
@@ -57,24 +58,22 @@ folly::MacAddress getMacForFirstInterfaceWithPorts(
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
     std::optional<SwitchID> switchId) {
-  for (const auto& [matcher, intfMap] :
-       std::as_const(*state->getInterfaces())) {
-    if (switchId.has_value() && !HwSwitchMatcher(matcher).has(*switchId)) {
-      continue;
-    }
+  // Use the passed switchId if provided, otherwise fall back to the test gflag.
+  auto effectiveSwitchId =
+      switchId.has_value() ? *switchId : SwitchID(FLAGS_switch_id_for_testing);
+  HwSwitchMatcher matcher(std::unordered_set<SwitchID>{effectiveSwitchId});
+  auto intfMap = state->getInterfaces()->getMapNodeIf(matcher);
+  if (intfMap) {
     for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
       if (intf->isVirtual()) {
-        // virtual interfaces do not have associated ports
         continue;
       }
       return InterfaceID(intfID);
     }
   }
-  if (switchId.has_value()) {
-    throw FbossError(
-        "No interface found in state for switchId: ", switchId.value());
-  }
-  throw FbossError("No interface found in state");
+  throw FbossError(
+      "No interface found in state for switchId: ",
+      static_cast<int64_t>(effectiveSwitchId));
 }
 
 std::vector<folly::IPAddress> getIntfAddrs(

@@ -7,7 +7,6 @@
 #include "fboss/thrift_cow/nodes/Types.h"
 #include "folly/MacAddress.h"
 
-#include <folly/MacAddress.h>
 #include <folly/Range.h>
 #include <chrono>
 

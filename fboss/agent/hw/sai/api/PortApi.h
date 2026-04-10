@@ -558,6 +558,20 @@ struct SaiPortTraits {
         sai_int32_t,
         AttributeCablePropagationDelayMediaType,
         SaiIntDefault<sai_int32_t>>;
+    struct AttributePfcPauseDurationOverride {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using PfcPauseDurationOverride = SaiExtensionAttribute<
+        sai_uint16_t,
+        AttributePfcPauseDurationOverride,
+        SaiIntDefault<sai_uint16_t>>;
+    struct AttributeCablePropagationDelayMeasure {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using CablePropagationDelayMeasure = SaiExtensionAttribute<
+        bool,
+        AttributeCablePropagationDelayMeasure,
+        SaiBoolDefaultFalse>;
   };
   using AdapterKey = PortSaiId;
 
@@ -685,7 +699,8 @@ struct SaiPortTraits {
       std::optional<Attributes::QosTcAndColorToDot1pMap>,
       std::optional<Attributes::QosIngressBufferProfileList>,
       std::optional<Attributes::QosEgressBufferProfileList>,
-      std::optional<Attributes::CablePropagationDelayMediaType>>;
+      std::optional<Attributes::CablePropagationDelayMediaType>,
+      std::optional<Attributes::PfcPauseDurationOverride>>;
   static constexpr std::array<sai_stat_id_t, 16> CounterIdsToRead = {
       SAI_PORT_STAT_IF_IN_OCTETS,
       SAI_PORT_STAT_IF_IN_UCAST_PKTS,
@@ -863,6 +878,8 @@ SAI_ATTRIBUTE_NAME(Port, IsHyperPortMember)
 SAI_ATTRIBUTE_NAME(Port, HyperPortMemberList)
 SAI_ATTRIBUTE_NAME(Port, PfcMonitorDirection)
 SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMediaType)
+SAI_ATTRIBUTE_NAME(Port, PfcPauseDurationOverride)
+SAI_ATTRIBUTE_NAME(Port, CablePropagationDelayMeasure)
 
 #if defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(Port, AutoNegotiationMode)
@@ -1288,8 +1305,9 @@ struct SaiPortSerdesTraits {
   using AdapterHostKey = Attributes::PortId;
   using CreateAttributes = std::tuple<
       Attributes::PortId,
+#if !defined(CHENAB_SAI_SDK)
       std::optional<Attributes::Preemphasis>,
-
+#endif
       std::optional<Attributes::IDriver>,
       std::optional<Attributes::TxFirPre1>,
       std::optional<Attributes::TxFirPre2>,
@@ -1344,7 +1362,9 @@ struct SaiPortSerdesTraits {
 };
 
 SAI_ATTRIBUTE_NAME(PortSerdes, PortId);
+#if !defined(CHENAB_SAI_SDK)
 SAI_ATTRIBUTE_NAME(PortSerdes, Preemphasis);
+#endif
 SAI_ATTRIBUTE_NAME(PortSerdes, IDriver);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre1);
 SAI_ATTRIBUTE_NAME(PortSerdes, TxFirPre2);

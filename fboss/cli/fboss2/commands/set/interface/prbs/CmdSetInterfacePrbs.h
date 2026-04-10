@@ -2,16 +2,9 @@
 
 #pragma once
 
-#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <folly/String.h>
-#include <folly/gen/Base.h>
-#include <cstdint>
-#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
-#include "fboss/cli/fboss2/utils/Table.h"
-#include "fboss/lib/phy/gen-cpp2/phy_types.h"
-#include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -27,15 +20,11 @@ class CmdSetInterfacePrbs
     : public CmdHandler<CmdSetInterfacePrbs, CmdSetInterfacePrbsTraits> {
  public:
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const utils::PortList& /* queriedIfs */,
-      const ObjectArgType& /* components */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one the subcommands");
-    return RetType();
-  }
+      const HostInfo& hostInfo,
+      const utils::PortList& queriedIfs,
+      const ObjectArgType& components);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& model);
 };
 
 } // namespace facebook::fboss

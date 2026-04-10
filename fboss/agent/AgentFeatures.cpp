@@ -5,6 +5,14 @@
 
 DEFINE_bool(janga_test, false, "Enable Janga test fixture platform mapping");
 
+DEFINE_bool(test_fixture, false, "Enable test fixture platform mapping");
+
+// TODO: Remove once proper link training support is added
+DEFINE_bool(
+    tahan800sb_link_training,
+    false,
+    "Enable link training platform mapping for tahansb800bc");
+
 DEFINE_bool(dsf_4k, false, "Enable DSF Scale Test config");
 
 DEFINE_bool(dsf_100g_nif_breakout, false, "Enable J3 DSF Scale Test config");
@@ -272,6 +280,26 @@ DEFINE_int32(
     75,
     "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
+DEFINE_bool(
+    enable_mysid_resource_protection,
+    false,
+    "Enable MySID resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    mysid_resource_percentage,
+    75,
+    "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    enable_srv6_nexthop_resource_protection,
+    false,
+    "Enable SRv6 next hop resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    srv6_nexthop_resource_percentage,
+    75,
+    "Percentage of SRv6 next hop resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
 DEFINE_int32(
     switch_index_for_testing,
     0,
@@ -320,6 +348,11 @@ DEFINE_bool(
     false,
     "Enable NextHop ID allocation and management for routes");
 
+DEFINE_bool(
+    resolve_nexthops_from_id,
+    false,
+    "Resolve nexthops from NextHopSetID in FibInfo maps instead of inline nexthops");
+
 DEFINE_int32(
     ecmp_resource_manager_make_before_break_buffer,
     2,
@@ -363,6 +396,11 @@ DEFINE_bool(
     ndp_static_neighbor,
     false,
     "Initiate neighbor solicitation for static neighbors");
+
+DEFINE_bool(
+    arp_static_neighbor,
+    false,
+    "Initiate ARP request for static neighbors");
 
 DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
@@ -437,6 +475,12 @@ DEFINE_bool(
     " switches and recover from it. This enables hitless restarts"
     " on SW agent. This is only used for Sw Switch.");
 
+DEFINE_bool(
+    verify_recover_from_hw_switch,
+    false,
+    "When set, assert that SW agent actually warmbooted from HW switch."
+    " Used in tests to verify the warmboot-from-HW-switch path.");
+
 DEFINE_int32(
     fabric_link_monitoring_max_l1_l2_switch_ids,
     facebook::fboss::kDualStageMaxL1L2FabricLinkMonitoringSwitchIds,
@@ -463,3 +507,13 @@ DEFINE_bool(
     verify_fib_nexthop_id_consistency,
     false,
     "Verify FIB route NextHop IDs are consistent with inline nexthops.");
+
+DEFINE_bool(
+    enforce_single_nbr_mac_per_intf,
+    false,
+    "Enforce that each RIF has at most one neighbor MAC address");
+
+DEFINE_int32(
+    max_tx_packets,
+    100000, // 1 gb / 10 kb
+    "the point at which we start dropping tx packets");

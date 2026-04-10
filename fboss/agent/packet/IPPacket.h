@@ -6,6 +6,7 @@
 #include "fboss/agent/packet/TCPPacket.h"
 #include "fboss/agent/packet/UDPDatagram.h"
 
+#include <memory>
 #include <optional>
 namespace facebook::fboss {
 
@@ -33,6 +34,13 @@ class IPPacket {
       : hdr_{hdr}, tcpPayLoad_(payload) {
     fillIPHdr();
   }
+
+  ~IPPacket();
+  IPPacket(const IPPacket& other);
+  IPPacket& operator=(const IPPacket& other);
+  IPPacket(IPPacket&& other) noexcept;
+  IPPacket& operator=(IPPacket&& other) noexcept;
+
   size_t length() const {
     return hdr_.size() + payloadLength();
   }
@@ -47,6 +55,13 @@ class IPPacket {
     return tcpPayLoad_;
   }
 
+  const IPPacket<folly::IPAddressV4>* v4PayLoad() const {
+    return v4PayLoad_.get();
+  }
+  const IPPacket<folly::IPAddressV6>* v6PayLoad() const {
+    return v6PayLoad_.get();
+  }
+
   // construct TxPacket by encapsulating udp payload
   std::unique_ptr<facebook::fboss::TxPacket> getTxPacket(
       std::function<std::unique_ptr<facebook::fboss::TxPacket>(uint32_t)>
@@ -55,9 +70,14 @@ class IPPacket {
   void serialize(folly::io::RWPrivateCursor& cursor) const;
 
   bool operator==(const IPPacket<AddrT>& that) const {
-    return std::tie(hdr_, udpPayLoad_, tcpPayLoad_, ipPayload_) ==
+    auto v4Eq = (v4PayLoad_ == nullptr && that.v4PayLoad_ == nullptr) ||
+        (v4PayLoad_ && that.v4PayLoad_ && *v4PayLoad_ == *that.v4PayLoad_);
+    auto v6Eq = (v6PayLoad_ == nullptr && that.v6PayLoad_ == nullptr) ||
+        (v6PayLoad_ && that.v6PayLoad_ && *v6PayLoad_ == *that.v6PayLoad_);
+    return v4Eq && v6Eq &&
+        std::tie(hdr_, udpPayLoad_, tcpPayLoad_, ipPayload_) ==
         std::tie(
-               that.hdr_, that.udpPayLoad_, that.tcpPayLoad_, that.ipPayload_);
+            that.hdr_, that.udpPayLoad_, that.tcpPayLoad_, that.ipPayload_);
   }
   void decrementTTL() {
     hdr_.decrementTTL();
@@ -70,6 +90,10 @@ class IPPacket {
       return udpPayLoad_->length();
     } else if (tcpPayLoad_) {
       return tcpPayLoad_->length();
+    } else if (v4PayLoad_) {
+      return v4PayLoad_->length();
+    } else if (v6PayLoad_) {
+      return v6PayLoad_->length();
     } else if (ipPayload_) {
       return ipPayload_->size();
     }
@@ -108,6 +132,8 @@ class IPPacket {
   HdrT hdr_;
   std::optional<UDPDatagram> udpPayLoad_;
   std::optional<TCPPacket> tcpPayLoad_;
+  std::unique_ptr<IPPacket<folly::IPAddressV4>> v4PayLoad_;
+  std::unique_ptr<IPPacket<folly::IPAddressV6>> v6PayLoad_;
   std::optional<std::vector<uint8_t>> ipPayload_;
 };
 

@@ -17,6 +17,18 @@ extern "C" {
 #include <sai.h>
 }
 
+#include <folly/IPAddress.h>
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
+
+// Provide stub implementation of fromSaiIpAddress for sai_ip6_t
+// This is needed because the sai_tracer library is built with
+// undefined_symbols=True and the test binary doesn't link against address_util
+namespace facebook::fboss {
+folly::IPAddressV6 fromSaiIpAddress(const sai_ip6_t& ip6) {
+  return folly::IPAddressV6::fromBinary(folly::ByteRange(ip6, 16));
+}
+} // namespace facebook::fboss
+
 DECLARE_bool(enable_replayer);
 DECLARE_string(sai_log);
 
@@ -627,5 +639,77 @@ TEST_F(SaiTracerTest, LogBulkRemoveFnWithLargeBatchReplayerDisabled) {
     EXPECT_EQ(object_statuses[i], SAI_STATUS_SUCCESS);
   }
 }
+
+// =====================================================================
+// logMySidEntryCreateFn tests - tests setMySidEntry with SID address
+// =====================================================================
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+TEST_F(SaiTracerTest, LogMySidEntryCreateFnWithReplayerEnabled) {
+  // Destroy existing singleton to create a new one with replayer enabled
+  folly::SingletonVault::singleton()->destroyInstances();
+  folly::SingletonVault::singleton()->reenableInstances();
+
+  // Enable replayer and set log path before creating singleton
+  FLAGS_enable_replayer = true;
+  FLAGS_sai_log = "/dev/null";
+
+  auto tracer = getTracer();
+  if (!tracer) {
+    FLAGS_enable_replayer = false;
+    return;
+  }
+
+  // Create a my_sid_entry with a valid SID (IPv6 address)
+  sai_my_sid_entry_t my_sid_entry{};
+  my_sid_entry.switch_id = 100;
+  my_sid_entry.vr_id = 200;
+  my_sid_entry.locator_block_len = 32;
+  my_sid_entry.locator_node_len = 16;
+  my_sid_entry.function_len = 16;
+  my_sid_entry.args_len = 0;
+
+  // Set up a valid IPv6 SID address (2001:db8::1)
+  // IPv6 addresses are stored in network byte order
+  my_sid_entry.sid[0] = 0x20;
+  my_sid_entry.sid[1] = 0x01;
+  my_sid_entry.sid[2] = 0x0d;
+  my_sid_entry.sid[3] = 0xb8;
+  my_sid_entry.sid[4] = 0x00;
+  my_sid_entry.sid[5] = 0x00;
+  my_sid_entry.sid[6] = 0x00;
+  my_sid_entry.sid[7] = 0x00;
+  my_sid_entry.sid[8] = 0x00;
+  my_sid_entry.sid[9] = 0x00;
+  my_sid_entry.sid[10] = 0x00;
+  my_sid_entry.sid[11] = 0x00;
+  my_sid_entry.sid[12] = 0x00;
+  my_sid_entry.sid[13] = 0x00;
+  my_sid_entry.sid[14] = 0x00;
+  my_sid_entry.sid[15] = 0x01;
+
+  // Create minimal attributes for the my_sid_entry
+  sai_attribute_t attrs[1];
+  attrs[0].id = SAI_MY_SID_ENTRY_ATTR_ENDPOINT_BEHAVIOR;
+  attrs[0].value.s32 = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_E;
+
+  // Call logMySidEntryCreateFn which internally calls setMySidEntry
+  // This exercises the fromSaiIpAddress conversion for the SID
+  tracer->logMySidEntryCreateFn(
+      &my_sid_entry,
+      1, // attr_count
+      attrs,
+      SAI_STATUS_SUCCESS);
+
+  // Verify replayer flag is still enabled
+  EXPECT_TRUE(FLAGS_enable_replayer);
+
+  // Clean up: destroy singleton and reset flags
+  tracer.reset();
+  folly::SingletonVault::singleton()->destroyInstances();
+  folly::SingletonVault::singleton()->reenableInstances();
+  FLAGS_enable_replayer = false;
+}
+#endif
 
 } // namespace facebook::fboss

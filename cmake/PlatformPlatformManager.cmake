@@ -10,6 +10,13 @@ target_sources(platform_manager_fbiob_ioctl_h
     fboss/platform/platform_manager/uapi/fbiob-ioctl.h
 )
 
+add_library(platform_manager_fbcpld_ioctl_h INTERFACE)
+
+target_sources(platform_manager_fbcpld_ioctl_h
+  INTERFACE
+    fboss/platform/platform_manager/uapi/fbcpld-ioctl.h
+)
+
 add_fbthrift_cpp_library(
   platform_manager_snapshot_cpp2
   fboss/platform/platform_manager/platform_manager_snapshot.thrift
@@ -131,6 +138,17 @@ target_link_libraries(platform_manager_pci_explorer
   fb303::fb303
 )
 
+add_library(platform_manager_cpld_manager
+  fboss/platform/platform_manager/CpldManager.cpp
+)
+
+target_link_libraries(platform_manager_cpld_manager
+  fmt::fmt
+  platform_manager_config_cpp2
+  platform_manager_utils
+  Folly::folly
+)
+
 add_library(platform_manager_device_path_resolver
   fboss/platform/platform_manager/DevicePathResolver.cpp
 )
@@ -151,6 +169,7 @@ add_library(platform_manager_platform_explorer
 )
 
 target_link_libraries(platform_manager_platform_explorer
+  platform_manager_cpld_manager
   platform_manager_data_store
   platform_manager_device_path_resolver
   platform_manager_i2c_explorer
@@ -172,6 +191,7 @@ add_library(platform_manager_config_validator
 )
 
 target_link_libraries(platform_manager_config_validator
+  platform_manager_cpld_manager
   platform_manager_i2c_explorer
   platform_manager_config_cpp2
   platform_manager_validators_cpp2
@@ -200,10 +220,21 @@ target_link_libraries(platform_manager_handler
   platform_manager_pkg_manager
   platform_manager_platform_explorer
   platform_manager_service_cpp2
+  platform_manager_snapshot_builder
 )
 
 add_executable(platform_manager
   fboss/platform/platform_manager/Main.cpp
+)
+
+add_library(platform_manager_snapshot_builder
+  fboss/platform/platform_manager/PlatformSnapshotBuilder.cpp
+)
+
+target_link_libraries(platform_manager_snapshot_builder
+  fmt::fmt
+  platform_manager_config_cpp2
+  platform_manager_data_store
 )
 
 target_link_libraries(platform_manager

@@ -531,6 +531,12 @@ class HwAsic {
     // Feature for platforms that can create wide DLB groups and
     // also increase DLB table scale by combining multiple DLBs
     VIRTUAL_ARS_GROUP,
+    // Support for SAI_SWITCH_ATTR_SWITCHING_MODE to switch between
+    // store-and-forward and cut-through packet forwarding modes.
+    // Cut-through starts forwarding after reading just the header,
+    // reducing latency for scale-up switches.
+    CUT_THROUGH_FORWARDING,
+    SRV6_MYSID_DISCARD_COUNTER,
   };
 
   enum class AsicMode {
@@ -702,6 +708,20 @@ class HwAsic {
 
   // Set this if NDP/ARP uses a single unified neighbor table
   virtual std::optional<uint32_t> getMaxUnifiedNeighborTableSize() const {
+    return std::nullopt;
+  }
+
+  virtual std::optional<uint32_t> getMaxMySidEntries() const {
+    return std::nullopt;
+  }
+
+  // SRv6 next hops used as ECMP group members (NextHopSet size > 1)
+  virtual std::optional<uint32_t> getMaxSrv6EcmpNextHops() const {
+    return std::nullopt;
+  }
+
+  // SRv6 next hops used by single-nhop routes (NextHopSet size == 1)
+  virtual std::optional<uint32_t> getMaxSrv6SingleNextHops() const {
     return std::nullopt;
   }
 

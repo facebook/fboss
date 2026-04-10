@@ -130,8 +130,10 @@ void DsfSubscription::stop() {
     sw_->stats()->failedDsfSubscription(remoteNodeName_, -1);
   }
   tearDownSubscription();
-  // Clear any pending update lambdas already scheduled on hwUpdateEvb_
-  clearDsfUpdateQueueAndGRFlag();
+  // Nullify any pending update lambdas already scheduled on
+  // hwUpdateEvb_
+  auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+  nextDsfUpdateWlock->reset();
   stopped_ = true;
 }
 void DsfSubscription::setupSubscription() {
@@ -361,19 +363,25 @@ void DsfSubscription::queueRemoteStateChanged(
     auto matcher = HwSwitchMatcher(id);
     dsfUpdate.switchId2Intfs[matcher.switchId()] = intfMap;
   }
+  dsfUpdate.grExpiry = false;
   queueDsfUpdate(std::move(dsfUpdate));
 }
 
 void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
-  std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
-  // If the queue is empty or the last event was a GR event,
-  // we need to add to queue and schedule an update.
-  // Otherwise, we overwrite the last update in the queue.
-  if (dsfUpdateQueue_.empty() || lastEventGR_) {
-    dsfUpdateQueue_.push_back(std::move(dsfUpdate));
-    // Reset the GR flag after processing
-    lastEventGR_ = false;
-
+  bool needsScheduling = false;
+  {
+    auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+    // If nextDsfUpdate is not null, then just overwrite
+    // nextDsfUpdate with latest info but don't schedule
+    // another lambda on the hwUpdateThread. The idea here
+    // is that since nextDsfUpdate_ was not empty it implies
+    // we have already scheduled a update on the hwUpdateEvb
+    // and that update will now simply consume the latest
+    // contents.
+    needsScheduling = (*nextDsfUpdateWlock == nullptr);
+    *nextDsfUpdateWlock = std::make_unique<DsfUpdate>(std::move(dsfUpdate));
+  }
+  if (needsScheduling) {
     /*
      * Schedule updates async on hwUpdateEvb, so we don't
      * keep the streamEventEvb blocked waiting on HW updates.
@@ -385,41 +393,22 @@ void DsfSubscription::queueDsfUpdate(DsfUpdate&& dsfUpdate) {
      */
     hwUpdateEvb_->runInEventBaseThread([this]() {
       DsfUpdate update;
-      bool needsUpdate = false;
       {
-        std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
-        // Explicitly fail in tests - dsfUpdateQueue should have 1-to-1
-        // mapping with updates in event base.
-        DCHECK(!dsfUpdateQueue_.empty());
-        if (dsfUpdateQueue_.empty()) {
-          XLOG(ERR)
-              << "DsfUpdateQueue should have 1-to-1 mapping "
-              << "to the events being scheduled in the event base."
-              << "The event is scheduled but no dsf update is in the queue";
+        auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+        if (*nextDsfUpdateWlock == nullptr) {
+          // Update was already done or cancelled
           return;
         }
-        update = std::move(dsfUpdateQueue_.front());
-        dsfUpdateQueue_.pop_front();
-        // If dsfUpdate queue is not empty after dequeue, there are newer
-        // updates queued after GR and therefore we can skip processing the
-        // update.
-        needsUpdate = dsfUpdateQueue_.empty();
-      }
-      if (needsUpdate) {
-        updateWithRollbackProtection(
-            update.switchId2SystemPorts, update.switchId2Intfs);
-      }
-    });
-  } else {
-    // Overwrite the last update in the queue
-    dsfUpdateQueue_.back() = std::move(dsfUpdate);
-  }
-}
+        update = std::move(**nextDsfUpdateWlock);
+        nextDsfUpdateWlock->reset();
 
-void DsfSubscription::clearDsfUpdateQueueAndGRFlag() {
-  std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
-  dsfUpdateQueue_.clear();
-  lastEventGR_ = false;
+        // At this point nextDsfUpdate should be null
+        CHECK_EQ(*nextDsfUpdateWlock, nullptr);
+      }
+      updateWithRollbackProtection(
+          update.switchId2SystemPorts, update.switchId2Intfs, update.grExpiry);
+    });
+  }
 }
 
 bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
@@ -430,27 +419,134 @@ bool DsfSubscription::isLocal(SwitchID nodeSwitchId) const {
 void DsfSubscription::updateWithRollbackProtection(
     const std::map<SwitchID, std::shared_ptr<SystemPortMap>>&
         switchId2SystemPorts,
-    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs) {
-  auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Intfs](
-                              const std::shared_ptr<SwitchState>& in) {
-    auto out = DsfStateUpdaterUtil::getUpdatedState(
-        in,
-        sw_->getScopeResolver(),
-        sw_->getRib(),
-        switchId2SystemPorts,
-        switchId2Intfs);
-    validator_->validate(in, out);
+    const std::map<SwitchID, std::shared_ptr<InterfaceMap>>& switchId2Intfs,
+    bool grExpiry) {
+  if (!grExpiry) {
+    auto updateDsfStateFn = [this, switchId2SystemPorts, switchId2Intfs](
+                                const std::shared_ptr<SwitchState>& in) {
+      auto out = DsfStateUpdaterUtil::getUpdatedState(
+          in,
+          sw_->getScopeResolver(),
+          sw_->getRib(),
+          switchId2SystemPorts,
+          switchId2Intfs);
+      validator_->validate(in, out);
 
-    if (FLAGS_dsf_subscriber_cache_updated_state) {
-      cachedState_ = out;
-    }
-    if (!FLAGS_dsf_subscriber_skip_hw_writes) {
-      return out;
-    }
+      if (FLAGS_dsf_subscriber_cache_updated_state) {
+        cachedState_ = out;
+      }
+      if (!FLAGS_dsf_subscriber_skip_hw_writes) {
+        return out;
+      }
 
-    return std::shared_ptr<SwitchState>{};
-  };
-  updateDsfState(updateDsfStateFn);
+      return std::shared_ptr<SwitchState>{};
+    };
+    updateDsfState(updateDsfStateFn);
+  } else {
+    DCHECK(switchId2SystemPorts.empty());
+    DCHECK(switchId2Intfs.empty());
+    auto grExpiryHandlingFn = [this](const std::shared_ptr<SwitchState>& in) {
+      bool changed{false};
+      auto out = in->clone();
+
+      int expiredOrRemovedSysPorts = 0;
+      auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
+      for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
+        for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
+          // GR timeout expired for an Interface Node.
+          // Mark all remote system ports synced over control plane (i.e.
+          // DYNAMIC) as STALE for every switchID on that Interface Node
+          // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
+          // Otherwise, remove those remote system ports.
+          if (remoteNodeSwitchIds_.contains(remoteSystemPort->getSwitchId()) &&
+              remoteSystemPort->getRemoteSystemPortType().has_value() &&
+              remoteSystemPort->getRemoteSystemPortType().value() ==
+                  RemoteSystemPortType::DYNAMIC_ENTRY) {
+            expiredOrRemovedSysPorts++;
+
+            if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
+              remoteSystemPorts->removeNode(remoteSystemPort->getID());
+              XLOG(DBG2) << kDsfCtrlLogPrefix << "Removed remote system port "
+                         << remoteSystemPort->getName();
+            } else {
+              auto clonedNode = remoteSystemPort->isPublished()
+                  ? remoteSystemPort->clone()
+                  : remoteSystemPort;
+              clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
+              remoteSystemPorts->updateNode(
+                  clonedNode, sw_->getScopeResolver()->scope(clonedNode));
+              XLOG(DBG2) << kDsfCtrlLogPrefix << "Marked remote system port "
+                         << remoteSystemPort->getName() << " as STALE";
+            }
+
+            changed = true;
+          }
+        }
+      }
+
+      XLOG(DBG2) << kDsfCtrlLogPrefix << "Expired/removed"
+                 << expiredOrRemovedSysPorts
+                 << " remote ports from remote node " << remoteNodeName_;
+
+      int expiredOrRemovedInterfaces = 0;
+      auto remoteInterfaces = out->getRemoteInterfaces()->modify(&out);
+      for (auto& [_, remoteInterfaceMap] : *remoteInterfaces) {
+        for (auto& [_, remoteInterface] : *remoteInterfaceMap) {
+          const auto& remoteSystemPort = in->getRemoteSystemPorts()->getNodeIf(
+              *remoteInterface->getSystemPortID());
+
+          if (remoteSystemPort) {
+            auto switchID = remoteSystemPort->getSwitchId();
+            // GR timeout expired for an Interface Node.
+            // Mark all remote interfaces synced over control plane (i.e.
+            // DYNAMIC) as STALE for every switchID on that Interface Node,
+            // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
+            // Otherwise, remove those remote rifs.
+            // Always remove all the neighbor entries on that interface or else
+            // we will end up blackholing the traffic.
+            if (remoteNodeSwitchIds_.contains(switchID) &&
+                remoteInterface->getRemoteInterfaceType().has_value() &&
+                remoteInterface->getRemoteInterfaceType().value() ==
+                    RemoteInterfaceType::DYNAMIC_ENTRY) {
+              expiredOrRemovedInterfaces++;
+
+              if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
+                remoteInterfaces->removeNode(remoteInterface->getID());
+                XLOG(DBG2) << kDsfCtrlLogPrefix << "Removed remote interface "
+                           << remoteNodeName_ << "/"
+                           << remoteInterface->getID();
+              } else {
+                auto clonedNode = remoteInterface->isPublished()
+                    ? remoteInterface->clone()
+                    : remoteInterface;
+                clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
+                clonedNode->setArpTable(state::NeighborEntries{});
+                clonedNode->setNdpTable(state::NeighborEntries{});
+                remoteInterfaces->updateNode(
+                    clonedNode,
+                    sw_->getScopeResolver()->scope(clonedNode, out));
+                XLOG(DBG2) << kDsfCtrlLogPrefix << "Marked remote interface "
+                           << remoteNodeName_ << "/"
+                           << remoteInterface->getName() << " as STALE";
+              }
+
+              changed = true;
+            }
+          }
+        }
+      }
+
+      XLOG(DBG2) << kDsfCtrlLogPrefix << "Expired/removed "
+                 << expiredOrRemovedInterfaces
+                 << " remote interfaces from remote node " << remoteNodeName_;
+
+      if (changed) {
+        return out;
+      }
+      return std::shared_ptr<SwitchState>{};
+    };
+    updateDsfState(grExpiryHandlingFn);
+  }
 }
 void DsfSubscription::updateDsfState(
     const std::function<std::shared_ptr<SwitchState>(
@@ -469,7 +565,8 @@ void DsfSubscription::updateDsfState(
       // subscription
       tearDownSubscription();
       // Clear any queued updates
-      clearDsfUpdateQueueAndGRFlag();
+      auto nextDsfUpdateWlock = nextDsfUpdate_.wlock();
+      nextDsfUpdateWlock->reset();
       // Setup subscription again to trigger a full resync
       setupSubscription();
     }
@@ -479,113 +576,8 @@ void DsfSubscription::updateDsfState(
 void DsfSubscription::processGRHoldTimerExpired() {
   sw_->stats()->dsfSessionGrExpired();
   XLOG(DBG2) << kDsfCtrlLogPrefix << "GR expired for : " << remoteEndpointStr();
-  auto updateDsfStateFn = [this](const std::shared_ptr<SwitchState>& in) {
-    bool changed{false};
-    auto out = in->clone();
-
-    int expiredOrRemovedSysPorts = 0;
-    auto remoteSystemPorts = out->getRemoteSystemPorts()->modify(&out);
-    for (auto& [_, remoteSystemPortMap] : *remoteSystemPorts) {
-      for (auto& [_, remoteSystemPort] : *remoteSystemPortMap) {
-        // GR timeout expired for an Interface Node.
-        // Mark all remote system ports synced over control plane (i.e.
-        // DYNAMIC) as STALE for every switchID on that Interface Node
-        // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
-        // Otherwise, remove those remote system ports.
-        if (remoteNodeSwitchIds_.contains(remoteSystemPort->getSwitchId()) &&
-            remoteSystemPort->getRemoteSystemPortType().has_value() &&
-            remoteSystemPort->getRemoteSystemPortType().value() ==
-                RemoteSystemPortType::DYNAMIC_ENTRY) {
-          expiredOrRemovedSysPorts++;
-
-          if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
-            remoteSystemPorts->removeNode(remoteSystemPort->getID());
-            XLOG(DBG2) << kDsfCtrlLogPrefix << "Removed remote system port "
-                       << remoteSystemPort->getName();
-          } else {
-            auto clonedNode = remoteSystemPort->isPublished()
-                ? remoteSystemPort->clone()
-                : remoteSystemPort;
-            clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
-            remoteSystemPorts->updateNode(
-                clonedNode, sw_->getScopeResolver()->scope(clonedNode));
-            XLOG(DBG2) << kDsfCtrlLogPrefix << "Marked remote system port "
-                       << remoteSystemPort->getName() << " as STALE";
-          }
-
-          changed = true;
-        }
-      }
-    }
-
-    XLOG(DBG2) << kDsfCtrlLogPrefix << "Expired/removed"
-               << expiredOrRemovedSysPorts << " remote ports from remote node "
-               << remoteNodeName_;
-
-    int expiredOrRemovedInterfaces = 0;
-    auto remoteInterfaces = out->getRemoteInterfaces()->modify(&out);
-    for (auto& [_, remoteInterfaceMap] : *remoteInterfaces) {
-      for (auto& [_, remoteInterface] : *remoteInterfaceMap) {
-        const auto& remoteSystemPort = in->getRemoteSystemPorts()->getNodeIf(
-            *remoteInterface->getSystemPortID());
-
-        if (remoteSystemPort) {
-          auto switchID = remoteSystemPort->getSwitchId();
-          // GR timeout expired for an Interface Node.
-          // Mark all remote interfaces synced over control plane (i.e.
-          // DYNAMIC) as STALE for every switchID on that Interface Node,
-          // if FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr is not set.
-          // Otherwise, remove those remote rifs.
-          // Always remove all the neighbor entries on that interface or else
-          // we will end up blackholing the traffic.
-          if (remoteNodeSwitchIds_.contains(switchID) &&
-              remoteInterface->getRemoteInterfaceType().has_value() &&
-              remoteInterface->getRemoteInterfaceType().value() ==
-                  RemoteInterfaceType::DYNAMIC_ENTRY) {
-            expiredOrRemovedInterfaces++;
-
-            if (FLAGS_dsf_flush_remote_sysports_and_rifs_on_gr) {
-              remoteInterfaces->removeNode(remoteInterface->getID());
-              XLOG(DBG2) << kDsfCtrlLogPrefix << "Removed remote interface "
-                         << remoteNodeName_ << "/" << remoteInterface->getID();
-            } else {
-              auto clonedNode = remoteInterface->isPublished()
-                  ? remoteInterface->clone()
-                  : remoteInterface;
-              clonedNode->setRemoteLivenessStatus(LivenessStatus::STALE);
-              clonedNode->setArpTable(state::NeighborEntries{});
-              clonedNode->setNdpTable(state::NeighborEntries{});
-              remoteInterfaces->updateNode(
-                  clonedNode, sw_->getScopeResolver()->scope(clonedNode, out));
-              XLOG(DBG2) << kDsfCtrlLogPrefix << "Marked remote interface "
-                         << remoteNodeName_ << "/" << remoteInterface->getName()
-                         << " as STALE";
-            }
-
-            changed = true;
-          }
-        }
-      }
-    }
-
-    XLOG(DBG2) << kDsfCtrlLogPrefix << "Expired/removed "
-               << expiredOrRemovedInterfaces
-               << " remote interfaces from remote node " << remoteNodeName_;
-
-    if (changed) {
-      return out;
-    }
-    return std::shared_ptr<SwitchState>{};
-  };
-
-  {
-    // Hold the lock while enqueueing the GR expiry update. Set lastEventGR_
-    // so that the next DSF update will be enqueued separately rather than
-    // overwriting previous DSF updates.
-    std::lock_guard<std::mutex> lock(dsfUpdateMutex_);
-    lastEventGR_ = true;
-    hwUpdateEvb_->runInEventBaseThread(
-        [this, updateDsfStateFn]() { updateDsfState(updateDsfStateFn); });
-  }
+  DsfUpdate dsfUpdate;
+  dsfUpdate.grExpiry = true;
+  queueDsfUpdate(std::move(dsfUpdate));
 }
 } // namespace facebook::fboss

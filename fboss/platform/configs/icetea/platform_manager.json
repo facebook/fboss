@@ -382,8 +382,73 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x60",
-          "kernelDeviceName": "icetea_mcbcpld",
-          "pmUnitScopedName": "MCB_CPLD"
+          "kernelDeviceName": "fbg_mcbcpld",
+          "pmUnitScopedName": "MCB_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            },
+            {
+              "name": "oob_eeprom_wp",
+              "mode": "rw",
+              "regAddr": "0x06",
+              "bitOffset": 2,
+              "description": "OOB EEPROM write protect"
+            },
+            {
+              "name": "oob_eeprom_sel",
+              "mode": "rw",
+              "regAddr": "0x06",
+              "bitOffset": 3,
+              "description": "OOB EEPROM select"
+            },
+            {
+              "name": "smb_pg",
+              "regAddr": "0x0A",
+              "bitOffset": 1,
+              "description": "SMB power good"
+            },
+            {
+              "name": "hs_48v_pg",
+              "regAddr": "0x0A",
+              "bitOffset": 6,
+              "description": "Hot swap 48V power good"
+            },
+            {
+              "name": "smb_present",
+              "regAddr": "0x10",
+              "bitOffset": 5,
+              "description": "SMB present"
+            }
+          ]
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_15",
@@ -607,8 +672,41 @@
         {
           "busName": "INCOMING@0",
           "address": "0x33",
-          "kernelDeviceName": "icetea_piccpld",
-          "pmUnitScopedName": "PIC_CPLD"
+          "kernelDeviceName": "fbg_piccpld",
+          "pmUnitScopedName": "PIC_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 4,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
@@ -1028,7 +1126,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 33,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.0.0-1",
+  "bspKmodsRpmVersion": "4.2.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

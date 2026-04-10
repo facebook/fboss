@@ -90,8 +90,10 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
       return false;
     }
     usedSensorNames.emplace(*pmSensor.name());
-    if (!pmSensor.sysfsPath()->starts_with("/run/devmap/sensors/")) {
-      XLOG(ERR) << "PmSensor sysfsPath must start with /run/devmap/sensors/";
+    if (!pmSensor.sysfsPath()->starts_with("/run/devmap/sensors/") &&
+        !pmSensor.sysfsPath()->starts_with("/run/devmap/cplds/")) {
+      XLOG(ERR)
+          << "PmSensor sysfsPath must start with /run/devmap/sensors/ or /run/devmap/cplds/";
       return false;
     }
   }
@@ -100,7 +102,7 @@ bool ConfigValidator::isValidPmSensors(const std::vector<PmSensor>& pmSensors) {
 
 bool ConfigValidator::isValidPowerConfig(
     const sensor_config::SensorConfig& sensorConfig) {
-  re2::RE2 psuPattern("((PSU|PEM)([1-9][0-9]*)|HSC)");
+  re2::RE2 psuPattern("(PSU|PEM|HSC|PWRBRK)([1-9][0-9]*)");
 
   XLOG(DBG1) << "Validating Power Config";
 
@@ -133,10 +135,11 @@ bool ConfigValidator::isValidPowerConfig(
       return false;
     }
 
-    // Validate name pattern (PSU/PEM/HSC)
+    // Validate name pattern (PSU/PEM/HSC/PWRBRK)
     if (!RE2::FullMatch(*perSlotConfig.name(), psuPattern)) {
       XLOG(ERR) << fmt::format(
-          "perSlotPowerConfig name {} should be PSU[number], PEM[number], or HSC",
+          "perSlotPowerConfig name {} should be "
+          "PSU[number], PEM[number], HSC[number], or PWRBRK[number]",
           *perSlotConfig.name());
       return false;
     }

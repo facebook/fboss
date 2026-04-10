@@ -64,5 +64,6 @@ thrift_library(
     thrift_srcs = {"sensor_config.thrift": []},
     deps = [
         "//thrift/annotation:hack",
+        "//thrift/annotation:thrift",
     ],
 )

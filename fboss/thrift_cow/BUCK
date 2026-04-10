@@ -26,7 +26,7 @@ thrift_library(
     py3_namespace = "neteng.fboss.thrift_cow",
     py_asyncio_base_module = "neteng.fboss.asyncio.thrift_cow",
     py_base_module = "neteng.fboss.thrift_cow",
-    thrift_cpp2_options = "json,reflection",
+    thrift_cpp2_options = "json",
     thrift_py_options = "json,sort_keys",
     thrift_srcs = {
         "patch.thrift": [],

@@ -13,6 +13,7 @@
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 
 constexpr int kPayloadSize = 4500;
 DEFINE_int32(lossy_queue_test_qmin, 5000, "Queue min guarantee in bytes");
@@ -142,9 +143,9 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
@@ -218,7 +219,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
     if (portId.has_value()) {
       ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *portId);
     } else {
-      ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   };
 

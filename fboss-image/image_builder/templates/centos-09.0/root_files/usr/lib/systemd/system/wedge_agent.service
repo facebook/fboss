@@ -21,10 +21,8 @@ Restart=always
 RestartSec=30
 TimeoutStartSec=180s
 
-# Logging to journald
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=wedge_agent
+StandardOutput=append:/var/facebook/logs/fboss/wedge_agent.log
+StandardError=append:/var/facebook/logs/fboss/wedge_agent.log
 
 [Install]
 WantedBy=multi-user.target

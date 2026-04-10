@@ -34,6 +34,8 @@ class FsdbSensorSubscriber {
     return sensorStatsLastUpdatedTime.load();
   }
 
+  bool isSensorDataStale() const;
+
   std::map<std::string, fboss::platform::sensor_service::SensorData>
   getSensorData() const;
   std::map<std::string, facebook::fboss::asic_temp::AsicTempData> getAgentData()

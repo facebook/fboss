@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowMacAddrToBlock.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fmt/core.h>
 
@@ -54,5 +55,12 @@ CmdShowMacAddrToBlock::RetType CmdShowMacAddrToBlock::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowMacAddrToBlock, CmdShowMacAddrToBlockTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowMacAddrToBlock,
+    CmdShowMacAddrToBlockTraits>::getValidFilters();
 
 } // namespace facebook::fboss

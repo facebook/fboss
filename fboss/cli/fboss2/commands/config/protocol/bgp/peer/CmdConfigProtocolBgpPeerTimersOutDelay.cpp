@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerTimersOutDelay.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/core.h>
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h"
 
@@ -59,5 +61,10 @@ void CmdConfigProtocolBgpPeerTimersOutDelay::printOutput(
     const RetType& output) {
   std::cout << output << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigProtocolBgpPeerTimersOutDelay,
+    CmdConfigProtocolBgpPeerTimersOutDelayTraits>::run();
 
 } // namespace facebook::fboss

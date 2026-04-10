@@ -31,7 +31,7 @@
       "pmUnitName": "BMC"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 9,
+      "numOutgoingI2cBuses": 10,
       "idpromConfig": {
         "busName": "INCOMING@3",
         "address": "0x50",
@@ -421,8 +421,81 @@
         {
           "busName": "MCB_IOB_I2C_MASTER_14",
           "address": "0x60",
-          "kernelDeviceName": "w800_mcbcpld",
-          "pmUnitScopedName": "MCB_CPLD"
+          "kernelDeviceName": "fbg_mcbcpld",
+          "pmUnitScopedName": "MCB_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "version_id",
+              "regAddr": "0x00",
+              "bitOffset": 4,
+              "numBits": 3,
+              "description": "Hardware version ID"
+            },
+            {
+              "name": "board_id",
+              "regAddr": "0x00",
+              "numBits": 4,
+              "description": "Board ID"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 7,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "cpld_minor_ver",
+              "regAddr": "0x02",
+              "numBits": 8,
+              "description": "CPLD minor version"
+            },
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x03",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            },
+            {
+              "name": "pwr_brick_pwrok",
+              "regAddr": "0x11",
+              "bitOffset": 1,
+              "description": "Power brick power OK"
+            },
+            {
+              "name": "hotswap_pwrok",
+              "regAddr": "0x11",
+              "description": "Hot swap power OK"
+            },
+            {
+              "name": "scm_module_present",
+              "regAddr": "0xB5",
+              "bitOffset": 4,
+              "description": "SCM module present"
+            },
+            {
+              "name": "smb_pwrok",
+              "regAddr": "0xB5",
+              "bitOffset": 3,
+              "description": "SMB power OK"
+            },
+            {
+              "name": "iob_pwrok",
+              "regAddr": "0xB5",
+              "bitOffset": 2,
+              "description": "IOB power OK"
+            },
+            {
+              "name": "come_pch_pwrok",
+              "regAddr": "0xB5",
+              "bitOffset": 1,
+              "description": "COMe PCH power OK"
+            },
+            {
+              "name": "come_pwrok",
+              "regAddr": "0xB5",
+              "description": "COMe power OK"
+            }
+          ]
         },
         {
           "busName": "MCB_IOB_I2C_MASTER_15",
@@ -969,7 +1042,7 @@
   "chassisEepromDevicePath": "/[CHASSIS_EEPROM]",
   "numXcvrs": 33,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.1.0-1",
+  "bspKmodsRpmVersion": "4.2.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

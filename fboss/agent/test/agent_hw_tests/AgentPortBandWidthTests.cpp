@@ -75,7 +75,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   void disableTTLDecrements(
       const utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(),
         ecmpHelper.getRouterId(),
         ecmpHelper.nhop(PortDescriptor(getPort0())));
@@ -93,7 +93,8 @@ class AgentPortBandwidthTest : public AgentHwTest {
         "Resolve next hops");
     RoutePrefixV6 route{kDestIp(), 128};
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper6.programRoutes(&wrapper, {portDesc}, {route});
+    ecmpHelper6.programRoutes(
+        &wrapper, {portDesc}, {route}, {}, std::nullopt, true);
     disableTTLDecrements(ecmpHelper6);
   }
 

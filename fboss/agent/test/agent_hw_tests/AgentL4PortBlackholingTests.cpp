@@ -54,7 +54,7 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
             dstIp,
             dir == Dir::SRC_PORT ? l4Port : 1,
             dir == Dir::DST_PORT ? l4Port : 1);
-        getSw()->sendPacketSwitchedAsync(std::move(pkt));
+        sendPacketSwitchedAsync(std::move(pkt));
       }
     }
   }

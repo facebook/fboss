@@ -10,8 +10,6 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
-
-DECLARE_bool(intf_nbr_tables);
 namespace facebook::fboss {
 
 class AgentL3ForwardingTest : public AgentHwTest {
@@ -41,18 +39,10 @@ class AgentL3ForwardingTest : public AgentHwTest {
   template <typename IPAddrT>
   auto getNeighborTable(const std::shared_ptr<SwitchState>& in) {
     auto state = in;
-    ;
-    if (FLAGS_intf_nbr_tables) {
-      return state->getInterfaces()
-          ->getNode(kIntfID())
-          ->template getNeighborEntryTable<IPAddrT>()
-          ->modify(kIntfID(), &state);
-    } else {
-      return state->getVlans()
-          ->getNode(*kVlanID())
-          ->template getNeighborEntryTable<IPAddrT>()
-          ->modify(*kVlanID(), &state);
-    }
+    return state->getInterfaces()
+        ->getNode(kIntfID())
+        ->template getNeighborEntryTable<IPAddrT>()
+        ->modify(kIntfID(), &state);
   }
   template <typename IPAddrT>
   std::shared_ptr<SwitchState> addResolvedNeighbor(

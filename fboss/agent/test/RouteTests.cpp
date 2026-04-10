@@ -87,10 +87,11 @@ const RouterID kRid0 = RouterID(0);
 //
 template <typename AddrT>
 void EXPECT_FWD_INFO(
+    const std::shared_ptr<SwitchState>& state,
     std::shared_ptr<Route<AddrT>> rt,
     InterfaceID intf,
     std::string ipStr) {
-  const auto& fwds = rt->getForwardInfo().getNextHopSet();
+  const auto& fwds = getNextHops(state, rt->getForwardInfo());
   EXPECT_EQ(1, fwds.size());
   const auto& fwd = *fwds.begin();
   EXPECT_EQ(intf, fwd.intf());
@@ -216,7 +217,9 @@ TEST_F(RouteTest, routeApi) {
   auto testRouteApi = [&](auto route) {
     EXPECT_TRUE(std::make_shared<RouteV6>(route.toThrift())->isSame(&route));
     EXPECT_EQ(pfx6, route.prefix());
-    EXPECT_EQ(route.toRouteDetails(), route.toRouteDetails());
+    EXPECT_EQ(
+        route.toRouteDetails(route.getForwardInfo().getNextHopSet()),
+        route.toRouteDetails(route.getForwardInfo().getNextHopSet()));
     EXPECT_EQ(route.str(), route.str());
     EXPECT_EQ(route.flags(), 0);
     EXPECT_FALSE(route.isResolved());
@@ -443,8 +446,8 @@ TEST_F(RouteTest, resolve) {
     RouteNextHopSet expFwd2;
     expFwd2.emplace(
         ResolvedNextHop(IPAddress("1.1.1.10"), InterfaceID(1), ECMP_WEIGHT));
-    EXPECT_EQ(expFwd2, r21->getForwardInfo().getNextHopSet());
-    EXPECT_EQ(expFwd2, r22->getForwardInfo().getNextHopSet());
+    EXPECT_EQ(expFwd2, getNextHops(stateV2, r21->getForwardInfo()));
+    EXPECT_EQ(expFwd2, getNextHops(stateV2, r22->getForwardInfo()));
   }
   // recursive lookup loop
   {
@@ -525,7 +528,7 @@ TEST_F(RouteTest, resolve) {
     EXPECT_FALSE(r31->isConnected());
 
     // 50.0.0.1/32 will recurse to 50.0.0.0/8->1.1.1.1 (connected)
-    auto r31NextHops = r31->getForwardInfo().getNextHopSet();
+    auto r31NextHops = getNextHops(stateV3, r31->getForwardInfo());
     EXPECT_EQ(1, r31NextHops.size());
     auto r32 = findLongestMatchRoute(
         this->sw_->getRib(), rid, r31NextHops.begin()->addr().asV4(), stateV3);
@@ -579,7 +582,7 @@ TEST_F(RouteTest, resolveDropToCPUMix) {
     EXPECT_FALSE(r2->isConnected());
     const auto& fwd = r2->getForwardInfo();
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, fwd.getAction());
-    EXPECT_EQ(2, fwd.getNextHopSet().size());
+    EXPECT_EQ(2, getNextHops(stateV2, fwd).size());
   }
 
   // now update the route with just DROP and ToCPU, expect ToCPU to win
@@ -603,7 +606,7 @@ TEST_F(RouteTest, resolveDropToCPUMix) {
     EXPECT_FALSE(r2->isConnected());
     const auto& fwd = r2->getForwardInfo();
     EXPECT_EQ(RouteForwardAction::TO_CPU, fwd.getAction());
-    EXPECT_EQ(0, fwd.getNextHopSet().size());
+    EXPECT_EQ(0, getNextHops(stateV3, fwd).size());
   }
   // now update the route with just DROP
   auto u3 = this->sw_->getRouteUpdater();
@@ -624,7 +627,7 @@ TEST_F(RouteTest, resolveDropToCPUMix) {
     EXPECT_FALSE(r2->isConnected());
     const auto& fwd = r2->getForwardInfo();
     EXPECT_EQ(RouteForwardAction::DROP, fwd.getAction());
-    EXPECT_EQ(0, fwd.getNextHopSet().size());
+    EXPECT_EQ(0, getNextHops(stateV4, fwd).size());
   }
 }
 
@@ -671,8 +674,8 @@ TEST_F(RouteTest, addDel) {
   // forwarding info
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2->getForwardInfo().getAction());
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, r2v6->getForwardInfo().getAction());
-  const auto& fwd2 = r2->getForwardInfo().getNextHopSet();
-  const auto& fwd2v6 = r2v6->getForwardInfo().getNextHopSet();
+  const auto& fwd2 = getNextHops(stateV2, r2->getForwardInfo());
+  const auto& fwd2v6 = getNextHops(stateV2, r2v6->getForwardInfo());
   EXPECT_EQ(2, fwd2.size());
   EXPECT_EQ(2, fwd2v6.size());
   RouteNextHopSet expFwd2;
@@ -764,7 +767,7 @@ TEST_F(RouteTest, InterfaceRoutes) {
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.1");
+    EXPECT_FWD_INFO(stateV1, rt, InterfaceID(1), "1.1.1.1");
   }
   // verify the ipv6 interface route
   {
@@ -775,7 +778,7 @@ TEST_F(RouteTest, InterfaceRoutes) {
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
     EXPECT_EQ(RouteForwardAction::NEXTHOPS, rt->getForwardInfo().getAction());
-    EXPECT_FWD_INFO(rt, InterfaceID(2), "2::1");
+    EXPECT_FWD_INFO(stateV1, rt, InterfaceID(2), "2::1");
   }
 
   {
@@ -786,7 +789,7 @@ TEST_F(RouteTest, InterfaceRoutes) {
     EXPECT_FALSE(rt->isConnected());
     EXPECT_TRUE(rt->isToCPU());
     EXPECT_EQ(RouteForwardAction::TO_CPU, rt->getForwardInfo().getAction());
-    const auto& fwds = rt->getForwardInfo().getNextHopSet();
+    const auto& fwds = getNextHops(stateV1, rt->getForwardInfo());
     EXPECT_EQ(0, fwds.size());
   }
 
@@ -804,13 +807,13 @@ TEST_F(RouteTest, InterfaceRoutes) {
   {
     auto rt = this->findRoute4(stateV2, rid, "1.1.1.0/24");
     EXPECT_EQ(expectedGen, rt->getGeneration());
-    EXPECT_FWD_INFO(rt, InterfaceID(2), "1.1.1.1");
+    EXPECT_FWD_INFO(stateV2, rt, InterfaceID(2), "1.1.1.1");
   }
   // verify the ipv6 route
   {
     auto rt = this->findRoute6(stateV2, rid, "2::0/48");
     EXPECT_EQ(expectedGen, rt->getGeneration());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "2::1");
+    EXPECT_FWD_INFO(stateV2, rt, InterfaceID(1), "2::1");
   }
 }
 
@@ -1321,29 +1324,32 @@ TEST_F(RouteTest, modRoutes) {
       RouteNextHopEntry(nexthops3, DISTANCE));
   u1.program();
 
-  auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
-  auto rt99 = this->findRoute4(this->sw_->getState(), kRid0, prefix99);
-  EXPECT_EQ(rt10->getForwardInfo().getNextHopSet(), nexthops1);
-  EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
+  auto state1 = this->sw_->getState();
+  auto rt10 = this->findRoute4(state1, kRid0, prefix10);
+  auto rt99 = this->findRoute4(state1, kRid0, prefix99);
+  EXPECT_EQ(getNextHops(state1, rt10->getForwardInfo()), nexthops1);
+  EXPECT_EQ(getNextHops(state1, rt99->getForwardInfo()), nexthops3);
 
   auto u2 = this->sw_->getRouteUpdater();
   u2.delRoute(kRid0, IPAddress("10.10.10.10"), 32, kClientA);
   u2.program();
   // 10.10.10.10 should now get clientBs nhops
-  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
-  rt99 = this->findRoute4(this->sw_->getState(), kRid0, prefix99);
-  EXPECT_EQ(rt10->getForwardInfo().getNextHopSet(), nexthops2);
-  EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
+  auto state2 = this->sw_->getState();
+  rt10 = this->findRoute4(state2, kRid0, prefix10);
+  rt99 = this->findRoute4(state2, kRid0, prefix99);
+  EXPECT_EQ(getNextHops(state2, rt10->getForwardInfo()), nexthops2);
+  EXPECT_EQ(getNextHops(state2, rt99->getForwardInfo()), nexthops3);
   // Delete the second client/nexthop pair
   // The route & prefix should disappear altogether.
 
   auto u3 = this->sw_->getRouteUpdater();
   u3.delRoute(kRid0, IPAddress("10.10.10.10"), 32, kClientB);
   u3.program();
-  rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
-  rt99 = this->findRoute4(this->sw_->getState(), kRid0, prefix99);
+  auto state3 = this->sw_->getState();
+  rt10 = this->findRoute4(state3, kRid0, prefix10);
+  rt99 = this->findRoute4(state3, kRid0, prefix99);
   EXPECT_EQ(rt10, nullptr);
-  EXPECT_EQ(rt99->getForwardInfo().getNextHopSet(), nexthops3);
+  EXPECT_EQ(getNextHops(state3, rt99->getForwardInfo()), nexthops3);
 }
 
 // Test adding empty nextHops lists
@@ -1387,10 +1393,10 @@ void expectFwdInfo(
     const SwSwitch* sw,
     RouteV4::Prefix prefix,
     std::string ipPrefix) {
-  const auto& fwd =
-      findRoute<IPAddressV4>(kRid0, prefix.toCidrNetwork(), sw->getState())
-          ->getForwardInfo();
-  const auto& nhops = fwd.getNextHopSet();
+  auto state = sw->getState();
+  const auto& fwd = findRoute<IPAddressV4>(kRid0, prefix.toCidrNetwork(), state)
+                        ->getForwardInfo();
+  const auto& nhops = getNextHops(state, fwd);
   // Expect the fwd'ing info to be 3 IPs all starting with 'ipPrefix'
   EXPECT_EQ(3, nhops.size());
   for (auto const& it : nhops) {
@@ -1523,8 +1529,8 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
 
   const auto& v4Fwd = v4Route->getForwardInfo();
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, v4Fwd.getAction());
-  EXPECT_EQ(1, v4Fwd.getNextHopSet().size());
-  for (auto& nexthop : v4Fwd.getNextHopSet()) {
+  EXPECT_EQ(1, getNextHops(state, v4Fwd).size());
+  for (auto& nexthop : getNextHops(state, v4Fwd)) {
     auto labelAction = nexthop.labelForwardingAction();
     EXPECT_TRUE(labelAction.has_value());
     EXPECT_EQ(labelAction->type(), MplsActionCode::PUSH);
@@ -1540,9 +1546,9 @@ TEST_F(RouteTest, StaticIp2MplsRoutes) {
 
   const auto& v6Fwd = v4Route->getForwardInfo();
   EXPECT_EQ(RouteForwardAction::NEXTHOPS, v6Fwd.getAction());
-  EXPECT_EQ(1, v6Fwd.getNextHopSet().size());
+  EXPECT_EQ(1, getNextHops(state, v6Fwd).size());
 
-  for (auto& nexthop : v6Fwd.getNextHopSet()) {
+  for (auto& nexthop : getNextHops(state, v6Fwd)) {
     auto labelAction = nexthop.labelForwardingAction();
     EXPECT_TRUE(labelAction.has_value());
     EXPECT_EQ(labelAction->type(), MplsActionCode::PUSH);
@@ -1580,22 +1586,24 @@ TEST_F(MultipleAddressInterfaceTest, twoAddrsForInterface) {
   EXPECT_EQ(2, v4Routes); // ALPM default + intf routes
   EXPECT_EQ(3, v6Routes); // ALPM default + intf + link local routes
   {
-    auto rt = this->findRoute4(this->sw_->getState(), rid, "1.1.1.0/24");
+    auto state = this->sw_->getState();
+    auto rt = this->findRoute4(state, rid, "1.1.1.0/24");
     EXPECT_EQ(0, rt->getGeneration());
     EXPECT_TRUE(rt->isResolved());
     EXPECT_TRUE(rt->isConnected());
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1.1.1.2");
+    EXPECT_FWD_INFO(state, rt, InterfaceID(1), "1.1.1.2");
   }
   {
-    auto rt = this->findRoute6(this->sw_->getState(), rid, "1::0/48");
+    auto state = this->sw_->getState();
+    auto rt = this->findRoute6(state, rid, "1::0/48");
     EXPECT_EQ(0, rt->getGeneration());
     EXPECT_TRUE(rt->isResolved());
     EXPECT_TRUE(rt->isConnected());
     EXPECT_FALSE(rt->isToCPU());
     EXPECT_FALSE(rt->isDrop());
-    EXPECT_FWD_INFO(rt, InterfaceID(1), "1::2");
+    EXPECT_FWD_INFO(state, rt, InterfaceID(1), "1::2");
   }
 }
 
@@ -1762,7 +1770,8 @@ TEST_F(RouteTest, withTunnelAndRouteLabels) {
 
   EXPECT_TRUE(route->isResolved());
 
-  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+  auto routeState = this->sw_->getState();
+  for (const auto& nhop : getNextHops(routeState, route->getForwardInfo())) {
     EXPECT_TRUE(nhop.isResolved());
     EXPECT_TRUE(nhop.labelForwardingAction().has_value());
     EXPECT_EQ(
@@ -1834,8 +1843,9 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
   updater.program();
 
   // route to remote destination under kDestPrefix advertised by bgp
+  auto routeState2 = this->sw_->getState();
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, routeState2);
 
   EXPECT_EQ(
       route->has(
@@ -1844,7 +1854,7 @@ TEST_F(RouteTest, withOnlyTunnelLabels) {
 
   EXPECT_TRUE(route->isResolved());
 
-  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+  for (const auto& nhop : getNextHops(routeState2, route->getForwardInfo())) {
     EXPECT_TRUE(nhop.isResolved());
     EXPECT_TRUE(nhop.labelForwardingAction().has_value());
     EXPECT_EQ(
@@ -1939,8 +1949,9 @@ TEST_F(RouteTest, updateTunnelLabels) {
   updatedStack.push_back(*(kLabelStacks[1].begin() + 2));
 
   // route to remote destination under kDestPrefix advertised by bgp
+  auto routeState3 = this->sw_->getState();
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, routeState3);
 
   EXPECT_EQ(
       route->has(
@@ -1949,7 +1960,7 @@ TEST_F(RouteTest, updateTunnelLabels) {
 
   EXPECT_TRUE(route->isResolved());
 
-  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+  for (const auto& nhop : getNextHops(routeState3, route->getForwardInfo())) {
     EXPECT_TRUE(nhop.isResolved());
     EXPECT_TRUE(nhop.labelForwardingAction().has_value());
     EXPECT_EQ(
@@ -2030,8 +2041,9 @@ TEST_F(RouteTest, updateRouteLabels) {
   updatedStack.push_back(*(kLabelStacks[0].begin() + 2));
 
   // route to remote destination under kDestPrefix advertised by bgp
+  auto routeState4 = this->sw_->getState();
   const auto& route = findLongestMatchRoute(
-      this->sw_->getRib(), rid, kDestAddress, this->sw_->getState());
+      this->sw_->getRib(), rid, kDestAddress, routeState4);
 
   EXPECT_EQ(
       route->has(
@@ -2042,7 +2054,7 @@ TEST_F(RouteTest, updateRouteLabels) {
 
   EXPECT_TRUE(route->isResolved());
 
-  for (const auto& nhop : route->getForwardInfo().getNextHopSet()) {
+  for (const auto& nhop : getNextHops(routeState4, route->getForwardInfo())) {
     EXPECT_TRUE(nhop.isResolved());
     EXPECT_TRUE(nhop.labelForwardingAction().has_value());
     EXPECT_EQ(
@@ -2253,7 +2265,10 @@ class UcmpTest : public RouteTest {
       expFwd1.emplace(ResolvedNextHop(intfIps[i], InterfaceID(i + 1), w));
       ++i;
     }
-    EXPECT_EQ(expFwd1, resolvedRoutes[0]->getForwardInfo().getNextHopSet());
+    EXPECT_EQ(
+        expFwd1,
+        getNextHops(
+            this->sw_->getState(), resolvedRoutes[0]->getForwardInfo()));
   }
 
   void runTwoDeepRecursiveTest(
@@ -2426,7 +2441,9 @@ TEST_F(UcmpTest, separateEcmpUcmp) {
   route2ExpFwd.emplace(
       ResolvedNextHop(IPAddress("2.2.2.20"), InterfaceID(2), 1));
   EXPECT_EQ(
-      route2ExpFwd, this->resolvedRoutes[1]->getForwardInfo().getNextHopSet());
+      route2ExpFwd,
+      getNextHops(
+          this->sw_->getState(), this->resolvedRoutes[1]->getForwardInfo()));
 }
 
 // The following set of tests will start with 4 next hops all weight 100
@@ -2691,9 +2708,10 @@ TEST_F(RouteTest, routePrune) {
       RouteNextHopEntry(nexthops1, DISTANCE));
   u1.program();
 
-  auto rt10 = this->findRoute4(this->sw_->getState(), kRid0, prefix10);
+  auto pruneState = this->sw_->getState();
+  auto rt10 = this->findRoute4(pruneState, kRid0, prefix10);
   int numPrunedPaths = 0;
-  for (auto& nhop : rt10->getForwardInfo().getNextHopSet()) {
+  for (auto& nhop : getNextHops(pruneState, rt10->getForwardInfo())) {
     if (nhop.adjustedWeight().has_value() && *nhop.adjustedWeight() == 0) {
       numPrunedPaths++;
     }
@@ -2987,6 +3005,177 @@ TEST_F(RouteTest, resolveRouteWithSrv6NextHopToMultipleResolvedNextHops) {
       sidList,
       TunnelType::SRV6_ENCAP,
       std::string("srv6Tunnel0")));
+
+  EXPECT_EQ(expectedNhops, fwdNhops);
+}
+
+TEST_F(RouteTest, resolveRouteWithTwoSrv6NextHopsRecursively) {
+  auto rid = RouterID(0);
+
+  // Segment lists for the top-level SRv6 route (should be preserved)
+  const std::vector<folly::IPAddressV6> sidListA{
+      folly::IPAddressV6("3001:db8:a1::"),
+      folly::IPAddressV6("3001:db8:a2::"),
+      folly::IPAddressV6("3001:db8:a3::")};
+  const std::vector<folly::IPAddressV6> sidListB{
+      folly::IPAddressV6("3001:db8:b1::"),
+      folly::IPAddressV6("3001:db8:b2::"),
+      folly::IPAddressV6("3001:db8:b3::")};
+
+  // Segment lists on the IGP routes (should NOT propagate to the top-level
+  // route)
+  const std::vector<folly::IPAddressV6> igpSidListA{
+      folly::IPAddressV6("4001:db8:a1::"), folly::IPAddressV6("4001:db8:a2::")};
+  const std::vector<folly::IPAddressV6> igpSidListB{
+      folly::IPAddressV6("4001:db8:b1::"), folly::IPAddressV6("4001:db8:b2::")};
+
+  auto updater = this->sw_->getRouteUpdater();
+
+  // Step 1: Add IGP route A (2801::/48) with SRv6 next hops carrying
+  // igpSidListA. 1::10 resolves via intf 1, 2::10 via intf 2.
+  RouteNextHopSet igpNhopsA;
+  igpNhopsA.emplace(UnresolvedNextHop(
+      folly::IPAddress("1::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelA")));
+  igpNhopsA.emplace(UnresolvedNextHop(
+      folly::IPAddress("2::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelA")));
+  updater.addRoute(
+      rid,
+      IPAddress("2801::"),
+      48,
+      kClientA,
+      RouteNextHopEntry(igpNhopsA, DISTANCE));
+
+  // Step 2: Add IGP route B (2802::/48) with SRv6 next hops carrying
+  // igpSidListB. 3::10 resolves via intf 3, 4::10 via intf 4.
+  RouteNextHopSet igpNhopsB;
+  igpNhopsB.emplace(UnresolvedNextHop(
+      folly::IPAddress("3::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelB")));
+  igpNhopsB.emplace(UnresolvedNextHop(
+      folly::IPAddress("4::10"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      igpSidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("igpTunnelB")));
+  updater.addRoute(
+      rid,
+      IPAddress("2802::"),
+      48,
+      kClientA,
+      RouteNextHopEntry(igpNhopsB, DISTANCE));
+
+  // Step 3: Add SRv6 route (2800:5::/64) with 2 unresolved next hops pointing
+  // at 2801::1 (sidListA) and 2802::1 (sidListB).
+  RouteNextHopSet srv6Nhops;
+  srv6Nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("2801::1"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  srv6Nhops.emplace(UnresolvedNextHop(
+      folly::IPAddress("2802::1"),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
+  updater.addRoute(
+      rid,
+      IPAddress("2800:5::"),
+      64,
+      kClientA,
+      RouteNextHopEntry(srv6Nhops, EBGP_DISTANCE));
+  updater.program();
+
+  // Step 4: Verify the SRv6 route resolved to 4 next hops, each carrying the
+  // original route's segment list (sidListA or sidListB), NOT the IGP route's.
+  auto rt = this->findRoute6(this->sw_->getState(), rid, "2800:5::/64");
+  ASSERT_NE(nullptr, rt);
+  EXPECT_TRUE(rt->isResolved());
+
+  const auto& fwdNhops = rt->getForwardInfo().getNextHopSet();
+  ASSERT_EQ(4, fwdNhops.size());
+
+  RouteNextHopSet expectedNhops;
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("1::10"),
+      InterfaceID(1),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("2::10"),
+      InterfaceID(2),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListA,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel0")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("3::10"),
+      InterfaceID(3),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
+  expectedNhops.emplace(ResolvedNextHop(
+      IPAddress("4::10"),
+      InterfaceID(4),
+      ECMP_WEIGHT,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      std::nullopt,
+      sidListB,
+      TunnelType::SRV6_ENCAP,
+      std::string("srv6Tunnel1")));
 
   EXPECT_EQ(expectedNhops, fwdNhops);
 }

@@ -53,7 +53,7 @@ class AgentJumboFramesTest : public AgentHwTest {
         0,
         255,
         std::vector<uint8_t>(payloadSize, 0xff));
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
   }
 
  protected:

@@ -13,12 +13,6 @@ namespace {
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
-std::unordered_set<std::string> accessMethodTypes = {
-    constants::ACCESS_TYPE_SYSFS(),
-    constants::ACCESS_TYPE_UTIL(),
-    constants::ACCESS_TYPE_THRIFT(),
-    constants::ACCESS_TYPE_QSFP()};
-
 std::unordered_set<std::string> zoneTypes = {
     constants::ZONE_TYPE_MAX(),
     constants::ZONE_TYPE_MIN(),
@@ -58,10 +52,6 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
   for (const auto& sensor : *config.sensors()) {
-    if (!accessMethodTypes.contains(*sensor.access()->accessType())) {
-      XLOG(ERR) << "Invalid access method: " << *sensor.access()->accessType();
-      return false;
-    }
     if (!sensorPwmCalcTypes.contains(*sensor.pwmCalcType())) {
       XLOG(ERR) << "Invalid PWM calculation type: " << *sensor.pwmCalcType();
       return false;
@@ -95,6 +85,13 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
 
   for (const auto& optic : *config.optics()) {
     if (!isValidOpticConfig(optic)) {
+      return false;
+    }
+  }
+
+  if (config.shutdownCondition()) {
+    if (config.shutdownCmd()->empty()) {
+      XLOG(ERR) << "shutdownCmd must be set when shutdownCondition is defined";
       return false;
     }
   }
@@ -164,26 +161,12 @@ bool ConfigValidator::isValidOpticConfig(const Optic& optic) {
     return false;
   }
 
-  if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID()) {
+  if (*optic.aggregationType() == constants::OPTIC_AGGREGATION_TYPE_PID() ||
+      *optic.aggregationType() ==
+          constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
     if (optic.pidSettings()->empty()) {
       XLOG(ERR) << "PID settings cannot be empty for optic aggregation type: "
                 << *optic.aggregationType();
-      return false;
-    }
-    for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {
-      if (!opticTypes.contains(opticType)) {
-        XLOG(ERR) << "Invalid optic type: " << opticType;
-        return false;
-      }
-    }
-  }
-
-  if (*optic.aggregationType() ==
-      constants::OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID()) {
-    if (optic.pidSettings()->empty()) {
-      XLOG(ERR)
-          << "PID settings cannot be empty for optic aggregation incremental type: "
-          << *optic.aggregationType();
       return false;
     }
     for (const auto& [opticType, pidSetting] : *optic.pidSettings()) {

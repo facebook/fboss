@@ -30,10 +30,18 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
     libffi libffi-devel libnghttp2 libnghttp2-devel libnl3 libnl3-devel \
     libsodium-devel libsodium-static libunwind libunwind-devel libusb libusb-devel \
     libzstd libzstd-devel lz4-devel ncurses-devel ninja-build \
-    openssl openssl-devel openssl-libs python3 python3-devel \
+    openssl openssl-devel openssl-libs \
     re2 re2-devel snappy-devel xxhash-devel xz-devel zlib-devel zlib-static \
     libxml2-devel expat-devel wget git sudo lsof `basename "$USER_SHELL"` \
     libcap-devel libmount-devel
+
+# Set up Python 3.12 as the system default.
+# Python 3.12 is chosen to match the getdeps python manifest which installs
+# python3.12 on CentOS Stream 9 (the default python3 is 3.9, too old).
+# All -python variant dependency builds (folly-python, fbthrift-python, etc.)
+# must use the same Python version consistently.
+RUN dnf install -y python3.12 python3.12-devel python3.12-pip && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
 
 # Necessary for using update-alternatives.
 RUN rpm -e binutils --nodeps
@@ -62,7 +70,7 @@ RUN dnf download libtool && \
     rpm -ivh --nodeps libtool-*.rpm && \
     rm -f libtool-*.rpm
 
-RUN python3 -m pip install boto3 botocore gitpython meson jinja2
+RUN python3 -m pip install setuptools 'Cython>=3.0,<3.2' wheel auditwheel patchelf boto3 botocore gitpython meson jinja2 pyyaml filelock pytest
 
 COPY .pre-commit-config.yaml /tmp/.pre-commit-config.yaml
 COPY ./fboss/oss/docker/setup_clang.sh /tmp/setup_clang.sh
@@ -72,7 +80,7 @@ RUN bash /tmp/setup_clang.sh && rm /tmp/setup_clang.sh
 WORKDIR /var/FBOSS/fboss
 COPY build/fbcode_builder /var/FBOSS/fboss/build/fbcode_builder
 RUN if [ "$USE_CLANG" = "true" ]; then \
-    sed 's/^binutils/#binutils/' -i build/fbcode_builder/manifests/*; \
+    find build/fbcode_builder/manifests -maxdepth 1 -type f -exec sed -i 's/^binutils/#binutils/' {} +; \
     fi && \
     ./build/fbcode_builder/getdeps.py install-system-deps --recursive fboss && \
     rm -rf build
@@ -94,10 +102,9 @@ RUN dnf install -y perl-diagnostics perl-sort perl-English perl-Clone perl-Data-
     perl-List-MoreUtils perl-Moose perl-YAML perl-namespace-autoclean perl-JSON-XS perl-FindBin \
     perl-Math-BigInt perl-YAML-LibYAML perl-Sys-Hostname perl-Time
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN pip install pyyaml filelock
 # ============================================================
 COPY requirements-dev.txt /tmp/requirements-dev.txt
-RUN pip install -r /tmp/requirements-dev.txt && rm /tmp/requirements-dev.txt
+RUN python3 -m pip install -r /tmp/requirements-dev.txt && rm /tmp/requirements-dev.txt
 
 # Configure sudoers to allow wheel group passwordless sudo
 RUN echo "%wheel ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers

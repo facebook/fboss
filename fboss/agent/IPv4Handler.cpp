@@ -19,6 +19,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/DHCPv4Handler.h"
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/IPHeaderV4.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/PortStats.h"
@@ -106,8 +107,8 @@ void IPv4Handler::sendICMPTimeExceeded(
   std::unique_ptr<ICMPExtIPSubObject> ipObj = nullptr;
   IPAddressV4 srcIp;
   try {
-    srcIp = getSwitchIntfIP(
-        state, sw_->getState()->getInterfaceIDForPort(PortDescriptor(port)));
+    auto intfId = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
+    srcIp = getSwitchIntfIP(state, intfId);
     ipObj = std::make_unique<ICMPExtIpSubObjectV4>(ICMPExtIpSubObjectV4(srcIp));
 
   } catch (const std::exception&) {
@@ -266,7 +267,10 @@ void IPv4Handler::handlePacket(
   if (v4Hdr.protocol == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
     Cursor udpCursor(cursor);
     UDPHeader udpHdr;
-    udpHdr.parse(&udpCursor, sw_->portStats(port));
+    if (!udpHdr.tryParse(&udpCursor, sw_->portStats(port))) {
+      XLOG_EVERY_MS(ERR, 1000) << "failed to parse udp header";
+      return;
+    }
     XLOG(DBG4) << "UDP packet, Source port :" << udpHdr.srcPort
                << " destination port: " << udpHdr.dstPort;
     if (DHCPv4Handler::isDHCPv4Packet(udpHdr)) {
@@ -307,8 +311,10 @@ void IPv4Handler::handlePacket(
       return;
     }
     // Forward multicast packet directly to corresponding host interface
-    auto intfID = sw_->getState()->getInterfaceIDForPort(PortDescriptor(port));
-    intf = state->getInterfaces()->getNodeIf(intfID);
+    auto intfIDOpt = state->getInterfaceIDForPortIf(PortDescriptor(port));
+    if (intfIDOpt) {
+      intf = state->getInterfaces()->getNodeIf(intfIDOpt.value());
+    }
   } else if (v4Hdr.dstAddr.isLinkLocal()) {
     // XXX: Ideally we should scope the limit to Link only. However we are
     // using v4 link locals in a special way on Galaxy/6pack which needs
@@ -422,7 +428,7 @@ bool IPv4Handler::resolveMac(
   }
 
   auto intfs = state->getInterfaces();
-  auto nhs = route->getForwardInfo().getNextHopSet();
+  auto nhs = getNextHops(state, route->getForwardInfo());
   auto sent = false;
   for (auto nh : nhs) {
     auto intf = intfs->getNodeIf(nh.intf());

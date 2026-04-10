@@ -1,8 +1,8 @@
 # pyre-strict
 from typing import Dict, List, Optional, Set
 
-import neteng.fboss.platform_mapping_config.ttypes as pm_types
-from neteng.fboss.platform_mapping_config.ttypes import ChipType
+import neteng.fboss.platform_mapping_config.thrift_types as pm_types
+from neteng.fboss.platform_mapping_config.thrift_types import ChipType
 
 TX = "TX"
 RX = "RX"

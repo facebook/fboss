@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/platforms/sai/SaiPlatform.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/PortQueue.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/types.h"
@@ -212,8 +213,7 @@ class ManagerTestBase : public ::testing::Test {
       std::optional<cfg::PortSpeed> expectedSpeed = std::nullopt,
       bool isXphyPort = false) const;
 
-  std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(
-      const TestRoute& route) const;
+  std::shared_ptr<Route<folly::IPAddressV4>> makeRoute(const TestRoute& route);
 
   std::shared_ptr<Vlan> makeVlan(const TestInterface& testInterface) const;
 
@@ -257,7 +257,10 @@ class ManagerTestBase : public ::testing::Test {
 
   void applyNewState(const std::shared_ptr<SwitchState>& newState);
 
+  std::shared_ptr<SwitchState> getProgrammedState();
+
   std::shared_ptr<SwitchState> programmedState;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
 
   static constexpr int kSysPortOffset = 100;
   static constexpr double kSpeedConversionFactor = 1000.;

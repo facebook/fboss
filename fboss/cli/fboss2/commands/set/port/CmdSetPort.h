@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <folly/String.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
@@ -18,13 +17,10 @@ struct CmdSetPortTraits : public WriteCommandTraits {
 class CmdSetPort : public CmdHandler<CmdSetPort, CmdSetPortTraits> {
  public:
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const ObjectArgType& /* queriedPortIds */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one the subcommands");
-  }
+      const HostInfo& hostInfo,
+      const ObjectArgType& queriedPortIds);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& model);
 };
 
 } // namespace facebook::fboss

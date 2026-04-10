@@ -74,6 +74,8 @@ cpp_library(
         "MirrorMap.cpp",
         "MirrorOnDropReport.cpp",
         "MirrorOnDropReportMap.cpp",
+        "MySid.cpp",
+        "MySidMap.cpp",
         "NdpEntry.cpp",
         "NdpResponseEntry.cpp",
         "NdpResponseTable.cpp",
@@ -187,6 +189,7 @@ cpp_library(
     ],
     exported_deps = [
         ":state",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
         "//fboss/agent:hwswitch_matcher",
         "//fboss/fsdb/if:fsdb_oper-cpp2-types",

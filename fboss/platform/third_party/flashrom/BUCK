@@ -1,9 +1,20 @@
-load("//antlir/rpmbuilder/fb:rpm.bzl", "rpm")
+load("@fbcode//registry:defs.bzl", "rpm")
 
 oncall("fboss_platform")
 
-rpm.publish_from_yaml(
+rpm.builder(
     name = "fb-fboss-flashrom",
-    repo = "fb-runtime",
-    yaml = "packman.yml",
+    configurations = [
+        rpm.configuration(
+            arch = "x86_64",
+        ),
+    ],
+    features = [
+        rpm.install(
+            src = "fbsource//third-party/tp2/flashrom/1.2.1:flashrom-bin",
+            dst = "/usr/bin/flashrom",
+            mode = 0o555,
+        ),
+    ],
+    summary = "flashrom binary built from third-party2",
 )

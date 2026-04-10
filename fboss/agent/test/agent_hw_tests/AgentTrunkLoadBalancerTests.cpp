@@ -17,9 +17,11 @@
 #include "fboss/agent/state/StateUtils.h"
 
 #include "fboss/agent/state/LabelForwardingAction.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "folly/IPAddressV4.h"
 
 #include "fboss/agent/state/SwitchState.h"
@@ -32,6 +34,8 @@ using boost::container::flat_set;
 using std::vector;
 
 using facebook::fboss::utility::getEcmpFullTrunkHalfHashConfig;
+using facebook::fboss::utility::
+    getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig;
 using facebook::fboss::utility::getEcmpHalfTrunkFullHashConfig;
 
 namespace {
@@ -454,6 +458,87 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
   }
 };
 
+// MPLS Trunk + ECMP load balancing
+class AgentMplsTrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
+ protected:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::MPLS,
+        ProductionFeature::LAG,
+        ProductionFeature::LAG_LOAD_BALANCER};
+  }
+};
+
+// SRv6 Trunk + ECMP load balancing
+class AgentSrv6TrunkLoadBalancerTest : public AgentTrunkLoadBalancerTest {
+ protected:
+  static constexpr AggPortInfo kSrv6AggInfo{2, 2};
+
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::SRV6_ENCAP,
+        ProductionFeature::LAG,
+        ProductionFeature::LAG_LOAD_BALANCER};
+  }
+
+  void setupSrv6TrunkECMP() {
+    auto config = configureAggregatePorts(kSrv6AggInfo);
+    // Add SRv6 tunnels
+    std::vector<cfg::Srv6Tunnel> tunnelList;
+    for (int i = 0; i < kSrv6AggInfo.numAggPorts; ++i) {
+      tunnelList.push_back(
+          utility::makeSrv6TunnelConfig(
+              folly::sformat("srv6Tunnel{}", i),
+              InterfaceID(config.interfaces()[i * kSrv6AggInfo.aggPortWidth]
+                              .intfID()
+                              .value())));
+    }
+    config.srv6Tunnels() = tunnelList;
+    config.loadBalancers() =
+        getEcmpFullWithFlowLabelTrunkFullWithFlowLabelHashConfig(
+            getAgentEnsemble()->getL3Asics());
+    applyConfigAndEnableTrunks(config);
+
+    // Resolve neighbors on aggregate ports and program SRv6 routes
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor()};
+    auto aggPorts = getAggregatePorts(kSrv6AggInfo);
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper.resolveNextHops(in, aggPorts);
+    });
+
+    RouteNextHopSet nhops;
+    for (int i = 0; i < kSrv6AggInfo.numAggPorts; ++i) {
+      auto aggPortDesc = PortDescriptor(AggregatePortID(i + 1));
+      auto nhop = ecmpHelper.nhop(aggPortDesc);
+      std::vector<folly::IPAddressV6> sidList{
+          folly::IPAddressV6(folly::sformat("3001:db8:{}::", i + 1))};
+      nhops.insert(ResolvedNextHop(
+          nhop.ip,
+          nhop.intf,
+          ECMP_WEIGHT,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          std::nullopt,
+          sidList,
+          TunnelType::SRV6_ENCAP,
+          folly::sformat("srv6Tunnel{}", i)));
+    }
+    auto routeUpdater = getSw()->getRouteUpdater();
+    routeUpdater.addRoute(
+        RouterID(0),
+        folly::IPAddressV6("2001::"),
+        32,
+        ClientID::BGPD,
+        RouteNextHopEntry(nhops, AdminDistance::EBGP));
+    routeUpdater.program();
+  }
+};
+
 /*
  * We test for 2 combinations -
  * i) 4X3Wide Four 3 wide trunks in ECMP group
@@ -554,7 +639,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV6MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv6MPLS,
@@ -564,7 +649,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV4MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv4MPLS,
@@ -574,7 +659,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV6MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv6MPLS,
@@ -584,7 +669,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV4MplsFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::IPv4MPLS,
@@ -594,7 +679,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV6MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Swap,
@@ -604,7 +689,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV4MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Swap,
@@ -614,7 +699,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV6MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Swap,
@@ -624,7 +709,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV4MplsSwapFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Swap,
@@ -634,7 +719,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV6MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Php,
@@ -644,7 +729,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X3WideTrunksV4MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Php,
@@ -654,7 +739,7 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV6MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v6MPLS4Php,
@@ -664,13 +749,146 @@ TEST_F(
 }
 
 TEST_F(
-    AgentTrunkLoadBalancerTest,
+    AgentMplsTrunkLoadBalancerTest,
     ECMPFullTrunkHalf4X2WideTrunksV4MplsPhpFrontPanelTraffic) {
   runLoadBalanceTest(
       TrafficType::v4MPLS4Php,
       getEcmpFullTrunkHalfHashConfig(getAgentEnsemble()->getL3Asics()),
       k4X2WideAggs,
       true /* loopThroughFrontPanelPort*/);
+}
+
+// ECMP half hash, Trunk full hash tests
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV6MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6MPLS,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV4MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4MPLS,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV6MplsSwapFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v6MPLS4Swap,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV4MplsSwapFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v4MPLS4Swap,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV6MplsPhpFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v6MPLS4Php,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X3WideTrunksV4MplsPhpFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v4MPLS4Php,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X3WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X2WideTrunksV6MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv6MPLS,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X2WideTrunksV4MplsFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::IPv4MPLS,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X2WideTrunksV6MplsSwapFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v6MPLS4Swap,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X2WideTrunksV4MplsSwapFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v4MPLS4Swap,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X2WideTrunksV6MplsPhpFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v6MPLS4Php,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(
+    AgentMplsTrunkLoadBalancerTest,
+    ECMPHalfTrunkFull4X2WideTrunksV4MplsPhpFrontPanelTraffic) {
+  runLoadBalanceTest(
+      TrafficType::v4MPLS4Php,
+      getEcmpHalfTrunkFullHashConfig(getAgentEnsemble()->getL3Asics()),
+      k4X2WideAggs,
+      true /* loopThroughFrontPanelPort */);
+}
+
+TEST_F(AgentSrv6TrunkLoadBalancerTest, Srv6TrunkEcmpLoadBalance) {
+  auto setup = [this]() { setupSrv6TrunkECMP(); };
+  auto verify = [this]() {
+    pumpIPTrafficAndVerifyLoadBalanced(
+        true /* isV6 */,
+        false /* loopThroughFrontPanel */,
+        kSrv6AggInfo,
+        25 /* deviation */);
+  };
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

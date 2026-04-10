@@ -22,4 +22,11 @@ int doServerLoop(
   evb->loopForever();
   return 0;
 }
+
+void stopQsfpServerGracefully(
+    std::shared_ptr<apache::thrift::ThriftServer> thriftServer) {
+  thriftServer->stopListening();
+  thriftServer->stop();
+}
+
 } // namespace facebook::fboss

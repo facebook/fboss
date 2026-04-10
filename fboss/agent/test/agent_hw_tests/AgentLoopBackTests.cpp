@@ -63,7 +63,7 @@ class AgentLoopBackTest : public AgentHwTest {
       getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), this->portIdToTest());
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 

@@ -119,7 +119,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
 
 std::map<int32_t, std::pair<std::string, std::size_t>> _PortSerdesMap{
     SAI_ATTR_MAP(PortSerdes, PortId),
+#if !defined(CHENAB_SAI_SDK)
     SAI_ATTR_MAP(PortSerdes, Preemphasis),
+#endif
     SAI_ATTR_MAP(PortSerdes, IDriver),
     SAI_ATTR_MAP(PortSerdes, TxFirPre1),
     SAI_ATTR_MAP(PortSerdes, TxFirPre2),
@@ -204,6 +206,8 @@ void handleExtensionAttributes() {
   SAI_EXT_ATTR_MAP(Port, StaticModuleId)
   SAI_EXT_ATTR_MAP(Port, PfcMonitorDirection)
   SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMediaType)
+  SAI_EXT_ATTR_MAP(Port, PfcPauseDurationOverride)
+  SAI_EXT_ATTR_MAP(Port, CablePropagationDelayMeasure)
 #if defined(BRCM_SAI_SDK_GTE_13_0)
   SAI_EXT_ATTR_MAP(PortSerdes, Dco)
   SAI_EXT_ATTR_MAP(PortSerdes, FltM)

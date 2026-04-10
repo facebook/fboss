@@ -130,14 +130,201 @@
         {
           "busName": "INCOMING@1",
           "address": "0x23",
-          "kernelDeviceName": "bwp_smb_cpld",
-          "pmUnitScopedName": "SMB_CPLD"
+          "kernelDeviceName": "fbg_smbcpld",
+          "pmUnitScopedName": "SMB_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x00",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 8,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "switch_card_pwr_status",
+              "regAddr": "0x05",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: switch card power bad\n1: switch card power good"
+            },
+            {
+              "name": "idprom_wp",
+              "mode": "rw",
+              "regAddr": "0x22",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: IDPROM write-protect disabled\n1: IDPROM write-protect enabled (default)"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
           "address": "0x24",
-          "kernelDeviceName": "bwp_chassis_cpld",
-          "pmUnitScopedName": "CHASSIS_CPLD"
+          "kernelDeviceName": "fbcpld_generic",
+          "pmUnitScopedName": "CHASSIS_CPLD",
+          "cpldSysfsAttrs": [
+            {
+              "name": "cpld_sub_ver",
+              "regAddr": "0x00",
+              "numBits": 8,
+              "description": "CPLD sub version"
+            },
+            {
+              "name": "cpld_ver",
+              "regAddr": "0x01",
+              "numBits": 8,
+              "description": "CPLD major version"
+            },
+            {
+              "name": "switch_card_pwr_status",
+              "regAddr": "0x05",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: switch card power bad\n1: switch card power good"
+            },
+            {
+              "name": "cpu1_pwr_status",
+              "regAddr": "0x05",
+              "bitOffset": 1,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: CPU1 Power not OK\n1: CPU1 Power OK"
+            },
+            {
+              "name": "jtag_mux_en",
+              "mode": "rw",
+              "regAddr": "0x0C",
+              "bitOffset": 4,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: Disable MUX select (default)\n1: Enable MUX select"
+            },
+            {
+              "name": "jtag_mux_sel",
+              "mode": "rw",
+              "regAddr": "0x0C",
+              "numBits": 4,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0x0: SCD1 (default)\n0x1: SCD2\n0x2: FanCard\n0x3: SwitchCard\n0x4: PCIe Switch\n0x5-0xF: N/A"
+            },
+            {
+              "name": "psu1_present",
+              "regAddr": "0xC0",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU1 not present\n1: PSU1 present"
+            },
+            {
+              "name": "psu2_present",
+              "regAddr": "0xC0",
+              "bitOffset": 1,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU2 not present\n1: PSU2 present"
+            },
+            {
+              "name": "psu3_present",
+              "regAddr": "0xC0",
+              "bitOffset": 2,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU3 not present\n1: PSU3 present"
+            },
+            {
+              "name": "psu4_present",
+              "regAddr": "0xC0",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU4 not present\n1: PSU4 present"
+            },
+            {
+              "name": "psu1_input_ok",
+              "regAddr": "0xC1",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU1 input not OK\n1: PSU1 input OK"
+            },
+            {
+              "name": "psu2_input_ok",
+              "regAddr": "0xC1",
+              "bitOffset": 1,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU2 input not OK\n1: PSU2 input OK"
+            },
+            {
+              "name": "psu3_input_ok",
+              "regAddr": "0xC1",
+              "bitOffset": 2,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU3 input not OK\n1: PSU3 input OK"
+            },
+            {
+              "name": "psu4_input_ok",
+              "regAddr": "0xC1",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU4 input not OK\n1: PSU4 input OK"
+            },
+            {
+              "name": "psu1_output_ok",
+              "regAddr": "0xC2",
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU1 output not OK\n1: PSU1 output OK"
+            },
+            {
+              "name": "psu2_output_ok",
+              "regAddr": "0xC2",
+              "bitOffset": 1,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU2 output not OK\n1: PSU2 output OK"
+            },
+            {
+              "name": "psu3_output_ok",
+              "regAddr": "0xC2",
+              "bitOffset": 2,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU3 output not OK\n1: PSU3 output OK"
+            },
+            {
+              "name": "psu4_output_ok",
+              "regAddr": "0xC2",
+              "bitOffset": 3,
+              "flags": [
+                "show_notes"
+              ],
+              "description": "0: PSU4 output not OK\n1: PSU4 output OK"
+            }
+          ]
         },
         {
           "busName": "INCOMING@1",
@@ -1416,7 +1603,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[CHASSIS_EEPROM]",
   "numXcvrs": 68,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.19-1",
+  "bspKmodsRpmVersion": "0.7.20-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",

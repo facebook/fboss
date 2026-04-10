@@ -17,7 +17,7 @@
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/state/Port.h"
-#include "fboss/agent/state/Vlan.h"
+
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -34,37 +34,26 @@ constexpr auto kQphMultiNextHopCounter = "qph.multinexthop.route";
 
 namespace facebook::fboss {
 
-template <typename AddrType, bool enableIntfNbrTable>
-struct IpAddrAndEnableIntfNbrTableT {
+template <typename AddrType>
+struct IpAddrT {
   using AddrT = AddrType;
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using TypeTypesLookupClassRouteUpdater = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+using TypeTypesLookupClassRouteUpdater =
+    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename IpAddrT>
 class LookupClassRouteUpdaterTest : public ::testing::Test {
  public:
   using Func = std::function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
-  static auto constexpr intfNbrTable =
-      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
-
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
+  using AddrT = typename IpAddrT::AddrT;
 
   virtual cfg::SwitchConfig getConfig() const {
     return testConfigAWithLookupClasses();
   }
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
     auto config = getConfig();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -217,40 +206,20 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
      * assert if valid CLASSID is associated with the newly resolved neighbor.
      */
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      if (isIntfNbrTable()) {
-        sw_->getNeighborUpdater()->receivedArpMineForIntf(
-            kInterfaceID(),
-            ipAddress,
-            macAddress,
-            PortDescriptor(kPortID()),
-            ArpOpCode::ARP_OP_REPLY);
-
-      } else {
-        sw_->getNeighborUpdater()->receivedArpMine(
-            kVlan(),
-            ipAddress,
-            macAddress,
-            PortDescriptor(kPortID()),
-            ArpOpCode::ARP_OP_REPLY);
-      }
+      sw_->getNeighborUpdater()->receivedArpMineForIntf(
+          kInterfaceID(),
+          ipAddress,
+          macAddress,
+          PortDescriptor(kPortID()),
+          ArpOpCode::ARP_OP_REPLY);
     } else {
-      if (isIntfNbrTable()) {
-        sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-            kInterfaceID(),
-            ipAddress,
-            macAddress,
-            PortDescriptor(kPortID()),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            0);
-      } else {
-        sw_->getNeighborUpdater()->receivedNdpMine(
-            kVlan(),
-            ipAddress,
-            macAddress,
-            PortDescriptor(kPortID()),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            0);
-      }
+      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          kInterfaceID(),
+          ipAddress,
+          macAddress,
+          PortDescriptor(kPortID()),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
     }
 
     // Wait for neighbor update to be done, this should
@@ -266,11 +235,7 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
   }
 
   void unresolveNeighbor(folly::IPAddress ipAddress) {
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->flushEntryForIntf(kInterfaceID(), ipAddress);
-    } else {
-      sw_->getNeighborUpdater()->flushEntry(kVlan(), ipAddress);
-    }
+    sw_->getNeighborUpdater()->flushEntryForIntf(kInterfaceID(), ipAddress);
 
     // Wait for neighbor update to be done, this should
     // queue up state updates
@@ -329,18 +294,11 @@ class LookupClassRouteUpdaterTest : public ::testing::Test {
           auto newState = state->clone();
 
           NeighborTableT* neighborTable;
-          if (isIntfNbrTable()) {
-            Interface* intf =
-                newState->getInterfaces()->getNodeIf(kInterfaceID()).get();
-            neighborTable =
-                intf->template getNeighborEntryTable<AddrT>().get()->modify(
-                    &intf, &newState);
-          } else {
-            Vlan* vlan = newState->getVlans()->getNodeIf(kVlan()).get();
-            neighborTable =
-                vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-                    &vlan, &newState);
-          }
+          Interface* intf =
+              newState->getInterfaces()->getNodeIf(kInterfaceID()).get();
+          neighborTable =
+              intf->template getNeighborEntryTable<AddrT>().get()->modify(
+                  &intf, &newState);
 
           neighborTable->removeEntry(ip);
           return newState;
@@ -1099,9 +1057,9 @@ TYPED_TEST(LookupClassRouteUpdaterTest, BlockMacThenIPResolveToSameMac) {
       cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0);
 }
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename IpAddrT>
 class LookupClassRouteUpdaterNoLookupClassTest
-    : public LookupClassRouteUpdaterTest<IpAddrAndEnableIntfNbrTableT> {
+    : public LookupClassRouteUpdaterTest<IpAddrT> {
   cfg::SwitchConfig getConfig() const override {
     return testConfigA();
   }

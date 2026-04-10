@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/PortMap.h"
+#include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/link_tests/LinkTest.h"
@@ -282,19 +283,25 @@ LinkTest::getSingleVlanOrRoutedCabledPorts() const {
 
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-    utility::EcmpSetupTargetedPorts6& ecmp6) {
+    utility::EcmpSetupTargetedPorts6& ecmp6,
+    bool disableTTLDecrement) {
   ASSERT_GT(ecmpPorts.size(), 0);
   sw()->updateStateBlocking("Resolve nhops", [ecmpPorts, &ecmp6](auto state) {
     return ecmp6.resolveNextHops(state, ecmpPorts);
   });
   ecmp6.programRoutes(
       std::make_unique<SwSwitchRouteUpdateWrapper>(sw()->getRouteUpdater()),
-      ecmpPorts);
+      ecmpPorts,
+      {Route<folly::IPAddressV6>::Prefix{folly::IPAddressV6(), 0}},
+      std::vector<NextHopWeight>(),
+      std::nullopt,
+      disableTTLDecrement);
 }
 
 void LinkTest::programDefaultRoute(
     const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-    std::optional<folly::MacAddress> dstMac) {
+    std::optional<folly::MacAddress> dstMac,
+    bool disableTTLDecrement) {
   utility::EcmpSetupTargetedPorts6 ecmp6(
       sw()->getState(),
       sw()->needL2EntryForNeighbor(),
@@ -302,7 +309,7 @@ void LinkTest::programDefaultRoute(
       RouterID(0),
       false,
       {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
-  programDefaultRoute(ecmpPorts, ecmp6);
+  programDefaultRoute(ecmpPorts, ecmp6, disableTTLDecrement);
 }
 
 void LinkTest::createL3DataplaneFlood(
@@ -315,8 +322,11 @@ void LinkTest::createL3DataplaneFlood(
       RouterID(0),
       false,
       {cfg::PortType::INTERFACE_PORT, cfg::PortType::MANAGEMENT_PORT});
-  programDefaultRoute(ecmpPorts, ecmp6);
-  utility::disableTTLDecrements(sw(), ecmpPorts);
+  programDefaultRoute(ecmpPorts, ecmp6, true /* disableTTLDecrement */);
+  if (sw()->getHwAsicTable()->isFeatureSupportedOnAnyAsic(
+          HwAsic::Feature::PORT_TTL_DECREMENT_DISABLE)) {
+    utility::disableTTLDecrementOnPorts(sw(), ecmpPorts);
+  }
   auto vlanID = getVlanIDForTx();
   utility::pumpTraffic(
       true,

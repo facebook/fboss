@@ -5,10 +5,10 @@
 #include <folly/logging/xlog.h>
 
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
 
 namespace {
 
@@ -21,14 +21,10 @@ using NeighborEntryT =
 
 template <typename AddrT>
 auto getNeighborEntryTableHelper(
-    const std::shared_ptr<SwitchState>& state,
+    const std::shared_ptr<SwitchState>& /* state */,
     const std::shared_ptr<Interface>& interface) {
-  if (FLAGS_intf_nbr_tables) {
-    return interface->template getNeighborEntryTable<AddrT>();
-  } else {
-    auto vlan = state->getVlans()->getNode(interface->getVlanID());
-    return vlan->template getNeighborEntryTable<AddrT>();
-  }
+  // Neighbor tables are always on interfaces
+  return interface->template getNeighborEntryTable<AddrT>();
 }
 
 } // namespace
@@ -43,11 +39,12 @@ RouteNextHopEntry::NextHopSet NextHopResolver<AddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& state,
     const AddrT& destinationIp,
     const RouterID& routerId) const {
-  const auto route = sw_->longestMatch<AddrT>(state, destinationIp, routerId);
-  if (!route || !route->isResolved()) {
+  auto result = sw_->getRib()->getRouteAndNextHops(
+      destinationIp, routerId, /*normalized=*/false);
+  if (!result || !result->first->isResolved()) {
     return RouteNextHopEntry::NextHopSet();
   }
-  return route->getForwardInfo().getNextHopSet();
+  return result->second;
 }
 
 template <typename AddrT>

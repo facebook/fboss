@@ -31,8 +31,6 @@
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/types.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 namespace ncachehelpers {
@@ -128,11 +126,7 @@ bool NeighborCacheImpl<NTable>::programEntry(Entry* entry) {
   auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
   switch (switchType) {
     case cfg::SwitchType::NPU:
-      if (FLAGS_intf_nbr_tables) {
-        updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::NPU);
-      } else {
-        updateFn = getUpdateFnToProgramEntryForVlan(entry);
-      }
+      updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::NPU);
       break;
     case cfg::SwitchType::VOQ:
       updateFn = getUpdateFnToProgramEntry(entry, cfg::SwitchType::VOQ);
@@ -377,12 +371,8 @@ bool NeighborCacheImpl<NTable>::programPendingEntry(
   auto switchType = sw_->getSwitchInfoTable().l3SwitchType();
   switch (switchType) {
     case cfg::SwitchType::NPU:
-      if (FLAGS_intf_nbr_tables) {
-        updateFn = getUpdateFnToProgramPendingEntry(
-            entry, port, force, cfg::SwitchType::NPU);
-      } else {
-        updateFn = getUpdateFnToProgramPendingEntryForVlan(entry, port, force);
-      }
+      updateFn = getUpdateFnToProgramPendingEntry(
+          entry, port, force, cfg::SwitchType::NPU);
       break;
     case cfg::SwitchType::VOQ:
       updateFn = getUpdateFnToProgramPendingEntry(
@@ -490,16 +480,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
 
     InterfaceID interfaceID;
     std::optional<SystemPortID> systemPortID;
-    std::optional<int64_t> encapIndex;
-
-    auto isAggregatePort = fields.port.isAggregatePort();
-    auto switchId = isAggregatePort
-        ? sw_->getScopeResolver()->scope(state, fields.port).switchId()
-        : sw_->getScopeResolver()->scope(fields.port.phyPortID()).switchId();
-    auto asic = sw_->getHwAsicTable()->getHwAsicIf(switchId);
-    if (asic->isSupported(HwAsic::Feature::RESERVED_ENCAP_INDEX_RANGE)) {
-      encapIndex = EncapIndexAllocator::getNextAvailableEncapIdx(state, *asic);
-    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       CHECK(!fields.port.isSystemPort());
@@ -535,9 +515,6 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
     nbrEntry.interfaceId() = static_cast<uint32_t>(interfaceID);
     nbrEntry.state() =
         static_cast<state::NeighborState>(state::NeighborState::Pending);
-    if (encapIndex.has_value()) {
-      nbrEntry.encapIndex() = encapIndex.value();
-    }
 
     if (switchType == cfg::SwitchType::VOQ) {
       // TODO: Support aggregate ports for VOQ switches
@@ -547,7 +524,7 @@ NeighborCacheImpl<NTable>::getUpdateFnToProgramPendingEntry(
           PortDescriptor(SystemPortID(systemPortID.value())).toThrift();
       nbrEntry.isLocal() = fields.isLocal;
     } else {
-      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(fields.port);
+      nbrEntry.portId() = ncachehelpers::getNeighborPortDescriptor(port);
     }
 
     if (fields.classID.has_value()) {
@@ -689,16 +666,8 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
         [this, ip, classID](const std::shared_ptr<SwitchState>& state) {
           std::shared_ptr<SwitchState> newState{state};
 
-          NTable* table;
-          Interface* intf;
-          Vlan* vlan;
-          if (FLAGS_intf_nbr_tables) {
-            intf = state->getInterfaces()->getNodeIf(intfID_).get();
-            table = intf->template getNeighborTable<NTable>().get();
-          } else {
-            vlan = state->getVlans()->getNodeIf(vlanID_).get();
-            table = vlan->template getNeighborTable<NTable>().get();
-          }
+          auto* intf = state->getInterfaces()->getNodeIf(intfID_).get();
+          auto* table = intf->template getNeighborTable<NTable>().get();
 
           auto node = table->getNodeIf(ip.str());
           if (node) {
@@ -712,11 +681,7 @@ void NeighborCacheImpl<NTable>::updateEntryClassID(
                 node->getEncapIndex(),
                 node->getIsLocal());
 
-            if (FLAGS_intf_nbr_tables) {
-              table = table->modify(&intf, &newState);
-            } else {
-              table = table->modify(&vlan, &newState);
-            }
+            table = table->modify(&intf, &newState);
 
             table->updateEntry(fields);
           }
@@ -859,28 +824,15 @@ void NeighborCacheImpl<NTable>::flushEntry(AddressType ip, bool* flushed) {
       -> std::shared_ptr<SwitchState> {
     std::shared_ptr<SwitchState> newState{state};
 
-    bool flushedEntry;
-    if (FLAGS_intf_nbr_tables) {
-      auto* intf = newState->getInterfaces()->getNode(intfID_).get();
-      flushedEntry = flushEntryFromSwitchState(&newState, ip, intf);
+    auto* intf = newState->getInterfaces()->getNode(intfID_).get();
+    bool flushedEntry = flushEntryFromSwitchState(&newState, ip, intf);
 
-      auto oldEntry = intf->getNeighborTable<NTable>()->getNodeIf(ip.str());
-      if (needL2EntryForNeighbor && oldEntry &&
-          intf->getType() == cfg::InterfaceType::VLAN &&
-          ncachehelpers::isReachable(oldEntry)) {
-        newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
-            newState, intf->getVlanID(), oldEntry);
-      }
-    } else {
-      auto* vlan = newState->getVlans()->getNode(vlanID_).get();
-      flushedEntry = flushEntryFromSwitchState(&newState, ip, vlan);
-
-      auto oldEntry = vlan->getNeighborTable<NTable>()->getNodeIf(ip.str());
-      if (needL2EntryForNeighbor && oldEntry &&
-          ncachehelpers::isReachable(oldEntry)) {
-        newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
-            newState, vlanID_, oldEntry);
-      }
+    auto oldEntry = intf->getNeighborTable<NTable>()->getNodeIf(ip.str());
+    if (needL2EntryForNeighbor && oldEntry &&
+        intf->getType() == cfg::InterfaceType::VLAN &&
+        ncachehelpers::isReachable(oldEntry)) {
+      newState = StaticL2ForNeighborSwSwitchUpdater::pruneMacEntry(
+          newState, intf->getVlanID(), oldEntry);
     }
 
     if (flushedEntry) {

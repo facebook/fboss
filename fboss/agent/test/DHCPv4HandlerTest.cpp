@@ -96,24 +96,19 @@ shared_ptr<SwitchState> testStateHelper(
   return state;
 }
 
-shared_ptr<SwitchState> testState(bool isIntfNbrTable) {
+shared_ptr<SwitchState> testState() {
   auto state = testStateA();
 
-  if (isIntfNbrTable) {
-    const auto& intfs = state->getInterfaces();
-    return testStateHelper(state, intfs, InterfaceID(1));
-  } else {
-    const auto& vlans = state->getVlans();
-    return testStateHelper(state, vlans, VlanID(1));
-  }
+  const auto& intfs = state->getInterfaces();
+  return testStateHelper(state, intfs, InterfaceID(1));
 }
 
-unique_ptr<HwTestHandle> setupTestHandle(bool isIntfNbrTable) {
-  return createTestHandle(testState(isIntfNbrTable));
+unique_ptr<HwTestHandle> setupTestHandle() {
+  return createTestHandle(testState());
 }
 
-shared_ptr<SwitchState> testStateNAT(bool isIntfNbrTable) {
-  auto state = testState(isIntfNbrTable);
+shared_ptr<SwitchState> testStateNAT() {
+  auto state = testState();
   auto switchSettings = std::make_shared<SwitchSettings>();
   switchSettings->setDhcpV4RelaySrc(kDhcpV4RelaySrc);
   switchSettings->setDhcpV4ReplySrc(kDhcpV4ReplySrc);
@@ -137,8 +132,8 @@ shared_ptr<SwitchState> testStateNAT(bool isIntfNbrTable) {
   return state;
 }
 
-unique_ptr<HwTestHandle> setupTestHandleNAT(bool isIntfNbrTable) {
-  return createTestHandle(testStateNAT(isIntfNbrTable));
+unique_ptr<HwTestHandle> setupTestHandleNAT() {
+  return createTestHandle(testStateNAT());
 }
 
 void sendDHCPPacket(
@@ -412,14 +407,6 @@ TxMatchFn checkDHCPReply(
 
 } // unnamed namespace
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
 /*
  * DHCPv4HandlerTest tests validate DHCP relay with VLANs and Interfaces for
  * NPU switches.
@@ -428,24 +415,13 @@ using NbrTableTypes =
  * support VLAns. That will involve modifying the pkts in these tests to not
  * carry VLANs.
  */
-template <typename EnableIntfNbrTableT>
+
 class DHCPv4HandlerTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
-  void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
-  }
-
- public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
+  void SetUp() override {}
 };
 
-TYPED_TEST_SUITE(DHCPv4HandlerTest, NbrTableTypes);
-
-TYPED_TEST(DHCPv4HandlerTest, DHCPRequest) {
-  auto handle = setupTestHandle(this->isIntfNbrTable());
+TEST_F(DHCPv4HandlerTest, DHCPRequest) {
+  auto handle = setupTestHandle();
   auto sw = handle->getSw();
 
   VlanID vlanID(1);
@@ -486,8 +462,8 @@ TYPED_TEST(DHCPv4HandlerTest, DHCPRequest) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerTest, RelayOverrideDHCPRequest) {
-  auto handle = setupTestHandle(this->isIntfNbrTable());
+TEST_F(DHCPv4HandlerTest, RelayOverrideDHCPRequest) {
+  auto handle = setupTestHandle();
   auto sw = handle->getSw();
   VlanID vlanID(1);
   const char* senderIP = "00 00 00 00";
@@ -521,8 +497,8 @@ TYPED_TEST(DHCPv4HandlerTest, RelayOverrideDHCPRequest) {
       dhcpMsgTypeOpt);
 }
 
-TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPRequest) {
-  auto handle = setupTestHandleNAT(this->isIntfNbrTable());
+TEST_F(DHCPv4HandlerTest, RelaySrcDHCPRequest) {
+  auto handle = setupTestHandleNAT();
   auto sw = handle->getSw();
   VlanID vlanID(1);
   const char* senderIP = "00 00 00 00";
@@ -557,8 +533,8 @@ TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPRequest) {
       dhcpMsgTypeOpt);
 }
 
-TYPED_TEST(DHCPv4HandlerTest, DHCPReply) {
-  auto handle = setupTestHandle(this->isIntfNbrTable());
+TEST_F(DHCPv4HandlerTest, DHCPReply) {
+  auto handle = setupTestHandle();
   auto sw = handle->getSw();
   VlanID vlanID(55);
   // Client mac
@@ -608,8 +584,8 @@ TYPED_TEST(DHCPv4HandlerTest, DHCPReply) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPReply) {
-  auto handle = setupTestHandleNAT(this->isIntfNbrTable());
+TEST_F(DHCPv4HandlerTest, RelaySrcDHCPReply) {
+  auto handle = setupTestHandleNAT();
   auto sw = handle->getSw();
   VlanID vlanID(55);
   // Client mac
@@ -661,8 +637,8 @@ TYPED_TEST(DHCPv4HandlerTest, RelaySrcDHCPReply) {
   counters.checkDelta(SwitchStats::kCounterPrefix + "trapped.pkts.sum", 1);
 }
 
-TYPED_TEST(DHCPv4HandlerTest, DHCPBadRequest) {
-  auto handle = setupTestHandle(this->isIntfNbrTable());
+TEST_F(DHCPv4HandlerTest, DHCPBadRequest) {
+  auto handle = setupTestHandle();
   auto sw = handle->getSw();
   VlanID vlanID(1);
   const string senderIP = "00 00 00 00";

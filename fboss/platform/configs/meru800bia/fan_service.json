@@ -9,10 +9,6 @@
   "optics": [
     {
       "opticName": "osfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
-      "portList": [],
       "aggregationType": "OPTIC_AGGREGATION_TYPE_MAX",
       "tempToPwmMaps": {
         "OPTIC_TYPE_800_GENERIC": {
@@ -32,9 +28,6 @@
   "sensors": [
     {
       "sensorName": "SMB_BOARD_FRONT_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "15": 30,

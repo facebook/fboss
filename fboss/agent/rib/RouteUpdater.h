@@ -15,14 +15,16 @@
 
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RibRouteWeightNormalizer.h"
+#include "fboss/agent/state/MySid.h"
 
 #include <folly/IPAddress.h>
 
 DECLARE_bool(enable_capacity_pruning);
 namespace facebook::fboss {
 class NextHopIDManager;
-}
-namespace facebook::fboss {
+
+using MySidTable =
+    std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>>;
 
 /**
  * Expected behavior of RibRouteUpdater::resolve():
@@ -53,13 +55,15 @@ class RibRouteUpdater {
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
-      NextHopIDManager* nextHopIDManager);
+      NextHopIDManager* nextHopIDManager,
+      MySidTable* mySidTable);
 
   RibRouteUpdater(
       IPv4NetworkToRouteMap* v4Routes,
       IPv6NetworkToRouteMap* v6Routes,
       LabelToRouteMap* mplsRoutes,
-      NextHopIDManager* nextHopIDManager);
+      NextHopIDManager* nextHopIDManager,
+      MySidTable* mySidTable);
 
   struct RouteEntry {
     folly::CIDRNetwork prefix;
@@ -191,6 +195,7 @@ class RibRouteUpdater {
   IPv6NetworkToRouteMap* v6Routes_{nullptr};
   LabelToRouteMap* mplsRoutes_{nullptr};
   NextHopIDManager* nextHopIDManager_{nullptr};
+  MySidTable* mySidTable_{nullptr};
   std::unordered_set<void*> needsResolution_;
   /*
    * Cache for next hop to FWD information. For our use case

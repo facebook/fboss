@@ -112,6 +112,9 @@ bool ribEqual(
   if (l.getRouteTableDetails(kRid0) != r.getRouteTableDetails(kRid0)) {
     return false;
   }
+  if (l.getMySidTableCopy() != r.getMySidTableCopy()) {
+    return false;
+  }
   return ribThriftEqual(l, r);
 }
 
@@ -131,8 +134,8 @@ class RibSerializationTest : public ::testing::Test {
 };
 
 TEST_F(RibSerializationTest, fullRibSerDeser) {
-  auto deserializedRib =
-      RoutingInformationBase::fromThrift(rib.toThrift(), nullptr, nullptr);
+  auto deserializedRib = RoutingInformationBase::fromThrift(
+      rib.toThrift(), nullptr, nullptr, nullptr);
 
   EXPECT_TRUE(ribEqual(rib, *deserializedRib));
 }
@@ -141,7 +144,8 @@ TEST_F(RibSerializationTest, serializeOnlyUnresolvedRoutes) {
   auto deserializedRibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
       curState->getFibsInfoMap(),
-      curState->getLabelForwardingInformationBase());
+      curState->getLabelForwardingInformationBase(),
+      curState->getMySids());
   // Use ribThriftEqual to compare excluding resolvedNextHopSetID
   EXPECT_TRUE(ribThriftEqual(rib, *deserializedRibThrift));
 }
@@ -150,10 +154,11 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   auto deserializedRibEmptyFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
       std::make_shared<MultiSwitchFibInfoMap>(),
-      std::make_shared<MultiLabelForwardingInformationBase>());
+      std::make_shared<MultiLabelForwardingInformationBase>(),
+      nullptr);
 
-  auto deserializedRibNoFibThrift =
-      RoutingInformationBase::fromThrift(rib.warmBootState(), nullptr, nullptr);
+  auto deserializedRibNoFibThrift = RoutingInformationBase::fromThrift(
+      rib.warmBootState(), nullptr, nullptr, nullptr);
 
   EXPECT_FALSE(ribEqual(rib, *deserializedRibEmptyFibThrift));
 
@@ -170,7 +175,8 @@ TEST_F(RibSerializationTest, deserializeOnlyUnresolvedRoutes) {
   auto deserializedRibWithFibThrift = RoutingInformationBase::fromThrift(
       rib.warmBootState(),
       curState->getFibsInfoMap(),
-      curState->getLabelForwardingInformationBase());
+      curState->getLabelForwardingInformationBase(),
+      curState->getMySids());
   EXPECT_TRUE(ribEqual(rib, *deserializedRibWithFibThrift));
   EXPECT_EQ(
       8, deserializedRibWithFibThrift->getRouteTableDetails(kRid0).size());

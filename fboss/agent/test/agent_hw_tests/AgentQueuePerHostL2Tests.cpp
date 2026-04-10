@@ -67,8 +67,8 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
           std::move(txPacket2), PortID(masterLogicalPortIds()[1]));
     } else {
       XLOG(DBG2) << "verify send packets switched";
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket2));
+      sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket2));
     }
 
     /*
@@ -111,7 +111,11 @@ class AgentQueuePerHostL2Test : public AgentHwTest {
            * back packet.
            */
           if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                  ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO ||
+              checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_YUBA ||
+              checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+                      ->getAsicType() == cfg::AsicType::ASIC_TYPE_G202X) {
             /* 1 pkt each for ttl < 128 and ttl >= 128 */
             EXPECT_EVENTUALLY_EQ(pktsOnQueue, 4);
           } else {

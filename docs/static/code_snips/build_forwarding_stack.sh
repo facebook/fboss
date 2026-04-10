@@ -2,11 +2,13 @@
 # Navigate to the right directory
 cd /var/FBOSS/fboss || exit
 
-# Set environment variables appropriate for your build
-export SAI_BRCM_IMPL=1
-
 # Start the build
+# NOTE: Choose the appropriate --npu-sai-impl and --npu-sai-sdk-version values
+# for your platform. Run ./fboss/oss/scripts/run-getdeps.py -h to see
+# Meta officially supported values.
 time ./fboss/oss/scripts/run-getdeps.py \
+  --npu-sai-impl SAI_BRCM_IMPL \
+  --npu-sai-sdk-version SAI_VERSION_14_0_EA_ODP \
   --npu-sai-version 1.16.1 \
   --npu-libsai-impl-path /opt/sdk/libsai_impl.a \
   --npu-experiments-path /opt/sdk/experimental \

@@ -37,7 +37,8 @@ class FakeSaiTamEvent {
       std::vector<sai_object_id_t> extensionsCollectorList,
       std::vector<sai_int32_t> packetDropTypeMmu,
       std::vector<sai_int32_t> packetDropTypeIngress,
-      sai_object_id_t agingGroup)
+      sai_object_id_t agingGroup,
+      sai_object_id_t ingressSamplepacketEnable)
       : eventType_(eventType),
         actions_(actions),
         collectors_(collectors),
@@ -47,7 +48,8 @@ class FakeSaiTamEvent {
         extensionsCollectorList_(std::move(extensionsCollectorList)),
         packetDropTypeMmu_(std::move(packetDropTypeMmu)),
         packetDropTypeIngress_(std::move(packetDropTypeIngress)),
-        agingGroup_(agingGroup) {}
+        agingGroup_(agingGroup),
+        ingressSamplepacketEnable_(ingressSamplepacketEnable) {}
   sai_object_id_t id;
   sai_int32_t eventType_;
   std::vector<sai_object_id_t> actions_;
@@ -59,6 +61,7 @@ class FakeSaiTamEvent {
   std::vector<sai_int32_t> packetDropTypeMmu_;
   std::vector<sai_int32_t> packetDropTypeIngress_;
   sai_object_id_t agingGroup_;
+  sai_object_id_t ingressSamplepacketEnable_;
 };
 
 class FakeSaiTamEventAction {

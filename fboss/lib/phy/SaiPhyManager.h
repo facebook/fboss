@@ -167,8 +167,6 @@ class SaiPhyManager : public PhyManager {
   class PlatformInfo {
    public:
     explicit PlatformInfo(std::unique_ptr<SaiPlatform> platform);
-    PlatformInfo(PlatformInfo&&) = default;
-    PlatformInfo& operator=(PlatformInfo&&) = default;
     ~PlatformInfo();
 
     using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
@@ -185,6 +183,9 @@ class SaiPhyManager : public PhyManager {
     }
 
    private:
+    PlatformInfo(PlatformInfo&&) = delete;
+    PlatformInfo& operator=(PlatformInfo&&) = delete;
+
     void setState(const std::shared_ptr<SwitchState>& newState);
     std::unique_ptr<SaiPlatform> saiPlatform_;
     // Don't hold locked access to SwitchState for long periods. Instead

@@ -121,3 +121,15 @@ target_link_libraries(platform_manager_handler_test
 )
 
 gtest_discover_tests(platform_manager_handler_test)
+
+add_executable(platform_manager_cpld_manager_test
+  fboss/platform/platform_manager/tests/CpldManagerTest.cpp
+)
+
+target_link_libraries(platform_manager_cpld_manager_test
+  platform_manager_cpld_manager
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(platform_manager_cpld_manager_test)

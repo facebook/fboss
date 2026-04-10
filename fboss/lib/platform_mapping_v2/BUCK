@@ -11,13 +11,13 @@ python_library(
     srcs = ["helpers.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py-deprecated",
+        ":platform_mapping_config-python-types",
         ":si_settings",
         ":static_mapping",
-        "//fboss/agent:platform_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
-        "//fboss/lib/phy:phy-py-deprecated",
-        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+        "//fboss/agent:platform_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
+        "//fboss/qsfp_service/if:transceiver-python-types",
     ],
 )
 
@@ -33,9 +33,9 @@ python_library(
         ":read_files_utils",
         ":si_settings",
         ":static_mapping",
-        "//fboss/agent:platform_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
-        "//fboss/lib/phy:phy-py-deprecated",
+        "//fboss/agent:platform_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
     ],
 )
 
@@ -72,7 +72,7 @@ python_library(
     srcs = ["static_mapping.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py-deprecated",
+        ":platform_mapping_config-python-types",
     ],
 )
 
@@ -82,15 +82,15 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":asic_vendor_config",
-        ":platform_mapping_config-py-deprecated",
+        ":platform_mapping_config-python-types",
         ":port_profile_mapping",
         ":profile_settings",
         ":si_settings",
         ":static_mapping",
-        "//fboss/agent:switch_config-py-deprecated",
-        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
-        "//fboss/lib/phy:phy-py-deprecated",
-        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
+        "//fboss/lib/phy:phy-python-types",
+        "//fboss/qsfp_service/if:transceiver-python-types",
     ],
 )
 
@@ -99,9 +99,9 @@ python_library(
     srcs = ["si_settings.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
-        "//fboss/qsfp_service/if:transceiver-py-deprecated",
+        ":platform_mapping_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/qsfp_service/if:transceiver-python-types",
     ],
 )
 
@@ -111,9 +111,9 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         ":helpers",
-        ":platform_mapping_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
-        "//fboss/lib/phy:phy-py-deprecated",
+        ":platform_mapping_config-python-types",
+        "//fboss/agent:switch_config-python-types",
+        "//fboss/lib/phy:phy-python-types",
     ],
 )
 
@@ -122,8 +122,8 @@ python_library(
     srcs = ["port_profile_mapping.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        ":platform_mapping_config-py-deprecated",
-        "//fboss/agent:switch_config-py-deprecated",
+        ":platform_mapping_config-python-types",
+        "//fboss/agent:switch_config-python-types",
     ],
 )
 
@@ -132,7 +132,7 @@ python_library(
     srcs = ["asic_vendor_config.py"],
     labels = ["autodeps2_generated"],
     deps = [
-        "//fboss/agent/hw/config:asic_config_v2-py-deprecated",
+        "//fboss/agent/hw/config:asic_config_v2-python-types",
     ],
 )
 
@@ -144,8 +144,7 @@ python_binary(
     par_style = "xar",
     deps = [
         ":platform_mapping_v2",
-        "//thrift/lib/py:server_base",
-        "//thrift/lib/py/util:py_util",
+        "//thrift/lib/python:types",
     ],
 )
 
@@ -173,6 +172,7 @@ ci_sandcastle(
         "fbcode/fboss/lib/platform_mapping_v2/**",
     ],
     command = "SandcastleUniversalCommand",
+    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_optics_phy",
     schedules = [
         ci.diff,

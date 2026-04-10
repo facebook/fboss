@@ -20,6 +20,8 @@ cpp_binary(
         "//fboss/led_service:led_manager",
         "//fboss/led_service:led_utils",
         "//fboss/lib:common_file_utils",
+        "//fboss/lib/bsp:bsp_core",
+        "//fboss/lib/led:led_lib",
         "//folly/init:init",
         "//folly/logging:logging",
         "//thrift/lib/cpp2/async:rocket_client_channel",

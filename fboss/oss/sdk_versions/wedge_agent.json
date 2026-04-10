@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<ac0f882d498bb4259ebd260e6fbf4ab0>>"
+        "@generated SignedSource<<06769bf1d78b2a9763a14c2b25783c02>>"
     ],
     "MINIPACK": [
         {
@@ -79,6 +79,12 @@
             "asicSdk": "24.8.3001",
             "saiSdk": "24.8.3001",
             "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "25.5.4210",
+            "saiSdk": "25.5.4210",
+            "saiVersion": "1.16.1"
         }
     ],
     "WEDGE100": [
@@ -135,16 +141,22 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "saiSdk": "14.2.0.0_odp",
+            "saiVersion": "1.17.4"
         }
     ],
     "MINIPACK3N": [
         {
             "rolloutType": "PRODUCTION",
-            "asicSdk": "4.8.2130",
+            "asicSdk": "4.8.2160",
             "saiSdk": "2505.34",
             "saiVersion": "1.16.2"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "4.8.3130",
+            "saiSdk": "2511.35",
+            "saiVersion": "1.17.4"
         }
     ],
     "MERU400BIU": [
@@ -235,16 +247,16 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "saiSdk": "14.2.0.0_odp",
+            "saiVersion": "1.17.4"
         }
     ],
     "LADAKH800BCLS": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "saiSdk": "14.2.0.0_odp",
+            "saiVersion": "1.17.4"
         }
     ]
 }

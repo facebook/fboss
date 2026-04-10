@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include <folly/MapUtil.h>
 #include "folly/MacAddress.h"
 
 #include "fboss/agent/AsicUtils.h"
@@ -17,7 +18,9 @@
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/types.h"
+#include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss::utility {
 
@@ -122,10 +125,15 @@ void setupPfc(
         setupQosPolicy(true /*isCpuQosMap*/, kCpuQueueingPolicy);
     cfg.cpuTrafficPolicy() = std::move(cpuPolicy);
     std::map<int, std::string> portIdToQosPolicy{};
-    for (const auto& portId : ensemble->masterLogicalPortIds(
-             std::set<cfg::PortType>{
-                 cfg::PortType::CPU_PORT, cfg::PortType::RECYCLE_PORT})) {
-      portIdToQosPolicy[static_cast<int>(portId)] = kCpuQueueingPolicy;
+    // Iterate over all ports in config to find CPU/recycle ports across
+    // all NPUs. masterLogicalPortIds() only returns ports for the NPU
+    // under test (FLAGS_switch_id_for_testing), which misses recycle
+    // ports on other NPUs in multi-switch mode.
+    for (const auto& port : *cfg.ports()) {
+      if (*port.portType() == cfg::PortType::CPU_PORT ||
+          *port.portType() == cfg::PortType::RECYCLE_PORT) {
+        portIdToQosPolicy[*port.logicalID()] = kCpuQueueingPolicy;
+      }
     }
     if (portIdToQosPolicy.size()) {
       dataTrafficPolicy.portIdToQosPolicy() = std::move(portIdToQosPolicy);
@@ -415,6 +423,69 @@ std::unique_ptr<TxPacket> makePfcFramePacket(
       folly::MacAddress("01:80:C2:00:00:01"), // MAC control address
       ETHERTYPE::ETHERTYPE_EPON, // Ethertype for PFC frames
       std::move(payload));
+}
+
+void triggerPfcGeneration(
+    AgentEnsemble* ensemble,
+    const PortID& port,
+    const PortID& txDisablePort,
+    const folly::IPAddressV6& destIp,
+    int trafficClass,
+    int pfcPriority,
+    const std::optional<VlanID>& vlanId) {
+  // Disable Tx on the outbound port so that queues will build up.
+  setCreditWatchdogAndPortTx(ensemble, txDisablePort, false);
+
+  auto txPfcCtrOld = folly::get_default(
+      *ensemble->getLatestPortStats(port).outPfc_(), pfcPriority, 0);
+
+  // Send traffic in chunks of 1000 packets at a time, checking if PFC
+  // has been triggered after each chunk. Continue until PFC counter
+  // increments, indicating congestion and PFC frame generation.
+  auto intfMac =
+      getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
+  int dscp = trafficClass * 8;
+  constexpr int kChunkSize = 1000;
+
+  checkWithRetry(
+      [&]() {
+        for (int i = 0; i < kChunkSize; i++) {
+          auto txPacket = makeUDPTxPacket(
+              ensemble->getSw(),
+              vlanId.has_value() ? vlanId : ensemble->getVlanIDForTx(),
+              srcMac,
+              intfMac,
+              folly::IPAddressV6("2620:0:1cfe:face:b00c::1"),
+              destIp,
+              8000,
+              8001,
+              dscp << 2,
+              255,
+              std::vector<uint8_t>(2000, 0xff));
+
+          if (vlanId.has_value()) {
+            ensemble->sendPacketAsync(
+                std::move(txPacket), std::nullopt, pfcPriority);
+          } else {
+            ensemble->sendPacketAsync(
+                std::move(txPacket), PortDescriptor(port), pfcPriority);
+          }
+        }
+        auto txPfcCtrNew = folly::get_default(
+            *ensemble->getLatestPortStats(port).outPfc_(), pfcPriority, 0);
+        return txPfcCtrNew > txPfcCtrOld;
+      },
+      60 /* retries */,
+      std::chrono::milliseconds(1000),
+      "PFC TX counter did not increase");
+}
+
+void cleanupPfcGeneration(
+    AgentEnsemble* ensemble,
+    const PortID& txDisablePort) {
+  // Enable credit WD and TX on port
+  setCreditWatchdogAndPortTx(ensemble, txDisablePort, true);
 }
 
 } // namespace facebook::fboss::utility

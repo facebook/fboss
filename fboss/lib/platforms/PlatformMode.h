@@ -58,12 +58,6 @@ inline std::string toString(PlatformType mode) {
       return "LASSEN";
     case PlatformType::PLATFORM_SANDIA:
       return "SANDIA";
-    case PlatformType::PLATFORM_MERU400BIU:
-      return "MERU400BIU";
-    case PlatformType::PLATFORM_MERU400BIA:
-      return "MERU400BIA";
-    case PlatformType::PLATFORM_MERU400BFU:
-      return "MERU400BFU";
     case PlatformType::PLATFORM_WEDGE400C_VOQ:
       return "WEDGE400C_VOQ";
     case PlatformType::PLATFORM_WEDGE400C_FABRIC:
@@ -120,6 +114,12 @@ inline std::string toString(PlatformType mode) {
       return "BLACKWOLF800BANW";
     case PlatformType::PLATFORM_YANGRA2:
       return "YANGRA2";
+    case PlatformType::PLATFORM_MERU400BIU_DEPRECATED:
+      return "MERU400BIU";
+    case PlatformType::PLATFORM_MERU400BFU_DEPRECATED:
+      return "MERU400BFU";
+    case PlatformType::PLATFORM_MERU400BIA_DEPRECATED:
+      return "MERU400BIA";
     case PlatformType::PLATFORM_UNKNOWN:
       return "UNKNOWN";
   }

@@ -109,8 +109,10 @@ add_library(dsfnode_utils
 
 target_link_libraries(dsfnode_utils
   agent_config_cpp2
+  agent_features
   fboss_error
   load_agent_config
+  switch_asics
   switch_config_cpp2
 )
 
@@ -156,9 +158,6 @@ target_link_libraries(utils
   state
   switchid_scope_resolver
   Folly::folly
-  meru400biu_platform_mapping
-  meru400bia_platform_mapping
-  meru400bfu_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   janga800bic_platform_mapping
@@ -207,6 +206,7 @@ add_library(fboss_types
 target_link_libraries(fboss_types
   switch_config_cpp2
   Folly::folly
+  Boost::container
 )
 
 add_library(fib_helpers
@@ -333,6 +333,7 @@ add_library(core
   fboss/agent/SwitchInfoTable.cpp
   fboss/agent/SwitchStatsObserver.cpp
   fboss/agent/SwSwitch.cpp
+  fboss/agent/SwSwitchMySidUpdater.cpp
   fboss/agent/SwSwitchRouteUpdateWrapper.cpp
   fboss/agent/TamManager.cpp
   fboss/agent/TeFlowNexthopHandler.cpp
@@ -428,6 +429,7 @@ set(core_libs
   build_info_wrapper
   ecmp_resource_manager
   thrift_method_rate_limit
+  thrift_service_utils
   shel_manager
   state_delta_logger
   dsfnode_utils
@@ -475,6 +477,7 @@ target_link_libraries(setup_thrift_prod
 target_link_libraries(fboss_types
   switch_config_cpp2
   Folly::folly
+  Boost::container
 )
 
 add_library(fboss_event_base
@@ -884,6 +887,7 @@ target_link_libraries(test_utils
 
 
 add_library(validate_state_update
+  fboss/agent/ValidateInterfaceDelta.cpp
   fboss/agent/ValidateStateUpdate.cpp
   fboss/agent/ResourceAccountant.cpp
 )

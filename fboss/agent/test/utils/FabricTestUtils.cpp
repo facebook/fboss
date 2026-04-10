@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/utils/FabricTestUtils.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -63,7 +64,10 @@ void checkFabricConnectivity(TestEnsembleIf* ensemble, SwitchID switchId) {
 void populatePortExpectedNeighborsToSelf(
     const std::vector<PortID>& ports,
     cfg::SwitchConfig& cfg) {
-  const auto& dsfNode = cfg.dsfNodes()->begin()->second;
+  auto dsfNodeIter = cfg.dsfNodes()->find(FLAGS_switch_id_for_testing);
+  CHECK(dsfNodeIter != cfg.dsfNodes()->end())
+      << "DSF node not found for switchId " << FLAGS_switch_id_for_testing;
+  const auto& dsfNode = dsfNodeIter->second;
   for (const auto& portID : ports) {
     auto portCfg = findCfgPort(cfg, portID);
     cfg::PortNeighbor nbr;

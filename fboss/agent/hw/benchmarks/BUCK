@@ -32,6 +32,7 @@ cpp_library(
     name = "hw_cpu_latency_benchmark_helper",
     headers = ["HwCpuLatencyBenchmarkHelper.h"],
     exported_deps = [
+        "//fboss/agent:asic_utils",
         "//fboss/agent:packet",
         "//fboss/agent/benchmarks:agent_benchmarks_h",  # @manual
         "//fboss/agent/packet:packet_factory",
@@ -43,6 +44,7 @@ cpp_library(
         "//fboss/agent/test/utils:qos_test_utils",
         "//fboss/agent/test/utils:trap_packet_utils",
         "//folly:benchmark",
+        "//folly:conv",
         "//folly:network_address",
         "//folly/io:iobuf",
         "//folly/json:dynamic",
@@ -592,4 +594,17 @@ agent_benchmark_lib(
         "//fboss/agent/hw/benchmarks:hw_ucmp_group_scale_helper",
         "//fboss/agent/hw/test:config_factory",
     ],
+)
+
+agent_benchmark_lib(
+    name = "hw_srv6_scale_benchmark",
+    srcs = ["HwSrv6ScaleBenchmark.cpp"],
+    extra_deps = [
+        "//fboss/agent/test/utils:srv6_test_utils",
+    ],
+)
+
+agent_benchmark_lib(
+    name = "hw_srv6_mysid_scale_benchmark",
+    srcs = ["HwSrv6MySidScaleBenchmark.cpp"],
 )

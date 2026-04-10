@@ -74,7 +74,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
       getAgentEnsemble()->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), outPort);
     } else {
-      getAgentEnsemble()->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 

@@ -13,6 +13,9 @@
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/lib/CommonUtils.h"
 
+#include <chrono>
+#include <utility>
+
 using facebook::fb303::RATE;
 using facebook::fb303::SUM;
 using TLTimeseries = facebook::fb303::ThreadCachedServiceData::TLTimeseries;
@@ -22,6 +25,14 @@ void updateValue(TLTimeseries& counter, int64_t value) {
   counter.addValue(value - facebook::fboss::getCumulativeValue(counter));
 }
 const std::string kAsicRevision = "asic_revision";
+
+// Publish interval of 65 minutes (slightly longer than 1 hour) to ensure
+// we only have one max value per ODS rollup window.
+constexpr auto kMaxWatermarkPublishInterval = std::chrono::minutes(65);
+// Clear counters after 2 minutes so they don't persist across
+// the entire 65-minute interval. This prevents ODS from averaging
+// old and new values within a single rollup bucket.
+constexpr auto kMaxWatermarkClearDelay = std::chrono::minutes(2);
 } // namespace
 
 namespace facebook::fboss {
@@ -36,7 +47,7 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
     ThreadLocalStatsMap* map,
     const std::string& vendor,
     std::optional<std::string> statsPrefix)
-    : statsPrefix_(statsPrefix),
+    : statsPrefix_(std::move(statsPrefix)),
       txPktAlloc_(
           map,
           getCounterPrefix() + vendor + ".tx.pkt.allocated",
@@ -533,7 +544,21 @@ HwSwitchFb303Stats::HwSwitchFb303Stats(
       pfcDeadlockRecoveryCount_(
           map,
           getCounterPrefix() + "pfc_deadlock_recovery_count",
-          SUM) {}
+          SUM),
+      globalHeadroomWatermarkMaxCounter_(
+          map,
+          getCounterPrefix() + "buffer_watermark_global_headroom_hourly_max"),
+      globalSharedWatermarkMaxCounter_(
+          map,
+          getCounterPrefix() + "buffer_watermark_global_shared_hourly_max"),
+      globalHeadroomWatermarkPeakUsagePct_(
+          map,
+          getCounterPrefix() +
+              "buffer_watermark_global_headroom_hourly_max_pct"),
+      globalSharedWatermarkPeakUsagePct_(
+          map,
+          getCounterPrefix() +
+              "buffer_watermark_global_shared_hourly_max_pct") {}
 
 void HwSwitchFb303Stats::update(const HwSwitchDropStats& dropStats) {
   if (dropStats.globalDrops().has_value()) {
@@ -1214,6 +1239,63 @@ void HwSwitchFb303Stats::updateStats(HwSwitchFb303GlobalStats& globalStats) {
   fb303::fbData->setCounter(
       fabricConnectivityBogusCount_.name(),
       *globalStats.fabric_connectivity_bogus());
+}
+
+void HwSwitchFb303Stats::updateGlobalWatermarkMax(
+    uint64_t globalHeadroomBytes,
+    uint64_t globalSharedBytes,
+    uint64_t configuredHeadroomPoolSizeBytes,
+    uint64_t configuredSharedPoolSizeBytes,
+    bool headroomWatermarkSupported) {
+  // Update all-time max values
+  if (headroomWatermarkSupported) {
+    globalHeadroomWatermarkMax_ =
+        std::max(globalHeadroomWatermarkMax_, globalHeadroomBytes);
+  }
+  globalSharedWatermarkMax_ =
+      std::max(globalSharedWatermarkMax_, globalSharedBytes);
+
+  auto now = std::chrono::steady_clock::now();
+  auto elapsed = now - hourlyWatermarkStatsPublishTime_;
+
+  if (elapsed >= kMaxWatermarkPublishInterval) {
+    hourlyWatermarkStatsPublishTime_ = now;
+    counterPublished_ = true;
+    if (headroomWatermarkSupported) {
+      fb303::fbData->setCounter(
+          globalHeadroomWatermarkMaxCounter_.name(),
+          static_cast<int64_t>(globalHeadroomWatermarkMax_));
+      // Calculate and publish peak headroom pool usage percentage (rounded up)
+      if (configuredHeadroomPoolSizeBytes > 0) {
+        auto headroomPct = (globalHeadroomWatermarkMax_ * 100 +
+                            configuredHeadroomPoolSizeBytes - 1) /
+            configuredHeadroomPoolSizeBytes;
+        fb303::fbData->setCounter(
+            globalHeadroomWatermarkPeakUsagePct_.name(),
+            static_cast<int64_t>(headroomPct));
+      }
+    }
+    fb303::fbData->setCounter(
+        globalSharedWatermarkMaxCounter_.name(),
+        static_cast<int64_t>(globalSharedWatermarkMax_));
+    // Calculate and publish peak shared pool usage percentage (rounded up)
+    if (configuredSharedPoolSizeBytes > 0) {
+      auto sharedPct = (globalSharedWatermarkMax_ * 100 +
+                        configuredSharedPoolSizeBytes - 1) /
+          configuredSharedPoolSizeBytes;
+      fb303::fbData->setCounter(
+          globalSharedWatermarkPeakUsagePct_.name(),
+          static_cast<int64_t>(sharedPct));
+    }
+  } else if (counterPublished_ && elapsed >= kMaxWatermarkClearDelay) {
+    counterPublished_ = false;
+    if (headroomWatermarkSupported) {
+      fb303::fbData->clearCounter(globalHeadroomWatermarkMaxCounter_.name());
+      fb303::fbData->clearCounter(globalHeadroomWatermarkPeakUsagePct_.name());
+    }
+    fb303::fbData->clearCounter(globalSharedWatermarkMaxCounter_.name());
+    fb303::fbData->clearCounter(globalSharedWatermarkPeakUsagePct_.name());
+  }
 }
 
 } // namespace facebook::fboss

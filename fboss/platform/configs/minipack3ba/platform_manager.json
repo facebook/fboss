@@ -58,7 +58,7 @@
       "pmUnitName": "PSU"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 6,
+      "numOutgoingI2cBuses": 8,
       "idpromConfig": {
         "busName": "INCOMING@3",
         "address": "0x50",
@@ -1332,7 +1332,7 @@
   "chassisEepromDevicePath": "/FCBTOP_SLOT@0/[CHASSIS_EEPROM]",
   "numXcvrs": 65,
   "bspKmodsRpmName": "fboss_bsp_kmods",
-  "bspKmodsRpmVersion": "4.1.0-1",
+  "bspKmodsRpmVersion": "4.2.0-1",
   "requiredKmodsToLoad": [
     "i2c_i801",
     "spidev",

@@ -32,6 +32,10 @@ bool AgentNetWhoAmI::isTajoMorgan800ccPlatform() const {
   return false;
 }
 
+bool AgentNetWhoAmI::isTajoWedge800cPlatform() const {
+  return false;
+}
+
 bool AgentNetWhoAmI::isFdsw() const {
   return false;
 }

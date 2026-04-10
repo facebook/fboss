@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/test/BaseEcmpResourceManagerTest.h"
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/utils/EcmpResourceManagerTestUtils.h"
@@ -326,7 +327,8 @@ TEST_F(EcmpBackupGroupTypeTest, addRoutesAboveEcmpLimitAndSyncFibReplay) {
       // coming over thrift (say on FibSync) which would
       // come w/o any overrides set.
       route->setResolved(RouteNextHopEntry(
-          route->getForwardInfo().getNextHopSet(), kDefaultAdminDistance));
+          facebook::fboss::getNextHops(state_, route->getForwardInfo()),
+          kDefaultAdminDistance));
       route->publish();
       fib6->updateNode(route);
     }
@@ -647,8 +649,8 @@ TEST_F(EcmpBackupGroupTypeTest, reclaimPrioritizesECMPWithMoreRoutes) {
     auto nhopSets = nextNhopSets();
     auto prefixFrom =
         makePrefix(getPostConfigResolvedRoutes(newState).size() - 1);
-    auto nhopsFrom =
-        fib6->getRouteIf(prefixFrom)->getForwardInfo().getNextHopSet();
+    auto nhopsFrom = facebook::fboss::getNextHops(
+        state_, fib6->getRouteIf(prefixFrom)->getForwardInfo());
     auto updateRoute = fib6->getRouteIf(makePrefix(0))->clone();
     updateRoute->setResolved(
         RouteNextHopEntry(nhopsFrom, kDefaultAdminDistance));

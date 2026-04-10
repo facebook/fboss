@@ -3,6 +3,7 @@
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 
 #include "fboss/agent/RouteUpdateWrapper.h"
+#include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
@@ -385,5 +386,49 @@ template class HwMplsEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 template class HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV6>;
 template class HwIpRoCEEcmpDataPlaneTestUtil<folly::IPAddressV4>;
 template class HwIpRoCEEcmpDestPortDataPlaneTestUtil<folly::IPAddressV6>;
+
+HwSrv6EcmpDataPlaneTestUtil::HwSrv6EcmpDataPlaneTestUtil(
+    TestEnsembleIf* ensemble,
+    RouterID vrf)
+    : BaseT(ensemble, vrf) {}
+
+void HwSrv6EcmpDataPlaneTestUtil::programRoutes(
+    int ecmpWidth,
+    const std::vector<NextHopWeight>& /*weights*/) {
+  auto* helper = ecmpSetupHelper();
+  auto* ensemble = getEnsemble();
+
+  ensemble->applyNewState(
+      [=](const std::shared_ptr<SwitchState>& state) {
+        return helper->resolveNextHops(state, ecmpWidth);
+      },
+      "resolve-srv6-nexthops");
+
+  RouteNextHopSet nhops;
+  for (int i = 0; i < ecmpWidth; ++i) {
+    auto nhop = helper->nhop(i);
+    std::vector<folly::IPAddressV6> sidList{
+        folly::IPAddressV6(folly::sformat("3001:db8:{}::", i + 1))};
+    nhops.insert(ResolvedNextHop(
+        nhop.ip,
+        nhop.intf,
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        sidList,
+        TunnelType::SRV6_ENCAP,
+        folly::sformat("srv6Tunnel{}", i)));
+  }
+  auto routeUpdater = ensemble->getRouteUpdaterWrapper();
+  routeUpdater->addRoute(
+      RouterID(0),
+      folly::IPAddressV6("2001::"),
+      32,
+      ClientID::BGPD,
+      RouteNextHopEntry(nhops, AdminDistance::EBGP));
+  routeUpdater->program();
+}
 
 } // namespace facebook::fboss::utility

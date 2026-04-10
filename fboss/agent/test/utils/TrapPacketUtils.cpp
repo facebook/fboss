@@ -66,12 +66,14 @@ void addTrapPacketAcl(
 void addTrapPacketAcl(
     const HwAsic* asic,
     cfg::SwitchConfig* config,
-    const folly::CIDRNetwork& prefix) {
+    const folly::CIDRNetwork& prefix,
+    cfg::ToCpuAction toCpuAction) {
   cfg::AclEntry entry{};
   entry.name() = folly::to<std::string>("trap-", prefix.first.str());
-  entry.dstIp() = prefix.first.str();
+  entry.dstIp() = folly::IPAddress::networkToString(prefix);
   if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
-    entry.etherType() = cfg::EtherType::IPv6;
+    entry.etherType() =
+        prefix.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4;
   }
   entry.actionType() = cfg::AclActionType::PERMIT;
   utility::addAclEntry(config, entry, utility::kDefaultAclTable());
@@ -79,7 +81,7 @@ void addTrapPacketAcl(
   cfg::MatchAction action;
   action.sendToQueue() = cfg::QueueMatchAction();
   action.sendToQueue()->queueId() = 0;
-  action.toCpuAction() = cfg::ToCpuAction::COPY;
+  action.toCpuAction() = toCpuAction;
   cfg::SetTcAction setTcAction = cfg::SetTcAction();
   setTcAction.tcValue() = 0;
   action.setTc() = setTcAction;

@@ -14,10 +14,9 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/SwitchState.h"
 
 #include <gtest/gtest.h>
-
-DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 
@@ -36,7 +35,9 @@ class ResourceAccountant {
       std::optional<int32_t> maxArsVirtualGroupWidth);
 
  private:
-  size_t getMemberCountForEcmpGroup(const RouteNextHopEntry& fwd) const;
+  size_t getMemberCountForEcmpGroup(
+      const RouteNextHopEntry& fwd,
+      const std::shared_ptr<SwitchState>& state) const;
   bool checkEcmpResource(bool intermediateState) const;
   bool checkArsResource(bool intermediateState) const;
   bool isVirtualArsGroup(const RouteNextHopEntry::NextHopSet& nhSet) const;
@@ -44,27 +45,46 @@ class ResourceAccountant {
   bool routeAndEcmpStateChangedImpl(const StateDelta& delta);
   bool isValidRouteUpdate(const StateDelta& delta);
   bool shouldCheckRouteUpdate() const;
-  bool isEcmp(const RouteNextHopEntry& fwd) const;
+  bool isEcmp(
+      const RouteNextHopEntry& fwd,
+      const std::shared_ptr<SwitchState>& state) const;
   size_t computeWeightedEcmpMemberCount(
       const RouteNextHopEntry& fwd,
-      const cfg::AsicType& asicType) const;
+      const cfg::AsicType& asicType,
+      const std::shared_ptr<SwitchState>& state) const;
 
   template <typename AddrT>
   bool checkAndUpdateGenericEcmpResource(
       const std::shared_ptr<Route<AddrT>>& route,
-      bool add);
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename AddrT>
   bool checkAndUpdateArsEcmpResource(
       const std::shared_ptr<Route<AddrT>>& route,
-      bool add);
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename AddrT>
   bool checkAndUpdateEcmpResource(
       const std::shared_ptr<Route<AddrT>>& route,
-      bool add);
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
 
   bool checkAndUpdateRouteResource(bool add);
+
+  void mySidStateChangedImpl(const StateDelta& delta);
+  bool checkMySidResource(bool intermediateState);
+
+  size_t countSrv6NextHops(const RouteNextHopSet& nhSet) const;
+
+  template <typename AddrT>
+  bool checkAndUpdateSrv6NextHopResource(
+      const std::shared_ptr<Route<AddrT>>& route,
+      bool add,
+      const std::shared_ptr<SwitchState>& state);
+
+  bool checkSrv6NextHopResource(bool intermediateState) const;
 
   bool checkNeighborResource();
 
@@ -107,6 +127,17 @@ class ResourceAccountant {
   uint32_t ecmpMemberUsage_{0};
   uint32_t virtualArsGroupCount_{0};
   uint32_t routeUsage_{0};
+  uint32_t mySidUsage_{0};
+  // SRv6 next hop tracking: keyed by NextHopSetID for efficient lookup.
+  // Stores {refCount, srv6Count} per unique NextHopSet.
+  struct Srv6NextHopSetInfo {
+    int32_t refCount{0};
+    size_t srv6Count{0};
+    bool isEcmp{false};
+  };
+  std::unordered_map<int64_t, Srv6NextHopSetInfo> srv6NextHopSetRefMap_;
+  uint32_t srv6EcmpNextHopUsage_{0};
+  uint32_t srv6SingleNextHopUsage_{0};
   std::optional<int32_t> minWidthForArsVirtualGroup_;
   std::optional<int32_t> maxArsVirtualGroups_;
   std::optional<int32_t> maxArsVirtualGroupWidth_;
@@ -128,6 +159,11 @@ class ResourceAccountant {
   FRIEND_TEST(ResourceAccountantTest, checkNeighborResource);
   FRIEND_TEST(ResourceAccountantTest, routeWithAdjustedWeightZero);
   FRIEND_TEST(ResourceAccountantTest, resolvedAndUnresolvedRoutes);
+  FRIEND_TEST(ResourceAccountantTest, checkMySidResource);
+  FRIEND_TEST(ResourceAccountantTest, mySidStateChanged);
+  FRIEND_TEST(ResourceAccountantTest, mySidResourceExceeded);
+  FRIEND_TEST(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource);
+  FRIEND_TEST(ResourceAccountantTest, srv6NextHopResourceExceeded);
   FRIEND_TEST(MacTableManagerTest, MacLearnedBulkCb);
 };
 } // namespace facebook::fboss

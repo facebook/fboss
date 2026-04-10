@@ -27,7 +27,7 @@ from distro_cli.lib.distro_infra import (
 from distro_cli.lib.docker import container
 from distro_cli.lib.exceptions import DistroInfraError
 
-logger = logging.getLogger("fboss-image")
+logger = logging.getLogger(__name__)
 
 
 def print_to_console(message: str) -> None:

@@ -1,4 +1,5 @@
 "Test Case","Platform","Status"
+"LedServiceTest.testTcvrLos","minipack3n","PASSED"
 "LedServiceTest.checkLedColorChange","minipack3n","PASSED"
 "LedServiceTest.checkLedBlinking","minipack3n","PASSED"
 "LedServiceTest.checkForceLed","minipack3n","PASSED"

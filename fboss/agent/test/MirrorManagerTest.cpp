@@ -98,33 +98,22 @@ MirrorManagerTestParams<AddressT> getParams() {
 }
 } // namespace
 
-template <typename AddrType, bool enableIntfNbrTable>
-struct IpAddrAndEnableIntfNbrTableT {
+template <typename AddrType>
+struct IpAddrT {
   using IPAddrT = AddrType;
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using TestTypes = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+using TestTypes =
+    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename IpAddrT>
 class MirrorManagerTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename IpAddrAndEnableIntfNbrTableT::IPAddrT;
-  static auto constexpr intfNbrTable =
-      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
-
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
+  using AddrT = typename IpAddrT::IPAddrT;
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     handle_ = createTestHandle(&config);
     sw_ = handle_->getSw();
@@ -178,32 +167,13 @@ class MirrorManagerTest : public ::testing::Test {
     return newState;
   }
 
-  std::shared_ptr<SwitchState> addNeighborToVlanTable(
-      const std::shared_ptr<SwitchState>& state,
-      InterfaceID interfaceId,
-      const AddrT& ip,
-      const MacAddress mac,
-      PortID port) {
-    auto newState = state->isPublished() ? state->clone() : state;
-    VlanID vlanId =
-        newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-    auto* neighborTable =
-        vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-            &vlan, &newState);
-    neighborTable->addEntry(ip, mac, PortDescriptor(port), interfaceId);
-    return newState;
-  }
-
   std::shared_ptr<SwitchState> addNeighbor(
       const std::shared_ptr<SwitchState>& state,
       InterfaceID interfaceId,
       const AddrT& ip,
       const MacAddress mac,
       PortID port) {
-    return isIntfNbrTable()
-        ? addNeighborToIntfTable(state, interfaceId, ip, mac, port)
-        : addNeighborToVlanTable(state, interfaceId, ip, mac, port);
+    return addNeighborToIntfTable(state, interfaceId, ip, mac, port);
   }
 
   std::shared_ptr<SwitchState> delNeighborFromIntfTable(
@@ -219,27 +189,11 @@ class MirrorManagerTest : public ::testing::Test {
     return newState;
   }
 
-  std::shared_ptr<SwitchState> delNeighborFromVlanTable(
-      const std::shared_ptr<SwitchState>& state,
-      InterfaceID interfaceId,
-      const AddrT& ip) {
-    auto newState = state->isPublished() ? state->clone() : state;
-    VlanID vlanId =
-        newState->getInterfaces()->getNode(interfaceId)->getVlanID();
-    Vlan* vlan = newState->getVlans()->getNodeIf(VlanID(vlanId)).get();
-    auto* neighborTable =
-        vlan->template getNeighborEntryTable<AddrT>().get()->modify(
-            &vlan, &newState);
-    neighborTable->removeEntry(ip);
-    return newState;
-  }
-
   std::shared_ptr<SwitchState> delNeighbor(
       const std::shared_ptr<SwitchState>& state,
       InterfaceID interfaceId,
       const AddrT& ip) {
-    return isIntfNbrTable() ? delNeighborFromIntfTable(state, interfaceId, ip)
-                            : delNeighborFromVlanTable(state, interfaceId, ip);
+    return delNeighborFromIntfTable(state, interfaceId, ip);
   }
 
   void addRoute(const RoutePrefix<AddrT>& prefix, RouteNextHopSet nexthops) {
@@ -315,40 +269,21 @@ class MirrorManagerTest : public ::testing::Test {
       PortID portID,
       bool wait = true) {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      if (isIntfNbrTable()) {
-        sw_->getNeighborUpdater()->receivedArpMineForIntf(
-            interfaceID,
-            ipAddress.asV4(),
-            macAddress,
-            PortDescriptor(portID),
-            ArpOpCode::ARP_OP_REPLY);
+      sw_->getNeighborUpdater()->receivedArpMineForIntf(
+          interfaceID,
+          ipAddress.asV4(),
+          macAddress,
+          PortDescriptor(portID),
+          ArpOpCode::ARP_OP_REPLY);
 
-      } else {
-        sw_->getNeighborUpdater()->receivedArpMine(
-            sw_->getState()->getInterfaces()->getNode(interfaceID)->getVlanID(),
-            ipAddress.asV4(),
-            macAddress,
-            PortDescriptor(portID),
-            ArpOpCode::ARP_OP_REPLY);
-      }
     } else {
-      if (isIntfNbrTable()) {
-        sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-            interfaceID,
-            ipAddress.asV6(),
-            macAddress,
-            PortDescriptor(portID),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-            0);
-      } else {
-        sw_->getNeighborUpdater()->receivedNdpMine(
-            sw_->getState()->getInterfaces()->getNode(interfaceID)->getVlanID(),
-            ipAddress.asV6(),
-            macAddress,
-            PortDescriptor(portID),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
-            0);
-      }
+      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          interfaceID,
+          ipAddress.asV6(),
+          macAddress,
+          PortDescriptor(portID),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_SOLICITATION,
+          0);
     }
     if (wait) {
       sw_->getNeighborUpdater()->waitForPendingUpdates();

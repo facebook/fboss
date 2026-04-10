@@ -11,6 +11,8 @@
 # across multiple C++ files with a single header file and main file
 # for ease of compilation and execution.
 
+# pyre-unsafe
+
 import argparse
 import os
 import re
@@ -27,20 +29,12 @@ MIN_LINES = 20000
 GENERATED_FILES = []
 GENERATED_FILES_SAILOGCPP = []
 
-# Regexes
-REGEX_COMMENT = r"^(\/\/|\/\*|\*)"
-REGEX_CPP_FILE = r"\.cpp$"
-REGEX_VARS_BEGIN = r"Global Variables Start"
-REGEX_VARS_END = r"Global Variables End"
-REGEX_UNNAMED_NAMESPACE_BEGIN = r"^namespace( )*{$"
-REGEX_UNNAMED_NAMESPACE_END = r"^}( )*\/\/( )*namespace$"
-REGEX_VAR_LIST = r"int list\_[0-9]*\[[0-9]*\]\;"
-REGEX_RUN_TRACE_FUNC = r"^void run\_trace\(\) ?{$"
-REGEX_INCLUDES = r"^\#include"
-REGEX_DEFINES = r"^\#define"
-REGEX_SAILOG_INCLUDE = r"^\#include.*SaiLog\.h"
-REGEX_HASHAPIVAR = r"hash\_api(?![a-zA-Z0-9\_\-])"
-REGEX_SAILOGCPP = r"\"SaiLog\.cpp\""
+# Pre-compiled regexes (only for patterns that genuinely need regex)
+_RE_UNNAMED_NAMESPACE_BEGIN = re.compile(r"^namespace( )*{$")
+_RE_UNNAMED_NAMESPACE_END = re.compile(r"^}( )*\/\/( )*namespace$")
+_RE_VAR_LIST = re.compile(r"int list\_[0-9]*\[[0-9]*\]\;")
+_RE_RUN_TRACE_FUNC = re.compile(r"^void run\_trace\(\) ?{$")
+_RE_HASHAPIVAR = re.compile(r"hash\_api(?![a-zA-Z0-9\_\-])")
 
 # Code snippets
 LICENCE = """/*
@@ -137,7 +131,7 @@ def index_of_var_name(line):
 
 
 def is_cpp_file(filename):
-    return re.search(REGEX_CPP_FILE, filename) is not None
+    return filename.endswith(".cpp")
 
 
 def get_cpp_count(file_list):
@@ -210,7 +204,7 @@ def generate_run_bzl(input_file, output_dir):
     with open(filename, "w") as output_file:
         for line in open(input_file, "r"):
             # Replace SaiLog.cpp with the list of SaiLog*.cpp files
-            if re.search(REGEX_SAILOGCPP, line) is not None:
+            if '"SaiLog.cpp"' in line:
                 output_file.write(cpp_file_list)
             else:
                 output_file.write(line)
@@ -263,41 +257,37 @@ def split_file(input_file, output_dir, max_lines):
         line = line.strip()
 
         # Add SaiLog.h import to the first non-comment line
-        if pre_code_section and re.search(REGEX_COMMENT, line) is None:
+        if pre_code_section and not line.startswith(("//", "/*", "*")):
             pre_code_section = False
             output.write("\n\n" + INCLUDE_SAILOG_H + "\n")
 
         # Start or end a special section
-        if re.search(REGEX_VARS_BEGIN, line) is not None:
+        if "Global Variables Start" in line:
             section_prev = section
             section = Section.VARIABLES
             continue
-        if re.search(REGEX_VARS_END, line) is not None:
+        if "Global Variables End" in line:
             section, section_prev = section_prev, section
             section = Section.NORMAL
             continue
-        if re.search(REGEX_UNNAMED_NAMESPACE_BEGIN, line) is not None:
+        if _RE_UNNAMED_NAMESPACE_BEGIN.search(line) is not None:
             unnamed_namespace.append(line)
             section_prev = section
             section = Section.UNNAMED_NAMESPACE
             continue
-        if re.search(REGEX_UNNAMED_NAMESPACE_END, line) is not None:
+        if _RE_UNNAMED_NAMESPACE_END.search(line) is not None:
             unnamed_namespace.append(line)
             section, section_prev = section_prev, section
             continue
 
-        # Preprocessing
-        if re.search(REGEX_HASHAPIVAR, line) is not None:
-            # Avoid duplicate symbol from brcm_sai_common.h
-            line = re.sub(REGEX_HASHAPIVAR, "hash_api_var", line)
+        # Preprocessing: avoid duplicate symbol from brcm_sai_common.h
+        if "hash_api" in line:
+            line = _RE_HASHAPIVAR.sub("hash_api_var", line)
 
         # Save header file contents
-        if re.search(REGEX_SAILOG_INCLUDE, line) is not None:
+        if line.startswith("#include") and "SaiLog.h" in line:
             continue
-        if (
-            re.search(REGEX_INCLUDES, line) is not None
-            or re.search(REGEX_DEFINES, line) is not None
-        ):
+        if line.startswith(("#include", "#define")):
             includes_defines.append(line)
             continue
         if section == Section.UNNAMED_NAMESPACE:
@@ -307,7 +297,7 @@ def split_file(input_file, output_dir, max_lines):
         if (
             section == Section.VARIABLES
             or "[[maybe_unused]]" in line
-            or re.search(REGEX_VAR_LIST, line) is not None
+            or ("int list_" in line and _RE_VAR_LIST.search(line) is not None)
         ):
             assign = line.find("=")
             if assign == -1:
@@ -320,7 +310,7 @@ def split_file(input_file, output_dir, max_lines):
                 line = line[index_of_var_name(line) :]
 
         # Modify the run_trace line
-        if re.search(REGEX_RUN_TRACE_FUNC, line) is not None:
+        if _RE_RUN_TRACE_FUNC.search(line) is not None:
             output.write("void run_trace_1() {\n\n")
             continue
 

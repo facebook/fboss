@@ -37,6 +37,11 @@ void checkKernelEntriesExist(
     bool isIPv4 = true,
     bool checkRouteEntry = true);
 
+bool checkKernelEntriesExistBool(
+    const std::string& intfIp,
+    bool isIPv4 = true,
+    bool checkRouteEntry = true);
+
 void checkKernelEntriesRemoved(
     const std::string& intfIPv4,
     const std::string& intfIPv6);

@@ -12,12 +12,14 @@
 #include "fboss/agent/Utils.h"
 
 #include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiCounterManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiVirtualRouterManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -158,7 +160,8 @@ void SaiRouteManager::addOrUpdateRoute(
     SaiRouteHandle* routeHandle,
     RouterID routerId,
     const std::shared_ptr<Route<AddrT>>& oldRoute,
-    const std::shared_ptr<Route<AddrT>>& newRoute) {
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const std::shared_ptr<SwitchState>& state) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, newRoute);
   const auto& fwd = newRoute->getForwardInfo();
   sai_int32_t packetAction;
@@ -186,6 +189,7 @@ void SaiRouteManager::addOrUpdateRoute(
 
   if (fwd.getAction() == RouteForwardAction::NEXTHOPS) {
     packetAction = SAI_PACKET_ACTION_FORWARD;
+    const auto nhops = getNextHops(state, fwd);
     /*
      * A Route which satisfies isConnected() is an interface subnet route.
      * It will have one NextHop with the ip configured for the interface
@@ -195,8 +199,8 @@ void SaiRouteManager::addOrUpdateRoute(
      * (see sairoute.h for an explanation of router_interface_id as next hop)
      */
     if (newRoute->isConnected()) {
-      CHECK_EQ(fwd.getNextHopSet().size(), 1);
-      InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
+      CHECK_EQ(nhops.size(), 1);
+      InterfaceID interfaceId{nhops.begin()->intf()};
 
       /*
        * For VOQ switches with multiple asics, set connected routes to drop
@@ -294,7 +298,7 @@ void SaiRouteManager::addOrUpdateRoute(
         XLOG(DBG3) << "Connected route: " << newRoute->str()
                    << " routerInterfaceId: " << routerInterfaceId;
       }
-    } else if (fwd.getNextHopSet().size() > 1) {
+    } else if (nhops.size() > 1) {
       /*
        * A Route which has more than one NextHops will create or reference an
        * existing SaiNextHopGroup corresponding to ECMP over those next hops.
@@ -304,31 +308,49 @@ void SaiRouteManager::addOrUpdateRoute(
       auto nextHopGroupHandle =
           managerTable_->nextHopGroupManager().incRefOrAddNextHopGroup(
               SaiNextHopGroupKey(
-                  fwd.normalizedNextHops(),
+                  getNormalizedNextHops(state, fwd),
                   fwd.getOverrideEcmpSwitchingMode()));
-      NextHopGroupSaiId nextHopGroupId{
-          nextHopGroupHandle->nextHopGroup->adapterKey()};
+
+      // For multi-NPU switches, if all next hops were filtered out (none have
+      // router interfaces on this ASIC), the nextHopGroup will be null.
+      // Set the route to DROP in this case.
+      if (!nextHopGroupHandle->nextHopGroup &&
+          platform_->hasMultipleSwitches()) {
+        packetAction = SAI_PACKET_ACTION_DROP;
+        XLOG(DBG3) << "All next hops filtered out on switchId: "
+                   << platform_->getAsic()->getSwitchId().value()
+                   << ", setting route to DROP: " << newRoute->str();
+#if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata, std::nullopt};
+#else
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, SAI_NULL_OBJECT_ID, metadata};
+#endif
+      } else {
+        NextHopGroupSaiId nextHopGroupId{
+            nextHopGroupHandle->nextHopGroup->adapterKey()};
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, nextHopGroupId, metadata, counterID};
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, nextHopGroupId, metadata, counterID};
 #else
-      attributes = SaiRouteTraits::CreateAttributes{
-          packetAction, nextHopGroupId, metadata};
+        attributes = SaiRouteTraits::CreateAttributes{
+            packetAction, nextHopGroupId, metadata};
 #endif
-      nextHopHandle = nextHopGroupHandle;
+        nextHopHandle = nextHopGroupHandle;
 
-      XLOG(DBG3) << "Route nhops > 1: " << newRoute->str()
-                 << " nextHopGroupId: " << nextHopGroupId;
+        XLOG(DBG3) << "Route nhops > 1: " << newRoute->str()
+                   << " nextHopGroupId: " << nextHopGroupId;
+      }
     } else {
-      CHECK_EQ(fwd.getNextHopSet().size(), 1);
+      CHECK_EQ(nhops.size(), 1);
       /* A route which has only one next hop, create a subscriber for next hop
        * to make route point back and forth next hop or CPU
        */
-      auto swNextHop =
-          folly::poly_cast<ResolvedNextHop>(*(fwd.getNextHopSet().begin()));
+      auto swNextHop = folly::poly_cast<ResolvedNextHop>(*(nhops.begin()));
 
-      InterfaceID interfaceId{fwd.getNextHopSet().begin()->intf()};
+      InterfaceID interfaceId{nhops.begin()->intf()};
       const SaiRouterInterfaceHandle* routerInterfaceHandle =
           managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
               interfaceId);
@@ -363,14 +385,17 @@ void SaiRouteManager::addOrUpdateRoute(
         bool localNexthop = routerInterfaceHandle->isLocal();
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-        std::shared_ptr<SaiSrv6SidList> srv6SidList;
+        std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle;
         if (!swNextHop.srv6SegmentList().empty()) {
-          srv6SidList =
-              managerTable_->nextHopManager().createSrv6SidList(swNextHop);
+          auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
+              routerInterfaceHandle->adapterKey(), swNextHop);
+          srv6SidListHandle =
+              managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
+                  sidListKey, sidListAttrs);
         }
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(
-                swNextHop, std::move(srv6SidList));
+                swNextHop, std::move(srv6SidListHandle));
 #else
         auto managedSaiNextHop =
             managerTable_->nextHopManager().addManagedSaiNextHop(swNextHop);
@@ -506,7 +531,8 @@ template <typename AddrT>
 void SaiRouteManager::changeRoute(
     const std::shared_ptr<Route<AddrT>>& oldSwRoute,
     const std::shared_ptr<Route<AddrT>>& newSwRoute,
-    RouterID routerId) {
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state) {
   SaiRouteTraits::RouteEntry entry =
       routeEntryFromSwRoute(routerId, newSwRoute);
 
@@ -522,7 +548,7 @@ void SaiRouteManager::changeRoute(
         "Failure to update route. Route does not exist ",
         newSwRoute->prefix().str());
   }
-  addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute);
+  addOrUpdateRoute(itr->second.get(), routerId, oldSwRoute, newSwRoute, state);
   swRoutes_.erase(entry);
   swRoutes_.emplace(entry, newSwRoute);
 }
@@ -530,7 +556,8 @@ void SaiRouteManager::changeRoute(
 template <typename AddrT>
 void SaiRouteManager::addRoute(
     const std::shared_ptr<Route<AddrT>>& swRoute,
-    RouterID routerId) {
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state) {
   SaiRouteTraits::RouteEntry entry = routeEntryFromSwRoute(routerId, swRoute);
   auto itr = handles_.find(entry);
   if (itr != handles_.end()) {
@@ -544,7 +571,11 @@ void SaiRouteManager::addRoute(
   }
   auto routeHandle = std::make_unique<SaiRouteHandle>();
   addOrUpdateRoute(
-      routeHandle.get(), routerId, std::shared_ptr<Route<AddrT>>{}, swRoute);
+      routeHandle.get(),
+      routerId,
+      std::shared_ptr<Route<AddrT>>{},
+      swRoute,
+      state);
   handles_.emplace(entry, std::move(routeHandle));
   swRoutes_.emplace(entry, swRoute);
 }
@@ -934,18 +965,22 @@ SaiRouteManager::routeEntryFromSwRoute<folly::IPAddressV4>(
 template void SaiRouteManager::changeRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& oldSwEntry,
     const std::shared_ptr<Route<folly::IPAddressV6>>& newSwEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 template void SaiRouteManager::changeRoute<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& oldSwEntry,
     const std::shared_ptr<Route<folly::IPAddressV4>>& newSwEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 
 template void SaiRouteManager::addRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 template void SaiRouteManager::addRoute<folly::IPAddressV4>(
     const std::shared_ptr<Route<folly::IPAddressV4>>& swEntry,
-    RouterID routerId);
+    RouterID routerId,
+    const std::shared_ptr<SwitchState>& state);
 
 template void SaiRouteManager::removeRoute<folly::IPAddressV6>(
     const std::shared_ptr<Route<folly::IPAddressV6>>& swEntry,

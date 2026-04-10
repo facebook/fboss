@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/CmdConfigProtocolBgp.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 namespace facebook::fboss {
 
 CmdConfigProtocolBgpTraits::RetType CmdConfigProtocolBgp::queryClient(
@@ -20,5 +22,9 @@ CmdConfigProtocolBgpTraits::RetType CmdConfigProtocolBgp::queryClient(
 void CmdConfigProtocolBgp::printOutput(const RetType& output) {
   std::cout << output << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigProtocolBgp, CmdConfigProtocolBgpTraits>::run();
 
 } // namespace facebook::fboss

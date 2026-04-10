@@ -1,4 +1,4 @@
-# Make to build libraries and binaries in fboss/lib/platform_mapping_v2/test
+# CMake to build libraries and binaries in fboss/lib/platform_mapping_v2/test
 
 # In general, libraries and binaries in fboss/foo/bar are built by
 # cmake/FooBar.cmake
@@ -22,18 +22,18 @@ set(
 file(COPY "fboss/lib/platform_mapping_v2/test/test_data" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/fboss/lib/platform_mapping_v2/test")
 message(STATUS "Copying test source files to: ${CMAKE_CURRENT_BINARY_DIR}/fboss/lib/platform_mapping_v2/test")
 
-add_fb_python_executable(
+add_fb_thrift_python_executable(
     platform_mapping_gen_unit_test
     MAIN_MODULE fboss.lib.platform_mapping_v2.test.test:run_tests
     SOURCES ${PLATFORM_MAPPING_PY_SRCS}
     DEPENDS
-        asic_config_v2_py
-        platform_config_py
-        switch_config_py
-        transceiver_py
-        phy_py
-        platform_mapping_config_py
-        FBThrift::thrift_py
+        asic_config_v2_python
+        platform_config_python
+        switch_config_python
+        transceiver_python
+        phy_python
+        platform_mapping_config_python
+        fboss_common_python
 )
 
 install_fb_python_executable(platform_mapping_gen_unit_test)

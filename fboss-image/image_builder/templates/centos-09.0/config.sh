@@ -355,9 +355,19 @@ systemctl enable fan_service.service
 systemctl enable sensor_service.service
 systemctl enable fsdb.service
 systemctl enable qsfp_service.service
-systemctl enable wedge_agent.service
+systemctl enable fboss_sw_agent.service
+systemctl enable fboss_hw_agents.target
 
-# 8. Done! Cleanup and install additional packages
+echo "Creating FBOSS log directories..."
+mkdir -p /var/facebook/logs/fboss/sdk
+semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
+restorecon -Rv /var/facebook/logs/fboss
+
+# 8. Fix NetworkManager connection profile permissions
+# NM ignores profiles that are world-readable
+chmod 600 /etc/NetworkManager/system-connections/eth0.nmconnection
+
+# 9. Done! Cleanup and install additional packages
 echo "Cleaning up /repos directory..."
 rm -rf /repos
 
@@ -423,5 +433,10 @@ fi
 if [ "$JQ_INSTALLED" = true ]; then
   dnf remove -y jq
 fi
+
+# Make all yum repos optional. The network is not available in all deployments or early in boot. The CentOS default is
+# to fail out if any RPM repo is not available, but that can cause platform_manager to fail to install the BSP RPM and
+# thus fail booting.
+sed -i 's/skip_if_unavailable=False/skip_if_unavailable=True/' /etc/dnf/dnf.conf
 
 exit 0

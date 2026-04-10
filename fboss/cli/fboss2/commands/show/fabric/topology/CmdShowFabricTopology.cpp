@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
@@ -89,4 +90,10 @@ Table::Style CmdShowFabricTopology::getSymmetryStyle(bool isSymmetric) const {
   return isSymmetric ? Table::Style::GOOD : Table::Style::ERROR;
 }
 
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFabricTopology, CmdShowFabricTopologyTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricTopology,
+    CmdShowFabricTopologyTraits>::getValidFilters();
 } // namespace facebook::fboss

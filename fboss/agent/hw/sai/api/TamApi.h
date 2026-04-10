@@ -185,6 +185,13 @@ struct SaiTamEventTraits {
     };
     using AgingGroup =
         SaiExtensionAttribute<sai_object_id_t, AttributeAgingGroup>;
+    struct AttributeIngressSamplepacketEnable {
+      std::optional<sai_attr_id_t> operator()();
+    };
+    using IngressSamplepacketEnable = SaiExtensionAttribute<
+        sai_object_id_t,
+        AttributeIngressSamplepacketEnable,
+        SaiObjectIdDefault>;
   };
   using AdapterKey = TamEventSaiId;
   using AdapterHostKey = std::tuple<
@@ -198,7 +205,18 @@ struct SaiTamEventTraits {
       std::optional<Attributes::PacketDropTypeMmu>,
       std::optional<Attributes::PacketDropTypeIngress>,
       std::optional<Attributes::AgingGroup>>;
-  using CreateAttributes = AdapterHostKey;
+  using CreateAttributes = std::tuple<
+      Attributes::Type,
+      Attributes::ActionList,
+      Attributes::CollectorList,
+      std::optional<Attributes::SwitchEventType>,
+      std::optional<Attributes::DeviceId>,
+      std::optional<Attributes::SwitchEventId>,
+      std::optional<Attributes::ExtensionsCollectorList>,
+      std::optional<Attributes::PacketDropTypeMmu>,
+      std::optional<Attributes::PacketDropTypeIngress>,
+      std::optional<Attributes::AgingGroup>,
+      std::optional<Attributes::IngressSamplepacketEnable>>;
 };
 
 SAI_ATTRIBUTE_NAME(TamEvent, Type)
@@ -211,6 +229,7 @@ SAI_ATTRIBUTE_NAME(TamEvent, ExtensionsCollectorList)
 SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeMmu)
 SAI_ATTRIBUTE_NAME(TamEvent, PacketDropTypeIngress)
 SAI_ATTRIBUTE_NAME(TamEvent, AgingGroup)
+SAI_ATTRIBUTE_NAME(TamEvent, IngressSamplepacketEnable)
 
 struct SaiTamTraits {
   static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_TAM;
@@ -406,6 +425,15 @@ struct hash<facebook::fboss::SaiTamTransportTraits::Attributes::DstMacAddress> {
       const facebook::fboss::SaiTamTransportTraits::Attributes::DstMacAddress&
           key) const {
     return std::hash<folly::MacAddress>()(key.value());
+  }
+};
+
+template <>
+struct hash<
+    facebook::fboss::SaiTamEventTraits::Attributes::IngressSamplepacketEnable> {
+  size_t operator()(const facebook::fboss::SaiTamEventTraits::Attributes::
+                        IngressSamplepacketEnable& key) const {
+    return std::hash<sai_object_id_t>()(key.value());
   }
 };
 

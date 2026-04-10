@@ -166,6 +166,9 @@ class BaseEcmpResourceManagerTest : public ::testing::Test {
 
  private:
   void assertReplayIsNoOp(bool syncFib);
+  std::shared_ptr<SwitchState> copyNextHopIdsToState(
+      const std::shared_ptr<SwitchState>& targetState,
+      const std::shared_ptr<SwitchState>& srcState);
   std::vector<StateDelta> addOrUpdateRoute(
       const RoutePrefixV6& prefix6,
       const RouteNextHopSet& nhops) {

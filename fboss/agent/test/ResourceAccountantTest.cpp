@@ -8,13 +8,19 @@
  *
  */
 
+#include <fmt/core.h>
 #include <gtest/gtest.h>
 
+#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/ResourceAccountant.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
+#include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
+#include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
 namespace {
@@ -26,6 +32,7 @@ namespace facebook::fboss {
 class ResourceAccountantTest : public ::testing::Test {
  public:
   void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
     std::map<int64_t, cfg::SwitchInfo> switchIdToSwitchInfo{
         {0, createSwitchInfo(cfg::SwitchType::NPU)}};
     const std::map<int64_t, cfg::DsfNode> switchIdToDsfNodes;
@@ -35,14 +42,77 @@ class ResourceAccountantTest : public ::testing::Test {
         std::make_unique<SwitchIdScopeResolver>(switchIdToSwitchInfo);
     resourceAccountant_ = std::make_unique<ResourceAccountant>(
         asicTable_.get(), scopeResolver_.get());
+    nextHopIDManager_ = std::make_unique<NextHopIDManager>();
     FLAGS_ecmp_width = getMaxEcmpWidth();
+    initState();
+  }
+  void initState() {
+    state_ = std::make_shared<SwitchState>();
+    auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    auto fibInfo = std::make_shared<FibInfo>();
+    fibInfo->setIdToNextHopMap(std::make_shared<IdToNextHopMap>());
+    fibInfo->setIdToNextHopIdSetMap(std::make_shared<IdToNextHopIdSetMap>());
+    fibInfoMap->updateFibInfo(fibInfo, getScope());
+    state_->resetFibsInfoMap(fibInfoMap);
+  }
+
+  HwSwitchMatcher getScope() const {
+    return HwSwitchMatcher(std::unordered_set<SwitchID>({SwitchID(0)}));
+  }
+
+  std::shared_ptr<FibInfo> getFibInfo() const {
+    return state_->getFibsInfoMap()->getFibInfo(getScope());
+  }
+
+  void allocAndUpdateIdMaps(
+      RouteNextHopEntry& entry,
+      const RouteNextHopSet& nhops) {
+    if (!FLAGS_enable_nexthop_id_manager) {
+      return;
+    }
+    auto allocResult = nextHopIDManager_->getOrAllocRouteNextHopSetID(nhops);
+    std::optional<NextHopSetID> resolvedId =
+        allocResult.nextHopIdSetIter->second.id;
+    entry.setResolvedNextHopSetID(resolvedId);
+
+    auto normalizedNhops = entry.nonOverrideNormalizedNextHops();
+    auto normAllocResult =
+        nextHopIDManager_->getOrAllocRouteNextHopSetID(normalizedNhops);
+    std::optional<NextHopSetID> normalizedId =
+        normAllocResult.nextHopIdSetIter->second.id;
+    entry.setNormalizedResolvedNextHopSetID(normalizedId);
+
+    // Incrementally add only new entries to the existing maps on state_
+    auto fibInfo = getFibInfo();
+    auto idToNextHopMap = fibInfo->getIdToNextHopMap();
+    auto idToNextHopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
+    for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
+      if (!idToNextHopMap->getNextHopIf(id)) {
+        idToNextHopMap->addNextHop(id, nhop.toThrift());
+      }
+    }
+    for (const auto& [id, nhopIdSet] :
+         nextHopIDManager_->getIdToNextHopIdSet()) {
+      if (!idToNextHopIdSetMap->getNextHopIdSetIf(id)) {
+        std::set<int64_t> nhopIds;
+        for (const auto& nhopId : nhopIdSet) {
+          nhopIds.insert(static_cast<int64_t>(nhopId));
+        }
+        idToNextHopIdSetMap->addNextHopIdSet(id, nhopIds);
+      }
+    }
   }
 
   const std::shared_ptr<Route<folly::IPAddressV6>> makeV6Route(
       const RoutePrefix<folly::IPAddressV6>& prefix,
-      const RouteNextHopEntry& entry) {
+      const RouteNextHopEntry& entry,
+      const RouteNextHopSet& nhops) {
+    // Clone via thrift round-trip (copy ctor is deleted), allocate IDs
+    RouteNextHopEntry mutableEntry;
+    mutableEntry.fromThrift(entry.toThrift());
+    allocAndUpdateIdMaps(mutableEntry, nhops);
     auto route = std::make_shared<Route<folly::IPAddressV6>>(prefix);
-    route->setResolved(entry);
+    route->setResolved(mutableEntry);
     return route;
   }
 
@@ -71,6 +141,8 @@ class ResourceAccountantTest : public ::testing::Test {
   std::unique_ptr<ResourceAccountant> resourceAccountant_;
   std::unique_ptr<HwAsicTable> asicTable_;
   std::unique_ptr<SwitchIdScopeResolver> scopeResolver_;
+  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
+  std::shared_ptr<SwitchState> state_;
 };
 
 TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
@@ -85,9 +157,11 @@ TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
   }
   RouteNextHopEntry ecmpNextHopEntry =
       RouteNextHopEntry(ecmpNexthops, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(ecmpNextHopEntry, ecmpNexthops);
   EXPECT_EQ(
       ecmpWidth,
-      this->resourceAccountant_->getMemberCountForEcmpGroup(ecmpNextHopEntry));
+      this->resourceAccountant_->getMemberCountForEcmpGroup(
+          ecmpNextHopEntry, state_));
 
   RouteNextHopSet ucmpNexthops;
   for (int i = 0; i < ecmpWidth; i++) {
@@ -98,13 +172,15 @@ TEST_F(ResourceAccountantTest, getMemberCountForEcmpGroup) {
   }
   RouteNextHopEntry ucmpNextHopEntry =
       RouteNextHopEntry(ucmpNexthops, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(ucmpNextHopEntry, ucmpNexthops);
   auto expectedTotalMember = 0;
   for (const auto& nhop : ucmpNextHopEntry.normalizedNextHops()) {
     expectedTotalMember += nhop.weight();
   }
   EXPECT_EQ(
       expectedTotalMember,
-      this->resourceAccountant_->getMemberCountForEcmpGroup(ucmpNextHopEntry));
+      this->resourceAccountant_->getMemberCountForEcmpGroup(
+          ucmpNextHopEntry, state_));
 }
 
 TEST_F(ResourceAccountantTest, checkArsResource) {
@@ -400,10 +476,11 @@ TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
     }
     routes[i] = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("100::", i + 1)), 128},
-        {ecmpNexthops[i], AdminDistance::EBGP});
+        {ecmpNexthops[i], AdminDistance::EBGP},
+        ecmpNexthops[i]);
     EXPECT_TRUE(this->resourceAccountant_
                     ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-                        routes[i], true /* add */));
+                        routes[i], true /* add */, state_));
   }
 
   // Add another ECMP group with max ECMP width
@@ -416,15 +493,16 @@ TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
   }
   const auto route8 = makeV6Route(
       {folly::IPAddressV6("200::1"), 128},
-      {ecmpNexthops8, AdminDistance::EBGP});
+      {ecmpNexthops8, AdminDistance::EBGP},
+      ecmpNexthops8);
   EXPECT_FALSE(this->resourceAccountant_
                    ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                       route8, true /* add */));
+                       route8, true /* add */, state_));
 
   // Remove above route
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                      route8, false /* add */));
+                      route8, false /* add */, state_));
   // Add more groups (with width = 2 each) and
   const auto groupsToAdd = getMaxEcmpGroups() - kEcmpGroupsOfHalfWidth + 1;
   for (int i = 0; i < groupsToAdd; i++) {
@@ -439,21 +517,22 @@ TEST_F(ResourceAccountantTest, checkAndUpdateGenericEcmpResource) {
             ecmpWeight)};
     const auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("300::", i + 1)), 128},
-        {ecmpNextHops, AdminDistance::EBGP});
+        {ecmpNextHops, AdminDistance::EBGP},
+        ecmpNextHops);
     if (i < groupsToAdd - 1) {
       EXPECT_TRUE(this->resourceAccountant_
                       ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                          route, true /* add */));
+                          route, true /* add */, state_));
     } else {
       EXPECT_FALSE(this->resourceAccountant_
                        ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                           route, true /* add */));
+                           route, true /* add */, state_));
     }
   }
 
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                      routes[0], false /* add */));
+                      routes[0], false /* add */, state_));
 }
 
 TEST_F(
@@ -474,11 +553,11 @@ TEST_F(
     ecmpNexthops[i] = ecmpNextHops[i]; // Copy the generated groups
     routes[i] = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("100::", i + 1)), 128},
-        {ecmpNexthops[i], AdminDistance::EBGP});
-
+        {ecmpNexthops[i], AdminDistance::EBGP},
+        ecmpNexthops[i]);
     EXPECT_TRUE(this->resourceAccountant_
                     ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                        routes[i], true /* add */));
+                        routes[i], true /* add */, state_));
   }
 
   // Add another UCMP group where total weights of all members in all groups  >
@@ -487,16 +566,16 @@ TEST_F(
   RouteNextHopSet ecmpNexthops8 = singleGroup8[0];
   const auto route8 = makeV6Route(
       {folly::IPAddressV6("200::1"), 128},
-      {ecmpNexthops8, AdminDistance::EBGP});
-
+      {ecmpNexthops8, AdminDistance::EBGP},
+      ecmpNexthops8);
   EXPECT_FALSE(this->resourceAccountant_
                    ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                       route8, true /* add */));
+                       route8, true /* add */, state_));
 
   // Remove above route
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                      route8, false /* add */));
+                      route8, false /* add */, state_));
 
   //  Add more groups (with width = 5 each) and
   // Testing max UCMP groups > MaxEcmpGroups returns False.
@@ -506,22 +585,22 @@ TEST_F(
   for (int i = 0; i < groupsToAdd; i++) {
     const auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("300::", i + 1)), 128},
-        {ecmpNextHopsRemaining[i], AdminDistance::EBGP});
-
+        {ecmpNextHopsRemaining[i], AdminDistance::EBGP},
+        ecmpNextHopsRemaining[i]);
     if (i < groupsToAdd - 1) {
       EXPECT_TRUE(this->resourceAccountant_
                       ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                          route, true /* add */));
+                          route, true /* add */, state_));
     } else {
       EXPECT_FALSE(this->resourceAccountant_
                        ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                           route, true /* add */));
+                           route, true /* add */, state_));
     }
   }
 
   EXPECT_TRUE(this->resourceAccountant_
                   ->checkAndUpdateGenericEcmpResource<folly::IPAddressV6>(
-                      routes[0], false /* add */));
+                      routes[0], false /* add */, state_));
 }
 
 TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
@@ -550,7 +629,8 @@ TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
             switchingMode};
         auto route = makeV6Route(
             {folly::IPAddressV6(folly::to<std::string>(i + 1, "00::1")), 128},
-            routeNextHopEntry);
+            routeNextHopEntry,
+            ecmpNextHops);
         routes.push_back(std::move(route));
       };
   int i = 0;
@@ -560,7 +640,7 @@ TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
     addRoute(i, routes, std::nullopt);
     EXPECT_TRUE(this->resourceAccountant_
                     ->checkAndUpdateArsEcmpResource<folly::IPAddressV6>(
-                        routes.back(), true /* add */));
+                        routes.back(), true /* add */, state_));
   }
 
   // add backup ECMP groups, still should be OK
@@ -568,7 +648,7 @@ TEST_F(ResourceAccountantTest, checkAndUpdateArsEcmpResource) {
     addRoute(i, routes, cfg::SwitchingMode::PER_PACKET_RANDOM);
     EXPECT_TRUE(this->resourceAccountant_
                     ->checkAndUpdateArsEcmpResource<folly::IPAddressV6>(
-                        routes.back(), true /* add */));
+                        routes.back(), true /* add */, state_));
   }
 }
 
@@ -582,9 +662,10 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   }
   RouteNextHopEntry ecmpNextHopEntry =
       RouteNextHopEntry(ecmpNexthops, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(ecmpNextHopEntry, ecmpNexthops);
   EXPECT_EQ(
       this->resourceAccountant_->computeWeightedEcmpMemberCount(
-          ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_TOMAHAWK4),
+          ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_TOMAHAWK4, state_),
       4 * ecmpNextHopEntry.normalizedNextHops().size());
   // Assume ECMP replication for devices without specifying UCMP computation.
   uint32_t totalWeight = 0;
@@ -594,7 +675,7 @@ TEST_F(ResourceAccountantTest, computeWeightedEcmpMemberCount) {
   }
   EXPECT_EQ(
       this->resourceAccountant_->computeWeightedEcmpMemberCount(
-          ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_MOCK),
+          ecmpNextHopEntry, cfg::AsicType::ASIC_TYPE_MOCK, state_),
       totalWeight);
 }
 
@@ -680,29 +761,31 @@ TEST_F(ResourceAccountantTest, routeWithAdjustedWeightZero) {
 
   RouteNextHopEntry ecmpNextHopEntry =
       RouteNextHopEntry(ecmpNexthops, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(ecmpNextHopEntry, ecmpNexthops);
 
   // Only 2 next hops should be counted (the one with adjustedWeight=0 is
   // filtered)
   EXPECT_EQ(
       2,
-      this->resourceAccountant_->getMemberCountForEcmpGroup(ecmpNextHopEntry));
+      this->resourceAccountant_->getMemberCountForEcmpGroup(
+          ecmpNextHopEntry, state_));
 
   // Add route with the ECMP next hop entry
-  auto route =
-      makeV6Route({folly::IPAddressV6("2001:db8::1"), 128}, ecmpNextHopEntry);
+  auto route = makeV6Route(
+      {folly::IPAddressV6("2001:db8::1"), 128}, ecmpNextHopEntry, ecmpNexthops);
 
   auto initialEcmpMemberUsage = this->resourceAccountant_->ecmpMemberUsage_;
 
   // Validate the route via ResourceAccountant
-  EXPECT_TRUE(
-      this->resourceAccountant_->checkAndUpdateEcmpResource(route, true));
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateEcmpResource(
+      route, true, state_));
   // Check that we tracked only 2 ECMP members (not 3)
   EXPECT_EQ(
       initialEcmpMemberUsage + 2, this->resourceAccountant_->ecmpMemberUsage_);
 
   // Test removing the route
-  EXPECT_TRUE(
-      this->resourceAccountant_->checkAndUpdateEcmpResource(route, false));
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateEcmpResource(
+      route, false, state_));
   EXPECT_EQ(
       initialEcmpMemberUsage, this->resourceAccountant_->ecmpMemberUsage_);
 }
@@ -732,7 +815,7 @@ TEST_F(ResourceAccountantTest, resolvedAndUnresolvedRoutes) {
 
   // Helper to build SwitchState with V6 routes
   auto makeSwitchStateWithV6Routes =
-      [&](const std::vector<std::shared_ptr<RouteV6>>& routes) {
+      [this](const std::vector<std::shared_ptr<RouteV6>>& routes) {
         auto state = std::make_shared<SwitchState>();
         auto fibContainer =
             std::make_shared<ForwardingInformationBaseContainer>(RouterID(0));
@@ -749,21 +832,39 @@ TEST_F(ResourceAccountantTest, resolvedAndUnresolvedRoutes) {
         auto fibsMap = std::make_shared<ForwardingInformationBaseMap>();
         fibsMap->updateForwardingInformationBaseContainer(fibContainer);
 
+        HwSwitchMatcher scope(std::unordered_set<SwitchID>({SwitchID(0)}));
         auto fibInfo = std::make_shared<FibInfo>();
         fibInfo->ref<switch_state_tags::fibsMap>() = fibsMap;
 
+        // Populate ID maps for ID-based resolution
+        auto id2Nhop = std::make_shared<IdToNextHopMap>();
+        for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
+          id2Nhop->addNextHop(id, nhop.toThrift());
+        }
+        auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
+        for (const auto& [id, nhopIdSet] :
+             nextHopIDManager_->getIdToNextHopIdSet()) {
+          std::set<int64_t> nhopIds;
+          for (const auto& nhopId : nhopIdSet) {
+            nhopIds.insert(static_cast<int64_t>(nhopId));
+          }
+          id2NhopSetIds->addNextHopIdSet(id, nhopIds);
+        }
+        fibInfo->setIdToNextHopMap(id2Nhop);
+        fibInfo->setIdToNextHopIdSetMap(id2NhopSetIds);
+
         auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-        fibInfoMap->updateFibInfo(fibInfo, HwSwitchMatcher());
+        fibInfoMap->updateFibInfo(fibInfo, scope);
         state->resetFibsInfoMap(fibInfoMap);
         return state;
       };
 
   // Test 1: Add resolved and unresolved routes
   // Only resolved routes should increase usage
-  auto resolvedRoute1 =
-      makeV6Route({folly::IPAddressV6("100::1"), 128}, ecmpNextHopEntry);
-  auto resolvedRoute2 =
-      makeV6Route({folly::IPAddressV6("100::2"), 128}, ecmpNextHopEntry);
+  auto resolvedRoute1 = makeV6Route(
+      {folly::IPAddressV6("100::1"), 128}, ecmpNextHopEntry, ecmpNexthops);
+  auto resolvedRoute2 = makeV6Route(
+      {folly::IPAddressV6("100::2"), 128}, ecmpNextHopEntry, ecmpNexthops);
 
   // Create unresolved route
   auto unresolvedRoute1 = std::make_shared<RouteV6>(RouteV6::makeThrift(
@@ -876,38 +977,42 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   auto sharedNonVirtualNhSet = makeNhSet(4, 0);
   RouteNextHopEntry sharedNonVirtualEntry(
       sharedNonVirtualNhSet, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(sharedNonVirtualEntry, sharedNonVirtualNhSet);
 
   auto sharedVirtualNhSet = makeNhSet(6, 1);
   RouteNextHopEntry sharedVirtualEntry(sharedVirtualNhSet, AdminDistance::EBGP);
+  this->allocAndUpdateIdMaps(sharedVirtualEntry, sharedVirtualNhSet);
 
   // getMemberCountForEcmpGroup: virtual returns 0, non-virtual returns width
   EXPECT_EQ(
       4,
       this->resourceAccountant_->getMemberCountForEcmpGroup(
-          sharedNonVirtualEntry));
+          sharedNonVirtualEntry, state_));
   EXPECT_EQ(
       0,
       this->resourceAccountant_->getMemberCountForEcmpGroup(
-          sharedVirtualEntry));
+          sharedVirtualEntry, state_));
 
   // Add 5 routes sharing 1 non-virtual group (4 members)
   for (int i = 0; i < 5; i++) {
     auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("1::", i + 1)), 128},
-        sharedNonVirtualEntry);
-    EXPECT_TRUE(
-        this->resourceAccountant_
-            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+        sharedNonVirtualEntry,
+        sharedNonVirtualNhSet);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                        route, true, state_));
   }
 
   // Add 8 routes sharing 1 virtual group (6 members)
   for (int i = 0; i < 8; i++) {
     auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("2::", i + 1)), 128},
-        sharedVirtualEntry);
-    EXPECT_TRUE(
-        this->resourceAccountant_
-            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+        sharedVirtualEntry,
+        sharedVirtualNhSet);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                        route, true, state_));
   }
 
   // Add 2 routes with unique non-virtual groups (3 members each)
@@ -917,10 +1022,11 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
     uniqueNonVirtualEntries.emplace_back(nhSet, AdminDistance::EBGP);
     auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("3::", i + 1)), 128},
-        uniqueNonVirtualEntries.back());
-    EXPECT_TRUE(
-        this->resourceAccountant_
-            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+        uniqueNonVirtualEntries.back(),
+        nhSet);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                        route, true, state_));
   }
 
   // Add 3 routes with unique virtual groups (7 members each)
@@ -930,10 +1036,11 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
     uniqueVirtualEntries.emplace_back(nhSet, AdminDistance::EBGP);
     auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("4::", i + 1)), 128},
-        uniqueVirtualEntries.back());
-    EXPECT_TRUE(
-        this->resourceAccountant_
-            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, true));
+        uniqueVirtualEntries.back(),
+        nhSet);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                        route, true, state_));
   }
 
   // ecmpGroupRefMap_: all 7 unique groups (1+1+2+3)
@@ -968,22 +1075,26 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
       true /* intermediateState */));
 
   // Remove one of 5 routes sharing non-virtual group - ref count decreases
-  auto removeRoute1 =
-      makeV6Route({folly::IPAddressV6("1::1"), 128}, sharedNonVirtualEntry);
+  auto removeRoute1 = makeV6Route(
+      {folly::IPAddressV6("1::1"), 128},
+      sharedNonVirtualEntry,
+      sharedNonVirtualNhSet);
   EXPECT_TRUE(
       this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-          removeRoute1, false));
+          removeRoute1, false, state_));
   EXPECT_EQ(
       this->resourceAccountant_->ecmpGroupRefMap_[sharedNonVirtualNhSet], 4);
   EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_.size(), 7);
   EXPECT_EQ(this->resourceAccountant_->arsEcmpGroupRefMap_.size(), 3);
 
   // Remove one of 8 routes sharing virtual group - ref count decreases
-  auto removeRoute2 =
-      makeV6Route({folly::IPAddressV6("2::1"), 128}, sharedVirtualEntry);
+  auto removeRoute2 = makeV6Route(
+      {folly::IPAddressV6("2::1"), 128},
+      sharedVirtualEntry,
+      sharedVirtualNhSet);
   EXPECT_TRUE(
       this->resourceAccountant_->checkAndUpdateEcmpResource<folly::IPAddressV6>(
-          removeRoute2, false));
+          removeRoute2, false, state_));
   EXPECT_EQ(this->resourceAccountant_->ecmpGroupRefMap_[sharedVirtualNhSet], 7);
   EXPECT_EQ(this->resourceAccountant_->virtualArsGroupCount_, 4);
 
@@ -991,10 +1102,11 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   for (int i = 1; i < 8; i++) {
     auto route = makeV6Route(
         {folly::IPAddressV6(folly::to<std::string>("2::", i + 1)), 128},
-        sharedVirtualEntry);
-    EXPECT_TRUE(
-        this->resourceAccountant_
-            ->checkAndUpdateEcmpResource<folly::IPAddressV6>(route, false));
+        sharedVirtualEntry,
+        sharedVirtualNhSet);
+    EXPECT_TRUE(this->resourceAccountant_
+                    ->checkAndUpdateEcmpResource<folly::IPAddressV6>(
+                        route, false, state_));
   }
   EXPECT_EQ(
       this->resourceAccountant_->ecmpGroupRefMap_.count(sharedVirtualNhSet), 0);
@@ -1024,6 +1136,293 @@ TEST_F(ResourceAccountantTest, virtualArsGroups) {
   this->resourceAccountant_->arsEcmpGroupRefMap_[extraNhSet] = 1;
   EXPECT_FALSE(this->resourceAccountant_->checkArsResource(
       true /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, checkMySidResource) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  // MockAsic supports 8 MySID entries
+  auto maxMySid = asicTable_->getHwAsic(SwitchID(0))->getMaxMySidEntries();
+  ASSERT_TRUE(maxMySid.has_value());
+  EXPECT_EQ(maxMySid.value(), 8);
+
+  // Empty state passes both checks
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 75% (6/8) - passes both
+  this->resourceAccountant_->mySidUsage_ = 6;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 87.5% (7/8) - passes intermediate (100%), fails final (75%)
+  this->resourceAccountant_->mySidUsage_ = 7;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // At 100% (8/8) - passes intermediate, fails final
+  this->resourceAccountant_->mySidUsage_ = 8;
+  EXPECT_TRUE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+
+  // Above 100% (9/8) - fails both
+  this->resourceAccountant_->mySidUsage_ = 9;
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      true /* intermediateState */));
+  EXPECT_FALSE(this->resourceAccountant_->checkMySidResource(
+      false /* intermediateState */));
+}
+
+TEST_F(ResourceAccountantTest, mySidStateChanged) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  HwSwitchMatcher mySidScope(std::unordered_set<SwitchID>{SwitchID(10)});
+
+  auto makeMySidEntry = [](const std::string& addr, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix thriftPrefix;
+    thriftPrefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    thriftPrefix.prefixLength() = len;
+    fields.mySid() = thriftPrefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  // Add 2 entries
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto newState = oldState->clone();
+  auto mySids = newState->getMySids()->modify(&newState);
+  mySids->addNode(makeMySidEntry("fc00:100::1", 48), mySidScope);
+  mySids->addNode(makeMySidEntry("fc00:200::1", 48), mySidScope);
+  newState->publish();
+
+  StateDelta addDelta(oldState, newState);
+  this->resourceAccountant_->mySidStateChangedImpl(addDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 2);
+
+  // Remove one entry
+  auto newState2 = newState->clone();
+  auto mySids2 = newState2->getMySids()->modify(&newState2);
+  mySids2->removeNode("fc00:100::1/48");
+  newState2->publish();
+
+  StateDelta removeDelta(newState, newState2);
+  this->resourceAccountant_->mySidStateChangedImpl(removeDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 1);
+
+  // Change type (should not affect count)
+  auto newState3 = newState2->clone();
+  auto mySids3 = newState3->getMySids()->modify(&newState3);
+  auto updated = mySids3->getNode("fc00:200::1/48")->clone();
+  updated->setType(MySidType::DECAPSULATE_AND_LOOKUP);
+  mySids3->updateNode(updated, mySidScope);
+  newState3->publish();
+
+  StateDelta changeDelta(newState2, newState3);
+  this->resourceAccountant_->mySidStateChangedImpl(changeDelta);
+  EXPECT_EQ(this->resourceAccountant_->mySidUsage_, 1);
+}
+
+TEST_F(ResourceAccountantTest, mySidResourceExceeded) {
+  FLAGS_enable_mysid_resource_protection = true;
+
+  // MockAsic supports 8 MySID entries, 75% = 6 allowed
+  HwSwitchMatcher mySidScope(std::unordered_set<SwitchID>{SwitchID(10)});
+
+  auto makeMySidEntry = [](const std::string& addr, uint8_t len) {
+    state::MySidFields fields;
+    fields.type() = MySidType::NODE_MICRO_SID;
+    facebook::network::thrift::IPPrefix thriftPrefix;
+    thriftPrefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddress(addr));
+    thriftPrefix.prefixLength() = len;
+    fields.mySid() = thriftPrefix;
+    return std::make_shared<MySid>(fields);
+  };
+
+  // Add 6 entries (exactly 75% of 8) — should be accepted
+  auto oldState = std::make_shared<SwitchState>();
+  oldState->publish();
+
+  auto stateWith6 = oldState->clone();
+  auto mySids6 = stateWith6->getMySids()->modify(&stateWith6);
+  for (int i = 0; i < 6; ++i) {
+    mySids6->addNode(
+        makeMySidEntry(fmt::format("fc00:{:x}::1", i + 1), 48), mySidScope);
+  }
+  stateWith6->publish();
+
+  StateDelta delta6(oldState, stateWith6);
+  EXPECT_TRUE(this->resourceAccountant_->isValidUpdate(delta6));
+
+  // Add 1 more entry (7/8 = 87.5%, exceeds 75%) — should be rejected
+  auto stateWith7 = stateWith6->clone();
+  auto mySids7 = stateWith7->getMySids()->modify(&stateWith7);
+  mySids7->addNode(makeMySidEntry("fc00:7::1", 48), mySidScope);
+  stateWith7->publish();
+
+  StateDelta delta7(stateWith6, stateWith7);
+  EXPECT_FALSE(this->resourceAccountant_->isValidUpdate(delta7));
+}
+
+TEST_F(ResourceAccountantTest, checkAndUpdateSrv6NextHopResource) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+
+  auto makeSrv6Nhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", idx + 1)),
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{
+            folly::IPAddressV6(fmt::format("3001:db8:{:x}::", idx + 1))},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  };
+
+  auto makeRegularNhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("2.2.2.", idx + 1)),
+        InterfaceID(2),
+        ECMP_WEIGHT);
+  };
+
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+
+  // Single SRv6 nhop route
+  RouteNextHopSet singleSrv6{makeSrv6Nhop(0)};
+  RouteNextHopEntry singleEntry(singleSrv6, AdminDistance::EBGP);
+  auto singleRoute = makeV6Route(
+      {folly::IPAddressV6("2800:1::"), 48}, singleEntry, singleSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      singleRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // ECMP SRv6 route (3 nhops)
+  RouteNextHopSet ecmpSrv6{
+      makeSrv6Nhop(10), makeSrv6Nhop(11), makeSrv6Nhop(12)};
+  RouteNextHopEntry ecmpEntry(ecmpSrv6, AdminDistance::EBGP);
+  auto ecmpRoute =
+      makeV6Route({folly::IPAddressV6("2800:2::"), 48}, ecmpEntry, ecmpSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Second route sharing same ECMP nhops — no additional count
+  auto ecmpRoute2 =
+      makeV6Route({folly::IPAddressV6("2800:3::"), 48}, ecmpEntry, ecmpSrv6);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute2, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+
+  // Remove first ECMP route — still ref'd, no decrement
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 3);
+
+  // Remove second ECMP route — ref count reaches 0, decrement
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpRoute2, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+
+  // Regular (non-SRv6) ECMP route — not counted
+  RouteNextHopSet regularSet{makeRegularNhop(20), makeRegularNhop(21)};
+  RouteNextHopEntry regularEntry(regularSet, AdminDistance::EBGP);
+  auto regularRoute = makeV6Route(
+      {folly::IPAddressV6("2800:4::"), 48}, regularEntry, regularSet);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      regularRoute, true, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Same SRv6 nhop used in both single-nhop route and ECMP route.
+  // nhop(0) is already in singleSrv6 route above (single pool).
+  // Now add it in an ECMP route too — it should count in ECMP pool as well.
+  RouteNextHopSet ecmpWithShared{makeSrv6Nhop(0), makeSrv6Nhop(30)};
+  RouteNextHopEntry ecmpSharedEntry(ecmpWithShared, AdminDistance::EBGP);
+  auto ecmpSharedRoute = makeV6Route(
+      {folly::IPAddressV6("2800:5::"), 48}, ecmpSharedEntry, ecmpWithShared);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpSharedRoute, true, state_));
+  // nhop(0) counted in both pools: single(1) + ecmp(2)
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 2);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 1);
+
+  // Remove the single-nhop route — single pool decrements
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      singleRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 2);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+
+  // Remove the ECMP route — ecmp pool decrements
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      ecmpSharedRoute, false, state_));
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 0);
+  EXPECT_EQ(this->resourceAccountant_->srv6SingleNextHopUsage_, 0);
+}
+
+TEST_F(ResourceAccountantTest, srv6NextHopResourceExceeded) {
+  FLAGS_enable_srv6_nexthop_resource_protection = true;
+
+  // MockAsic: ECMP=16 (75%=12), Single=8 (75%=6)
+  auto makeSrv6Nhop = [](int idx) {
+    return ResolvedNextHop(
+        folly::IPAddress(folly::to<std::string>("1.1.1.", idx + 1)),
+        InterfaceID(1),
+        ECMP_WEIGHT,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::vector<folly::IPAddressV6>{
+            folly::IPAddressV6(fmt::format("3001:db8:{:x}::", idx + 1))},
+        TunnelType::SRV6_ENCAP,
+        std::string("srv6Tunnel0"));
+  };
+
+  // Add ECMP routes: 4 groups x 3 SRv6 nhops = 12 (exactly 75% of 16)
+  for (int i = 0; i < 4; ++i) {
+    RouteNextHopSet nhops{
+        makeSrv6Nhop(i * 3), makeSrv6Nhop(i * 3 + 1), makeSrv6Nhop(i * 3 + 2)};
+    RouteNextHopEntry entry(nhops, AdminDistance::EBGP);
+    auto route = makeV6Route(
+        {folly::IPAddressV6(fmt::format("2800:{:x}::", i)), 48}, entry, nhops);
+    EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+        route, true, state_));
+  }
+  EXPECT_EQ(this->resourceAccountant_->srv6EcmpNextHopUsage_, 12);
+
+  // At 75% — final check passes
+  EXPECT_TRUE(this->resourceAccountant_->checkSrv6NextHopResource(
+      false /* intermediateState */));
+
+  // Add 1 more group (total = 15) — intermediate passes, final fails
+  RouteNextHopSet overflowNhops{
+      makeSrv6Nhop(100), makeSrv6Nhop(101), makeSrv6Nhop(102)};
+  RouteNextHopEntry overflowEntry(overflowNhops, AdminDistance::EBGP);
+  auto overflowRoute = makeV6Route(
+      {folly::IPAddressV6("2800:ff::"), 48}, overflowEntry, overflowNhops);
+  EXPECT_TRUE(this->resourceAccountant_->checkAndUpdateSrv6NextHopResource(
+      overflowRoute, true, state_));
+  EXPECT_FALSE(this->resourceAccountant_->checkSrv6NextHopResource(
+      false /* intermediateState */));
 }
 
 } // namespace facebook::fboss

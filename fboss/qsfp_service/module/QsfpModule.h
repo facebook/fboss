@@ -22,15 +22,18 @@
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/TransceiverLogging.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
-#define QSFP_LOG(level, tcvr) \
-  XLOG(level) << "Transceiver " << tcvr->getNameString() << ": "
+#define QSFP_LOG(level, tcvr)                     \
+  TCVR_LOG_BASE(level, "", tcvr->getNameString()) \
+      << getPrimaryPortName() << ": "
 
-#define QSFP_LOG_IF(level, cond, tcvr) \
-  XLOG_IF(level, cond) << "Transceiver " << tcvr->getNameString() << ": "
+#define QSFP_LOG_IF(level, cond, tcvr)                     \
+  TCVR_LOG_BASE_IF(level, cond, "", tcvr->getNameString()) \
+      << getPrimaryPortName() << ": "
 
 #define CAST_TO_INT(FIELD) static_cast<int>((FIELD))
 
@@ -329,8 +332,31 @@ class QsfpModule : public Transceiver {
     return tcvrName_;
   }
 
+  inline std::string getPrimaryPortName() const {
+    return primaryPortName_;
+  }
+
   bool upgradeFirmware(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
+
+  /*
+   * Update the cached data with the information from the physical QSFP.
+   *
+   * The 'allPages' parameter determines which pages we refresh. Data
+   * on the first page holds most of the fields that actually change,
+   * so unless we have reason to believe the transceiver was unplugged
+   * there is not much point in refreshing static data on other pages.
+   */
+  virtual void updateQsfpData(bool allPages = true) = 0;
+
+  /*
+   * Gets the module media interface. This is the intended media interface
+   * application for this module. The module may be able to run in a different
+   * application (with lesser bandwidth). For example if a 200G-FR4 module is
+   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
+   * return 200G-FR4
+   */
+  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
 
  protected:
   /* Qsfp Internal Implementation */
@@ -544,16 +570,6 @@ class QsfpModule : public Transceiver {
   void periodicUpdateQsfpData();
 
   /*
-   * Update the cached data with the information from the physical QSFP.
-   *
-   * The 'allPages' parameter determines which pages we refresh. Data
-   * on the first page holds most of the fields that actually change,
-   * so unless we have reason to believe the transceiver was unplugged
-   * there is not much point in refreshing static data on other pages.
-   */
-  virtual void updateQsfpData(bool allPages = true) = 0;
-
-  /*
    * Helpers to parse DOM data for DAC cables. These incorporate some
    * extra fields that FB has vendors put in the 'Vendor specific'
    * byte range of the SFF spec.
@@ -575,15 +591,6 @@ class QsfpModule : public Transceiver {
   // set to low power and then back to original setting. This has
   // effect of restarting the transceiver state machine
   virtual void resetLowPowerMode() {}
-
-  /*
-   * Gets the module media interface. This is the intended media interface
-   * application for this module. The module may be able to run in a different
-   * application (with lesser bandwidth). For example if a 200G-FR4 module is
-   * configured for 100G-CWDM4 application, then getModuleMediaInterface will
-   * return 200G-FR4
-   */
-  virtual MediaInterfaceCode getModuleMediaInterface() const = 0;
 
   /*
    * Returns true if getting the mediaInterfaceId is successful, false otherwise

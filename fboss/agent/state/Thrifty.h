@@ -10,7 +10,6 @@
 #include <type_traits>
 
 #include <fboss/agent/AddressUtil.h>
-#include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/Constants.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwSwitchMatcher.h"

@@ -57,7 +57,6 @@ thrift_library(
         ":platform_manager_config",
         ":platform_manager_snapshot",
         "//fboss/platform/weutil/if:eeprom_contents",
-        "//thrift/annotation:cpp",
         "//thrift/annotation:hack",
         "//thrift/annotation:thrift",
     ],
@@ -71,6 +70,8 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/range-v3:range-v3",
         "fbsource//third-party/re2:re2",
+        ":cpld_manager",
+        ":fbcpld_ioctl_h",
         ":i2c_misc",
         ":platform_manager_config-cpp2-types",
         ":platform_manager_validators-cpp2-types",
@@ -176,6 +177,22 @@ cpp_library(
 )
 
 cpp_library(
+    name = "platform_snapshot_builder",
+    srcs = [
+        "PlatformSnapshotBuilder.cpp",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":data_store",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":platform_manager_snapshot-cpp2-types",
+        ":utils",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "platform_explorer",
     srcs = [
         "ExplorationSummary.cpp",
@@ -183,6 +200,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/re2:re2",
+        ":cpld_manager",
         ":data_store",
         ":device_path_resolver",
         ":exploration_errors",
@@ -280,6 +298,7 @@ cpp_library(
         ":pkg_manager",
         ":platform_explorer",
         ":platform_manager_service-cpp2-services",
+        ":platform_snapshot_builder",
     ],
 )
 
@@ -302,8 +321,31 @@ cpp_binary(
 )
 
 cpp_library(
+    name = "fbcpld_ioctl_h",
+    headers = [
+        "uapi/fbcpld-ioctl.h",
+    ],
+)
+
+cpp_library(
     name = "fbiob_ioctl_h",
     headers = [
         "uapi/fbiob-ioctl.h",
+    ],
+)
+
+cpp_library(
+    name = "cpld_manager",
+    srcs = ["CpldManager.cpp"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":fbcpld_ioctl_h",
+        ":i2c_misc",
+        ":platform_manager_config-cpp2-types",
+        ":utils",
+        "//folly:conv",
+        "//folly:file",
+        "//folly:string",
+        "//folly/logging:logging",
     ],
 )

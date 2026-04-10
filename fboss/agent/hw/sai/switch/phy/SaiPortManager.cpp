@@ -332,6 +332,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       std::nullopt, // CablePropagationDelayMediaType
+      std::nullopt, // PfcPauseDurationOverride
   };
 }
 

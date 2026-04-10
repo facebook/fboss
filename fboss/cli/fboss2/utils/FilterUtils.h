@@ -2,17 +2,13 @@
 
 #pragma once
 
-#include <thrift/lib/cpp2/visitation/for_each.h>
-#include <thrift/lib/cpp2/visitation/metadata.h>
-#include <thrift/lib/thrift/gen-cpp2/metadata_types.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 
 namespace facebook::fboss {
 
 template <class T>
 using get_value_type_t = typename T::value_type;
-using ThriftField = apache::thrift::metadata::ThriftField;
-using ThriftType = apache::thrift::metadata::ThriftType;
 using ValidFilterMapType = std::unordered_map<
     std::string_view,
     std::shared_ptr<CmdGlobalOptions::BaseTypeVerifier>>;
@@ -33,32 +29,33 @@ bool satisfiesFilterTerm(
     const CmdGlobalOptions::FilterTerm& filterTerm,
     const ValidFilterMapType& validFilterMap) {
   bool satisfies = false;
-  apache::thrift::for_each_field(
-      row, [&](const ThriftField& meta, auto&& field_ref) {
-        const auto& filterKey = std::get<0>(filterTerm);
-        const auto& filterOp = std::get<1>(filterTerm);
-        const auto& predicateValue = std::get<2>(filterTerm);
+  apache::thrift::op::for_each_field_id<RowType>([&]<class Id>(Id) {
+    auto field_name = apache::thrift::op::get_name_v<RowType, Id>;
+    auto field_ref = apache::thrift::op::get<Id>(row);
 
-        if (*meta.name() == filterKey) {
-          using FieldType = folly::remove_cvref_t<decltype(*field_ref)>;
-          // Perform the comparison only if string or fundamental type
-          if constexpr (std::is_fundamental<FieldType>::value) {
-            auto it = validFilterMap.find(filterKey);
-            const auto& value = std::to_string(*field_ref);
-            if (it != validFilterMap.end()) {
-              satisfies =
-                  (it->second)->compareValue(value, predicateValue, filterOp);
-            }
-          } else if constexpr (std::is_same<FieldType, std::string>::value) {
-            auto it = validFilterMap.find(filterKey);
-            if (it != validFilterMap.end()) {
-              satisfies =
-                  (it->second)
-                      ->compareValue(*field_ref, predicateValue, filterOp);
-            }
-          }
+    const auto& filterKey = std::get<0>(filterTerm);
+    const auto& filterOp = std::get<1>(filterTerm);
+    const auto& predicateValue = std::get<2>(filterTerm);
+
+    if (field_name == filterKey) {
+      using FieldType = folly::remove_cvref_t<decltype(*field_ref)>;
+      // Perform the comparison only if string or fundamental type
+      if constexpr (std::is_fundamental<FieldType>::value) {
+        auto it = validFilterMap.find(filterKey);
+        const auto& value = std::to_string(*field_ref);
+        if (it != validFilterMap.end()) {
+          satisfies =
+              (it->second)->compareValue(value, predicateValue, filterOp);
         }
-      });
+      } else if constexpr (std::is_same<FieldType, std::string>::value) {
+        auto it = validFilterMap.find(filterKey);
+        if (it != validFilterMap.end()) {
+          satisfies =
+              (it->second)->compareValue(*field_ref, predicateValue, filterOp);
+        }
+      }
+    }
+  });
   return satisfies;
 }
 
@@ -107,29 +104,29 @@ typename CmdTypeT::RetType filterOutput(
   if constexpr (
       apache::thrift::is_thrift_struct_v<typename CmdTypeT::RetType> &&
       CmdTypeT::Traits::ALLOW_FILTERING == true) {
-    apache::thrift::for_each_field(
-        model, [&](const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
-          if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
-                            void,
-                            get_value_type_t,
-                            folly::remove_cvref_t<
-                                decltype(*outer_field_ref)>>>) {
-            using NestedType = get_value_type_t<
-                folly::remove_cvref_t<decltype(*outer_field_ref)>>;
-            if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
-              auto innerEntryVector = *outer_field_ref;
-              auto removed = std::remove_if(
-                  innerEntryVector.begin(),
-                  innerEntryVector.end(),
-                  [&](auto innerEntry) {
-                    return !satisfiesFilterCondition(
-                        innerEntry, parsedFilters, validFilterMap);
-                  });
-              innerEntryVector.erase(removed, innerEntryVector.end());
-              *outer_field_ref = innerEntryVector;
-            }
-          }
-        });
+    apache::thrift::op::for_each_field_id<
+        typename CmdTypeT::RetType>([&]<class Id>(Id) {
+      auto outer_field_ref = apache::thrift::op::get<Id>(model);
+      if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
+                        void,
+                        get_value_type_t,
+                        folly::remove_cvref_t<decltype(*outer_field_ref)>>>) {
+        using NestedType =
+            get_value_type_t<folly::remove_cvref_t<decltype(*outer_field_ref)>>;
+        if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
+          auto innerEntryVector = *outer_field_ref;
+          auto removed = std::remove_if(
+              innerEntryVector.begin(),
+              innerEntryVector.end(),
+              [&](auto innerEntry) {
+                return !satisfiesFilterCondition(
+                    innerEntry, parsedFilters, validFilterMap);
+              });
+          innerEntryVector.erase(removed, innerEntryVector.end());
+          *outer_field_ref = innerEntryVector;
+        }
+      }
+    });
   }
   return model;
 }

@@ -112,7 +112,7 @@ class AgentMirroringTest : public AgentHwTest {
           0,
           255,
           payload);
-      getSw()->sendPacketSwitchedAsync(std::move(pkt));
+      sendPacketSwitchedAsync(std::move(pkt));
       i++;
     }
     WITH_RETRIES({

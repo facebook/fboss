@@ -59,6 +59,7 @@ add_library(agent_ensemble_link_tests
   fboss/agent/test/link_tests/AgentEnsembleLinkSanityTests.cpp
   fboss/agent/test/link_tests/AgentEnsemblePhyInfoTest.cpp
   fboss/agent/test/link_tests/AgentEnsembleFabricLinkTests.cpp
+  fboss/agent/test/link_tests/AgentEnsembleQsfpFsdbTests.cpp
 )
 
 target_link_libraries(agent_ensemble_link_tests
@@ -82,6 +83,12 @@ target_link_libraries(agent_ensemble_link_tests
   trunk_utils
   hyper_port_test_utils
   link_test_production_features_cpp2
+  fsdb_pub_sub
+  fsdb_model
+  thrift_service_client
+  qsfp_config_cpp2
+  qsfp_state_cpp2
+  qsfp_stats_cpp2
   ${GTEST}
   ${LIBGMOCK_LIBRARIES}
 )

@@ -1,8 +1,8 @@
 # pyre-strict
 from typing import Dict, List
 
-from neteng.fboss.platform_mapping_config.ttypes import Port
-from neteng.fboss.switch_config.ttypes import PortProfileID
+from neteng.fboss.platform_mapping_config.thrift_types import Port
+from neteng.fboss.switch_config.thrift_types import PortProfileID
 
 
 class PortProfileMapping:
@@ -13,7 +13,7 @@ class PortProfileMapping:
     def get_all_profiles(self) -> List[PortProfileID]:
         all_profiles = []
         for port in self._ports.values():
-            all_profiles = all_profiles + port.supported_profiles
+            all_profiles = all_profiles + list(port.supported_profiles)
         return list(set(all_profiles))
 
     def get_ports(self) -> Dict[int, Port]:

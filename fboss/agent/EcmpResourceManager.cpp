@@ -427,6 +427,15 @@ std::vector<StateDelta> EcmpResourceManager::consolidateImpl(
   }
   DCHECK(checkPrimaryGroupAndMemberCounts(*inOutState));
   DCHECK(checkNoUnitializedGroups());
+  // Copy ID maps from inputDelta_.newState() to the final delta's newState
+  // so the output state's ID maps match the latest input state
+  if (FLAGS_enable_nexthop_id_manager) {
+    auto curDelta = inOutState->getCurrentStateDelta();
+    auto updatedState =
+        syncIdMapsFromState(delta.newState(), curDelta.newState());
+    updatedState->publish();
+    inOutState->replaceLastDelta(StateDelta(curDelta.oldState(), updatedState));
+  }
   return inOutState->moveDeltas();
 }
 
@@ -956,7 +965,8 @@ EcmpResourceManager::InputOutputState::InputOutputState(
     : primaryEcmpGroupsCnt(_primaryEcmpGroupsCnt),
       virtualEcmpGroupsCnt(_virtualEcmpGroupsCnt),
       ecmpMemberCnt(_ecmpMemberCnt),
-      rollingBack_(rollingBack) {
+      rollingBack_(rollingBack),
+      inputDelta_(_in.oldState(), _in.newState()) {
   /*
    * Note that for first StateDelta we push in.oldState() for both
    * old and new state in the first StateDelta, since we will process
@@ -983,42 +993,32 @@ EcmpResourceManager::InputOutputState::InputOutputState(
    * FIBs delta + overflow on the first route. It does create a
    * extra empty delta in the vector of deltas.
    */
-  auto newStateWithOldFibs = _in.newState()->clone();
-  if (_in.oldState()->getFibsInfoMap() &&
-      !_in.oldState()->getFibsInfoMap()->empty()) {
-    // Reset only the fibsMap and not the entire FibsInfoMap
-    for (const auto& [matcherStr, oldFibInfo] :
-         std::as_const(*_in.oldState()->getFibsInfoMap())) {
-      auto newFibInfoPtr = newStateWithOldFibs->getFibsInfoMap()
-                               ->getNodeIf(matcherStr)
-                               ->modify(&newStateWithOldFibs);
-      newFibInfoPtr->resetFibsMap(oldFibInfo->getfibsMap());
-    }
-    // Verify that only the fibsMap were reset to match
-    // old state.
-    for (const auto& fibInfoDelta :
-         StateDelta(_in.oldState(), newStateWithOldFibs).getFibsInfoDelta()) {
-      DCHECK(DeltaFunctions::isEmpty(fibInfoDelta.getFibsMapDelta()));
-    }
-  } else {
-    // Cater for when old state is empty - e.g. warmboot,
-    // rollback
-    auto fibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-    for (const auto& [matcherStr, curFibInfo] :
-         std::as_const(*_in.newState()->getFibsInfoMap())) {
-      auto fibInfo = std::make_shared<FibInfo>();
-      auto curFibsMap = curFibInfo->getfibsMap();
-      if (curFibsMap) {
-        for (const auto& [rid, _] : std::as_const(*curFibsMap)) {
-          fibInfo->updateFibContainer(
-              std::make_shared<ForwardingInformationBaseContainer>(
-                  RouterID(rid)),
-              &newStateWithOldFibs);
+  auto newStateWithOldFibs =
+      getNewStateWithOldFibInfo(_in.oldState(), _in.newState());
+  // Set universal ID maps (input ∪ old) on the initial state. These maps
+  // are inherited by all descendant states via COW, eliminating per-route
+  // ID map population. syncIdMapsFromState at the end of consolidateImpl
+  // sets the final correct maps on the last delta.
+  if (FLAGS_enable_nexthop_id_manager) {
+    auto newStateFibsInfoMap = _in.newState()->getFibsInfoMap();
+    if (newStateFibsInfoMap) {
+      for (const auto& [matcherStr, newStateFibInfo] :
+           std::as_const(*newStateFibsInfoMap)) {
+        auto oldStateFibInfo =
+            newStateWithOldFibs->getFibsInfoMap()->getNodeIf(matcherStr);
+        if (!oldStateFibInfo) {
+          continue;
         }
+        auto [universalSetMap, universalNhMap] = mergeNextHopIdMaps(
+            newStateFibInfo->getIdToNextHopIdSetMap(),
+            newStateFibInfo->getIdToNextHopMap(),
+            oldStateFibInfo->getIdToNextHopIdSetMap(),
+            oldStateFibInfo->getIdToNextHopMap());
+        auto oldStateFibInfoPtr = oldStateFibInfo->modify(&newStateWithOldFibs);
+        oldStateFibInfoPtr->setIdToNextHopIdSetMap(std::move(universalSetMap));
+        oldStateFibInfoPtr->setIdToNextHopMap(std::move(universalNhMap));
       }
-      fibInfoMap->addNode(matcherStr, fibInfo);
     }
-    newStateWithOldFibs->resetFibsInfoMap(std::move(fibInfoMap));
   }
   newStateWithOldFibs->publish();
   appendDelta(StateDelta(_in.oldState(), newStateWithOldFibs));
@@ -1415,9 +1415,11 @@ std::vector<StateDelta> EcmpResourceManager::reconstructFromSwitchState(
 template <typename AddrT>
 bool EcmpResourceManager::routeFwdEqual(
     const std::shared_ptr<Route<AddrT>>& oldRoute,
-    const std::shared_ptr<Route<AddrT>>& newRoute) const {
-  return oldRoute->getForwardInfo().getNextHopSet() ==
-      newRoute->getForwardInfo().getNextHopSet() &&
+    const std::shared_ptr<Route<AddrT>>& newRoute,
+    const InputOutputState& inOutState) const {
+  return getNextHops(
+             inOutState.getInputOldState(), oldRoute->getForwardInfo()) ==
+      getNextHops(inOutState.getInputNewState(), newRoute->getForwardInfo()) &&
       oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode() ==
       newRoute->getForwardInfo().getOverrideEcmpSwitchingMode() &&
       oldRoute->getForwardInfo().getOverrideNextHops() ==
@@ -1596,8 +1598,8 @@ EcmpResourceManager::routeAddedWithOverrideNhops(
     InputOutputState* inOutState) {
   CHECK(getEcmpCompressionThresholdPct());
   XLOG(DBG2) << " Processing route with override nhops: " << newRoute->str();
-  auto nonOverrideNhops =
-      newRoute->getForwardInfo().nonOverrideNormalizedNextHops();
+  auto nonOverrideNhops = getNonOverrideNormalizedNextHops(
+      inOutState->getInputNewState(), newRoute->getForwardInfo());
   auto overrideNhops = newRoute->getForwardInfo().normalizedNextHops();
   auto [overrideGrpInfo, overrideGrpInserted] =
       getOrCreateGroupInfo(overrideNhops, *inOutState);
@@ -1664,7 +1666,7 @@ void EcmpResourceManager::routeAddedOrUpdated(
       inOutState->ecmpMemberCnt,
       inOutState->virtualEcmpGroupsCnt);
   if (oldRoute) {
-    DCHECK(!routeFwdEqual(oldRoute, newRoute));
+    DCHECK(!routeFwdEqual(oldRoute, newRoute, *inOutState));
     /*
      * We compare the non override normalized next hops. Since
      * those represent the original nhop group demand. Further
@@ -1870,10 +1872,10 @@ void EcmpResourceManager::routeUpdated(
   CHECK(oldRoute->isPublished());
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  const auto& oldNHops =
-      oldRoute->getForwardInfo().nonOverrideNormalizedNextHops();
-  const auto& newNHops =
-      newRoute->getForwardInfo().nonOverrideNormalizedNextHops();
+  const auto oldNHops = getNonOverrideNormalizedNextHops(
+      inOutState->getInputOldState(), oldRoute->getForwardInfo());
+  const auto newNHops = getNonOverrideNormalizedNextHops(
+      inOutState->getInputNewState(), newRoute->getForwardInfo());
   if (oldNHops.size() > 1 && newNHops.size() > 1) {
     routeAddedOrUpdated(rid, oldRoute, newRoute, inOutState);
   } else if (newNHops.size() > 1) {
@@ -1911,7 +1913,9 @@ void EcmpResourceManager::routeAdded(
   CHECK_EQ(rid, RouterID(0));
   CHECK(newRoute->isResolved());
   CHECK(newRoute->isPublished());
-  if (newRoute->getForwardInfo().nonOverrideNormalizedNextHops().size() > 1) {
+  if (getNonOverrideNormalizedNextHops(
+          inOutState->getInputNewState(), newRoute->getForwardInfo())
+          .size() > 1) {
     routeAddedOrUpdated(
         rid, std::shared_ptr<Route<AddrT>>(), newRoute, inOutState);
   } else {
@@ -1928,8 +1932,8 @@ void EcmpResourceManager::routeDeleted(
   CHECK_EQ(rid, RouterID(0));
   CHECK(removed->isResolved());
   CHECK(removed->isPublished());
-  const auto& routeNhops =
-      removed->getForwardInfo().nonOverrideNormalizedNextHops();
+  const auto routeNhops = getNonOverrideNormalizedNextHops(
+      inOutState->getInputOldState(), removed->getForwardInfo());
   if (routeNhops.size() <= 1) {
     // Just update deltas, no need to account for this as a ECMP group
     inOutState->deleteRoute(rid, removed);
@@ -2090,7 +2094,7 @@ void EcmpResourceManager::processRouteUpdates(
         }
         // Both old and new are resolved
         CHECK(oldRoute->isResolved() && newRoute->isResolved());
-        if (!routeFwdEqual(oldRoute, newRoute)) {
+        if (!routeFwdEqual(oldRoute, newRoute, *inOutState)) {
           routeUpdated(rid, oldRoute, newRoute, inOutState);
         } else {
           // Nexthops and override group type did not change,

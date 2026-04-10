@@ -19,6 +19,17 @@ class SaiBcmJ4SimPlatformPort : public SaiBcmPlatformPort {
       : SaiBcmPlatformPort(id, platform) {}
   void linkStatusChanged(bool up, bool adminUp) override;
   void externalState(PortLedExternalState lfs) override;
+
+  uint32_t getPhysicalLaneId(uint32_t chipId, uint32_t logicalLane)
+      const override {
+    if (getPortType() != cfg::PortType::RECYCLE_PORT &&
+        getPortType() != cfg::PortType::EVENTOR_PORT) {
+      // Lanes on J4 platform are 0 indexed
+      return SaiBcmPlatformPort::getPhysicalLaneId(chipId, logicalLane) - 1;
+    }
+    // Recycle port lanes are 1 indexed
+    return chipId;
+  }
 };
 
 } // namespace facebook::fboss

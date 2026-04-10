@@ -185,6 +185,13 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
   }));
   initializer->initializer()->waitForInitDone();
 
+  if (FLAGS_verify_recover_from_hw_switch) {
+    CHECK_EQ(getSw()->getBootType(), BootType::WARM_BOOT)
+        << "verify_recover_from_hw_switch is set but boot type is not WARM_BOOT";
+    CHECK(getSw()->getWarmBootHelper()->isWarmBootFromHwSwitch())
+        << "verify_recover_from_hw_switch is set but did not warmboot from HW switch";
+  }
+
   if (getSw()->getBootType() == BootType::COLD_BOOT) {
     if (linkToggler_ != nullptr) {
       linkToggler_->applyInitialConfig(initialConfig_);

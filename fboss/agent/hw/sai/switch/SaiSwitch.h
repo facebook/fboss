@@ -619,13 +619,15 @@ class SaiSwitch : public HwSwitch {
   void processChangedRoutesDeltaInReverse(
       const RouterID& routerID,
       const auto& routesDelta,
-      const LockPolicyT& lockPolicy);
+      const LockPolicyT& lockPolicy,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename LockPolicyT, typename AddrT>
   void processAddedRoutesDeltaInReverse(
       const RouterID& routerID,
       const auto& routesDelta,
-      const LockPolicyT& lockPolicy);
+      const LockPolicyT& lockPolicy,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename LockPolicyT>
   void processSwitchSettingsChangeSansDrained(
@@ -718,7 +720,8 @@ class SaiSwitch : public HwSwitch {
   void processChangedAndAddedRoutesDelta(
       const RouterID& routerID,
       const auto& routesDelta,
-      const LockPolicyT& lockPolicy);
+      const LockPolicyT& lockPolicy,
+      const std::shared_ptr<SwitchState>& state);
 
   bool processVlanUntaggedPackets() const;
 

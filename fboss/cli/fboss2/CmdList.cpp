@@ -21,7 +21,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
-#include "fboss/cli/fboss2/commands/help/CmdHelp.h"
+#include "fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
@@ -45,9 +45,14 @@
 #include "fboss/cli/fboss2/commands/show/fabric/reachability/uncached/CmdShowFabricReachabilityUncached.h"
 #include "fboss/cli/fboss2/commands/show/fabric/topology/CmdShowFabricTopology.h"
 #include "fboss/cli/fboss2/commands/show/flowlet/CmdShowFlowlet.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperState.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbOperStats.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbPublishers.h"
+#include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
 #include "fboss/cli/fboss2/commands/show/hwagent/CmdShowHwAgentStatus.h"
 #include "fboss/cli/fboss2/commands/show/hwobject/CmdShowHwObject.h"
+#include "fboss/cli/fboss2/commands/show/hwobject/uncached/CmdShowHwObjectUncached.h"
 #include "fboss/cli/fboss2/commands/show/interface/CmdShowInterface.h"
 #include "fboss/cli/fboss2/commands/show/interface/capabilities/CmdShowInterfaceCapabilities.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
@@ -73,6 +78,7 @@
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
 #include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
+#include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
@@ -88,6 +94,8 @@
 #include "fboss/cli/fboss2/commands/show/transceiver/CmdShowTransceiver.h"
 #include "fboss/cli/fboss2/commands/start/pcap/CmdStartPcap.h"
 #include "fboss/cli/fboss2/commands/stop/pcap/CmdStopPcap.h"
+#include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperState.h"
+#include "fboss/cli/fboss2/commands/stream/fsdb/CmdStreamSubFsdbOperStats.h"
 
 namespace facebook::fboss {
 
@@ -167,6 +175,28 @@ const CommandTree& kCommandTree() {
        "Show Flowlet information",
        commandHandler<CmdShowFlowlet>,
        argTypeHandler<CmdShowFlowletTraits>},
+
+      {"show",
+       "fsdb",
+       "Show operational information from fsdb",
+       {
+           {"stats",
+            "Show fsdb operational stats",
+            commandHandler<CmdShowFsdbOperStats>,
+            argTypeHandler<CmdShowFsdbDataCommonTraits>},
+           {"state",
+            "Show fsdb operational state",
+            commandHandler<CmdShowFsdbOperState>,
+            argTypeHandler<CmdShowFsdbDataCommonTraits>},
+           {"subscribers",
+            "Show fsdb subscribers",
+            commandHandler<CmdShowFsdbSubscribers>,
+            argTypeHandler<CmdShowFsdbSubscriberTraits>},
+           {"publishers",
+            "Show fsdb publishers",
+            commandHandler<CmdShowFsdbPublishers>,
+            argTypeHandler<CmdShowFsdbPublisherTraits>},
+       }},
 
       {"show",
        "example",
@@ -355,6 +385,12 @@ const CommandTree& kCommandTree() {
        argTypeHandler<CmdShowMirrorTraits>},
 
       {"show",
+       "mysid",
+       "Show MySid entries",
+       commandHandler<CmdShowMySid>,
+       argTypeHandler<CmdShowMySidTraits>},
+
+      {"show",
        "mpls",
        "Show MPLS information",
        {{"route",
@@ -408,7 +444,11 @@ const CommandTree& kCommandTree() {
        "hw-object",
        "Show HW Objects",
        commandHandler<CmdShowHwObject>,
-       argTypeHandler<CmdShowHwObjectTraits>},
+       argTypeHandler<CmdShowHwObjectTraits>,
+       {{"uncached",
+         "Query hardware directly instead of cache",
+         commandHandler<CmdShowHwObjectUncached>,
+         argTypeHandler<CmdShowHwObjectUncachedTraits>}}},
 
       {"show",
        "hw-agent",
@@ -466,6 +506,11 @@ const CommandTree& kCommandTree() {
        "Shut/No-Shut Interface",
        commandHandler<CmdBounceInterface>,
        argTypeHandler<CmdBounceInterfaceTraits>},
+      {"set",
+       "fanhold",
+       "Set fan hold PWM",
+       commandHandler<CmdSetFanHold>,
+       argTypeHandler<CmdSetFanHoldTraits>},
       {
           "set",
           "interface",
@@ -523,20 +568,23 @@ const CommandTree& kCommandTree() {
          "Show Product Detail Information",
          commandHandler<CmdShowProductDetails>,
          argTypeHandler<CmdShowProductDetailsTraits>}}},
+
+      {"stream",
+       "fsdb",
+       "Stream fsdb operational information",
+       {
+           {"stats",
+            "Stream fsdb operational stats",
+            commandHandler<CmdStreamSubFsdbOperStats>,
+            argTypeHandler<CmdStreamSubFsdbOperStatsTraits>},
+           {"state",
+            "Stream fsdb operational state",
+            commandHandler<CmdStreamSubFsdbOperState>,
+            argTypeHandler<CmdStreamSubFsdbOperStateTraits>},
+       }},
   };
   sort(root.begin(), root.end());
   return root;
-}
-
-utils::ObjectArgTypeId helpArgTypeHandler() {
-  return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
-}
-
-void helpCommandHandler() {
-  const auto& cmdTree = kCommandTree();
-  const auto& addCmdTree = kAdditionalCommandTree();
-  std::vector<CommandTree> cmdTrees = {cmdTree, addCmdTree};
-  CmdHelp(cmdTrees).run();
 }
 
 } // namespace facebook::fboss

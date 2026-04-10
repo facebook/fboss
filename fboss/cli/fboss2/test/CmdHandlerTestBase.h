@@ -22,6 +22,7 @@ class CmdHandlerTestBase : public ::testing::Test {
     mockedAgent_ = std::make_shared<MockFbossCtrlAgent>();
     mockedQsfpService_ = std::make_shared<MockFbossQsfpService>();
     mockedBgpService_ = std::make_shared<MockFbossBgpService>();
+    mockedFsdb_ = std::make_shared<MockFsdb>();
     localHost_ = std::make_unique<HostInfo>(
         "test.host", "test-oob.host", folly::IPAddressV6("::1"));
   }
@@ -48,6 +49,14 @@ class CmdHandlerTestBase : public ::testing::Test {
         mockedQsfpServer_->getAddress().getPort());
   }
 
+  void setupMockedFsdbServer() {
+    mockedFsdbServer_ =
+        std::make_unique<apache::thrift::ScopedServerInterfaceThread>(
+            mockedFsdb_, createFastMockServerConfig());
+    CmdGlobalOptions::getInstance()->setFsdbThriftPort(
+        mockedFsdbServer_->getAddress().getPort());
+  }
+
   void setupMockedBgpServer() {
 #ifndef IS_OSS
     mockedBgpServer_ =
@@ -61,6 +70,7 @@ class CmdHandlerTestBase : public ::testing::Test {
   void TearDown() override {
     // stop agent servers
     mockedAgentServer_.reset();
+    mockedFsdbServer_.reset();
   }
 
   auto& getMockAgent() {
@@ -75,6 +85,10 @@ class CmdHandlerTestBase : public ::testing::Test {
     return *mockedBgpService_;
   }
 
+  auto& getMockFsdb() {
+    return *mockedFsdb_;
+  }
+
   const auto& localhost() {
     return *localHost_;
   }
@@ -84,6 +98,8 @@ class CmdHandlerTestBase : public ::testing::Test {
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
       mockedQsfpServer_;
   std::unique_ptr<apache::thrift::ScopedServerInterfaceThread> mockedBgpServer_;
+  std::unique_ptr<apache::thrift::ScopedServerInterfaceThread>
+      mockedFsdbServer_;
 
  private:
   std::shared_ptr<MockFbossCtrlAgent> mockedAgent_;
@@ -91,6 +107,8 @@ class CmdHandlerTestBase : public ::testing::Test {
   std::shared_ptr<MockFbossQsfpService> mockedQsfpService_;
 
   std::shared_ptr<MockFbossBgpService> mockedBgpService_;
+
+  std::shared_ptr<MockFsdb> mockedFsdb_;
 
   std::unique_ptr<HostInfo> localHost_;
 };

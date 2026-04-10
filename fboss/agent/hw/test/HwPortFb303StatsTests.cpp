@@ -164,6 +164,9 @@ HwPortStats getInitedStats() {
       0, // fabricControlTxPackets_
       {{1, 0}}, // txPfcDurationUsec_
       {{1, 0}}, // rxPfcDurationUsec_
+      0, // outDiscardsSll_
+      0, // outDiscardsHll_
+      0, // inSrv6MySidDiscards_
   };
 }
 
@@ -176,6 +179,9 @@ HwPortStats resetOptionals(HwPortStats stats) {
   stats.pfcDeadlockRecovery_().reset();
   stats.pgInCongestionDiscards_()->clear();
   stats.pgInCongestionDiscardSeen_()->clear();
+  stats.outDiscardsSll_().reset();
+  stats.outDiscardsHll_().reset();
+  stats.inSrv6MySidDiscards_().reset();
   return stats;
 }
 

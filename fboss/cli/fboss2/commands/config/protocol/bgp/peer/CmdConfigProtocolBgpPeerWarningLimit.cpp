@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include <fmt/core.h>
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/BgpConfigSession.h"
 
@@ -57,5 +59,10 @@ CmdConfigProtocolBgpPeerWarningLimit::queryClient(
 void CmdConfigProtocolBgpPeerWarningLimit::printOutput(const RetType& output) {
   std::cout << output << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<
+    CmdConfigProtocolBgpPeerWarningLimit,
+    CmdConfigProtocolBgpPeerWarningLimitTraits>::run();
 
 } // namespace facebook::fboss

@@ -340,11 +340,7 @@ SaiSwitchTraits::Attributes::AttributePipelineObjectList::operator()() {
 
 std::optional<sai_attr_id_t>
 SaiSwitchTraits::Attributes::AttributeDisableSllAndHllTimeout::operator()() {
-#if defined(CHENAB_SAI_SDK_VERSION_1_15_7_2)
-  return std::nullopt;
-#else
   return SAI_SWITCH_ATTR_DISABLE_SLL_AND_HLL_TIMEOUT;
-#endif
 }
 
 std::optional<sai_attr_id_t>

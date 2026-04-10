@@ -11,13 +11,16 @@
 #include "common/stats/MonotonicCounter.h"
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
+#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/Route.h"
@@ -31,6 +34,8 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+
+DECLARE_bool(enable_nexthop_id_manager);
 
 using namespace facebook::fboss;
 using namespace facebook::stats;
@@ -93,6 +98,19 @@ class ThriftTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
+// Fixture that enables NextHop ID manager before creating the switch.
+// Required for MySid entries with nexthops to have their IDs allocated.
+class ThriftTestWithNhopIdMgr : public ThriftTest {
+ public:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    ThriftTest::SetUp();
+  }
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+};
+
 TEST_F(ThriftTest, getInterfaceDetail) {
   ThriftHandler handler(this->sw_);
 
@@ -133,16 +151,11 @@ TEST_F(ThriftTest, getInterfaceDetail) {
   EXPECT_THROW(handler.getInterfaceDetail(info, 123), FbossError);
 }
 
-template <typename SwitchTypeAndEnableIntfNbrTableT>
+template <typename SwitchTypeT>
 class ThriftTestAllSwitchTypes : public ::testing::Test {
  public:
-  static auto constexpr switchType =
-      SwitchTypeAndEnableIntfNbrTableT::switchType;
-  static auto constexpr intfNbrTable =
-      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
-  ;
+  static auto constexpr switchType = SwitchTypeT::switchType;
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     FLAGS_dsf_num_parallel_sessions_per_remote_interface_node =
         std::numeric_limits<uint32_t>::max();
     auto config = testConfigA(switchType);
@@ -183,7 +196,7 @@ class ThriftTestAllSwitchTypes : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeAndEnableIntfNbrTable);
+TYPED_TEST_SUITE(ThriftTestAllSwitchTypes, SwitchTypeTestTypes);
 
 TYPED_TEST(ThriftTestAllSwitchTypes, checkSwitchId) {
   auto switchInfoTable = this->sw_->getSwitchInfoTable();
@@ -339,6 +352,127 @@ TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighbor) {
         handler.flushNeighborEntry(std::move(v4Addr), 1001), FbossError);
     EXPECT_THROW(
         handler.flushNeighborEntry(std::move(v6Addr), 1001), FbossError);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesEmpty) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+  EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNonExistentNeighborEntries) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+  IfAndIP v4Entry;
+  v4Entry.interfaceID() = 1;
+  v4Entry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+  entries->push_back(v4Entry);
+
+  IfAndIP v6Entry;
+  v6Entry.interfaceID() = 1;
+  v6Entry.ip() = toBinaryAddress(IPAddress("100::100"));
+  entries->push_back(v6Entry);
+
+  if (this->isNpu()) {
+    // Non-existent entries on a valid vlan return 0 flushed
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+  } else {
+    // On non-NPU switches, flushNeighborEntry throws for each entry,
+    // but flushNeighborEntries catches exceptions and continues
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+  }
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesWithInvalidVlan) {
+  ThriftHandler handler(this->sw_);
+  auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+  // Entry with invalid vlan - flushNeighborEntry will throw,
+  // but flushNeighborEntries should catch and continue
+  IfAndIP invalidEntry;
+  invalidEntry.interfaceID() = 9999;
+  invalidEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+  entries->push_back(invalidEntry);
+
+  // Should not throw, failures are caught internally
+  EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
+}
+
+TYPED_TEST(ThriftTestAllSwitchTypes, flushNeighborEntriesMixedValidity) {
+  ThriftHandler handler(this->sw_);
+
+  if (this->isNpu()) {
+    // Add actual neighbor entries so they can be flushed
+    this->sw_->getNeighborUpdater()->receivedArpMineForIntf(
+        InterfaceID(1),
+        folly::IPAddressV4("10.0.0.22"),
+        folly::MacAddress("02:09:00:00:00:22"),
+        PortDescriptor(PortID(1)),
+        ArpOpCode::ARP_OP_REPLY);
+
+    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        InterfaceID(1),
+        folly::IPAddressV6("2401:db00:2110:3001::22"),
+        folly::MacAddress("02:09:00:00:00:23"),
+        PortDescriptor(PortID(1)),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
+
+    this->sw_->getNeighborUpdater()->waitForPendingUpdates();
+    waitForBackgroundThread(this->sw_);
+    waitForStateUpdates(this->sw_);
+
+    auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+    // Existing ARP entry - should flush successfully
+    IfAndIP existingArpEntry;
+    existingArpEntry.interfaceID() = 1;
+    existingArpEntry.ip() = toBinaryAddress(IPAddress("10.0.0.22"));
+    entries->push_back(existingArpEntry);
+
+    // Invalid vlan - will throw inside flushNeighborEntry, caught internally
+    IfAndIP invalidVlanEntry;
+    invalidVlanEntry.interfaceID() = 9999;
+    invalidVlanEntry.ip() = toBinaryAddress(IPAddress("200.200.200.1"));
+    entries->push_back(invalidVlanEntry);
+
+    // Existing NDP entry - should flush successfully
+    IfAndIP existingNdpEntry;
+    existingNdpEntry.interfaceID() = 1;
+    existingNdpEntry.ip() =
+        toBinaryAddress(IPAddress("2401:db00:2110:3001::22"));
+    entries->push_back(existingNdpEntry);
+
+    // Non-existent neighbor on valid vlan - returns 0
+    IfAndIP nonExistentEntry;
+    nonExistentEntry.interfaceID() = 1;
+    nonExistentEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+    entries->push_back(nonExistentEntry);
+
+    // 2 entries flushed (ARP + NDP), invalid vlan caught, non-existent is 0
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 2);
+  } else {
+    // On non-NPU switches, all entries throw but are caught
+    auto entries = std::make_unique<std::vector<IfAndIP>>();
+
+    IfAndIP validVlanEntry;
+    validVlanEntry.interfaceID() = 1;
+    validVlanEntry.ip() = toBinaryAddress(IPAddress("100.100.100.1"));
+    entries->push_back(validVlanEntry);
+
+    IfAndIP invalidVlanEntry;
+    invalidVlanEntry.interfaceID() = 9999;
+    invalidVlanEntry.ip() = toBinaryAddress(IPAddress("200.200.200.1"));
+    entries->push_back(invalidVlanEntry);
+
+    IfAndIP anotherValidEntry;
+    anotherValidEntry.interfaceID() = 1;
+    anotherValidEntry.ip() = toBinaryAddress(IPAddress("100::100"));
+    entries->push_back(anotherValidEntry);
+
+    EXPECT_EQ(handler.flushNeighborEntries(std::move(entries)), 0);
   }
 }
 
@@ -2841,25 +2975,9 @@ TEST_F(ThriftTest, getCurrentStateJSONForPaths) {
       FbossError);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class ThriftTeFlowTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     cfg::ExactMatchTableConfig tableConfig;
     tableConfig.name() = "TeFlowTable";
@@ -2869,42 +2987,21 @@ class ThriftTeFlowTest : public ::testing::Test {
     sw_ = handle_->getSw();
     sw_->initialConfigApplied(std::chrono::steady_clock::now());
 
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
+    sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
 
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
-
+    sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceB,
+        folly::IPAddressV6(kNhopAddrB),
+        kMacAddress,
+        PortDescriptor(kPortIDB),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
     waitForStateUpdates(sw_);
@@ -2912,3 +3009,304 @@ class ThriftTeFlowTest : public ::testing::Test {
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
 };
+
+namespace {
+
+MySidEntry makeMySidEntry(
+    const std::string& addr,
+    uint8_t len,
+    MySidType type = MySidType::DECAPSULATE_AND_LOOKUP) {
+  MySidEntry entry;
+  entry.type() = type;
+  facebook::network::thrift::IPPrefix prefix;
+  prefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  entry.mySid() = prefix;
+  return entry;
+}
+
+IpPrefix toMySidIpPrefix(const std::string& addr, uint8_t len) {
+  IpPrefix prefix;
+  prefix.ip() = facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+  prefix.prefixLength() = len;
+  return prefix;
+}
+
+MySidEntry makeMySidEntryWithNextHops(
+    const std::string& addr,
+    uint8_t len,
+    MySidType type,
+    const std::vector<std::string>& nhAddrs) {
+  MySidEntry entry = makeMySidEntry(addr, len, type);
+  std::vector<NextHopThrift> nextHops;
+  for (const auto& nhAddr : nhAddrs) {
+    NextHopThrift nh;
+    nh.address() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6(nhAddr));
+    nextHops.push_back(std::move(nh));
+  }
+  entry.nextHops() = std::move(nextHops);
+  return entry;
+}
+
+} // namespace
+
+TEST_F(ThriftTest, addMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_NE(nullptr, mySids);
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, deleteMySidEntries) {
+  ThriftHandler handler(sw_);
+
+  // First add entries
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Delete one
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto state = sw_->getState();
+  auto mySids = state->getMySids();
+  EXPECT_EQ(nullptr, mySids->getNodeIf("2001:db8::1/64"));
+  EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsNodeType) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(
+      makeMySidEntry("2001:db8::1", 64, MySidType::NODE_MICRO_SID));
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyType) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(
+      makeMySidEntry("2001:db8::1", 64, MySidType::ADJACENCY_MICRO_SID));
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsDecapsulateTypeWithNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2001:db8::ff"));
+  entry.nextHops()->push_back(nhop);
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, addAndDeleteMySidEntriesInSequence) {
+  ThriftHandler handler(sw_);
+
+  // Add
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+
+  // Delete
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  state = sw_->getState();
+  EXPECT_EQ(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
+
+TEST_F(ThriftTest, deleteNonExistentMySidEntryIsNoOp) {
+  ThriftHandler handler(sw_);
+
+  auto stateBefore = sw_->getState();
+
+  // Delete a prefix that doesn't exist
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::99", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  auto stateAfter = sw_->getState();
+  // MySids map should be the same (both empty)
+  EXPECT_EQ(
+      stateBefore->getMySids()->toThrift(),
+      stateAfter->getMySids()->toThrift());
+}
+
+TEST_F(ThriftTest, mySidEntryReflectedInRib) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  // Verify RIB has the entry
+  auto rib = sw_->getRib();
+  auto ribMySidTable = rib->getMySidTableCopy();
+  auto cidr = std::make_pair(folly::IPAddressV6("2001:db8::1"), 64);
+  EXPECT_EQ(ribMySidTable.count(cidr), 1);
+
+  // Verify SwitchState has the entry
+  auto state = sw_->getState();
+  EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  // DECAP type with namedNextHops set — should be rejected
+  NamedRouteDestination named;
+  named.nextHopGroups() = {"group1"};
+  entry.namedNextHops() = named;
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, getMySidEntriesEmpty) {
+  ThriftHandler handler(sw_);
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  EXPECT_TRUE(result.empty());
+}
+
+TEST_F(ThriftTest, getMySidEntriesReturnsAddedEntries) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  EXPECT_EQ(result.size(), 2);
+
+  std::set<std::string> prefixes;
+  for (const auto& e : result) {
+    EXPECT_EQ(*e.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+    auto ip = facebook::network::toIPAddress(*e.mySid()->prefixAddress());
+    prefixes.insert(
+        folly::IPAddress::networkToString(
+            {ip, (uint8_t)*e.mySid()->prefixLength()}));
+  }
+  EXPECT_THAT(
+      prefixes,
+      testing::UnorderedElementsAre("2001:db8::1/64", "2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, getMySidEntriesReflectsDelete) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  EXPECT_EQ(result.size(), 1);
+  auto ip = facebook::network::toIPAddress(*result[0].mySid()->prefixAddress());
+  EXPECT_EQ(
+      folly::IPAddress::networkToString(
+          {ip, (uint8_t)*result[0].mySid()->prefixLength()}),
+      "2001:db8::2/64");
+}
+
+TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
+  // Add NODE and ADJACENCY MySid entries directly via the RIB (bypassing
+  // ThriftHandler validation). Their nexthops resolve against connected routes
+  // configured in testConfigA().
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  std::vector<MySidEntry> toAdd = {
+      makeMySidEntryWithNextHops(
+          "2001:db8::1", 64, MySidType::NODE_MICRO_SID, {kNhopAddrA}),
+      makeMySidEntryWithNextHops(
+          "2001:db8::2", 64, MySidType::ADJACENCY_MICRO_SID, {kNhopAddrB}),
+  };
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      toAdd,
+      {} /* toDelete */,
+      "add node/adjacency mysids via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  ThriftHandler handler(sw_);
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  ASSERT_EQ(result.size(), 2);
+
+  // Sort by prefix for deterministic assertions
+  std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) {
+    return facebook::network::toIPAddress(*a.mySid()->prefixAddress()) <
+        facebook::network::toIPAddress(*b.mySid()->prefixAddress());
+  });
+
+  // Entry 0: NODE_MICRO_SID with kNhopAddrA
+  {
+    const auto& entry = result[0];
+    EXPECT_EQ(*entry.type(), MySidType::NODE_MICRO_SID);
+    auto ip = facebook::network::toIPAddress(*entry.mySid()->prefixAddress());
+    EXPECT_EQ(
+        folly::IPAddress::networkToString(
+            {ip, (uint8_t)*entry.mySid()->prefixLength()}),
+        "2001:db8::1/64");
+    ASSERT_EQ(entry.nextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.nextHops()[0].address()),
+        folly::IPAddress(kNhopAddrA));
+    ASSERT_EQ(entry.resolvedNextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.resolvedNextHops()[0].address()),
+        folly::IPAddress(kNhopAddrA));
+  }
+
+  // Entry 1: ADJACENCY_MICRO_SID with kNhopAddrB
+  {
+    const auto& entry = result[1];
+    EXPECT_EQ(*entry.type(), MySidType::ADJACENCY_MICRO_SID);
+    auto ip = facebook::network::toIPAddress(*entry.mySid()->prefixAddress());
+    EXPECT_EQ(
+        folly::IPAddress::networkToString(
+            {ip, (uint8_t)*entry.mySid()->prefixLength()}),
+        "2001:db8::2/64");
+    ASSERT_EQ(entry.nextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.nextHops()[0].address()),
+        folly::IPAddress(kNhopAddrB));
+    ASSERT_EQ(entry.resolvedNextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.resolvedNextHops()[0].address()),
+        folly::IPAddress(kNhopAddrB));
+  }
+}

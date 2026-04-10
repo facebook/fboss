@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <fmt/format.h>
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
@@ -17,6 +18,7 @@ SlotTypeConfig getValidSlotTypeConfig() {
   slotTypeConfig.pmUnitName() = "SCM";
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
+  slotTypeConfig.idpromConfig()->busName() = "SMBus I801 adapter at 2000";
   return slotTypeConfig;
 }
 
@@ -52,6 +54,7 @@ PlatformConfig getBasicConfig() {
   config.rootSlotType() = "SCM_SLOT";
   config.bspKmodsRpmName() = "sample_bsp_kmods";
   config.bspKmodsRpmVersion() = "1.0.0-4";
+  config.i2cAdaptersFromCpu() = {"SMBus I801 adapter at 2000"};
   config.slotTypeConfigs() = {{"SCM_SLOT", getValidSlotTypeConfig()}};
   auto pmUnitConfig = PmUnitConfig();
   pmUnitConfig.pluggedInSlotType() = "SCM_SLOT";
@@ -108,13 +111,13 @@ TEST(ConfigValidatorTest, InvalidRootSlotType) {
 }
 
 TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
-  // CPU_BUS@0 — valid
+  // CPU_BUS@0 — valid (Intel single-bus or AMD first bus)
   EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0"}));
 
-  // CPU_BUS@1 — valid
+  // CPU_BUS@1 — valid (AMD second bus)
   EXPECT_TRUE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@1"}));
 
-  // CPU_BUS@0 + CPU_BUS@1 — valid (two-bus config)
+  // CPU_BUS@0 + CPU_BUS@1 — valid (AMD two-bus config)
   EXPECT_TRUE(
       ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@1"}));
 
@@ -125,6 +128,10 @@ TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
 
   // CPU_BUS@2 — invalid (only @0 and @1 supported)
   EXPECT_FALSE(ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@2"}));
+
+  // Duplicate CPU_BUS@0 — invalid
+  EXPECT_FALSE(
+      ConfigValidator().isValidI2cAdaptersFromCpu({"CPU_BUS@0", "CPU_BUS@0"}));
 
   // Mixed styles — invalid
   EXPECT_FALSE(
@@ -138,6 +145,34 @@ TEST(ConfigValidatorTest, I2cAdaptersFromCpuValidation) {
 TEST(ConfigValidatorTest, ValidConfig) {
   auto config = getBasicConfig();
   EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, IdpromBusDirectlyConnected) {
+  // Valid: CPU adapter bus
+  auto config = getBasicConfig();
+  config.slotTypeConfigs()["SCM_SLOT"].idpromConfig()->busName() =
+      "SMBus I801 adapter at 2000";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Valid: INCOMING@0 bus with numOutgoingI2cBuses >= 1
+  config.slotTypeConfigs()["SCM_SLOT"].idpromConfig()->busName() = "INCOMING@0";
+  config.slotTypeConfigs()["SCM_SLOT"].numOutgoingI2cBuses() = 2;
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Invalid: INCOMING@ index out of range
+  config.slotTypeConfigs()["SCM_SLOT"].idpromConfig()->busName() = "INCOMING@3";
+  config.slotTypeConfigs()["SCM_SLOT"].numOutgoingI2cBuses() = 2;
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Invalid: MUX bus name (not directly connected)
+  config.slotTypeConfigs()["SCM_SLOT"].idpromConfig()->busName() =
+      "MCB_MUX_A@0";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Invalid: FPGA I2C adapter name (not directly connected)
+  config.slotTypeConfigs()["SCM_SLOT"].idpromConfig()->busName() =
+      "MCB_IOB_I2C_MASTER_7";
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
@@ -271,6 +306,7 @@ TEST(ConfigValidatorTest, PmUnitNameReferentialIntegrity) {
   slotTypeConfig.pmUnitName() = "NON_EXISTENT_PMUNIT";
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
+  slotTypeConfig.idpromConfig()->busName() = "SMBus I801 adapter at 2000";
   config.slotTypeConfigs() = {{"SCM_SLOT", slotTypeConfig}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
 
@@ -304,6 +340,8 @@ TEST(ConfigValidatorTest, PmUnitNameAllowedListValidation) {
   auto slotTypeConfig = SlotTypeConfig();
   slotTypeConfig.idpromConfig() = IdpromConfig();
   slotTypeConfig.idpromConfig()->address() = "0x14";
+  slotTypeConfig.idpromConfig()->busName() = "INCOMING@0";
+  slotTypeConfig.numOutgoingI2cBuses() = 1;
   config.slotTypeConfigs()->emplace("PIM_SLOT", slotTypeConfig);
 
   auto pmUnitConfig = PmUnitConfig();
@@ -344,33 +382,79 @@ TEST(ConfigValidatorTest, SlotTypeConfig) {
 }
 
 TEST(ConfigValidatorTest, SlotConfig) {
+  std::map<std::string, SlotTypeConfig> slotTypeConfigs = {
+      {"MCB_SLOT", SlotTypeConfig()}, {"SMB_SLOT", SlotTypeConfig()}};
+
+  // Invalid: empty slotType
   auto slotConfig = SlotConfig();
   slotConfig.presenceDetection() = PresenceDetection();
   slotConfig.presenceDetection()->gpioLineHandle() = getValidGpioLineHandle();
-  EXPECT_FALSE(ConfigValidator().isValidSlotConfig(slotConfig));
-  slotConfig.slotType() = "MCB_SLOT";
-  EXPECT_TRUE(ConfigValidator().isValidSlotConfig(slotConfig));
-}
+  EXPECT_FALSE(
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "MCB_SLOT@0", slotTypeConfigs));
 
-TEST(ConfigValidatorTest, OutgoingSlotConfig) {
-  std::map<std::string, SlotTypeConfig> slotTypeConfigs = {
-      {"MCB_SLOT", SlotTypeConfig()}};
-  PmUnitConfig pmUnitConfig;
-  pmUnitConfig.pluggedInSlotType() = "MCB_SLOT";
+  // Valid: slotType matches SlotName prefix
+  slotConfig.slotType() = "MCB_SLOT";
+  EXPECT_TRUE(
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "MCB_SLOT@0", slotTypeConfigs));
+
+  // Invalid: SlotName format missing @<Num>
+  EXPECT_FALSE(
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "MCB_SLOT", slotTypeConfigs));
+
+  // Invalid: SlotName SlotType doesn't match SlotConfig slotType
+  EXPECT_FALSE(
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "SCM_SLOT@0", slotTypeConfigs));
+
   SlotConfig smbSlotConfig;
   smbSlotConfig.slotType() = "SMB_SLOT";
-  // Valid OutgoingSlotConfig
-  pmUnitConfig.outgoingSlotConfigs() = {{"SMB_SLOT@0", smbSlotConfig}};
+  // Invalid: outgoing slot name format missing @<Num>
+  EXPECT_FALSE(
+      ConfigValidator().isValidSlotConfig(
+          smbSlotConfig, "SMB_SLOT", slotTypeConfigs));
+
+  // Invalid: outgoing slot unmatching SlotType
+  EXPECT_FALSE(
+      ConfigValidator().isValidSlotConfig(
+          smbSlotConfig, "SCM_SLOT@0", slotTypeConfigs));
+}
+
+TEST(ConfigValidatorTest, OutgoingI2cBusNamesMatchesNumOutgoingI2cBuses) {
+  std::map<std::string, SlotTypeConfig> slotTypeConfigs;
+
+  SlotTypeConfig pimSlotType;
+  pimSlotType.numOutgoingI2cBuses() = 2;
+  slotTypeConfigs["PIM_SLOT"] = pimSlotType;
+
+  // Valid: outgoingI2cBusNames size matches numOutgoingI2cBuses
+  SlotConfig slotConfig;
+  slotConfig.slotType() = "PIM_SLOT";
+  slotConfig.outgoingI2cBusNames() = {"BUS_A", "BUS_B"};
   EXPECT_TRUE(
-      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
-  // Invalid SlotName format
-  pmUnitConfig.outgoingSlotConfigs() = {{"SMB_SLOT", smbSlotConfig}};
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "PIM_SLOT@0", slotTypeConfigs));
+
+  // Invalid: too few outgoingI2cBusNames
+  slotConfig.outgoingI2cBusNames() = {"BUS_A"};
   EXPECT_FALSE(
-      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
-  // Invalid unmatching SlotType; expect SMB_SLOT but has SCM_SLOT.
-  pmUnitConfig.outgoingSlotConfigs() = {{"SCM_SLOT@0", smbSlotConfig}};
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "PIM_SLOT@0", slotTypeConfigs));
+
+  // Invalid: too many outgoingI2cBusNames
+  slotConfig.outgoingI2cBusNames() = {"BUS_A", "BUS_B", "BUS_C"};
   EXPECT_FALSE(
-      ConfigValidator().isValidPmUnitConfig(slotTypeConfigs, pmUnitConfig));
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "PIM_SLOT@0", slotTypeConfigs));
+
+  // Invalid: SlotType has no SlotTypeConfig definition
+  slotConfig.slotType() = "UNKNOWN_SLOT";
+  slotConfig.outgoingI2cBusNames() = {};
+  EXPECT_FALSE(
+      ConfigValidator().isValidSlotConfig(
+          slotConfig, "UNKNOWN_SLOT@0", slotTypeConfigs));
 }
 
 TEST(ConfigValidatorTest, PresenceDetection) {
@@ -1637,4 +1721,138 @@ TEST(ConfigValidatorTest, NoOpticsConfigForDarwinPlatforms) {
   config.symbolicLinkToDevicePath() = {
       {"/run/devmap/xcvrs/xcvr_1", "/[XCVR_1]"}};
   EXPECT_FALSE(ConfigValidator().isValidPlatformWithoutPmOptics(config));
+}
+
+namespace {
+CpldSysfsAttr getValidCpldSysfsAttr(const std::string& name) {
+  CpldSysfsAttr attr;
+  attr.name() = name;
+  attr.mode() = "ro";
+  attr.regAddr() = "0x10";
+  attr.bitOffset() = 0;
+  attr.numBits() = 1;
+  attr.flags() = {};
+  attr.description() = "test attribute";
+  return attr;
+}
+} // namespace
+
+TEST(ConfigValidatorTest, CpldSysfsAttrs) {
+  ConfigValidator validator;
+
+  // Valid: single attribute
+  EXPECT_TRUE(
+      validator.isValidCpldSysfsAttrs({getValidCpldSysfsAttr("board_id")}));
+
+  // Valid: multiple attributes
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs(
+      {getValidCpldSysfsAttr("board_id"), getValidCpldSysfsAttr("cpld_ver")}));
+
+  // Invalid: empty list
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({}));
+
+  // Invalid: empty name
+  auto attr = getValidCpldSysfsAttr("");
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: duplicate names
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs(
+      {getValidCpldSysfsAttr("board_id"), getValidCpldSysfsAttr("board_id")}));
+
+  // Invalid: bad mode
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.mode() = "wx";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: rw mode
+  attr.mode() = "rw";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: wo mode
+  attr.mode() = "wo";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: empty reg
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.regAddr() = "";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: non-hex reg
+  attr.regAddr() = "16";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: max reg value
+  attr.regAddr() = "0xFF";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: min reg value
+  attr.regAddr() = "0x0";
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: reg value exceeds 0xFF
+  attr.regAddr() = "0x100";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: empty description
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.description() = "";
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset negative
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.bitOffset() = -1;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset > 7
+  attr.bitOffset() = 8;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: numBits 0
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.numBits() = 0;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: numBits > 8
+  attr.numBits() = 9;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: bitOffset + numBits > 8
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.bitOffset() = 5;
+  attr.numBits() = 4;
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: bitOffset + numBits == 8
+  attr.bitOffset() = 4;
+  attr.numBits() = 4;
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: recognized flags
+  attr = getValidCpldSysfsAttr("board_id");
+  attr.flags() = {"negate", "decimal"};
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: unrecognized flag
+  attr.flags() = {"negate", "negatte"};
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: unknown flag
+  attr.flags() = {"unknown_flag"};
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Valid: all recognized flags
+  attr.flags() = {"log_write", "show_notes", "decimal", "negate"};
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs({attr}));
+
+  // Invalid: exceeds max attrs (64)
+  std::vector<CpldSysfsAttr> tooMany;
+  tooMany.reserve(65);
+  for (int i = 0; i < 65; ++i) {
+    tooMany.push_back(getValidCpldSysfsAttr(fmt::format("attr_{}", i)));
+  }
+  EXPECT_FALSE(validator.isValidCpldSysfsAttrs(tooMany));
+
+  // Valid: exactly 64 attrs
+  tooMany.pop_back();
+  EXPECT_TRUE(validator.isValidCpldSysfsAttrs(tooMany));
 }

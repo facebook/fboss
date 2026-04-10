@@ -6,4 +6,4 @@
 "PlatformManagerHwTest.PmExplorationStatusTransitions","meru800bfa","PASSED"
 "PlatformManagerHwTest.ExploreAsDeployed","meru800bfa","PASSED"
 "PlatformManagerHwTest.ExploreAfterUnloadingKmods","meru800bfa","PASSED"
-"PlatformManagerHwTest.ExploreAfterUninstallingKmods","meru800bfa","FAILED"
+"PlatformManagerHwTest.ExploreAfterUninstallingKmods","meru800bfa","PASSED"

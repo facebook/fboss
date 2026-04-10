@@ -84,8 +84,6 @@ cfg::SwitchConfig createSystemPortInterfaceConfig() {
 class PortUpdateHandlerNDPTest : public ::testing::Test {
  public:
   void SetUp() override {
-    // Enable interface-based neighbor tables
-    FLAGS_intf_nbr_tables = true;
     // Enable neighbor cache so that class id is set
     FLAGS_disable_neighbor_updates = false;
     FLAGS_ndp_static_neighbor = true;

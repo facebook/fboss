@@ -12,7 +12,7 @@
 
 namespace {
 const re2::RE2 kRuntimePathRegex{
-    "(?P<Path>/run/devmap/(sensors|gpiochips|fpgas)/[^/]+)($|(/.+)+)"};
+    "(?P<Path>/run/devmap/(sensors|gpiochips|fpgas|cplds)/[^/]+)($|(/.+)+)"};
 }; // namespace
 
 namespace facebook::fboss::platform {

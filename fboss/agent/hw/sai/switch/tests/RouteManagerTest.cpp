@@ -8,12 +8,13 @@
  *
  */
 #include "fboss/agent/HwSwitch.h"
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouteManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
@@ -22,14 +23,18 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/Srv6Tunnel.h"
+#include "fboss/agent/test/utils/NextHopIdTestUtils.h"
 #include "fboss/agent/types.h"
 
+#include <gflags/gflags.h>
 #include <optional>
 
 using namespace facebook::fboss;
 class RouteManagerTest : public ManagerTestBase {
  public:
   void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_resolve_nexthops_from_id = true;
     setupStage = SetupStage::PORT | SetupStage::VLAN | SetupStage::INTERFACE |
         SetupStage::NEIGHBOR | SetupStage::SYSTEM_PORT;
     ManagerTestBase::SetUp();
@@ -77,27 +82,37 @@ TEST_F(RouteManagerTest, verifySwitchStateConstruction) {
     RouteV4::Prefix pfx2{ip4, 16};
     fib4->addNode(pfx2.str(), std::move(r2));
   }
+  assignNextHopIdsToAllRoutes(nextHopIDManager_.get(), newState);
   newState->publish();
   applyNewState(newState);
   auto saiSwitch = static_cast<SaiSwitch*>(saiPlatform->getHwSwitch());
   auto hwState = saiSwitch->constructSwitchStateWithFib();
   auto swState = saiPlatform->getHwSwitch()->getProgrammedState();
-  ASSERT_EQ(
-      hwState->getFibsInfoMap()->toThrift(),
-      swState->getFibsInfoMap()->toThrift());
+  auto hwThrift = hwState->getFibsInfoMap()->toThrift();
+  auto swThrift = swState->getFibsInfoMap()->toThrift();
+  // constructSwitchStateWithFib doesn't reconstruct NextHopID maps.
+  // Clear them from swState for comparison.
+  for (auto& [key, fibInfo] : swThrift) {
+    fibInfo.idToNextHop()->clear();
+    fibInfo.idToNextHopIdSet()->clear();
+  }
+  ASSERT_EQ(hwThrift, swThrift);
 }
 
 TEST_F(RouteManagerTest, addRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
 }
 
 TEST_F(RouteManagerTest, addRouteSameNextHops) {
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r1 = makeRoute(tr1);
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r2, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r2, RouterID(0), getProgrammedState());
 }
 
 TEST_F(RouteManagerTest, addRouteDifferentNextHops) {
@@ -105,20 +120,24 @@ TEST_F(RouteManagerTest, addRouteDifferentNextHops) {
   tr2.nextHopInterfaces.push_back(testInterfaces.at(1));
   tr2.nextHopInterfaces.push_back(testInterfaces.at(3));
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r2, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r2, RouterID(0), getProgrammedState());
 }
 
 TEST_F(RouteManagerTest, addRouteOneNextHop) {
   tr1.nextHopInterfaces = {testInterfaces.at(1)};
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
 }
 
 TEST_F(RouteManagerTest, updateRouteOneNextHopNoUpdate) {
   tr1.nextHopInterfaces = {testInterfaces.at(1)};
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
   auto vrfId = saiManagerTable->virtualRouterManager()
                    .getVirtualRouterHandle(RouterID(0))
@@ -133,7 +152,7 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopNoUpdate) {
       std::make_optional<cfg::AclLookupClass>(
           cfg::AclLookupClass::CLASS_QUEUE_PER_HOST_QUEUE_0));
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r, r1, RouterID(0));
+      r, r1, RouterID(0), getProgrammedState());
   auto handle1 = saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopHandle1 = handle1->nexthopHandle_;
   EXPECT_EQ(nexthopHandle, nexthopHandle1);
@@ -149,7 +168,8 @@ TEST_F(RouteManagerTest, addToCpuRoute) {
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
   r->update(ClientID{42}, entry);
   r->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   auto saiRouteHandle =
@@ -173,9 +193,11 @@ TEST_F(RouteManagerTest, addRemoteInterfaceRoute) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   auto saiRouteHandle =
@@ -207,9 +229,11 @@ TEST_F(RouteManagerTest, addConnectedRouteNonLocalInterfaceNpu) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   auto saiRouteHandle =
@@ -224,7 +248,8 @@ TEST_F(RouteManagerTest, addConnectedRouteNonLocalInterfaceNpu) {
 TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {
   tr1.nextHopInterfaces = {testInterfaces.at(1)};
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto switchId = saiManagerTable->switchManager().getSwitchSaiId();
   auto vrfId = saiManagerTable->virtualRouterManager()
                    .getVirtualRouterHandle(RouterID(0))
@@ -241,7 +266,7 @@ TEST_F(RouteManagerTest, updateRouteOneNextHopUpdate) {
   auto r1 = makeRoute(tr1);
   r1->setResolved(routeNextHopEntry);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r, r1, RouterID(0));
+      r, r1, RouterID(0), getProgrammedState());
 
   auto handle1 = saiManagerTable->routeManager().getRouteHandle(entry);
   auto nexthopHandle1 = handle1->nexthopHandle_;
@@ -258,7 +283,8 @@ TEST_F(RouteManagerTest, addDropRoute) {
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
   r->update(ClientID{42}, entry);
   r->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
 }
 
 TEST_F(RouteManagerTest, addSubnetRoute) {
@@ -271,14 +297,17 @@ TEST_F(RouteManagerTest, addSubnetRoute) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
 }
 
 TEST_F(RouteManagerTest, getRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   SaiRouteHandle* saiRouteHandle =
@@ -288,7 +317,8 @@ TEST_F(RouteManagerTest, getRoute) {
 
 TEST_F(RouteManagerTest, removeRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r);
   SaiRouteHandle* saiRouteHandle =
@@ -301,10 +331,11 @@ TEST_F(RouteManagerTest, removeRoute) {
 
 TEST_F(RouteManagerTest, addDupRoute) {
   auto r = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
   EXPECT_THROW(
       saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-          r, RouterID(0)),
+          r, RouterID(0), getProgrammedState()),
       FbossError);
 }
 
@@ -312,7 +343,8 @@ TEST_F(RouteManagerTest, getNonexistentRoute) {
   auto r1 = makeRoute(tr1);
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r2);
   SaiRouteHandle* saiRouteHandle =
@@ -324,7 +356,8 @@ TEST_F(RouteManagerTest, removeNonexistentRoute) {
   auto r1 = makeRoute(tr1);
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
   EXPECT_THROW(
       saiManagerTable->routeManager().removeRoute(r2, RouterID(0)), FbossError);
 }
@@ -335,13 +368,14 @@ TEST_F(RouteManagerTest, updateNonexistentRoute) {
   auto r2 = makeRoute(tr2);
   EXPECT_THROW(
       saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-          r1, r2, RouterID(0)),
+          r1, r2, RouterID(0), getProgrammedState()),
       FbossError);
 }
 
 TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   auto r1 = makeRoute(tr1);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
   auto entry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle =
@@ -354,7 +388,7 @@ TEST_F(RouteManagerTest, updateNexthopToNexthopRoute) {
   tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
   auto r2 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r1, r2, RouterID(0));
+      r1, r2, RouterID(0), getProgrammedState());
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle();
   count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 2);
@@ -370,19 +404,20 @@ TEST_F(RouteManagerTest, updateDropRouteToNextHopRoute) {
       RouteForwardAction::DROP, AdminDistance::STATIC_ROUTE);
   r1->update(ClientID{42}, entry);
   r1->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
   auto routeEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(routeEntry);
   auto r2 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r1, r2, RouterID(0));
+      r1, r2, RouterID(0), getProgrammedState());
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle();
   auto count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r2, r1, RouterID(0));
+      r2, r1, RouterID(0), getProgrammedState());
   EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle());
 }
 
@@ -390,13 +425,15 @@ TEST_F(RouteManagerTest, updateRouteDifferentNextHops) {
   tr2.nextHopInterfaces = tr1.nextHopInterfaces;
   auto r1 = makeRoute(tr1);
   auto r2 = makeRoute(tr2);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r2, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r2, RouterID(0), getProgrammedState());
   tr1.nextHopInterfaces.push_back(testInterfaces.at(4));
   tr1.nextHopInterfaces.push_back(testInterfaces.at(5));
   auto r3 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r1, r3, RouterID(0));
+      r1, r3, RouterID(0), getProgrammedState());
   auto routeEntry1 =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle1 =
@@ -422,20 +459,21 @@ TEST_F(RouteManagerTest, updateCpuRoutetoNextHopRoute) {
       RouteForwardAction::TO_CPU, AdminDistance::STATIC_ROUTE);
   r1->update(ClientID{42}, entry);
   r1->setResolved(entry);
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r1, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r1, RouterID(0), getProgrammedState());
   auto routeEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), r1);
   SaiRouteHandle* saiRouteHandle =
       saiManagerTable->routeManager().getRouteHandle(routeEntry);
   auto r2 = makeRoute(tr1);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r1, r2, RouterID(0));
+      r1, r2, RouterID(0), getProgrammedState());
   auto nexthopGroupHandle2 = saiRouteHandle->nextHopGroupHandle();
 
   auto count = nexthopGroupHandle2->nextHopGroupSize();
   EXPECT_EQ(count, 4);
   saiManagerTable->routeManager().changeRoute<folly::IPAddressV4>(
-      r2, r1, RouterID(0));
+      r2, r1, RouterID(0), getProgrammedState());
   EXPECT_FALSE(saiRouteHandle->nextHopGroupHandle());
 }
 
@@ -488,9 +526,11 @@ TEST_F(ToMeRouteTest, toMeRoutesSlash32) {
   auto r = std::make_shared<Route<folly::IPAddressV4>>(
       RouteV4::makeThrift(destination));
   r->update(ClientID::INTERFACE_ROUTE, entry);
+  allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
   r->setResolved(entry);
   r->setConnected();
-  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(r, RouterID(0));
+  saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
+      r, RouterID(0), getProgrammedState());
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -551,6 +591,7 @@ class Srv6RouteTest : public ManagerTestBase {
     auto r = std::make_shared<Route<folly::IPAddressV4>>(
         Route<folly::IPAddressV4>::makeThrift(prefix));
     r->update(ClientID{42}, entry);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
     r->setResolved(entry);
     return r;
   }
@@ -570,6 +611,7 @@ class Srv6RouteTest : public ManagerTestBase {
     auto r = std::make_shared<Route<folly::IPAddressV4>>(
         Route<folly::IPAddressV4>::makeThrift(prefix));
     r->update(ClientID{42}, entry);
+    allocateRouteNextHopIds(nextHopIDManager_.get(), entry);
     r->setResolved(entry);
     return r;
   }
@@ -586,7 +628,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHop) {
   folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
   auto route = makeSrv6Route(destination, intf0, "srv6tunnel0");
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-      route, RouterID(0));
+      route, RouterID(0), getProgrammedState());
 
   // Verify route handle exists
   auto saiEntry =
@@ -615,7 +657,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
   folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
   auto route = makeSrv6Route(destination, intf0, "srv6tunnel0");
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-      route, RouterID(0));
+      route, RouterID(0), getProgrammedState());
 
   // Get the route handle and extract the SRv6 managed next hop
   auto saiEntry =
@@ -647,14 +689,14 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopVerifySidList) {
   // Verify SID list attributes via SAI API
   auto& sidListHandle = managedNh->getSrv6SidListHandle();
   ASSERT_NE(sidListHandle, nullptr);
-  ASSERT_NE(sidListHandle->sidList, nullptr);
-  auto sidListId = sidListHandle->sidList->adapterKey();
+  ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
+  auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
 
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   auto gotType = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});
@@ -679,7 +721,7 @@ TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHop) {
   folly::CIDRNetwork destination{folly::IPAddress("42.42.42.42"), 24};
   auto route = makeSrv6Route(destination, intf0, "srv6tunnel0");
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-      route, RouterID(0));
+      route, RouterID(0), getProgrammedState());
 
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), route);
@@ -705,7 +747,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroup) {
        {std::cref(intf1), "srv6tunnel1"},
        {std::cref(intf2), "srv6tunnel2"}});
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-      route, RouterID(0));
+      route, RouterID(0), getProgrammedState());
 
   // Verify route handle exists
   auto saiEntry =
@@ -736,7 +778,7 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
       destination,
       {{std::cref(intf0), "srv6tunnel0"}, {std::cref(intf1), "srv6tunnel1"}});
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-      route, RouterID(0));
+      route, RouterID(0), getProgrammedState());
 
   // Verify next hop group exists with 2 members
   auto saiEntry =
@@ -747,9 +789,9 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
   ASSERT_NE(nhgHandle, nullptr);
   EXPECT_EQ(nhgHandle->nextHopGroupSize(), 2);
 
-  // Verify SID list for each next hop via SaiSrv6Manager
-  std::vector<folly::IPAddressV6> segmentList{
-      folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")};
+  // Verify SID list for each next hop via SaiSrv6SidListManager
+  auto segmentList = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
   for (const auto& intf : {std::cref(intf0), std::cref(intf1)}) {
     auto rifHandle =
         saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
@@ -761,16 +803,14 @@ TEST_F(Srv6RouteTest, addRouteWithSrv6NextHopGroupVerifySidLists) {
     SaiSrv6SidListTraits::AdapterHostKey sidListKey{
         SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED, segmentList, rifId, ip};
     auto* sidListHandle =
-        saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+        saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(sidListHandle, nullptr);
-    ASSERT_NE(sidListHandle->sidList, nullptr);
+    ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
 
-    auto sidListId = sidListHandle->sidList->adapterKey();
+    auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
     auto gotSegments = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-    EXPECT_EQ(gotSegments.size(), 2);
-    EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-    EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+    EXPECT_EQ(gotSegments, segmentList);
 
     auto gotType = saiApiTable->srv6Api().getAttribute(
         sidListId, SaiSrv6SidListTraits::Attributes::Type{});
@@ -789,7 +829,7 @@ TEST_F(Srv6RouteTest, removeRouteWithSrv6NextHopGroup) {
       destination,
       {{std::cref(intf0), "srv6tunnel0"}, {std::cref(intf1), "srv6tunnel1"}});
   saiManagerTable->routeManager().addRoute<folly::IPAddressV4>(
-      route, RouterID(0));
+      route, RouterID(0), getProgrammedState());
 
   auto saiEntry =
       saiManagerTable->routeManager().routeEntryFromSwRoute(RouterID(0), route);
@@ -808,9 +848,9 @@ TEST_F(Srv6RouteTest, createSrv6SidList) {
   auto sidListId = sidList->adapterKey();
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   auto gotType = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});

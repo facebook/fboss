@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/LldpManager.h"
 #include "fboss/agent/SwRxPacket.h"
 #include "fboss/agent/TxPacket.h"
@@ -139,18 +140,45 @@ class AgentCoppTest : public AgentHwTest {
   }
 
   folly::IPAddress getInSubnetNonSwitchIP() const {
-    auto config = initialConfig(*getAgentEnsemble());
+    // For non-VOQ switches, use the simple config-based approach
     if (!(this->isSupportedOnAllAsics(HwAsic::Feature::VOQ))) {
+      auto config = initialConfig(*getAgentEnsemble());
       auto ipAddress = config.interfaces()[0].ipAddresses()[0];
       return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
     }
-    for (const auto& configIntf : *config.interfaces()) {
-      if (configIntf.scope() == cfg::Scope::GLOBAL) {
-        auto ipAddress = configIntf.ipAddresses()[0];
-        return folly::IPAddress::createNetwork(ipAddress, -1, true).first;
+
+    // For VOQ switches, iterate interfaces for the NPU under test,
+    // find a GLOBAL-scoped interface with an IPv6 address, and offset
+    // it by 0x100 to get a different IP in the same subnet
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
+    auto state = getProgrammedState();
+
+    for (const auto& [matcher, intfMap] :
+         std::as_const(*state->getInterfaces())) {
+      if (!HwSwitchMatcher(matcher).has(switchId)) {
+        continue;
+      }
+      for (const auto& [intfID, intf] : std::as_const(*intfMap)) {
+        if (intf->isVirtual() || intf->getScope() != cfg::Scope::GLOBAL) {
+          continue;
+        }
+
+        for (const auto& [addr, mask] : std::as_const(*intf->getAddresses())) {
+          auto ip = folly::IPAddress(addr);
+          if (!ip.isV6()) {
+            continue;
+          }
+          // Add 0x100 to get a non-switch IP in the same subnet
+          auto bytes = ip.asV6().toByteArray();
+          bytes[bytes.size() - 2] += 1; // add 0x100
+          auto randomIP = folly::IPAddress(folly::IPAddressV6(bytes));
+          return randomIP;
+        }
       }
     }
-    throw FbossError("No global scope interfaces configured on VOQ switches");
+    throw FbossError(
+        "No GLOBAL-scoped interface with IPv6 address found for switchId: ",
+        switchId);
   }
 
   void sendTcpPkts(
@@ -197,22 +225,25 @@ class AgentCoppTest : public AgentHwTest {
       ips.insert(*ipv4Addr);
       ips.insert(*ipv6Addr);
     };
-    addV4AndV6(*(this->initialConfig(*getAgentEnsemble())
-                     .interfaces()[0]
-                     .ipAddresses()));
-
-    for (const auto& switchId :
-         getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
-      auto dsfNode = getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
-      if (dsfNode) {
-        auto loopbackIps = dsfNode->getLoopbackIps();
-        std::vector<std::string> subnets;
-        std::for_each(
-            loopbackIps->begin(), loopbackIps->end(), [&](const auto& ip) {
-              subnets.push_back(**ip);
-            });
-        addV4AndV6(subnets);
+    auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
+    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
+    auto config = this->initialConfig(*getAgentEnsemble());
+    for (const auto& configIntf : *config.interfaces()) {
+      if (InterfaceID(*configIntf.intfID()) == intfId) {
+        addV4AndV6(*configIntf.ipAddresses());
+        break;
       }
+    }
+
+    auto dsfNode = getProgrammedState()->getDsfNodes()->getNodeIf(switchId);
+    if (dsfNode) {
+      auto loopbackIps = dsfNode->getLoopbackIps();
+      std::vector<std::string> subnets;
+      std::for_each(
+          loopbackIps->begin(), loopbackIps->end(), [&](const auto& ip) {
+            subnets.push_back(**ip);
+          });
+      addV4AndV6(subnets);
     }
 
     return std::vector<std::string>{ips.begin(), ips.end()};
@@ -233,7 +264,7 @@ class AgentCoppTest : public AgentHwTest {
     if (outOfPort) {
       getSw()->sendPacketOutOfPortAsync(std::move(pkt), portIdsForTest()[0]);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(pkt));
+      sendPacketSwitchedAsync(std::move(pkt));
     }
     if (expectRxPacket) {
       WITH_RETRIES({
@@ -506,8 +537,8 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort,
       bool selfSolicit,
       bool expectRxPacket = true) {
-    InterfaceID intfId = utility::firstInterfaceIDWithPorts(
-        getProgrammedState(), getSwitchIdUnderTest(*getAgentEnsemble()));
+    InterfaceID intfId =
+        utility::firstInterfaceIDWithPorts(getProgrammedState());
     auto intf = getProgrammedState()->getInterfaces()->getNode(intfId);
     std::optional<VlanID> vlanId{};
     if (intf->getType() == cfg::InterfaceType::VLAN) {
@@ -623,8 +654,7 @@ class AgentCoppTest : public AgentHwTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto intfId = utility::firstInterfaceIDWithPorts(
-        getProgrammedState(), getSwitchIdUnderTest(*getAgentEnsemble()));
+    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = getVlanIDForTx();
     auto intfMac =
@@ -1248,7 +1278,20 @@ TYPED_TEST(AgentCoppTest, UnresolvedRouteNextHopToLowPriQueue) {
 }
 
 TYPED_TEST(AgentCoppTest, JumboFramesToQueues) {
-  auto setup = [=, this]() { this->setup(); };
+  auto setup = [=, this]() {
+    this->setup();
+    // Program ECMP V6 routes so that the offset IP from
+    // getInSubnetNonSwitchIP() has a route to be punted to CPU
+    utility::EcmpSetupAnyNPorts6 ecmp6(
+        this->getProgrammedState(),
+        this->getSw()->needL2EntryForNeighbor(),
+        std::nullopt,
+        RouterID(0),
+        false /* forProdConfig */,
+        {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT});
+    auto wrapper = this->getSw()->getRouteUpdater();
+    ecmp6.programRoutes(&wrapper, 1);
+  };
 
   auto verify = [=, this]() {
     std::vector<uint8_t> jumboPayload(7000, 0xff);
@@ -1319,9 +1362,8 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
   auto setup = [=, this]() { this->setup(); };
 
   auto verify = [=, this]() {
-    auto intfID = utility::firstInterfaceIDWithPorts(
-        this->getProgrammedState(),
-        this->getSwitchIdUnderTest(*this->getAgentEnsemble()));
+    auto intfID =
+        utility::firstInterfaceIDWithPorts(this->getProgrammedState());
     auto v4IntfAddr =
         utility::getIntfAddrsV4(this->getProgrammedState(), intfID)[0];
     auto v6IntfAddr =
@@ -1434,10 +1476,11 @@ class AgentCoppQosTest : public AgentHwTest {
 
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac);
-    resolveNeighborAndProgramRoutes(ecmpHelper, 1);
-    auto& nextHop = ecmpHelper.getNextHops()[0];
-    utility::ttlDecrementHandlingForLoopbackTraffic(
-        getAgentEnsemble(), ecmpHelper.getRouterId(), nextHop);
+    resolveNeighborAndProgramRoutes(ecmpHelper, 1, true);
+    utility::disablePortTTLDecrementIfSupported(
+        getAgentEnsemble(),
+        ecmpHelper.getRouterId(),
+        ecmpHelper.getNextHops()[0]);
   }
 
   std::optional<folly::IPAddress> getDestinationIpIfValid(RxPacket* pkt) {

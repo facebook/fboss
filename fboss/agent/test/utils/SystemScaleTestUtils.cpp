@@ -19,7 +19,6 @@
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "folly/Benchmark.h"
 
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(json);
 DECLARE_int32(max_l2_entries);
 DECLARE_int32(max_ndp_entries);
@@ -59,38 +58,21 @@ void removeNeighbor(AgentEnsemble* ensemble) {
   ensemble->applyNewState(
       [&](const std::shared_ptr<SwitchState>& in) {
         auto newState = in->clone();
-        if (FLAGS_intf_nbr_tables) {
-          auto intfID =
-              ensemble->getProgrammedState()
-                  ->getPorts()
-                  ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
-                  ->getInterfaceID();
-          Interface* interface =
-              newState->getInterfaces()->getNode(intfID).get();
-          interface = interface->modify(&newState);
-          if (std::is_same<AddrT, folly::IPAddressV4>::value) {
-            XLOG(DBG2) << "# arp entries" << interface->getArpTable()->size();
-            interface->setArpTable(std::make_shared<ArpTable>());
-          } else {
-            XLOG(DBG2) << "# ndp entries" << interface->getNdpTable()->size();
-            interface->setNdpTable(std::make_shared<NdpTable>());
-          }
+        auto intfID =
+            ensemble->getProgrammedState()
+                ->getPorts()
+                ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
+                ->getInterfaceID();
+        Interface* interface = newState->getInterfaces()->getNode(intfID).get();
+        interface = interface->modify(&newState);
+        if (std::is_same<AddrT, folly::IPAddressV4>::value) {
+          XLOG(DBG2) << "# arp entries" << interface->getArpTable()->size();
+          interface->setArpTable(std::make_shared<ArpTable>());
         } else {
-          auto vlanID =
-              ensemble->getProgrammedState()
-                  ->getPorts()
-                  ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
-                  ->getIngressVlan();
-          Vlan* vlan = newState->getVlans()->getNode(vlanID).get();
-          vlan = vlan->modify(&newState);
-          if (std::is_same<AddrT, folly::IPAddressV4>::value) {
-            XLOG(DBG2) << "# arp entries" << vlan->getArpTable()->size();
-            vlan->setArpTable(std::make_shared<ArpTable>());
-          } else {
-            XLOG(DBG2) << "# ndp entries" << vlan->getNdpTable()->size();
-            vlan->setNdpTable(std::make_shared<NdpTable>());
-          }
+          XLOG(DBG2) << "# ndp entries" << interface->getNdpTable()->size();
+          interface->setNdpTable(std::make_shared<NdpTable>());
         }
+
         return newState;
       },
       "remove neighbor",
@@ -130,7 +112,6 @@ std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntry(
     const PortDescriptor& port,
     const AddrT& addr,
     const folly::MacAddress& mac,
-    const bool isIntfNbrTable,
     std::optional<cfg::AclLookupClass> lookupClass = std::nullopt) {
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -143,21 +124,10 @@ std::shared_ptr<facebook::fboss::SwitchState> updateNeighborEntry(
                     ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
                     ->getInterfaceID();
 
-  if (isIntfNbrTable) {
-    neighborTable = state->getInterfaces()
-                        ->getNode(intfID)
-                        ->template getNeighborEntryTable<AddrT>()
-                        ->modify(intfID, &state);
-  } else {
-    auto vlanID = ensemble->getProgrammedState()
-                      ->getPorts()
-                      ->getNodeIf(ensemble->masterLogicalInterfacePortIds()[0])
-                      ->getIngressVlan();
-    neighborTable = state->getVlans()
-                        ->getNode(vlanID)
-                        ->template getNeighborEntryTable<AddrT>()
-                        ->modify(vlanID, &state);
-  }
+  neighborTable = state->getInterfaces()
+                      ->getNode(intfID)
+                      ->template getNeighborEntryTable<AddrT>()
+                      ->modify(intfID, &state);
 
   if (neighborTable->getEntryIf(addr)) {
     neighborTable->updateEntry(
@@ -181,13 +151,7 @@ void programNeighbor(
   ensemble->applyNewState(
       [&](const std::shared_ptr<SwitchState>& in) {
         return updateNeighborEntry(
-            ensemble,
-            in,
-            port,
-            addr,
-            neighborMac,
-            FLAGS_intf_nbr_tables,
-            lookupClass);
+            ensemble, in, port, addr, neighborMac, lookupClass);
       },
       "program neighbor",
       false);
@@ -600,10 +564,11 @@ std::pair<uint64_t, uint64_t> startRxMeasure(AgentEnsemble* ensemble) {
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
       IntfPorts,
-      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), 128}});
-  // Disable TTL decrements
+      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), 128}},
+      {},
+      true);
   for (const auto& nextHop : ecmpHelper.getNextHops()) {
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    utility::disablePortTTLDecrementIfSupported(
         ensemble, ecmpHelper.getRouterId(), nextHop);
   }
   constexpr uint8_t kCpuQueue = 0;

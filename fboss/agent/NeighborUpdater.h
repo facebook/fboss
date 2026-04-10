@@ -104,17 +104,12 @@ class NeighborUpdater : public StateObserver {
       VlanID vlan,
       AddrT ip,
       std::optional<cfg::AclLookupClass> classID = std::nullopt) {
-    // This is invoked by LookupClassUpdater which uses Vlans today.
-    // However, VlanID always numerically equals the InterfaceID. Thus, cast
+    // VlanID always numerically equals the InterfaceID. Thus, cast
     // VlanID as InterfaceID and use it.
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV4>) {
-      FLAGS_intf_nbr_tables ? updateArpEntryClassIDForIntf(
-                                  static_cast<InterfaceID>(vlan), ip, classID)
-                            : updateArpEntryClassID(vlan, ip, classID);
+      updateArpEntryClassIDForIntf(static_cast<InterfaceID>(vlan), ip, classID);
     } else {
-      FLAGS_intf_nbr_tables ? updateNdpEntryClassIDForIntf(
-                                  static_cast<InterfaceID>(vlan), ip, classID)
-                            : updateNdpEntryClassID(vlan, ip, classID);
+      updateNdpEntryClassIDForIntf(static_cast<InterfaceID>(vlan), ip, classID);
     }
   }
 

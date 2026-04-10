@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_unittest.bzl", "cpp_unittest")
+
+oncall("fboss_optics_phy")
+
+cpp_unittest(
+    name = "transceiver-properties-manager-test",
+    srcs = [
+        "TransceiverPropertiesManagerTest.cpp",
+    ],
+    deps = [
+        "//fboss/agent:fboss-error",
+        "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
+        "//folly:file_util",
+        "//folly/testing:test_util",
+    ],
+)

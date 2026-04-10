@@ -475,10 +475,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_U355_ADC128D818_1/in0_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.32,
-            "minAlarmVal": 1.19,
-            "upperCriticalVal": 1.35,
-            "lowerCriticalVal": 1.16
+            "maxAlarmVal": 1.323,
+            "minAlarmVal": 1.197,
+            "upperCriticalVal": 1.386,
+            "lowerCriticalVal": 1.134
           },
           "compute": "@/1000.0"
         },
@@ -499,10 +499,10 @@
           "sysfsPath": "/run/devmap/sensors/SMB_U355_ADC128D818_1/in2_input",
           "type": 1,
           "thresholds": {
-            "maxAlarmVal": 1.32,
-            "minAlarmVal": 1.19,
-            "upperCriticalVal": 1.35,
-            "lowerCriticalVal": 1.16
+            "maxAlarmVal": 1.323,
+            "minAlarmVal": 1.197,
+            "upperCriticalVal": 1.386,
+            "lowerCriticalVal": 1.134
           },
           "compute": "@/1000.0"
         },
@@ -9904,7 +9904,7 @@
     "perSlotPowerConfigs": [
       {
         "__comment__": "Hot-swap VRM chip ADM1272 monitors the power consumption of the entire system",
-        "name": "HSC",
+        "name": "HSC1",
         "voltageSensorName": "SMB_U279_MAIN_HSC_ADM1272_VOUT",
         "currentSensorName": "SMB_U279_MAIN_HSC_ADM1272_IOUT"
       }

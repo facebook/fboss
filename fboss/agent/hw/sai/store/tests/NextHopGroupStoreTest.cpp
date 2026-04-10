@@ -71,17 +71,11 @@ class NextHopGroupStoreTest : public SaiStoreTest {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   NextHopSaiId createSrv6SidlistNextHop(
-      const folly::IPAddress& ip,
       sai_object_id_t tunnelId,
       sai_object_id_t srv6SidlistId) {
     auto& nextHopApi = saiApiTable->nextHopApi();
     return nextHopApi.create<SaiSrv6SidlistNextHopTraits>(
-        {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST,
-         42,
-         ip,
-         tunnelId,
-         srv6SidlistId,
-         std::nullopt},
+        {SAI_NEXT_HOP_TYPE_SRV6_SIDLIST, tunnelId, srv6SidlistId, std::nullopt},
         0);
   }
 #endif
@@ -420,7 +414,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJsonAllNextHopTypes) {
 
   auto nextHopId1 = createNextHop(ip1);
   auto nextHopId2 = createMplsNextHop(ip2, {301, 302});
-  auto nextHopId3 = createSrv6SidlistNextHop(ip3, tunnelId, srv6SidlistId);
+  auto nextHopId3 = createSrv6SidlistNextHop(tunnelId, srv6SidlistId);
 
   createNextHopGroupMember(nextHopGroupId, nextHopId1, weight1);
   createNextHopGroupMember(nextHopGroupId, nextHopId2, weight2);
@@ -441,8 +435,7 @@ TEST_F(NextHopGroupStoreTest, nextHopGroupJsonAllNextHopTypes) {
           weight2));
   k.nhopMemberSet.insert(
       std::make_pair(
-          SaiSrv6SidlistNextHopTraits::AdapterHostKey{
-              42, ip3, tunnelId, srv6SidlistId},
+          SaiSrv6SidlistNextHopTraits::AdapterHostKey{tunnelId, srv6SidlistId},
           weight3));
 
   auto got = store.get(k);

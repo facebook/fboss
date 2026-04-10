@@ -171,7 +171,7 @@ TEST_F(AgentVoqSwitchWithFabricPortsTest, switchReachability) {
     auto switchReachableOverPort = [&](bool reachable,
                                        PortID portId,
                                        int expectedGroupSize) {
-      auto switchId = *getSw()->getHwAsicTable()->getSwitchIDs().begin();
+      auto switchId = getCurrentSwitchIdForTesting();
       WITH_RETRIES({
         const auto& reachability = getSw()->getSwitchReachability();
         const auto switchIter = reachability.find(switchId);

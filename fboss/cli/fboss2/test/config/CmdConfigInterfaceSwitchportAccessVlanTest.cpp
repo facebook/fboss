@@ -4,9 +4,12 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <stdexcept>
+#include <string>
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 using namespace ::testing;
 
@@ -115,7 +118,8 @@ TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     vlanIdOutOfRangeErrorMessage) {
   try {
-    VlanIdValue({"9999"});
+    auto unused = VlanIdValue({"9999"});
+    (void)unused;
     FAIL() << "Expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     std::string errorMsg = e.what();
@@ -128,7 +132,8 @@ TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     vlanIdNonNumericErrorMessage) {
   try {
-    VlanIdValue({"notanumber"});
+    auto unused = VlanIdValue({"notanumber"});
+    (void)unused;
     FAIL() << "Expected std::invalid_argument";
   } catch (const std::invalid_argument& e) {
     std::string errorMsg = e.what();
@@ -145,7 +150,6 @@ TEST_F(
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"2001"});
 
-  // Create InterfaceList from port names
   utils::InterfaceList interfaces({"eth1/1/1", "eth1/2/1"});
 
   auto result = cmd.queryClient(localhost(), interfaces, vlanId);
@@ -178,11 +182,10 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientThrowsOnEmptyInterfaceList) {
+  setupTestableConfigSession();
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
-  VlanIdValue vlanId({"100"});
-
-  // Empty InterfaceList is valid to construct but queryClient should throw
   utils::InterfaceList emptyInterfaces({});
+  VlanIdValue vlanId({"100"});
   EXPECT_THROW(
       cmd.queryClient(localhost(), emptyInterfaces, vlanId),
       std::invalid_argument);

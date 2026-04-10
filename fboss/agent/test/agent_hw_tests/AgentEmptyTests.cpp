@@ -10,30 +10,30 @@ class AgentEmptyTestBase : public AgentHwTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    return {};
+    return {ProductionFeature::HW_SWITCH};
   }
   void AgentEmptyTest() {
     auto verify = [this]() {
+      auto switchId = getCurrentSwitchIdForTesting();
+      auto asic = hwAsicForSwitch(switchId);
       auto state = getProgrammedState();
-      for (auto& portMap : std::as_const(*state->getPorts())) {
-        for (auto& port : std::as_const(*portMap.second)) {
-          if (port.second->isEnabled()) {
-            EXPECT_EQ(
-                port.second->getLoopbackMode(),
-                // TODO: Handle multiple Asics
-                getAsics().cbegin()->second->getDesiredLoopbackMode(
-                    port.second->getPortType()));
-          }
+      for (auto portId : masterLogicalPortIds(switchId)) {
+        auto port = state->getPorts()->getNodeIf(portId);
+        if (port->isEnabled()) {
+          EXPECT_EQ(
+              port->getLoopbackMode(),
+              asic->getDesiredLoopbackMode(port->getPortType()));
         }
       }
 #if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(switchId);
       WITH_RETRIES({
-        for (const auto& [switchId, hwSwitchStats] : getHwSwitchStats()) {
-          auto asicRevision = hwSwitchStats.fb303GlobalStats()->asic_revision();
-          ASSERT_EVENTUALLY_TRUE(asicRevision.has_value());
-          XLOG(INFO) << "Switch Id: " << switchId
-                     << " asic revision : " << *asicRevision;
-        }
+        auto hwSwitchStats = getHwSwitchStats(switchIndex);
+        auto asicRevision = hwSwitchStats.fb303GlobalStats()->asic_revision();
+        ASSERT_EVENTUALLY_TRUE(asicRevision.has_value());
+        XLOG(INFO) << "Switch Id: " << static_cast<int>(switchId)
+                   << " asic revision : " << *asicRevision;
       });
 #endif
     };

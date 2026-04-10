@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -111,5 +112,12 @@ void CmdShowInterfaceCounters::printOutput(
 
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowInterfaceCounters, CmdShowInterfaceCountersTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceCounters,
+    CmdShowInterfaceCountersTraits>::getValidFilters();
 
 } // namespace facebook::fboss

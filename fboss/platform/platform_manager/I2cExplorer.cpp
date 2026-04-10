@@ -18,8 +18,15 @@ namespace {
 
 const re2::RE2 kI2cMuxChannelRegex{"channel-\\d+"};
 const re2::RE2 kCpuBusPattern{"CPU_BUS@(\\d+)"};
+const re2::RE2 kAmdI2cPlatformDevRegex{"AMDI0010:\\d+"};
 constexpr auto kI2cDevCreationWaitSecs = std::chrono::seconds(5);
 constexpr auto kCpuI2cBusNumsWaitSecs = 1;
+
+// AMD FireRange DesignWare I2C: ACPI firmware_node/path → CPU_BUS index.
+const std::map<std::string, int> kAmdAcpiPathToBusIndex = {
+    {R"(\_SB_.I2CA)", 1},
+    {R"(\_SB_.I2CB)", 0},
+};
 
 std::string getI2cAdapterName(const fs::path& busPath) {
   auto nameFile = busPath / "name";
@@ -95,9 +102,76 @@ std::map<std::string, uint16_t> I2cExplorer::getBusNums(
 }
 
 std::map<std::string, uint16_t> I2cExplorer::resolveAmdCpuBusNums(
-    const std::vector<std::string>& /* i2cAdaptersFromCpu */) {
+    const std::vector<std::string>& i2cAdaptersFromCpu) {
+  // AMD FireRange DesignWare I2C buses share identical adapter names, so
+  // we identify them by their ACPI firmware_node/path under
+  // /sys/devices/platform/AMDI0010:*.
+  //   \_SB_.I2CA → CPU_BUS@1
+  //   \_SB_.I2CB → CPU_BUS@0
+  const auto platformRoot = fs::path("/sys/devices/platform");
+  constexpr int maxRetries = 10;
+
+  std::map<std::string, uint16_t> busNums;
+
+  for (int attempt = 1; attempt <= maxRetries; attempt++) {
+    XLOG(INFO) << "Resolving AMD CPU_BUS names -- Attempt #" << attempt;
+    busNums.clear();
+
+    for (const auto& dirEntry : fs::directory_iterator(platformRoot)) {
+      if (!re2::RE2::FullMatch(
+              dirEntry.path().filename().string(), kAmdI2cPlatformDevRegex)) {
+        continue;
+      }
+      auto fwPathFile = dirEntry.path() / "firmware_node" / "path";
+      if (!fs::exists(fwPathFile)) {
+        continue;
+      }
+      std::string acpiPath;
+      if (!folly::readFile(fwPathFile.string().c_str(), acpiPath)) {
+        continue;
+      }
+      acpiPath = folly::trimWhitespace(acpiPath).str();
+
+      auto it = kAmdAcpiPathToBusIndex.find(acpiPath);
+      if (it == kAmdAcpiPathToBusIndex.end()) {
+        continue;
+      }
+      auto virtualName = fmt::format("CPU_BUS@{}", it->second);
+      if (std::find(
+              i2cAdaptersFromCpu.begin(),
+              i2cAdaptersFromCpu.end(),
+              virtualName) == i2cAdaptersFromCpu.end()) {
+        continue;
+      }
+
+      // Find the i2c adapter child (i2c-N) under this platform device.
+      for (const auto& child : fs::directory_iterator(dirEntry.path())) {
+        if (re2::RE2::FullMatch(
+                child.path().filename().string(), kI2cBusNameRegex)) {
+          auto busNum = extractBusNumFromPath(child.path());
+          XLOG(INFO) << fmt::format(
+              "Resolved {} -> i2c-{} (ACPI: {})",
+              virtualName,
+              busNum,
+              acpiPath);
+          busNums[virtualName] = busNum;
+          break;
+        }
+      }
+    }
+
+    if (busNums.size() == i2cAdaptersFromCpu.size()) {
+      return busNums;
+    }
+    sleep(kCpuI2cBusNumsWaitSecs);
+  }
   throw std::runtime_error(
-      "CPU_BUS virtual bus resolution is not yet implemented for AMD CPUs");
+      fmt::format(
+          "Failed to resolve AMD CPU_BUS names over {}s. "
+          "Resolved {}/{} entries",
+          kCpuI2cBusNumsWaitSecs * maxRetries,
+          busNums.size(),
+          i2cAdaptersFromCpu.size()));
 }
 
 std::map<std::string, uint16_t> I2cExplorer::resolveIntelCpuBusNums(

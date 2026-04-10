@@ -1,10 +1,21 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 
 using namespace facebook::fboss;
 
-TEST_F(AgentEnsembleLinkTest, ecmpShrink) {
+constexpr auto kMaxNumberOfPortsPerSwitchId = 512;
+
+class AgentEnsembleLinkEcmpTest : public AgentEnsembleLinkTest {
+ public:
+  void setCmdLineFlagOverrides() const override {
+    AgentEnsembleLinkTest::setCmdLineFlagOverrides();
+    FLAGS_ecmp_width = kMaxNumberOfPortsPerSwitchId;
+  }
+};
+
+TEST_F(AgentEnsembleLinkEcmpTest, ecmpShrink) {
   auto setup = [this]() {
     const auto cabledPorts = getSingleVlanOrRoutedCabledPorts(SwitchID(0));
     programDefaultRoute(cabledPorts, getSw()->getLocalMac(scope(cabledPorts)));

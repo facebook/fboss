@@ -97,7 +97,8 @@ class LinkTest : public AgentTest {
 
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-      std::optional<folly::MacAddress> dstMac = std::nullopt);
+      std::optional<folly::MacAddress> dstMac = std::nullopt,
+      bool disableTTLDecrement = false);
 
   /*
    * Create a L3 data plane loop and seed it with traffic
@@ -139,7 +140,8 @@ class LinkTest : public AgentTest {
  private:
   void programDefaultRoute(
       const boost::container::flat_set<PortDescriptor>& ecmpPorts,
-      utility::EcmpSetupTargetedPorts6& ecmp6);
+      utility::EcmpSetupTargetedPorts6& ecmp6,
+      bool disableTTLDecrement = false);
   void initializeCabledPorts();
   void logLinkDbgMessage(std::vector<PortID>& portIDs) const override;
 

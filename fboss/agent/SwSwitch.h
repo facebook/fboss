@@ -673,9 +673,10 @@ class SwSwitch : public HwSwitchCallback {
    * Send a packet, using switching logic to send it out the correct port(s)
    * for the specified VLAN and destination MAC.
    */
+  // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt,
-      std::optional<SwitchID> switchId = std::nullopt) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
   /**
    * Send out L3 packet through HW

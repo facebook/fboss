@@ -286,6 +286,8 @@ folly::StringPiece saiObjectTypeToString(sai_object_type_t objectType) {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
     case SAI_OBJECT_TYPE_SRV6_SIDLIST:
       return "srv6-sidlist";
+    case SAI_OBJECT_TYPE_MY_SID_ENTRY:
+      return "my-sid-entry";
 #endif
     case SAI_OBJECT_TYPE_SAMPLEPACKET:
       return "sample-packet";

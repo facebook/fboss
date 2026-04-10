@@ -96,6 +96,7 @@ class PortApiTest : public ::testing::Test {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
     return portApi->create<SaiPortTraits>(a, 0);
   }
@@ -114,7 +115,9 @@ class PortApiTest : public ::testing::Test {
       std::vector<sai_uint32_t> txPre3) const {
     SaiPortSerdesTraits::CreateAttributes a{
         portSaiId,
+#if !defined(CHENAB_SAI_SDK)
         preemphasis,
+#endif
         std::nullopt, // IDriver
         txPre1,
         std::nullopt, // txPre2
@@ -486,8 +489,10 @@ TEST_F(PortApiTest, serdesApi) {
   auto id = createPort(100000, {42}, true);
   auto serdesId =
       createPortSerdes(id, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9});
+#if !defined(CHENAB_SAI_SDK)
   auto preemphasis = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::Preemphasis{});
+#endif
   auto txFirPre1 = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::TxFirPre1{});
   auto txFirPre3 = portApi->getAttribute(
@@ -506,7 +511,9 @@ TEST_F(PortApiTest, serdesApi) {
       serdesId, SaiPortSerdesTraits::Attributes::RxAcCouplingByPass{});
   auto rxAfeAdaptiveEnable = portApi->getAttribute(
       serdesId, SaiPortSerdesTraits::Attributes::RxAfeAdaptiveEnable{});
+#if !defined(CHENAB_SAI_SDK)
   EXPECT_EQ(preemphasis, std::vector<sai_uint32_t>{0});
+#endif
   EXPECT_EQ(txFirPre1, std::vector<sai_uint32_t>{1});
   EXPECT_EQ(txFirMain, std::vector<sai_uint32_t>{2});
   EXPECT_EQ(txFirPost1, std::vector<sai_uint32_t>{3});

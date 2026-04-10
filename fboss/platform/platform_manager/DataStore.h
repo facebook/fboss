@@ -94,6 +94,9 @@ class DataStore {
 
   std::map<std::string, PmUnitInfo> getSlotPathToPmUnitInfo() const;
 
+  const std::map<std::pair<std::optional<std::string>, std::string>, uint16_t>
+  getI2cBusNums() const;
+
   // Store firmware version for the given device name.
   void updateFirmwareVersion(
       const std::string& deviceName,

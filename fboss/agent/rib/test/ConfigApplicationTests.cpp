@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/hw/mock/MockPlatform.h"
 
@@ -130,6 +131,7 @@ cfg::SwitchConfig dualVrfConfig() {
 
 template <typename AddressT>
 void checkFibRoute(
+    const std::shared_ptr<SwitchState>& state,
     const std::shared_ptr<facebook::fboss::Route<AddressT>>& route,
     AddressT maskedNetworkAddress,
     uint8_t networkMaskLength,
@@ -143,9 +145,10 @@ void checkFibRoute(
   EXPECT_EQ(
       forwardInfo.getAction(),
       facebook::fboss::RouteNextHopEntry::Action::NEXTHOPS);
-  EXPECT_EQ(forwardInfo.getNextHopSet().size(), 1);
-  EXPECT_EQ(forwardInfo.getNextHopSet().begin()->addr(), nextHopAddress);
-  EXPECT_EQ(forwardInfo.getNextHopSet().begin()->intfID(), nextHopInterfaceID);
+  auto nhops = getNextHops(state, forwardInfo);
+  EXPECT_EQ(nhops.size(), 1);
+  EXPECT_EQ(nhops.begin()->addr(), nextHopAddress);
+  EXPECT_EQ(nhops.begin()->intfID(), nextHopInterfaceID);
 }
 
 template <typename AddressT>
@@ -188,6 +191,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
   auto v4DirectlyConnectedRoute = v4Fib->exactMatch(v4DirectlyConnectedPrefix);
   ASSERT_NE(nullptr, v4DirectlyConnectedRoute);
   checkFibRoute(
+      state,
       v4DirectlyConnectedRoute,
       folly::IPAddressV4("1.1.1.0"),
       24,
@@ -200,6 +204,7 @@ TEST(ConfigApplication, InterfaceRoutes) {
   auto v6DirectlyConnectedRoute = v6Fib->exactMatch(v6DirectlyConnectedPrefix);
   ASSERT_NE(nullptr, v6DirectlyConnectedRoute);
   checkFibRoute(
+      state,
       v6DirectlyConnectedRoute,
       folly::IPAddressV6("1::"),
       48,
@@ -235,6 +240,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   auto v4StaticRoute = v4Fib->exactMatch(v4Prefix);
   ASSERT_NE(nullptr, v4StaticRoute);
   checkFibRoute(
+      state,
       v4StaticRoute,
       folly::IPAddressV4("20.20.20.0"),
       24,
@@ -247,6 +253,7 @@ TEST(ConfigApplication, StaticRoutesWithNextHops) {
   auto v6StaticRoute = v6Fib->exactMatch(v6Prefix);
   ASSERT_NE(nullptr, v6StaticRoute);
   checkFibRoute(
+      state,
       v6StaticRoute,
       folly::IPAddressV6("2001::"),
       64,

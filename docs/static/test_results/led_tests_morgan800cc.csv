@@ -1,4 +1,5 @@
 "Test Case","Platform","Status"
+"LedServiceTest.testTcvrLos","morgan800cc","PASSED"
 "LedServiceTest.checkLedColorChange","morgan800cc","PASSED"
 "LedServiceTest.checkLedBlinking","morgan800cc","PASSED"
 "LedServiceTest.checkForceLed","morgan800cc","PASSED"

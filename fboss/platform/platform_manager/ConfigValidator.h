@@ -24,7 +24,10 @@ class ConfigValidator {
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
       const PmUnitConfig& pmUnitConfig);
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
-  bool isValidSlotConfig(const SlotConfig& slotConfig);
+  bool isValidSlotConfig(
+      const SlotConfig& slotConfig,
+      const std::string& slotName,
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidXcvrCtrlBlockConfig(
@@ -35,6 +38,7 @@ class ConfigValidator {
       const std::vector<std::string>& i2cAdaptersFromCpu);
   bool isValidPciDeviceConfig(const PciDeviceConfig& pciDeviceConfig);
   bool isValidI2cDeviceConfig(const I2cDeviceConfig& i2cDeviceConfig);
+  bool isValidCpldSysfsAttrs(const std::vector<CpldSysfsAttr>& cpldSysfsAttrs);
   bool isValidDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& devicePath);

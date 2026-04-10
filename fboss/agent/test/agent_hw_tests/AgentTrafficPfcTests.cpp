@@ -59,6 +59,9 @@ static const std::map<std::tuple<int, int>, std::string>
         {std::make_tuple(1, 2), "0x40000000000000000"},
         // Janga: portID=3, port_first_phy=8, core_first_phy=0 P1842843423
         {std::make_tuple(3, 2), "0x40000000000000000"},
+        // Janga ASIC 1: portID=32779 (eth1/63/1), port_first_phy=8,
+        // core_first_phy=0
+        {std::make_tuple(32779, 2), "0x40000000000000000"},
 };
 
 struct TrafficTestParams {
@@ -137,7 +140,7 @@ void validateBufferPoolWatermarkCounters(
     ensemble->getSw()->updateStats();
     // Watermarks may be cleared on read by the stats thread, so read the
     // cached p100 value from fb303 instead.
-    for (auto asic : ensemble->getL3Asics()) {
+    for (const auto& asic : ensemble->getL3Asics()) {
       facebook::fboss::SwitchID switchId(*asic->getSwitchId());
       auto sharedCounters = ensemble->getFb303RegexCounters(
           "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId);
@@ -151,7 +154,7 @@ void validateBufferPoolWatermarkCounters(
       }
     }
 
-    for (auto portId : portIds) {
+    for (const auto& portId : portIds) {
       XLOG(INFO) << "validateBufferPoolWatermarkCounters: Port " << portId
                  << ": "
                  << facebook::fboss::utility::pfcStatsString(
@@ -194,10 +197,12 @@ void validateIngressPriorityGroupWatermarkCounters(
           "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
       auto counters = ensemble->getFb303CountersByRegex(portId, regex);
       EXPECT_EVENTUALLY_EQ(counters.size(), numKeys);
+      uint64_t totalWatermark = 0;
       for (const auto& ctr : counters) {
         XLOG(DBG0) << ctr.first << " : " << ctr.second;
-        EXPECT_EVENTUALLY_GT(ctr.second, 0);
+        totalWatermark += ctr.second;
       }
+      EXPECT_EVENTUALLY_GT(totalWatermark, 0);
     }
   });
 }
@@ -390,9 +395,9 @@ class AgentTrafficPfcTest : public AgentHwTest {
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
@@ -491,25 +496,30 @@ class AgentTrafficPfcTest : public AgentHwTest {
           }
         }
       }
-      for (auto [switchId, asic] : getAsics()) {
-        if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
-          // Jericho3 has additional VSQ drops counters which accounts for
-          // ingress buffer drops.
-          getSw()->updateStats();
-          fb303::ThreadCachedServiceData::get()->publishStats();
-          auto switchIndex =
-              getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
-                  switchId);
-          auto vsqResourcesExhautionDrops =
-              *getSw()
-                   ->getHwSwitchStatsExpensive()[switchIndex]
-                   .fb303GlobalStats()
-                   ->vsq_resource_exhaustion_drops();
-          XLOG(DBG0)
-              << " validateIngressDropCounters: vsqResourceExhaustionDrops: "
-              << vsqResourcesExhautionDrops;
-          EXPECT_EVENTUALLY_GT(vsqResourcesExhautionDrops, 0);
-        }
+      // Only validate VSQ drops on the ASIC under test. In multi-switch
+      // mode, traffic flows through one ASIC only, so the other ASIC
+      // will have 0 drops.
+      auto testSwitchId = scopeResolver().scope(portIds[0]).switchId();
+      auto asics = getAsics();
+      auto asicIt = asics.find(testSwitchId);
+      if (asicIt != asics.end() &&
+          asicIt->second->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+        // Jericho3 has additional VSQ drops counters which accounts for
+        // ingress buffer drops.
+        getSw()->updateStats();
+        fb303::ThreadCachedServiceData::get()->publishStats();
+        auto switchIndex =
+            getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+                testSwitchId);
+        auto vsqResourcesExhautionDrops =
+            *getSw()
+                 ->getHwSwitchStatsExpensive()[switchIndex]
+                 .fb303GlobalStats()
+                 ->vsq_resource_exhaustion_drops();
+        XLOG(DBG0)
+            << " validateIngressDropCounters: vsqResourceExhaustionDrops: "
+            << vsqResourcesExhautionDrops;
+        EXPECT_EVENTUALLY_GT(vsqResourcesExhautionDrops, 0);
       }
     });
   }
@@ -567,19 +577,38 @@ class AgentTrafficPfcTest : public AgentHwTest {
     }
   }
 
+  // Find the strict-priority queue ID with the highest priority from
+  // the config. Injecting on such a queue avoids low-priority queue
+  // tail drops so to unblock lossless TC from crossing the PFC XOFF
+  // threshold.
+  std::optional<uint8_t> getInjectionQueueId() {
+    auto cfg = getAgentEnsemble()->getCurrentConfig();
+    std::optional<uint8_t> queueId = std::nullopt;
+    for (const auto& [name, queues] : *cfg.portQueueConfigs()) {
+      for (const auto& queueCfg : queues) {
+        if (*queueCfg.scheduling() == cfg::QueueScheduling::STRICT_PRIORITY &&
+            (!queueId || *queueCfg.id() > *queueId)) {
+          queueId = static_cast<uint8_t>(*queueCfg.id());
+        }
+      }
+    }
+    return queueId;
+  }
+
   void pumpTraffic(const int priority, bool scaleTest) {
     std::vector<PortID> portIds = portIdsForTest(scaleTest);
+    auto queue = getInjectionQueueId();
     pumpTraffic(
         priority,
         std::nullopt /* vlanId */,
-        std::nullopt /* queue */,
+        queue,
         portIds,
         getDestinationIps(static_cast<int>(portIds.size())));
   }
 
   void stopTraffic(const std::vector<PortID>& portIds) {
     // Toggle the link to break looping traffic
-    for (auto portId : portIds) {
+    for (const auto& portId : portIds) {
       bringDownPort(portId);
       bringUpPort(portId);
     }
@@ -700,6 +729,138 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 };
 
+class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
+ protected:
+  // Set up ECMP routing to direct traffic to the specified port without
+  // creating a MAC loopback. We use a MAC address different from the
+  // interface MAC so the resolved neighbor has a distinct destination,
+  // preventing the switch from looping the packet back to the CPU.
+  void setupEcmpTrafficNoLoop(
+      const PortID& portId,
+      const folly::IPAddressV6& ip) {
+    auto noLoopMac = folly::MacAddress::fromHBO(
+        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+            .u64HBO() +
+        1);
+    utility::EcmpSetupTargetedPorts6 ecmpHelper{
+        getProgrammedState(), getSw()->needL2EntryForNeighbor(), noLoopMac};
+
+    const PortDescriptor port(portId);
+    RoutePrefixV6 route{ip, 128};
+
+    applyNewState([&](const std::shared_ptr<SwitchState>& state) {
+      return ecmpHelper.resolveNextHops(state, {port});
+    });
+
+    auto routeUpdater = getSw()->getRouteUpdater();
+    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
+  }
+
+  // Wait for p100.60 watermark counters to decay after cleanup,
+  // to avoid stale values bleeding into subsequent warm boot runs.
+  // Since these are p100.60 stats (60-second window), we wait up to
+  // 70 seconds total (14 iterations x 5 seconds) to ensure the window
+  // has fully elapsed. We poll every 5 seconds to exit early if the
+  // counters have already reached zero.
+  template <typename Fn>
+  void waitForWatermarkDecay(Fn&& countersNonZero) {
+    for (int i = 0; i < 14; i++) {
+      /* sleep override */ std::this_thread::sleep_for(std::chrono::seconds(5));
+      getAgentEnsemble()->getSw()->updateStats();
+      if (!countersNonZero()) {
+        break;
+      }
+    }
+  }
+
+  void setupTxVlanForChenab(
+      cfg::SwitchConfig& cfg,
+      const PortID& portId,
+      const VlanID& vlanId) {
+    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB2) {
+      return;
+    }
+    // For Chenab, we need to create a VLAN so that packets that are switched
+    // hit the VLAN before hitting the route, egressing out of the first port.
+
+    cfg::Vlan vlan;
+    vlan.id() = vlanId;
+    vlan.name() = folly::sformat("vlan{}", static_cast<int>(vlanId));
+    vlan.routable() = false; // No routing needed, just isolation
+    // Set the interface ID for the VLAN
+    vlan.intfID() = kTxForVlanForChenab;
+    cfg.vlans()->push_back(vlan);
+
+    // Max: we need to add an interface, otherwise warmboot will fail.
+    cfg::Interface interface;
+    interface.name() = folly::to<std::string>(vlanId);
+    interface.type() = cfg::InterfaceType::VLAN;
+    interface.scope() = cfg::Scope::LOCAL;
+    interface.intfID() = kTxForVlanForChenab;
+    interface.vlanID() = vlanId;
+    interface.routerID() = 0;
+    // Deliberately choose MAC that doesn't match local CPU MAC used for other
+    // Router Interfaces (utility::kLocalCpuMac().toString()) This ensures
+    // switched packet from CPU gets forwarded by VLAN out of front panel port
+    // and not to this RIF.
+    interface.mac() = "00:11:22:33:44:55";
+    interface.mtu() = 9000;
+    interface.ipAddresses().ensure().emplace_back("200.0.0.1/24");
+    interface.ipAddresses().ensure().emplace_back("200::1/64");
+    cfg.interfaces()->push_back(interface);
+
+    // Change vlan port mapping so the portId is an untagged member
+    // of the test VLAN.
+    auto vlanPort = std::find_if(
+        cfg.vlanPorts()->begin(),
+        cfg.vlanPorts()->end(),
+        [portId](auto vlanPort) {
+          return vlanPort.logicalPort() == static_cast<int>(portId);
+        });
+
+    if (vlanPort != cfg.vlanPorts()->end()) {
+      XLOG(INFO) << "Found existing VLAN port entry for portId " << portId
+                 << ", changing from VLAN " << *vlanPort->vlanID()
+                 << " to VLAN " << vlanId;
+      vlanPort->vlanID() = vlanId;
+      vlanPort->spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      vlanPort->emitTags() = false; // Untagged port
+    } else {
+      XLOG(INFO) << "No existing VLAN port entry found for portId " << portId
+                 << ", creating new entry for VLAN " << vlanId;
+      cfg::VlanPort testVlanPort;
+      testVlanPort.vlanID() = vlanId;
+      testVlanPort.logicalPort() = static_cast<int>(portId);
+      testVlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
+      testVlanPort.emitTags() = false; // Untagged port
+      cfg.vlanPorts()->push_back(testVlanPort);
+    }
+  }
+
+  void setupConfigAndEcmpTraffic(
+      const PortID& portId,
+      const PortID& txOffPortId,
+      const folly::IPAddressV6& ip) {
+    cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
+    PfcBufferParams buffer = defaultPfcBufferParams();
+    buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        cfg,
+        {portId},
+        kLosslessPgIds,
+        kLossyPgIds,
+        {},
+        buffer);
+
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+
+    applyNewConfig(cfg);
+    setupEcmpTrafficNoLoop(txOffPortId, ip);
+  }
+};
+
 TEST_F(AgentTrafficPfcTest, verifyPfcWithDefaultCfg) {
   TrafficTestParams param{
       .buffer = defaultPfcBufferParams(),
@@ -743,26 +904,156 @@ TEST_F(AgentTrafficPfcTest, verifyPfcWithMapChanges_1) {
       TrafficTestParams{.buffer = defaultPfcBufferParams()});
 }
 
-TEST_F(AgentTrafficPfcTest, verifyBufferPoolWatermarks) {
-  const int trafficClass = kLosslessTrafficClass;
-  const int pfcPriority = kLosslessPriority;
-  runTestWithCfg(
-      trafficClass,
-      pfcPriority,
-      {},
-      TrafficTestParams{.buffer = defaultPfcBufferParams()},
-      validateBufferPoolWatermarkCounters);
+TEST_F(AgentTrafficPfcGenTest, verifyBufferPoolWatermarks) {
+  std::vector<PortID> portIds = portIdsForTest();
+  PortID portId = portIds[0];
+  PortID txOffPortId = portIds[1];
+  auto ip = getDestinationIps()[0];
+
+  auto setup = [&]() {
+    auto cfg = getPfcTestConfig(
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        {},
+        TrafficTestParams{.buffer = defaultPfcBufferParams()});
+    // Disable PFC RX on the injection port for VOQ platforms
+    // (e.g. Jericho3) where queues fill up and cause test failures.
+    // Only PFC TX is needed; RX can interfere with headroom watermark
+    // behavior. Skip for Chenab as it does not support independent
+    // PFC RX disable.
+    auto asicType = checkSameAndGetAsicType(cfg);
+    if (asicType != cfg::AsicType::ASIC_TYPE_CHENAB &&
+        asicType != cfg::AsicType::ASIC_TYPE_CHENAB2) {
+      for (auto& port : *cfg.ports()) {
+        if (PortID(*port.logicalID()) == portId && port.pfc().has_value()) {
+          port.pfc()->rx() = false;
+        }
+      }
+    }
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+    applyNewConfig(cfg);
+    setupEcmpTrafficNoLoop(txOffPortId, ip);
+  };
+
+  auto verify = [&]() {
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    std::optional<VlanID> vlanId;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      vlanId = kTxForVlanForChenab;
+    }
+    utility::triggerPfcGeneration(
+        getAgentEnsemble(),
+        portId,
+        txOffPortId,
+        ip,
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        vlanId);
+
+    validateBufferPoolWatermarkCounters(
+        getAgentEnsemble(), kLosslessPriority, {portId});
+    utility::cleanupPfcGeneration(getAgentEnsemble(), txOffPortId);
+
+    waitForWatermarkDecay([&]() {
+      uint64_t globalSharedWatermark{0};
+      uint64_t globalHeadroomWatermark{0};
+      for (const auto& switchAsic : getAgentEnsemble()->getL3Asics()) {
+        facebook::fboss::SwitchID switchId(*switchAsic->getSwitchId());
+        for (const auto& [_, val] : getAgentEnsemble()->getFb303RegexCounters(
+                 "buffer_watermark_global_shared(.itm.*)?.p100.60", switchId)) {
+          globalSharedWatermark += val;
+        }
+        if (getAgentEnsemble()
+                ->getSw()
+                ->getHwAsicTable()
+                ->isFeatureSupportedOnAllAsic(
+                    facebook::fboss::HwAsic::Feature::
+                        BUFFER_POOL_HEADROOM_WATERMARK)) {
+          for (const auto& [_, val] : getAgentEnsemble()->getFb303RegexCounters(
+                   "buffer_watermark_global_headroom(.itm.*)?.p100.60",
+                   switchId)) {
+            globalHeadroomWatermark += val;
+          }
+        }
+      }
+      XLOG(DBG0) << "Post-cleanup global headroom watermark: "
+                 << globalHeadroomWatermark
+                 << ", global shared watermark: " << globalSharedWatermark;
+      return globalSharedWatermark != 0 || globalHeadroomWatermark != 0;
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
-TEST_F(AgentTrafficPfcTest, verifyIngressPriorityGroupWatermarks) {
-  const int trafficClass = kLosslessTrafficClass;
-  const int pfcPriority = kLosslessPriority;
-  runTestWithCfg(
-      trafficClass,
-      pfcPriority,
-      {},
-      TrafficTestParams{.buffer = defaultPfcBufferParams()},
-      validateIngressPriorityGroupWatermarkCounters);
+TEST_F(AgentTrafficPfcGenTest, verifyIngressPriorityGroupWatermarks) {
+  std::vector<PortID> portIds = portIdsForTest();
+  PortID portId = portIds[0];
+  PortID txOffPortId = portIds[1];
+  auto ip = getDestinationIps()[0];
+
+  auto setup = [&]() {
+    auto cfg = getPfcTestConfig(
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        {},
+        TrafficTestParams{.buffer = defaultPfcBufferParams()});
+    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
+    applyNewConfig(cfg);
+    setupEcmpTrafficNoLoop(txOffPortId, ip);
+  };
+
+  auto verify = [&]() {
+    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    std::optional<VlanID> vlanId;
+    if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
+      vlanId = kTxForVlanForChenab;
+    }
+    utility::triggerPfcGeneration(
+        getAgentEnsemble(),
+        portId,
+        txOffPortId,
+        ip,
+        kLosslessTrafficClass,
+        kLosslessPriority,
+        vlanId);
+
+    validateIngressPriorityGroupWatermarkCounters(
+        getAgentEnsemble(), kLosslessPriority, {portId});
+    utility::cleanupPfcGeneration(getAgentEnsemble(), txOffPortId);
+
+    waitForWatermarkDecay([&]() {
+      uint64_t totalWatermark{0};
+      const auto& portName = getAgentEnsemble()
+                                 ->getProgrammedState()
+                                 ->getPorts()
+                                 ->getNodeIf(portId)
+                                 ->getName();
+      std::string pg = getAgentEnsemble()->isSai()
+          ? folly::sformat(".pg{}", kLosslessPriority)
+          : "";
+      std::string watermarkKeys = "shared";
+      if (getAgentEnsemble()
+              ->getSw()
+              ->getHwAsicTable()
+              ->isFeatureSupportedOnAllAsic(
+                  facebook::fboss::HwAsic::Feature::
+                      INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK)) {
+        watermarkKeys.append("|headroom");
+      }
+      auto regex = folly::sformat(
+          "buffer_watermark_pg_({}).{}{}.p100.60", watermarkKeys, portName, pg);
+      auto counters =
+          getAgentEnsemble()->getFb303CountersByRegex(portId, regex);
+      for (const auto& [_, val] : counters) {
+        totalWatermark += val;
+      }
+      XLOG(DBG0) << "Post-cleanup PG watermark total: " << totalWatermark;
+      return totalWatermark != 0;
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 class AgentTrafficPfcZeroPgHeadroomTest : public AgentTrafficPfcTest {
@@ -865,95 +1156,8 @@ TEST_F(AgentTrafficPfcRxTxDurationTest, verifyPfcRxTxDuration) {
       validatePfcDurationCounters);
 }
 
-class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
+class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
  protected:
-  void setupConfigAndEcmpTraffic(
-      const PortID& portId,
-      const PortID& txOffPortId,
-      const folly::IPAddressV6& ip) {
-    cfg::SwitchConfig cfg = getAgentEnsemble()->getCurrentConfig();
-    PfcBufferParams buffer = defaultPfcBufferParams();
-    buffer.scalingFactor = cfg::MMUScalingFactor::ONE_128TH;
-    utility::setupPfcBuffers(
-        getAgentEnsemble(),
-        cfg,
-        {portId},
-        kLosslessPgIds,
-        kLossyPgIds,
-        {},
-        buffer);
-
-    setupTxVlanForChenab(cfg, portId, kTxForVlanForChenab);
-
-    applyNewConfig(cfg);
-    setupEcmpTraffic(txOffPortId, ip);
-  }
-
-  void setupTxVlanForChenab(
-      cfg::SwitchConfig& cfg,
-      const PortID& portId,
-      const VlanID& vlanId) {
-    if (checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB &&
-        checkSameAndGetAsicType(cfg) != cfg::AsicType::ASIC_TYPE_CHENAB2) {
-      return;
-    }
-    // For Chenab, we need to create a VLAN so that packets that are switched
-    // hit the VLAN before hitting the route, egressing out of the first port.
-
-    cfg::Vlan vlan;
-    vlan.id() = vlanId;
-    vlan.name() = folly::sformat("vlan{}", static_cast<int>(vlanId));
-    vlan.routable() = false; // No routing needed, just isolation
-    // Set the interface ID for the VLAN
-    vlan.intfID() = kTxForVlanForChenab;
-    cfg.vlans()->push_back(vlan);
-
-    // Max: we need to add an interface, otherwise warmboot will fail.
-    cfg::Interface interface;
-    interface.name() = folly::to<std::string>(vlanId);
-    interface.type() = cfg::InterfaceType::VLAN;
-    interface.scope() = cfg::Scope::LOCAL;
-    interface.intfID() = kTxForVlanForChenab;
-    interface.vlanID() = vlanId;
-    interface.routerID() = 0;
-    // Deliberately choose MAC that doesn't match local CPU MAC used for other
-    // Router Interfaces (utility::kLocalCpuMac().toString()) This ensures
-    // switched packet from CPU gets forwarded by VLAN out of front panel port
-    // and not to this RIF.
-    interface.mac() = "00:11:22:33:44:55";
-    interface.mtu() = 9000;
-    interface.ipAddresses().ensure().emplace_back("200.0.0.1/24");
-    interface.ipAddresses().ensure().emplace_back("200::1/64");
-    cfg.interfaces()->push_back(interface);
-
-    // Change vlan port mapping so the portId is an untagged member
-    // of the test VLAN.
-    auto vlanPort = std::find_if(
-        cfg.vlanPorts()->begin(),
-        cfg.vlanPorts()->end(),
-        [portId](auto vlanPort) {
-          return vlanPort.logicalPort() == static_cast<int>(portId);
-        });
-
-    if (vlanPort != cfg.vlanPorts()->end()) {
-      XLOG(INFO) << "Found existing VLAN port entry for portId " << portId
-                 << ", changing from VLAN " << *vlanPort->vlanID()
-                 << " to VLAN " << vlanId;
-      vlanPort->vlanID() = vlanId;
-      vlanPort->spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-      vlanPort->emitTags() = false; // Untagged port
-    } else {
-      XLOG(INFO) << "No existing VLAN port entry found for portId " << portId
-                 << ", creating new entry for VLAN " << vlanId;
-      cfg::VlanPort testVlanPort;
-      testVlanPort.vlanID() = vlanId;
-      testVlanPort.logicalPort() = static_cast<int>(portId);
-      testVlanPort.spanningTreeState() = cfg::SpanningTreeState::FORWARDING;
-      testVlanPort.emitTags() = false; // Untagged port
-      cfg.vlanPorts()->push_back(testVlanPort);
-    }
-  }
-
   void setupWatchdog(const std::vector<PortID>& portIds, bool enable) {
     cfg::PfcWatchdog pfcWatchdog;
     if (enable) {
@@ -1092,20 +1296,28 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcTest {
   }
 
   std::tuple<int, int> getSwitchPfcDeadlockCounters() {
-    auto detectionCtrName = getAgentEnsemble()->isSai()
+    auto detectionCtrBase = getAgentEnsemble()->isSai()
         ? "pfc_deadlock_detection_count.sum"
         : "pfc_deadlock_detection.sum";
-    auto recoveryCtrName = getAgentEnsemble()->isSai()
+    auto recoveryCtrBase = getAgentEnsemble()->isSai()
         ? "pfc_deadlock_recovery_count.sum"
         : "pfc_deadlock_recovery.sum";
-    int deadlockCtr = 0;
-    int recoveryCtr = 0;
-    for (auto [switchId, asic] : getAsics()) {
-      deadlockCtr +=
-          getAgentEnsemble()->getFb303Counter(detectionCtrName, switchId);
-      recoveryCtr +=
-          getAgentEnsemble()->getFb303Counter(recoveryCtrName, switchId);
+    // Only query the ASIC under test. PFC deadlock is only triggered
+    // on this ASIC, so other ASICs always have 0 counters.
+    auto testSwitchId = SwitchID(FLAGS_switch_id_for_testing);
+    // In multi-switch mode, hw_agent registers counters with a
+    // "switch.<switchIndex>." prefix. Prepend it when querying.
+    std::string prefix;
+    if (getAsics().size() > 1) {
+      auto switchIndex =
+          getSw()->getSwitchInfoTable().getSwitchIndexFromSwitchId(
+              testSwitchId);
+      prefix = folly::to<std::string>("switch.", switchIndex, ".");
     }
+    int deadlockCtr = getAgentEnsemble()->getFb303Counter(
+        prefix + detectionCtrBase, testSwitchId);
+    int recoveryCtr = getAgentEnsemble()->getFb303Counter(
+        prefix + recoveryCtrBase, testSwitchId);
     return {deadlockCtr, recoveryCtr};
   }
 

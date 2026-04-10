@@ -40,7 +40,7 @@ int BcmQosPolicyTable::getNumQosPolicies() const {
 
 void BcmQosPolicyTable::processAddedQosPolicy(
     const std::shared_ptr<QosPolicy>& qosPolicy) {
-  if (qosPolicyMap_.find(qosPolicy->getName()) != qosPolicyMap_.end()) {
+  if (qosPolicyMap_.contains(qosPolicy->getName())) {
     throw FbossError("BcmQosPolicy=", qosPolicy->getName(), " already exists");
   }
   qosPolicyMap_.emplace(

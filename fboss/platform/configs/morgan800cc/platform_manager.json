@@ -13,7 +13,7 @@
       "pmUnitName": "MCB"
     },
     "FCB_SLOT": {
-      "numOutgoingI2cBuses": 1,
+      "numOutgoingI2cBuses": 3,
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x50",
@@ -31,7 +31,7 @@
       "pmUnitName": "SCM"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 5,
+      "numOutgoingI2cBuses": 4,
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x50",

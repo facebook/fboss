@@ -227,3 +227,10 @@ store_unittest(
         "SaiStoreReloadTest.cpp",
     ],
 )
+
+store_unittest(
+    name = "object_event_publisher_test",
+    srcs = [
+        "SaiObjectEventPublisherTest.cpp",
+    ],
+)

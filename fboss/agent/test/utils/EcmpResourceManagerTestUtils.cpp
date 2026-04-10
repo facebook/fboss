@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -237,7 +238,7 @@ void assertFibAndGroupsMatch(
       }
       ASSERT_NE(route, nullptr);
       bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().getNextHopSet().size() > 1;
+          getNextHops(state, route->getForwardInfo()).size() > 1;
       if (!isEcmpRoute) {
         continue;
       }
@@ -264,7 +265,7 @@ void assertFibAndGroupsMatch(
       // Non override nhops must map to a entry in nhops2Id. Confirming
       // that nhops map to a existing group in resourceMgr
       auto nonOverrideNormalizedHops =
-          route->getForwardInfo().nonOverrideNormalizedNextHops();
+          getNonOverrideNormalizedNextHops(state, route->getForwardInfo());
       auto nitr = nhops2Id.find(nonOverrideNormalizedHops);
       ASSERT_NE(nitr, nhops2Id.end());
       auto umGroupRefItr =
@@ -497,6 +498,64 @@ void assertRollbacks(
   auto deltas = applyDelta(StateDelta(startState, endState));
   XLOG(DBG2) << " Rolling back to start state";
   applyDelta(StateDelta(deltas.back().newState(), startState));
+}
+
+void assertAllRouteIdsResolvable(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& context) {
+  if (!FLAGS_resolve_nexthops_from_id) {
+    return;
+  }
+  auto fibsInfoMap = state->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMap, nullptr) << context;
+  for (const auto& [matcherStr, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto fibsMap = fibInfo->getfibsMap();
+    if (!fibsMap) {
+      continue;
+    }
+    for (const auto& [rid, fibContainer] : std::as_const(*fibsMap)) {
+      auto checkFib = [&](const auto& routeFib) {
+        if (!routeFib) {
+          return;
+        }
+        for (const auto& [_, route] : std::as_const(*routeFib)) {
+          if (!route->isResolved()) {
+            continue;
+          }
+          const auto& fwdInfo = route->getForwardInfo();
+          if (fwdInfo.getAction() != RouteNextHopEntry::Action::NEXTHOPS) {
+            continue;
+          }
+          auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+          auto normalizedSetId = fwdInfo.getNormalizedResolvedNextHopSetID();
+          if (!resolvedSetId.has_value() && !normalizedSetId.has_value()) {
+            continue;
+          }
+          if (resolvedSetId.has_value()) {
+            EXPECT_NO_THROW(
+                getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId)))
+                << context << " route=" << route->str()
+                << " resolvedSetId=" << *resolvedSetId;
+          }
+          if (normalizedSetId.has_value()) {
+            EXPECT_NO_THROW(
+                getNextHops(state, static_cast<NextHopSetId>(*normalizedSetId)))
+                << context << " route=" << route->str()
+                << " normalizedSetId=" << *normalizedSetId;
+          }
+        }
+      };
+      checkFib(fibContainer->getFibV6());
+      checkFib(fibContainer->getFibV4());
+    }
+  }
+}
+
+void assertAllDeltaIdsResolvable(const std::vector<StateDelta>& deltas) {
+  for (size_t i = 0; i < deltas.size(); ++i) {
+    auto context = "delta[" + std::to_string(i) + "].newState()";
+    assertAllRouteIdsResolvable(deltas[i].newState(), context);
+  }
 }
 
 void assertRibFibEquivalence(

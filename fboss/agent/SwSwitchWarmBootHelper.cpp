@@ -97,6 +97,9 @@ void SwSwitchWarmBootHelper::storeWarmBootState(
 }
 
 state::WarmbootState SwSwitchWarmBootHelper::getWarmBootState() const {
+  if (recoveredStateFromHW_.has_value()) {
+    return *recoveredStateFromHW_;
+  }
   return WarmBootFileUtils::getWarmBootState(warmBootThriftSwitchStateFile());
 }
 

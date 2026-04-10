@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# pyre-unsafe
+
 import argparse
 import concurrent.futures
 import os
 import pathlib
 import sys
 import tarfile
-from typing import Dict, List
 
 SRC_DIR = pathlib.Path("/var/FBOSS/fboss")
 OSS_DIR = SRC_DIR / "fboss/oss"
@@ -41,7 +42,6 @@ FORWARDING_EXTRA = {
     RUN_SCRIPTS_DIR / "setup_fboss_env": "bin/setup_fboss_env",
     RUN_SCRIPTS_DIR / "topology.cdf": "bin/topology.cdf",
     RUN_CONFIGS_DIR / "default_configs": "share/default_configs",
-    RUN_CONFIGS_DIR / "j2cp": "share/j2cp",
     RUN_CONFIGS_DIR / "j3b": "share/j3b",
     RUN_CONFIGS_DIR / "janga800bic": "share/janga800bic",
     RUN_CONFIGS_DIR / "r3": "share/r3",
@@ -161,7 +161,7 @@ PLATFORM_TEST_EXTRA = {
 }
 
 
-def write_tar(filename: str, contents: Dict[str, str]) -> None:
+def write_tar(filename: str, contents: dict[str, str]) -> None:
     if not contents:
         return
 
@@ -215,7 +215,7 @@ def _build_target(target: str, build_dir: pathlib.Path):
     return (prod_files, test_files)
 
 
-def package_fboss(target_name: str, target: List) -> None:
+def package_fboss(target_name: str, target: list) -> None:
     with concurrent.futures.ProcessPoolExecutor() as executor:
         executor.submit(write_tar, f"{target_name}.tar", target[0])
         if len(target) == 2:

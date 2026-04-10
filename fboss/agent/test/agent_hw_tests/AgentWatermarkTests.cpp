@@ -40,12 +40,10 @@ class AgentWatermarkTest : public AgentHwTest {
 
   void setCmdLineFlagOverrides() const override {
     AgentHwTest::setCmdLineFlagOverrides();
-    if (FLAGS_intf_nbr_tables) {
-      FLAGS_disable_neighbor_updates = false;
-      // Disabling because neighbor solicitation packets will cause device
-      // watermarks to be non-zero
-      FLAGS_disable_neighbor_solicitation = true;
-    }
+    FLAGS_disable_neighbor_updates = false;
+    // Disabling because neighbor solicitation packets will cause device
+    // watermarks to be non-zero
+    FLAGS_disable_neighbor_solicitation = true;
   }
 
   folly::IPAddressV6 kDestIp2() const {
@@ -95,7 +93,7 @@ class AgentWatermarkTest : public AgentHwTest {
     if (port.has_value()) {
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *port);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 
@@ -160,8 +158,9 @@ class AgentWatermarkTest : public AgentHwTest {
 
   uint64_t getMinDeviceWatermarkValue(SwitchID switchId) {
     uint64_t minDeviceWatermarkBytes{0};
-    if (getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType() ==
-        cfg::AsicType::ASIC_TYPE_EBRO) {
+    const auto asicType =
+        getSw()->getHwAsicTable()->getHwAsic(switchId)->getAsicType();
+    if (asicType == cfg::AsicType::ASIC_TYPE_EBRO) {
       /*
        * Ebro will always have some internal buffer utilization even
        * when there is no traffic in the ASIC. The recommendation is
@@ -170,38 +169,68 @@ class AgentWatermarkTest : public AgentHwTest {
        */
       constexpr auto kEbroMinDeviceWatermarkBytes = 38400;
       minDeviceWatermarkBytes = kEbroMinDeviceWatermarkBytes;
+    } else if (
+        asicType == cfg::AsicType::ASIC_TYPE_G202X ||
+        asicType == cfg::AsicType::ASIC_TYPE_YUBA) {
+      /*
+       * GR2 / Yuba / SAI: ingress buffer pool high-watermark may not read back
+       * as exactly zero after traffic stops; allow residual up to 173 KiB for
+       * the "idle" phase of the test.
+       */
+      constexpr auto kResidualDeviceWatermarkBytes = 173 * 1024;
+      minDeviceWatermarkBytes = kResidualDeviceWatermarkBytes;
     }
     return minDeviceWatermarkBytes;
   }
 
   bool gotExpectedDeviceWatermark(bool expectZero, SwitchID switchId) {
-    XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero;
+    static constexpr char kFb303DeviceWatermarkCtr[] =
+        "buffer_watermark_device.p100.60";
+    XLOG(DBG0) << "Expect zero watermark: " << std::boolalpha << expectZero
+               << " switchId=" << switchId;
     bool watermarkAsExpected = false;
+    uint64_t lastDeviceWatermarkBytes{0};
+    bool sawSwitchWatermarkStats{false};
+    bool fb303DeviceCtrPresent{false};
     WITH_RETRIES({
       auto switchWatermarkStats = getAllSwitchWatermarkStats();
-      if (switchWatermarkStats.find(switchId) == switchWatermarkStats.end()) {
+      if (!switchWatermarkStats.contains(switchId)) {
         continue;
       }
+      sawSwitchWatermarkStats = true;
       auto deviceWatermarkBytes =
           *switchWatermarkStats.at(switchId).deviceWatermarkBytes();
+      lastDeviceWatermarkBytes = deviceWatermarkBytes;
       XLOG(DBG0) << "Device watermark bytes: " << deviceWatermarkBytes;
+      const auto minWatermarkBytes = getMinDeviceWatermarkValue(switchId);
       watermarkAsExpected |=
-          (expectZero &&
-           (deviceWatermarkBytes <= getMinDeviceWatermarkValue(switchId))) ||
-          (!expectZero &&
-           (deviceWatermarkBytes > getMinDeviceWatermarkValue(switchId)));
+          (expectZero && (deviceWatermarkBytes <= minWatermarkBytes)) ||
+          (!expectZero && (deviceWatermarkBytes > minWatermarkBytes));
       EXPECT_EVENTUALLY_TRUE(watermarkAsExpected);
       if (!FLAGS_multi_switch) {
         auto allCtrs = facebook::fb303::fbData->getCounters();
-        auto ctr = allCtrs.find("buffer_watermark_device.p100.60");
+        auto ctr = allCtrs.find(kFb303DeviceWatermarkCtr);
         // We cant look for the exact value of the watermark counter,
         // but make sure the device watermark counter is available.
+        fb303DeviceCtrPresent = (ctr != allCtrs.end());
         EXPECT_EVENTUALLY_TRUE(ctr != allCtrs.end());
-        XLOG(DBG0) << ctr->first << " : " << ctr->second;
+        if (ctr != allCtrs.end()) {
+          XLOG(DBG0) << ctr->first << " : " << ctr->second;
+        }
       }
     });
     if (!watermarkAsExpected) {
-      XLOG(DBG2) << "Did not get expected device watermark value";
+      XLOG(DBG2) << "Device watermark bytes check failed: switchId=" << switchId
+                 << " expectZero=" << std::boolalpha << expectZero
+                 << " minWatermarkBytes="
+                 << getMinDeviceWatermarkValue(switchId)
+                 << " lastDeviceWatermarkBytes=" << lastDeviceWatermarkBytes
+                 << " sawSwitchWatermarkStats=" << std::boolalpha
+                 << sawSwitchWatermarkStats;
+      if (!FLAGS_multi_switch) {
+        XLOG(DBG2) << "fb303 counter '" << kFb303DeviceWatermarkCtr
+                   << "' present=" << std::boolalpha << fb303DeviceCtrPresent;
+      }
     }
     return watermarkAsExpected;
   }
@@ -238,8 +267,11 @@ class AgentWatermarkTest : public AgentHwTest {
 
     if (!statsConditionMet) {
       auto expectation = expectZero ? "zero" : "non-zero";
-      XLOG(DBG2) << " Did not get expected " << expectation
-                 << " watermark value!";
+      XLOG(ERR) << "Queue watermark check failed: port=" << portName
+                << " queueId=" << queueId << " isVoq=" << std::boolalpha
+                << isVoq << " expectZero=" << expectZero << " expected "
+                << expectation
+                << " queueWatermarkBytes=" << queueWaterMarks[queueId];
     } else {
       XLOG(DBG2) << "Port: " << portName << queueTypeStr << queueId
                  << " got expected queue watermarks of "
@@ -280,22 +312,19 @@ class AgentWatermarkTest : public AgentHwTest {
 
     if (needTrafficLoop) {
       const auto& nextHop = ecmpHelper6.nhop(portDesc);
-      utility::ttlDecrementHandlingForLoopbackTraffic(
+      utility::disablePortTTLDecrementIfSupported(
           getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
     }
 
-    if (FLAGS_intf_nbr_tables) {
-      auto interfaceId =
-          ecmpHelper6.getInterface(portDesc, getProgrammedState());
-      if (interfaceId) {
-        auto interface = getProgrammedState()->getInterfaces()->getNodeIf(
-            interfaceId.value());
-        populateNdpNeighborsToCache(interface);
-      } else {
-        XLOG(WARN)
-            << "Interface ID " << interfaceId.value()
-            << " not found in ECMP setup. Skipping resolution of NDP neighbor";
-      }
+    auto interfaceId = ecmpHelper6.getInterface(portDesc, getProgrammedState());
+    if (interfaceId) {
+      auto interface =
+          getProgrammedState()->getInterfaces()->getNodeIf(interfaceId.value());
+      populateNdpNeighborsToCache(interface);
+    } else {
+      XLOG(WARN) << "Interface ID not found in ECMP setup for port "
+                 << portDesc.phyPortID()
+                 << ". Skipping resolution of NDP neighbor";
     }
   }
 
@@ -315,10 +344,13 @@ class AgentWatermarkTest : public AgentHwTest {
       ecmpHelper6.programRoutes(
           &routeUpdater,
           {portDesc},
-          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}});
+          {Route<folly::IPAddressV6>::Prefix{portAndIp.second, 128}},
+          {},
+          std::nullopt,
+          needTrafficLoop ? std::make_optional(true) : std::nullopt);
       if (needTrafficLoop) {
         const auto& nextHop = ecmpHelper6.nhop(portDesc);
-        utility::ttlDecrementHandlingForLoopbackTraffic(
+        utility::disablePortTTLDecrementIfSupported(
             getAgentEnsemble(), ecmpHelper6.getRouterId(), nextHop);
       }
     }
