@@ -49,8 +49,13 @@
 #endif
 #endif
 
-#define MODULE_LOG(level, Module, tcvrID) \
-  XLOG(level) << Module << " tcvrID:" << tcvrID << ": "
+#define MODULE_LOG(level, Module, tcvrID)                  \
+  XLOG(level) << Module << "Transceiver:" << tcvrID << " " \
+              << getTransceiverName(TransceiverID(tcvrID)) << ": "
+
+#define MODULE_LOG_IF(level, Module, cond, tcvrID)                  \
+  XLOG_IF(level, cond) << Module << "Transceiver:" << tcvrID << " " \
+                       << getTransceiverName(TransceiverID(tcvrID)) << ": "
 
 #define FW_LOG(level, tcvrID) MODULE_LOG(level, "[FWUPG]", tcvrID)
 
