@@ -301,4 +301,53 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASid) {
   this->verifyAcrossWarmBoots(setup, verify);
 }
 
+TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
+  auto setup = [this]() {
+    this->setupHelper();
+    // Unresolve the neighbor so the mySid entry becomes unresolved.
+    auto ecmpHelper = this->makeEcmpHelper();
+    this->unresolveNeighbors(ecmpHelper, 1);
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort(egressPort);
+
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+
+    auto intfMac =
+        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+
+    auto txPacket = utility::makeIpInIpTxPacket(
+        this->getSw(),
+        this->getVlanIDForTx().value(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("100::1") /* outerSrc */,
+        this->kPktOuterDst /* outerDst */,
+        folly::IPAddressV6("2001:db8::1") /* innerSrc */,
+        folly::IPAddressV6("2001:db8::2") /* innerDst */,
+        8000 /* srcPort */,
+        8001 /* dstPort */,
+        0 /* outerTrafficClass */,
+        0 /* innerTrafficClass */,
+        64,
+        64);
+
+    this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
+      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
