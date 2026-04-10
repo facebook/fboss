@@ -29,6 +29,7 @@
 #include "fboss/qsfp_service/QsfpServiceThreads.h"
 #include "fboss/qsfp_service/SlotThreadHelper.h"
 #include "fboss/qsfp_service/StateMachineController.h"
+#include "fboss/qsfp_service/TransceiverLogging.h"
 #include "fboss/qsfp_service/TransceiverStateMachine.h"
 #include "fboss/qsfp_service/TransceiverValidator.h"
 #include "fboss/qsfp_service/TypedStateMachineUpdate.h"
@@ -49,13 +50,13 @@
 #endif
 #endif
 
-#define MODULE_LOG(level, Module, tcvrID)                  \
-  XLOG(level) << Module << "Transceiver:" << tcvrID << " " \
-              << getTransceiverName(TransceiverID(tcvrID)) << ": "
+#define MODULE_LOG(level, Module, tcvrID) \
+  TCVR_LOG_BASE(level, Module, tcvrID)    \
+      << getTransceiverName(TransceiverID(tcvrID)) << ": "
 
-#define MODULE_LOG_IF(level, Module, cond, tcvrID)                  \
-  XLOG_IF(level, cond) << Module << "Transceiver:" << tcvrID << " " \
-                       << getTransceiverName(TransceiverID(tcvrID)) << ": "
+#define MODULE_LOG_IF(level, Module, cond, tcvrID) \
+  TCVR_LOG_BASE_IF(level, cond, Module, tcvrID)    \
+      << getTransceiverName(TransceiverID(tcvrID)) << ": "
 
 #define FW_LOG(level, tcvrID) MODULE_LOG(level, "[FWUPG]", tcvrID)
 

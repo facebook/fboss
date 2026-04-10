@@ -20,17 +20,18 @@
 #include <folly/logging/xlog.h>
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
+#include "fboss/qsfp_service/TransceiverLogging.h"
+
 DECLARE_bool(use_new_state_machine);
 DECLARE_bool(port_manager_mode);
 
 // State machine log macros, similar to MODULE_LOG in TransceiverManager.h.
 // Assumes `fsm` is in scope (all state machine actions/helpers have it).
 // tcvrID is already a TransceiverID in the state machine context.
-#define TCVR_SM_LOG(level, tcvrID) \
-  XLOG(level) << "[SM]Transceiver:" << tcvrID << " "
+#define TCVR_SM_LOG(level, tcvrID) TCVR_LOG_BASE(level, "[SM]", tcvrID)
 
 #define TCVR_SM_LOG_IF(level, cond, tcvrID) \
-  XLOG_IF(level, cond) << "[SM]Transceiver:" << tcvrID << " "
+  TCVR_LOG_BASE_IF(level, cond, "[SM]", tcvrID)
 
 namespace facebook::fboss {
 
