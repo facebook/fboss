@@ -23,6 +23,8 @@
 namespace facebook {
 namespace fboss {
 
+#define WEDGE_QSFP_LOG(level) XLOG(level) << "Transceiver:" << module_ << " "
+
 /*
  * This is the Wedge Platform Specific Class
  * and contains all the Wedge QSFP Specific Functions
