@@ -8,10 +8,18 @@ using namespace ::testing;
 using namespace facebook::fboss::platform::sensor_service;
 using namespace facebook::fboss::platform::sensor_config;
 namespace {
-PmSensor createPmSensor(const std::string& name, const std::string& sysfsPath) {
+PmSensor createPmSensor(
+    const std::string& name,
+    const std::string& sysfsPath,
+    SensorType type = SensorType::POWER,
+    std::optional<Thresholds> thresholds = std::nullopt) {
   PmSensor pmSensor;
   pmSensor.name() = name;
   pmSensor.sysfsPath() = sysfsPath;
+  pmSensor.type() = type;
+  if (thresholds.has_value()) {
+    pmSensor.thresholds() = *thresholds;
+  }
   return pmSensor;
 }
 
@@ -833,4 +841,74 @@ TEST(ConfigValidatorTest, PlatformNameValidation) {
   // Mixed case name
   config.platformName() = "Montblanc";
   EXPECT_FALSE(ConfigValidator().isValidPlatformName(config));
+}
+
+TEST(ConfigValidatorTest, TemperatureSensorWithThresholds) {
+  auto config = createBasicSensorConfig();
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+
+  Thresholds thresholds;
+  thresholds.upperCriticalVal() = 95;
+  thresholds.maxAlarmVal() = 90;
+  pmUnitSensors.sensors()->emplace_back(createPmSensor(
+      "CPU_TEMP",
+      "/run/devmap/sensors/CPU_TEMP",
+      SensorType::TEMPERATURE,
+      thresholds));
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, TemperatureSensorWithoutThresholds) {
+  auto config = createBasicSensorConfig();
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+
+  pmUnitSensors.sensors()->emplace_back(createPmSensor(
+      "CPU_TEMP", "/run/devmap/sensors/CPU_TEMP", SensorType::TEMPERATURE));
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, TemperatureSensorWithoutThresholdsViolatorPlatform) {
+  auto config = createBasicSensorConfig();
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+
+  pmUnitSensors.sensors()->emplace_back(createPmSensor(
+      "CPU_TEMP", "/run/devmap/sensors/CPU_TEMP", SensorType::TEMPERATURE));
+
+  config.platformName() = "MONTBLANC";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+  config.platformName() = "ICECUBE";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+  config.platformName() = "ICETEA";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+  config.platformName() = "LEH800BCLS";
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, NonTemperatureSensorWithoutThresholds) {
+  auto config = createBasicSensorConfig();
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+
+  pmUnitSensors.sensors()->emplace_back(
+      createPmSensor("FAN_SPEED", "/run/devmap/sensors/FAN", SensorType::FAN));
+  pmUnitSensors.sensors()->emplace_back(createPmSensor(
+      "INPUT_VOLTAGE", "/run/devmap/sensors/VIN", SensorType::VOLTAGE));
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, VersionedTemperatureSensorWithoutThresholds) {
+  auto config = createBasicSensorConfig();
+  auto& pmUnitSensors = config.pmUnitSensorsList()->at(0);
+
+  VersionedPmSensor versionedPmSensor;
+  versionedPmSensor.productProductionState() = 1;
+  versionedPmSensor.sensors() = {createPmSensor(
+      "VERSIONED_TEMP",
+      "/run/devmap/sensors/VERSIONED_TEMP",
+      SensorType::TEMPERATURE)};
+  pmUnitSensors.versionedSensors() = {versionedPmSensor};
+
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
