@@ -59,7 +59,6 @@ EOF
 fi
 
 mkdir -p /distro_infra/dnsmasq_conf.d
-# shellcheck disable=SC2086
 colonmac=$(echo ${DASH_MAC} | tr - :)
 echo "${colonmac},id:*,set:fbossdut" >"/distro_infra/dnsmasq_conf.d/$DASH_MAC"
 

@@ -9,8 +9,10 @@ python_library(
     labels = ["autodeps2_generated"],
     deps = [
         "//fboss/github/fboss-image/distro_cli/lib:cli",
+        "//fboss/github/fboss-image/distro_cli/lib:device_update",
         "//fboss/github/fboss-image/distro_cli/lib:distro_infra",
         "//fboss/github/fboss-image/distro_cli/lib:exceptions",
+        "//fboss/github/fboss-image/distro_cli/lib:manifest",
         "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
     ],
 )

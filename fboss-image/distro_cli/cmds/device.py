@@ -11,8 +11,10 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 
 from distro_cli.lib.cli import validate_path
+from distro_cli.lib.device_update import DeviceUpdateError, DeviceUpdater
 from distro_cli.lib.distro_infra import (
     deploy_image_to_device,
     DISTRO_INFRA_CONTAINER,
@@ -21,6 +23,7 @@ from distro_cli.lib.distro_infra import (
 )
 from distro_cli.lib.docker import container
 from distro_cli.lib.exceptions import DistroInfraError
+from distro_cli.lib.manifest import ImageManifest
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +60,37 @@ def image_command(args):
 
 def reprovision_command(args):
     """Reprovision device"""
-    logger.info(f"Reprovisioning device {args.mac}")
-    logger.info("Device reprovision command (stub)")
+    ip_address = get_device_ip(args.mac)
+
+    if not ip_address:
+        logger.error("No IP address found for device")
+        return
+
+    # devpart -> /dev/nvme0n1p3
+    # dev     -> /dev/nvme0n3
+    # part    -> 3
+    cmd = r"""
+    if [ ! -d /opt/fboss ]; then echo "Not an FBOSS device. Aborting"; exit 1; fi; \
+    rm -rf /boot/efi/EFI/*;
+    root_devpart=$(mount | awk '/\/ type/ { print $1 }');
+    root_dev=$(mount | awk -F 'p' '/\/ type/ { print $1 }');
+    root_part=$(mount | awk -F '[[:space:]p]' '/\/ type/ { print $2 }');
+    dd if=/dev/zero of=${root_devpart} bs=1M count=50;
+    (sleep 1; echo yes; sleep 1; echo ignore) | parted ---pretend-input-tty ${root_dev} rm ${root_part};
+    reboot --force
+    """
+    os.execvp(
+        "ssh",
+        [
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            f"root@{ip_address}",
+            cmd,
+        ],
+    )
 
 
 def update_command(args):
@@ -66,7 +98,28 @@ def update_command(args):
     logger.info(f"Updating device {args.mac}")
     logger.info(f"Manifest: {args.manifest}")
     logger.info(f"Components: {' '.join(args.components)}")
-    logger.info("Device update command (stub)")
+
+    manifest = ImageManifest(Path(args.manifest))
+
+    # Get device IP once for all components
+    device_ip = get_device_ip(args.mac)
+    if not device_ip:
+        logger.error("Cannot update: device IP not found")
+        sys.exit(1)
+
+    for component in args.components:
+        try:
+            updater = DeviceUpdater(
+                mac=args.mac,
+                manifest=manifest,
+                component=component,
+                device_ip=device_ip,
+            )
+            updater.update()
+            logger.info(f"Successfully updated {component}")
+        except DeviceUpdateError as e:
+            logger.error(f"Failed to update {component}: {e}")
+            sys.exit(1)
 
 
 def get_device_ip(mac: str) -> str | None:

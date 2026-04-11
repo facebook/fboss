@@ -140,7 +140,7 @@ get_ipv4_broadcast() {
   local tmp_error="/tmp/getip_broadcast_err_$$"
   local cmd="ip -4 addr show ${dev_option}"
 
-  ip -4 addr show "${dev_option}" >"$tmp_output" 2>"$tmp_error"
+  ip -4 addr show ${dev_option} >"$tmp_output" 2>"$tmp_error"
   local exit_code=$?
 
   if [ $exit_code -ne 0 ]; then
@@ -176,7 +176,7 @@ get_ip_from_neighbor() {
   local tmp_error="/tmp/getip_neighbor_err_${ip_version}_$$"
   local cmd="ip -${ip_version} neighbor show ${dev_option}"
 
-  ip -"${ip_version}" neighbor show "${dev_option}" >"$tmp_output" 2>"$tmp_error"
+  ip -"${ip_version}" neighbor show ${dev_option} >"$tmp_output" 2>"$tmp_error"
   local exit_code=$?
 
   if [ $exit_code -ne 0 ]; then
@@ -220,12 +220,10 @@ ping_ip() {
   fi
 
   # Ping the IP address. Suppress output and errors.
-  # shellcheck disable=SC2086  # $ping_options intentionally unquoted for word splitting
-  "$ping_cmd" $ping_options "$ip_addr" >/dev/null 2>&1
+  $ping_cmd $ping_options "$ip_addr" >/dev/null 2>&1
 }
 
 # Check if an IP is IPv6
-# shellcheck disable=SC2317  # Used in subsequent diffs
 is_ipv6() {
   local ip="$1"
   [[ $ip =~ : ]]
