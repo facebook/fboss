@@ -156,7 +156,7 @@ def container_is_running(name: str) -> bool:
     """
     logger.info(f"Checking if container is running: {name}")
 
-    cmd = ["docker", "ps", "-q", "--filter", f"name={name}"]
+    cmd = ["docker", "ps", "-aq", "--filter", f"name={name}"]
 
     logger.debug(f"Running: {' '.join(str(c) for c in cmd)}")
 

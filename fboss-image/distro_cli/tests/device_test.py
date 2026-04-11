@@ -100,20 +100,14 @@ class TestDeviceCommands(unittest.TestCase):
         shutil.rmtree(cls.container_temp_dir, ignore_errors=True)
 
     def setup_image_command_test(self):
-        """Set up PXE boot infrastructure for image command tests.
-
-        Waits for the container's run_distro_infra.sh script to create the cache
-        directory and copy iPXE boot files.
-        """
+        """Wait for container to create PXE boot infrastructure."""
         cache_dir = self.container_persistent_dir / "cache"
 
-        # Wait for cache directory to be created by container
         waitfor(
             cache_dir.exists,
             lambda: self.fail("Timed out waiting for cache directory to be created"),
         )
 
-        # Wait for all iPXE files to be created by container
         for filename in self.IPXE_FILES:
             cache_file = cache_dir / filename
             waitfor(
