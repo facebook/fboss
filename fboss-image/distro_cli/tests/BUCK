@@ -11,6 +11,7 @@ python_library(
         "//fboss/github/fboss-image/distro_cli/cmds:device",
         "//fboss/github/fboss-image/distro_cli/lib:distro_infra",
         "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+        "//fboss/github/fboss-image/distro_cli/tests:test_helpers",
     ],
 )
 

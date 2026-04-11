@@ -11,6 +11,7 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
@@ -97,3 +98,32 @@ def override_artifact_store_dir(store_dir: Path) -> Generator[None, None, None]:
         yield
     finally:
         ArtifactStore.ARTIFACT_STORE_DIR = original
+
+
+def waitfor(condition_fn, assert_fn, timeout=60.0, interval=0.1):
+    """Wait for a condition to become true with timeout.
+
+    Repeatedly checks a condition function until it returns True or the timeout
+    expires. If the timeout is reached, calls the assert function to fail the test.
+
+    Args:
+        condition_fn: Callable that returns True when the condition is met
+        assert_fn: Callable to invoke if timeout expires (should fail the test)
+        timeout: Maximum time to wait in seconds (default: 60.0)
+        interval: Time to sleep between checks in seconds (default: 0.1)
+
+    Example:
+        waitfor(
+            lambda: cache_dir.exists,
+            lambda: self.fail("Cache directory not created"),
+            timeout=30.0
+        )
+    """
+    start = time.time()
+    while True:
+        if condition_fn():
+            return
+        if time.time() - start > timeout:
+            assert_fn()
+            raise AssertionError("assert_fn should not have returned!")
+        time.sleep(interval)

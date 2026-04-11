@@ -30,10 +30,13 @@ from distro_cli.cmds.device import (
 )
 from distro_cli.lib.distro_infra import DISTRO_INFRA_CONTAINER
 from distro_cli.lib.docker import container
+from distro_cli.tests.test_helpers import waitfor
 
 
 class TestDeviceCommands(unittest.TestCase):
     """Test device command group and subcommands"""
+
+    IPXE_FILES = ("ipxev4.efi", "ipxev6.efi", "autoexec.ipxe")
 
     @classmethod
     def setUpClass(cls):
@@ -91,6 +94,62 @@ class TestDeviceCommands(unittest.TestCase):
             container.stop_and_remove_container(DISTRO_INFRA_CONTAINER)
 
         shutil.rmtree(cls.container_temp_dir, ignore_errors=True)
+
+    def setup_image_command_test(self):
+        """Wait for container to create PXE boot infrastructure."""
+        cache_dir = self.container_persistent_dir / "cache"
+
+        waitfor(
+            cache_dir.exists,
+            lambda: self.fail("Timed out waiting for cache directory to be created"),
+        )
+
+        for filename in self.IPXE_FILES:
+            cache_file = cache_dir / filename
+            waitfor(
+                cache_file.exists,
+                lambda f=filename: self.fail(
+                    f"Timed out waiting for {f} to be created"
+                ),
+            )
+
+    def verify_image_command_common(self, mac):
+        """Verify common PXE boot infrastructure created by image command"""
+        dash_mac = mac.replace(":", "-")
+        mac_dir = self.container_persistent_dir / dash_mac
+
+        self.assertTrue(mac_dir.exists())
+        self.assertTrue(mac_dir.is_dir())
+
+        for ipxe_file in self.IPXE_FILES:
+            ipxe_path = mac_dir / ipxe_file
+            self.assertTrue(ipxe_path.exists())
+
+        pxeboot_marker = mac_dir / "pxeboot_complete"
+        self.assertTrue(pxeboot_marker.exists())
+
+        ipxev6_serverip = mac_dir / "ipxev6.efi-serverip"
+        if ipxev6_serverip.exists():
+            content = ipxev6_serverip.read_text()
+            self.assertIn("#!ipxe", content)
+            self.assertIn("set server_ip", content)
+
+        result = subprocess.run(
+            [
+                "docker",
+                "exec",
+                DISTRO_INFRA_CONTAINER,
+                "cat",
+                f"/distro_infra/dnsmasq_conf.d/{dash_mac}",
+            ],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn(mac, result.stdout)
+
+        return mac_dir
 
     def setUp(self):
         """Set up test fixtures"""
