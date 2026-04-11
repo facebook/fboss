@@ -1,0 +1,19 @@
+{
+  "distribution_formats": {
+    "onie": "FBOSS-integration-test.bin"
+  },
+  "kernel": {
+    "download": "file:kernel.rpms.tar"
+  },
+  "fboss-platform-stack": {
+    "execute": ["build_stack.sh", "platform-stack"],
+    "artifact": "platform-stack.tar"
+  },
+  "sai": {
+    "download": "file:sai-devel.tar"
+  },
+  "fboss-forwarding-stack": {
+    "execute": ["build_stack.sh", "forwarding-stack"],
+    "artifact": "forwarding-stack.tar"
+  }
+}

@@ -1,4 +1,5 @@
 load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+load("@fbcode_macros//build_defs:python_unittest.bzl", "python_unittest")
 
 oncall("fboss_distro")
 
@@ -38,5 +39,16 @@ python_library(
     deps = [
         "//fboss/github/fboss-image/distro_cli/lib:artifact",
         "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+    ],
+)
+
+python_unittest(
+    name = "device_integration_test",
+    srcs = ["device_integration_test.py"],
+    labels = ["autodeps2_generated"],
+    deps = [
+        ":test_helpers",
+        "//fboss/github/fboss-image/distro_cli/lib:device_update",
+        "//fboss/github/fboss-image/distro_cli/lib:manifest",
     ],
 )
