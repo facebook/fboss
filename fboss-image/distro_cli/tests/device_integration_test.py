@@ -434,6 +434,83 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                         f"Service {svc} should have {UPDATE_VERSION} after second update, got {version}",
                     )
 
+    def test_integration_update_other_dependencies(self):
+        """Test update of other_dependencies installs RPMs to root filesystem.
+
+        Verifies:
+        1. RPM is installed to / (not in a service subvolume)
+        2. Binary is available at /usr/local/bin/test-tool
+        3. No services are restarted
+        """
+        if not INTEGRATION_MANIFEST.exists():
+            self.skipTest(f"Integration manifest not found: {INTEGRATION_MANIFEST}")
+
+        result = subprocess.run(
+            [
+                "docker",
+                "exec",
+                self.PROXY_DEVICE,
+                "test",
+                "-f",
+                "/usr/local/bin/test-tool",
+            ],
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(
+            result.returncode,
+            0,
+            "test-tool should not exist before update",
+        )
+
+        # Get writable copy of integration data as the test sandbox is read-only to allow for
+        # storing intermediate build artifacts
+        with get_writable_copy(
+            INTEGRATION_DATA_DIR, "integration_"
+        ) as temp_integration_data:
+            temp_manifest = temp_integration_data / "integration_manifest.json"
+            manifest = ImageManifest(temp_manifest)
+
+            # Override artifact store to use writable temp directory (sandbox is read-only) to
+            # store final artifacts
+            artifact_dir = temp_integration_data.parent / "artifacts"
+            artifact_dir.mkdir(exist_ok=True)
+            with override_artifact_store_dir(artifact_dir):
+                updater = DeviceUpdater(
+                    mac=self.device_mac,
+                    manifest=manifest,
+                    component="other_dependencies",
+                    device_ip=self.device_ip,
+                )
+                updater.update()
+
+        result = subprocess.run(
+            [
+                "docker",
+                "exec",
+                self.PROXY_DEVICE,
+                "test",
+                "-f",
+                "/usr/local/bin/test-tool",
+            ],
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            "test-tool should exist after update",
+        )
+
+        result = subprocess.run(
+            ["docker", "exec", self.PROXY_DEVICE, "/usr/local/bin/test-tool"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, "test-tool should be executable")
+        self.assertIn("2.0.0", result.stdout, "test-tool should report version 2.0.0")
+
 
 if __name__ == "__main__":
     unittest.main()

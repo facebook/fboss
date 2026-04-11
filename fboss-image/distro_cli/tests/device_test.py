@@ -384,8 +384,33 @@ class TestDeviceUpdater(unittest.TestCase):
             updater.validate()
         self.assertIn("not found in manifest", str(ctx.exception))
 
-    def test_validate_component_with_no_services(self):
-        """Test that component with empty services list raises error"""
+    def test_validate_component_with_no_services_allowed_for_other_dependencies(self):
+        """Test that component with empty services list is allowed for other_dependencies"""
+        # Create a manifest with other_dependencies
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(
+                {
+                    "distribution_formats": {"onie": "test.bin"},
+                    "kernel": {"download": "https://example.com/kernel.tar"},
+                    "other_dependencies": [
+                        {"download": "https://example.com/nano.rpm"}
+                    ],
+                },
+                f,
+            )
+            temp_manifest_path = Path(f.name)
+        self.addCleanup(temp_manifest_path.unlink)
+
+        manifest = ImageManifest(temp_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="other_dependencies",
+        )
+        updater.validate()
+
+    def test_validate_component_with_no_services_raises_error(self):
+        """Test that component with empty services list raises error (except other_dependencies)"""
         manifest = ImageManifest(self.update_manifest_path)
         updater = DeviceUpdater(
             mac="aa:bb:cc:dd:ee:ff",
@@ -475,6 +500,31 @@ class TestDeviceUpdater(unittest.TestCase):
                 "data_corral_service",
             ],
         )
+
+    def test_get_services_for_other_dependencies(self):
+        """Test that other_dependencies returns empty service list"""
+        # Create a manifest with other_dependencies
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(
+                {
+                    "distribution_formats": {"onie": "test.bin"},
+                    "kernel": {"download": "https://example.com/kernel.tar"},
+                    "other_dependencies": [
+                        {"download": "https://example.com/nano.rpm"}
+                    ],
+                },
+                f,
+            )
+            temp_manifest_path = Path(f.name)
+        self.addCleanup(temp_manifest_path.unlink)
+
+        manifest = ImageManifest(temp_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="other_dependencies",
+        )
+        self.assertEqual(updater._get_services(), [])
 
     def test_update_requires_device_ip(self):
         """Test that update() raises DeviceUpdateError when device_ip is not set"""
