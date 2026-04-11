@@ -112,7 +112,6 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ARS:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
-    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::SAI_SERDES_RX_REACH:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::PORT_SERDES_ZERO_PREEMPHASIS:
@@ -237,6 +236,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
       return false;
   }
   return false;
