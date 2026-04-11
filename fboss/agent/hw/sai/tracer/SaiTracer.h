@@ -15,6 +15,7 @@
 #include <typeindex>
 
 #include "fboss/agent/AsyncLogger.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
@@ -382,7 +383,7 @@ class SaiTracer {
       {TYPE_INDEX(AclEntryFieldU8List), &aclEntryFieldU8ListAttr},
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      {TYPE_INDEX(std::vector<folly::IPAddressV6>), &segmentListAttr},
+      {TYPE_INDEX(SaiSegmentListValueType), &segmentListAttr},
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
       {TYPE_INDEX(SaiJsonString), &jsonAttr},
