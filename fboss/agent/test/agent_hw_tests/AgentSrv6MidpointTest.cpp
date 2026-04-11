@@ -12,6 +12,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -171,7 +172,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     auto bytesBefore = *portStatsBefore.outBytes_();
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     constexpr uint8_t kHopLimit{24};
     constexpr uint8_t kTc{42};
     auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)

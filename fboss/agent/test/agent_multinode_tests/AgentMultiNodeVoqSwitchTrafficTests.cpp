@@ -3,6 +3,7 @@
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeVoqSwitchTrafficTests.h"
 
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/thrift_client_utils/ThriftClientUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
@@ -106,7 +107,7 @@ void AgentMultiNodeVoqSwitchTrafficTest::injectTraffic(
         getSw(),
         std::nullopt, // vlanIDForTx
         folly::MacAddress("00:02:00:00:01:01"), // srcMac
-        utility::getMacForFirstInterfaceWithPorts(
+        getMacForFirstInterfaceWithPortsForTesting(
             getSw()->getState()), // dstMac
         kSrcIP,
         prefix, // dstIP
@@ -243,7 +244,7 @@ size_t AgentMultiNodeVoqSwitchTrafficTest::pumpRoCETraffic(
       true /* isV6 */,
       utility::makeAllocator(getSw()),
       utility::getSendPktFunc(getSw()),
-      utility::getMacForFirstInterfaceWithPorts(getSw()->getState()), // dstMac
+      getMacForFirstInterfaceWithPortsForTesting(getSw()->getState()), // dstMac
       std::nullopt /* vlan */,
       localPort,
       kSrcIP,

@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
@@ -123,7 +124,7 @@ class HwHashConsistencyTest : public HwLinkStateDependentTest {
   void sendFlowWithPort(uint16_t l4SrcPort, uint16_t l4DstPort, FlowType type) {
     auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto dstMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
 
     auto tcpPkt = utility::makeTCPTxPacket(
         getHwSwitch(),

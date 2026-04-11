@@ -14,6 +14,7 @@
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -251,7 +252,7 @@ size_t AgentArsBase::sendRoceTraffic(
     int destPort) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   return utility::pumpRoCETraffic(
       true,
       utility::getAllocatePktFn(getAgentEnsemble()),

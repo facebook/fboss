@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -91,7 +92,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPort) {
         {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto payLoadSize = 256;
     auto txPacket = utility::makeEthTxPacket(
@@ -145,7 +146,7 @@ TEST_F(AgentPacketSendTest, LldpToFrontPanelOutOfPortWithBufClone) {
         {cfg::PortType::INTERFACE_PORT, cfg::PortType::HYPER_PORT_MEMBER})[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto payLoadSize = 256;
     auto numPkts = 20;
@@ -227,7 +228,7 @@ TEST_F(AgentPacketSendTest, PortTxEnableTest) {
                             const folly::IPAddressV6& dstIpv6Addr) {
         auto vlanId = getVlanIDForTx();
         auto intfMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
         constexpr auto kPayLoadLen{1000};
         int dscpVal = 0;
@@ -328,7 +329,7 @@ TEST_F(AgentPacketSendReceiveTest, LldpPacketReceiveSrcPort) {
         this, "LldpPacketReceiveSrcPort");
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto expectedNumPktsReceived = 1;
     for (const auto& port :
@@ -417,7 +418,7 @@ TEST_F(AgentPacketSendReceiveLagTest, LacpPacketReceiveSrcPort) {
         this, "LacpPacketReceiveSrcPort");
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto payLoadSize = 256;
     static auto payload = std::vector<uint8_t>(payLoadSize, 0xff);
     payload[0] = 0x1; // sub-version of lacp packet
@@ -534,7 +535,7 @@ TEST_F(AgentPacketFloodTest, ArpRequestFloodTest) {
         getLatestPortStats(masterLogicalInterfaceOrHyperPortIds());
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(
@@ -559,7 +560,7 @@ TEST_F(AgentPacketFloodTest, NdpFloodTest) {
     auto retries = 5;
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto success = false;
     while (retries--) {
       auto portStatsBefore =
@@ -591,7 +592,7 @@ TEST_F(AgentSwitchedPacketSendTest, ArpRequestToFrontPanelPortSwitched) {
         getLatestPortStats(masterLogicalInterfaceOrHyperPortIds()[0]);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto randomIP = folly::IPAddressV4("1.1.1.5");
     auto txPacket = utility::makeARPTxPacket(

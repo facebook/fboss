@@ -4,6 +4,7 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/VoqTestUtils.h"
 
@@ -133,7 +134,8 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyLoadBalancing) {
                 true /* isV6 */,
                 utility::getAllocatePktFn(getAgentEnsemble()),
                 utility::getSendPktFunc(getAgentEnsemble()),
-                utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+                getMacForFirstInterfaceWithPortsForTesting(
+                    getProgrammedState()),
                 std::nullopt /* vlan */,
                 masterLogicalInterfacePortIds()[i],
                 utility::kUdfL4DstPort,
@@ -173,8 +175,8 @@ TEST_F(AgentVoqSwitchConditionalEntropyTest, verifyNonRoceTrafficUnbalanced) {
         auto pkt = utility::makeUDPTxPacket(
             utility::getAllocatePktFn(getAgentEnsemble()),
             std::nullopt,
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
             srcIp, /* fixed */
             dstIp, /* fixed */
             42, /* arbit src port, fixed */
@@ -228,7 +230,7 @@ TEST_F(
             true /* isV6 */,
             utility::getAllocatePktFn(getAgentEnsemble()),
             utility::getSendPktFunc(getAgentEnsemble()),
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
             std::nullopt /* vlan */,
             masterLogicalInterfacePortIds()[j],
             utility::kUdfL4DstPort,

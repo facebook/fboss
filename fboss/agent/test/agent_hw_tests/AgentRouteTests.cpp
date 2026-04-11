@@ -16,6 +16,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -98,7 +99,7 @@ class AgentRouteTest : public AgentHwTest {
 
   RoutePrefix<AddrT> getSubnetIpForInterface() const {
     auto state = this->getProgrammedState();
-    InterfaceID intfID = utility::firstInterfaceIDWithPorts(state);
+    InterfaceID intfID = firstInterfaceIDWithPortsForTesting(state);
     auto interface = state->getInterfaces()->getNodeIf(intfID);
     if (interface) {
       for (auto iter : std::as_const(*interface->getAddresses())) {
@@ -516,7 +517,7 @@ TYPED_TEST(AgentRouteTest, VerifyRouting) {
     const auto egressPort = ports[0].phyPortID();
     auto vlanId = this->getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     auto beforeOutPkts =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
@@ -661,7 +662,7 @@ TYPED_TEST(AgentRouteTest, verifyCpuRouteChange) {
     const auto egressPort = ports[1].phyPortID();
     auto vlanId = this->getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     auto beforeOutPkts =
         *this->getLatestPortStats(egressPort).outUnicastPkts__ref();
     auto v6TxPkt = utility::makeUDPTxPacket(

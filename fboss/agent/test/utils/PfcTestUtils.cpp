@@ -17,6 +17,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
 #include "fboss/agent/types.h"
@@ -413,7 +414,7 @@ std::unique_ptr<TxPacket> makePfcFramePacket(
   // Construct PFC frame packet
   std::optional<VlanID> vlanId = ensemble.getVlanIDForTx();
   folly::MacAddress intfMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble.getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(ensemble.getProgrammedState());
   MacAddressGenerator::ResourceT srcMac =
       utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
   return utility::makeEthTxPacket(
@@ -442,8 +443,8 @@ void triggerPfcGeneration(
   // Send traffic in chunks of 1000 packets at a time, checking if PFC
   // has been triggered after each chunk. Continue until PFC counter
   // increments, indicating congestion and PFC frame generation.
-  auto intfMac =
-      getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
+      ensemble->getProgrammedState());
   auto srcMac = MacAddressGenerator().get(intfMac.u64HBO() + 1);
   int dscp = trafficClass * 8;
   constexpr int kChunkSize = 1000;

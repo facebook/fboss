@@ -6109,7 +6109,12 @@ ThriftConfigApplier::createMirrorOnDropReport(
   }
 
   // Determine the switchId for looking up the first interface MAC.
-  std::optional<SwitchID> modSwitchId = getAnySwitchId(asic->getSwitchType());
+  auto modSwitchId = getAnySwitchId(asic->getSwitchType());
+  if (!modSwitchId.has_value()) {
+    throw FbossError(
+        "No switchId found for switch type: ",
+        static_cast<int>(asic->getSwitchType()));
+  }
 
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
@@ -6194,7 +6199,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
-      utility::getMacForFirstInterfaceWithPorts(new_, modSwitchId).toString(),
+      utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs(),
       config->samplingRate().to_optional());

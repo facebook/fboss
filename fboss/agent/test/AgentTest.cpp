@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -309,7 +310,7 @@ PortID AgentTest::getPortID(const std::string& portName) const {
 }
 
 std::optional<VlanID> AgentTest::getVlanIDForTx() const {
-  auto intf = utility::firstInterfaceWithPorts(sw()->getState());
+  auto intf = firstInterfaceWithPortsForTesting(sw()->getState());
   return sw()->getVlanIDForTx(intf);
 }
 

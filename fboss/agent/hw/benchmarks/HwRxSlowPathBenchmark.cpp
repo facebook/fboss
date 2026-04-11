@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -81,8 +82,8 @@ BENCHMARK(RxSlowPathBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   // capture packet exiting port 0 (entering due to loopback)
-  auto dstMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
+      ensemble->getProgrammedState());
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
       ensemble->getProgrammedState(),
       ensemble->getSw()->needL2EntryForNeighbor(),

@@ -6,6 +6,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -29,7 +30,7 @@ class AgentL3ForwardingTest : public AgentHwTest {
     return getVlanIDForTx();
   }
   InterfaceID kIntfID() const {
-    return utility::firstInterfaceIDWithPorts(getProgrammedState());
+    return firstInterfaceIDWithPortsForTesting(getProgrammedState());
   }
 
   folly::MacAddress kNeighborMac() const {
@@ -167,7 +168,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
       for (auto isV6 : {true, false}) {
         auto vlanId = getVlanIDForTx();
         auto intfMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
         auto dstIp =
             folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");

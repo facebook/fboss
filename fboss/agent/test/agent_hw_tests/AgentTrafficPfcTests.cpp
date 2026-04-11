@@ -7,6 +7,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -374,7 +375,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
  protected:
@@ -739,7 +740,7 @@ class AgentTrafficPfcGenTest : public AgentTrafficPfcTest {
       const PortID& portId,
       const folly::IPAddressV6& ip) {
     auto noLoopMac = folly::MacAddress::fromHBO(
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
             .u64HBO() +
         1);
     utility::EcmpSetupTargetedPorts6 ecmpHelper{

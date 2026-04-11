@@ -16,6 +16,7 @@
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 
@@ -88,7 +89,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   auto state = ensemble->getSw()->getState();
-  auto intf = utility::firstInterfaceWithPorts(state);
+  auto intf = firstInterfaceWithPortsForTesting(state);
   const auto kSrcMac = intf->getMac();
   auto broadcastMac = folly::MacAddress("FF:FF:FF:FF:FF:FF");
   //  Send packet

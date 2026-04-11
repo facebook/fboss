@@ -42,6 +42,7 @@ cpp_library(
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
         "//fboss/agent/test:agent_hw_test",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/thrift_client_utils:thrift_client_utils",
         "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:load_balancer_test_utils",
