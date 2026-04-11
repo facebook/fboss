@@ -3,7 +3,7 @@
 """Integration tests for device commands using the test topology.
 
 Tests verify:
-- FBOSS services run in per-service btrfs subvolumes
+- FBOSS components run from per-component btrfs snapshots shared by their services
 - Updates replace service scripts with new versions
 - Service restart picks up the new version
 """
@@ -154,8 +154,8 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                 result.stdout.strip(), "active", f"Service {service} not active"
             )
 
-    def test_integration_per_service_btrfs_subvolumes(self):
-        """Verify each service runs in its own btrfs subvolume"""
+    def test_integration_btrfs_subvolumes_created_on_demand(self):
+        """Verify updates subvolume directory exists with no snapshots initially"""
         result = subprocess.run(
             ["docker", "exec", self.PROXY_DEVICE, "ls", "-d", "/mnt/btrfs/updates/"],
             capture_output=True,
@@ -164,7 +164,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, "Updates directory should exist")
 
-        # Initially, no per-service subvolumes should exist (created during updates)
+        # Initially, no per-component snapshots should exist (created during updates)
         result = subprocess.run(
             ["docker", "exec", self.PROXY_DEVICE, "ls", "/mnt/btrfs/updates/"],
             capture_output=True,
@@ -272,7 +272,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
         )
         return result.stdout.strip()
 
-    def _get_subvolume_count(self, service: str) -> int:
+    def _get_component_subvolume_count(self, component: str) -> int:
         result = subprocess.run(
             [
                 "docker",
@@ -280,7 +280,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                 self.PROXY_DEVICE,
                 "bash",
                 "-c",
-                f"ls -d /mnt/btrfs/updates/{service}-* 2>/dev/null | wc -l",
+                f"ls -d /mnt/btrfs/updates/{component}-* 2>/dev/null | wc -l",
             ],
             capture_output=True,
             text=True,
@@ -322,12 +322,14 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
         return result.stdout.strip() == "active"
 
     def test_integration_update_changes_version(self):
-        """Test update creates new btrfs subvolume and cleans up old ones.
+        """Test update creates new per-component btrfs snapshot and cleans up old ones.
 
         Verifies:
-        1. Initial state: services have base version (1.0.0), no subvolumes
-        2. After first update: services have new version (2.0.0), 1 subvolume each
-        3. After second update: services have newer version (2.0.0), still 1 subvolume (old cleaned up)
+        1. Initial state: services have base version (1.0.0), no component snapshots
+        2. After first update: services have new version (2.0.0), component has 1 snapshot
+           shared by all its services
+        3. After second update: services still have 2.0.0, component still has 1 snapshot
+           (old snapshot cleaned up, services moved to the new one)
         """
         if not INTEGRATION_MANIFEST.exists():
             self.skipTest(f"Integration manifest not found: {INTEGRATION_MANIFEST}")
@@ -350,7 +352,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
 
         for component, services in test_cases:
             with self.subTest(component=component):
-                # Initial state: services start with base version, no subvolumes
+                # Initial state: services start with base version, no component snapshots
                 for svc in services:
                     version = self._get_service_version(svc)
                     self.assertEqual(
@@ -358,32 +360,40 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                         BASE_VERSION,
                         f"Service {svc} should start with {BASE_VERSION}, got {version}",
                     )
-                    pre_count = self._get_subvolume_count(svc)
-                    self.assertEqual(
-                        pre_count,
-                        0,
-                        f"Service {svc} should have 0 subvolumes before first update",
-                    )
+
+                pre_count = self._get_component_subvolume_count(component)
+                self.assertEqual(
+                    pre_count,
+                    0,
+                    f"Component {component} should have 0 snapshots before first update",
+                )
 
                 # First update
                 self._update_component_and_verify(component, services)
-                first_update_root_dirs = {}
 
-                # After first update: verify subvolumes created and services use them
+                # After first update: verify component snapshot created and shared by services
+                first_count = self._get_component_subvolume_count(component)
+                self.assertEqual(
+                    first_count,
+                    1,
+                    f"Component {component} should have 1 snapshot after first update",
+                )
+
+                first_root_dir = None
                 for svc in services:
-                    count = self._get_subvolume_count(svc)
-                    self.assertEqual(
-                        count,
-                        1,
-                        f"Service {svc} should have 1 subvolume after first update",
-                    )
-
                     root_dir = self._get_service_root_directory(svc)
-                    first_update_root_dirs[svc] = root_dir
-                    self.assertTrue(
-                        root_dir.startswith(f"/mnt/btrfs/updates/{svc}-"),
-                        f"Service {svc} should have valid RootDirectory after first update (got {root_dir})",
-                    )
+                    if not first_root_dir:
+                        first_root_dir = root_dir
+                        self.assertTrue(
+                            root_dir.startswith(f"/mnt/btrfs/updates/{component}-"),
+                            f"Component {component} should have valid RootDirectory after first update (got {root_dir})",
+                        )
+                    else:
+                        self.assertEqual(
+                            root_dir,
+                            first_root_dir,
+                            f"Service {svc} should share RootDirectory with other services in {component}",
+                        )
 
                     self.assertTrue(
                         self._is_service_active(svc),
@@ -400,27 +410,35 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                 # Second update
                 self._update_component_and_verify(component, services)
 
-                # After second update: verify old subvolume cleaned up, only 1 subvolume remains
+                # After second update: verify old component snapshot cleaned up, only 1 snapshot remains
+                second_count = self._get_component_subvolume_count(component)
+                self.assertEqual(
+                    second_count,
+                    1,
+                    f"Component {component} should have 1 snapshot after second update (old cleaned up)",
+                )
+
+                second_root_dir = None
                 for svc in services:
-                    count = self._get_subvolume_count(svc)
-                    self.assertEqual(
-                        count,
-                        1,
-                        f"Service {svc} should have 1 subvolume after second update (old cleaned up)",
-                    )
-
                     root_dir = self._get_service_root_directory(svc)
-                    self.assertTrue(
-                        root_dir.startswith(f"/mnt/btrfs/updates/{svc}-"),
-                        f"Service {svc} should have valid RootDirectory after second update (got {root_dir})",
-                    )
-
-                    # Verify RootDirectory changed (new subvolume created)
-                    self.assertNotEqual(
-                        root_dir,
-                        first_update_root_dirs[svc],
-                        f"Service {svc} RootDirectory should change after second update",
-                    )
+                    if not second_root_dir:
+                        second_root_dir = root_dir
+                        self.assertTrue(
+                            root_dir.startswith(f"/mnt/btrfs/updates/{component}-"),
+                            f"Component {component} should have valid RootDirectory after second update (got {root_dir})",
+                        )
+                        # Verify RootDirectory changed (new component snapshot created)
+                        self.assertNotEqual(
+                            second_root_dir,
+                            first_root_dir,
+                            f"Component {component} RootDirectory should change after second update",
+                        )
+                    else:
+                        self.assertEqual(
+                            root_dir,
+                            second_root_dir,
+                            f"Service {svc} should share RootDirectory with other services in {component} after second update",
+                        )
 
                     self.assertTrue(
                         self._is_service_active(svc),
