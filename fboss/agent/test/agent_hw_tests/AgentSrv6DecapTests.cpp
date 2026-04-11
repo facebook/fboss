@@ -484,7 +484,7 @@ TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
     auto portStatsBefore = this->getLatestPortStats(injectPort);
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     // Outer dst IP matches the mySid /48 prefix but is not the last uSid.
     // The packet should be dropped.

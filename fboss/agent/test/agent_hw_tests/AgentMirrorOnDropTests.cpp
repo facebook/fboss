@@ -2018,7 +2018,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
         expected.dropReasonMmu = 0x00;
         expected.innerSrcMac = utility::kLocalCpuMac();
         expected.innerDstMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         expected.innerSrcIp = kPacketSrcIp_;
         expected.innerDstIp = kDropDestIp;
         expected.innerSrcPort = kPacketSrcPort;
@@ -2205,7 +2205,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModAclDrop) {
         expected.dropReasonMmu = 0x00;
         expected.innerSrcMac = utility::kLocalCpuMac();
         expected.innerDstMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         expected.innerSrcIp = kPacketSrcIp_;
         expected.innerDstIp = kAclDropDestIp;
         expected.innerSrcPort = kPacketSrcPort;

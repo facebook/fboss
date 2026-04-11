@@ -318,7 +318,7 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
     auto portStatsBefore = this->getLatestPortStats(injectPort);
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     auto txPacket = utility::makeIpInIpTxPacket(
         this->getSw(),
