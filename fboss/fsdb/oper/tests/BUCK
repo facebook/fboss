@@ -33,6 +33,7 @@ cpp_unittest(
         "//fboss/lib:common_utils",
         "//fboss/thrift_cow/visitors:visitors",
         "//folly:random",
+        "//folly:utility",
         "//folly/coro:async_generator",
         "//folly/coro:blocking_wait",
         "//folly/coro:collect",
@@ -41,6 +42,7 @@ cpp_unittest(
         "//folly/coro:timeout",
         "//folly/json:dynamic",
         "//thrift/lib/cpp2/folly_dynamic:folly_dynamic",
+        "//thrift/lib/cpp2/op:get",
     ],
 )
 
@@ -63,6 +65,7 @@ cpp_unittest(
         "fbsource//third-party/googletest:gmock",
         "//fboss/fsdb/oper:extended_path_builder",
         "//fboss/fsdb/oper:path_helpers",
+        "//thrift/lib/cpp2/op:get",
     ],
 )
 

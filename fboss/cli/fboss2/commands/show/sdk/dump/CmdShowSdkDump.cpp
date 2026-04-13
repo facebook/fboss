@@ -9,13 +9,13 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/sdk/dump/CmdShowSdkDump.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <boost/algorithm/string.hpp>
 #include <folly/FileUtil.h>
 #include <folly/testing/TestUtil.h>
 #include <fstream>
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
-#include "fboss/cli/fboss2/utils/Table.h"
 
 namespace facebook::fboss {
 
@@ -73,5 +73,13 @@ void CmdShowAgentSdkDump::printOutput(const RetType& rc, std::ostream& out) {
   out << "Printing Agent SDK state:" << std::endl;
   out << rc;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits>::run();
+template void CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowQsfpSdkDump, CmdShowQsfpSdkDumpTraits>::getValidFilters();
+template const ValidFilterMapType
+CmdHandler<CmdShowAgentSdkDump, CmdShowAgentSdkDumpTraits>::getValidFilters();
 
 } // namespace facebook::fboss

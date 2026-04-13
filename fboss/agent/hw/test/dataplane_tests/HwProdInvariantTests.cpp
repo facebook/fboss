@@ -20,6 +20,7 @@
 
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 DEFINE_bool(
@@ -107,7 +108,7 @@ class HwProdInvariantsRswTest : public HwProdInvariantsTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         false /* Strict priority disabled */);
     return config;
@@ -141,7 +142,7 @@ class HwProdInvariantsRswStrictPriorityTest : public HwProdInvariantsRswTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         true /* Strict priority enabled */);
     return config;
@@ -158,7 +159,7 @@ class HwProdInvariantsFswTest : public HwProdInvariantsTest {
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdFswConfig(
         getHwSwitch(),
-        masterLogicalPortIds(),
+        masterLogicalInterfacePortIds(),
         getHwSwitchEnsemble()->isSai(),
         false /* Strict priority disabled */);
     return config;
@@ -208,7 +209,9 @@ class HwProdInvariantsRswMhnicTest : public HwProdInvariantsTest {
  protected:
   cfg::SwitchConfig initConfigHelper() const override {
     auto config = utility::createProdRswMhnicConfig(
-        getHwSwitch(), masterLogicalPortIds(), getHwSwitchEnsemble()->isSai());
+        getHwSwitch(),
+        masterLogicalInterfacePortIds(),
+        getHwSwitchEnsemble()->isSai());
     return config;
   }
 
@@ -295,7 +298,7 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendTrafficInLoop() {

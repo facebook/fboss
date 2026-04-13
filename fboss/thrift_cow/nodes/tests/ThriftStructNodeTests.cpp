@@ -1111,7 +1111,7 @@ TEST(ThriftStructNodeTests, ThriftStructNodeRemove) {
 TEST(ThriftStructNodeTests, ThriftStructFieldsEncode) {
   auto portRange = buildPortRange(100, 999);
   TestUnion unionData;
-  unionData.inlineString_ref() = "UnionData";
+  unionData.inlineString() = "UnionData";
 
   TestStruct data;
   data.inlineBool() = true;
@@ -1144,7 +1144,7 @@ TEST(ThriftStructNodeTests, ThriftStructNodeEncode) {
   auto portRange = buildPortRange(100, 999);
 
   TestUnion unionData;
-  unionData.inlineString_ref() = "UnionData";
+  unionData.inlineString() = "UnionData";
 
   TestStruct data;
   data.inlineBool() = true;
@@ -1183,7 +1183,7 @@ TEST(ThriftStructNodeTests, ReferenceWrapper) {
   auto portRange = buildPortRange(100, 999);
 
   TestUnion unionData;
-  unionData.inlineString_ref() = "UnionData";
+  unionData.inlineString() = "UnionData";
 
   TestStruct data;
   data.inlineBool() = true;

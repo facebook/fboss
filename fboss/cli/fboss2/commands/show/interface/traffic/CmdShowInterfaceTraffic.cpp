@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/interface/traffic/CmdShowInterfaceTraffic.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -440,5 +441,12 @@ void CmdShowInterfaceTraffic::printOutput(
   out << errorTable << std::endl;
   out << trafficTable << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowInterfaceTraffic, CmdShowInterfaceTrafficTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceTraffic,
+    CmdShowInterfaceTrafficTraits>::getValidFilters();
 
 } // namespace facebook::fboss

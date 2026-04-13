@@ -168,8 +168,8 @@ FsdbPublisher<PubUnit>::createGenerator() {
       } else {
         XLOG(ERR) << "Publish queue is null, unable to dequeue";
         FsdbException ex;
-        ex.errorCode_ref() = FsdbErrorCode::DISCONNECTED;
-        ex.message_ref() = "Publisher queue is null, cannot dequeue";
+        ex.errorCode() = FsdbErrorCode::DISCONNECTED;
+        ex.message() = "Publisher queue is null, cannot dequeue";
         co_yield folly::coro::co_error(ex);
         continue;
       }

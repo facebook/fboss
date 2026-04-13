@@ -21,4 +21,5 @@ struct AggregateMemberPortEntry {
   2: i32 id;
   3: bool isUp;
   4: string lacpRate;
+  5: bool isLinkUp;
 }

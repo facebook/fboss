@@ -300,4 +300,79 @@ void populateFabricOverdrainPct(
   }
 }
 
+bool filterAgentStatsScaleForPath(
+    AgentStatsScale& scale,
+    const std::string& targetField) {
+  if (targetField.empty()) {
+    return true;
+  }
+
+  // Save values for the target field, zero everything, then restore.
+  AgentStatsScale filtered{};
+  // Zero out all bool/count defaults
+  filtered.asicCount = 0;
+  filtered.hasHwResourceStats = false;
+  filtered.hasHwAsicErrors = false;
+  filtered.hasCpuPortStats = false;
+  filtered.hasSwitchDropStats = false;
+  filtered.hasSwitchWatermarkStats = false;
+  filtered.hasFabricReachabilityStats = false;
+  filtered.hasSwitchPipelineStats = false;
+  filtered.hasFabricOverdrainPct = false;
+  filtered.hasFlowletStats = false;
+
+  if (targetField == "hwPortStats") {
+    filtered.hwPortStatsCount = scale.hwPortStatsCount;
+  } else if (targetField == "phyStats") {
+    filtered.phyStatsCount = scale.phyStatsCount;
+  } else if (targetField == "sysPortStats") {
+    filtered.sysPortStatsCount = scale.sysPortStatsCount;
+  } else if (targetField == "sysPortStatsMap") {
+    // sysPortStatsMap depends on sysPortStats data
+    filtered.sysPortStatsCount = scale.sysPortStatsCount;
+  } else if (targetField == "hwResourceStatsMap") {
+    filtered.hasHwResourceStats = scale.hasHwResourceStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "hwAsicErrorsMap") {
+    filtered.hasHwAsicErrors = scale.hasHwAsicErrors;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "cpuPortStatsMap") {
+    filtered.hasCpuPortStats = scale.hasCpuPortStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "switchDropStatsMap") {
+    filtered.hasSwitchDropStats = scale.hasSwitchDropStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "switchWatermarkStatsMap") {
+    filtered.hasSwitchWatermarkStats = scale.hasSwitchWatermarkStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "fabricReachabilityStatsMap") {
+    filtered.hasFabricReachabilityStats = scale.hasFabricReachabilityStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "switchPipelineStatsMap") {
+    filtered.hasSwitchPipelineStats = scale.hasSwitchPipelineStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "sysPortShelStateMap") {
+    filtered.sysPortShelStateCount = scale.sysPortShelStateCount;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "asicTemp") {
+    filtered.asicTempCount = scale.asicTempCount;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "flowletStats") {
+    filtered.hasFlowletStats = scale.hasFlowletStats;
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "io") {
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "hwAgentStatusMap") {
+    filtered.asicCount = scale.asicCount;
+  } else if (targetField == "fabricOverdrainPctMap") {
+    filtered.hasFabricOverdrainPct = scale.hasFabricOverdrainPct;
+    filtered.asicCount = scale.asicCount;
+  } else {
+    return false;
+  }
+
+  scale = filtered;
+  return true;
+}
+
 } // namespace facebook::fboss::fsdb::test

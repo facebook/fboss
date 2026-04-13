@@ -270,6 +270,10 @@ class SwitchStats : public boost::noncopyable {
     updateState_.addValue(us.count());
   }
 
+  void ribRouteProgrammingTimeUs(std::chrono::microseconds us) {
+    ribRouteProgrammingTimeUs_.addValue(us.count());
+  }
+
   void bgHeartbeatDelay(int delay) {
     bgHeartbeatDelay_.addValue(delay);
   }
@@ -463,6 +467,10 @@ class SwitchStats : public boost::noncopyable {
 
   void coldBoot() {
     coldBoot_.addValue(1);
+  }
+
+  void warmBootFromHwSwitch() {
+    warmBootFromHwSwitch_.addValue(1);
   }
 
   void probedStateCleanedUp() {
@@ -965,6 +973,11 @@ class SwitchStats : public boost::noncopyable {
   fb303::detail::QuantileStatWrapper updateState_;
 
   /**
+   * Histogram for RIB route programming time (in microseconds)
+   */
+  fb303::detail::QuantileStatWrapper ribRouteProgrammingTimeUs_;
+
+  /**
    * Histogram for time used for thrift request completion time (milliseconds)
    */
   fb303::detail::QuantileStatWrapper thriftRequestCompletionTimeMs_;
@@ -1134,6 +1147,7 @@ class SwitchStats : public boost::noncopyable {
 
   TLTimeseries coldBoot_;
   TLTimeseries warmBoot_;
+  TLTimeseries warmBootFromHwSwitch_;
   TLCounter probedStateCleanupStatus_;
   TLTimeseries switchConfiguredMs_;
   TLTimeseries dsfGrExpired_;

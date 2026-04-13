@@ -76,19 +76,41 @@ std::string FwUtilVersionHandler::getSingleVersion(const std::string& fpd) {
     }
     version = content.value();
     globfree(&globbuf);
+  } else if (
+      *versionConfig.versionType() == "full_command" &&
+      versionConfig.getVersionCmd().has_value()) {
+    auto [exitStatus, cmdOutput] =
+        PlatformUtils().execCommand(*versionConfig.getVersionCmd());
+    if (exitStatus != 0) {
+      throw std::runtime_error(
+          "Running version command failed for " + fpd + ": " +
+          *versionConfig.getVersionCmd());
+    }
+    version = folly::trimWhitespace(cmdOutput).str();
   } else {
-    XLOG(ERR)
-        << "Only reading Version through sysfs is support and the path is not set for "
-        << fpd;
+    XLOG(ERR) << "Unsupported versionType or missing required fields for "
+              << fpd;
     return "";
   }
   return version;
 }
 
 void FwUtilVersionHandler::printAllVersions() {
+  std::vector<std::string> failedDevices;
   for (const auto& orderedfpd : fwDeviceNamesByPrio_) {
-    std::string version = getSingleVersion(orderedfpd.first);
-    std::cout << orderedfpd.first << " : " << version << std::endl;
+    try {
+      std::string version = getSingleVersion(orderedfpd.first);
+      std::cout << orderedfpd.first << " : " << version << std::endl;
+    } catch (const std::exception& e) {
+      XLOG(WARNING) << "Failed to read version for " << orderedfpd.first << ": "
+                    << e.what();
+      std::cout << orderedfpd.first << " : ERROR" << std::endl;
+      failedDevices.push_back(orderedfpd.first);
+    }
+  }
+  if (!failedDevices.empty()) {
+    throw std::runtime_error(
+        "Failed to read versions for: " + folly::join(", ", failedDevices));
   }
 }
 

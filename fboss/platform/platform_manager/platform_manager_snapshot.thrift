@@ -18,9 +18,9 @@ namespace py3 fboss.platform.platform_manager
 // - The i2c bus names in `PlatformSnapshot` will reflect the kernel assigned
 // names, e.g., i2c-9.  The i2c bus names on `PlatformConfig` will follow the
 // convention described in platform_manager_config.thrift
-// - The Slot struct in `PlatformSnapshot` will point to the FRU plugged in the
-// slot.  `PlatformConfig.SlotType` will have details to detect whether a FRU
-// has been plugged in that slot.
+// - The Slot struct in `PlatformSnapshot` will point to the PMUnit plugged in
+// the slot.  `PlatformConfig.SlotType` will have details to detect whether a
+// PMUnit has been plugged in that slot.
 
 typedef string SlotType
 
@@ -28,17 +28,17 @@ struct I2cDevice {
   1: string busName;
   2: i32 addr;
   3: string kernelDeviceName;
-  4: string fruScopedName;
+  4: string pmUnitScopedName;
   5: optional i32 numOutgoingChannels;
 }
 
 struct Slot {
   1: SlotType slotType;
   2: list<string> outgoingI2cBusNames;
-  3: optional Fru pluggedInFru;
+  3: optional PMUnit pluggedInPMUnit;
 }
 
-struct Fru {
+struct PMUnit {
   1: string name;
   2: SlotType pluggedInSlotType;
   3: list<I2cDevice> i2cDevices;
@@ -47,8 +47,7 @@ struct Fru {
 
 struct PlatformSnapshot {
   1: string platformName;
-  2: Fru mainBoardFru;
-  3: Slot mainBoardSlot;
-  4: list<string> i2cAdaptersFromCpu;
-  5: map<string, string> i2cPathToHumanFriendlyName;
+  2: Slot rootSlot;
+  3: list<string> i2cAdaptersFromCpu;
+  4: map<string, string> i2cPathToHumanFriendlyName;
 }

@@ -13,7 +13,7 @@
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
 #include "fboss/agent/hw/sai/api/RouterInterfaceApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/RefMap.h"
@@ -76,20 +76,18 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
         disableTTLDecrement_(disableTTLDecrement) {}
 
   ~ManagedNextHop() {
-    clearSrv6SidListNextHopId();
     this->resetObject();
   }
+
   void createObject(PublishedObjects /*added*/);
 
   void removeObject(size_t index, PublishedObjects removed) {
     XLOG(DBG2) << "ManagedNeighbor::removeObject: " << toString();
     /* when neighbor is removed remove next hop */
-    clearSrv6SidListNextHopId();
     this->resetObject();
   }
 
   void handleLinkDown() {
-    clearSrv6SidListNextHopId();
     this->resetObject();
   }
 
@@ -121,8 +119,6 @@ class ManagedNextHop : public SaiObjectEventAggregateSubscriber<
   }
 
  private:
-  void clearSrv6SidListNextHopId();
-
   SaiNextHopManager* manager_;
   typename NextHopTraits::AdapterHostKey key_;
   std::optional<bool> disableTTLDecrement_{};
@@ -165,7 +161,7 @@ class SaiNextHopManager {
       const ResolvedNextHop& swNextHop
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       ,
-      std::shared_ptr<SaiSrv6SidList> srv6SidList = nullptr
+      std::shared_ptr<SaiSrv6SidListHandle> srv6SidListHandle = nullptr
 #endif
   );
 

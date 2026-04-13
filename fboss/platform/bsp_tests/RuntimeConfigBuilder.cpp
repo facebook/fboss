@@ -195,6 +195,13 @@ RuntimeConfig RuntimeConfigBuilder::buildRuntimeConfig(
       kmodsList.erase(it);
     }
   }
+  // Blackwolf is the only arista platform that uses aadm1266
+  if (*config.platform() != "BLACKWOLF800BANW") {
+    auto it = std::find(kmodsList.begin(), kmodsList.end(), "aadm1266");
+    if (it != kmodsList.end()) {
+      kmodsList.erase(it);
+    }
+  }
   config.kmods() = kmodsToUse;
 
   std::vector<PciDevice> devices;
@@ -399,6 +406,14 @@ RuntimeConfigBuilder::getActualAdapter(
   }
 
   if (busName != "INCOMING") {
+    // Check if the full bus name matches a CPU adapter. CPU adapter names
+    // include @N as part of their identity (e.g. "CPU_BUS@0"), unlike
+    // MUX/FPGA adapters where @N denotes a channel number.
+    const auto& cpuAdapters = *pmConfig.i2cAdaptersFromCpu();
+    if (std::find(cpuAdapters.begin(), cpuAdapters.end(), sourceBusName) !=
+        cpuAdapters.end()) {
+      return std::make_tuple(sourceUnitName, sourceBusName, 0);
+    }
     // Adapter is in the same PMUnit
     return std::make_tuple(sourceUnitName, busName, busIdx);
   }
@@ -420,6 +435,14 @@ RuntimeConfigBuilder::getActualAdapter(
       // If bus in incoming again, we have to repeat the process
       return getActualAdapter(
           pmConfig, pmUnitName, actualBusName, *pmUnit.pluggedInSlotType());
+    }
+
+    // Check if the resolved bus name matches a CPU adapter (where @N is
+    // part of the identity, not a channel number)
+    const auto& cpuAdapters = *pmConfig.i2cAdaptersFromCpu();
+    if (std::find(cpuAdapters.begin(), cpuAdapters.end(), actualBusName) !=
+        cpuAdapters.end()) {
+      return std::make_tuple(pmUnitName, actualBusName, 0);
     }
 
     busIdx = 0;

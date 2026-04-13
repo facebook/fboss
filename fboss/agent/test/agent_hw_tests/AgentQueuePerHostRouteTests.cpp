@@ -53,10 +53,6 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
     FLAGS_disable_neighbor_updates = false;
   }
 
-  bool isIntfNbrTable() const {
-    return FLAGS_intf_nbr_tables;
-  }
-
   RouterID kRouterID() const {
     return RouterID(0);
   }
@@ -87,30 +83,16 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
       MacAddress macAddress,
       PortID port) {
     if constexpr (std::is_same<AddrT, folly::IPAddressV4>::value) {
-      if (isIntfNbrTable()) {
-        getSw()->getNeighborUpdater()->receivedArpMineForIntf(
-            InterfaceID(kInterfaceID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ArpOpCode::ARP_OP_REPLY);
-      } else {
-        getSw()->getNeighborUpdater()->receivedArpMine(
-            VlanID(kVlanID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ArpOpCode::ARP_OP_REPLY);
-      }
+      getSw()->getNeighborUpdater()->receivedArpMineForIntf(
+          InterfaceID(kInterfaceID),
+          ipAddress,
+          macAddress,
+          PortDescriptor(port),
+          ArpOpCode::ARP_OP_REPLY);
+
       WITH_RETRIES({
         std::list<facebook::fboss::ArpEntryThrift> entries;
-
-        if (isIntfNbrTable()) {
-          entries =
-              getSw()->getNeighborUpdater()->getArpCacheDataForIntf().get();
-        } else {
-          entries = getSw()->getNeighborUpdater()->getArpCacheData().get();
-        }
+        entries = getSw()->getNeighborUpdater()->getArpCacheDataForIntf().get();
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {
@@ -121,31 +103,17 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
         EXPECT_EVENTUALLY_TRUE(found);
       });
     } else {
-      if (isIntfNbrTable()) {
-        getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
-            InterfaceID(kInterfaceID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            0);
-      } else {
-        getSw()->getNeighborUpdater()->receivedNdpMine(
-            VlanID(kVlanID),
-            ipAddress,
-            macAddress,
-            PortDescriptor(port),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            0);
-      }
+      getSw()->getNeighborUpdater()->receivedNdpMineForIntf(
+          InterfaceID(kInterfaceID),
+          ipAddress,
+          macAddress,
+          PortDescriptor(port),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          0);
+
       WITH_RETRIES({
         std::list<facebook::fboss::NdpEntryThrift> entries;
-        if (isIntfNbrTable()) {
-          entries =
-              getSw()->getNeighborUpdater()->getNdpCacheDataForIntf().get();
-        } else {
-          entries = getSw()->getNeighborUpdater()->getNdpCacheData().get();
-        }
+        entries = getSw()->getNeighborUpdater()->getNdpCacheDataForIntf().get();
         bool found = false;
         for (const auto& entry : entries) {
           if (entry.ip() == network::toBinaryAddress(ipAddress)) {
@@ -201,7 +169,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   }
 
   void setupHelper(bool blockNeighbor) {
-    // Disable neigbor updates to prevent stats increment
+    // Disable neighbor updates to prevent stats increment
     FLAGS_disable_neighbor_updates = true;
     this->getAgentEnsemble()->bringDownPort(this->masterLogicalPortIds()[1]);
     if (blockNeighbor) {
@@ -217,7 +185,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   }
 
   void verifyHelper(bool useFrontPanel, bool blockNeighbor) {
-    // Disable neigbor updates to prevent stats increment
+    // Disable neighbor updates to prevent stats increment
     FLAGS_disable_neighbor_updates = true;
     this->getNextUpdatedPortStats(this->masterLogicalPortIds()[0]);
     XLOG(DBG2) << "verify send packets "

@@ -23,6 +23,8 @@ bool Agera3PhyAsic::isSupported(Feature feature) const {
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
+    case HwAsic::Feature::CUT_THROUGH_FORWARDING:
+    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SAI_SERDES_PRECODING:
       return false;

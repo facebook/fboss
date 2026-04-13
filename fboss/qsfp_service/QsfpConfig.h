@@ -2,11 +2,15 @@
 
 #pragma once
 
+#include <string>
+
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 
 DECLARE_string(qsfp_config);
 
 namespace facebook::fboss {
+
+inline constexpr auto kPhyHwConfigFileName = "phy_hw_config";
 
 struct QsfpConfig {
   QsfpConfig(cfg::QsfpServiceConfig thriftConfig, std::string rawConfig)
@@ -18,6 +22,17 @@ struct QsfpConfig {
   static std::unique_ptr<QsfpConfig> fromRawConfig(const std::string& contents);
 
   void dumpConfig(folly::StringPiece path) const;
+
+  /*
+   * Write the PHY/retimer configuration from qsfp config to a file.
+   *
+   * If phyConfig is present in QsfpServiceConfig, writes it to
+   * FLAGS_qsfp_service_volatile_dir/phy_hw_config.
+   * If phyConfig is not present, does nothing.
+   * Throws FbossError if write fails.
+   */
+  void writePhyConfigToFile() const;
+
   const cfg::QsfpServiceConfig thrift;
   const std::string raw;
 };

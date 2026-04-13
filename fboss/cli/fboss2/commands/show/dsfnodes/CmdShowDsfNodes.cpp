@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowDsfNodes.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
 #include <re2/re2.h>
@@ -81,4 +82,8 @@ RetType CmdShowDsfNodes::createModel(
   return model;
 }
 
+// Explicit template instantiation
+template void CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowDsfNodes, CmdShowDsfNodesTraits>::getValidFilters();
 } // namespace facebook::fboss

@@ -1,15 +1,74 @@
 # pyre-strict
 import argparse
+import json
 import os
 import sys
-from typing import Dict, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fboss.lib.platform_mapping_v2.platform_mapping_v2 import PlatformMappingV2
-from thrift.protocol import TSimpleJSONProtocol
-from thrift.util import Serializer
+from thrift.python.serializer import Protocol, serialize
 
 _FBOSS_DIR: str = os.getcwd() + "/fboss"
 INPUT_DIR: str = f"{_FBOSS_DIR}/lib/platform_mapping_v2/platforms/"
+
+JsonValue = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
+
+
+def _is_thrift_map(d: object) -> bool:
+    """Return True when *d* looks like a serialized Thrift map (all-numeric keys)."""
+    return isinstance(d, dict) and bool(d) and all(k.isdigit() for k in d)
+
+
+def _format_json(obj: JsonValue) -> str:
+    """Format *obj* as JSON matching the old TSimpleJSONProtocol indentation."""
+    return _dump(obj, depth=0, extra=0)
+
+
+def _dump(
+    obj: JsonValue,
+    depth: int,
+    extra: int,
+    close_extra: Optional[int] = None,
+) -> str:
+    """Recursively serialize *obj* to a JSON string.
+
+    ``depth`` controls the base 2-space indentation level.  ``extra`` adds
+    additional spaces — TSimpleJSONProtocol indents map-value structs by an
+    extra 2 spaces per nesting level.  ``close_extra`` (defaulting to
+    ``extra``) sets the indent for the closing brace/bracket; inside a map
+    the child content is indented by ``extra + 2`` but the closing delimiter
+    reverts to the parent's ``extra``.
+    """
+    if close_extra is None:
+        close_extra = extra
+    indent = "  " * depth + " " * extra
+    close_indent = "  " * depth + " " * close_extra
+
+    if isinstance(obj, dict):
+        if not obj:
+            return "{}"
+        parts: List[str] = []
+        is_map = _is_thrift_map(obj)
+        for i, (k, v) in enumerate(obj.items()):
+            comma = "," if i < len(obj) - 1 else ""
+            # Map values get extra indent; close_extra stays at parent level.
+            child_extra = extra + 2 if is_map else extra
+            v_str = _dump(v, depth + 1, child_extra, extra)
+            parts.append(f"{indent}  {json.dumps(k)}: {v_str}{comma}")
+        return "{\n" + "\n".join(parts) + "\n" + close_indent + "}"
+
+    if isinstance(obj, list):
+        if not obj:
+            # TSimpleJSONProtocol renders empty lists as multi-line.
+            return "[\n" + indent + "  " + "\n" + close_indent + "]"
+        parts = []
+        for i, v in enumerate(obj):
+            comma = "," if i < len(obj) - 1 else ""
+            v_str = _dump(v, depth + 1, extra)
+            parts.append(f"{indent}  {v_str}{comma}")
+        return "[\n" + "\n".join(parts) + "\n" + close_indent + "]"
+
+    return json.dumps(obj)
 
 
 def get_command_line_args() -> Tuple[str, str, str, bool]:
@@ -88,18 +147,17 @@ def generate_platform_mappings(
         "_is_multi_npu" if is_multi_npu else ""
     )
     output_file = f"{output_dir}/{platform_file_name}.json"
-    platform_mapping_serialized = Serializer.serialize(
-        TSimpleJSONProtocol.TSimpleJSONProtocolFactory(), platform_mapping
-    )
+    platform_mapping_serialized = serialize(platform_mapping, protocol=Protocol.JSON)
+    platform_mapping_json = _format_json(json.loads(platform_mapping_serialized))
 
     # Ensure that files end in a newline (we have pre-commit hooks in OSS that
     # will fail if this isn't done.)
-    if platform_mapping_serialized[-1] != b"\n":
-        platform_mapping_serialized += b"\n"
+    if not platform_mapping_json.endswith("\n"):
+        platform_mapping_json += "\n"
 
     print(f"Writing to file {output_file}...", file=sys.stderr)
-    with open(os.path.expanduser(output_file), "wb") as f:
-        f.write(platform_mapping_serialized)
+    with open(os.path.expanduser(output_file), "w") as f:
+        f.write(platform_mapping_json)
 
 
 def generate_mappings_without_args() -> None:

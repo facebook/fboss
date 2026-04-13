@@ -204,6 +204,13 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           managerTable_->debugCounterManager().getTrapDropCounterStatId());
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+      counterIds.emplace_back(
+          managerTable_->debugCounterManager().getSrv6MySidDropCounterStatId());
+    }
+#endif
     if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
       counterIds.reserve(
           counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());
@@ -238,6 +245,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
       counterIds.emplace_back(SAI_PORT_STAT_IN_DROPPED_PKTS);
     }
+    fillInSupportedVendorExtStats(counterIds);
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());
@@ -601,7 +609,14 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
     }
     hwLaneList = pportList;
   }
-  auto globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
+  std::optional<SaiPortTraits::Attributes::GlobalFlowControlMode>
+      globalFlowControlMode;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    globalFlowControlMode = utility::getSaiPortPauseMode(swPort->getPause());
+  } else {
+    CHECK(!*swPort->getPause().tx() && !*swPort->getPause().rx())
+        << "Programming global flow control mode on hyper port member is not supported";
+  }
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   std::optional<int> loopbackMode;
   if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
@@ -711,7 +726,9 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
 
   std::optional<bool> fdrEnable;
 #if defined(BRCM_SAI_SDK_GTE_10_0) || defined(BRCM_SAI_SDK_DNX_GTE_11_0)
-  if (swPort->getPortType() == cfg::PortType::INTERFACE_PORT && adminState &&
+  if ((swPort->getPortType() == cfg::PortType::INTERFACE_PORT ||
+       swPort->getPortType() == cfg::PortType::HYPER_PORT_MEMBER) &&
+      adminState &&
       platform_->getAsic()->isSupported(
           HwAsic::Feature::SAI_FEC_CODEWORDS_STATS)) {
     fdrEnable = true;
@@ -729,7 +746,10 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt;
   std::optional<SaiPortTraits::Attributes::PrbsConfig> prbsConfig =
       std::nullopt;
-  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS)) {
+  if (platform_->getAsic()->isSupported(HwAsic::Feature::SAI_PRBS) &&
+      swPort->getPortType() != cfg::PortType::HYPER_PORT) {
+    // PRBS should only be configured on hyper port member or normal ports,
+    // not on hyper port
     auto asicPrbs = swPort->getAsicPrbs();
     prbsConfig = getSaiPortPrbsConfig(asicPrbs.enabled().value());
     if (asicPrbs.enabled().value()) {
@@ -748,7 +768,13 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
   if (auto txEnable = swPort->getTxEnable()) {
     pktTxEnable = SaiPortTraits::Attributes::PktTxEnable{txEnable.value()};
   }
-  auto portPfcInfo = getPortPfcAttributes(swPort);
+  SaiPortPfcInfo portPfcInfo;
+  if (swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER) {
+    portPfcInfo = getPortPfcAttributes(swPort);
+  } else {
+    CHECK(!swPort->getPfc().has_value())
+        << "Enabling PFC on hyper port member is not supported";
+  }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
   std::optional<SaiPortTraits::Attributes::ArsEnable> arsEnable = std::nullopt;
@@ -903,6 +929,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
   }
   std::optional<SaiPortTraits::Attributes::PortVlanId> vlanIdAttr{vlanId};
@@ -1000,6 +1027,11 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       propagationDelayMediaType, // CablePropagationDelayMediaType
+#if defined(CHENAB_SAI_SDK)
+      0xffff, // PfcPauseDurationOverride
+#else
+      std::nullopt, // PfcPauseDurationOverride
+#endif
   };
 }
 
@@ -1116,6 +1148,9 @@ void SaiPortManager::programSerdes(
           HwAsic::Feature::SAI_PORT_SERDES_FIELDS_RESET) &&
       serdes) {
     // Give up all references to the serdes object to delete the serdes object.
+
+    portHandle->port->setOptionalAttribute(
+        SaiPortTraits::Attributes::PrbsConfig{SAI_PORT_PRBS_CONFIG_DISABLE});
     portHandle->serdes.reset();
     serdes.reset();
   }
@@ -1315,7 +1350,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
       rxFfeLmsDynamicGatingEn;
 
   // Now use pinConfigs from SW port as the source of truth
-  auto numExpectedTxLanes = 0;
+  [[maybe_unused]] auto numExpectedTxLanes = 0;
   auto numExpectedRxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
@@ -1621,6 +1656,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(attrs, SaiPortSerdesTraits::Attributes::TxFirPre3{}, txPre3);
   }
 
+#if !defined(CHENAB_SAI_SDK)
   if (platform_->getAsic()->getPortSerdesPreemphasis().has_value() ||
       zeroPreemphasis) {
     SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preempahsis(
@@ -1631,6 +1667,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
     setTxRxAttr(
         attrs, SaiPortSerdesTraits::Attributes::Preemphasis{}, preempahsis);
   }
+#endif
 
   if (numExpectedRxLanes &&
       platform_->getAsic()->getAsicVendor() ==
@@ -1646,7 +1683,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
      * cause port flaps.
      *
      * Hence, swap the values back if its a warmboot. As we are scheduling
-     * coldboots for AFE TRIM SEV S249471, utilize this to propogate the correct
+     * coldboots for AFE TRIM SEV S249471, utilize this to propagate the correct
      * values.
      *
      * This will help us carry on the warmboot upgrades on 400C devices while
@@ -1707,18 +1744,20 @@ void SaiPortManager::createSerdesWithZeroPreemphasis(
   std::get<SaiPortSerdesTraits::Attributes::PortId>(attributes) =
       static_cast<sai_object_id_t>(portSaiId);
 
-  auto numExpectedTxLanes = 0;
+  [[maybe_unused]] auto numExpectedTxLanes = 0;
   for (const auto& pinConfig : pinConfigs) {
     if (auto tx = pinConfig.tx()) {
       ++numExpectedTxLanes;
     }
   }
 
+#if !defined(CHENAB_SAI_SDK)
   SaiPortSerdesTraits::Attributes::Preemphasis::ValueType preemphasis;
   preemphasis.resize(numExpectedTxLanes, 0);
   std::get<std::optional<
       std::decay_t<decltype(SaiPortSerdesTraits::Attributes::Preemphasis{})>>>(
       attributes) = preemphasis;
+#endif
   SaiPortSerdesTraits::AdapterHostKey serdesKey{portSaiId};
   auto& store = saiStore_->get<SaiPortSerdesTraits>();
   portHandle->serdes = store.setObject(serdesKey, attributes);

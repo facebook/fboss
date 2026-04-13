@@ -15,7 +15,7 @@
 
 DEFINE_string(
     phy_config_file,
-    "/lib/firmware/fboss/phy_config",
+    "/dev/shm/fboss/qsfp_service/phy_hw_config",
     "Path to the PHY configuration file");
 
 namespace facebook::fboss {

@@ -57,6 +57,7 @@ target_link_libraries(qsfp_module
   transceiver_manager
   qsfp_config_cpp2
   transceiver_cpp2
+  transceiver_properties_manager
   qsfp_config_parser
   qsfp_service_client
   cmis_cpp2

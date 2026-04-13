@@ -21,6 +21,7 @@ cpp_library(
         "//fboss/cli/fboss2:fboss2-config-lib",
         "//fboss/cli/fboss2:fboss2-lib",
         "//fboss/cli/fboss2:options",
+        "//fboss/fsdb/if:fsdb-cpp2-services",
         "//fboss/lib:thrift_service_utils",
         "//fboss/qsfp_service/if:qsfp-cpp2-services",
         "//fboss/qsfp_service/if:transceiver-cpp2-types",
@@ -43,6 +44,7 @@ cpp_unittest(
         "CmdSubCommandsTest.cpp",
         "FilterTest.cpp",
         "FilterValidationTest.cpp",
+        "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
     deps = [
         "fbsource//third-party/googletest:gmock",
@@ -63,6 +65,7 @@ cpp_unittest(
 cpp_unittest(
     name = "cmd_test",
     srcs = [
+        "CmdConfigSessionClearTest.cpp",
         "CmdGetPcapTest.cpp",
         "CmdListConfigTest.cpp",
         "CmdSetPortStateTest.cpp",
@@ -74,6 +77,7 @@ cpp_unittest(
         "CmdShowCpuPortTest.cpp",
         "CmdShowExampleTest.cpp",
         "CmdShowFlowletTest.cpp",
+        "CmdShowFsdbTest.cpp",
         "CmdShowHardwareTest.cpp",
         "CmdShowHostTest.cpp",
         "CmdShowHwAgentStatusTest.cpp",
@@ -99,6 +103,7 @@ cpp_unittest(
         "CmdStopPcapTest.cpp",
         "GitTest.cpp",
         "PortMapTest.cpp",
+        "//fboss/cli/fboss2:cmd-list-config-impl",
     ],
     # Config files for PortMapTest parameterized tests
     resources = [

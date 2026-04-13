@@ -36,6 +36,7 @@
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
 #include "fboss/agent/state/SflowCollectorMap.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchSettings.h"
 #include "fboss/agent/state/TeFlowEntry.h"
 #include "fboss/agent/state/TeFlowTable.h"
@@ -54,24 +55,14 @@ DEFINE_bool(
     "Allow multiple acl tables (acl table group)");
 
 /*
- * VOQ switches require that the packets are not tagged with VLAN.
- * We are gradually enhancing the wedge_agent to handle tagged as well as
- * untagged packets.
- * As part of these changes, neighbor tables will move to Interfaces instead of
- * VLANs. This allows for the same neighbor table implementation for VOQ as
- * well as non-VOQ switches.
- *
- * When this flag is TRUE: use neighbor tables from Interfaces.
- * When this flag is FALSE: use neighbor tables from VLANs.
- *
- * Once we have completely migrated to using neighbor tables from Interfaces,
- * this flag will be removed.
+ * DEPRECATED: Migration to Interface neighbor tables is complete.
+ * This flag is kept temporarily for compatibility with test configs
+ * that pass --intf_nbr_tables=true. Will be removed after configerator cleanup.
  */
-
 DEFINE_bool(
     intf_nbr_tables,
-    false,
-    "Use Neighbor Tables from Interfaces instead of VLANs");
+    true,
+    "DEPRECATED: No longer used. Neighbor tables are always on interfaces.");
 
 DEFINE_bool(
     emStatOnlyMode,
@@ -403,6 +394,14 @@ const std::shared_ptr<MultiSwitchSrv6TunnelMap>& SwitchState::getSrv6Tunnels()
   return safe_cref<switch_state_tags::srv6TunnelMaps>();
 }
 
+void SwitchState::resetMySids(std::shared_ptr<MultiSwitchMySidMap> mySids) {
+  ref<switch_state_tags::mySidMaps>() = mySids;
+}
+
+const std::shared_ptr<MultiSwitchMySidMap>& SwitchState::getMySids() const {
+  return safe_cref<switch_state_tags::mySidMaps>();
+}
+
 void SwitchState::resetTeFlowTable(
     std::shared_ptr<MultiTeFlowTable> flowTable) {
   ref<switch_state_tags::teFlowTables>() = flowTable;
@@ -495,6 +494,132 @@ const std::shared_ptr<MultiSwitchSettings>& SwitchState::getSwitchSettings()
   return safe_cref<switch_state_tags::switchSettingsMap>();
 }
 
+namespace {
+std::shared_ptr<SwitchSettings> getFirstSwitchSettingsOrDefault(
+    const SwitchState& state) {
+  auto first = utility::getFirstNodeIf(state.getSwitchSettings());
+  return first ? first : std::make_shared<SwitchSettings>();
+}
+} // namespace
+
+const std::shared_ptr<QosPolicy> SwitchState::getDefaultDataPlaneQosPolicy()
+    const {
+  return getFirstSwitchSettingsOrDefault(*this)->getDefaultDataPlaneQosPolicy();
+}
+
+std::chrono::seconds SwitchState::getArpTimeout() const {
+  auto arpTimeoutSwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getArpTimeout();
+  if (arpTimeoutSwSettings.has_value()) {
+    return arpTimeoutSwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::arpTimeoutDefault());
+}
+
+const std::shared_ptr<QcmCfg> SwitchState::getQcmCfg() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getQcmCfg();
+}
+
+std::chrono::seconds SwitchState::getNdpTimeout() const {
+  auto ndpTimeoutSwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getNdpTimeout();
+  if (ndpTimeoutSwSettings.has_value()) {
+    return ndpTimeoutSwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::ndpTimeoutDefault());
+}
+
+std::chrono::seconds SwitchState::getArpAgerInterval() const {
+  auto arpAgeSwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getArpAgerInterval();
+  if (arpAgeSwSettings.has_value()) {
+    return arpAgeSwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::arpAgerIntervalDefault());
+}
+
+uint32_t SwitchState::getMaxNeighborProbes() const {
+  auto maxNeighborProbes =
+      getFirstSwitchSettingsOrDefault(*this)->getMaxNeighborProbes();
+  if (maxNeighborProbes.has_value()) {
+    return maxNeighborProbes.value();
+  }
+  return cfg::switch_config_constants::maxNeighborProbesDefault();
+}
+
+std::chrono::seconds SwitchState::getStaleEntryInterval() const {
+  auto staleEntrySwSettings =
+      getFirstSwitchSettingsOrDefault(*this)->getStaleEntryInterval();
+  if (staleEntrySwSettings.has_value()) {
+    return staleEntrySwSettings.value();
+  }
+  return std::chrono::seconds(
+      cfg::switch_config_constants::staleEntryIntervalDefault());
+}
+
+folly::IPAddressV4 SwitchState::getDhcpV4RelaySrc() const {
+  auto dhcpV4RelaySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV4RelaySrc();
+  if (dhcpV4RelaySrc.has_value()) {
+    return dhcpV4RelaySrc.value();
+  }
+  return folly::IPAddressV4("0.0.0.0");
+}
+
+folly::IPAddressV6 SwitchState::getDhcpV6RelaySrc() const {
+  auto dhcpV6RelaySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV6RelaySrc();
+  if (dhcpV6RelaySrc.has_value()) {
+    return dhcpV6RelaySrc.value();
+  }
+  return folly::IPAddressV6("::");
+}
+
+folly::IPAddressV4 SwitchState::getDhcpV4ReplySrc() const {
+  auto dhcpV4ReplySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV4ReplySrc();
+  if (dhcpV4ReplySrc.has_value()) {
+    return dhcpV4ReplySrc.value();
+  }
+  return folly::IPAddressV4("0.0.0.0");
+}
+
+folly::IPAddressV6 SwitchState::getDhcpV6ReplySrc() const {
+  auto dhcpV6ReplySrc =
+      getFirstSwitchSettingsOrDefault(*this)->getDhcpV6ReplySrc();
+  if (dhcpV6ReplySrc.has_value()) {
+    return dhcpV6ReplySrc.value();
+  }
+  return folly::IPAddressV6("::");
+}
+
+std::string SwitchState::getHostname() const {
+  auto hostname = getFirstSwitchSettingsOrDefault(*this)->getHostname();
+  if (hostname != std::nullopt) {
+    return (*hostname).cref();
+  }
+  // Should never really be hit as ApplyThriftConfig will use the system
+  // hostname by default
+  return "";
+}
+
+folly::IPAddressV4 SwitchState::getIcmpV4UnavailableSrcAddress() const {
+  return getFirstSwitchSettingsOrDefault(*this)
+      ->getIcmpV4UnavailableSrcAddress();
+}
+
+const std::shared_ptr<UdfConfig> SwitchState::getUdfConfig() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getUdfConfig();
+}
+
+const std::shared_ptr<FlowletSwitchingConfig>
+SwitchState::getFlowletSwitchingConfig() const {
+  return getFirstSwitchSettingsOrDefault(*this)->getFlowletSwitchingConfig();
+}
+
 void SwitchState::revertNewTeFlowEntry(
     const std::shared_ptr<TeFlowEntry>& newTeFlowEntry,
     const std::shared_ptr<TeFlowEntry>& oldTeFlowEntry,
@@ -585,16 +710,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
     }
   }
 
-  if (FLAGS_intf_nbr_tables) {
-    migrateNeighborTables(
-        state->getVlans().get() /* from */,
-        state->getInterfaces().get() /* to */);
-  } else {
-    migrateNeighborTables(
-        state->getInterfaces().get() /* from */,
-        state->getVlans().get() /* to */);
-  }
-
   /*
    * FIB Migration: Four-stage transition from fibsMap to fibsInfoMap
    *
@@ -664,61 +779,6 @@ std::unique_ptr<SwitchState> SwitchState::uniquePtrFromThrift(
   }
 
   return state;
-}
-
-/*
- * The warmboot cases to consider and desired action is listed below:
- *
- * (A) vlan nbrTables => vlan nbrTables :: No-Op
- * (B) vlan nbrTables => intf nbrTables :: Populte intf nbrTables from vlan
- * (C) intf nbrTables => intf nbrTables :: No-Op
- * (D) intf nbrTables => vlan nbrTables :: Populate vlan nbrTables from intf
- *
- * See (A), (B), (C), (D) annotations below for how each of the case is
- * handled.
- */
-template <typename FromMultiMapT, typename ToMultiMapT>
-void SwitchState::migrateNeighborTables(
-    FromMultiMapT* fromMultiMap,
-    ToMultiMapT* toMultiMap) {
-  for (const auto& fromTable : *fromMultiMap) {
-    for (const auto& [_, fromEntry] : *fromTable.second) {
-      // During warmboot from vlan nbrTables => vlan nbrTables,
-      // fromEntry(intf)'s neighbor tables will be empty, and vice-versa.
-      if (fromEntry->getNdpTable()->size() == 0) {
-        // Case (A) or Case (C)
-        continue;
-      }
-
-      // Case (B) or Case (D)
-
-      // VlanID always numerically equals the InterfaceID. Thus,
-      // vlanID can be used to lookup InterfaceMap indexed by InterfaceID, and,
-      // interfaceID can be used to lookup VlanMap indexed by VlanID.
-
-      auto [toEntry, toMatcher] =
-          toMultiMap->getNodeAndScope(fromEntry->getID());
-      if (toEntry) {
-        auto fromMatcher = HwSwitchMatcher(fromTable.first);
-        CHECK(fromMatcher == toMatcher);
-
-        auto ndpTable = fromEntry->getNdpTable()->toThrift();
-        auto arpTable = fromEntry->getArpTable()->toThrift();
-
-        // Populate VLAN/Interface tables from Interface/VLAN Tables
-        toEntry->setNdpTable(std::move(ndpTable));
-        toEntry->setArpTable(std::move(arpTable));
-        toEntry->setArpResponseTable(fromEntry->getArpResponseTable());
-        toEntry->setNdpResponseTable(fromEntry->getNdpResponseTable());
-
-        // Clear old Neighbor Tables
-        fromEntry->setNdpTable(nullptr);
-        fromEntry->setArpTable(nullptr);
-        fromEntry->setNdpResponseTable(nullptr);
-        fromEntry->setArpResponseTable(nullptr);
-      }
-    }
-  }
 }
 
 VlanID SwitchState::getDefaultVlan() const {
@@ -804,18 +864,27 @@ std::vector<SwitchID> SwitchState::getIntraClusterSwitchIds(
   return clusterIdToSwitchIds[clusterId.value()];
 }
 
-InterfaceID SwitchState::getInterfaceIDForPort(
+std::optional<InterfaceID> SwitchState::getInterfaceIDForPortIf(
     const PortDescriptor& port) const {
   switch (port.type()) {
     case PortDescriptor::PortType::PHYSICAL: {
-      auto physicalPort = getPorts()->getNode(port.phyPortID());
+      auto physicalPort = getPorts()->getNodeIf(port.phyPortID());
+      if (!physicalPort) {
+        XLOG(ERR) << "No port node found for port " << port.phyPortID();
+        return std::nullopt;
+      }
       // On VOQ/Fabric switches, port and interface have 1:1 relation.
       // For non VOQ/Fabric switches, in practice, a port is always part of a
       // single VLAN (and thus single interface).
       return physicalPort->getInterfaceID();
     }
     case PortDescriptor::PortType::AGGREGATE: {
-      auto aggregatePort = getAggregatePorts()->getNode(port.aggPortID());
+      auto aggregatePort = getAggregatePorts()->getNodeIf(port.aggPortID());
+      if (!aggregatePort || aggregatePort->getInterfaceIDs()->empty()) {
+        XLOG(ERR) << "No aggregate port or interface found for "
+                  << port.aggPortID();
+        return std::nullopt;
+      }
       // All aggregate member ports always belong to the same interface(s).
       // Thus, pick the interface for any member port.
       return InterfaceID(aggregatePort->getInterfaceIDs()->at(0)->cref());
@@ -824,7 +893,16 @@ InterfaceID SwitchState::getInterfaceIDForPort(
       XLOG(FATAL) << "Cannot get interface ID for system port: "
                   << port.sysPortID();
   }
-  return InterfaceID(0);
+  return std::nullopt;
+}
+
+InterfaceID SwitchState::getInterfaceIDForPort(
+    const PortDescriptor& port) const {
+  auto intfID = getInterfaceIDForPortIf(port);
+  if (!intfID) {
+    throw FbossError("No interface found for port ", port.str());
+  }
+  return intfID.value();
 }
 
 std::shared_ptr<SwitchState> SwitchState::fromThrift(
@@ -876,29 +954,6 @@ state::SwitchState SwitchState::toThrift() const {
       }
     }
     aclTableGroupMaps->clear();
-  }
-
-  // Reverse migrate new fibsInfoMap to old fibsMap for rollback compatibility
-  // The new fibsInfoMap contains map<SwitchIdList, FibInfoFields>
-  // We need to populate old fibsMap with map<SwitchIdList, map<vrf,
-  // FibContainerFields>>
-  // Please refer to the comment in uniquePtrFromThrift() for more details -
-  // (FIB Migration: Four-stage transition from fibsMap to fibsInfoMap) We will
-  // remove this code once we fully migrate to new FIB in stage 4.
-
-  auto fibsInfoMapThrift = data.fibsInfoMap();
-  if (fibsInfoMapThrift.has_value()) {
-    std::map<std::string, std::map<int16_t, state::FibContainerFields>> fibsMap;
-    if (!fibsInfoMapThrift.value().empty()) {
-      for (const auto& [switchIdListStr, fibInfoFields] :
-           fibsInfoMapThrift.value()) {
-        if (fibInfoFields.fibsMap().has_value()) {
-          // Copy the ForwardingInformationBaseMap to the old fibsMap structure
-          fibsMap[switchIdListStr] = fibInfoFields.fibsMap().value();
-        }
-      }
-    }
-    data.fibsMap() = fibsMap;
   }
 
   // Migrate new portsInfo field to old ports field for warmboot compatibility
@@ -967,6 +1022,8 @@ template MultiSwitchIpTunnelMap* SwitchState::modify<
     switch_state_tags::ipTunnelMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSrv6TunnelMap* SwitchState::modify<
     switch_state_tags::srv6TunnelMaps>(std::shared_ptr<SwitchState>*);
+template MultiSwitchMySidMap* SwitchState::modify<switch_state_tags::mySidMaps>(
+    std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<
     switch_state_tags::systemPortMaps>(std::shared_ptr<SwitchState>*);
 template MultiSwitchSystemPortMap* SwitchState::modify<

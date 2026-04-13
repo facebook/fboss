@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/FsdbAdaptedCowStorage.h"
+#include "fboss/agent/FsdbAdaptedSubManagerTypes.h"
+#include "fboss/thrift_cow/storage/CowStorage.h"
 
 namespace facebook::fboss {
 

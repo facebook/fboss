@@ -10,6 +10,7 @@
 
 #include "fboss/agent/HwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/IPProto.h"
 #include "fboss/agent/packet/IPv4Hdr.h"
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/PktUtil.h"
@@ -29,16 +30,64 @@ template <typename AddrT>
 IPPacket<AddrT>::IPPacket(folly::io::Cursor& cursor) {
   hdr_ = HdrT(cursor);
   if (nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP)) {
-    // if proto is udp, encapsulate udp
     udpPayLoad_ = UDPDatagram(cursor);
   } else if (nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_TCP)) {
     tcpPayLoad_ = TCPPacket(cursor, hdr_.payloadSize());
+  } else if (
+      nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV4)) {
+    v4PayLoad_ = std::make_unique<IPPacket<folly::IPAddressV4>>(cursor);
+  } else if (
+      nextHeader(hdr_) == static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6)) {
+    v6PayLoad_ = std::make_unique<IPPacket<folly::IPAddressV6>>(cursor);
   } else {
     ipPayload_ = std::vector<uint8_t>(hdr_.payloadSize());
     for (auto i = 0; i < hdr_.payloadSize(); ++i) {
       (*ipPayload_)[i] = cursor.read<uint8_t>();
     }
   }
+}
+
+template <typename AddrT>
+IPPacket<AddrT>::~IPPacket() = default;
+
+template <typename AddrT>
+IPPacket<AddrT>::IPPacket(IPPacket&& other) noexcept = default;
+
+template <typename AddrT>
+IPPacket<AddrT>& IPPacket<AddrT>::operator=(IPPacket&& other) noexcept =
+    default;
+
+template <typename AddrT>
+IPPacket<AddrT>::IPPacket(const IPPacket& other)
+    : hdr_(other.hdr_),
+      udpPayLoad_(other.udpPayLoad_),
+      tcpPayLoad_(other.tcpPayLoad_),
+      ipPayload_(other.ipPayload_) {
+  if (other.v4PayLoad_) {
+    v4PayLoad_ =
+        std::make_unique<IPPacket<folly::IPAddressV4>>(*other.v4PayLoad_);
+  }
+  if (other.v6PayLoad_) {
+    v6PayLoad_ =
+        std::make_unique<IPPacket<folly::IPAddressV6>>(*other.v6PayLoad_);
+  }
+}
+
+template <typename AddrT>
+IPPacket<AddrT>& IPPacket<AddrT>::operator=(const IPPacket& other) {
+  if (this != &other) {
+    hdr_ = other.hdr_;
+    udpPayLoad_ = other.udpPayLoad_;
+    tcpPayLoad_ = other.tcpPayLoad_;
+    ipPayload_ = other.ipPayload_;
+    v4PayLoad_ = other.v4PayLoad_
+        ? std::make_unique<IPPacket<folly::IPAddressV4>>(*other.v4PayLoad_)
+        : nullptr;
+    v6PayLoad_ = other.v6PayLoad_
+        ? std::make_unique<IPPacket<folly::IPAddressV6>>(*other.v6PayLoad_)
+        : nullptr;
+  }
+  return *this;
 }
 
 template <typename AddrT>
@@ -74,6 +123,10 @@ std::unique_ptr<facebook::fboss::TxPacket> IPPacket<AddrT>::getTxPacket(
     auto tcpPkt = tcpPayLoad_->getTxPacket(allocatePacket);
     folly::io::Cursor cursor(tcpPkt->buf());
     rwCursor.push(cursor, tcpPayLoad_->length());
+  } else if (v4PayLoad_) {
+    v4PayLoad_->serialize(rwCursor);
+  } else if (v6PayLoad_) {
+    v6PayLoad_->serialize(rwCursor);
   } else if (ipPayload_) {
     for (auto byte : *ipPayload_) {
       rwCursor.write<uint8_t>(byte);
@@ -92,6 +145,10 @@ void IPPacket<AddrT>::serialize(folly::io::RWPrivateCursor& cursor) const {
     udpPayLoad_->serialize(cursor);
   } else if (tcpPayLoad_) {
     tcpPayLoad_->serialize(cursor);
+  } else if (v4PayLoad_) {
+    v4PayLoad_->serialize(cursor);
+  } else if (v6PayLoad_) {
+    v6PayLoad_->serialize(cursor);
   } else if (ipPayload_) {
     for (auto byte : *ipPayload_) {
       cursor.write<uint8_t>(byte);
@@ -105,6 +162,8 @@ std::string IPPacket<AddrT>::toString() const {
   ss << "IP hdr: " << hdr_
      << " UDP : " << (udpPayLoad_.has_value() ? udpPayLoad_->toString() : "")
      << " TCP: " << (tcpPayLoad_.has_value() ? tcpPayLoad_->toString() : "")
+     << " IPv4: " << (v4PayLoad_ ? v4PayLoad_->toString() : "")
+     << " IPv6: " << (v6PayLoad_ ? v6PayLoad_->toString() : "")
      << " L3 only payload: "
      << (ipPayload_.has_value()
              ? PktUtil::hexDump(

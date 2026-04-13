@@ -232,11 +232,15 @@ phy::FecMode getFecModeFromSaiFecMode(
         case cfg::PortProfileID::PROFILE_400G_4_PAM4_RS544X2N_COPPER:
         case cfg::PortProfileID::PROFILE_800G_8_PAM4_RS544X2N_COPPER:
         case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_OPTICAL:
+        case cfg::PortProfileID::PROFILE_800G_4_PAM4_RS544X2N_COPPER:
         case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_COPPER:
+        case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544X2N_OPTICAL:
         case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544_COPPER:
         case cfg::PortProfileID::PROFILE_100G_2_PAM4_RS544_COPPER:
         case cfg::PortProfileID::PROFILE_100G_1_PAM4_RS544_COPPER:
+        case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_OPTICAL:
+        case cfg::PortProfileID::PROFILE_400G_2_PAM4_RS544X2N_COPPER:
           mode = phy::FecMode::RS544_2N;
           break;
         case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_COPPER:

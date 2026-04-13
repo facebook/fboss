@@ -9,6 +9,8 @@
  */
 #include "fboss/agent/TunIntf.h"
 
+#include "fboss/agent/AgentFeatures.h"
+
 extern "C" {
 #include <fcntl.h>
 #include <libnetlink.h>
@@ -32,11 +34,6 @@ extern "C" {
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/EthHdr.h"
 namespace facebook::fboss {
-
-DEFINE_int32(
-    max_tx_packets,
-    100000, // 1 gb / 10 kb
-    "the point at which we start dropping tx packets");
 
 namespace {
 
@@ -323,6 +320,15 @@ void TunIntf::disableIPv6AddrGenMode(int ifIndex) {
 
 void TunIntf::handlerReady(uint16_t /*events*/) noexcept {
   CHECK(fd_ != -1);
+
+  // Don't process packets during shutdown. There is a race where
+  // handlerReady may already be executing (or queued) on the EventBase
+  // thread when SwSwitch::stop() calls tunMgr_->stopProcessing().
+  // Continuing to process packets in the EXITING state can crash because
+  // SwSwitch members (ipv6_, arp_, etc.) may already be destroyed.
+  if (sw_->isExiting()) {
+    return;
+  }
 
   // Since this is L3 packet size, we should also reserve some space for L2
   // header, which is 18 bytes (including one vlan tag)

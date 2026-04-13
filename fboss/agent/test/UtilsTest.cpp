@@ -48,7 +48,7 @@ TEST_F(UtilsTest, AddTrapPacketAcl) {
   auto hwAsicTable = sw->getHwAsicTable();
   auto hwAsic = hwAsicTable->getHwAsicIf(SwitchID(0));
   utility::addTrapPacketAcl(
-      hwAsic, &config, folly::CIDRNetwork{"10.0.0.1", 128});
+      hwAsic, &config, folly::CIDRNetwork{"10.0.0.1", 32});
   sw->applyConfig("AddTrapPacketAcl", config);
   EXPECT_NE(sw->getState()->getAcls()->getNodeIf("trap-10.0.0.1"), nullptr);
 }

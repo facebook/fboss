@@ -131,6 +131,7 @@ sai_status_t create_tam_event(
   std::vector<sai_int32_t> packetDropTypeMmu{};
   std::vector<sai_int32_t> packetDropTypeIngress{};
   sai_object_id_t agingGroup{};
+  sai_object_id_t ingressSamplepacketEnable{};
 
   for (auto i = 0; i < attr_count; i++) {
     switch (attr_list[i].id) {
@@ -192,6 +193,10 @@ sai_status_t create_tam_event(
         agingGroup = attr_list[i].value.oid;
         break;
 
+      case SAI_TAM_EVENT_ATTR_FAKE_INGRESS_SAMPLEPACKET_ENABLE:
+        ingressSamplepacketEnable = attr_list[i].value.oid;
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -207,7 +212,8 @@ sai_status_t create_tam_event(
       extensionsCollectorList,
       packetDropTypeMmu,
       packetDropTypeIngress,
-      agingGroup);
+      agingGroup,
+      ingressSamplepacketEnable);
   return SAI_STATUS_SUCCESS;
 }
 
@@ -311,6 +317,10 @@ sai_status_t get_tam_event_attribute(
         attr_list[i].value.oid = eventAction.agingGroup_;
         break;
 
+      case SAI_TAM_EVENT_ATTR_FAKE_INGRESS_SAMPLEPACKET_ENABLE:
+        attr_list[i].value.oid = eventAction.ingressSamplepacketEnable_;
+        break;
+
       default:
         return SAI_STATUS_ATTR_NOT_SUPPORTED_0 + i;
     }
@@ -387,6 +397,10 @@ sai_status_t set_tam_event_attribute(
 
       case SAI_TAM_EVENT_ATTR_FAKE_AGING_GROUP:
         tamEvent.agingGroup_ = attr->value.oid;
+        break;
+
+      case SAI_TAM_EVENT_ATTR_FAKE_INGRESS_SAMPLEPACKET_ENABLE:
+        tamEvent.ingressSamplepacketEnable_ = attr->value.oid;
         break;
 
       default:

@@ -154,7 +154,7 @@ bool CmisFirmwareUpgrader::cmisModuleFirmwareDownload(
   // Run the CDB command
   status = commandBlock->cmisRunCdbCommand(bus_);
 
-  // If the CDB command is successfull then the Start Command Payload Size is
+  // If the CDB command is successful then the Start Command Payload Size is
   // returned by CDB in LPL memory at offset 2
 
   if (status && commandBlock->getCdbRlplLength() >= 3) {

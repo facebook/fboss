@@ -32,6 +32,7 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kInIpv4HdrErrors(),
       kInIpv6HdrErrors(),
       kInDstNullDiscards(),
+      kInSrv6MySidDiscards(),
       kInDiscardsRaw(),
       kOutBytes(),
       kOutUnicastPkts(),
@@ -57,6 +58,8 @@ HwPortFb303Stats::kPortMonotonicCounterStatKeys() const {
       kMacTransmitQueueStuck(),
       kFabricControlRxPackets(),
       kFabricControlTxPackets(),
+      kOutDiscardsSll(),
+      kOutDiscardsHll(),
   };
   return kPortKeys;
 }
@@ -181,6 +184,12 @@ void HwPortFb303Stats::updateStats(
       timeRetrieved_, kInIpv6HdrErrors(), *curPortStats.inIpv6HdrErrors_());
   updateStat(
       timeRetrieved_, kInDstNullDiscards(), *curPortStats.inDstNullDiscards_());
+  if (curPortStats.inSrv6MySidDiscards_().has_value()) {
+    updateStat(
+        timeRetrieved_,
+        kInSrv6MySidDiscards(),
+        *curPortStats.inSrv6MySidDiscards_());
+  }
   // Egress Stats
   updateStat(timeRetrieved_, kOutBytes(), *curPortStats.outBytes_());
   updateStat(
@@ -281,6 +290,14 @@ void HwPortFb303Stats::updateStats(
         timeRetrieved_,
         kFabricControlTxPackets(),
         *curPortStats.fabricControlTxPackets_());
+  }
+  if (curPortStats.outDiscardsSll_().has_value()) {
+    updateStat(
+        timeRetrieved_, kOutDiscardsSll(), *curPortStats.outDiscardsSll_());
+  }
+  if (curPortStats.outDiscardsHll_().has_value()) {
+    updateStat(
+        timeRetrieved_, kOutDiscardsHll(), *curPortStats.outDiscardsHll_());
   }
 
   // Update queue stats

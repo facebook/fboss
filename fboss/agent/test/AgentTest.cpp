@@ -11,6 +11,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/qsfp_service/lib/QsfpClient.h"
 
@@ -25,7 +26,6 @@ DEFINE_bool(setup_for_warmboot, false, "Set up test for warmboot");
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
-DECLARE_bool(intf_nbr_tables);
 
 namespace facebook::fboss {
 
@@ -110,15 +110,10 @@ void AgentTest::resolveNeighbor(
     auto intfId = vlan->getInterfaceID();
 
     NeighborTableT* nbrTable;
-    if (FLAGS_intf_nbr_tables) {
-      nbrTable = outputState->getInterfaces()
-                     ->getNode(intfId)
-                     ->template getNeighborEntryTable<AddrT>()
-                     ->modify(intfId, &outputState);
-    } else {
-      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-          vlanId, &outputState);
-    }
+    nbrTable = outputState->getInterfaces()
+                   ->getNode(intfId)
+                   ->template getNeighborEntryTable<AddrT>()
+                   ->modify(intfId, &outputState);
 
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(
@@ -315,7 +310,7 @@ PortID AgentTest::getPortID(const std::string& portName) const {
 }
 
 std::optional<VlanID> AgentTest::getVlanIDForTx() const {
-  auto intf = utility::firstInterfaceWithPorts(sw()->getState());
+  auto intf = firstInterfaceWithPortsForTesting(sw()->getState());
   return sw()->getVlanIDForTx(intf);
 }
 

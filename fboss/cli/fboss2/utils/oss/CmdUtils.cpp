@@ -7,13 +7,11 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
-#include <CLI/CLI.hpp>
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
+
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace facebook::fboss::utils {
-
-void postAppInit(int /* argc */, char* /* argv */[], CLI::App& /* app */) {}
 
 std::vector<std::string> getHostsInSmcTier(
     const std::string& /* parentTierName */) {

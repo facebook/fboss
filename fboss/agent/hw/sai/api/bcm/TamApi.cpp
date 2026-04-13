@@ -65,6 +65,13 @@ SaiTamEventTraits::Attributes::AttributeAgingGroup::operator()() {
   return std::nullopt;
 }
 
+std::optional<sai_attr_id_t> SaiTamEventTraits::Attributes::
+    AttributeIngressSamplepacketEnable::operator()() {
+#if defined(BRCM_SAI_SDK_XGS_GTE_13_0)
+  return SAI_TAM_EVENT_ATTR_INGRESS_SAMPLEPACKET_ENABLE;
+#endif
+  return std::nullopt;
+}
 std::optional<sai_attr_id_t>
 SaiTamTransportTraits::Attributes::AttributeSrcMacAddress::operator()() {
   return SAI_TAM_TRANSPORT_ATTR_SRC_MAC_ADDRESS;

@@ -2,9 +2,7 @@
 
 #include "fboss/agent/hw/sai/api/PortApi.h"
 
-#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0)
 #include "saiportcustom.h"
-#endif
 
 namespace facebook::fboss {
 std::optional<sai_attr_id_t>
@@ -409,11 +407,21 @@ SaiPortTraits::Attributes::AttributeHyperPortMemberList::operator()() {
 
 std::optional<sai_attr_id_t> SaiPortTraits::Attributes::
     AttributeCablePropagationDelayMediaType::operator()() {
-#if defined(CHENAB_SAI_SDK_VERSION_2511_35_0_0)
+#if SAI_API_VERSION >= SAI_VERSION(1, 17, 0) && defined(CHENAB_SAI_SDK)
   return SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY;
 #else
   return std::nullopt;
 #endif
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributePfcPauseDurationOverride::operator()() {
+  return SAI_PORT_ATTR_PFC_PAUSE_DURATION_OVERRIDE;
+}
+
+std::optional<sai_attr_id_t>
+SaiPortTraits::Attributes::AttributeCablePropagationDelayMeasure::operator()() {
+  return std::nullopt;
 }
 
 } // namespace facebook::fboss

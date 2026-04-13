@@ -7,6 +7,8 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/SwitchInfoTable.h"
 #include "fboss/agent/state/BufferPoolConfig.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/PortFlowletConfig.h"
 #include "fboss/agent/state/Vlan.h"
 #include "fboss/agent/test/HwTestHandle.h"
@@ -16,13 +18,10 @@
 
 using namespace facebook::fboss;
 
-template <typename SwitchTypeAndEnableIntfNbrTableT>
+template <typename SwitchTypeT>
 class SwitchIdScopeResolverTest : public ::testing::Test {
  public:
-  static auto constexpr switchType =
-      SwitchTypeAndEnableIntfNbrTableT::switchType;
-  static auto constexpr intfNbrTable =
-      SwitchTypeAndEnableIntfNbrTableT::intfNbrTable;
+  static auto constexpr switchType = SwitchTypeT::switchType;
 
   void addMirrorConfig(cfg::SwitchConfig* cfg) {
     cfg::Mirror mirror;
@@ -35,7 +34,6 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     auto config = testConfigA(switchType);
     addMirrorConfig(&config);
     handle_ = createTestHandle(&config);
@@ -105,7 +103,7 @@ class SwitchIdScopeResolverTest : public ::testing::Test {
   std::unique_ptr<HwTestHandle> handle_;
 };
 
-TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeAndEnableIntfNbrTable);
+TYPED_TEST_SUITE(SwitchIdScopeResolverTest, SwitchTypeTestTypes);
 
 TYPED_TEST(SwitchIdScopeResolverTest, mirrorScope) {
   if (this->isFabric()) {
@@ -443,4 +441,20 @@ TYPED_TEST(SwitchIdScopeResolverTest, srv6TunnelStateScopeCfg) {
   auto tunnelMatcher = resolver.scope(tunnel, config);
   auto intfMatcher = resolver.scope(intf, config);
   EXPECT_EQ(tunnelMatcher, intfMatcher);
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, mySidScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<MySid>{});
+  } else {
+    this->expectL3(std::shared_ptr<MySid>());
+  }
+}
+
+TYPED_TEST(SwitchIdScopeResolverTest, mySidMapScope) {
+  if (this->isFabric()) {
+    this->expectThrow(std::shared_ptr<MySidMap>{});
+  } else {
+    this->expectL3(std::shared_ptr<MySidMap>());
+  }
 }

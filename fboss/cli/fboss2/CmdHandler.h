@@ -19,6 +19,7 @@
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <folly/logging/xlog.h>
+#include <thrift/lib/thrift/gen-cpp2/metadata_types.h>
 
 namespace facebook::fboss {
 

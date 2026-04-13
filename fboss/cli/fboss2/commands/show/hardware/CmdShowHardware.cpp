@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/hardware/CmdShowHardware.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 #include "fboss/cli/fboss2/utils/clients/BmcClient.h"
@@ -260,4 +261,5 @@ void CmdShowHardware::printOutput(const RetType& model, std::ostream& out) {
   out << "Wedge Agent Uptime: " + model.ctrlUptime().value() << std::endl;
 }
 
+template void CmdHandler<CmdShowHardware, CmdShowHardwareTraits>::run();
 } // namespace facebook::fboss

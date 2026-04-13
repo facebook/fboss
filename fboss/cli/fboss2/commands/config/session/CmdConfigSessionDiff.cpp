@@ -9,10 +9,25 @@
  */
 
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
+
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 #include "fboss/cli/fboss2/session/ConfigSession.h"
+#include "fboss/cli/fboss2/session/Git.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 #include <folly/FileUtil.h>
 #include <folly/Subprocess.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <exception>
+#include <iostream>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace facebook::fboss {
 
@@ -39,7 +54,7 @@ std::pair<std::string, std::string> getRevisionContent(
   // Resolve the commit SHA and get the content from Git
   std::string resolvedSha = git.resolveRef(revision);
   std::string content = git.fileAtRevision(resolvedSha, "cli/agent.conf");
-  return {content, revision.substr(0, 8)};
+  return {content, Git::shortSha1(revision)};
 }
 
 // Helper function to execute diff on two strings and return the result
@@ -173,5 +188,9 @@ void CmdConfigSessionDiff::printOutput(const RetType& diffOutput) {
     std::cout << std::endl;
   }
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdConfigSessionDiff, CmdConfigSessionDiffTraits>::run();
 
 } // namespace facebook::fboss

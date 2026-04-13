@@ -91,12 +91,11 @@
 #include <utility>
 #include <vector>
 
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
+#include "fboss/agent/rib/RouteUpdater.h"
 
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
-
-DECLARE_bool(intf_nbr_tables);
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -128,20 +127,22 @@ StateDelta updateFibFromConfig(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
+    const facebook::fboss::MySidTable& mySidTable,
     void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,
       v6NetworkToRoute,
       labelToRoute,
-      nextHopIDManager);
+      nextHopIDManager,
+      mySidTable);
 
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
-  fibUpdater(*nextStatePtr);
-  auto lastDelta = fibUpdater.getLastDelta();
+  ribToSwitchStateUpdater(*nextStatePtr);
+  auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
   return StateDelta(lastDelta->oldState(), *nextStatePtr);
 }
@@ -550,7 +551,6 @@ class ThriftConfigApplier {
       const std::shared_ptr<NeighborResponseEntry>& orig,
       IPAddr ip,
       InterfaceIpInfo addrInfo);
-  bool updateNeighborResponseTables(Vlan* vlan, const cfg::Vlan* config);
   template <typename VlanOrIntfT, typename CfgVlanOrIntfT>
   bool updateDhcpOverrides(
       VlanOrIntfT* vlanOrIntf,
@@ -660,7 +660,7 @@ class ThriftConfigApplier {
 
   folly::MacAddress getLocalMac(SwitchID switchId) const;
   SwitchID getSwitchId(const cfg::Interface& intfConfig) const;
-  std::optional<SwitchID> getAnyVoqSwitchId();
+  std::optional<SwitchID> getAnySwitchId(cfg::SwitchType switchType);
   std::vector<SwitchID> getLocalFabricSwitchIds() const;
   std::optional<QueueConfig> getDefaultVoqConfigIfChanged(
       std::shared_ptr<SwitchSettings> switchSettings);
@@ -997,7 +997,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   }
 
   {
-    auto voqSwitchId = getAnyVoqSwitchId();
+    auto voqSwitchId = getAnySwitchId(cfg::SwitchType::VOQ);
     std::shared_ptr<SwitchSettings> origSwitchSettings{};
     if (voqSwitchId.has_value()) {
       auto matcher =
@@ -1039,16 +1039,16 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
   return new_;
 }
 
-std::optional<SwitchID> ThriftConfigApplier::getAnyVoqSwitchId() {
+std::optional<SwitchID> ThriftConfigApplier::getAnySwitchId(
+    cfg::SwitchType switchType) {
   std::optional<SwitchID> switchId;
   for (const auto& switchIdAndSwitchInfo :
        *cfg_->switchSettings()->switchIdToSwitchInfo()) {
-    if (switchIdAndSwitchInfo.second.switchType() == cfg::SwitchType::VOQ) {
+    if (switchIdAndSwitchInfo.second.switchType() == switchType) {
       switchId = static_cast<SwitchID>(switchIdAndSwitchInfo.first);
       break;
     }
   }
-  // Returns a switchId only if we have a VoQ switch in config!
   return switchId;
 }
 
@@ -2974,6 +2974,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->clmEnable().value_or(false) ==
           orig->getClmEnable().value_or(false) &&
       portConf->clmEnable().has_value() == orig->getClmEnable().has_value() &&
+      portConf->linkTraining().value_or(false) ==
+          orig->getLinkTraining().value_or(false) &&
+      portConf->linkTraining().has_value() ==
+          orig->getLinkTraining().has_value() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3065,6 +3069,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setClmEnable(portConf->clmEnable().value());
   } else {
     newPort->setClmEnable(std::nullopt);
+  }
+  if (portConf->linkTraining().has_value()) {
+    newPort->setLinkTraining(portConf->linkTraining().value());
+  } else {
+    newPort->setLinkTraining(std::nullopt);
   }
   return newPort;
 }
@@ -3392,7 +3401,6 @@ shared_ptr<VlanMap> ThriftConfigApplier::updateVlans() {
 shared_ptr<Vlan> ThriftConfigApplier::createVlan(const cfg::Vlan* config) {
   const auto& portsInfo = vlanPorts_[VlanID(*config->id())];
   auto vlan = make_shared<Vlan>(config, portsInfo);
-  updateNeighborResponseTables(vlan.get(), config);
   updateDhcpOverrides(vlan.get(), config);
 
   /* TODO t7153326: Following code is added for backward compatibility
@@ -3445,8 +3453,6 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   const auto& portsInfo = vlanPorts_[orig->getID()];
 
   auto newVlan = orig->clone();
-  bool changed_neighbor_table =
-      updateNeighborResponseTables(newVlan.get(), config);
   bool changed_dhcp_overrides = updateDhcpOverrides(newVlan.get(), config);
   auto oldDhcpV4Relay = orig->getDhcpV4Relay();
   auto newDhcpV4Relay = config->dhcpRelayAddressV4()
@@ -3473,8 +3479,8 @@ shared_ptr<Vlan> ThriftConfigApplier::updateVlan(
   bool macChanged = updateMacTable(newVlan, portSet);
   if (orig->getName() == *config->name() && oldIntfID == newIntfID &&
       orig->getPortsInfo() == portsInfo && oldDhcpV4Relay == newDhcpV4Relay &&
-      oldDhcpV6Relay == newDhcpV6Relay && !changed_neighbor_table &&
-      !changed_dhcp_overrides && !macChanged) {
+      oldDhcpV6Relay == newDhcpV6Relay && !changed_dhcp_overrides &&
+      !macChanged) {
     return nullptr;
   }
 
@@ -4332,51 +4338,6 @@ ThriftConfigApplier::updateNeighborResponseEntry(
   }
 }
 
-bool ThriftConfigApplier::updateNeighborResponseTables(
-    Vlan* vlan,
-    const cfg::Vlan* config) {
-  if (FLAGS_intf_nbr_tables) {
-    // Neighbor response tables are consumed from Interface
-    return false;
-  }
-
-  auto arpChanged = false, ndpChanged = false;
-  auto origArp = vlan->getArpResponseTable();
-  auto origNdp = vlan->getNdpResponseTable();
-  ArpResponseTable::NodeContainer arpTable;
-  NdpResponseTable::NodeContainer ndpTable;
-
-  VlanID vlanID(*config->id());
-  auto it = vlanInterfaces_.find(vlanID);
-  if (it != vlanInterfaces_.end()) {
-    for (const auto& [ip, addrInfo] : it->second.addresses) {
-      if (ip.isV4()) {
-        auto origNode = origArp->getEntry(ip.asV4());
-        auto newNode =
-            updateNeighborResponseEntry(origNode, ip.asV4(), addrInfo);
-        arpChanged |= updateMap(&arpTable, origNode, newNode);
-
-      } else {
-        auto origNode = origNdp->getEntry(ip.asV6());
-        auto newNode =
-            updateNeighborResponseEntry(origNode, ip.asV6(), addrInfo);
-        ndpChanged |= updateMap(&ndpTable, origNode, newNode);
-      }
-    }
-  }
-
-  arpChanged |= origArp->size() != arpTable.size();
-  ndpChanged |= origNdp->size() != ndpTable.size();
-
-  if (arpChanged) {
-    vlan->setArpResponseTable(origArp->clone(std::move(arpTable)));
-  }
-  if (ndpChanged) {
-    vlan->setNdpResponseTable(origNdp->clone(std::move(ndpTable)));
-  }
-  return arpChanged || ndpChanged;
-}
-
 std::shared_ptr<InterfaceMap> ThriftConfigApplier::updateInterfaces() {
   auto origIntfs = orig_->getInterfaces();
   InterfaceMap::NodeContainer newIntfs;
@@ -4544,6 +4505,9 @@ shared_ptr<Interface> ThriftConfigApplier::createInterface(
   if (config->desiredPeerAddressIPv6().has_value()) {
     intf->setDesiredPeerAddressIPv6(config->desiredPeerAddressIPv6().value());
   }
+  if (config->desiredPeerAddressIPv4().has_value()) {
+    intf->setDesiredPeerAddressIPv4(config->desiredPeerAddressIPv4().value());
+  }
   return intf;
 }
 
@@ -4577,18 +4541,24 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
   if (auto portID = config->portID()) {
     cfgPort = PortID(*portID);
   }
-  bool changedDesiredPeer = !((!config->desiredPeerName().has_value() &&
-                               !orig->getDesiredPeerName().has_value()) ||
-                              (config->desiredPeerName().has_value() &&
-                               orig->getDesiredPeerName().has_value() &&
-                               config->desiredPeerName().value() ==
-                                   orig->getDesiredPeerName().value())) ||
-      !((!config->desiredPeerAddressIPv6().has_value() &&
-         !orig->getDesiredPeerAddressIPv6().has_value()) ||
-        (config->desiredPeerAddressIPv6().has_value() &&
-         orig->getDesiredPeerAddressIPv6().has_value() &&
-         config->desiredPeerAddressIPv6().value() ==
-             orig->getDesiredPeerAddressIPv6().value()));
+  auto desiredPeerChanged = [](const auto& configVal,
+                               const auto& origVal) -> bool {
+    if (!configVal.has_value() && !origVal.has_value()) {
+      return false;
+    }
+    if (configVal.has_value() && origVal.has_value()) {
+      return configVal.value() != origVal.value();
+    }
+    return true;
+  };
+
+  bool changedDesiredPeer = desiredPeerChanged(
+                                config->desiredPeerName(),
+                                orig->getDesiredPeerName()) ||
+      desiredPeerChanged(config->desiredPeerAddressIPv6(),
+                         orig->getDesiredPeerAddressIPv6()) ||
+      desiredPeerChanged(config->desiredPeerAddressIPv4(),
+                         orig->getDesiredPeerAddressIPv4());
 
   if (orig->getRouterID() == RouterID(*config->routerID()) &&
       (orig->getVlanIDHelper() == VlanID(*config->vlanID())) &&
@@ -4633,6 +4603,10 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
     newIntf->setDesiredPeerAddressIPv6(
         config->desiredPeerAddressIPv6().value());
   }
+  if (config->desiredPeerAddressIPv4().has_value()) {
+    newIntf->setDesiredPeerAddressIPv4(
+        config->desiredPeerAddressIPv4().value());
+  }
 
   return newIntf;
 }
@@ -4640,11 +4614,6 @@ shared_ptr<Interface> ThriftConfigApplier::updateInterface(
 bool ThriftConfigApplier::updateNeighborResponseTablesForIntfs(
     Interface* intf,
     const Interface::Addresses& addrs) {
-  if (!FLAGS_intf_nbr_tables) {
-    // Neighbor response tables are consumed from VLANs
-    return false;
-  }
-
   auto arpChanged = false, ndpChanged = false;
   auto origArp = intf->getArpResponseTable();
   auto origNdp = intf->getNdpResponseTable();
@@ -4864,7 +4833,7 @@ ThriftConfigApplier::updatePortFlowletConfigs(bool* changed) {
 
   // origPortFlowletConfigs, newPortFlowletConfigs both are configured
   // and with with same size
-  // check if there is any upate on it when compared
+  // check if there is any update on it when compared
   // with last one
   for (auto& portFlowletConfig : *newCfgedPortFlowlets) {
     auto newPortFlowletConfig = createPortFlowletConfig(
@@ -4929,7 +4898,7 @@ ThriftConfigApplier::updateBufferPoolConfigs(bool* changed) {
 
   // origBufferPoolConfigs, newBufferPoolConfigs both are configured
   // and with with same size
-  // check if there is any upate on it when compared
+  // check if there is any update on it when compared
   // with last one
   for (auto& bufferPoolConfig : *newCfgedBufferPools) {
     auto newBufferPoolConfig =
@@ -5095,6 +5064,18 @@ shared_ptr<SwitchSettings> ThriftConfigApplier::updateSwitchSettings(
       *cfg_->switchSettings()->ptpTcEnable()) {
     newSwitchSettings->setPtpTcEnable(*cfg_->switchSettings()->ptpTcEnable());
     switchSettingsChange = true;
+  }
+
+  {
+    auto oldMode = origSwitchSettings->getPacketForwardingMode();
+    auto newModeRef = cfg_->switchSettings()->packetForwardingMode();
+    std::optional<cfg::PacketForwardingMode> newMode = newModeRef.has_value()
+        ? std::optional<cfg::PacketForwardingMode>(*newModeRef)
+        : std::nullopt;
+    if (oldMode != newMode) {
+      newSwitchSettings->setPacketForwardingMode(newMode);
+      switchSettingsChange = true;
+    }
   }
 
   if (origSwitchSettings->getL2AgeTimerSeconds() !=
@@ -6113,7 +6094,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
   folly::IPAddress localSrcIp;
   auto collectorIp = folly::IPAddress(*config->collectorIp());
   if (asic->getSwitchType() == cfg::SwitchType::VOQ) {
-    auto switchId = getAnyVoqSwitchId();
+    auto switchId = getAnySwitchId(cfg::SwitchType::VOQ);
     if (!switchId.has_value()) {
       throw FbossError("No VOQ switchId found");
     }
@@ -6134,6 +6115,14 @@ ThriftConfigApplier::createMirrorOnDropReport(
           "specifies a srcIp");
     }
     localSrcIp = folly::IPAddress(*config->mirrorPort()->tunnel()->srcIp());
+  }
+
+  // Determine the switchId for looking up the first interface MAC.
+  auto modSwitchId = getAnySwitchId(asic->getSwitchType());
+  if (!modSwitchId.has_value()) {
+    throw FbossError(
+        "No switchId found for switch type: ",
+        static_cast<int>(asic->getSwitchType()));
   }
 
   // Determine the mirror recirculation port.
@@ -6219,9 +6208,10 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
-      utility::getMacForFirstInterfaceWithPorts(new_).toString(),
+      utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
       *config->modEventToConfigMap(),
-      *config->agingGroupAgingIntervalUsecs());
+      *config->agingGroupAgingIntervalUsecs(),
+      config->samplingRate().to_optional());
 }
 
 std::shared_ptr<MirrorOnDropReport>
@@ -6646,7 +6636,7 @@ folly::MacAddress ThriftConfigApplier::getLocalMac(SwitchID switchId) const {
 
 void ThriftConfigApplier::updateSystemPortSelfHealingEcmpLagDestinationEnable(
     bool enable) {
-  CHECK(getAnyVoqSwitchId().has_value());
+  CHECK(getAnySwitchId(cfg::SwitchType::VOQ).has_value());
   for (const auto& [id, dsfNode] : *cfg_->dsfNodes()) {
     if (dsfNode.type().value() != cfg::DsfNodeType::INTERFACE_NODE) {
       continue;

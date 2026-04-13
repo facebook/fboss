@@ -33,6 +33,7 @@ struct NextHopInfo {
   4: optional string ifName;
   5: optional i32 interfaceID;
   6: optional common.NetworkTopologyInformation topologyInfo;
+  7: optional list<string> srv6SegmentList;
 }
 
 struct ClientAndNextHops {

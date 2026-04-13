@@ -75,23 +75,31 @@ def download_artifact(
         # Check if file has been modified
         if cached_mtime is not None and current_mtime == cached_mtime:
             logger.info(f"Using cached file:// artifact (unchanged): {source_path}")
-            return (True, cached_data_files, cached_metadata_files)
+            return (True, cached_data_files, cached_metadata_files)  # pyre-ignore[7]
 
-        # File is new or modified - create metadata with mtime
+        # File is new or modified - copy to temp dir so the artifact store
+        # can safely move the copy without removing the original source file.
         temp_download_dir = ArtifactStore.create_temp_dir(prefix="download-")
-        metadata_path = temp_download_dir / HTTP_METADATA_FILENAME
-        metadata = {"mtime": current_mtime}
         try:
+            # Copy the source file into the temp directory
+            temp_data_path = temp_download_dir / source_path.name
+            shutil.copy2(str(source_path), str(temp_data_path))
+
+            # Save metadata with mtime
+            metadata_path = temp_download_dir / HTTP_METADATA_FILENAME
+            metadata = {"mtime": current_mtime}
             with metadata_path.open("w") as f:
                 json.dump(metadata, f, indent=2)
         except Exception as e:
-            logger.warning(f"Failed to save file:// metadata to {metadata_path}: {e}")
+            logger.warning(
+                f"Failed to prepare file:// artifact from {source_path}: {e}"
+            )
             # Clean up temp dir on error
             ArtifactStore.delete_temp_dir(temp_download_dir)
             raise
 
         logger.info(f"Using local file: {source_path}")
-        return (False, [source_path], [metadata_path])
+        return (False, [temp_data_path], [metadata_path])
 
     return _download_http_with_cache(url, cached_data_files, cached_metadata_files)
 
@@ -198,7 +206,7 @@ def _download_http_with_cache(
     except urllib.error.HTTPError as e:
         if e.code == HTTPStatus.NOT_MODIFIED:
             logger.info(f"HTTP 304 Not Modified for {url} - content unchanged")
-            return (True, cached_data_files, cached_metadata_files)
+            return (True, cached_data_files, cached_metadata_files)  # pyre-ignore[7]
         # Clean up temp dir on error
         if temp_download_dir:
             ArtifactStore.delete_temp_dir(temp_download_dir)

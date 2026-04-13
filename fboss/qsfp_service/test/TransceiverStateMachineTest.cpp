@@ -216,7 +216,7 @@ class TransceiverStateMachineTest : public TransceiverManagerTestHelper {
         break;
       case TransceiverStateMachineState::PRESENT:
         // Because we want to verify two events: DETECT_TRANSCEIVER and
-        // READ_EEPROM seperately, we have to make sure we updateQsfpData with
+        // READ_EEPROM separately, we have to make sure we updateQsfpData with
         // allPages=True after `DETECT_TRANSCEIVER` but before `READ_EEPROM`
         // to match the same behavior as QsfpModule::refreshLocked()
         transceiverManager_->updateStateBlocking(

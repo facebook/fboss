@@ -119,9 +119,14 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
   if (newMirror && newMirror->type() == Mirror::Type::SFLOW &&
       asic->isSupported(HwAsic::Feature::EVENTOR_PORT_FOR_SFLOW)) {
     auto eventorPort = getEventorPortForSflowMirror(mirror->getSwitchId());
+    auto eventorMac = getEventorPortInterfaceMac(state, eventorPort);
+    XLOG(DBG2) << "updateMirror: switchId=" << mirror->getSwitchId()
+               << " eventorPort=" << eventorPort << " prevEgressPort="
+               << (newMirror->getEgressPortDesc().has_value()
+                       ? newMirror->getEgressPortDesc()->str()
+                       : "none");
     newMirror->setEgressPortDesc(PortDescriptor(eventorPort));
-    newMirror->setDestinationMac(
-        getEventorPortInterfaceMac(state, eventorPort));
+    newMirror->setDestinationMac(eventorMac);
   }
   // For overriding the egress port in tests.
   if (FLAGS_sflow_egress_port_id > 0) {
@@ -134,6 +139,15 @@ std::shared_ptr<Mirror> MirrorManagerImpl<AddrT>::updateMirror(
     return std::shared_ptr<Mirror>(nullptr);
   }
 
+  XLOG(DBG2) << "updateMirror: CHANGED mirror=" << mirror->getID()
+             << " switchId=" << mirror->getSwitchId() << " oldEgressPort="
+             << (mirror->getEgressPortDesc().has_value()
+                     ? mirror->getEgressPortDesc()->str()
+                     : "none")
+             << " newEgressPort="
+             << (newMirror->getEgressPortDesc().has_value()
+                     ? newMirror->getEgressPortDesc()->str()
+                     : "none");
   return newMirror;
 }
 

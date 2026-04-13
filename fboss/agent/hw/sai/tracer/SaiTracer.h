@@ -15,6 +15,7 @@
 #include <typeindex>
 
 #include "fboss/agent/AsyncLogger.h"
+#include "fboss/agent/hw/sai/api/SaiAttribute.h"
 #include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/api/Traits.h"
 #include "fboss/agent/hw/sai/tracer/Utils.h"
@@ -97,6 +98,14 @@ class SaiTracer {
       const sai_attribute_t* attr_list,
       sai_status_t rv);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  void logMySidEntryCreateFn(
+      const sai_my_sid_entry_t* my_sid_entry,
+      uint32_t attr_count,
+      const sai_attribute_t* attr_list,
+      sai_status_t rv);
+#endif
+
   std::string logCreateFn(
       const std::string& fn_name,
       sai_object_id_t* create_object_id,
@@ -138,6 +147,12 @@ class SaiTracer {
       const sai_inseg_entry_t* inseg_entry,
       sai_status_t rv);
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  void logMySidEntryRemoveFn(
+      const sai_my_sid_entry_t* my_sid_entry,
+      sai_status_t rv);
+#endif
+
   void logRemoveFn(
       const std::string& fn_name,
       sai_object_id_t remove_object_id,
@@ -161,6 +176,13 @@ class SaiTracer {
       const sai_inseg_entry_t* inseg_entry,
       const sai_attribute_t* attr,
       sai_status_t rv);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  void logMySidEntrySetAttrFn(
+      const sai_my_sid_entry_t* my_sid_entry,
+      const sai_attribute_t* attr,
+      sai_status_t rv);
+#endif
 
   void logAttrPreGet(
       uint32_t attr_count,
@@ -361,7 +383,7 @@ class SaiTracer {
       {TYPE_INDEX(AclEntryFieldU8List), &aclEntryFieldU8ListAttr},
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-      {TYPE_INDEX(std::vector<folly::IPAddressV6>), &segmentListAttr},
+      {TYPE_INDEX(SaiSegmentListValueType), &segmentListAttr},
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 4)
       {TYPE_INDEX(SaiJsonString), &jsonAttr},
@@ -406,6 +428,12 @@ class SaiTracer {
   void setRouteEntry(
       const sai_route_entry_t* route_entry,
       std::vector<std::string>& lines);
+
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+  void setMySidEntry(
+      const sai_my_sid_entry_t* my_sid_entry,
+      std::vector<std::string>& lines);
+#endif
 
   std::string rvCheck(sai_status_t rv);
 
@@ -576,6 +604,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_TUNNEL_TERM_TABLE_ENTRY, "tunnel_api->"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
       {SAI_OBJECT_TYPE_SRV6_SIDLIST, "srv6_api->"},
+      {SAI_OBJECT_TYPE_MY_SID_ENTRY, "srv6_api->"},
 #endif
       {SAI_OBJECT_TYPE_UDF, "udf_api->"},
       {SAI_OBJECT_TYPE_UDF_MATCH, "udf_api->"},

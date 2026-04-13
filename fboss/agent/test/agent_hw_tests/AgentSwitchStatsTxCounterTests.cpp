@@ -2,6 +2,7 @@
 
 #include <thread>
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
@@ -38,7 +39,7 @@ void AgentSwitchStatsTxCounterTest::checkTxCounters() {
 std::unique_ptr<TxPacket> AgentSwitchStatsTxCounterTest::createL3Packet() {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   return utility::makeUDPTxPacket(
       getSw(),
       vlanId,

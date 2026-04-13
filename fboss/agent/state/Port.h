@@ -866,6 +866,23 @@ class Port : public ThriftStructNode<Port, state::PortFields> {
     }
   }
 
+  /** @brief Get link training enable state */
+  std::optional<bool> getLinkTraining() const {
+    if (auto linkTraining = cref<switch_state_tags::linkTraining>()) {
+      return linkTraining->cref();
+    }
+    return std::nullopt;
+  }
+
+  /** @brief Set link training enable state */
+  void setLinkTraining(std::optional<bool> linkTraining) {
+    if (!linkTraining.has_value()) {
+      ref<switch_state_tags::linkTraining>().reset();
+    } else {
+      set<switch_state_tags::linkTraining>(linkTraining.value());
+    }
+  }
+
   std::optional<int32_t> getPortSwitchId() const {
     if (auto portSwitchId = cref<switch_state_tags::portSwitchId>()) {
       return portSwitchId->cref();

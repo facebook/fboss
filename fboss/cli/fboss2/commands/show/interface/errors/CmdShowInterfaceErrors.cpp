@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/interface/errors/CmdShowInterfaceErrors.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -94,5 +95,12 @@ void CmdShowInterfaceErrors::printOutput(
   }
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowInterfaceErrors, CmdShowInterfaceErrorsTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowInterfaceErrors,
+    CmdShowInterfaceErrorsTraits>::getValidFilters();
 
 } // namespace facebook::fboss

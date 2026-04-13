@@ -107,38 +107,163 @@ TEST_F(CmdSubCommandsTest, ThrowsOnUnsupportedVerb) {
       std::runtime_error);
 }
 
-TEST_F(CmdSubCommandsTest, ThrowsOnDuplicateCommand) {
-  // Create a command tree with a duplicate command at the same level
+TEST_F(CmdSubCommandsTest, MergesSubcommandsFromDuplicateCommand) {
+  // When the same object name appears in both trees, subcommands from the
+  // second tree are merged into the existing command branch. This allows
+  // different trees to contribute leaf commands under the same parent
+  // (e.g., "delete config" can have OSS and facebook-only subcommands).
   CommandTree cmdTree = {
       RootCommand(
-          "show",
-          "duplicate",
-          "First duplicate help",
+          "delete",
+          "config",
+          "Delete config objects",
           []() {},
-          []() { return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE; }),
+          []() { return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE; },
+          {Command(
+              "child1",
+              "First child help",
+              []() {},
+              []() {
+                return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+              })}),
   };
 
-  // Second tree with the same command name under the same verb
   CommandTree additionalTree = {
       RootCommand(
-          "show",
-          "duplicate",
-          "Second duplicate help",
+          "delete",
+          "config",
+          "Delete config objects",
           []() {},
-          []() { return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE; }),
+          []() { return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE; },
+          {Command(
+              "child2",
+              "Second child help",
+              []() {},
+              []() {
+                return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+              })}),
   };
 
   std::vector<Command> emptySpecialCmds;
 
-  // Should throw because "duplicate" command already exists under "show"
-  EXPECT_THROW(
+  EXPECT_NO_THROW(
       CmdSubcommands::getInstance()->init(
-          *app_, cmdTree, additionalTree, emptySpecialCmds),
-      std::runtime_error);
+          *app_, cmdTree, additionalTree, emptySpecialCmds));
+
+  // Verify both children exist under the merged "config" command
+  auto* deleteCmd = utils::getSubcommandIf(*app_, "delete");
+  ASSERT_NE(deleteCmd, nullptr);
+  auto* configCmd = utils::getSubcommandIf(*deleteCmd, "config");
+  ASSERT_NE(configCmd, nullptr);
+  EXPECT_NE(utils::getSubcommandIf(*configCmd, "child1"), nullptr);
+  EXPECT_NE(utils::getSubcommandIf(*configCmd, "child2"), nullptr);
+}
+
+TEST_F(CmdSubCommandsTest, MergeThrowsOnDuplicateLeafCommand) {
+  // When two trees contribute the same leaf command (no children) under a
+  // merged parent, it means the exact same path exists in both trees.
+  // This is a conflict and must be rejected.
+  CommandTree cmdTree = {
+      RootCommand(
+          "delete",
+          "config",
+          "Delete config objects",
+          []() {},
+          []() { return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE; },
+          {Command(
+              "samechild",
+              "First help",
+              []() {},
+              []() {
+                return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+              })}),
+  };
+
+  CommandTree additionalTree = {
+      RootCommand(
+          "delete",
+          "config",
+          "Delete config objects",
+          []() {},
+          []() { return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE; },
+          {Command(
+              "samechild",
+              "Duplicate help",
+              []() {},
+              []() {
+                return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+              })}),
+  };
+
+  std::vector<Command> emptySpecialCmds;
+
+  try {
+    CmdSubcommands::getInstance()->init(
+        *app_, cmdTree, additionalTree, emptySpecialCmds);
+    FAIL() << "Expected std::runtime_error to be thrown";
+  } catch (const std::runtime_error& e) {
+    EXPECT_THAT(
+        std::string(e.what()),
+        ::testing::HasSubstr("Command `samechild` already exists"));
+  }
+}
+
+TEST_F(CmdSubCommandsTest, MergesNestedSubcommands) {
+  // Verify merging works at deeper nesting levels — two trees contribute
+  // different grandchildren under the same parent>child path.
+  CommandTree cmdTree = {
+      RootCommand(
+          "show",
+          "parent",
+          "Parent help",
+          {Command(
+              "child",
+              "Child help",
+              {Command(
+                  "grandchild1",
+                  "Grandchild1 help",
+                  []() {},
+                  []() {
+                    return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+                  })})}),
+  };
+
+  CommandTree additionalTree = {
+      RootCommand(
+          "show",
+          "parent",
+          "Parent help",
+          {Command(
+              "child",
+              "Child help",
+              {Command(
+                  "grandchild2",
+                  "Grandchild2 help",
+                  []() {},
+                  []() {
+                    return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
+                  })})}),
+  };
+
+  std::vector<Command> emptySpecialCmds;
+
+  EXPECT_NO_THROW(
+      CmdSubcommands::getInstance()->init(
+          *app_, cmdTree, additionalTree, emptySpecialCmds));
+
+  auto* showCmd = utils::getSubcommandIf(*app_, "show");
+  ASSERT_NE(showCmd, nullptr);
+  auto* parentCmd = utils::getSubcommandIf(*showCmd, "parent");
+  ASSERT_NE(parentCmd, nullptr);
+  auto* childCmd = utils::getSubcommandIf(*parentCmd, "child");
+  ASSERT_NE(childCmd, nullptr);
+  EXPECT_NE(utils::getSubcommandIf(*childCmd, "grandchild1"), nullptr);
+  EXPECT_NE(utils::getSubcommandIf(*childCmd, "grandchild2"), nullptr);
 }
 
 TEST_F(CmdSubCommandsTest, ThrowsOnDuplicateNestedCommand) {
-  // Create a command tree with duplicate nested commands
+  // Duplicate leaf commands within the same tree are rejected — the exact
+  // same path from root to leaf exists twice, which is a conflict.
   CommandTree cmdTree = {
       RootCommand(
           "show",
@@ -162,15 +287,11 @@ TEST_F(CmdSubCommandsTest, ThrowsOnDuplicateNestedCommand) {
   CommandTree emptyTree;
   std::vector<Command> emptySpecialCmds;
 
-  // This test verifies our duplicate detection code throws with the correct
-  // message. If this test fails with a CLI11 error message instead, it means
-  // the 'throw' keyword is missing in addCommandBranch().
   try {
     CmdSubcommands::getInstance()->init(
         *app_, cmdTree, emptyTree, emptySpecialCmds);
     FAIL() << "Expected std::runtime_error to be thrown";
   } catch (const std::runtime_error& e) {
-    // Verify the exception message is from our code, not CLI11
     EXPECT_THAT(
         std::string(e.what()),
         ::testing::HasSubstr("Command `child` already exists"));

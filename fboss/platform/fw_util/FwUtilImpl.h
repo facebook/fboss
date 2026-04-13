@@ -86,6 +86,7 @@ class FwUtilImpl {
   FRIEND_TEST(FwUtilFlashromTest, PerformFlashromReadSuccess);
   FRIEND_TEST(FwUtilOperationsTest, PerformJamUpgradeMissingBinary);
   FRIEND_TEST(FwUtilOperationsTest, PerformXappUpgradeMissingBinary);
+  FRIEND_TEST(FwUtilOperationsTest, PerformPsuUtilUpgradeMissingBinary);
   FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationSuccess);
   FRIEND_TEST(FwUtilOperationsTest, DoGpiosetOperationInvalidChip);
   FRIEND_TEST(FwUtilOperationsTest, DoGpiogetOperationSuccess);
@@ -127,6 +128,7 @@ class FwUtilImpl {
   std::string detectFlashromChip(const FlashromConfig&, const std::string&);
   void performJamUpgrade(const JamConfig&);
   void performXappUpgrade(const XappConfig&);
+  void performPsuUtilUpgrade(const PsuUtilConfig&);
   void doPostUpgrade(const std::string&);
   void doPostUpgradeOperation(
       const PostFirmwareOperationConfig&,

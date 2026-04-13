@@ -39,7 +39,8 @@
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSamplePacketManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSchedulerManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6MySidManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSystemPortManager.h"
@@ -119,7 +120,10 @@ void SaiManagerTable::createSaiTableManagers(
   tunnelManager_ = std::make_unique<SaiTunnelManager>(saiStore, this, platform);
   srv6TunnelManager_ =
       std::make_unique<SaiSrv6TunnelManager>(saiStore, this, platform);
-  srv6Manager_ = std::make_unique<SaiSrv6Manager>(saiStore, this, platform);
+  srv6SidListManager_ =
+      std::make_unique<SaiSrv6SidListManager>(saiStore, this, platform);
+  srv6MySidManager_ =
+      std::make_unique<SaiSrv6MySidManager>(saiStore, this, platform);
   teFlowEntryManager_ =
       std::make_unique<UnsupportedFeatureManager>("EM entries");
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
@@ -141,6 +145,9 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   // in those managers
   routeManager().clear();
   inSegEntryManager_.reset();
+  // MySid handles reference managed next hops and next hop groups,
+  // so must be reset before those managers
+  srv6MySidManager_.reset();
   // Reset neighbor mgr before reseting rif mgr, since the
   // neighbor entries refer to rifs. While at it, also reset fdb
   // and next hop mgrs. Fdb is reset after neighbor mgr since
@@ -236,10 +243,11 @@ void SaiManagerTable::reset(bool skipSwitchManager) {
   bufferManager_.reset();
 
   tunnelManager_.reset();
-  srv6Manager_.reset();
-  srv6TunnelManager_.reset();
   queueManager_.reset();
   routeManager_.reset();
+  srv6MySidManager_.reset();
+  srv6SidListManager_.reset();
+  srv6TunnelManager_.reset();
   schedulerManager_.reset();
   teFlowEntryManager_.reset();
 
@@ -493,12 +501,20 @@ const SaiTunnelManager& SaiManagerTable::tunnelManager() const {
   return *tunnelManager_;
 }
 
-SaiSrv6Manager& SaiManagerTable::srv6Manager() {
-  return *srv6Manager_;
+SaiSrv6SidListManager& SaiManagerTable::srv6SidListManager() {
+  return *srv6SidListManager_;
 }
 
-const SaiSrv6Manager& SaiManagerTable::srv6Manager() const {
-  return *srv6Manager_;
+const SaiSrv6SidListManager& SaiManagerTable::srv6SidListManager() const {
+  return *srv6SidListManager_;
+}
+
+SaiSrv6MySidManager& SaiManagerTable::srv6MySidManager() {
+  return *srv6MySidManager_;
+}
+
+const SaiSrv6MySidManager& SaiManagerTable::srv6MySidManager() const {
+  return *srv6MySidManager_;
 }
 
 SaiSrv6TunnelManager& SaiManagerTable::srv6TunnelManager() {

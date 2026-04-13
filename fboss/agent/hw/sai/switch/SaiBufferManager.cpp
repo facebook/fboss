@@ -14,6 +14,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/Platform.h"
 #include "fboss/agent/Utils.h"
+#include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/api/SwitchApi.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
@@ -1068,8 +1069,21 @@ SaiIngressPriorityGroupHandles SaiBufferManager::loadIngressPriorityGroups(
 void SaiBufferManager::publishGlobalWatermarks(
     const uint64_t& globalHeadroomBytes,
     const uint64_t& globalSharedBytes) const {
-  STATS_buffer_watermark_global_headroom.addValue(globalHeadroomBytes);
+  auto headroomWatermarkSupported = platform_->getAsic()->isSupported(
+      HwAsic::Feature::BUFFER_POOL_HEADROOM_WATERMARK);
+  // Update quantile stats (for sliding window p100 values)
+  if (headroomWatermarkSupported) {
+    STATS_buffer_watermark_global_headroom.addValue(globalHeadroomBytes);
+  }
   STATS_buffer_watermark_global_shared.addValue(globalSharedBytes);
+
+  auto* switchStats = platform_->getHwSwitch()->getSwitchStats();
+  switchStats->updateGlobalWatermarkMax(
+      globalHeadroomBytes,
+      globalSharedBytes,
+      getConfiguredHeadroomPoolSizeBytes(),
+      getConfiguredSharedPoolSizeBytes(),
+      headroomWatermarkSupported);
 }
 
 void SaiBufferManager::publishPgWatermarks(
@@ -1154,5 +1168,50 @@ SaiBufferManager::getEgressPortBufferProfiles(
     }
   }
   return profileHandles;
+}
+
+// Buffer sizes in configs are per core for VOQ switches and per ITM/buffer
+// for the rest. However, what is programmed to hardware is the combined size
+// of all cores/ITMs/buffers. Divide by the appropriate count to get the
+// per-unit configured size.
+uint64_t SaiBufferManager::getIngressPoolDivisor() const {
+  return platform_->getAsic()->getSwitchType() == cfg::SwitchType::VOQ
+      ? platform_->getAsic()->getNumCores()
+      : platform_->getAsic()->getNumMemoryBuffers();
+}
+
+uint64_t SaiBufferManager::getConfiguredHeadroomPoolSizeBytes() const {
+  auto* ingressPoolHandle = getIngressBufferPoolHandle();
+  if (!ingressPoolHandle) {
+    return 0;
+  }
+
+  auto xoffSize =
+      std::get<std::optional<SaiBufferPoolTraits::Attributes::XoffSize>>(
+          ingressPoolHandle->bufferPool->attributes());
+  if (!xoffSize.has_value()) {
+    return 0;
+  }
+
+  return xoffSize.value().value() / getIngressPoolDivisor();
+}
+
+uint64_t SaiBufferManager::getConfiguredSharedPoolSizeBytes() const {
+  auto* ingressPoolHandle = getIngressBufferPoolHandle();
+  if (!ingressPoolHandle) {
+    return 0;
+  }
+
+  auto poolSize = std::get<SaiBufferPoolTraits::Attributes::Size>(
+      ingressPoolHandle->bufferPool->attributes());
+  auto xoffSize =
+      std::get<std::optional<SaiBufferPoolTraits::Attributes::XoffSize>>(
+          ingressPoolHandle->bufferPool->attributes());
+
+  uint64_t sharedSize = xoffSize.has_value()
+      ? poolSize.value() - xoffSize.value().value()
+      : poolSize.value();
+
+  return sharedSize / getIngressPoolDivisor();
 }
 } // namespace facebook::fboss

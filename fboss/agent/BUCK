@@ -176,6 +176,7 @@ thrift_library(
     deps = [
         ":switch_config",
         "//common/network/if:if",
+        "//configerator/structs/neteng/fboss/thrift:common",
         "//fboss/agent/if:common",
         "//fboss/agent/if:ctrl",
         "//fboss/lib/phy:phy",
@@ -499,6 +500,7 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:state",
         "//folly:network_address",
+        "//folly/logging:logging",
     ],
     exported_external_deps = [
         ("boost", None, "boost_container"),
@@ -612,9 +614,6 @@ cpp_library(
         "//fboss/agent/hw:hw_switch_fb303_stats",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
-        "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
-        "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",
-        "//fboss/agent/platforms/common/meru400biu:meru400biu_platform_mapping",
         "//fboss/agent/platforms/common/meru800bfa:meru800bfa_platform_mapping",
         "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
         "//fboss/agent/state:state",
@@ -800,6 +799,7 @@ cpp_library(
         "FibHelpers.cpp",
     ],
     exported_deps = [
+        ":agent_features",
         ":fboss-types",
         "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:state",
@@ -936,6 +936,7 @@ cpp_library(
         "StaticL2ForNeighborSwSwitchUpdater.cpp",
         "StaticL2ForNeighborUpdater.cpp",
         "SwSwitch.cpp",
+        "SwSwitchMySidUpdater.cpp",
         "SwSwitchRouteUpdateWrapper.cpp",
         "SwitchInfoTable.cpp",
         "SwitchStats.cpp",
@@ -1162,7 +1163,6 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
-        "//fboss/agent/rib:fib_updater",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
@@ -1221,11 +1221,13 @@ cpp_library(
         "types.cpp",
     ],
     headers = [
+        "LocalSwitchIds.h",
         "PortDescriptorTemplate.h",
         "types.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":fboss-error",
         ":switch_config-cpp2-types",
         "//folly:conv",
         "//folly/json:dynamic",
@@ -1233,6 +1235,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
+        ("boost", None, "boost_container"),
         ("boost", None, "boost_serialization"),
     ],
 )
@@ -2147,6 +2150,7 @@ ci_sandcastle(
         "fbcode/fboss/agent/**",
     ],
     command = "SandcastleUniversalCommand",
+    metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_agent",
     schedules = [
         ci.diff,
@@ -2176,6 +2180,7 @@ cpp_library(
     name = "validate_state_update",
     srcs = [
         "ResourceAccountant.cpp",
+        "ValidateInterfaceDelta.cpp",
         "ValidateStateUpdate.cpp",
     ],
     exported_deps = [
@@ -2192,6 +2197,8 @@ cpp_library(
         "//fboss/agent/hw/switch_asics:switch_asics",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
+        "//fboss/lib:unique_ref_map",
+        "//folly:network_address",
     ],
 )
 

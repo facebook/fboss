@@ -63,6 +63,7 @@ int getRdswSysPortBlockSize(
       case PlatformType::PLATFORM_JANGA800BIC:
         return 22;
       case PlatformType::PLATFORM_BLACKWOLF800BANW:
+      case PlatformType::PLATFORM_J4SIM:
         return 1024;
       default:
         break;
@@ -195,7 +196,7 @@ bool isEnabledPortWithSubnet(
 std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   auto switchIdVal = static_cast<int64_t>(switchId);
   // Use (200-255):(0-255) range for DSF node loopback IPs. Therefore, the max
-  // number of switchId can be accomodated will be 56 * 256 = 14366, which is
+  // number of switchId can be accommodated will be 56 * 256 = 14366, which is
   // more than what we need in both J2 and J3.
   const auto switchIdLimit = 14366;
   CHECK_LT(switchIdVal, switchIdLimit)
@@ -488,14 +489,10 @@ cfg::DsfNode dsfNodeConfig(
       return *platformType;
     }
     switch (asic.getAsicType()) {
-      case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        return PlatformType::PLATFORM_MERU400BIU;
       case cfg::AsicType::ASIC_TYPE_JERICHO3:
         return PlatformType::PLATFORM_MERU800BIA;
       case cfg::AsicType::ASIC_TYPE_JERICHO4:
         return PlatformType::PLATFORM_J4SIM;
-      case cfg::AsicType::ASIC_TYPE_RAMON:
-        return PlatformType::PLATFORM_MERU400BFU;
       case cfg::AsicType::ASIC_TYPE_RAMON3:
         return PlatformType::PLATFORM_MERU800BFA;
       case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
@@ -966,7 +963,11 @@ cfg::SwitchConfig genPortVlanCfg(
         (FLAGS_hide_interface_ports &&
          *platformPorts.find(static_cast<int32_t>(portID))
                  ->second.mapping()
-                 ->portType() == cfg::PortType::INTERFACE_PORT)) {
+                 ->portType() == cfg::PortType::INTERFACE_PORT) ||
+        (FLAGS_hide_management_ports &&
+         *platformPorts.find(static_cast<int32_t>(portID))
+                 ->second.mapping()
+                 ->portType() == cfg::PortType::MANAGEMENT_PORT)) {
       continue;
     }
     config.ports()->push_back(
@@ -1089,6 +1090,10 @@ void populateSwitchInfo(
     }
     return firstHwAsicTableItr->second;
   }();
+  // In production, all NPUs on the same device share the same DSF node name.
+  // Use the smallest switchId as the device identifier to match this behavior.
+  auto deviceSwitchId =
+      static_cast<int64_t>(switchIdToSwitchInfo.begin()->first);
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -1098,8 +1103,9 @@ void populateSwitchInfo(
     const auto& hwAsic = hwAsicTableItr->second;
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
-      newDsfNodes.insert(
-          {switchId, dsfNodeConfig(*firstHwAsic, switchId, platformType)});
+      auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
+      dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
+      newDsfNodes.insert({switchId, std::move(dsfNode)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;

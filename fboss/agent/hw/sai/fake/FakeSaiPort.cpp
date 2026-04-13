@@ -816,6 +816,12 @@ sai_status_t set_port_attribute_fn(
     case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
       port.cablePropagationDelayMediaType = attr->value.s32;
       break;
+    case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
+      port.pfcPauseDurationOverride = attr->value.u16;
+      break;
+    case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
+      port.cablePropagationDelayMeasure = attr->value.booldata;
+      break;
     default:
       res = SAI_STATUS_INVALID_PARAMETER;
       break;
@@ -1224,6 +1230,12 @@ sai_status_t get_port_attribute_fn(
         break;
       case SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE:
         attr[i].value.s32 = port.cablePropagationDelayMediaType;
+        break;
+      case SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE:
+        attr[i].value.u16 = port.pfcPauseDurationOverride;
+        break;
+      case SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE:
+        attr[i].value.booldata = port.cablePropagationDelayMeasure;
         break;
       default:
         return SAI_STATUS_INVALID_PARAMETER;

@@ -21,6 +21,7 @@
 #include <boost/functional/hash.hpp>
 #include <fmt/ranges.h>
 
+#include <array>
 #include <cstring>
 #include <type_traits>
 #include <utility>
@@ -210,7 +211,8 @@ DEFINE_extract(sai_acl_capability_t, aclcapability);
 DEFINE_extract(sai_acl_resource_list_t, aclresource);
 DEFINE_extract(sai_tlv_list_t, tlvlist);
 DEFINE_extract(sai_segment_list_t, segmentlist);
-DEFINE_extract(std::vector<folly::IPAddressV6>, segmentlist);
+using SaiSegmentListValueType = std::vector<std::array<uint8_t, 16>>;
+DEFINE_extract(SaiSegmentListValueType, segmentlist);
 DEFINE_extract(sai_ip_address_list_t, ipaddrlist);
 DEFINE_extract(sai_system_port_config_t, sysportconfig);
 DEFINE_extract(sai_fabric_port_reachability_t, reachability);
@@ -312,13 +314,15 @@ inline void _realloc(
 
 } // namespace
 
-void _fill(std::vector<folly::IPAddressV6>& src, sai_segment_list_t& dst);
+void _fill(std::vector<std::array<uint8_t, 16>>& src, sai_segment_list_t& dst);
 
-void _fill(const sai_segment_list_t& src, std::vector<folly::IPAddressV6>& dst);
+void _fill(
+    const sai_segment_list_t& src,
+    std::vector<std::array<uint8_t, 16>>& dst);
 
 void _realloc(
     const sai_segment_list_t& src,
-    std::vector<folly::IPAddressV6>& dst);
+    std::vector<std::array<uint8_t, 16>>& dst);
 
 namespace {
 

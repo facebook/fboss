@@ -21,7 +21,7 @@ auto constexpr kFsdbQsfpStatsStale = "fsdb_qsfp_stats_stale";
 auto constexpr kFsdbQsfpStatsContentName = "QSFP Stats";
 auto constexpr kFsdbAgentDataStale = "fsdb_asic_temp_stats_stale";
 auto constexpr kFsdbAgentDataContentName = "Agent Data";
-auto constexpr kFsdbSyncTimeoutThresholdInSec = 3 * 60; // 3 minutes
+auto constexpr kFsdbSyncTimeoutThresholdInSec = 90;
 } // namespace
 
 namespace facebook::fboss {
@@ -92,8 +92,14 @@ void FsdbSensorSubscriber::checkDataFreshness(
     const std::atomic<uint64_t>& lastUpdatedTime,
     const std::string& contentName,
     const std::string& staleCounterName) const {
+  auto lastUpdate = lastUpdatedTime.load();
+  if (lastUpdate == 0) {
+    XLOG(ERR) << "Warning! " << contentName << " has never been synced";
+    fb303::fbData->setCounter(staleCounterName, 1);
+    return;
+  }
   auto timeSinceLastUpdate =
-      facebook::WallClockUtil::NowInSecFast() - lastUpdatedTime.load();
+      facebook::WallClockUtil::NowInSecFast() - lastUpdate;
   if (timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec) {
     XLOG(ERR) << "Warning! " << contentName << " hasn't been synced since last "
               << timeSinceLastUpdate << " seconds";
@@ -101,6 +107,16 @@ void FsdbSensorSubscriber::checkDataFreshness(
   } else {
     fb303::fbData->setCounter(staleCounterName, 0);
   }
+}
+
+bool FsdbSensorSubscriber::isSensorDataStale() const {
+  auto lastUpdatedTime = sensorStatsLastUpdatedTime.load();
+  if (lastUpdatedTime == 0) {
+    return true;
+  }
+  auto timeSinceLastUpdate =
+      facebook::WallClockUtil::NowInSecFast() - lastUpdatedTime;
+  return timeSinceLastUpdate > kFsdbSyncTimeoutThresholdInSec;
 }
 
 std::map<std::string, fboss::platform::sensor_service::SensorData>
@@ -113,9 +129,7 @@ FsdbSensorSubscriber::getSensorData() const {
 std::map<std::string, facebook::fboss::asic_temp::AsicTempData>
 FsdbSensorSubscriber::getAgentData() const {
   checkDataFreshness(
-      sensorStatsLastUpdatedTime,
-      kFsdbAgentDataContentName,
-      kFsdbAgentDataStale);
+      agentLastUpdatedTime, kFsdbAgentDataContentName, kFsdbAgentDataStale);
   return agentData.copy();
 };
 

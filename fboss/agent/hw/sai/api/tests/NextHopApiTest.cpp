@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/sai/api/NextHopApi.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 
 #include <folly/logging/xlog.h>
@@ -69,30 +68,22 @@ class NextHopApiTest : public ::testing::Test {
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   NextHopSaiId createSrv6SidlistNextHop(
-      folly::IPAddress ip,
       sai_object_id_t tunnelId,
       sai_object_id_t srv6SidlistId) {
     SaiSrv6SidlistNextHopTraits::Attributes::Type typeAttribute(
         SAI_NEXT_HOP_TYPE_SRV6_SIDLIST);
-    SaiSrv6SidlistNextHopTraits::Attributes::RouterInterfaceId
-        routerInterfaceIdAttribute(0);
-    SaiSrv6SidlistNextHopTraits::Attributes::Ip ipAttribute(ip);
     SaiSrv6SidlistNextHopTraits::Attributes::TunnelId tunnelIdAttribute(
         tunnelId);
     SaiSrv6SidlistNextHopTraits::Attributes::Srv6SidlistId
         srv6SidlistIdAttribute(srv6SidlistId);
     auto nextHopId = nextHopApi->create<SaiSrv6SidlistNextHopTraits>(
         {typeAttribute,
-         routerInterfaceIdAttribute,
-         ipAttribute,
          tunnelIdAttribute,
          srv6SidlistIdAttribute,
          std::nullopt},
         0);
     auto fnh = fs->nextHopManager.get(nextHopId);
     EXPECT_EQ(SAI_NEXT_HOP_TYPE_SRV6_SIDLIST, fnh.type);
-    EXPECT_EQ(ip, fnh.ip);
-    EXPECT_EQ(0, fnh.routerInterfaceId);
     EXPECT_EQ(tunnelId, fnh.tunnelId);
     EXPECT_EQ(srv6SidlistId, fnh.srv6SidlistId);
     return nextHopId;
@@ -208,34 +199,28 @@ TEST_F(NextHopApiTest, formatNextHopAttributes) {
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 TEST_F(NextHopApiTest, createSrv6SidlistNextHop) {
-  createSrv6SidlistNextHop(ip4, 10, 20);
+  createSrv6SidlistNextHop(10, 20);
 }
 
 TEST_F(NextHopApiTest, getSrv6SidlistTypeAttribute) {
   sai_object_id_t tunnelId = 10;
   sai_object_id_t srv6SidlistId = 20;
-  auto nextHopId = createSrv6SidlistNextHop(ip4, tunnelId, srv6SidlistId);
+  auto nextHopId = createSrv6SidlistNextHop(tunnelId, srv6SidlistId);
 
   auto nextHopTypeGot = nextHopApi->getAttribute(
       nextHopId, SaiIpNextHopTraits::Attributes::Type());
-  auto nextHopIpGot =
-      nextHopApi->getAttribute(nextHopId, SaiIpNextHopTraits::Attributes::Ip());
-  auto nextHopRouterInterfaceIdGot = nextHopApi->getAttribute(
-      nextHopId, SaiIpNextHopTraits::Attributes::RouterInterfaceId());
   auto nextHopTunnelIdGot = nextHopApi->getAttribute(
       nextHopId, SaiSrv6SidlistNextHopTraits::Attributes::TunnelId());
   auto nextHopSrv6SidlistIdGot = nextHopApi->getAttribute(
       nextHopId, SaiSrv6SidlistNextHopTraits::Attributes::Srv6SidlistId());
 
   EXPECT_EQ(nextHopTypeGot, SAI_NEXT_HOP_TYPE_SRV6_SIDLIST);
-  EXPECT_EQ(nextHopIpGot, ip4);
-  EXPECT_EQ(nextHopRouterInterfaceIdGot, 0);
   EXPECT_EQ(nextHopTunnelIdGot, tunnelId);
   EXPECT_EQ(nextHopSrv6SidlistIdGot, srv6SidlistId);
 }
 
 TEST_F(NextHopApiTest, removeSrv6SidlistNextHop) {
-  auto nextHopId = createSrv6SidlistNextHop(ip4, 10, 20);
+  auto nextHopId = createSrv6SidlistNextHop(10, 20);
   EXPECT_EQ(fs->nextHopManager.map().size(), 1);
   nextHopApi->remove(nextHopId);
   EXPECT_EQ(fs->nextHopManager.map().size(), 0);

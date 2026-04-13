@@ -451,7 +451,7 @@ class BcmPort {
   // Besides since we always reset `portStats_` to nullopt when we disable
   // the statsCollection, we don't actually need an extra bool to represent
   // whether the statCollection is enabled or not. What's more, since
-  // `portStats_` is already Synchornized, we can just utilize it to make sure
+  // `portStats_` is already Synchronized, we can just utilize it to make sure
   // enable/disable and get stats are thread safe.
   folly::Synchronized<std::optional<BcmPortStats>> portStats_;
 

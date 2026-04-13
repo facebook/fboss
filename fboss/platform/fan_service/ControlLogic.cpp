@@ -5,6 +5,7 @@
 
 #include "fboss/platform/fan_service/ControlLogic.h"
 
+#include <folly/ScopeGuard.h>
 #include <folly/logging/xlog.h>
 #include <gpiod.h>
 
@@ -196,7 +197,7 @@ std::tuple<bool, int, uint64_t> ControlLogic::readFanRpm(const Fan& fan) {
   return std::make_tuple(!fanRpmReadSuccess, fanRpm, rpmTimeStamp);
 }
 
-void ControlLogic::updateTargetPwm(const Sensor& sensor) {
+void ControlLogic::updateTargetPwm(const Sensor& sensor, int numFanFailed) {
   int16_t targetPwm{0};
   TempToPwmMap tableToUse;
   auto& readCache = sensorReadCaches_[*sensor.sensorName()];
@@ -205,8 +206,8 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   if (pwmCalcType == constants::SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE()) {
     float previousSensorValue = readCache.processedReadValue;
     float sensorValue = readCache.lastReadValue;
-    bool deadFanExists = (numFanFailed_ > 0);
-    bool moreThanOneDeadFanExists = (numFanFailed_ > 1);
+    bool deadFanExists = (numFanFailed > 0);
+    bool moreThanOneDeadFanExists = (numFanFailed > 1);
     bool accelerate =
         (previousSensorValue == 0) || (sensorValue > previousSensorValue);
     if (!deadFanExists) {
@@ -254,14 +255,16 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor) {
   readCache.targetPwmCache = targetPwm;
 }
 
-void ControlLogic::getSensorUpdate() {
+int ControlLogic::updateSensorPwms(
+    const SensorData& sensorData,
+    int numFanFailed) {
+  int numSensorFailed = 0;
   for (const auto& sensor : *config_.sensors()) {
     bool sensorAccessFail = false;
     const auto sensorName = *sensor.sensorName();
     auto& readCache = sensorReadCaches_[sensorName];
 
-    // STEP 1: Get reading.
-    auto sensorEntry = pSensor_->getSensorEntry(sensorName);
+    auto sensorEntry = sensorData.getSensorEntry(sensorName);
     if (sensorEntry) {
       readCache.lastReadValue = sensorEntry->value;
       readCache.lastUpdatedTime = sensorEntry->lastUpdated;
@@ -286,20 +289,20 @@ void ControlLogic::getSensorUpdate() {
           pBsp_->getCurrentTime() - readCache.lastUpdatedTime;
       if (timeDiffInSec >= kSensorFailThresholdInSec) {
         readCache.sensorFailed = true;
-        numSensorFailed_++;
+        numSensorFailed++;
       }
     }
 
-    // STEP 2: Calculate target pwm
-    updateTargetPwm(sensor);
+    updateTargetPwm(sensor, numFanFailed);
   }
+  return numSensorFailed;
 }
 
-void ControlLogic::getOpticsUpdate() {
+void ControlLogic::updateOpticsPwms(SensorData& sensorData) {
   for (const auto& optic : *config_.optics()) {
     std::string opticName = *optic.opticName();
 
-    auto opticEntry = pSensor_->getOpticEntry(opticName);
+    auto opticEntry = sensorData.getOpticEntry(opticName);
     if (!opticEntry || opticEntry->data.empty()) {
       continue;
     }
@@ -375,7 +378,7 @@ void ControlLogic::getOpticsUpdate() {
         aggOpticPwm);
     fb303::fbData->setCounter(kOpticsAggPwmValue, aggOpticPwm);
     opticReadCaches_[opticName] = aggOpticPwm;
-    pSensor_->updateOpticDataProcessingTimestamp(
+    sensorData.updateOpticDataProcessingTimestamp(
         opticName, opticEntry->qsfpServiceTimeStamp);
   }
 }
@@ -403,10 +406,13 @@ bool ControlLogic::isFanPresentInDevice(const Fan& fan) {
   } else if (fan.presenceGpio()) {
     struct gpiod_chip* chip =
         gpiod_chip_open(fan.presenceGpio()->path()->c_str());
-    // Ensure GpiodLine is destroyed before gpiod_chip_close
+    SCOPE_EXIT {
+      if (chip) {
+        gpiod_chip_close(chip);
+      }
+    };
     int value = GpiodLine(chip, *fan.presenceGpio()->lineIndex(), "gpioline")
                     .getValue();
-    gpiod_chip_close(chip);
     if (value == *fan.presenceGpio()->desiredValue()) {
       fanPresent = true;
       XLOG(INFO) << fmt::format(
@@ -505,7 +511,7 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
     } else if (zoneType == constants::ZONE_TYPE_AVG()) {
       zonePwm += pwmForThisSensor;
     } else {
-      XLOG(ERR) << "Undefined Zone Type for zone : ", *zone.zoneName();
+      XLOG(ERR) << "Undefined Zone Type for zone : " << *zone.zoneName();
     }
     totalPwmConsidered++;
   }
@@ -529,12 +535,10 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
 void ControlLogic::setTransitionValue() {
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
+      std::unordered_set<std::string> zoneFans(
+          zone.fanNames()->begin(), zone.fanNames()->end());
       for (const auto& fan : *config_.fans()) {
-        // If this fan belongs to the zone, then write the transitional value
-        if (std::find(
-                zone.fanNames()->begin(),
-                zone.fanNames()->end(),
-                *fan.fanName()) == zone.fanNames()->end()) {
+        if (!zoneFans.contains(*fan.fanName())) {
           continue;
         }
         int16_t fanPwm = *config_.pwmTransitionValue();
@@ -554,10 +558,7 @@ void ControlLogic::setTransitionValue() {
 }
 
 void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
-  pSensor_ = pS;
-
-  numFanFailed_ = 0;
-  numSensorFailed_ = 0;
+  int numFanFailed = 0;
 
   // If we have not yet successfully read so far,
   // it does not make sense to update fan PWM out of no data.
@@ -565,7 +566,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   // do it now.
   if (!pBsp_->checkIfInitialSensorDataRead()) {
     XLOG(INFO) << "Reading sensors for the first time";
-    pBsp_->getSensorData(pSensor_);
+    pBsp_->getSensorData(pS);
   }
 
   // STEP 1: Check presence/rpm of fans
@@ -608,7 +609,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         }
       }
       if (fanFailed) {
-        numFanFailed_++;
+        numFanFailed++;
       }
       fanStatuses[*fan.fanName()].fanFailed() = fanFailed;
     }
@@ -616,15 +617,15 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
 
   // STEP 2: Read sensor values and calculate their PWM
   XLOG(INFO) << "Processing Sensors ...";
-  getSensorUpdate();
+  int numSensorFailed = updateSensorPwms(*pS, numFanFailed);
 
   // STEP 3: Read optics values and calculate their PWM
   XLOG(INFO) << "Processing Optics ...";
-  getOpticsUpdate();
+  updateOpticsPwms(*pS);
 
   // STEP 3.5: Shutdown the system if overtemp is detected
   for (auto& sensorName : overtempWatchList_) {
-    auto sensorEntry = pSensor_->getSensorEntry(sensorName);
+    auto sensorEntry = pS->getSensorEntry(sensorName);
     if (sensorEntry) {
       overtempCondition_.processSensorData(sensorName, sensorEntry->value);
     }
@@ -639,30 +640,39 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   }
 
   // STEP 4: Determine whether boost mode is necessary
-  uint64_t secondsSinceLastOpticsUpdate =
-      pBsp_->getCurrentTime() - pSensor_->getLastQsfpSvcTime();
+  auto lastQsfpSvcTime = pS->getLastQsfpSvcTime();
   bool missingOpticsUpdate{false}, fanFailures{false}, sensorFailures{false};
   std::string boostModeReason;
-  if ((*config_.pwmBoostOnNoQsfpAfterInSec() != 0) &&
-      (secondsSinceLastOpticsUpdate >= *config_.pwmBoostOnNoQsfpAfterInSec())) {
-    missingOpticsUpdate = true;
-    boostModeReason = fmt::format(
-        "Boost mode enabled for optics update missing for {}s",
-        secondsSinceLastOpticsUpdate);
-    XLOG(INFO) << boostModeReason;
+  if (*config_.pwmBoostOnNoQsfpAfterInSec() != 0) {
+    if (lastQsfpSvcTime == 0) {
+      missingOpticsUpdate = true;
+      boostModeReason = "Boost mode enabled for optics data never received";
+      XLOG(INFO) << boostModeReason;
+    } else {
+      uint64_t secondsSinceLastOpticsUpdate =
+          pBsp_->getCurrentTime() - lastQsfpSvcTime;
+      if (secondsSinceLastOpticsUpdate >=
+          *config_.pwmBoostOnNoQsfpAfterInSec()) {
+        missingOpticsUpdate = true;
+        boostModeReason = fmt::format(
+            "Boost mode enabled for optics update missing for {}s",
+            secondsSinceLastOpticsUpdate);
+        XLOG(INFO) << boostModeReason;
+      }
+    }
   }
   if ((*config_.pwmBoostOnNumDeadFan() != 0) &&
-      (numFanFailed_ >= *config_.pwmBoostOnNumDeadFan())) {
+      (numFanFailed >= *config_.pwmBoostOnNumDeadFan())) {
     fanFailures = true;
     boostModeReason =
-        fmt::format("Boost mode enabled for {} fan failures", numFanFailed_);
+        fmt::format("Boost mode enabled for {} fan failures", numFanFailed);
     XLOG(INFO) << boostModeReason;
   }
   if ((*config_.pwmBoostOnNumDeadSensor() != 0) &&
-      (numSensorFailed_ >= *config_.pwmBoostOnNumDeadSensor())) {
+      (numSensorFailed >= *config_.pwmBoostOnNumDeadSensor())) {
     sensorFailures = true;
     boostModeReason = fmt::format(
-        "Boost mode enabled for {} sensor failures", numSensorFailed_);
+        "Boost mode enabled for {} sensor failures", numSensorFailed);
     XLOG(INFO) << boostModeReason;
   }
   bool previousBoostMode = boostMode_;
@@ -676,11 +686,10 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
       int16_t zonePwm = calculateZonePwm(zone, boostMode_);
+      std::unordered_set<std::string> zoneFans(
+          zone.fanNames()->begin(), zone.fanNames()->end());
       for (const auto& fan : *config_.fans()) {
-        if (std::find(
-                zone.fanNames()->begin(),
-                zone.fanNames()->end(),
-                *fan.fanName()) == zone.fanNames()->end()) {
+        if (!zoneFans.contains(*fan.fanName())) {
           continue;
         }
 

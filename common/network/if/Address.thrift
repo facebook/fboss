@@ -5,11 +5,12 @@ namespace cpp2 facebook.network.thrift
 namespace cpp facebook.network.thrift
 namespace py facebook.network.Address
 
+namespace py3 facebook.network
+
 include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/thrift.thrift"
 
-@thrift.AllowLegacyMissingUris
-package;
+package "facebook.com/network/address"
 
 # fbstring uses the small internal buffer to store the data
 # if the data is small enough (< 24 bytes).

@@ -38,10 +38,7 @@ target_link_libraries(platform_mapping_utils
   wedge400_platform_mapping
   wedge400c_platform_mapping
   morgan_platform_mapping
-  meru400biu_platform_mapping
-  meru400bfu_platform_mapping
   montblanc_platform_mapping
-  meru400bia_platform_mapping
   meru800bia_platform_mapping
   meru800bfa_platform_mapping
   yangra_platform_mapping

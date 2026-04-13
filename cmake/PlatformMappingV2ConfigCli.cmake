@@ -18,18 +18,18 @@ set(
     "fboss/lib/platform_mapping_v2/static_mapping.py"
 )
 
-add_fb_python_executable(
+add_fb_thrift_python_executable(
     fboss-platform-mapping-gen
     MAIN_MODULE fboss.lib.platform_mapping_v2.gen:generate_mappings_without_args
     SOURCES ${PLATFORM_MAPPING_PY_SRCS}
     DEPENDS
-        asic_config_v2_py
-        platform_config_py
-        switch_config_py
-        transceiver_py
-        phy_py
-        platform_mapping_config_py
-        FBThrift::thrift_py
+        asic_config_v2_python
+        platform_config_python
+        switch_config_python
+        transceiver_python
+        phy_python
+        platform_mapping_config_python
+        fboss_common_python
 )
 
 install_fb_python_executable(fboss-platform-mapping-gen)

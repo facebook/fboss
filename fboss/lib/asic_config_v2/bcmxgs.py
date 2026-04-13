@@ -1,8 +1,8 @@
 # pyre-strict
-from typing import List, Optional
+from typing import Optional, Sequence
 
-import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
-import neteng.fboss.platform_mapping_config.ttypes as pm_types
+import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
+import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.bcm import BcmAsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 
@@ -55,14 +55,14 @@ class BcmXgsAsicConfig(BcmAsicConfig):
     def generate_yaml_string(self, preamble: Optional[str] = None) -> str:
         raise NotImplementedError("generate_yaml_string() not defined")
 
-    def get_lane_map_str(self, lane_map: List[int]) -> str:
+    def get_lane_map_str(self, lane_map: Sequence[int]) -> str:
         lane_map_prefix = "0x"
         lane_map_str = ""
         for lane in lane_map:
             lane_map_str += str(lane)
         return lane_map_prefix + lane_map_str[::-1]
 
-    def get_polarity_map_str(self, pn_map: List[int]) -> str:
+    def get_polarity_map_str(self, pn_map: Sequence[int]) -> str:
         pn_map_str = ""
         for pn in pn_map:
             pn_map_str += str(pn)

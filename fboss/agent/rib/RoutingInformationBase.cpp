@@ -23,10 +23,12 @@
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NodeMap-defs.h"
 #include "fboss/agent/state/StateDelta.h"
 #include "fboss/agent/state/SwitchState.h"
 
+#include "fboss/agent/rib/RibMySidUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 
 #include <exception>
@@ -129,6 +131,49 @@ class Timer {
   std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 
+std::shared_ptr<MySid> mySidFromEntry(const MySidEntry& entry) {
+  auto type = *entry.type();
+  if (entry.namedNextHops().has_value() && !entry.nextHops()->empty()) {
+    throw FbossError(
+        "Only one of nextHops or namedNextHops must be set in MySidEntry");
+  }
+  bool handled = false;
+  switch (type) {
+    case MySidType::ADJACENCY_MICRO_SID:
+    case MySidType::NODE_MICRO_SID:
+      // TODO Support named nhop groups
+      if (entry.nextHops()->empty()) {
+        throw FbossError(
+            "NextHops must be specified for ADJACENCY_MICRO_SID and NODE_MICRO_SID MySid types");
+      }
+      handled = true;
+      break;
+    case MySidType::DECAPSULATE_AND_LOOKUP:
+      if (!entry.nextHops()->empty()) {
+        throw FbossError(
+            "NextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+      }
+      if (entry.namedNextHops().has_value()) {
+        throw FbossError(
+            "NamedNextHops are not supported for DECAPSULATE_AND_LOOKUP MySid type");
+      }
+      handled = true;
+      break;
+  }
+  if (!handled) {
+    throw FbossError("Unsupported MySid type: ", static_cast<int>(type));
+  }
+  state::MySidFields fields;
+  fields.type() = *entry.type();
+  fields.mySid() = *entry.mySid();
+  auto mySid = std::make_shared<MySid>(fields);
+  mySid->setUnresolveNextHopsId(std::nullopt);
+  mySid->setResolvedNextHopsId(std::nullopt);
+  return mySid;
+}
+
+} // namespace
+
 template <typename AddressT, typename FibType>
 void reconstructRibFromFib(
     const std::shared_ptr<FibType>& fib,
@@ -166,17 +211,58 @@ void reconstructRibFromFib(
         addrToRoute->insert(route->prefix(), route);
       });
 }
-} // namespace
+
+void reconstructMySidTableFromSwitchState(
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    MySidTable* mySidTable) {
+  mySidTable->clear();
+  for (const auto& miter : std::as_const(*mySidMap)) {
+    for (const auto& [key, mySid] : std::as_const(*miter.second)) {
+      auto cidr = mySid->getMySid();
+      folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      mySidTable->emplace(cidrV6, mySid);
+    }
+  }
+}
 
 template <typename RibUpdateFn>
 void RibRouteTables::updateRib(RouterID vrf, const RibUpdateFn& updateRibFn) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  auto it = lockedRouteTables->find(vrf);
-  if (it == lockedRouteTables->end()) {
+  auto it = lockedRouteTables->routerIDToRouteTable.find(vrf);
+  if (it == lockedRouteTables->routerIDToRouteTable.end()) {
     throw FbossError("VRF ", vrf, " not configured");
   }
   auto& routeTable = it->second;
-  updateRibFn(routeTable);
+  updateRibFn(
+      routeTable,
+      &lockedRouteTables->mySidTable,
+      lockedRouteTables->nextHopIDManager.get());
+  if (lockedRouteTables->nextHopIDManager &&
+      !lockedRouteTables->mySidTable.empty()) {
+    RibMySidUpdater::VrfRouteTables routeTables;
+    for (auto& [rid, rt] : lockedRouteTables->routerIDToRouteTable) {
+      routeTables.emplace_back(&rt.v4NetworkToRoute, &rt.v6NetworkToRoute);
+    }
+    RibMySidUpdater mySidUpdater(
+        routeTables,
+        lockedRouteTables->nextHopIDManager.get(),
+        &lockedRouteTables->mySidTable);
+    mySidUpdater.resolve();
+  }
+}
+
+template <typename RibUpdateFn>
+void RibRouteTables::updateRibMySids(const RibUpdateFn& updateRibFn) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  RibMySidUpdater::VrfRouteTables routeTables;
+  for (auto& [rid, routeTable] : lockedRouteTables->routerIDToRouteTable) {
+    routeTables.emplace_back(
+        &routeTable.v4NetworkToRoute, &routeTable.v6NetworkToRoute);
+  }
+  updateRibFn(
+      routeTables,
+      &lockedRouteTables->mySidTable,
+      lockedRouteTables->nextHopIDManager.get());
 }
 
 void RibRouteTables::reconfigure(
@@ -190,7 +276,7 @@ void RibRouteTables::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-    FibUpdateFunction updateFibCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   // Config application is accomplished in the following sequence of steps:
   // 1. Update the VRFs held in RoutingInformationBase's
@@ -212,44 +298,51 @@ void RibRouteTables::reconfigure(
 
   std::vector<RouterID> existingVrfs = getVrfList();
 
-  auto configureRoutesForVrf = [&](RouterID vrf,
-                                   const PrefixToInterfaceIDAndIP&
-                                       interfaceRoutes) {
-    // A ConfigApplier object should be independent of the VRF whose
-    // routes it is processing. However, because interface and static
-    // routes for _all_ VRFs are passed to ConfigApplier, the vrf
-    // argument is needed to identify the subset of those routes which
-    // should be processed.
+  auto configureRoutesForVrf =
+      [&](RouterID vrf, const PrefixToInterfaceIDAndIP& interfaceRoutes) {
+        // A ConfigApplier object should be independent of the VRF whose
+        // routes it is processing. However, because interface and static
+        // routes for _all_ VRFs are passed to ConfigApplier, the vrf
+        // argument is needed to identify the subset of those routes which
+        // should be processed.
 
-    // ConfigApplier can be made independent of the VRF whose routes it
-    // is processing by the use of boost::filter_iterator.
-    updateRib(vrf, [&](auto& routeTable) {
-      ConfigApplier configApplier(
-          vrf,
-          &(routeTable.v4NetworkToRoute),
-          &(routeTable.v6NetworkToRoute),
-          &(routeTable.labelToRoute),
-          folly::range(interfaceRoutes.cbegin(), interfaceRoutes.cend()),
-          folly::range(staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
-          folly::range(staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
-          folly::range(
-              staticRoutesWithNextHops.cbegin(),
-              staticRoutesWithNextHops.cend()),
-          folly::range(
-              staticIp2MplsRoutes.cbegin(), staticIp2MplsRoutes.cend()),
-          folly::range(
-              staticMplsRoutesWithNextHops.cbegin(),
-              staticMplsRoutesWithNextHops.cend()),
-          folly::range(
-              staticMplsRoutesToNull.cbegin(), staticMplsRoutesToNull.cend()),
-          folly::range(
-              staticMplsRoutesToCpu.cbegin(), staticMplsRoutesToCpu.cend()),
-          nextHopIDManager_);
-      // Apply config
-      configApplier.apply();
-    });
-    updateFib(resolver, vrf, updateFibCallback, cookie);
-  };
+        // ConfigApplier can be made independent of the VRF whose routes it
+        // is processing by the use of boost::filter_iterator.
+        updateRib(
+            vrf,
+            [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+              ConfigApplier configApplier(
+                  vrf,
+                  &(routeTable.v4NetworkToRoute),
+                  &(routeTable.v6NetworkToRoute),
+                  &(routeTable.labelToRoute),
+                  folly::range(
+                      interfaceRoutes.cbegin(), interfaceRoutes.cend()),
+                  folly::range(
+                      staticRoutesToCpu.cbegin(), staticRoutesToCpu.cend()),
+                  folly::range(
+                      staticRoutesToNull.cbegin(), staticRoutesToNull.cend()),
+                  folly::range(
+                      staticRoutesWithNextHops.cbegin(),
+                      staticRoutesWithNextHops.cend()),
+                  folly::range(
+                      staticIp2MplsRoutes.cbegin(), staticIp2MplsRoutes.cend()),
+                  folly::range(
+                      staticMplsRoutesWithNextHops.cbegin(),
+                      staticMplsRoutesWithNextHops.cend()),
+                  folly::range(
+                      staticMplsRoutesToNull.cbegin(),
+                      staticMplsRoutesToNull.cend()),
+                  folly::range(
+                      staticMplsRoutesToCpu.cbegin(),
+                      staticMplsRoutesToCpu.cend()),
+                  nextHopIDManager,
+                  mySidTable);
+              // Apply config
+              configApplier.apply();
+            });
+        updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
+      };
   // Because of this sequential loop over each VRF, config application scales
   // linearly with the number of VRFs. If FBOSS is run in a multi-VRF routing
   // architecture in the future, this slow-down can be avoided by
@@ -268,7 +361,7 @@ void RibRouteTables::reconfigure(
   }
   {
     auto lockedRouteTables = synchronizedRouteTables_.wlock();
-    *lockedRouteTables = constructRouteTables(
+    lockedRouteTables->routerIDToRouteTable = constructRouteTables(
         lockedRouteTables, configRouterIDToInterfaceRoutes);
   }
   for (auto& vrf : getVrfList()) {
@@ -283,7 +376,7 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
     const boost::container::flat_map<
         facebook::fboss::RouterID,
         std::vector<folly::CIDRNetwork>>& toDel,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   auto makeNhop = [](const auto& interfaceIDAndAddr) {
     auto interfaceID = interfaceIDAndAddr.first;
@@ -311,18 +404,20 @@ void RibRouteTables::updateRemoteInterfaceRoutes(
       }
     }
     if (!toAddRoutes.empty() || !toDelRoutes.empty()) {
-      updateRib(vrf, [&](auto& routeTable) {
-        RibRouteUpdater updater(
-            &(routeTable.v4NetworkToRoute),
-            &(routeTable.v6NetworkToRoute),
-            &(routeTable.labelToRoute),
-            nextHopIDManager_);
-        updater.update(
-            {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
-            {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
-            {});
-      });
-      updateFib(resolver, vrf, fibUpdateCallback, cookie);
+      updateRib(
+          vrf, [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+            RibRouteUpdater updater(
+                &(routeTable.v4NetworkToRoute),
+                &(routeTable.v6NetworkToRoute),
+                &(routeTable.labelToRoute),
+                nextHopIDManager,
+                mySidTable);
+            updater.update(
+                {{ClientID::REMOTE_INTERFACE_ROUTE, toAddRoutes}},
+                {{ClientID::REMOTE_INTERFACE_ROUTE, toDelRoutes}},
+                {});
+          });
+      updateFib(resolver, vrf, ribToSwitchStateFunc, cookie);
     }
   }
 }
@@ -337,35 +432,41 @@ void RibRouteTables::update(
     const std::vector<RouteIdType>& toDelPrefixes,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
-  updateRib(routerID, [&](auto& routeTable) {
-    RibRouteUpdater updater(
-        &(routeTable.v4NetworkToRoute),
-        &(routeTable.v6NetworkToRoute),
-        &(routeTable.labelToRoute),
-        nextHopIDManager_);
-    updater.update(clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
-  });
-  updateFib(resolver, routerID, fibUpdateCallback, cookie);
+  updateRib(
+      routerID,
+      [&](auto& routeTable, auto* mySidTable, auto* nextHopIDManager) {
+        RibRouteUpdater updater(
+            &(routeTable.v4NetworkToRoute),
+            &(routeTable.v6NetworkToRoute),
+            &(routeTable.labelToRoute),
+            nextHopIDManager,
+            mySidTable);
+        updater.update(
+            clientID, toAddRoutes, toDelPrefixes, resetClientsRoutes);
+      });
+  updateFib(resolver, routerID, ribToSwitchStateFunc, cookie);
 }
 
 void RibRouteTables::updateFib(
     const SwitchIdScopeResolver* resolver,
     RouterID vrf,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   std::optional<StateDelta> fibDelta;
   try {
     auto lockedRouteTables = synchronizedRouteTables_.rlock();
-    auto& routeTable = lockedRouteTables->find(vrf)->second;
-    auto gotDelta = fibUpdateCallback(
+    auto& routeTable =
+        lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
+    auto gotDelta = ribToSwitchStateFunc(
         resolver,
         vrf,
         routeTable.v4NetworkToRoute,
         routeTable.v6NetworkToRoute,
         routeTable.labelToRoute,
-        nextHopIDManager_,
+        lockedRouteTables->nextHopIDManager.get(),
+        lockedRouteTables->mySidTable,
         cookie);
     std::optional<StateDelta> tmp(
         StateDelta(gotDelta.oldState(), gotDelta.newState()));
@@ -378,7 +479,8 @@ void RibRouteTables::updateFib(
       auto fib =
           hwUpdateError.appliedState->getFibsInfoMap()->getFibContainer(vrf);
       auto lockedRouteTables = synchronizedRouteTables_.wlock();
-      auto& routeTable = lockedRouteTables->find(vrf)->second;
+      auto& routeTable =
+          lockedRouteTables->routerIDToRouteTable.find(vrf)->second;
       reconstructRibFromFib<
           folly::IPAddressV4,
           ForwardingInformationBase<folly::IPAddressV4>>(
@@ -394,19 +496,57 @@ void RibRouteTables::updateFib(
             std::move(labelFib), &routeTable.labelToRoute);
       }
 
-      // Reconstruct NextHopIDManager from the applied state's FIB
-      // This consolidates ID maps from all switches and recalculates ref counts
-      if (nextHopIDManager_) {
-        auto fibsInfoMap = hwUpdateError.appliedState->getFibsInfoMap();
-        if (fibsInfoMap && !fibsInfoMap->empty()) {
-          nextHopIDManager_->reconstructFromFib(fibsInfoMap);
-        }
+      // Reconstruct NextHopIDManager from the applied state's FIB and MySid
+      // table
+      if (lockedRouteTables->nextHopIDManager) {
+        lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids(),
+            hwUpdateError.appliedState->getLabelForwardingInformationBase());
       }
+
+      // Reconstruct MySidTable from the applied state
+      reconstructMySidTableFromSwitchState(
+          hwUpdateError.appliedState->getMySids(),
+          &lockedRouteTables->mySidTable);
     }
     throw;
   }
   CHECK(fibDelta.has_value());
   updateEcmpOverrides(vrf, *fibDelta);
+}
+
+void RibRouteTables::updateFib(
+    const SwitchIdScopeResolver* resolver,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  try {
+    auto lockedRouteTables = synchronizedRouteTables_.rlock();
+    ribMySidToSwitchStateFunc(
+        resolver,
+        lockedRouteTables->nextHopIDManager.get(),
+        lockedRouteTables->mySidTable,
+        cookie);
+  } catch (const FbossHwUpdateError& hwUpdateError) {
+    {
+      SCOPE_FAIL {
+        XLOG(FATAL) << " RIB Rollback failed, aborting program";
+      };
+      auto lockedRouteTables = synchronizedRouteTables_.wlock();
+      // Reconstruct MySidTable from the applied state
+      reconstructMySidTableFromSwitchState(
+          hwUpdateError.appliedState->getMySids(),
+          &lockedRouteTables->mySidTable);
+      // Reconstruct NextHopIDManager to match the rolled-back MySid table
+      if (lockedRouteTables->nextHopIDManager) {
+        lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids(),
+            hwUpdateError.appliedState->getLabelForwardingInformationBase());
+      }
+    }
+    throw;
+  }
 }
 
 void RibRouteTables::updateEcmpOverrides(
@@ -494,15 +634,17 @@ void RibRouteTables::updateEcmpOverrides(const StateDelta& delta) {
 
 void RibRouteTables::ensureVrf(RouterID rid) {
   auto lockedRouteTables = synchronizedRouteTables_.wlock();
-  if (lockedRouteTables->find(rid) == lockedRouteTables->end()) {
-    lockedRouteTables->insert(std::make_pair(rid, RouteTable()));
+  if (lockedRouteTables->routerIDToRouteTable.find(rid) ==
+      lockedRouteTables->routerIDToRouteTable.end()) {
+    lockedRouteTables->routerIDToRouteTable.insert(
+        std::make_pair(rid, VrfRouteTable()));
   }
 }
 
 std::vector<RouterID> RibRouteTables::getVrfList() const {
   auto lockedRouteTables = synchronizedRouteTables_.rlock();
-  std::vector<RouterID> res(lockedRouteTables->size());
-  for (const auto& entry : *lockedRouteTables) {
+  std::vector<RouterID> res;
+  for (const auto& entry : lockedRouteTables->routerIDToRouteTable) {
     res.push_back(entry.first);
   }
   return res;
@@ -512,31 +654,33 @@ void RibRouteTables::setClassID(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     std::optional<cfg::AclLookupClass> classId,
     void* cookie) {
-  updateRib(rid, [&](auto& routeTable) {
-    // Update rib
-    auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
-      auto ritr = rib.exactMatch(ip, mask);
-      if (ritr == rib.end() || ritr->value()->getClassID() == classId) {
-        return;
-      }
-      ritr->value() = ritr->value()->clone();
-      ritr->value()->updateClassID(classId);
-      ritr->value()->publish();
-    };
-    auto& v4Rib = routeTable.v4NetworkToRoute;
-    auto& v6Rib = routeTable.v6NetworkToRoute;
-    for (auto& prefix : prefixes) {
-      if (prefix.first.isV4()) {
-        updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
-      } else {
-        updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
-      }
-    }
-  });
-  updateFib(resolver, rid, fibUpdateCallback, cookie);
+  updateRib(
+      rid,
+      [&](auto& routeTable, auto* /*mySidTable*/, auto* /*nextHopIDManager*/) {
+        // Update rib
+        auto updateRoute = [&classId](auto& rib, auto ip, uint8_t mask) {
+          auto ritr = rib.exactMatch(ip, mask);
+          if (ritr == rib.end() || ritr->value()->getClassID() == classId) {
+            return;
+          }
+          ritr->value() = ritr->value()->clone();
+          ritr->value()->updateClassID(classId);
+          ritr->value()->publish();
+        };
+        auto& v4Rib = routeTable.v4NetworkToRoute;
+        auto& v6Rib = routeTable.v6NetworkToRoute;
+        for (auto& prefix : prefixes) {
+          if (prefix.first.isV4()) {
+            updateRoute(v4Rib, prefix.first.asV4(), prefix.second);
+          } else {
+            updateRoute(v6Rib, prefix.first.asV6(), prefix.second);
+          }
+        }
+      });
+  updateFib(resolver, rid, ribToSwitchStateFunc, cookie);
 }
 
 void RibRouteTables::setOverrideEcmpMode(
@@ -544,46 +688,49 @@ void RibRouteTables::setOverrideEcmpMode(
     const std::unordered_map<
         folly::CIDRNetwork,
         std::optional<cfg::SwitchingMode>>& prefix2EcmpMode) {
-  updateRib(rid, [&](auto& routeTable) {
-    // Update rib
-    auto updateRoute = [](auto& rib,
-                          auto ip,
-                          uint8_t mask,
-                          std::optional<cfg::SwitchingMode> overrideEcmpMode) {
-      auto ritr = rib.exactMatch(ip, mask);
-      if (ritr == rib.end()) {
-        return;
-      }
-      auto& ribRoute = ritr->value();
-      if (!ribRoute->isResolved() ||
-          ribRoute->getForwardInfo().getOverrideEcmpSwitchingMode() ==
-              overrideEcmpMode) {
-        return;
-      }
-      ritr->value() = ribRoute->clone();
-      const auto& curForwardInfo = ritr->value()->getForwardInfo();
-      auto newForwardInfo = RouteNextHopEntry(
-          curForwardInfo.getNextHopSet(),
-          curForwardInfo.getAdminDistance(),
-          curForwardInfo.getCounterID(),
-          curForwardInfo.getClassID(),
-          overrideEcmpMode,
-          curForwardInfo.getOverrideNextHops(),
-          curForwardInfo.getNormalizedResolvedNextHopSetID(),
-          curForwardInfo.getResolvedNextHopSetID());
-      ritr->value()->setResolved(newForwardInfo);
-      ritr->value()->publish();
-    };
-    auto& v4Rib = routeTable.v4NetworkToRoute;
-    auto& v6Rib = routeTable.v6NetworkToRoute;
-    for (const auto& [prefix, ecmpMode] : prefix2EcmpMode) {
-      if (prefix.first.isV4()) {
-        updateRoute(v4Rib, prefix.first.asV4(), prefix.second, ecmpMode);
-      } else {
-        updateRoute(v6Rib, prefix.first.asV6(), prefix.second, ecmpMode);
-      }
-    }
-  });
+  updateRib(
+      rid,
+      [&](auto& routeTable, auto* /*mySidTable*/, auto* /*nextHopIDManager*/) {
+        // Update rib
+        auto updateRoute =
+            [](auto& rib,
+               auto ip,
+               uint8_t mask,
+               std::optional<cfg::SwitchingMode> overrideEcmpMode) {
+              auto ritr = rib.exactMatch(ip, mask);
+              if (ritr == rib.end()) {
+                return;
+              }
+              auto& ribRoute = ritr->value();
+              if (!ribRoute->isResolved() ||
+                  ribRoute->getForwardInfo().getOverrideEcmpSwitchingMode() ==
+                      overrideEcmpMode) {
+                return;
+              }
+              ritr->value() = ribRoute->clone();
+              const auto& curForwardInfo = ritr->value()->getForwardInfo();
+              auto newForwardInfo = RouteNextHopEntry(
+                  curForwardInfo.getNextHopSet(),
+                  curForwardInfo.getAdminDistance(),
+                  curForwardInfo.getCounterID(),
+                  curForwardInfo.getClassID(),
+                  overrideEcmpMode,
+                  curForwardInfo.getOverrideNextHops(),
+                  curForwardInfo.getNormalizedResolvedNextHopSetID(),
+                  curForwardInfo.getResolvedNextHopSetID());
+              ritr->value()->setResolved(newForwardInfo);
+              ritr->value()->publish();
+            };
+        auto& v4Rib = routeTable.v4NetworkToRoute;
+        auto& v6Rib = routeTable.v6NetworkToRoute;
+        for (const auto& [prefix, ecmpMode] : prefix2EcmpMode) {
+          if (prefix.first.isV4()) {
+            updateRoute(v4Rib, prefix.first.asV4(), prefix.second, ecmpMode);
+          } else {
+            updateRoute(v6Rib, prefix.first.asV6(), prefix.second, ecmpMode);
+          }
+        }
+      });
 }
 
 void RibRouteTables::setOverrideEcmpNhops(
@@ -591,45 +738,49 @@ void RibRouteTables::setOverrideEcmpNhops(
     const std::unordered_map<
         folly::CIDRNetwork,
         std::optional<RouteNextHopSet>>& prefix2Nhops) {
-  updateRib(rid, [&](auto& routeTable) {
-    // Update rib
-    auto updateRoute = [](auto& rib,
-                          auto ip,
-                          uint8_t mask,
-                          std::optional<RouteNextHopSet> overrideNhops) {
-      auto ritr = rib.exactMatch(ip, mask);
-      if (ritr == rib.end()) {
-        return;
-      }
-      auto& ribRoute = ritr->value();
-      if (!ribRoute->isResolved() ||
-          ribRoute->getForwardInfo().getOverrideNextHops() == overrideNhops) {
-        return;
-      }
-      ritr->value() = ribRoute->clone();
-      const auto& curForwardInfo = ritr->value()->getForwardInfo();
-      auto newForwardInfo = RouteNextHopEntry(
-          curForwardInfo.getNextHopSet(),
-          curForwardInfo.getAdminDistance(),
-          curForwardInfo.getCounterID(),
-          curForwardInfo.getClassID(),
-          curForwardInfo.getOverrideEcmpSwitchingMode(),
-          overrideNhops,
-          curForwardInfo.getNormalizedResolvedNextHopSetID(),
-          curForwardInfo.getResolvedNextHopSetID());
-      ritr->value()->setResolved(newForwardInfo);
-      ritr->value()->publish();
-    };
-    auto& v4Rib = routeTable.v4NetworkToRoute;
-    auto& v6Rib = routeTable.v6NetworkToRoute;
-    for (const auto& [prefix, nhops] : prefix2Nhops) {
-      if (prefix.first.isV4()) {
-        updateRoute(v4Rib, prefix.first.asV4(), prefix.second, nhops);
-      } else {
-        updateRoute(v6Rib, prefix.first.asV6(), prefix.second, nhops);
-      }
-    }
-  });
+  updateRib(
+      rid,
+      [&](auto& routeTable, auto* /*mySidTable*/, auto* /*nextHopIDManager*/) {
+        // Update rib
+        auto updateRoute =
+            [](auto& rib,
+               auto ip,
+               uint8_t mask,
+               const std::optional<RouteNextHopSet>& overrideNhops) {
+              auto ritr = rib.exactMatch(ip, mask);
+              if (ritr == rib.end()) {
+                return;
+              }
+              auto& ribRoute = ritr->value();
+              if (!ribRoute->isResolved() ||
+                  ribRoute->getForwardInfo().getOverrideNextHops() ==
+                      overrideNhops) {
+                return;
+              }
+              ritr->value() = ribRoute->clone();
+              const auto& curForwardInfo = ritr->value()->getForwardInfo();
+              auto newForwardInfo = RouteNextHopEntry(
+                  curForwardInfo.getNextHopSet(),
+                  curForwardInfo.getAdminDistance(),
+                  curForwardInfo.getCounterID(),
+                  curForwardInfo.getClassID(),
+                  curForwardInfo.getOverrideEcmpSwitchingMode(),
+                  overrideNhops,
+                  curForwardInfo.getNormalizedResolvedNextHopSetID(),
+                  curForwardInfo.getResolvedNextHopSetID());
+              ritr->value()->setResolved(newForwardInfo);
+              ritr->value()->publish();
+            };
+        auto& v4Rib = routeTable.v4NetworkToRoute;
+        auto& v6Rib = routeTable.v6NetworkToRoute;
+        for (const auto& [prefix, nhops] : prefix2Nhops) {
+          if (prefix.first.isV4()) {
+            updateRoute(v4Rib, prefix.first.asV4(), prefix.second, nhops);
+          } else {
+            updateRoute(v6Rib, prefix.first.asV6(), prefix.second, nhops);
+          }
+        }
+      });
 }
 
 template <typename AddressT>
@@ -638,9 +789,10 @@ std::shared_ptr<Route<AddressT>> RibRouteTables::longestMatch(
     RouterID vrf) const {
   StopWatch lookupTimer(std::nullopt, false);
   auto ribTables = synchronizedRouteTables_.rlock();
-  auto vrfIt = ribTables->find(vrf);
-  auto rt =
-      vrfIt == ribTables->end() ? nullptr : vrfIt->second.longestMatch(address);
+  auto vrfIt = ribTables->routerIDToRouteTable.find(vrf);
+  auto rt = vrfIt == ribTables->routerIDToRouteTable.end()
+      ? nullptr
+      : vrfIt->second.longestMatch(address);
   if (lookupTimer.msecsElapsed().count() > 1000) {
     XLOG(WARNING) << " Lookup for : " << address
                   << " took: " << lookupTimer.msecsElapsed().count() << " ms ";
@@ -660,10 +812,11 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
     const RouterID configVrf = routerIDAndInterfaceRoutes.first;
 
     newRouteTablesIter = newRouteTables.emplace_hint(
-        newRouteTables.cend(), configVrf, RouteTable());
+        newRouteTables.cend(), configVrf, VrfRouteTable());
 
-    auto oldRouteTablesIter = lockedRouteTables->find(configVrf);
-    if (oldRouteTablesIter == lockedRouteTables->end()) {
+    auto oldRouteTablesIter =
+        lockedRouteTables->routerIDToRouteTable.find(configVrf);
+    if (oldRouteTablesIter == lockedRouteTables->routerIDToRouteTable.end()) {
       // configVrf did not exist in the RIB, so it has been added to
       // newRouteTables with an empty set of routes
       continue;
@@ -677,11 +830,7 @@ RibRouteTables::RouterIDToRouteTable RibRouteTables::constructRouteTables(
   return newRouteTables;
 }
 
-RoutingInformationBase::RoutingInformationBase()
-    : nextHopIDManager_(
-          FLAGS_enable_nexthop_id_manager ? std::make_unique<NextHopIDManager>()
-                                          : nullptr),
-      ribTables_(nextHopIDManager_.get()) {
+RoutingInformationBase::RoutingInformationBase() {
   ribUpdateThread_ = std::make_unique<std::thread>([this] {
     initThread("ribUpdateThread");
     ribUpdateEventBase_.loopForever();
@@ -719,7 +868,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
-    FibUpdateFunction updateFibCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   ensureRunning();
   auto updateFn = [&] {
@@ -733,7 +882,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
         staticMplsRoutesToNull,
         staticMplsRoutesToCpu,
-        updateFibCallback,
+        ribToSwitchStateFunc,
         cookie);
   };
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
@@ -745,10 +894,10 @@ void RoutingInformationBase::updateRemoteInterfaceRoutes(
     const boost::container::flat_map<
         facebook::fboss::RouterID,
         std::vector<folly::CIDRNetwork>>& toDel,
-    const FibUpdateFunction& fibUpdateCallback,
+    const RibToSwitchStateFunction& ribToSwitchStateFunc,
     void* cookie) {
   ribTables_.updateRemoteInterfaceRoutes(
-      resolver, toAdd, toDel, fibUpdateCallback, cookie);
+      resolver, toAdd, toDel, ribToSwitchStateFunc, cookie);
 }
 
 template <typename TraitsType>
@@ -761,7 +910,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
     const std::vector<typename TraitsType::ThriftRouteId>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   ensureRunning();
   UpdateStatistics stats;
@@ -799,7 +948,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::updateImpl(
           toDelPrefixes,
           resetClientsRoutes,
           updateType,
-          fibUpdateCallback,
+          ribToSwitchStateFunc,
           cookie);
     } catch (const std::exception&) {
       updateException = std::current_exception();
@@ -817,14 +966,14 @@ void RoutingInformationBase::setClassIDImpl(
     const SwitchIdScopeResolver* resolver,
     RouterID rid,
     const std::vector<folly::CIDRNetwork>& prefixes,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     std::optional<cfg::AclLookupClass> classId,
     void* cookie,
     bool async) {
   ensureRunning();
   auto updateFn = [=, this]() {
     ribTables_.setClassID(
-        resolver, rid, prefixes, fibUpdateCallback, classId, cookie);
+        resolver, rid, prefixes, ribToSwitchStateFunc, classId, cookie);
   };
   if (async) {
     ribUpdateEventBase_.runInFbossEventBaseThread(updateFn);
@@ -845,18 +994,28 @@ RibRouteTables RibRouteTables::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
     const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-    NextHopIDManager* nextHopIDManager) {
-  RibRouteTables rib(nextHopIDManager);
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
+  RibRouteTables rib;
   auto lockedRouteTables = rib.synchronizedRouteTables_.wlock();
 
   for (const auto& [rid, table] : ribThrift) {
-    RouteTable rtable = RouteTable::fromThrift(table);
+    VrfRouteTable rtable = VrfRouteTable::fromThrift(table);
     auto vrf = RouterID(rid);
-    lockedRouteTables->emplace(vrf, std::move(rtable));
+    lockedRouteTables->routerIDToRouteTable.emplace(vrf, std::move(rtable));
   }
 
   if (fibsInfoMap) {
     rib.importFibs(lockedRouteTables, fibsInfoMap, labelFib);
+  }
+  if (mySidMap) {
+    reconstructMySidTableFromSwitchState(
+        mySidMap, &lockedRouteTables->mySidTable);
+  }
+  // Reconstruct NextHopIDManager state from FIB and MySid table during warm
+  // boot
+  if (lockedRouteTables->nextHopIDManager && fibsInfoMap) {
+    lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
+        fibsInfoMap, mySidMap, labelFib);
   }
   return rib;
 }
@@ -864,30 +1023,26 @@ RibRouteTables RibRouteTables::fromThrift(
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& ribThrift,
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ = RibRouteTables::fromThrift(
-      ribThrift, fibsInfoMap, labelFib, rib->nextHopIDManager_.get());
-
-  // Reconstruct NextHopIDManager state from FIB during warm boot
-  // This consolidates ID maps from all switches and reconstructs ref counts
-  if (rib->nextHopIDManager_ && fibsInfoMap && !fibsInfoMap->empty()) {
-    rib->nextHopIDManager_->reconstructFromFib(fibsInfoMap);
-  }
-
+  rib->ribTables_ =
+      RibRouteTables::fromThrift(ribThrift, fibsInfoMap, labelFib, mySidMap);
   return rib;
 }
 
 std::vector<MplsRouteDetails> RibRouteTables::getMplsRouteTableDetails() const {
   std::vector<MplsRouteDetails> mplsRouteDetails;
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
-    const auto it = synchronizedRouteTables.find(RouterID(0));
-    if (it != synchronizedRouteTables.end()) {
+    const auto it =
+        synchronizedRouteTables.routerIDToRouteTable.find(RouterID(0));
+    if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
       for (auto rit = it->second.labelToRoute.begin();
            rit != it->second.labelToRoute.end();
            ++rit) {
         MplsRouteDetails mplsRouteDetail;
-        auto routeDetails = rit->second->toRouteDetails();
+        auto routeDetails = rit->second->toRouteDetails(
+            rit->second->getForwardInfo().getNextHopSet());
         mplsRouteDetail.topLabel() = rit->first;
         mplsRouteDetail.nextHopMulti() = *routeDetails.nextHopMulti();
         mplsRouteDetail.nextHops() = *routeDetails.nextHops();
@@ -905,21 +1060,34 @@ std::vector<RouteDetails> RibRouteTables::getRouteTableDetails(
     RouterID rid) const {
   std::vector<RouteDetails> routeDetails;
   synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
-    const auto it = synchronizedRouteTables.find(rid);
-    if (it != synchronizedRouteTables.end()) {
+    const auto it = synchronizedRouteTables.routerIDToRouteTable.find(rid);
+    if (it != synchronizedRouteTables.routerIDToRouteTable.end()) {
       for (auto rit = it->second.v4NetworkToRoute.begin();
            rit != it->second.v4NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails());
+        routeDetails.emplace_back(rit->value()->toRouteDetails(
+            rit->value()->getForwardInfo().getNextHopSet()));
       }
       for (auto rit = it->second.v6NetworkToRoute.begin();
            rit != it->second.v6NetworkToRoute.end();
            ++rit) {
-        routeDetails.emplace_back(rit->value()->toRouteDetails());
+        routeDetails.emplace_back(rit->value()->toRouteDetails(
+            rit->value()->getForwardInfo().getNextHopSet()));
       }
     }
   });
   return routeDetails;
+}
+
+std::unordered_map<folly::CIDRNetworkV6, state::MySidFields>
+RibRouteTables::getMySidTableCopy() const {
+  std::unordered_map<folly::CIDRNetworkV6, state::MySidFields> result;
+  synchronizedRouteTables_.withRLock([&](const auto& synchronizedRouteTables) {
+    for (const auto& [cidr, mySidPtr] : synchronizedRouteTables.mySidTable) {
+      result.emplace(cidr, mySidPtr->toThrift());
+    }
+  });
+  return result;
 }
 
 RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
@@ -931,7 +1099,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     const std::vector<IpPrefix>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   return updateImpl<RibIpRouteUpdate>(
       resolver,
@@ -942,7 +1110,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       toDelete,
       resetClientsRoutes,
       updateType,
-      fibUpdateCallback,
+      ribToSwitchStateFunc,
       cookie);
 }
 
@@ -955,7 +1123,7 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
     const std::vector<MplsLabel>& toDelete,
     bool resetClientsRoutes,
     folly::StringPiece updateType,
-    FibUpdateFunction fibUpdateCallback,
+    RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   return updateImpl<RibMplsRouteUpdate>(
       resolver,
@@ -966,8 +1134,105 @@ RoutingInformationBase::UpdateStatistics RoutingInformationBase::update(
       toDelete,
       resetClientsRoutes,
       updateType,
-      fibUpdateCallback,
+      ribToSwitchStateFunc,
       cookie);
+}
+
+void RibRouteTables::update(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<MySidEntry>& toAdd,
+    const std::vector<IpPrefix>& toDelete,
+    const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+    void* cookie) {
+  // Pre-validate and construct all MySid objects before touching mySidTable.
+  // If any entry is invalid, mySidFromEntry throws here before any partial
+  // state is written.
+  std::vector<std::shared_ptr<MySid>> mySids;
+  mySids.reserve(toAdd.size());
+  for (const auto& entry : toAdd) {
+    mySids.push_back(mySidFromEntry(entry));
+  }
+  updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
+                      MySidTable* mySidTable,
+                      NextHopIDManager* nextHopIDManager) {
+    std::set<folly::CIDRNetwork> addedPrefixes;
+    for (size_t i = 0; i < mySids.size(); ++i) {
+      auto mySid = mySids[i];
+      const auto& entry = toAdd[i];
+      const auto cidr = mySid->getMySid();
+      addedPrefixes.emplace(cidr.first, cidr.second);
+      const folly::CIDRNetworkV6 cidrV6(cidr.first.asV6(), cidr.second);
+      if (nextHopIDManager) {
+        const auto existingIt = mySidTable->find(cidrV6);
+        const auto existingId = (existingIt != mySidTable->end())
+            ? existingIt->second->getUnresolveNextHopsId()
+            : std::nullopt;
+        if (!entry.nextHops()->empty()) {
+          const auto newNextHopSet =
+              util::toRouteNextHopSet(*entry.nextHops(), true);
+          const auto newId =
+              nextHopIDManager->getOrAllocRouteNextHopSetID(newNextHopSet)
+                  .nextHopIdSetIter->second.id;
+          if (existingId.has_value() && newId == *existingId) {
+            // Same next hop set — undo the extra alloc and reuse existing ID
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(newId);
+            mySid->setUnresolveNextHopsId(existingId);
+          } else {
+            if (existingId.has_value()) {
+              nextHopIDManager->decrOrDeallocRouteNextHopSetID(*existingId);
+            }
+            mySid->setUnresolveNextHopsId(newId);
+          }
+        } else if (existingId.has_value()) {
+          // New entry has no next hops but the old one did — release old ID
+          nextHopIDManager->decrOrDeallocRouteNextHopSetID(*existingId);
+        }
+      }
+      (*mySidTable)[cidrV6] = std::move(mySid);
+    }
+    for (const auto& prefix : toDelete) {
+      auto ip = network::toIPAddress(*prefix.ip());
+      auto mask = static_cast<uint8_t>(*prefix.prefixLength());
+      const folly::CIDRNetworkV6 cidr(ip.asV6(), mask);
+      if (nextHopIDManager) {
+        const auto it = mySidTable->find(cidr);
+        if (it != mySidTable->end()) {
+          if (const auto id = it->second->getUnresolveNextHopsId()) {
+            nextHopIDManager->decrOrDeallocRouteNextHopSetID(*id);
+          }
+        }
+      }
+      mySidTable->erase(cidr);
+    }
+    if (nextHopIDManager && !addedPrefixes.empty()) {
+      RibMySidUpdater updater(routeTables, nextHopIDManager, mySidTable);
+      updater.resolve(addedPrefixes);
+    }
+  });
+  updateFib(resolver, ribMySidToSwitchStateFunc, cookie);
+}
+
+void RoutingInformationBase::update(
+    const SwitchIdScopeResolver* resolver,
+    const std::vector<MySidEntry>& toAdd,
+    const std::vector<IpPrefix>& toDelete,
+    folly::StringPiece updateType,
+    const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
+    void* cookie) {
+  ensureRunning();
+  std::exception_ptr updateException;
+  auto updateFn = [&]() {
+    try {
+      ribTables_.update(
+          resolver, toAdd, toDelete, ribMySidToSwitchStateFunc, cookie);
+    } catch (const std::exception&) {
+      updateException = std::current_exception();
+    }
+  };
+  ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
+  if (updateException) {
+    std::rethrow_exception(updateException);
+  }
 }
 
 void RoutingInformationBase::updateStateInRibThread(
@@ -976,7 +1241,7 @@ void RoutingInformationBase::updateStateInRibThread(
   ribUpdateEventBase_.runInEventBaseThreadAndWait([fn] { fn(); });
 }
 
-state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
+state::RouteTableFields RibRouteTables::VrfRouteTable::toThrift() const {
   state::RouteTableFields obj{};
   obj.v4NetworkToRoute() = v4NetworkToRoute.toThrift();
   obj.v6NetworkToRoute() = v6NetworkToRoute.toThrift();
@@ -984,7 +1249,7 @@ state::RouteTableFields RibRouteTables::RouteTable ::toThrift() const {
   return obj;
 }
 
-state::RouteTableFields RibRouteTables::RouteTable::warmBootState() const {
+state::RouteTableFields RibRouteTables::VrfRouteTable::warmBootState() const {
   state::RouteTableFields obj{};
   obj.v4NetworkToRoute() = v4NetworkToRoute.warmBootState();
   obj.v6NetworkToRoute() = v6NetworkToRoute.warmBootState();
@@ -992,9 +1257,9 @@ state::RouteTableFields RibRouteTables::RouteTable::warmBootState() const {
   return obj;
 }
 
-RibRouteTables::RouteTable RibRouteTables::RouteTable::fromThrift(
+RibRouteTables::VrfRouteTable RibRouteTables::VrfRouteTable::fromThrift(
     const state::RouteTableFields& obj) {
-  RouteTable routeTable;
+  VrfRouteTable routeTable;
   routeTable.v4NetworkToRoute =
       IPv4NetworkToRouteMap::fromThrift(*obj.v4NetworkToRoute());
   routeTable.v6NetworkToRoute =
@@ -1006,7 +1271,7 @@ RibRouteTables::RouteTable RibRouteTables::RouteTable::fromThrift(
 std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
   std::map<int32_t, state::RouteTableFields> obj{};
   auto routeTables = synchronizedRouteTables_.rlock();
-  for (const auto& [rid, routeTable] : *routeTables) {
+  for (const auto& [rid, routeTable] : routeTables->routerIDToRouteTable) {
     obj.emplace(rid, routeTable.toThrift());
   }
   return obj;
@@ -1015,23 +1280,22 @@ std::map<int32_t, state::RouteTableFields> RibRouteTables::toThrift() const {
 std::map<int32_t, state::RouteTableFields> RibRouteTables::warmBootState()
     const {
   std::map<int32_t, state::RouteTableFields> obj{};
-  const auto& routeTables = *synchronizedRouteTables_.rlock();
-  for (const auto& [rid, routeTable] : routeTables) {
+  const auto& routeTables = synchronizedRouteTables_.rlock();
+  for (const auto& [rid, routeTable] : routeTables->routerIDToRouteTable) {
     obj.emplace(rid, routeTable.warmBootState());
   }
   return obj;
 }
 
 RibRouteTables RibRouteTables::fromThrift(
-    const std::map<int32_t, state::RouteTableFields>& obj,
-    NextHopIDManager* nextHopIDManager) {
-  RibRouteTables ribRouteTables(nextHopIDManager);
+    const std::map<int32_t, state::RouteTableFields>& obj) {
+  RibRouteTables ribRouteTables;
   auto routeTables = ribRouteTables.synchronizedRouteTables_.wlock();
   for (const auto& [rid, routeTableFields] : obj) {
     // @lint-ignore CLANGTIDY
-    routeTables->emplace(
+    routeTables->routerIDToRouteTable.emplace(
         RouterID(rid),
-        RibRouteTables::RouteTable::fromThrift(routeTableFields));
+        RibRouteTables::VrfRouteTable::fromThrift(routeTableFields));
   }
   return ribRouteTables;
 }
@@ -1043,8 +1307,7 @@ std::map<int32_t, state::RouteTableFields> RoutingInformationBase::toThrift()
 std::unique_ptr<RoutingInformationBase> RoutingInformationBase::fromThrift(
     const std::map<int32_t, state::RouteTableFields>& obj) {
   auto rib = std::make_unique<RoutingInformationBase>();
-  rib->ribTables_ =
-      RibRouteTables::fromThrift(obj, rib->nextHopIDManager_.get());
+  rib->ribTables_ = RibRouteTables::fromThrift(obj);
   return rib;
 }
 
@@ -1082,7 +1345,8 @@ void RibRouteTables::importFibs(
     // Import routes from each FIB container
     for (const auto& iter : std::as_const(*fibsMap)) {
       const auto& fibContainer = iter.second;
-      auto& routeTables = (*lockedRouteTables)[fibContainer->getID()];
+      auto& routeTables =
+          lockedRouteTables->routerIDToRouteTable[fibContainer->getID()];
       importRoutes(fibContainer->getFibV6(), &routeTables.v6NetworkToRoute);
       importRoutes(fibContainer->getFibV4(), &routeTables.v4NetworkToRoute);
       auto mplsTable = &routeTables.labelToRoute;
@@ -1107,11 +1371,76 @@ RoutingInformationBase::warmBootState() const {
   return ribTables_.warmBootState();
 }
 
+template <typename AddressT>
+std::optional<std::pair<std::shared_ptr<Route<AddressT>>, RouteNextHopSet>>
+RibRouteTables::getRouteAndNextHops(
+    const AddressT& address,
+    RouterID vrf,
+    bool normalized) const {
+  auto lockedRouteTables = synchronizedRouteTables_.rlock();
+  auto vrfIt = lockedRouteTables->routerIDToRouteTable.find(vrf);
+  if (vrfIt == lockedRouteTables->routerIDToRouteTable.end()) {
+    return std::nullopt;
+  }
+  auto route = vrfIt->second.longestMatch(address);
+  if (!route) {
+    return std::nullopt;
+  }
+  const auto& fwdInfo = route->getForwardInfo();
+  std::optional<std::pair<std::shared_ptr<Route<AddressT>>, RouteNextHopSet>>
+      result;
+  auto* nextHopIDManager = lockedRouteTables->nextHopIDManager.get();
+  if (FLAGS_resolve_nexthops_from_id && nextHopIDManager) {
+    auto setId = normalized ? fwdInfo.getNormalizedResolvedNextHopSetID()
+                            : fwdInfo.getResolvedNextHopSetID();
+    if (!setId.has_value()) {
+      result = std::make_pair(route, RouteNextHopSet{});
+    } else {
+      result = std::make_pair(
+          route,
+          nextHopIDManager->getNextHops(static_cast<NextHopSetID>(*setId)));
+    }
+  } else {
+    result = std::make_pair(
+        route,
+        normalized ? fwdInfo.normalizedNextHops() : fwdInfo.getNextHopSet());
+  }
+  return result;
+}
+
 template std::shared_ptr<Route<folly::IPAddressV4>>
 RibRouteTables::longestMatch(const folly::IPAddressV4& address, RouterID vrf)
     const;
 template std::shared_ptr<Route<folly::IPAddressV6>>
 RibRouteTables::longestMatch(const folly::IPAddressV6& address, RouterID vrf)
     const;
+
+template void reconstructRibFromFib<
+    folly::IPAddressV4,
+    ForwardingInformationBase<folly::IPAddressV4>>(
+    const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV4>>& fib,
+    NetworkToRouteMap<folly::IPAddressV4>* addrToRoute);
+template void reconstructRibFromFib<
+    folly::IPAddressV6,
+    ForwardingInformationBase<folly::IPAddressV6>>(
+    const std::shared_ptr<ForwardingInformationBase<folly::IPAddressV6>>& fib,
+    NetworkToRouteMap<folly::IPAddressV6>* addrToRoute);
+template void
+reconstructRibFromFib<LabelID, MultiLabelForwardingInformationBase>(
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& fib,
+    NetworkToRouteMap<LabelID>* addrToRoute);
+
+template std::optional<
+    std::pair<std::shared_ptr<Route<folly::IPAddressV4>>, RouteNextHopSet>>
+RibRouteTables::getRouteAndNextHops(
+    const folly::IPAddressV4& address,
+    RouterID vrf,
+    bool normalized) const;
+template std::optional<
+    std::pair<std::shared_ptr<Route<folly::IPAddressV6>>, RouteNextHopSet>>
+RibRouteTables::getRouteAndNextHops(
+    const folly::IPAddressV6& address,
+    RouterID vrf,
+    bool normalized) const;
 
 } // namespace facebook::fboss

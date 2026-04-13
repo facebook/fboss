@@ -117,6 +117,9 @@ struct HwPortStats {
   // paused in RX / TX direction.
   74: map<i16, i64> txPfcDurationUsec_ = {};
   75: map<i16, i64> rxPfcDurationUsec_ = {};
+  76: optional i64 outDiscardsSll_;
+  77: optional i64 outDiscardsHll_;
+  78: optional i64 inSrv6MySidDiscards_;
 }
 
 struct HwSysPortStats {

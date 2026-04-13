@@ -105,6 +105,7 @@ cpp_library(
         "ExternalPhyPortStatsUtils.cpp",
     ],
     headers = [
+        "CredoSdkVersion.h",
         "ExternalPhy.h",
         "ExternalPhyPortStatsUtils.h",
         "NullPortStats.h",

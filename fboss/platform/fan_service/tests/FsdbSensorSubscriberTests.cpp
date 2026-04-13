@@ -148,3 +148,8 @@ TEST_F(FsdbSensorSubscriberTest, GetTcvrStatsIsConst) {
   auto stats = constSubscriber->getTcvrStats();
   EXPECT_TRUE(stats.empty());
 }
+
+// Test isSensorDataStale returns true initially (never received data)
+TEST_F(FsdbSensorSubscriberTest, IsSensorDataStaleInitial) {
+  EXPECT_TRUE(subscriber_->isSensorDataStale());
+}

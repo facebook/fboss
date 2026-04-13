@@ -8,7 +8,6 @@
  *
  */
 #include "fboss/agent/hw/sai/api/AddressUtil.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/fake/FakeSai.h"
 #include "fboss/agent/hw/sai/fake/FakeSaiPort.h"
 
@@ -67,20 +66,38 @@ sai_status_t create_next_hop_fn(
         return SAI_STATUS_INVALID_PARAMETER;
     }
   }
-  if (!type || !ip || !routerInterfaceId) {
+  if (!type) {
     return SAI_STATUS_INVALID_PARAMETER;
   }
-  *next_hop_id = fs->nextHopManager.create(
-      type.value(),
-      ip.value(),
-      routerInterfaceId.value(),
-      labelStack,
-      disableTtlDecrement);
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
-  auto& nextHop = fs->nextHopManager.get(*next_hop_id);
-  nextHop.tunnelId = tunnelId;
-  nextHop.srv6SidlistId = srv6SidlistId;
+  if (type.value() == SAI_NEXT_HOP_TYPE_SRV6_SIDLIST) {
+    *next_hop_id = fs->nextHopManager.create(
+        type.value(),
+        ip.value_or(folly::IPAddress("0.0.0.0")),
+        routerInterfaceId.value_or(SAI_NULL_OBJECT_ID),
+        labelStack,
+        disableTtlDecrement);
+    auto& nextHop = fs->nextHopManager.get(*next_hop_id);
+    nextHop.tunnelId = tunnelId;
+    nextHop.srv6SidlistId = srv6SidlistId;
+  } else
 #endif
+  {
+    if (!ip || !routerInterfaceId) {
+      return SAI_STATUS_INVALID_PARAMETER;
+    }
+    *next_hop_id = fs->nextHopManager.create(
+        type.value(),
+        ip.value(),
+        routerInterfaceId.value(),
+        labelStack,
+        disableTtlDecrement);
+#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+    auto& nextHop = fs->nextHopManager.get(*next_hop_id);
+    nextHop.tunnelId = tunnelId;
+    nextHop.srv6SidlistId = srv6SidlistId;
+#endif
+  }
 
   return SAI_STATUS_SUCCESS;
 }

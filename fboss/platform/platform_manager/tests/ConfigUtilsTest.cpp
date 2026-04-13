@@ -25,11 +25,13 @@ const std::string kTestConfigJson = R"({
   "rootSlotType": "SCM_SLOT",
   "bspKmodsRpmName": "test_bsp_kmods",
   "bspKmodsRpmVersion": "1.0.0-1",
+  "i2cAdaptersFromCpu": ["SMBus I801 adapter at 2000"],
   "slotTypeConfigs": {
     "SCM_SLOT": {
       "pmUnitName": "SCM",
       "idpromConfig": {
-        "address": "0x14"
+        "address": "0x14",
+        "busName": "SMBus I801 adapter at 2000"
       }
     }
   },

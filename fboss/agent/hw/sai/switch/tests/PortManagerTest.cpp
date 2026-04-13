@@ -186,6 +186,7 @@ class PortManagerTest : public ManagerTestBase {
         std::nullopt, // QosIngressBufferProfileList
         std::nullopt, // QosEgressBufferProfileList
         std::nullopt, // CablePropagationDelayMediaType
+        std::nullopt, // PfcPauseDurationOverride
     };
     return portApi.create<SaiPortTraits>(a, 0);
   }

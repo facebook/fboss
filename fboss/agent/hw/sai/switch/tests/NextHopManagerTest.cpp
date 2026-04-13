@@ -7,10 +7,12 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  *
  */
+#include "fboss/agent/hw/sai/api/AddressUtil.h"
 #include "fboss/agent/hw/sai/switch/SaiFdbManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSrv6TunnelManager.h"
 #include "fboss/agent/hw/sai/switch/tests/ManagerTestBase.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -86,6 +88,17 @@ class Srv6NextHopManagerTest : public ManagerTestBase {
         tunnelId};
   }
 
+  std::shared_ptr<SaiSrv6SidListHandle> makeSrv6SidListHandle(
+      const ResolvedNextHop& swNextHop) {
+    auto rifHandle =
+        saiManagerTable->routerInterfaceManager().getRouterInterfaceHandle(
+            swNextHop.intfID().value());
+    auto [sidListKey, sidListAttrs] =
+        makeSrv6SidListKeyAndAttributes(rifHandle->adapterKey(), swNextHop);
+    return saiManagerTable->srv6SidListManager().addOrReuseSrv6SidList(
+        sidListKey, sidListAttrs);
+  }
+
   TestInterface intf0;
 };
 
@@ -94,9 +107,9 @@ TEST_F(Srv6NextHopManagerTest, getAdapterHostKeySrv6) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
-  auto sidListId = srv6SidList->adapterKey();
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
+  auto sidListId =
+      srv6SidListHandle->managedSidList->getSidList()->adapterKey();
   auto adapterHostKey =
       saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop, sidListId);
 
@@ -117,10 +130,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHop) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto* srv6NextHop =
       std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);
@@ -133,10 +145,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto* srv6NextHop =
       std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);
@@ -146,19 +157,19 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopCreatesSidList) {
   // Verify the SID list handle was cached on the managed next hop
   auto& sidListHandle = (*srv6NextHop)->getSrv6SidListHandle();
   ASSERT_NE(sidListHandle, nullptr);
-  ASSERT_NE(sidListHandle->sidList, nullptr);
+  ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
 
   // Verify SID list attributes
-  auto sidListId = sidListHandle->sidList->adapterKey();
+  auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
   auto gotType = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::Type{});
   EXPECT_EQ(gotType, SAI_SRV6_SIDLIST_TYPE_ENCAPS_RED);
 
   auto gotSegments = saiApiTable->srv6Api().getAttribute(
       sidListId, SaiSrv6SidListTraits::Attributes::SegmentList{});
-  EXPECT_EQ(gotSegments.size(), 2);
-  EXPECT_EQ(gotSegments[0], folly::IPAddressV6("2001:db8::10"));
-  EXPECT_EQ(gotSegments[1], folly::IPAddressV6("2001:db8::20"));
+  auto expectedSegments = toSaiIp6List(
+      {folly::IPAddressV6("2001:db8::10"), folly::IPAddressV6("2001:db8::20")});
+  EXPECT_EQ(gotSegments, expectedSegments);
 
   // Verify NextHopId was set on the SID list to the underlay IP nhop
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
@@ -177,10 +188,9 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   // Get the SID list's AdapterHostKey from the managed next hop
   auto* srv6NextHop =
@@ -189,12 +199,13 @@ TEST_F(Srv6NextHopManagerTest, addManagedSrv6NextHopSidListInSrv6Manager) {
   ASSERT_NE(*srv6NextHop, nullptr);
   auto& sidListHandle = (*srv6NextHop)->getSrv6SidListHandle();
   ASSERT_NE(sidListHandle, nullptr);
-  ASSERT_NE(sidListHandle->sidList, nullptr);
-  auto sidListKey = sidListHandle->sidList->adapterHostKey();
+  ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
+  auto sidListKey =
+      sidListHandle->managedSidList->getSidList()->adapterHostKey();
 
-  // Verify the SID list was inserted into SaiSrv6Manager
+  // Verify the SID list was inserted into SaiSrv6SidListManager
   auto* handle =
-      saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+      saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
   EXPECT_NE(handle, nullptr);
 }
 
@@ -203,11 +214,11 @@ TEST_F(Srv6NextHopManagerTest, getManagedSrv6NextHop) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
-  auto sidListId = srv6SidList->adapterKey();
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
+  auto sidListId =
+      srv6SidListHandle->managedSidList->getSidList()->adapterKey();
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto adapterHostKey =
       saiManagerTable->nextHopManager().getAdapterHostKey(swNextHop, sidListId);
@@ -227,11 +238,10 @@ TEST_F(Srv6NextHopManagerTest, sidListFreedWhenManagedNextHopDestroyed) {
 
   {
     auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-    auto srv6SidList =
-        saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+    auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
     auto managedNextHop =
         saiManagerTable->nextHopManager().addManagedSaiNextHop(
-            swNextHop, std::move(srv6SidList));
+            swNextHop, std::move(srv6SidListHandle));
 
     // Get the SID list key from the managed next hop
     auto* srv6NextHop =
@@ -240,17 +250,18 @@ TEST_F(Srv6NextHopManagerTest, sidListFreedWhenManagedNextHopDestroyed) {
     ASSERT_NE(*srv6NextHop, nullptr);
     auto& sidListHandle = (*srv6NextHop)->getSrv6SidListHandle();
     ASSERT_NE(sidListHandle, nullptr);
-    sidListKey = sidListHandle->sidList->adapterHostKey();
+    sidListKey = sidListHandle->managedSidList->getSidList()->adapterHostKey();
 
-    // Verify SID list exists in SaiSrv6Manager while managed next hop is alive
+    // Verify SID list exists in SaiSrv6SidListManager while managed next hop is
+    // alive
     auto* handle =
-        saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+        saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
     ASSERT_NE(handle, nullptr);
   }
   // managedNextHop destroyed here — SID list should be freed
 
   auto* handle =
-      saiManagerTable->srv6Manager().getSrv6SidListHandle(sidListKey);
+      saiManagerTable->srv6SidListManager().getSrv6SidListHandle(sidListKey);
   EXPECT_EQ(handle, nullptr);
 }
 
@@ -259,10 +270,9 @@ TEST_F(Srv6NextHopManagerTest, listManagedSrv6NextHops) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto output = saiManagerTable->nextHopManager().listManagedObjects();
   EXPECT_FALSE(output.empty());
@@ -273,10 +283,9 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
   saiManagerTable->srv6TunnelManager().addSrv6Tunnel(swTunnel);
 
   auto swNextHop = makeSrv6NextHop(intf0, "srv6tunnel0");
-  auto srv6SidList =
-      saiManagerTable->nextHopManager().createSrv6SidList(swNextHop);
+  auto srv6SidListHandle = makeSrv6SidListHandle(swNextHop);
   auto managedNextHop = saiManagerTable->nextHopManager().addManagedSaiNextHop(
-      swNextHop, std::move(srv6SidList));
+      swNextHop, std::move(srv6SidListHandle));
 
   auto* srv6NextHop =
       std::get_if<std::shared_ptr<ManagedSrv6NextHop>>(&managedNextHop);
@@ -287,8 +296,8 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
   ASSERT_NE((*srv6NextHop)->getSaiObject(), nullptr);
   auto& sidListHandle = (*srv6NextHop)->getSrv6SidListHandle();
   ASSERT_NE(sidListHandle, nullptr);
-  ASSERT_NE(sidListHandle->sidList, nullptr);
-  auto sidListId = sidListHandle->sidList->adapterKey();
+  ASSERT_NE(sidListHandle->managedSidList->getSidList(), nullptr);
+  auto sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
 
   // Get the underlay IP nhop whose adapter key is used as NextHopId
   auto& underlayNhOpt = (*srv6NextHop)->getUnderlayNextHop();
@@ -329,8 +338,9 @@ TEST_F(Srv6NextHopManagerTest, linkDownAndReResolveUsesCachedSidList) {
   // The cached sidListHandle should still be valid with same sidList object
   auto& cachedHandle = (*srv6NextHop)->getSrv6SidListHandle();
   ASSERT_NE(cachedHandle, nullptr);
-  ASSERT_NE(cachedHandle->sidList, nullptr);
-  EXPECT_EQ(cachedHandle->sidList->adapterKey(), sidListId);
+  ASSERT_NE(cachedHandle->managedSidList->getSidList(), nullptr);
+  EXPECT_EQ(
+      cachedHandle->managedSidList->getSidList()->adapterKey(), sidListId);
 
   // NextHopId on the SID list should be updated to the new underlay nhop
   ASSERT_NE(underlayIpNhop->getSaiObject(), nullptr);

@@ -43,6 +43,7 @@ class CrossConfigValidatorTest : public testing::Test {
         {"/run/devmap/sensors/CPU_CORE_TEMP", "/[CPU_CORE_TEMP]"},
         {"/run/devmap/sensors/BCB_FAN_CPLD", "/BCB_SLOT@0/[BCB_FAN_CPLD]"},
         {"/run/devmap/gpiochips/MCB_GPIO_CHIP_1", "/[MCB_GPIO_CHIP_1]"},
+        {"/run/devmap/cplds/MCB_CPLD", "/[MCB_CPLD]"},
         {"/run/devmap/eeproms/SMB_EEPROM", "/SMB_FRU_SLOT@0/[IDPROM]"},
         {"/run/devmap/eeproms/COME_EEPROM", "/[IDPROM]"}};
 
@@ -58,7 +59,8 @@ TEST_F(CrossConfigValidatorTest, ValidSensorConfig) {
   pmUnitSensors1.slotPath() = "/";
   pmUnitSensors1.pmUnitName() = "MCB";
   pmUnitSensors1.sensors() = {
-      createPmSensor("sensor1", "/run/devmap/sensors/CPU_CORE_TEMP/input1")};
+      createPmSensor("sensor1", "/run/devmap/sensors/CPU_CORE_TEMP/input1"),
+      createPmSensor("sensor4", "/run/devmap/cplds/MCB_CPLD/pdb_psu_r_alert")};
   pmUnitSensors2.slotPath() = "/BCB_SLOT@0";
   pmUnitSensors2.pmUnitName() = "BCB";
   pmUnitSensors2.sensors() = {

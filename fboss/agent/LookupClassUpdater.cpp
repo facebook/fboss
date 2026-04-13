@@ -715,10 +715,38 @@ void LookupClassUpdater::updateStateObserverLocalCacheForEntry(
                << ", classId: " << static_cast<int>(classID);
   } else {
     auto& [classID_, refCnt] = iter->second;
-    XLOG(DBG2) << "Neighbor entry already exists: " << newEntry->str()
-               << ", expected classID by LookupClassUpdater "
-               << static_cast<int>(classID_);
-    CHECK(classID_ == classID);
+    if (classID_ != classID) {
+      // In multi-switch mode, MAC and NDP classID state updates take
+      // different paths: MAC uses direct sw_->updateState() while NDP goes
+      // through neighborCacheEvb -> sw_->updateState(). During gracefulExit,
+      // pending NDP classID updates may be discarded (isExiting() causes
+      // applyUpdate to return early), leaving the saved warm boot state with
+      // inconsistent classIDs for the same (mac, vlan) pair.
+      // This is corrected by processMacAddrsToBlockUpdates() which runs
+      // immediately after this function in stateUpdated().
+      XLOG(WARNING) << "ClassID mismatch during warmboot cache init for "
+                    << newEntry->str()
+                    << ": cached classID=" << static_cast<int>(classID_)
+                    << " vs entry classID=" << static_cast<int>(classID)
+                    << ". Will be corrected by processMacAddrsToBlockUpdates.";
+      // Update cached classID to match the latest entry. Since MAC entries
+      // are processed before NDP entries, and both will be corrected by
+      // processMacAddrsToBlockUpdates, the specific value chosen here
+      // doesn't matter for correctness.
+      auto wasDropClassID = (classID_ == cfg::AclLookupClass::CLASS_DROP);
+      if (!wasDropClassID) {
+        classID2Count[classID_]--;
+        CHECK_GE(classID2Count[classID_], 0);
+      }
+      classID_ = classID;
+      if (!isDropClassID) {
+        classID2Count[classID]++;
+      }
+    } else {
+      XLOG(DBG2) << "Neighbor entry already exists: " << newEntry->str()
+                 << ", expected classID by LookupClassUpdater "
+                 << static_cast<int>(classID_);
+    }
     refCnt++;
   }
   port2MacAndVlanEntriesUpdated_ = true;

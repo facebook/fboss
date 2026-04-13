@@ -38,25 +38,9 @@ HwSwitchMatcher scope() {
 }
 } // namespace
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class TeFlowTest : public ::testing::Test {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto config = testConfigA();
     cfg::ExactMatchTableConfig tableConfig;
     tableConfig.name() = "TeFlowTable";
@@ -65,41 +49,21 @@ class TeFlowTest : public ::testing::Test {
     handle_ = createTestHandle(&config);
     this->sw_ = handle_->getSw();
 
-    if (isIntfNbrTable()) {
-      this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      this->sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanA,
-          folly::IPAddressV6(kNhopAddrA),
-          kMacAddress,
-          PortDescriptor(kPortIDA),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
+    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceA,
+        folly::IPAddressV6(kNhopAddrA),
+        kMacAddress,
+        PortDescriptor(kPortIDA),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
 
-    if (isIntfNbrTable()) {
-      this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-          kInterfaceB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    } else {
-      this->sw_->getNeighborUpdater()->receivedNdpMine(
-          kVlanB,
-          folly::IPAddressV6(kNhopAddrB),
-          kMacAddress,
-          PortDescriptor(kPortIDB),
-          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-          0);
-    }
+    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+        kInterfaceB,
+        folly::IPAddressV6(kNhopAddrB),
+        kMacAddress,
+        PortDescriptor(kPortIDB),
+        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+        0);
 
     this->sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(this->sw_);
@@ -199,16 +163,14 @@ class TeFlowTest : public ::testing::Test {
   SwSwitch* sw_;
 };
 
-TYPED_TEST_SUITE(TeFlowTest, NbrTableTypes);
-
-TYPED_TEST(TeFlowTest, SerDeserFlowEntry) {
+TEST_F(TeFlowTest, SerDeserFlowEntry) {
   auto flowEntry = this->makeFlowEntry("100::");
   auto serialized = flowEntry->toThrift();
   auto entryBack = std::make_shared<TeFlowEntry>(serialized);
   EXPECT_TRUE(*flowEntry == *entryBack);
 }
 
-TYPED_TEST(TeFlowTest, serDeserSwitchState) {
+TEST_F(TeFlowTest, serDeserSwitchState) {
   auto state = this->sw_->getState();
   state->modify(&state);
   auto flowTable = state->getTeFlowTable().get()->modify(&state);
@@ -228,7 +190,7 @@ TYPED_TEST(TeFlowTest, serDeserSwitchState) {
   EXPECT_EQ(state->toThrift(), stateBack->toThrift());
 }
 
-TYPED_TEST(TeFlowTest, AddDeleteTeFlow) {
+TEST_F(TeFlowTest, AddDeleteTeFlow) {
   auto state = this->sw_->getState();
   state->modify(&state);
   auto flowTable = state->getTeFlowTable().get()->modify(&state);
@@ -273,7 +235,7 @@ TYPED_TEST(TeFlowTest, AddDeleteTeFlow) {
   this->verifyFlowEntry(teFlowEntry, kNhopAddrB, "counter1", "fboss55");
 }
 
-TYPED_TEST(TeFlowTest, NextHopResolution) {
+TEST_F(TeFlowTest, NextHopResolution) {
   auto state = this->sw_->getState();
   auto flowId = this->makeFlowKey("100::");
   auto flowEntry = this->makeFlow("100::");
@@ -284,20 +246,16 @@ TYPED_TEST(TeFlowTest, NextHopResolution) {
     auto teFlowEntry = TeFlowEntry::createTeFlowEntry(flowEntry);
     teFlowEntry->resolve(newState);
     flowTable->addNode(teFlowEntry, scope());
-    return newState;
+    return std::move(newState);
   });
   auto tableEntry =
       this->sw_->getState()->getTeFlowTable()->getNodeIf(getTeFlowStr(flowId));
   this->verifyFlowEntry(tableEntry);
 
   // test neighbor removal
-  if (this->isIntfNbrTable()) {
-    this->sw_->getNeighborUpdater()->flushEntryForIntf(
-        kInterfaceA, folly::IPAddressV6(kNhopAddrA));
-  } else {
-    this->sw_->getNeighborUpdater()->flushEntry(
-        kVlanA, folly::IPAddressV6(kNhopAddrA));
-  }
+
+  this->sw_->getNeighborUpdater()->flushEntryForIntf(
+      kInterfaceA, folly::IPAddressV6(kNhopAddrA));
 
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
@@ -308,23 +266,15 @@ TYPED_TEST(TeFlowTest, NextHopResolution) {
   EXPECT_EQ(tableEntry->getResolvedNextHops()->size(), 0);
 
   // add back the neighbor entry
-  if (this->isIntfNbrTable()) {
-    this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-        kInterfaceA,
-        folly::IPAddressV6(kNhopAddrA),
-        kMacAddress,
-        PortDescriptor(kPortIDA),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-  } else {
-    this->sw_->getNeighborUpdater()->receivedNdpMine(
-        kVlanA,
-        folly::IPAddressV6(kNhopAddrA),
-        kMacAddress,
-        PortDescriptor(kPortIDA),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-  }
+
+  this->sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+      kInterfaceA,
+      folly::IPAddressV6(kNhopAddrA),
+      kMacAddress,
+      PortDescriptor(kPortIDA),
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+      0);
+
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
   waitForStateUpdates(this->sw_);
@@ -334,7 +284,7 @@ TYPED_TEST(TeFlowTest, NextHopResolution) {
   this->verifyFlowEntry(tableEntry);
 }
 
-TYPED_TEST(TeFlowTest, TeFlowStats) {
+TEST_F(TeFlowTest, TeFlowStats) {
   auto state = this->sw_->getState();
   auto flowEntries = {
       this->makeFlow("100::"),
@@ -353,7 +303,7 @@ TYPED_TEST(TeFlowTest, TeFlowStats) {
       teFlowEntry->resolve(newState);
       flowTable->addNode(teFlowEntry, scope());
     }
-    return newState;
+    return std::move(newState);
   });
 
   waitForStateUpdates(this->sw_);
@@ -365,13 +315,8 @@ TYPED_TEST(TeFlowTest, TeFlowStats) {
       counters.value(SwitchStats::kCounterPrefix + "teflows.inactive"), 0);
 
   // trigger ndp flush to disable NextHopB enentries
-  if (this->isIntfNbrTable()) {
-    this->sw_->getNeighborUpdater()->flushEntryForIntf(
-        kInterfaceB, folly::IPAddressV6(kNhopAddrB));
-  } else {
-    this->sw_->getNeighborUpdater()->flushEntry(
-        kVlanB, folly::IPAddressV6(kNhopAddrB));
-  }
+  this->sw_->getNeighborUpdater()->flushEntryForIntf(
+      kInterfaceB, folly::IPAddressV6(kNhopAddrB));
 
   this->sw_->getNeighborUpdater()->waitForPendingUpdates();
   waitForBackgroundThread(this->sw_);
@@ -384,7 +329,7 @@ TYPED_TEST(TeFlowTest, TeFlowStats) {
       counters.value(SwitchStats::kCounterPrefix + "teflows.inactive"), 2);
 }
 
-TYPED_TEST(TeFlowTest, TeFlowCounter) {
+TEST_F(TeFlowTest, TeFlowCounter) {
   auto state = this->sw_->getState();
   // 3 flow entries with 2 counters
   auto flowEntries = {
@@ -400,7 +345,7 @@ TYPED_TEST(TeFlowTest, TeFlowCounter) {
       teFlowEntry->resolve(newState);
       flowTable->addNode(teFlowEntry, scope());
     }
-    return newState;
+    return std::move(newState);
   });
 
   EXPECT_EQ(this->sw_->getState()->getTeFlowTable()->numNodes(), 3);
@@ -426,7 +371,7 @@ TYPED_TEST(TeFlowTest, TeFlowCounter) {
   }
 }
 
-TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
+TEST_F(TeFlowTest, addRemoveTeFlow) {
   TeFlowSyncer teFlowSyncer;
   auto state = this->sw_->getState();
   auto teFlowEntries = std::make_unique<std::vector<FlowEntry>>();
@@ -435,7 +380,7 @@ TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
   this->updateState("add te flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *teFlowEntries, {}, false);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   auto teFlowTable = state->getTeFlowTable();
@@ -467,7 +412,7 @@ TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
   this->updateState("modify te flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *newFlowEntries, {}, false);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
@@ -478,7 +423,7 @@ TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
   this->updateState("delete te flow", [&](const auto& state) {
     auto newState =
         teFlowSyncer.programFlowEntries(scope(), state, {}, *teFlows, false);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
@@ -494,7 +439,7 @@ TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
   this->updateState("bulk add te flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *bulkEntries, {}, false);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
@@ -512,7 +457,7 @@ TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
   this->updateState("bulk delete te flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, {}, *deletionFlows, false);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
@@ -525,7 +470,7 @@ TYPED_TEST(TeFlowTest, addRemoveTeFlow) {
   }
 }
 
-TYPED_TEST(TeFlowTest, syncTeFlows) {
+TEST_F(TeFlowTest, syncTeFlows) {
   TeFlowSyncer teFlowSyncer;
   auto state = this->sw_->getState();
   auto initalPrefixes = {"100::1", "101::1", "102::1", "103::1"};
@@ -543,7 +488,7 @@ TYPED_TEST(TeFlowTest, syncTeFlows) {
       teFlowEntry->resolve(newState);
       flowTable->addNode(teFlowEntry, scope());
     }
-    return newState;
+    return std::move(newState);
   });
 
   state = this->sw_->getState();
@@ -573,7 +518,7 @@ TYPED_TEST(TeFlowTest, syncTeFlows) {
   this->updateState("sync te flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *syncFlowEntries, {}, true);
-    return newState;
+    return std::move(newState);
   });
 
   state = this->sw_->getState();
@@ -608,7 +553,7 @@ TYPED_TEST(TeFlowTest, syncTeFlows) {
   this->updateState("sync same te flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *syncFlowEntries2, {}, true);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   auto teFlowTableAfterSync = state->getTeFlowTable();
@@ -627,7 +572,7 @@ TYPED_TEST(TeFlowTest, syncTeFlows) {
   this->updateState("sync te flow for update", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *updateEntries, {}, true);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();
@@ -640,7 +585,7 @@ TYPED_TEST(TeFlowTest, syncTeFlows) {
   this->updateState("sync null flow", [&](const auto& state) {
     auto newState = teFlowSyncer.programFlowEntries(
         scope(), state, *nullFlowEntries, {}, true);
-    return newState;
+    return std::move(newState);
   });
   state = this->sw_->getState();
   teFlowTable = state->getTeFlowTable();

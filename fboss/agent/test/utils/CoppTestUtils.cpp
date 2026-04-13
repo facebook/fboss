@@ -24,6 +24,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -1268,15 +1269,18 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForSai(
   };
 
   if (hwAsic->isSupported(HwAsic::Feature::NO_RX_REASON_TRAP)) {
-    // TODO(daiweix): remove these rx reason traps and replace them by ACLs
     rxReasonToQueues = {
         ControlPlane::makeRxReasonToQueueEntry(
             cfg::PacketRxReason::TTL_1, kCoppLowPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCP, coppMidPriQueueId),
-        ControlPlane::makeRxReasonToQueueEntry(
-            cfg::PacketRxReason::DHCPV6, coppMidPriQueueId),
     };
+    if (hwAsic->getAsicType() != cfg::AsicType::ASIC_TYPE_JERICHO4) {
+      rxReasonToQueues.push_back(
+          ControlPlane::makeRxReasonToQueueEntry(
+              cfg::PacketRxReason::DHCP, coppMidPriQueueId));
+      rxReasonToQueues.push_back(
+          ControlPlane::makeRxReasonToQueueEntry(
+              cfg::PacketRxReason::DHCPV6, coppMidPriQueueId));
+    }
   }
 
   if (hwAsic->isSupported(HwAsic::Feature::SAI_EAPOL_TRAP)) {
@@ -1612,7 +1616,7 @@ void sendAndVerifyPkts(
     PortID srcPort,
     uint8_t trafficClass) {
   auto sendPkts = [&] {
-    auto intf = utility::firstInterfaceWithPorts(swState);
+    auto intf = firstInterfaceWithPortsForTesting(swState);
     std::optional<VlanID> vlanId =
         utility::getSwitchVlanIDForTx(switchPtr, intf);
 

@@ -17,8 +17,6 @@
 #include "fboss/agent/test/utils/EcmpTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace {
 facebook::fboss::RoutePrefixV6 kDefaultRoute{folly::IPAddressV6(), 0};
 folly::CIDRNetwork kDefaultRoutePrefix{folly::IPAddress("::"), 0};
@@ -411,67 +409,37 @@ TEST_F(AgentWideEcmpTest, WideUcmpCheckMultipleSlotUnderflow) {
   runSimpleUcmpTest(nhops, normalizedNhops);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NeighborTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class AgentEcmpNeighborTest : public AgentEcmpTest {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
   void setCmdLineFlagOverrides() const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
-    if (intfNbrTable) {
-      return {
-          ProductionFeature::L3_FORWARDING,
-          ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
-    } else {
-      return {
-          ProductionFeature::L3_FORWARDING,
-          ProductionFeature::VLAN,
-          ProductionFeature::MAC_LEARNING};
-    }
+    return {
+        ProductionFeature::L3_FORWARDING,
+        ProductionFeature::INTERFACE_NEIGHBOR_TABLE};
   }
 
  public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
     const auto switchType =
         checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
 
-    if (isIntfNbrTable() || switchType == cfg::SwitchType::VOQ) {
+    if (switchType == cfg::SwitchType::VOQ ||
+        switchType == cfg::SwitchType::NPU) {
       auto portId = port.phyPortID();
       InterfaceID intfId(
           *state->getPorts()->getNode(portId)->getInterfaceIDs().begin());
       return state->getInterfaces()->getNode(intfId)->getNdpTable()->modify(
           intfId, &state);
-    } else if (switchType == cfg::SwitchType::NPU) {
-      utility::EcmpSetupAnyNPorts6 ecmpHelper(
-          getProgrammedState(), getSw()->needL2EntryForNeighbor());
-      auto vlanId = ecmpHelper.getVlan(port, getProgrammedState());
-      return state->getVlans()->getNode(*vlanId)->getNdpTable()->modify(
-          *vlanId, &state);
     }
 
     XLOG(FATAL) << "Unexpected switch type " << static_cast<int>(switchType);
   }
 };
 
-TYPED_TEST_SUITE(AgentEcmpNeighborTest, NeighborTableTypes);
-
-TYPED_TEST(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
+TEST_F(AgentEcmpNeighborTest, ResolvePendingResolveNexthop) {
   auto setup = [=, this]() {
     this->resolveNhops(numNeighborEntries);
     std::map<PortDescriptor, std::shared_ptr<NdpEntry>> entries;

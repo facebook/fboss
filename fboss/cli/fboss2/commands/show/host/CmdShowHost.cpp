@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/host/CmdShowHost.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/Table.h"
 
@@ -143,5 +144,8 @@ void CmdShowHost::printOutput(const RetType& model, std::ostream& out) {
   }
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowHost, CmdShowHostTraits>::run();
 
 } // namespace facebook::fboss

@@ -2,14 +2,9 @@
 
 #pragma once
 
-#include <fboss/agent/if/gen-cpp2/ctrl_types.h>
-#include <fboss/cli/fboss2/utils/CmdUtils.h>
-#include <folly/String.h>
-#include <folly/gen/Base.h>
-#include <cstdint>
-#include "fboss/agent/if/gen-cpp2/common_types.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/commands/show/interface/counters/CmdShowInterfaceCounters.h"
+#include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
 
@@ -29,14 +24,11 @@ class CmdShowInterfaceCountersFec : public CmdHandler<
   using RetType = CmdShowInterfaceCountersFecTraits::RetType;
 
   RetType queryClient(
-      const HostInfo& /* hostInfo */,
-      const std::vector<std::string>& /* queriedIfs */,
-      const ObjectArgType& /* system|line */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one the subcommands");
-  }
+      const HostInfo& hostInfo,
+      const std::vector<std::string>& queriedIfs,
+      const ObjectArgType& direction);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& model);
 };
 
 } // namespace facebook::fboss

@@ -146,6 +146,14 @@ cpp_library(
 )
 
 cpp_library(
+    name = "unique_ref_map",
+    srcs = [],
+    headers = [
+        "UniqueRefMap.h",
+    ],
+)
+
+cpp_library(
     name = "tuple_utils",
     srcs = [],
     headers = [

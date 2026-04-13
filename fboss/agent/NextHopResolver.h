@@ -13,8 +13,6 @@
 
 #include <boost/container/flat_set.hpp>
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
 class SwSwitch;

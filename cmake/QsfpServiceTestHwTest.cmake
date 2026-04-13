@@ -29,6 +29,7 @@ target_link_libraries(hw_transceiver_utils
   switch_config_cpp2
   transceiver_cpp2
   transceiver_manager
+  transceiver_properties_manager
 )
 
 set(QSFP_HW_TEST_SRCS

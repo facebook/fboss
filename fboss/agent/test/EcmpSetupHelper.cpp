@@ -9,6 +9,8 @@
  */
 
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/AgentFeatures.h"
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 
 #include <iterator>
@@ -26,8 +28,6 @@
 #include "fboss/agent/types.h"
 
 #include <folly/IPAddress.h>
-
-DECLARE_bool(intf_nbr_tables);
 
 using boost::container::flat_map;
 using boost::container::flat_set;
@@ -138,9 +138,12 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
     const std::shared_ptr<SwitchState>& inputState,
     const std::set<cfg::PortType>& portTypes) const {
   boost::container::flat_map<PortDescriptor, InterfaceID> portDesc2Interface;
+  HwSwitchMatcher matcher(
+      std::unordered_set<SwitchID>{SwitchID(FLAGS_switch_id_for_testing)});
   std::set<PortID> portIds;
-  for (const auto& portMap : std::as_const(*inputState->getPorts())) {
-    for (const auto& port : std::as_const(*portMap.second)) {
+  auto portMap = inputState->getPorts()->getMapNodeIf(matcher);
+  if (portMap) {
+    for (const auto& port : std::as_const(*portMap)) {
       if (portTypes.find(port.second->getPortType()) != portTypes.end()) {
         portIds.insert(port.second->getID());
       }
@@ -157,19 +160,26 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::computePortDesc2Interface(
       portDesc2Interface.insert(std::make_pair(portDesc, *intf));
     }
   }
-  // SystemPorts
-  auto findPortDesc2Interface = [&](const auto& systemPortMaps) {
-    for (const auto& systemPortMap : std::as_const(*systemPortMaps)) {
-      for (const auto& systemPort : std::as_const(*systemPortMap.second)) {
-        PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
-        if (auto intf = getInterface(portDesc, inputState)) {
-          portDesc2Interface.insert(std::make_pair(portDesc, *intf));
-        }
+  // Local SystemPorts (scoped to NPU under test)
+  auto sysPortMap = inputState->getSystemPorts()->getMapNodeIf(matcher);
+  if (sysPortMap) {
+    for (const auto& systemPort : std::as_const(*sysPortMap)) {
+      PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
+      if (auto intf = getInterface(portDesc, inputState)) {
+        portDesc2Interface.insert(std::make_pair(portDesc, *intf));
       }
     }
-  };
-  findPortDesc2Interface(inputState->getSystemPorts());
-  findPortDesc2Interface(inputState->getRemoteSystemPorts());
+  }
+  // Remote SystemPorts (from other DSF nodes, not filtered by local switch ID)
+  for (const auto& remoteSysPortMap :
+       std::as_const(*inputState->getRemoteSystemPorts())) {
+    for (const auto& systemPort : std::as_const(*remoteSysPortMap.second)) {
+      PortDescriptor portDesc = PortDescriptor(systemPort.second->getID());
+      if (auto intf = getInterface(portDesc, inputState)) {
+        portDesc2Interface.insert(std::make_pair(portDesc, *intf));
+      }
+    }
+  }
   return portDesc2Interface;
 }
 
@@ -228,14 +238,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::resolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto existingEntry = nbrTable->getEntryIf(nhopIp);
@@ -311,14 +315,8 @@ BaseEcmpSetupHelper<AddrT, NextHopT>::unresolveVlanRifNextHop(
   auto outputState{inputState->clone()};
 
   NeighborTableT* nbrTable;
-  if (FLAGS_intf_nbr_tables) {
-    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-        intf->getID(), &outputState);
-  } else {
-    auto vlan = outputState->getVlans()->getNode(intf->getVlanID());
-    nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-        vlan->getID(), &outputState);
-  }
+  nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+      intf->getID(), &outputState);
 
   auto nhopIp = useLinkLocal ? nhop.linkLocalNhopIp.value() : nhop.ip;
   auto entry = nbrTable->getEntryIf(nhopIp);
@@ -826,9 +824,18 @@ void EcmpSetupAnyNPorts<IPAddrT>::programRoutes(
     RouteUpdateWrapper* updater,
     size_t width,
     const std::vector<RouteT>& prefixes,
-    const std::vector<NextHopWeight>& weights) const {
+    const std::vector<NextHopWeight>& weights,
+    const std::optional<bool>& disableTTLDecrement) const {
+  // Use default route prefix when caller passes empty prefixes
+  const auto& effectivePrefixes =
+      prefixes.empty() ? std::vector<RouteT>{{IPAddrT(), 0}} : prefixes;
   ecmpSetupTargetedPorts_.programRoutes(
-      updater, getPortDescs(width), prefixes, weights);
+      updater,
+      getPortDescs(width),
+      effectivePrefixes,
+      weights,
+      std::nullopt,
+      disableTTLDecrement);
 }
 
 template <typename IPAddrT>

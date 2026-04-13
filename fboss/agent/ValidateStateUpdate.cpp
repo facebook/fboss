@@ -2,6 +2,7 @@
 
 #include "fboss/agent/ValidateStateUpdate.h"
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/HwSwitchHandler.h"
@@ -271,29 +272,49 @@ StateUpdateValidator::StateUpdateValidator(
 
 bool StateUpdateValidator::isValidUpdate(
     const StateDelta& delta,
-    SwitchStats* stats) const {
-  bool isValid = resourceAccountant_->isValidUpdate(delta);
-  if (!isValid) {
+    SwitchStats* stats) {
+  if (!resourceAccountant_->isValidUpdate(delta)) {
     stats->resourceAccountantRejectedUpdates();
     XLOG(ERR) << "State updated rejected by resource accountant.";
-    return isValid;
+    return false;
+  }
+
+  if (!isValidUpdateCommon(delta)) {
+    XLOG(ERR) << "State update is not valid.";
+    return false;
   }
 
   switch (runMode_) {
-    case cfg::AgentRunMode::MONO: {
-      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
-          hwSwitchHandler_->isValidStateUpdate(delta);
-    } break;
-    case cfg::AgentRunMode::MULTI_SWITCH: {
-      isValid = isValid && isStateUpdateValidCommon(delta, asicTable_) &&
-          isStateUpdateValidMultiSwitch(
-                    delta, scopeResolver_, asicTable_->getHwAsics());
-    } break;
+    case cfg::AgentRunMode::MONO:
+      if (!hwSwitchHandler_->isValidStateUpdate(delta)) {
+        XLOG(ERR) << "State update is not valid.";
+        return false;
+      }
+      break;
+    case cfg::AgentRunMode::MULTI_SWITCH:
+      if (!isValidUpdateMultiSwitch(delta)) {
+        XLOG(ERR) << "State update is not valid.";
+        return false;
+      }
+      break;
   }
-  if (!isValid) {
-    XLOG(ERR) << "State update is not valid.";
+  return true;
+}
+
+bool StateUpdateValidator::isValidUpdateCommon(const StateDelta& delta) {
+  if (!isStateUpdateValidCommon(delta, asicTable_)) {
+    return false;
   }
-  return isValid;
+  if (!intfDeltaValidator_.isValidDelta(delta)) {
+    return false;
+  }
+  return true;
+}
+
+bool StateUpdateValidator::isValidUpdateMultiSwitch(
+    const StateDelta& delta) const {
+  return isStateUpdateValidMultiSwitch(
+      delta, scopeResolver_, asicTable_->getHwAsics());
 }
 
 void StateUpdateValidator::stateChanged(const StateDelta& delta) {
@@ -306,6 +327,8 @@ void StateUpdateValidator::updateRejected(const StateDelta& delta) {
   resourceAccountant_ =
       std::make_unique<ResourceAccountant>(asicTable_, scopeResolver_);
   resourceAccountant_->stateChanged(
+      StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
+  intfDeltaValidator_.updateRejected(
       StateDelta(std::make_shared<SwitchState>(), delta.oldState()));
 }
 

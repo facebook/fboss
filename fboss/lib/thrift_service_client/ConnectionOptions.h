@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <gflags/gflags_declare.h>
+
 #include <folly/IPAddress.h>
 #include <folly/SocketAddress.h>
 #include <folly/io/SocketOptionMap.h>

@@ -61,6 +61,9 @@ class BcmBstStatsMgr {
     return globalSharedWatermarkBytes_;
   }
 
+  uint64_t getConfiguredHeadroomPoolSizeBytes() const;
+  uint64_t getConfiguredSharedPoolSizeBytes() const;
+
   void updateStats();
 
   void populateHighFrequencyBstStats(
@@ -68,6 +71,7 @@ class BcmBstStatsMgr {
       HwHighFrequencyStats& stats) const;
 
  private:
+  BufferPoolCfgPtr getFirstInterfacePortPoolSettings() const;
   void syncStats() const;
   void syncHighFrequencyStats(const HfStatsConfig& statsConfig) const;
   void getAndPublishDeviceWatermark();

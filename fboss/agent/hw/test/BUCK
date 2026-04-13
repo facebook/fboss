@@ -46,6 +46,7 @@ cpp_library(
         "//fboss/agent/test:multiswitch_test_server",
         "//fboss/agent/test:route_distribution_gen",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:acl_test_utils",
         "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:pkt_test_utils",
@@ -308,7 +309,6 @@ cpp_library(
 
 hw_test_common_srcs = [
     "HwVerifyPfcConfigInHwTest.cpp",
-    "HwAclStatTests.cpp",
     "HwTestFabricUtils.cpp",
     "HwFlexPortTests.cpp",
     "HwEcmpTrunkTests.cpp",
@@ -424,6 +424,7 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:trunk_utils",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:config_utils",
         "//fboss/agent/test/utils:dscp_marking_utils",
@@ -468,6 +469,7 @@ cpp_library(
         ":hw_test_port_utils",
         ":hw_test_ptp_tc_utils",
         ":hw_test_route_utils",
+        ":hw_test_tam_utils",
         ":hw_test_te_flow_utils",
         ":hw_test_trunk_utils",
         ":hw_test_udf_utils",
@@ -496,6 +498,7 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:trunk_utils",
+        "//fboss/agent/test:utils",
         "//fboss/agent/test/utils:agent_hw_test_constants",
         "//fboss/agent/test/utils:pfc_test_utils",
         "//fboss/agent/test/utils:port_stats_test_utils",
@@ -612,6 +615,11 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//folly:network_address",
     ],
+)
+
+cpp_library(
+    name = "hw_test_switching_mode_utils",
+    headers = ["HwTestSwitchingModeUtils.h"],
 )
 
 cpp_library(

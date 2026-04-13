@@ -1,9 +1,9 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "CmdShowAgentSsl.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <iostream>
-#include "fboss/cli/fboss2/commands/show/agent/gen-cpp2/model_visitation.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 
@@ -37,5 +37,8 @@ std::string CmdShowAgentSsl::sslTypeToString(
       return "UNKNOWN - unexpected value of SSLType";
   }
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowAgentSsl, CmdShowAgentSslTraits>::run();
 
 } // namespace facebook::fboss

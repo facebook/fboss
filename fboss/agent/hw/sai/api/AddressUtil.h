@@ -13,6 +13,9 @@
 #include <folly/IPAddress.h>
 #include <folly/MacAddress.h>
 
+#include <array>
+#include <vector>
+
 extern "C" {
 #include <sai.h>
 }
@@ -33,6 +36,9 @@ sai_ip_address_t toSaiIpAddress(const folly::IPAddressV4& addr);
 sai_ip_address_t toSaiIpAddress(const folly::IPAddressV6& addr);
 
 void toSaiIpAddressV6(const folly::IPAddressV6& addr, sai_ip6_t* ip6);
+
+std::vector<std::array<uint8_t, 16>> toSaiIp6List(
+    const std::vector<folly::IPAddressV6>& addrs);
 
 folly::CIDRNetwork fromSaiIpPrefix(const sai_ip_prefix_t& prefix);
 sai_ip_prefix_t toSaiIpPrefix(const folly::CIDRNetwork& prefix);

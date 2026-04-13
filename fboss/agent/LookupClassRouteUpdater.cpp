@@ -29,8 +29,6 @@ DEFINE_bool(
     true,
     "Enable route entry (ip-per-task/VIP) portion of Queue-per-host fix");
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace {
 constexpr auto kQphMultiNextHopCounter = "qph.multinexthop.route";
 } // namespace
@@ -85,18 +83,16 @@ void LookupClassRouteUpdater::removeNextHopsForSubnet(
 
     if (vlanID == vlan->getID() && nextHop.inSubnet(ipAddress, mask)) {
       if (nextHop.isV6()) {
-        auto ndpEntry =
-            getNeighborTableForVlan<NdpTable>(
-                stateDelta.newState(), vlan->getID(), FLAGS_intf_nbr_tables)
-                ->getEntryIf(nextHop.asV6());
+        auto ndpEntry = getNeighborTableForVlan<NdpTable>(
+                            stateDelta.newState(), vlan->getID())
+                            ->getEntryIf(nextHop.asV6());
         if (ndpEntry) {
           processNeighborRemoved(stateDelta, vlan->getID(), ndpEntry);
         }
       } else if (nextHop.isV4()) {
-        auto arpEntry =
-            getNeighborTableForVlan<ArpTable>(
-                stateDelta.newState(), vlan->getID(), FLAGS_intf_nbr_tables)
-                ->getEntryIf(nextHop.asV4());
+        auto arpEntry = getNeighborTableForVlan<ArpTable>(
+                            stateDelta.newState(), vlan->getID())
+                            ->getEntryIf(nextHop.asV4());
         if (arpEntry) {
           processNeighborRemoved(stateDelta, vlan->getID(), arpEntry);
         }
@@ -126,8 +122,7 @@ LookupClassRouteUpdater::getClassIDForLinkLocal(
    */
   auto mac = ipAddressV6.getMacAddressFromLinkLocal();
   if (!mac) {
-    auto ndpEntry = getNeighborTableForVlan<NdpTable>(
-                        switchState, vlanID, FLAGS_intf_nbr_tables)
+    auto ndpEntry = getNeighborTableForVlan<NdpTable>(switchState, vlanID)
                         ->getNodeIf(ipAddressV6.str());
     if (ndpEntry) {
       mac = ndpEntry->getMac();
@@ -155,13 +150,11 @@ LookupClassRouteUpdater::getClassIDForNeighbor(
   }
 
   if (ipAddress.isV6()) {
-    auto ndpEntry = getNeighborTableForVlan<NdpTable>(
-                        switchState, vlanID, FLAGS_intf_nbr_tables)
+    auto ndpEntry = getNeighborTableForVlan<NdpTable>(switchState, vlanID)
                         ->getEntryIf(ipAddress.asV6());
     return ndpEntry ? ndpEntry->getClassID() : std::nullopt;
   } else if (ipAddress.isV4()) {
-    auto arpEntry = getNeighborTableForVlan<ArpTable>(
-                        switchState, vlanID, FLAGS_intf_nbr_tables)
+    auto arpEntry = getNeighborTableForVlan<ArpTable>(switchState, vlanID)
                         ->getEntryIf(ipAddress.asV4());
     return arpEntry ? arpEntry->getClassID() : std::nullopt;
   }
@@ -782,7 +775,7 @@ bool LookupClassRouteUpdater::addRouteToMultiNextHopMap(
     const std::shared_ptr<RouteT>& route,
     std::optional<std::pair<folly::IPAddress, VlanID>> addedNeighborIPandVlan,
     const RidAndCidr& ridAndCidr) {
-  for (const auto& nextHop : route->getForwardInfo().getNextHopSet()) {
+  for (const auto& nextHop : getNextHops(newState, route->getForwardInfo())) {
     auto vlanID =
         newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
@@ -824,7 +817,8 @@ LookupClassRouteUpdater::addRouteAndFindClassID(
   auto& newState = stateDelta.newState();
   std::optional<cfg::AclLookupClass> routeClassID{std::nullopt};
   std::set<folly::IPAddress> neighborsWithClassId;
-  for (const auto& nextHop : addedRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nextHop :
+       getNextHops(newState, addedRoute->getForwardInfo())) {
     auto vlanID =
         newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
@@ -1041,8 +1035,10 @@ void LookupClassRouteUpdater::processRouteRemoved(
           removedRoute->prefix().network(), removedRoute->prefix().mask()});
 
   auto routeClassID = removedRoute->getClassID();
+  auto& oldState = stateDelta.oldState();
   auto& newState = stateDelta.newState();
-  for (const auto& nextHop : removedRoute->getForwardInfo().getNextHopSet()) {
+  for (const auto& nextHop :
+       getNextHops(oldState, removedRoute->getForwardInfo())) {
     auto vlanID =
         newState->getInterfaces()->getNodeIf(nextHop.intf())->getVlanID();
     if (!belongsToSubnetInCache(vlanID, nextHop.addr())) {
@@ -1065,15 +1061,13 @@ void LookupClassRouteUpdater::processRouteRemoved(
       auto vlan = newState->getVlans()->getNodeIf(vlanID);
       if (vlan) {
         if (nextHop.addr().isV6()) {
-          auto ndpEntry = getNeighborTableForVlan<NdpTable>(
-                              newState, vlanID, FLAGS_intf_nbr_tables)
+          auto ndpEntry = getNeighborTableForVlan<NdpTable>(newState, vlanID)
                               ->getEntryIf(nextHop.addr().asV6());
           if (!ndpEntry) {
             nextHopAndVlan2Prefixes_.erase(it);
           }
         } else if (nextHop.addr().isV4()) {
-          auto arpEntry = getNeighborTableForVlan<ArpTable>(
-                              newState, vlanID, FLAGS_intf_nbr_tables)
+          auto arpEntry = getNeighborTableForVlan<ArpTable>(newState, vlanID)
                               ->getEntryIf(nextHop.addr().asV4());
           if (!arpEntry) {
             nextHopAndVlan2Prefixes_.erase(it);
@@ -1120,8 +1114,8 @@ void LookupClassRouteUpdater::processRouteChanged(
      * processRouteRemoved does not schedule state update, so the only
      * additional overhead of this approach is some local computation.
      */
-    if ((oldRoute->getForwardInfo().getNextHopSet() !=
-         newRoute->getForwardInfo().getNextHopSet()) ||
+    if ((getNextHops(stateDelta.oldState(), oldRoute->getForwardInfo()) !=
+         getNextHops(stateDelta.newState(), newRoute->getForwardInfo())) ||
         (oldRoute->getClassID() != newRoute->getClassID())) {
       processRouteRemoved(stateDelta, rid, oldRoute);
       processRouteAdded(stateDelta, rid, newRoute);
@@ -1443,24 +1437,13 @@ void LookupClassRouteUpdater::stateUpdated(const StateDelta& stateDelta) {
     return;
   }
 
-  // VOQ switches don't support VLANs.
-  // Thus, we arein the process of migrating the Neighbor tables from VLANs to
-  // Interfaces. Thus, process neighbor updates from VLAN / Interface neighbor
-  // tables depending on the feature flag.
   // MAC Tables continue to be part of the VLANs.
   processNeighborUpdates<folly::MacAddress>(
       stateDelta, stateDelta.getVlansDelta());
-  if (FLAGS_intf_nbr_tables) {
-    processNeighborUpdates<folly::IPAddressV6>(
-        stateDelta, stateDelta.getIntfsDelta());
-    processNeighborUpdates<folly::IPAddressV4>(
-        stateDelta, stateDelta.getIntfsDelta());
-  } else {
-    processNeighborUpdates<folly::IPAddressV6>(
-        stateDelta, stateDelta.getVlansDelta());
-    processNeighborUpdates<folly::IPAddressV4>(
-        stateDelta, stateDelta.getVlansDelta());
-  }
+  processNeighborUpdates<folly::IPAddressV6>(
+      stateDelta, stateDelta.getIntfsDelta());
+  processNeighborUpdates<folly::IPAddressV4>(
+      stateDelta, stateDelta.getIntfsDelta());
 
   processRouteUpdates<folly::IPAddressV6>(stateDelta);
   processRouteUpdates<folly::IPAddressV4>(stateDelta);

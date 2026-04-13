@@ -1,6 +1,8 @@
 #include <fcntl.h>
 #include <unistd.h>
+#include <cerrno>
 
+#include <cstring>
 #include <set>
 #include <string>
 #include <vector>
@@ -161,9 +163,17 @@ class WatchdogTest : public BspTest {
 
 TEST_F(WatchdogTest, WatchdogStart) {
   this->runWatchdogTest("watchdog start", [this](const std::string& watchdog) {
-    withWatchdog(watchdog, [](int fd) {
+    withWatchdog(watchdog, [&watchdog](int fd) {
       int timeout = WatchdogUtils::getWatchdogTimeout(fd);
       EXPECT_GT(timeout, 0) << "Timeout expected to be greater than 0";
+
+      // Opening an already-active watchdog must fail with EBUSY
+      int fd2 = open(watchdog.c_str(), O_WRONLY);
+      EXPECT_EQ(fd2, -1) << "Second open of active watchdog should fail";
+      EXPECT_EQ(errno, EBUSY) << "Expected EBUSY, got " << strerror(errno);
+      if (fd2 >= 0) {
+        close(fd2);
+      }
     });
   });
 }

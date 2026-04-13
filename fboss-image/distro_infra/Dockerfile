@@ -11,6 +11,7 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
 RUN mkdir -p /distro_infra/dnsmasq_conf.d
 COPY parts/run_distro_infra.sh /distro_infra
 COPY parts/post_tftp.sh /distro_infra
+COPY parts/enable_pxeboot.sh /distro_infra
 COPY parts/ipxe/ipxev4.efi /distro_infra
 COPY parts/ipxe/ipxev6.efi /distro_infra
 COPY parts/autoexec.ipxe /distro_infra

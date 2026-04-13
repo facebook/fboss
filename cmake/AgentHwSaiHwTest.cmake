@@ -97,6 +97,20 @@ set_target_properties(sai_ptp_tc_utils PROPERTIES COMPILE_FLAGS
   -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
 )
 
+add_library(sai_switching_mode_utils
+  fboss/agent/hw/sai/hw_test/HwTestSwitchingModeUtils.cpp
+)
+
+target_link_libraries(sai_switching_mode_utils
+  sai_switch # //fboss/agent/hw/sai/switch:sai_switch
+)
+
+set_target_properties(sai_switching_mode_utils PROPERTIES COMPILE_FLAGS
+  "-DSAI_VER_MAJOR=${SAI_VER_MAJOR} \
+  -DSAI_VER_MINOR=${SAI_VER_MINOR}  \
+  -DSAI_VER_RELEASE=${SAI_VER_RELEASE}"
+)
+
 add_library(sai_udf_utils
   fboss/agent/hw/sai/hw_test/HwTestUdfUtils.cpp
 )
@@ -185,6 +199,7 @@ add_library(agent_hw_test_thrift_handler
   fboss/agent/hw/sai/hw_test/HwTestCommonUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestFlowletUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestPtpTcUtilsThriftHandler.cpp
+  fboss/agent/hw/sai/hw_test/HwTestSwitchingModeUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestUdfUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestTeFlowUtilsThriftHandler.cpp
   fboss/agent/hw/sai/hw_test/HwTestArsFlowletThriftHandler.cpp
@@ -226,6 +241,7 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/HwTestMplsUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPacketTrapEntry.cpp
     fboss/agent/hw/sai/hw_test/HwTestPtpTcUtils.cpp
+    fboss/agent/hw/sai/hw_test/HwTestSwitchingModeUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTeFlowUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestTrunkUtils.cpp
     fboss/agent/hw/sai/hw_test/HwTestPortUtils.cpp

@@ -376,7 +376,8 @@
               "csrOffsetCalc": "0x65c0 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
               "numPorts": 1,
               "ledPerPort": 4,
-              "startPort": 39
+              "startPort": 39,
+              "lanesPerPort": 4
             }
           ],
           "sysLedCtrlConfigs": [
@@ -628,7 +629,7 @@
   "chassisEepromDevicePath": "/SMB_SLOT@0/[IDPROM]",
   "numXcvrs": 39,
   "bspKmodsRpmName": "arista_bsp_kmods",
-  "bspKmodsRpmVersion": "0.7.16-1",
+  "bspKmodsRpmVersion": "0.7.20-1",
   "requiredKmodsToLoad": [
     "spidev",
     "i2c_i801",

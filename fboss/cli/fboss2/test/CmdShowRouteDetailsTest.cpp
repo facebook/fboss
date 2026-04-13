@@ -102,6 +102,40 @@ std::vector<RouteDetails> createRouteEntries() {
 
   routeEntries.emplace_back(routeEntry1);
   routeEntries.emplace_back(routeEntry2);
+
+  // routeEntry3 — SRv6 nexthop
+  RouteDetails routeEntry3;
+
+  folly::IPAddressV6 ip3_1("fc00::");
+  network::thrift::BinaryAddress binaryAddr3_1 =
+      facebook::network::toBinaryAddress(ip3_1);
+
+  IpPrefix ipPrefix3;
+  ipPrefix3.ip() = binaryAddr3_1;
+  ipPrefix3.prefixLength() = 48;
+  routeEntry3.dest() = ipPrefix3;
+
+  folly::IPAddressV6 ip3_nh("2001:db8::1");
+  network::thrift::BinaryAddress binaryAddr3_nh =
+      facebook::network::toBinaryAddress(ip3_nh);
+
+  folly::IPAddressV6 sid3_1("fc00:1::");
+  folly::IPAddressV6 sid3_2("fc00:2::");
+  network::thrift::BinaryAddress binarySid3_1 =
+      facebook::network::toBinaryAddress(sid3_1);
+  network::thrift::BinaryAddress binarySid3_2 =
+      facebook::network::toBinaryAddress(sid3_2);
+
+  NextHopThrift nextHop3;
+  nextHop3.address() = binaryAddr3_nh;
+  nextHop3.weight() = 1;
+  nextHop3.srv6SegmentList() = {binarySid3_1, binarySid3_2};
+
+  routeEntry3.nextHops()->emplace_back(nextHop3);
+  routeEntry3.action() = "Nexthops";
+  routeEntry3.isConnected() = false;
+
+  routeEntries.emplace_back(routeEntry3);
   return routeEntries;
 }
 
@@ -172,7 +206,25 @@ cli::ShowRouteDetailsModel createRouteModel() {
   entry2.classID() = "None";
   entry2.overridenEcmpMode() = "None";
 
-  model.routeEntries() = {entry1, entry2};
+  // entry3 — SRv6
+  cli::RouteDetailEntry entry3;
+  entry3.ip() = "fc00::";
+  entry3.prefixLength() = 48;
+  entry3.action() = "Nexthops";
+  entry3.isConnected() = false;
+  entry3.adminDistance() = "None";
+  entry3.counterID() = "None";
+  entry3.classID() = "None";
+  entry3.overridenEcmpMode() = "None";
+
+  cli::NextHopInfo nextHopInfo3;
+  nextHopInfo3.addr() = "2001:db8::1";
+  nextHopInfo3.weight() = 1;
+  nextHopInfo3.srv6SegmentList() = {"fc00:1::", "fc00:2::"};
+
+  entry3.nextHops()->emplace_back(nextHopInfo3);
+
+  model.routeEntries() = {entry1, entry2, entry3};
 
   return model;
 }
@@ -219,7 +271,8 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryNetworkEntries) {
       .WillOnce(Invoke([&](auto& entries) { entries.clear(); }));
 
   auto cmd = CmdShowRouteDetails();
-  std::vector<std::string> entries = {"2401:db00::/32", "176.161.6.0/32"};
+  std::vector<std::string> entries = {
+      "2401:db00::/32", "176.161.6.0/32", "fc00::/48"};
   CmdShowRouteDetailsTraits::ObjectArgType queriedEntries(entries);
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
@@ -246,7 +299,13 @@ TEST_F(CmdShowRouteDetailsTestFixture, queryIpRouteEntries) {
   CmdShowRouteDetailsTraits::ObjectArgType queriedEntries(entries);
   auto model = cmd.queryClient(localhost(), queriedEntries);
 
-  EXPECT_THRIFT_EQ(normalizedModel, model);
+  // "1.1.1.1" resolves to "2401:db00::/32" via getIpRouteDetails, so only
+  // entry1 and entry2 are returned (fc00::/48 is not in the queried set).
+  cli::ShowRouteDetailsModel expectedModel;
+  expectedModel.routeEntries() = {
+      normalizedModel.routeEntries().value()[0],
+      normalizedModel.routeEntries().value()[1]};
+  EXPECT_THRIFT_EQ(expectedModel, model);
 }
 
 TEST_F(CmdShowRouteDetailsTestFixture, printOutput) {
@@ -274,6 +333,15 @@ Network Address: 176.161.6.0/32 (connected)
     (i/f 0) 240.161.6.0
   Admin Distance: DIRECTLY_CONNECTED
   Counter Id: counter0
+  Class Id: None
+  Overridden ECMP mode: None
+
+Network Address: fc00::/48
+  Action: Nexthops
+  Forwarding via:
+    2001:db8::1 weight 1 SRv6 SID List [fc00:1::,fc00:2::]
+  Admin Distance: None
+  Counter Id: None
   Class Id: None
   Overridden ECMP mode: None
 )";

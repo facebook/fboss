@@ -11,6 +11,7 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
@@ -97,3 +98,69 @@ def override_artifact_store_dir(store_dir: Path) -> Generator[None, None, None]:
         yield
     finally:
         ArtifactStore.ARTIFACT_STORE_DIR = original
+
+
+@contextmanager
+def get_writable_copy(
+    source_dir: Path, prefix: str = "temp_"
+) -> Generator[Path, None, None]:
+    """Get a writable copy of a directory in a temporary location.
+
+    This is essential for tests running in read-only sandbox environments
+    where directories may be used to store intermediate build artifacts.
+
+    The temporary directory is automatically cleaned up when the context exits.
+
+    Args:
+        source_dir: Path to the source directory to copy
+        prefix: Prefix for the temporary directory name (default: "temp_")
+
+    Yields:
+        Path to the writable copy of the directory
+
+    Example:
+        # Get writable copy of integration test data
+        integration_data = Path(__file__).parent / "test_topology" / "integration_data"
+        with get_writable_copy(integration_data, "integration_") as temp_data:
+            manifest = ImageManifest(temp_data / "integration_manifest.json")
+            # Build scripts can now write to temp_data/dist/, temp_data/.build/, etc.
+    """
+    with enter_tempdir(prefix) as tmpdir:
+        # Copy the entire source directory to temp location
+        dest_dir = tmpdir / source_dir.name
+        shutil.copytree(source_dir, dest_dir)
+
+        # Make all shell scripts executable (common requirement)
+        for script in dest_dir.rglob("*.sh"):
+            script.chmod(0o755)
+
+        yield dest_dir
+
+
+def waitfor(condition_fn, assert_fn, timeout=60.0, interval=0.1):
+    """Wait for a condition to become true with timeout.
+
+    Repeatedly checks a condition function until it returns True or the timeout
+    expires. If the timeout is reached, calls the assert function to fail the test.
+
+    Args:
+        condition_fn: Callable that returns True when the condition is met
+        assert_fn: Callable to invoke if timeout expires (should fail the test)
+        timeout: Maximum time to wait in seconds (default: 60.0)
+        interval: Time to sleep between checks in seconds (default: 0.1)
+
+    Example:
+        waitfor(
+            lambda: cache_dir.exists,
+            lambda: self.fail("Cache directory not created"),
+            timeout=30.0
+        )
+    """
+    start = time.time()
+    while True:
+        if condition_fn():
+            return
+        if time.time() - start > timeout:
+            assert_fn()
+            raise AssertionError("assert_fn should not have returned!")
+        time.sleep(interval)

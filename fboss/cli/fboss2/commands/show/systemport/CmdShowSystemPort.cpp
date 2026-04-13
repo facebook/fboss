@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowSystemPort.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <algorithm>
 #include <unordered_set>
@@ -237,5 +238,10 @@ RetType CmdShowSystemPort::createModel(
 
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowSystemPort, CmdShowSystemPortTraits>::getValidFilters();
 
 } // namespace facebook::fboss

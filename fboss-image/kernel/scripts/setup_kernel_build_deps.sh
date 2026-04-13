@@ -25,6 +25,9 @@ dnf install -y --allowerasing \
   perl \
   dracut
 
+# Install spectool's Python dependencies for Python 3.12
+python3 -m pip install rpm requests
+
 # Activate GCC 12 toolset if available
 # The fboss_builder image has gcc-toolset-12 installed but it needs to be activated
 if [ -f /opt/rh/gcc-toolset-12/enable ]; then

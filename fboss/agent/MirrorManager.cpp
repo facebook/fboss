@@ -7,7 +7,6 @@
 #include "fboss/agent/state/DeltaFunctions.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Mirror.h"
-#include "fboss/agent/state/Route.h"
 
 #include "fboss/agent/state/SwitchState.h"
 

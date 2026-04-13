@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <folly/String.h>
 #include "fboss/cli/fboss2/CmdHandler.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
@@ -17,12 +16,9 @@ struct CmdShowDsfTraits : public ReadCommandTraits {
 
 class CmdShowDsf : public CmdHandler<CmdShowDsf, CmdShowDsfTraits> {
  public:
-  RetType queryClient(const HostInfo& /* hostInfo */) {
-    throw std::runtime_error(
-        "Incomplete command, please use one the subcommands");
-  }
+  RetType queryClient(const HostInfo& hostInfo);
 
-  void printOutput(const RetType& /* model */) {}
+  void printOutput(const RetType& model);
 };
 
 } // namespace facebook::fboss

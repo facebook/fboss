@@ -16,12 +16,15 @@
 #include <folly/io/async/EventBase.h>
 
 #include "fboss/lib/IOStatsRecorder.h"
+#include "fboss/qsfp_service/TransceiverLogging.h"
 #include "fboss/qsfp_service/TransceiverManager.h"
 #include "fboss/qsfp_service/module/I2cLogBuffer.h"
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 
 namespace facebook {
 namespace fboss {
+
+#define WEDGE_QSFP_LOG(level) TCVR_LOG_BASE(level, "", module_)
 
 /*
  * This is the Wedge Platform Specific Class

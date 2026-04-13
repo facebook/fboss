@@ -378,7 +378,7 @@ TEST_F(BcmQosPolicyTest, QosPolicySdkAssertions) {
   ASSERT_EQ(0, getNumHwIngressL3QosMaps(getHwSwitch()));
 
   // Check that the ports are not using the map anymore (even if we did not
-  // explictly detached the map from the ports)
+  // explicitly detached the map from the ports)
   for (int i : {0, 1}) {
     rv = bcm_qos_port_map_type_get(
         getUnit(), masterLogicalPortIds()[i], kQosMapFlags, &portQosMap);

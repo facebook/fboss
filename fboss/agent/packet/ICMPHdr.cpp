@@ -78,7 +78,7 @@ void ICMPHdr::serializePktHdr(
   cursor->push(srcMac.bytes(), folly::MacAddress::SIZE);
   if (vlan.has_value()) {
     cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
-    cursor->writeBE<uint16_t>(vlan.value());
+    cursor->writeBE<uint16_t>(static_cast<uint16_t>(vlan.value()));
   }
   cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV4));
 
@@ -103,7 +103,7 @@ void ICMPHdr::serializePktHdr(
   cursor->push(srcMac.bytes(), folly::MacAddress::SIZE);
   if (vlan.has_value()) {
     cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_VLAN));
-    cursor->writeBE<uint16_t>(vlan.value());
+    cursor->writeBE<uint16_t>(static_cast<uint16_t>(vlan.value()));
   }
   cursor->writeBE<uint16_t>(static_cast<uint16_t>(ETHERTYPE::ETHERTYPE_IPV6));
 

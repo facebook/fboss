@@ -327,13 +327,13 @@ class FirstInterfaceIDWithPortsTest : public ::testing::Test {
   std::unique_ptr<MockPlatform> platform_;
 };
 
-TEST_F(FirstInterfaceIDWithPortsTest, FindFirstInterfaceWithoutSwitchId) {
+TEST_F(FirstInterfaceIDWithPortsTest, FindFirstInterfaceForSwitchId) {
   // Create state with a single interface
   auto state = createStateWithInterface(
       InterfaceID(100), VlanID(100), false /* isVirtual */);
 
-  // Should find the interface when no switchId specified
-  auto result = utility::firstInterfaceIDWithPorts(state);
+  // Should find the interface for the given switchId
+  auto result = utility::firstInterfaceIDWithPorts(state, SwitchID(0));
   EXPECT_EQ(result, InterfaceID(100));
 }
 
@@ -361,7 +361,7 @@ TEST_F(FirstInterfaceIDWithPortsTest, SkipVirtualInterfaces) {
   });
 
   // Should skip virtual interface and return non-virtual one
-  auto result = utility::firstInterfaceIDWithPorts(state);
+  auto result = utility::firstInterfaceIDWithPorts(state, SwitchID(0));
   EXPECT_EQ(result, InterfaceID(101));
 }
 
@@ -394,7 +394,8 @@ TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenNoInterfaceFoundAtAll) {
   state->publish();
 
   // Should throw when no interfaces exist
-  EXPECT_THROW(utility::firstInterfaceIDWithPorts(state), FbossError);
+  EXPECT_THROW(
+      utility::firstInterfaceIDWithPorts(state, SwitchID(0)), FbossError);
 }
 
 TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenOnlyVirtualInterfacesExist) {
@@ -404,7 +405,8 @@ TEST_F(FirstInterfaceIDWithPortsTest, ThrowWhenOnlyVirtualInterfacesExist) {
   );
 
   // Should throw when only virtual interfaces exist
-  EXPECT_THROW(utility::firstInterfaceIDWithPorts(state), FbossError);
+  EXPECT_THROW(
+      utility::firstInterfaceIDWithPorts(state, SwitchID(0)), FbossError);
 }
 
 TEST_F(

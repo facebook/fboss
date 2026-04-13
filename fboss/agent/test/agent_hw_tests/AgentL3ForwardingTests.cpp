@@ -6,12 +6,11 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/HyperPortTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/test/gen-cpp2/production_features_types.h"
-
-DECLARE_bool(intf_nbr_tables);
 namespace facebook::fboss {
 
 class AgentL3ForwardingTest : public AgentHwTest {
@@ -31,7 +30,7 @@ class AgentL3ForwardingTest : public AgentHwTest {
     return getVlanIDForTx();
   }
   InterfaceID kIntfID() const {
-    return utility::firstInterfaceIDWithPorts(getProgrammedState());
+    return firstInterfaceIDWithPortsForTesting(getProgrammedState());
   }
 
   folly::MacAddress kNeighborMac() const {
@@ -41,18 +40,10 @@ class AgentL3ForwardingTest : public AgentHwTest {
   template <typename IPAddrT>
   auto getNeighborTable(const std::shared_ptr<SwitchState>& in) {
     auto state = in;
-    ;
-    if (FLAGS_intf_nbr_tables) {
-      return state->getInterfaces()
-          ->getNode(kIntfID())
-          ->template getNeighborEntryTable<IPAddrT>()
-          ->modify(kIntfID(), &state);
-    } else {
-      return state->getVlans()
-          ->getNode(*kVlanID())
-          ->template getNeighborEntryTable<IPAddrT>()
-          ->modify(*kVlanID(), &state);
-    }
+    return state->getInterfaces()
+        ->getNode(kIntfID())
+        ->template getNeighborEntryTable<IPAddrT>()
+        ->modify(kIntfID(), &state);
   }
   template <typename IPAddrT>
   std::shared_ptr<SwitchState> addResolvedNeighbor(
@@ -177,7 +168,7 @@ TEST_F(AgentL3ForwardingTest, ttl255) {
       for (auto isV6 : {true, false}) {
         auto vlanId = getVlanIDForTx();
         auto intfMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
         auto dstIp =
             folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");

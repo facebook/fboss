@@ -47,6 +47,10 @@
 #endif
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+#include "saiportcustom.h"
+#endif
+
 DEFINE_bool(
     sai_configure_six_tap,
     false,
@@ -462,6 +466,14 @@ void fillHwPortStats(
         break;
       }
 #endif
+#if defined(CHENAB_SAI_SDK)
+      case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
+        hwPortStats.outDiscardsSll_() = value;
+        break;
+      case SAI_PORT_STAT_IF_OUT_DISCARDS_HLL:
+        hwPortStats.outDiscardsHll_() = value;
+        break;
+#endif
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();
@@ -484,6 +496,11 @@ void fillHwPortStats(
         } else if (
             counterId == debugCounterManager.getEgressForwardingDropStatId()) {
           hwPortStats.outForwardingDiscards_() = value;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        } else if (
+            counterId == debugCounterManager.getSrv6MySidDropCounterStatId()) {
+          hwPortStats.inSrv6MySidDiscards_() = value;
+#endif
         } else {
           XLOG(FATAL)
               << " Should never get here, check configured debugCounterStatIds";
@@ -870,6 +887,8 @@ void SaiPortManager::programPfc(
     const std::shared_ptr<Port>& swPort,
     sai_uint8_t txPfc,
     sai_uint8_t rxPfc) {
+  CHECK(swPort->getPortType() != cfg::PortType::HYPER_PORT_MEMBER)
+      << "Enabling PFC on hyper port member is not supported";
   auto portHandle = getPortHandle(swPort->getID());
 
   auto pfcInfo = getPfcAttributes(txPfc, rxPfc);
@@ -2238,8 +2257,11 @@ void SaiPortManager::updatePrbsStats(PortID portId) {
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   auto* handle = getPortHandleImpl(PortID(portId));
-  auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, handle->port->attributes());
-  if (prbsConfig == SAI_PORT_PRBS_CONFIG_DISABLE) {
+  auto prbsConfigOpt =
+      std::get<std::optional<SaiPortTraits::Attributes::PrbsConfig>>(
+          handle->port->attributes());
+  if (!prbsConfigOpt.has_value() ||
+      prbsConfigOpt.value().value() == SAI_PORT_PRBS_CONFIG_DISABLE) {
     return;
   }
   auto prbsRxState = SaiApiTable::getInstance()->portApi().getAttribute(
@@ -2968,11 +2990,15 @@ void SaiPortManager::clearArsConfig() {
 void SaiPortManager::setTamObject(
     PortID portId,
     std::vector<sai_object_id_t> tamObjects) {
+  CHECK(getPortType(portId) != cfg::PortType::HYPER_PORT_MEMBER)
+      << "Setting TAM object on hyper port member is not supported";
   getPortHandle(portId)->port->setOptionalAttribute(
       SaiPortTraits::Attributes::TamObject{std::move(tamObjects)});
 }
 
 void SaiPortManager::resetTamObject(PortID portId) {
+  CHECK(getPortType(portId) != cfg::PortType::HYPER_PORT_MEMBER)
+      << "Resetting TAM object on hyper port member is not supported";
   getPortHandle(portId)->port->setOptionalAttribute(
       SaiPortTraits::Attributes::TamObject{
           std::vector<sai_object_id_t>{SAI_NULL_OBJECT_ID}});
@@ -3495,6 +3521,78 @@ std::vector<phy::SerdesParameters> SaiPortManager::getSerdesParameters(
       [](auto& param, auto val) { param.tpChn0() = val; });
 
   return serdesParams;
+}
+
+std::vector<phy::TxSettings> SaiPortManager::getTxSettings(
+    PortSerdesSaiId serdesSaiPortId,
+    PortID swPortID,
+    uint8_t numPmdLanes) const {
+  auto portType = getPortType(swPortID);
+  if (portType != cfg::PortType::INTERFACE_PORT &&
+      portType != cfg::PortType::FABRIC_PORT &&
+      portType != cfg::PortType::MANAGEMENT_PORT) {
+    return std::vector<phy::TxSettings>();
+  }
+
+  std::vector<phy::TxSettings> txSettings(numPmdLanes);
+
+  auto getTxParam =
+      [&](const char* paramName, auto attributeType, auto&& setter) {
+        try {
+          auto values = SaiApiTable::getInstance()->portApi().getAttribute(
+              serdesSaiPortId, attributeType);
+          for (int l = 0; l < numPmdLanes; l++) {
+            setter(txSettings[l], values[l]);
+          }
+        } catch (const SaiApiError& e) {
+          XLOG(DBG2) << "Failed to get " << paramName
+                     << " TX parameter: " << e.what();
+        }
+      };
+
+  getTxParam(
+      "TxFirPre1",
+      SaiPortSerdesTraits::Attributes::TxFirPre1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPre2",
+      SaiPortSerdesTraits::Attributes::TxFirPre2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre2() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPre3",
+      SaiPortSerdesTraits::Attributes::TxFirPre3{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.pre3() = static_cast<int32_t>(val); });
+
+  getTxParam(
+      "TxFirMain",
+      SaiPortSerdesTraits::Attributes::TxFirMain{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.main() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost1",
+      SaiPortSerdesTraits::Attributes::TxFirPost1{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost2",
+      SaiPortSerdesTraits::Attributes::TxFirPost2{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post2() = static_cast<int16_t>(val); });
+
+  getTxParam(
+      "TxFirPost3",
+      SaiPortSerdesTraits::Attributes::TxFirPost3{
+          std::vector<sai_uint32_t>(numPmdLanes)},
+      [](auto& param, auto val) { param.post3() = static_cast<int16_t>(val); });
+
+  return txSettings;
 }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)

@@ -28,33 +28,22 @@ using folly::MacAddress;
 
 namespace facebook::fboss {
 
-template <typename AddrType, bool enableIntfNbrTable>
-struct IpAddrAndEnableIntfNbrTableT {
+template <typename AddrType>
+struct IpAddrT {
   using AddrT = AddrType;
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using TestTypes = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+using TestTypes =
+    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename IpAddrT>
 class StaticL2ForNeighorObserverTest : public ::testing::Test {
  public:
   using Func = folly::Function<void()>;
   using StateUpdateFn = SwSwitch::StateUpdateFn;
-  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
-  static auto constexpr intfNbrTable =
-      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
-
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
+  using AddrT = typename IpAddrT::AddrT;
 
   void SetUp() override {
-    FLAGS_intf_nbr_tables = this->isIntfNbrTable();
     handle_ = createTestHandle(testStateAWithPortsUp());
     sw_ = handle_->getSw();
   }
@@ -109,39 +98,21 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
      * assert if valid CLASSID is associated with the newly resolved neighbor.
      */
     if (ipAddress.isV4()) {
-      if (isIntfNbrTable()) {
-        sw_->getNeighborUpdater()->receivedArpMineForIntf(
-            kInterfaceID(),
-            ipAddress.asV4(),
-            macAddress,
-            PortDescriptor(port ? port.value() : this->kPortID()),
-            ArpOpCode::ARP_OP_REPLY);
-      } else {
-        sw_->getNeighborUpdater()->receivedArpMine(
-            kVlan(),
-            ipAddress.asV4(),
-            macAddress,
-            PortDescriptor(port ? port.value() : this->kPortID()),
-            ArpOpCode::ARP_OP_REPLY);
-      }
+      sw_->getNeighborUpdater()->receivedArpMineForIntf(
+          kInterfaceID(),
+          ipAddress.asV4(),
+          macAddress,
+          PortDescriptor(port ? port.value() : this->kPortID()),
+          ArpOpCode::ARP_OP_REPLY);
+
     } else {
-      if (isIntfNbrTable()) {
-        sw_->getNeighborUpdater()->receivedNdpMineForIntf(
-            kInterfaceID(),
-            ipAddress.asV6(),
-            macAddress,
-            PortDescriptor(port ? port.value() : this->kPortID()),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            ND_NA_FLAG_OVERRIDE | ND_NA_FLAG_SOLICITED);
-      } else {
-        sw_->getNeighborUpdater()->receivedNdpMine(
-            kVlan(),
-            ipAddress.asV6(),
-            macAddress,
-            PortDescriptor(port ? port.value() : this->kPortID()),
-            ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-            ND_NA_FLAG_OVERRIDE | ND_NA_FLAG_SOLICITED);
-      }
+      sw_->getNeighborUpdater()->receivedNdpMineForIntf(
+          kInterfaceID(),
+          ipAddress.asV6(),
+          macAddress,
+          PortDescriptor(port ? port.value() : this->kPortID()),
+          ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+          ND_NA_FLAG_OVERRIDE | ND_NA_FLAG_SOLICITED);
     }
 
     sw_->getNeighborUpdater()->waitForPendingUpdates();
@@ -152,11 +123,7 @@ class StaticL2ForNeighorObserverTest : public ::testing::Test {
   }
 
   void unresolveNeighbor(IPAddress ipAddress) {
-    if (isIntfNbrTable()) {
-      sw_->getNeighborUpdater()->flushEntryForIntf(kInterfaceID(), ipAddress);
-    } else {
-      sw_->getNeighborUpdater()->flushEntry(kVlan(), ipAddress);
-    }
+    sw_->getNeighborUpdater()->flushEntryForIntf(kInterfaceID(), ipAddress);
 
     sw_->getNeighborUpdater()->waitForPendingUpdates();
     waitForBackgroundThread(sw_);
@@ -392,7 +359,7 @@ TYPED_TEST(StaticL2ForNeighorObserverTest, ageMacWhileNeighborResolved) {
   this->resolveMac(this->kMacAddress());
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
   this->unresolveMac(this->kMacAddress());
-  // MAC entry still exists due to the fact that a neigbor still
+  // MAC entry still exists due to the fact that a neighbor still
   // refers to it.
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }

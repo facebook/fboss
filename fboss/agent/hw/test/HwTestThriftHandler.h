@@ -53,6 +53,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<std::vector<cfg::CounterType>> types,
       std::unique_ptr<std::string> tableName) override;
 
+  void getDefaultAclTableStatCountInfo(AclStatCountInfo& info) override;
+
+  bool isAclStatDeleted(std::unique_ptr<std::string> statName) override;
+
   bool isMirrorProgrammed(std::unique_ptr<state::MirrorFields> mirror) override;
 
   bool isPortMirrored(
@@ -126,6 +130,8 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
 
   bool getPtpTcEnabled() override;
 
+  int32_t getSwitchingModeFromHw() override;
+
   void clearInterfacePhyCounters(
       std::unique_ptr<::std::vector<::std::int32_t>> portIds) override;
 
@@ -192,6 +198,15 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       bool flowletEnable) override;
 
   bool validateFlowSetTable(const bool expectFlowsetSizeZero) override;
+
+  bool verifyEcmpForNonFlowlet(
+      std::unique_ptr<CIDRNetwork> prefix,
+      std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
+      bool expectFlowsetFree) override;
+
+  void getVlanToNumPorts(std::map<int32_t, int32_t>& vlanToNumPorts) override;
+
+  bool isAclTableGroupEnabled(int32_t aclStage) override;
 
  private:
   HwSwitch* hwSwitch_;

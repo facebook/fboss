@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/LocalSwitchIds.h"
 #include "fboss/agent/types.h"
 
 #include <folly/futures/Future.h>
@@ -83,17 +84,15 @@ class MultiHwSwitchHandler {
       const PortID& portID,
       PacketType packetType) noexcept;
 
-  // TODO Migrate all callsites to explicitly pass switchID and then make
-  // SwitchID non-optional
+  // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedSync(
       std::unique_ptr<TxPacket> pkt,
-      std::optional<SwitchID> switchId = std::nullopt) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
-  // TODO Migrate all callsites to explicitly pass switchID and then make
-  // SwitchID non-optional
+  // TODO Migrate all callsites to explicitly pass switchIDs
   bool sendPacketSwitchedAsync(
       std::unique_ptr<TxPacket> pkt,
-      std::optional<SwitchID> switchId = std::nullopt) noexcept;
+      const LocalSwitchIDs& switchIds = {}) noexcept;
 
   bool transactionsSupported() const;
 
@@ -130,6 +129,13 @@ class MultiHwSwitchHandler {
   state::SwitchState reconstructSwitchState(SwitchID id);
 
  private:
+  // Shared implementation for sendPacketSwitchedSync/Async
+  template <typename SendFn>
+  bool sendPacketSwitchedImpl(
+      std::unique_ptr<TxPacket> pkt,
+      const LocalSwitchIDs& switchIds,
+      SendFn sendFn) noexcept;
+
   bool transactionsSupported(std::optional<cfg::SdkVersion> sdkVersion) const;
 
   HwSwitchHandler* getHwSwitchHandler(SwitchID id);

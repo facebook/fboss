@@ -291,6 +291,7 @@ class CowSubscriptionManager
         thrift_cow::RootExtendedPathVisitor::visit(
             root, path.path()->begin(), path.path()->end(), options, process);
       }
+      subscription->recordInitialSyncCompleted();
       it = store.initialSyncNeededExtended().erase(it);
     }
   }

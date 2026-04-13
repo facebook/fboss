@@ -105,6 +105,7 @@ struct FakeSai {
   FakeTunnelTermManager tunnelTermManager;
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   FakeSrv6SidListManager srv6SidListManager;
+  FakeMySidEntryManager mySidEntryManager;
 #endif
   FakeMacsecManager macsecManager;
   FakeMacsecPortManager macsecPortManager;

@@ -40,10 +40,8 @@ struct EnableIntfNbrTable {
   static constexpr auto portRif = enablePortRif;
 };
 
-using NbrTableTypes = ::testing::Types<
-    EnableIntfNbrTable<false>,
-    EnableIntfNbrTable<true>,
-    EnableIntfNbrTable<true, true>>;
+using NbrTableTypes =
+    ::testing::Types<EnableIntfNbrTable<true>, EnableIntfNbrTable<true, true>>;
 
 template <typename EnableIntfNbrTableT>
 class ResolvedNexthopMonitorTest : public ::testing::Test {
@@ -53,7 +51,6 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
   static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
   static auto constexpr portRif = EnableIntfNbrTableT::portRif;
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable();
     auto cfg = usePortRif() ? testConfigAWithPortInterfaces() : testConfigA();
     if constexpr (portRif) {
       cfg.interfaces()[0].intfID() = 1;
@@ -78,10 +75,6 @@ class ResolvedNexthopMonitorTest : public ::testing::Test {
     }
     handle_ = createTestHandle(&cfg);
     sw_ = handle_->getSw();
-  }
-
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
   }
 
   bool usePortRif() const {
@@ -381,21 +374,13 @@ TYPED_TEST(ResolvedNexthopMonitorTest, RouteSharingProbeOneUpdate) {
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
-  if (this->isIntfNbrTable()) {
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(55))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(55))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
-    EXPECT_EQ(entry, nullptr);
-  }
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(55))
+                   ->getArpTable()
+                   ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
+  EXPECT_EQ(entry, nullptr);
+
   if (this->usePortRif()) {
     EXPECT_OUT_OF_PORT_PKT(
         this->sw_,
@@ -467,39 +452,23 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV4) {
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
 
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for inf neighbors
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(55))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is created for vlan neighbors
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(55))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for inf neighbors
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(55))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.55.22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   this->updateState(
-      "add neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "add neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         ArpTable* arpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
 
         arpTable->addEntry(
             folly::IPAddressV4("10.0.0.22"),
@@ -510,42 +479,23 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
         return newState;
       });
 
-  if (this->isIntfNbrTable()) {
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-  } else {
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-  }
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(1))
+                   ->getArpTable()
+                   ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
 
   RouteNextHopSet nhops{UnresolvedNextHop(folly::IPAddressV4("10.0.0.22"), 1)};
   this->addRoute(kPrefixV4, nhops);
 
-  if (this->isIntfNbrTable()) {
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
-  } else {
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
-  }
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), false); // no probe
 
   if (this->usePortRif()) {
     EXPECT_OUT_OF_PORT_PKT(
@@ -613,17 +563,12 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   }
 
   this->updateState(
-      "remove neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "remove neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         ArpTable* arpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          arpTable = vlan->getArpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        arpTable = intf->getArpTable()->modify(InterfaceID(1), &newState);
 
         arpTable->removeEntry(folly::IPAddressV4("10.0.0.22"));
         return newState;
@@ -633,37 +578,21 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV4) {
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
 
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for intf neighbors
-    auto entry = this->sw_->getState()
-                     ->getInterfaces()
-                     ->getNode(InterfaceID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is created for vlan neighbors
-    auto entry = this->sw_->getState()
-                     ->getVlans()
-                     ->getNode(VlanID(1))
-                     ->getArpTable()
-                     ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for intf neighbors
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getArpTable()
+              ->getEntryIf(folly::IPAddressV4("10.0.0.22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   std::shared_ptr<NdpTable> ndpTable;
-  if (this->isIntfNbrTable()) {
-    ndpTable = this->sw_->getState()
-                   ->getInterfaces()
-                   ->getNode(InterfaceID(55))
-                   ->getNdpTable();
-  } else {
-    ndpTable =
-        this->sw_->getState()->getVlans()->getNode(VlanID(55))->getNdpTable();
-  }
+  ndpTable = this->sw_->getState()
+                 ->getInterfaces()
+                 ->getNode(InterfaceID(55))
+                 ->getNdpTable();
 
   EXPECT_EQ(
       ndpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3055::22")),
@@ -765,39 +694,23 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredV6) {
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
 
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for intf neighbors
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(55))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3055::22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is not created for vlan neighbors
-    auto vlanNdpTable =
-        this->sw_->getState()->getVlans()->getNode(VlanID(55))->getNdpTable();
-    auto entry =
-        vlanNdpTable->getEntryIf(folly::IPAddressV6("2401:db00:2110:3055::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for intf neighbors
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(55))
+                   ->getNdpTable()
+                   ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3055::22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   this->updateState(
-      "add neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "add neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         NdpTable* ndpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
 
         ndpTable->addEntry(
             folly::IPAddressV6("2401:db00:2110:3001::22"),
@@ -808,47 +721,24 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
         return newState;
       });
 
-  if (this->isIntfNbrTable()) {
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-  } else {
-    auto entry =
-        this->sw_->getState()
-            ->getVlans()
-            ->getNode(VlanID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-  }
+  auto entry = this->sw_->getState()
+                   ->getInterfaces()
+                   ->getNode(InterfaceID(1))
+                   ->getNdpTable()
+                   ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
 
   RouteNextHopSet nhops{
       UnresolvedNextHop(folly::IPAddressV6("2401:db00:2110:3001::22"), 1)};
   this->addRoute(kPrefixV6, nhops);
 
-  if (this->isIntfNbrTable()) {
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
-  } else {
-    auto entry =
-        this->sw_->getState()
-            ->getVlans()
-            ->getNode(VlanID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), false); // no probe
-  }
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getNdpTable()
+              ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  ASSERT_NE(entry, nullptr);
+  EXPECT_EQ(entry->isPending(), false); // no probe
 
   if (this->usePortRif()) {
     EXPECT_OUT_OF_PORT_PKT(
@@ -940,17 +830,12 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   }
 
   this->updateState(
-      "remove neighbor", [this](const std::shared_ptr<SwitchState> state) {
+      "remove neighbor", [](const std::shared_ptr<SwitchState> state) {
         auto newState = state->clone();
 
         NdpTable* ndpTable;
-        if (this->isIntfNbrTable()) {
-          auto intf = state->getInterfaces()->getNode(InterfaceID(1));
-          ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
-        } else {
-          auto vlan = state->getVlans()->getNode(VlanID(1));
-          ndpTable = vlan->getNdpTable()->modify(VlanID(1), &newState);
-        }
+        auto intf = state->getInterfaces()->getNode(InterfaceID(1));
+        ndpTable = intf->getNdpTable()->modify(InterfaceID(1), &newState);
 
         ndpTable->removeEntry(folly::IPAddressV6("2401:db00:2110:3001::22"));
         return newState;
@@ -959,26 +844,13 @@ TYPED_TEST(ResolvedNexthopMonitorTest, ProbeTriggeredOnEntryRemoveV6) {
   this->schedulePendingStateUpdates();
   this->waitForBackgroundAndNeighborCacheThreads();
   this->schedulePendingStateUpdates();
-  if (this->isIntfNbrTable()) {
-    // pending entry is not created for intf neighbors
-    auto entry =
-        this->sw_->getState()
-            ->getInterfaces()
-            ->getNode(InterfaceID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    EXPECT_EQ(entry, nullptr);
-  } else {
-    // pending entry is not created for vlan neighbors
-    auto entry =
-        this->sw_->getState()
-            ->getVlans()
-            ->getNode(VlanID(1))
-            ->getNdpTable()
-            ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
-    ASSERT_NE(entry, nullptr);
-    EXPECT_EQ(entry->isPending(), true);
-  }
+  // pending entry is not created for intf neighbors
+  entry = this->sw_->getState()
+              ->getInterfaces()
+              ->getNode(InterfaceID(1))
+              ->getNdpTable()
+              ->getEntryIf(folly::IPAddressV6("2401:db00:2110:3001::22"));
+  EXPECT_EQ(entry, nullptr);
 }
 
 } // namespace facebook::fboss

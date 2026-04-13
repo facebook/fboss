@@ -28,7 +28,7 @@ class SaiBcmIcecube800bcPlatform : public SaiBcmPlatform {
   }
 
   uint32_t numCellsAvailable() const override {
-    return 319960;
+    return 610000;
   }
 
   bool isSerdesApiSupported() const override {

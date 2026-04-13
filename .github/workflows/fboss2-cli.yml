@@ -8,6 +8,7 @@ on:
       - 'cmake/CliFboss2.cmake'
       - 'cmake/CliFboss2Test.cmake'
       - 'cmake/CliFboss2TestConfig.cmake'
+      - 'cmake/CliFboss2TestIntegrationTest.cmake'
       - '.github/workflows/fboss2-cli.yml'
   # Allow manually triggering the workflow
   workflow_dispatch:
@@ -64,11 +65,15 @@ jobs:
           --copy-root-libs
           --scratch-path=/var/FBOSS/tmp_bld_dir
           --compress
+      - name: Save Docker image
+        run: sudo docker save fboss_image:latest | zstd -o ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: fboss2-cli
-          path: ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+          path: |
+            ${{ github.workspace }}/build-output/fboss_bins.tar.zst
+            ${{ github.workspace }}/build-output/fboss_docker_image.tar.zst
           # Explicitly set the retention at the object level
           retention-days: 14
   fboss2-CLI-Test:
@@ -83,6 +88,8 @@ jobs:
         with:
           name: fboss2-cli
       - run: ls ${{ github.workspace }}
+      - name: Load Docker image
+        run: zstd -dc ${{ github.workspace }}/fboss_docker_image.tar.zst | sudo docker load
       - name: Run unit tests
         run: >
           sudo

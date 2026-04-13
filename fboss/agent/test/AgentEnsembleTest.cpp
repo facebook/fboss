@@ -22,7 +22,6 @@ char** argVec{nullptr};
 
 DECLARE_string(config);
 DECLARE_bool(disable_looped_fabric_ports);
-DECLARE_bool(intf_nbr_tables);
 DEFINE_bool(
     enable_sdk_dump,
     false,
@@ -170,9 +169,9 @@ void AgentEnsembleTest::resolveNeighbor(
 
 template <typename AddrT>
 void AgentEnsembleTest::resolveNeighbor(
-    PortDescriptor port,
+    const PortDescriptor& port,
     const AddrT& ip,
-    VlanID vlanId,
+    const VlanID& vlanId,
     folly::MacAddress mac) {
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
@@ -185,14 +184,9 @@ void AgentEnsembleTest::resolveNeighbor(
     auto vlan = outputState->getVlans()->getNode(vlanId);
     auto intfId = vlan->getInterfaceID();
     NeighborTableT* nbrTable;
-    if (FLAGS_intf_nbr_tables) {
-      auto intf = outputState->getInterfaces()->getNode(intfId);
-      nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
-          intfId, &outputState);
-    } else {
-      nbrTable = vlan->template getNeighborEntryTable<AddrT>()->modify(
-          vlanId, &outputState);
-    }
+    auto intf = outputState->getInterfaces()->getNode(intfId);
+    nbrTable = intf->template getNeighborEntryTable<AddrT>()->modify(
+        intfId, &outputState);
 
     if (nbrTable->getEntryIf(ip)) {
       nbrTable->updateEntry(
@@ -343,8 +337,7 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
         getSw()->getAllHwPortStats(portStats);
         // Since each port can have a unique timestamp, compare with the first
         // port
-        auto firstPortStat = &portStats.begin()->second;
-        if (firstPortStat->timestamp_() == timestamp) {
+        if (*portStats.begin()->second.timestamp_() == timestamp) {
           return false;
         }
         // Make sure that the other ports have valid stats
@@ -375,7 +368,7 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
     lastStatRefTime = *portStats.begin()->second.timestamp_();
 
-    for (auto [port, stats] : portStats) {
+    for (const auto& [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
       XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards
                  << " in bytes: " << *stats.inBytes_()
@@ -398,7 +391,7 @@ void AgentEnsembleTest::assertNoInErrors(int maxNumDiscards) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
     lastStatRefTime = *portStats.begin()->second.timestamp_();
 
-    for (auto [port, stats] : portStats) {
+    for (const auto& [port, stats] : portStats) {
       auto inErrors = *stats.inErrors_();
       XLOG(DBG2) << "Port: " << port << " in errors: " << inErrors
                  << " in bytes: " << *stats.inBytes_()

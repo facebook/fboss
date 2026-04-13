@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/dsf/subscription/CmdShowDsfSubscription.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "thrift/lib/cpp/util/EnumUtils.h"
 
@@ -82,4 +83,10 @@ void CmdShowDsfSubscription::printOutput(
   out << std::endl;
 }
 
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowDsfSubscription, CmdShowDsfSubscriptionTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowDsfSubscription,
+    CmdShowDsfSubscriptionTraits>::getValidFilters();
 } // namespace facebook::fboss

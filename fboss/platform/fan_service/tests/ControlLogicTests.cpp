@@ -5,9 +5,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <folly/FileUtil.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
+#include "fboss/platform/config_lib/ConfigLib.h"
 #include "fboss/platform/fan_service/Bsp.h"
 #include "fboss/platform/fan_service/ControlLogic.h"
 #include "fboss/platform/fan_service/SensorData.h"
@@ -41,11 +41,7 @@ class MockBsp : public Bsp {
 class ControlLogicTests : public testing::Test {
  public:
   void SetUp() override {
-    std::string confName = "fboss/platform/configs/sample/fan_service.json";
-    std::string fanServiceConfJson;
-    if (!folly::readFile(confName.c_str(), fanServiceConfJson)) {
-      throw std::runtime_error("Fail to read config file: " + confName);
-    }
+    auto fanServiceConfJson = ConfigLib().getFanServiceConfig("sample");
 
     apache::thrift::SimpleJSONSerializer::deserialize<FanServiceConfig>(
         fanServiceConfJson, fanServiceConfig_);

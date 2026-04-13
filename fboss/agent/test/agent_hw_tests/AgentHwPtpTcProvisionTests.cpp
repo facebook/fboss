@@ -13,6 +13,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -27,7 +28,7 @@ namespace facebook::fboss {
 /*
  *  Test case to validate PTP TC on all ports.
  *  1. Select two ports, one ingress and one egress.
- *  2. Add Vlans and put ports in loopback mode (MAC), config egress port as
+ *  2. Add Vlans and put ports in loopback mode (MAC/PHY), config egress port as
  * next hop.
  *  3. Inject PTP packet packet out of ingress port, packet received back on the
  * same port, RX timestamp applied. The packet is now forwarded out of egress
@@ -75,6 +76,14 @@ class AgentHwPtpTcProvisionTests
         config,
         portSpeed,
         ports);
+    // Use PHY loopback instead of MAC loopback for TH4
+    if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {
+      for (auto& port : *config.ports()) {
+        if (port.portType() == cfg::PortType::INTERFACE_PORT) {
+          port.loopbackMode() = cfg::PortLoopbackMode::PHY;
+        }
+      }
+    }
     // Todo: We should use dst mac to avoid same packet trapped twice
     // on inject and dst ports. But Leaba 1.42.8 SDK does not support it yet.
     std::set<folly::CIDRNetwork> prefixs;
@@ -149,12 +158,6 @@ class AgentHwPtpTcProvisionTests
         getPortName(dstPort));
     auto portDescriptor = PortDescriptor(injectPortID);
     auto intfID = getSw()->getState()->getInterfaceIDForPort(portDescriptor);
-    auto vlanID =
-        getSw()->getState()->getInterfaces()->getNodeIf(intfID)->getVlanID();
-    auto matcher =
-        getSw()->getScopeResolver()->scope(getSw()->getState(), portDescriptor);
-    auto scope = getSw()->getScopeResolver()->scope(
-        getSw()->getState()->getVlans()->getNode(vlanID));
     auto dstMac = utility::getInterfaceMac(getSw()->getState(), intfID);
     // Send out PTP packet
     auto ptpPkt = makePtpPkt(getVlanIDForTx().value(), dstIp, dstMac, ptpType);
@@ -214,7 +217,7 @@ class AgentHwPtpTcProvisionTests
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
  private:
@@ -249,6 +252,12 @@ TEST_P(AgentHwPtpTcProvisionTests, VerifyPtpTcDelayRequest) {
         port.portType() == cfg::PortType::INTERFACE_PORT) {
       ports.emplace_back(*port.logicalID());
     }
+  }
+  if (ports.size() < 2) {
+    XLOG(WARNING) << "Only " << ports.size() << " ports enabled for speed "
+                  << static_cast<int>(portSpeed)
+                  << " kbps, need at least 2 for PTP TC test, skipping";
+    return;
   }
   for (int idx = 0; idx < ports.size(); idx++) {
     nexthopMacs.emplace_back(getNexthopMac(idx));

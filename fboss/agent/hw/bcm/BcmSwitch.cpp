@@ -770,7 +770,7 @@ void BcmSwitch::runBcmScript(const std::string& filename) const {
 
 void BcmSwitch::setupLinkscan() {
   if (!(getFeaturesDesired() & FeaturesDesired::LINKSCAN_DESIRED)) {
-    XLOG(DBG1) << " Skipping linkscan registeration as the feature is disabled";
+    XLOG(DBG1) << " Skipping linkscan registration as the feature is disabled";
     return;
   }
   linkScanBottomHalfThread_ = std::make_unique<std::thread>([=, this]() {
@@ -1590,13 +1590,6 @@ std::shared_ptr<SwitchState> BcmSwitch::stateChangedImplLocked(
 
   // Any neighbor removals, and modify appliedState if some changes fail to
   // apply
-  //
-  // If FLAGS_intf_nbr_table is false, intf nbr table processing is no-op
-  // If FLAGS_intf_nbr_table is true, vlan nbr table processing is no-op
-  //
-  // TODO(skhare) Once FLAGS_intf_nbr_table = true is rolled out, remove the
-  // vlan neighbor processing.
-  processNeighborDelta(delta.getVlansDelta(), &appliedState, REMOVED);
   processNeighborDelta(delta.getIntfsDelta(), &appliedState, REMOVED);
 
   // delete all interface not existing anymore. that should stop
@@ -3650,7 +3643,7 @@ void BcmSwitch::l2LearningCallback(
  *  - SDK thread ages out a stale MAC+vlan entry.
  *  - This triggers a callback of type DELETE.
  *  - The MAC+vlan that is aged out would be VALIDATED as when the entry is
- *    learned, in resposne to PENDING ADD callback, wedge_agent would have
+ *    learned, in response to PENDING ADD callback, wedge_agent would have
  *    VALIDATED the entry.
  *
  * The initial implementation (which used wrong BCM API to register callbacks,

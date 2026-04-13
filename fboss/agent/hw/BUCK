@@ -225,7 +225,6 @@ cpp_library(
     name = "stats_constants",
     headers = [
         "StatsConstants.h",
-        "common/StatsConstants.h",
     ],
     exported_deps = [
         "//folly:range",

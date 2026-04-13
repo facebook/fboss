@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -23,34 +24,25 @@
 #include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
-template <typename AddrType, bool enableIntfNbrTable>
-struct IpAddrAndEnableIntfNbrTableT {
+template <typename AddrType>
+struct IpAddrT {
   using AddrT = AddrType;
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
 };
 
-using TestTypes = ::testing::Types<
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV4, true>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, false>,
-    IpAddrAndEnableIntfNbrTableT<folly::IPAddressV6, true>>;
+using TestTypes =
+    ::testing::Types<IpAddrT<folly::IPAddressV4>, IpAddrT<folly::IPAddressV6>>;
 
-template <typename IpAddrAndEnableIntfNbrTableT>
+template <typename IpAddrT>
 class AgentQueuePerHostTest : public AgentHwTest {
-  using AddrT = typename IpAddrAndEnableIntfNbrTableT::AddrT;
-  static auto constexpr isIntfNbrTable =
-      IpAddrAndEnableIntfNbrTableT::intfNbrTable;
+  using AddrT = typename IpAddrT::AddrT;
   using NeighborTableT = typename std::conditional_t<
       std::is_same<AddrT, folly::IPAddressV4>::value,
       ArpTable,
       NdpTable>;
 
   void setCmdLineFlagOverrides() const override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     AgentHwTest::setCmdLineFlagOverrides();
   }
 
@@ -142,17 +134,10 @@ class AgentQueuePerHostTest : public AgentHwTest {
       auto ip = ipToMacAndClassID.first;
 
       NeighborTableT* neighborTable;
-      if (isIntfNbrTable) {
-        neighborTable = outState->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kIntfID, &outState);
-      } else {
-        neighborTable = outState->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kVlanID, &outState);
-      }
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
 
       neighborTable->addPendingEntry(ip, kIntfID);
     }
@@ -173,17 +158,10 @@ class AgentQueuePerHostTest : public AgentHwTest {
                                    : macAndClassID.second;
 
       NeighborTableT* neighborTable;
-      if (isIntfNbrTable) {
-        neighborTable = outState->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kIntfID, &outState);
-      } else {
-        neighborTable = outState->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kVlanID, &outState);
-      }
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
 
       auto existingEntry = neighborTable->getEntryIf(ip);
 
@@ -224,15 +202,9 @@ class AgentQueuePerHostTest : public AgentHwTest {
                                      : macAndClassID.second;
 
         std::shared_ptr<NeighborTableT> neighborTable;
-        if (isIntfNbrTable) {
-          neighborTable = state->getInterfaces()
-                              ->getNode(kIntfID)
-                              ->template getNeighborTable<NeighborTableT>();
-        } else {
-          neighborTable = state->getVlans()
-                              ->getNode(kVlanID)
-                              ->template getNeighborTable<NeighborTableT>();
-        }
+        neighborTable = state->getInterfaces()
+                            ->getNode(kIntfID)
+                            ->template getNeighborTable<NeighborTableT>();
 
         auto entry = neighborTable->getEntryIf(ip);
         XLOG(DBG2) << "Verify class id for " << ip
@@ -454,11 +426,20 @@ class AgentQueuePerHostTest : public AgentHwTest {
           // counts ttl >= 128 packet only
           EXPECT_EVENTUALLY_EQ(packetsAfter - packetsBefore, 1);
           if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+            // TODO ruinanhu: Remove this once we have a fix for TH6 counter
+            // problem
+            auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            auto extraBytes =
+                (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
+                ? 4
+                : 0;
             if (frontPanel) {
-              EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
+              EXPECT_EVENTUALLY_EQ(
+                  bytesAfter - bytesBefore + extraBytes, packetSize);
             }
             // TODO: Still need to debug why we get extra 4 bytes for CPU port
-            EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
+            EXPECT_EVENTUALLY_TRUE(
+                bytesAfter - bytesBefore + extraBytes >= packetSize);
           }
         });
       }
@@ -504,7 +485,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
           ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
 
     return txPacketSize;

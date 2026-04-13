@@ -22,7 +22,7 @@
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
-#include "fboss/agent/state/Vlan.h"
+
 #include "fboss/agent/test/CounterCache.h"
 #include "fboss/agent/test/HwTestHandle.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -422,32 +422,13 @@ TEST_F(SwSwitchTest, swSwitchRunState) {
   EXPECT_EQ(switchSettings->getSwSwitchRunState(), SwitchRunState::CONFIGURED);
 }
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class SwSwitchTestNbrs : public SwSwitchTest {
-  static auto constexpr intfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
- public:
-  bool isIntfNbrTable() const {
-    return intfNbrTable == true;
-  }
-
   void SetUp() override {
-    FLAGS_intf_nbr_tables = intfNbrTable;
     SwSwitchTest::SetUp();
   }
 };
 
-TYPED_TEST_SUITE(SwSwitchTestNbrs, NbrTableTypes);
-
-TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
+TEST_F(SwSwitchTestNbrs, TestStateNonCoalescing) {
   auto sw = this->sw;
 
   const PortID kPort1{1};
@@ -458,7 +439,7 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
       [kVlan1, kInterfaceID1, this](int expectedReachableNbrCnt) {
         auto getReachableCount = [](auto nbrTable) {
           auto reachableCnt = 0;
-          for (auto iter : std::as_const(*nbrTable)) {
+          for (const auto& iter : std::as_const(*nbrTable)) {
             auto entry = iter.second;
             if (entry->getState() == NeighborState::REACHABLE) {
               ++reachableCnt;
@@ -470,21 +451,14 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
         std::shared_ptr<ArpTable> arpTable;
         std::shared_ptr<NdpTable> ndpTable;
 
-        if (this->isIntfNbrTable()) {
-          arpTable = this->sw->getState()
-                         ->getInterfaces()
-                         ->getNode(kInterfaceID1)
-                         ->getArpTable();
-          ndpTable = this->sw->getState()
-                         ->getInterfaces()
-                         ->getNode(kInterfaceID1)
-                         ->getNdpTable();
-        } else {
-          arpTable =
-              this->sw->getState()->getVlans()->getNode(kVlan1)->getArpTable();
-          ndpTable =
-              this->sw->getState()->getVlans()->getNode(kVlan1)->getNdpTable();
-        }
+        arpTable = this->sw->getState()
+                       ->getInterfaces()
+                       ->getNode(kInterfaceID1)
+                       ->getArpTable();
+        ndpTable = this->sw->getState()
+                       ->getInterfaces()
+                       ->getNode(kInterfaceID1)
+                       ->getNdpTable();
 
         auto reachableCnt =
             getReachableCount(arpTable) + getReachableCount(ndpTable);
@@ -498,39 +472,20 @@ TYPED_TEST(SwSwitchTestNbrs, TestStateNonCoalescing) {
   };
   sw->updateState("Bring Ports Up", bringPortsUpUpdateFn);
 
-  if (this->isIntfNbrTable()) {
-    sw->getNeighborUpdater()->receivedArpMineForIntf(
-        kInterfaceID1,
-        IPAddressV4("10.0.0.2"),
-        MacAddress("01:02:03:04:05:06"),
-        PortDescriptor(kPort1),
-        ArpOpCode::ARP_OP_REPLY);
-  } else {
-    sw->getNeighborUpdater()->receivedArpMine(
-        kVlan1,
-        IPAddressV4("10.0.0.2"),
-        MacAddress("01:02:03:04:05:06"),
-        PortDescriptor(kPort1),
-        ArpOpCode::ARP_OP_REPLY);
-  }
+  sw->getNeighborUpdater()->receivedArpMineForIntf(
+      kInterfaceID1,
+      IPAddressV4("10.0.0.2"),
+      MacAddress("01:02:03:04:05:06"),
+      PortDescriptor(kPort1),
+      ArpOpCode::ARP_OP_REPLY);
 
-  if (this->isIntfNbrTable()) {
-    sw->getNeighborUpdater()->receivedNdpMineForIntf(
-        kInterfaceID1,
-        IPAddressV6("2401:db00:2110:3001::0002"),
-        MacAddress("01:02:03:04:05:06"),
-        PortDescriptor(kPort1),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-  } else {
-    sw->getNeighborUpdater()->receivedNdpMine(
-        kVlan1,
-        IPAddressV6("2401:db00:2110:3001::0002"),
-        MacAddress("01:02:03:04:05:06"),
-        PortDescriptor(kPort1),
-        ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
-        0);
-  }
+  sw->getNeighborUpdater()->receivedNdpMineForIntf(
+      kInterfaceID1,
+      IPAddressV6("2401:db00:2110:3001::0002"),
+      MacAddress("01:02:03:04:05:06"),
+      PortDescriptor(kPort1),
+      ICMPv6Type::ICMPV6_TYPE_NDP_NEIGHBOR_ADVERTISEMENT,
+      0);
 
   sw->getNeighborUpdater()->waitForPendingUpdates();
   waitForStateUpdates(sw);

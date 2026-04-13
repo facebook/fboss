@@ -18,7 +18,6 @@ DECLARE_int32(update_voq_stats_interval_s);
 DECLARE_int32(update_cable_length_stats_s);
 DECLARE_bool(publish_state_to_fsdb);
 DECLARE_bool(publish_stats_to_fsdb);
-DECLARE_bool(intf_nbr_tables);
 DECLARE_bool(classid_for_unresolved_routes);
 DECLARE_bool(disable_neighbor_updates);
 DECLARE_bool(disable_icmp_error_response);
@@ -204,17 +203,26 @@ class AgentHwTest : public ::testing::Test {
       const cfg::SwitchConfig& in) const;
 
   template <typename EcmpHelperT>
-  void resolveNeighborAndProgramRoutes(const EcmpHelperT& ecmp, int width) {
+  void resolveNeighborAndProgramRoutes(
+      const EcmpHelperT& ecmp,
+      int width,
+      const std::optional<bool>& disableTTLDecrement = std::nullopt) {
     applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
       return ecmp.resolveNextHops(in, width);
     });
     auto wrapper = getSw()->getRouteUpdater();
-    ecmp.programRoutes(&wrapper, width);
+    ecmp.programRoutes(&wrapper, width, {}, {}, disableTTLDecrement);
   }
   template <typename EcmpHelperT>
   void resolveNeighbors(const EcmpHelperT& ecmp, int width) {
     applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
       return ecmp.resolveNextHops(in, width);
+    });
+  }
+  template <typename EcmpHelperT>
+  void unresolveNeighbors(const EcmpHelperT& ecmp, int width) {
+    applyNewState([this, &ecmp, &width](std::shared_ptr<SwitchState> in) {
+      return ecmp.unresolveNextHops(in, width);
     });
   }
   template <typename EcmpHelperT>

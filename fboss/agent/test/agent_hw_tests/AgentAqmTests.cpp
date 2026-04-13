@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -133,7 +134,7 @@ class AgentAqmTest : public AgentHwTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendPkt(
@@ -164,7 +165,7 @@ class AgentAqmTest : public AgentHwTest {
     if (outPort) {
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 
@@ -240,8 +241,9 @@ class AgentAqmTest : public AgentHwTest {
     });
     RoutePrefixV6 route{folly::IPAddressV6(kTestDstIpV6), 128};
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&wrapper, {portDesc}, {route});
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &wrapper, {portDesc}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(),
         ecmpHelper.getRouterId(),
         ecmpHelper.getNextHops()[0]);

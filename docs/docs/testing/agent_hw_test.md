@@ -63,19 +63,17 @@ These are simple functionality test cases that should provide basic confidence b
 2. **Batch B tests**
 These are more complicated test cases that should pass, before testing teams run test plan to verify overall functionality.
 - Acl: `.*Acl.* | .*DscpMarking.*`
-- Warmboot: `.*warm_boot.*`
-- PFC: `.*HwInPause.* | .*Pfc.*`
+- PFC: `.*Pfc.*`
 - QoS: `.*Qos.*`
 - Aqm: `.*Aqm.*`
-- ECMP: `.*Ecmp.* | .*LoadBalancer.* | .*SaiNextHopGroup.*`
+- ECMP: `.*Ecmp.* | .*LoadBalancer.*`
 - UDA ACL/Hashing: `.*HwUdfTest.*`
 - Queue Per Host: `.*QueuePerHost.*`
 
 3. **Batch C tests**
 These are tests either for complicated features or related to performance tuning. Normally, they will not block FBOSS bring up on new platforms at early stages, but they will block platform qualification before deploying in production networks.
-- Hashin: `.*HashPolarization.*`
 - Trunk/LAG: `.*Trunk.*`
-- sFlow/Mirroing: `.*Sflow.* | .*Mirror.*`
+- sFlow/Mirroring: `.*Sflow.* | .*Mirror.*`
 - PTP: `.*Ptp.*`
-- MMU Tuning: `.*HwIngressBufferTest.* | .*MmuTuning.*`
+- MMU Tuning: `.*IngressBuffer.* | .*MmuTuning.*`
 - Stats: `.*ResourceStats.*`

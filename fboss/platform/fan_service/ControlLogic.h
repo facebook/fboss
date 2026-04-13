@@ -17,7 +17,7 @@ struct SensorReadCache {
   // This is the last read value from the sensor which is yet to be processed.
   float lastReadValue{0};
   int16_t targetPwmCache{0};
-  uint64_t lastUpdatedTime;
+  uint64_t lastUpdatedTime{0};
   bool sensorFailed{false};
 };
 
@@ -61,24 +61,20 @@ class ControlLogic {
   OvertempCondition overtempCondition_;
   std::vector<std::string> overtempWatchList_;
   std::shared_ptr<Bsp> pBsp_;
-  std::shared_ptr<SensorData> pSensor_;
-  // Internal variable storing the number of failed sensors and fans
-  int numFanFailed_ = 0;
-  int numSensorFailed_ = 0;
   // The timestamp of the last PWM control logic execution
   uint64_t lastControlExecutionTimeSec_{0};
   // The timestamp of the last sensor data fetch
   uint64_t lastSensorFetchTimeSec_{0};
 
   void setupPidLogics();
-  void getSensorUpdate();
+  int updateSensorPwms(const SensorData& sensorData, int numFanFailed);
   std::tuple<bool /*fanAccessFailed*/, int /*rpm*/, uint64_t /*timestamp*/>
   readFanRpm(const Fan& fan);
-  void getOpticsUpdate();
+  void updateOpticsPwms(SensorData& sensorData);
   bool /* pwm update fail */
   programFan(const Zone& zone, const Fan& fan, int16_t fanPwm);
   int16_t calculateZonePwm(const Zone& zone, bool boostMode);
-  void updateTargetPwm(const Sensor& sensorItem);
+  void updateTargetPwm(const Sensor& sensorItem, int numFanFailed);
   void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
   int16_t

@@ -153,6 +153,38 @@ struct I2cRegData {
   2: list<byte> ioBuf;
 }
 
+// Defines a sysfs attribute to create on a CPLD device via the
+// fbcpld_generic kernel driver.
+//
+// `name`: Name of the sysfs file to create.
+//
+// `mode`: Access mode - "ro" (read-only, 0444), "rw" (read-write, 0644),
+// or "wo" (write-only, 0200). Defaults to "ro".
+//
+// `regAddr`: Register address as hex string (e.g., "0x10").
+//
+// `bitOffset`: Starting bit position in the register (0-7). Defaults to 0.
+//
+// `numBits`: Number of bits (1-8). E.g., bitOffset=4 numBits=4 selects
+// bits [7:4]. Defaults to 1.
+//
+// `flags`: Optional list of behavior flags:
+//   "negate"     - Invert value (active-low signals)
+//   "decimal"    - Show as decimal (default is hex)
+//   "show_notes" - Include register info in output
+//   "log_write"  - Log writes to kernel log
+//
+// `description`: Help text for the attribute.
+struct CpldSysfsAttr {
+  1: string name;
+  2: string mode = "ro";
+  3: string regAddr;
+  4: i32 bitOffset = 0;
+  5: i32 numBits = 1;
+  6: list<string> flags;
+  7: string description;
+}
+
 // `I2cDeviceConfig` defines a i2c device within any PmUnit.
 //
 // `busName`: Refer to Bus Naming Convention above.
@@ -226,6 +258,7 @@ struct I2cDeviceConfig {
   12: bool isWatchdog;
   13: bool isEeprom;
   14: optional i16 eepromOffset;
+  15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
@@ -502,6 +535,10 @@ struct LedCtrlConfig {
 //  portNum=2, ledNum=2, startPort=1:
 //    iobufOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
 //    iobufOffsetCalc: "0x100c"
+//
+// `lanesPerPort`: Number of transceiver lanes per port in this block.
+//  Used to build the lane-to-LED mapping in BspPlatformMapping.
+//
 struct LedCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -510,6 +547,7 @@ struct LedCtrlBlockConfig {
   5: i32 ledPerPort;
   6: i32 startPort;
   7: string iobufOffsetCalc;
+  8: i32 lanesPerPort = 8;
 }
 
 // Defines generic MDIO BUS Controller block in FPGAs.
@@ -743,12 +781,14 @@ struct PlatformConfig {
   12: map<string, PmUnitConfig> pmUnitConfigs;
 
   // List of the i2c buses created from the CPU.  Entries can use either:
-  //  (a) Virtual name "CPU_BUS@0" — resolved at runtime by detecting the
+  //  (a) Virtual names "CPU_BUS@N" — resolved at runtime by detecting the
   //      CPU vendor (via folly::CpuId) and scanning sysfs for the
   //      corresponding adapter:
-  //        - Intel: matches "SMBus I801 adapter at <offset>" (one per
-  //          unit).  Only CPU_BUS@0 is supported today.
-  //        - AMD: not yet implemented (throws at runtime).
+  //        - Intel: matches "SMBus I801 adapter at <offset>" by adapter
+  //          name.  Only CPU_BUS@0 is supported today.
+  //        - AMD: identifies DesignWare I2C buses via ACPI
+  //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
   //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
   //      (e.g. "SMBus I801 adapter at 5000").
   // All entries in a single config must use the same style.

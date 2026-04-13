@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include <folly/Format.h>
+#include <folly/logging/xlog.h>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
@@ -51,31 +52,18 @@ class CmisHelper final {
         {facebook::fboss::cfg::PortSpeed::FIFTYTHREEPOINTONETWOFIVEG,
          {SMFMediaInterfaceCode::FR4_200G}},
         {facebook::fboss::cfg::PortSpeed::HUNDREDG,
-         {SMFMediaInterfaceCode::CWDM4_100G,
-          SMFMediaInterfaceCode::FR1_100G,
-          SMFMediaInterfaceCode::DR1_100G}},
-        {facebook::fboss::cfg::PortSpeed::HUNDREDANDSIXPOINTTWOFIVEG,
-         {SMFMediaInterfaceCode::FR1_100G}},
+         {SMFMediaInterfaceCode::CWDM4_100G, SMFMediaInterfaceCode::FR1_100G}},
         {facebook::fboss::cfg::PortSpeed::TWOHUNDREDG,
-         {SMFMediaInterfaceCode::FR4_200G,
-          SMFMediaInterfaceCode::LR4_200G,
-          SMFMediaInterfaceCode::DR1_200G}},
+         {SMFMediaInterfaceCode::FR4_200G, SMFMediaInterfaceCode::LR4_200G}},
         {facebook::fboss::cfg::PortSpeed::FOURHUNDREDG,
          {SMFMediaInterfaceCode::FR4_400G,
           SMFMediaInterfaceCode::LR4_10_400G,
-          SMFMediaInterfaceCode::DR4_400G,
-          SMFMediaInterfaceCode::DR2_400G}},
-        {
-            facebook::fboss::cfg::PortSpeed::EIGHTHUNDREDG,
-            {SMFMediaInterfaceCode::FR8_800G,
-             SMFMediaInterfaceCode::DR4_800G,
-             SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
-             SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
-             SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM},
-        }};
+          SMFMediaInterfaceCode::DR4_400G}}};
     return smfSpeedApplicationMapping_;
   }
 
+  // This function is not used in config-driven mode
+  // DO NOT UPDATE THIS FUNCTION
   static const SmfMediaInterfaceMap& getSmfMediaInterfaceMapping() {
     static const SmfMediaInterfaceMap smfMediaInterfaceMapping_ = {
         {SMFMediaInterfaceCode::CWDM4_100G, MediaInterfaceCode::CWDM4_100G},
@@ -88,6 +76,7 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::FR8_800G, MediaInterfaceCode::FR8_800G},
         {SMFMediaInterfaceCode::DR4_800G, MediaInterfaceCode::DR4_800G},
         {SMFMediaInterfaceCode::DR2_400G, MediaInterfaceCode::DR2_400G},
+        {SMFMediaInterfaceCode::DR2_200G, MediaInterfaceCode::DR2_200G},
         {SMFMediaInterfaceCode::DR1_200G, MediaInterfaceCode::DR1_200G},
         {SMFMediaInterfaceCode::DR1_100G, MediaInterfaceCode::DR1_100G},
         {SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
@@ -96,222 +85,6 @@ class CmisHelper final {
         {SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM, MediaInterfaceCode::ZR_800G},
     };
     return smfMediaInterfaceMapping_;
-  }
-
-  static const SmfValidSpeedCombinations& getSmfValidSpeedCombinations() {
-    static const SmfValidSpeedCombinations smfOsfpValidSpeedCombinations_ = {
-        {
-            // 2x400G-FR4
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-        },
-        {
-            // 2x400G-DR4
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-        },
-        {
-            // 2x200G-FR4
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-        },
-        {
-            // 400G-FR4 + 200G-FR4
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-        },
-        {
-            // 200G-FR4 + 400G-FR4
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_200G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-            SMFMediaInterfaceCode::FR4_400G,
-        },
-        {
-            // 8x100G-FR1
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-            SMFMediaInterfaceCode::FR1_100G,
-        },
-        {
-            // 2x100G-CWDM4
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-            SMFMediaInterfaceCode::CWDM4_100G,
-        },
-        {
-            // 1x800G-2FR4
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-            SMFMediaInterfaceCode::FR8_800G,
-        },
-        {
-            // 2x400G-LR4
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-        },
-        {
-            // 2x200G-LR4
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-        },
-        {
-            // 400G-LR4 + 200G-LR4
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-        },
-        {
-            // 200G-LR4 + 400G-LR4
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_200G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-            SMFMediaInterfaceCode::LR4_10_400G,
-        },
-        {
-            // 800G-DR4 + 400G-DR4
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-        },
-        {
-            // 400G-DR4 + 800G-DR4
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_400G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-        },
-        {
-            // 800G-DR4 + 800G-DR4
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-            SMFMediaInterfaceCode::DR4_800G,
-        },
-        {
-            // 8x100G-DR1
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-            SMFMediaInterfaceCode::DR1_100G,
-        },
-        {
-            // 8x200G-DR1
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-            SMFMediaInterfaceCode::DR1_200G,
-        },
-        {
-            // 4x400G-DR2
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-            SMFMediaInterfaceCode::DR2_400G,
-        },
-        {
-            // 800G ZR
-            SMFMediaInterfaceCode::ZR_OROADM_FLEXO_8E_DPO_800G,
-        },
-        {
-            // 800G ZR OIF ZRA
-            SMFMediaInterfaceCode::ZR_OIF_ZRA_800G,
-        },
-        {
-            // 800G ZR Vendor Custom
-            SMFMediaInterfaceCode::ZR_VENDOR_CUSTOM,
-        },
-    };
-    return smfOsfpValidSpeedCombinations_;
   }
 
   static const ActiveMediaInterfaceMap& getActiveMediaInterfaceMapping() {

@@ -277,6 +277,15 @@ ThriftTraverseResult visitNode(
       return ThriftTraverseResult(
           ThriftTraverseResult::Code::VISITOR_EXCEPTION, message);
     }
+  } else if (
+      cursor == params.end && params.options.visitContainerForPrimitiveNode &&
+      !isContainerNode) {
+    // At the end of the path with visitContainerForPrimitiveNode enabled,
+    // but at a non-container node (e.g. a struct value inside a map).
+    // Return SKIPPING_PRIMITIVE_NODE so the nearest container ancestor
+    // handles the operation.
+    return ThriftTraverseResult(
+        ThriftTraverseResult::Code::SKIPPING_PRIMITIVE_NODE);
   }
 
   std::optional<ThriftTraverseResult> result;

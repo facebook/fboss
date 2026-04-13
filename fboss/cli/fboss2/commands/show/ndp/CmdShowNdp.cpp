@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowNdp.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
@@ -109,13 +110,8 @@ RetType CmdShowNdp::createModel(
             folly::to<std::string>(folly::copy(entry.port().value()));
       }
       ndpDetails.vlanName() = entry.vlanName().value();
-      // TODO(skhare)
-      // Once FLAGS_intf_nbr_tables is enabled globally, interfaceID will be
-      // always populated to a valid value, and at that time, we could assign
-      // entry.get_interfaceID() without check for non-0.
-      ndpDetails.vlanID() = folly::copy(entry.interfaceID().value()) != 0
-          ? folly::copy(entry.interfaceID().value())
-          : folly::copy(entry.vlanID().value());
+      // interfaceID is always populated since intf_nbr_tables is enabled.
+      ndpDetails.vlanID() = folly::copy(entry.interfaceID().value());
       ndpDetails.state() = entry.state().value();
       ndpDetails.ttl() = folly::copy(entry.ttl().value());
       ndpDetails.classID() = folly::copy(entry.classID().value());
@@ -142,5 +138,10 @@ RetType CmdShowNdp::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowNdp, CmdShowNdpTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowNdp, CmdShowNdpTraits>::getValidFilters();
 
 } // namespace facebook::fboss

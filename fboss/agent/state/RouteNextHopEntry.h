@@ -235,7 +235,7 @@ class RouteNextHopEntry
 };
 
 /**
- * Comparision operators
+ * Comparison operators
  */
 bool operator==(const RouteNextHopEntry& a, const RouteNextHopEntry& b);
 bool operator<(const RouteNextHopEntry& a, const RouteNextHopEntry& b);

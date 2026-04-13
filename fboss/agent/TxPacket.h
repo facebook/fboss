@@ -75,6 +75,12 @@ class TxPacket : public Packet {
   TxPacket() {}
   static std::unique_ptr<TxPacket> allocateTxPacket(size_t size);
 
+  /**
+   * Create a deep copy of this TxPacket, including buffer contents.
+   * Handles IOBuf chains correctly via folly::io::Cursor.
+   */
+  std::unique_ptr<TxPacket> clone() const;
+
  private:
   explicit TxPacket(size_t size);
 
@@ -93,7 +99,7 @@ void TxPacket::writeEthHeader(
   cursor->push(dst.bytes(), folly::MacAddress::SIZE);
   cursor->push(src.bytes(), folly::MacAddress::SIZE);
   cursor->template writeBE<uint16_t>(static_cast<uint16_t>(0x8100)); // 802.1Q
-  cursor->template writeBE<uint16_t>(vlan);
+  cursor->template writeBE<uint16_t>(static_cast<uint16_t>(vlan));
   cursor->template writeBE<uint16_t>(protocol);
 }
 

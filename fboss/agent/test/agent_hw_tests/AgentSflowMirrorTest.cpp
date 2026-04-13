@@ -25,11 +25,11 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/packet/SflowStructs.h"
 #include "fboss/agent/packet/UDPDatagram.h"
-#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -511,7 +511,7 @@ device:
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
 
     const PortDescriptor port(getDataTrafficPort());
     RoutePrefixV6 route{
@@ -523,9 +523,9 @@ device:
     });
 
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {route});
-
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    ecmpHelper.programRoutes(
+        &routeUpdater, {port}, {route}, {}, std::nullopt, true);
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(), ecmpHelper.getRouterId(), ecmpHelper.nhop(port));
   }
 
@@ -534,7 +534,7 @@ device:
       size_t payloadSize) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
     folly::IPAddressV6 dip{getTrafficDestinationIp(portIndex)};
     uint16_t sport = 9701;
@@ -582,7 +582,7 @@ device:
 
     // Create expected SflowPacketParsed from inputs similar to sFlowPacket
     folly::MacAddress intfMac{
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
     SflowPacketParsed expectedParsed = makeSflowV5PacketParsed(
         getVlanIDForTx() /*vlan*/,
         intfMac /*srcMac*/,
@@ -873,24 +873,32 @@ device:
     }
   }
 
-  uint64_t getSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    const auto& portStats = stats.at(getNonSflowSampledInterfacePort());
-    return *portStats.outUnicastPkts_();
+  uint64_t getSampleCount(
+      const std::map<PortID, HwPortStats>& newStats,
+      const std::map<PortID, HwPortStats>& oldStats) {
+    const auto& newPortStats = newStats.at(getNonSflowSampledInterfacePort());
+    const auto& oldPortStats = oldStats.at(getNonSflowSampledInterfacePort());
+    return *newPortStats.outUnicastPkts_() - *oldPortStats.outUnicastPkts_();
   }
 
   const PortID getDataTrafficPort() {
     return getPortsForSampling()[kDataTrafficPortIndex];
   }
 
-  uint64_t getExpectedSampleCount(const std::map<PortID, HwPortStats>& stats) {
-    uint64_t expectedSampleCount = 0;
+  uint64_t getExpectedSampleCount(
+      const std::map<PortID, HwPortStats>& newStats,
+      const std::map<PortID, HwPortStats>& oldStats) {
     auto port = getDataTrafficPort();
-    const auto& portStats = stats.at(port);
+    const auto& newPortStats = newStats.at(port);
+    const auto& oldPortStats = oldStats.at(port);
     // In theory it's more correct to calcuate this based on inUnicastPkts, but
     // Rx counters are not supported on TH5 in EDB loopback, so use Tx.
-    expectedSampleCount =
-        (*portStats.outUnicastPkts_() / FLAGS_sflow_test_rate);
-    XLOG(DBG2) << "total packets tx " << *portStats.outUnicastPkts_();
+    uint64_t expectedSampleCount =
+        (*newPortStats.outUnicastPkts_() - *oldPortStats.outUnicastPkts_()) /
+        FLAGS_sflow_test_rate;
+    XLOG(DBG2) << "total packets tx delta: "
+               << (*newPortStats.outUnicastPkts_() -
+                   *oldPortStats.outUnicastPkts_());
     return expectedSampleCount;
   }
 
@@ -910,28 +918,43 @@ device:
         1000 * 1000 * 0.99; // 99% is good enough
     getAgentEnsemble()->waitForSpecificRateOnPort(trafficPort, portSpeedBps);
 
-    auto ports = getPortsForSampling();
-    getAgentEnsemble()->bringDownPorts(
-        std::vector<PortID>(ports.begin() + 1, ports.end()));
-    ports.push_back(getNonSflowSampledInterfacePort());
+    auto samplingPorts = getPortsForSampling();
+    auto mirrorPort = getNonSflowSampledInterfacePort();
+    // Bring down all sampling ports except the data traffic port.
+    std::vector<PortID> portsToDown;
+    for (const auto& port : samplingPorts) {
+      if (port != trafficPort) {
+        portsToDown.push_back(port);
+      }
+    }
+    getAgentEnsemble()->bringDownPorts(portsToDown);
+    // Collect stats from the data traffic port and mirror egress port.
+    std::vector<PortID> statsPorts = {trafficPort, mirrorPort};
     int percentError = 100;
+    std::map<PortID, HwPortStats> lastStats;
     WITH_RETRIES({
-      auto stats = getLatestPortStats(ports);
-      auto actualSampleCount = getSampleCount(stats);
-      auto expectedSampleCount = getExpectedSampleCount(stats);
+      auto stats = getLatestPortStats(statsPorts);
+      if (lastStats.empty()) {
+        lastStats = stats;
+        continue;
+      }
+      auto actualSampleCount = getSampleCount(stats, lastStats);
+      auto expectedSampleCount = getExpectedSampleCount(stats, lastStats);
+      lastStats = stats;
       XLOG(DBG2) << "Number of sflow samples expected: " << expectedSampleCount
                  << ", samples seen: " << actualSampleCount;
+      if (expectedSampleCount == 0 || actualSampleCount == 0) {
+        // Not enough traffic in this interval, retry.
+        continue;
+      }
       auto difference = (expectedSampleCount > actualSampleCount)
           ? (expectedSampleCount - actualSampleCount)
           : (actualSampleCount - expectedSampleCount);
-      if (actualSampleCount) {
-        percentError = (difference * 100) / actualSampleCount;
-      }
+      percentError = (difference * 100) / actualSampleCount;
       EXPECT_EVENTUALLY_LE(percentError, kDefaultPercentErrorThreshold);
     });
 
-    getAgentEnsemble()->bringUpPorts(
-        std::vector<PortID>(ports.begin() + 1, ports.end()));
+    getAgentEnsemble()->bringUpPorts(portsToDown);
     getAgentEnsemble()->clearPortStats();
   }
 
@@ -1246,7 +1269,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
       facebook::fboss::AgentEnsemble* ensemble,
       const folly::IPAddressV6& dstIp) {
     folly::IPAddressV6 kSrcIp("2402::1");
-    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+    const auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
         ensemble->getProgrammedState());
     const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
@@ -1263,7 +1286,8 @@ class AgentSflowMirrorWithLineRateTrafficTest
         255, // hopLimit
         std::vector<uint8_t>(4500));
     // Forward the packet in the pipeline
-    ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    ensemble->getSw()->sendPacketSwitchedAsync(
+        std::move(txPacket), {getSwitchIdUnderTest(*ensemble)});
   }
 
   void verifySflowEgressPortNotStuck(int iterations) {
@@ -1391,7 +1415,7 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
       if (capturedPacketBuf.has_value()) {
         sflowPacketCount++;
         folly::MacAddress intfMac{
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
         bool isV4 = false;
         SflowPacketParsed expectedParsed = makeSflowV5PacketParsed(
             getVlanIDForTx() /*vlan*/,
@@ -1481,7 +1505,7 @@ class AgentSflowMirrorRemoteSystemPortTest
   // Set up route for traffic to be forwarded when sent to a specific destIp
   void setupTrafficRoute(const PortID& egressPort) {
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     // Use a different MAC to avoid looping - add 10 to the last byte
     auto nbrMac = folly::MacAddress::fromHBO(intfMac.u64HBO() + 10);
 
@@ -1733,7 +1757,7 @@ class AgentSflowMirrorEventorTest
 
   // Stop traffic on ports by removing neighbor and adding it back.
   void stopTrafficOnAllPorts() {
-    auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+    auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
         getAgentEnsemble()->getProgrammedState());
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getAgentEnsemble()->getProgrammedState(),

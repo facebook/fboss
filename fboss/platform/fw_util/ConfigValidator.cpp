@@ -19,7 +19,8 @@ const std::unordered_set<std::string> kValidCommandTypes = {
     "createI2cDevice",
     "i2cBusRead",
     "jam",
-    "xapp"};
+    "xapp",
+    "psu_util"};
 
 // Valid version types based on analysis of existing configurations
 const std::unordered_set<std::string> kValidVersionTypes = {
@@ -229,6 +230,15 @@ bool ConfigValidator::isValidXappConfig(
   }
   return true;
 }
+bool ConfigValidator::isValidPsuUtilConfig(
+    const fw_util_config::PsuUtilConfig& psuUtilConfig) {
+  if (psuUtilConfig.psuUtilExtraArgs()->empty()) {
+    XLOG(ERR) << "psu_util configuration must have at least one extra argument";
+    return false;
+  }
+  return true;
+}
+
 bool ConfigValidator::isValidGpiosetConfig(
     const fw_util_config::GpiosetConfig& gpiosetConfig) {
   if (gpiosetConfig.gpioChip()->empty()) {
@@ -431,6 +441,14 @@ bool ConfigValidator::isValidUpgradeConfig(
       return false;
     }
     return isValidXappConfig(*upgradeConfig.xappArgs());
+  }
+
+  if (commandType == "psu_util") {
+    if (!upgradeConfig.psuUtilArgs().has_value()) {
+      XLOG(ERR) << "psu_util args required for psu_util command type";
+      return false;
+    }
+    return isValidPsuUtilConfig(*upgradeConfig.psuUtilArgs());
   }
 
   // For command types without specific validation

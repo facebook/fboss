@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -25,25 +26,11 @@
 
 DECLARE_bool(enable_acl_table_group);
 
-DECLARE_bool(intf_nbr_tables);
-
 namespace facebook::fboss {
 
-template <bool enableIntfNbrTable>
-struct EnableIntfNbrTable {
-  static constexpr auto intfNbrTable = enableIntfNbrTable;
-};
-
-using NbrTableTypes =
-    ::testing::Types<EnableIntfNbrTable<false>, EnableIntfNbrTable<true>>;
-
-template <typename EnableIntfNbrTableT>
 class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
-  static auto constexpr isIntfNbrTable = EnableIntfNbrTableT::intfNbrTable;
-
  protected:
   void SetUp() override {
-    FLAGS_intf_nbr_tables = isIntfNbrTable;
     FLAGS_enable_acl_table_group = true;
     HwLinkStateDependentTest::SetUp();
     helper_ = std::make_unique<utility::EcmpSetupAnyNPorts6>(
@@ -150,17 +137,10 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       auto ip = ipToMacAndClassID.first;
 
       NeighborTableT* neighborTable;
-      if (isIntfNbrTable) {
-        neighborTable = outState->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kIntfID, &outState);
-      } else {
-        neighborTable = outState->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kVlanID, &outState);
-      }
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
 
       neighborTable->addPendingEntry(ip, kIntfID);
     }
@@ -184,17 +164,10 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       auto [neighborMac, classID] = ipToMacAndClassID.second;
 
       NeighborTableT* neighborTable;
-      if (isIntfNbrTable) {
-        neighborTable = outState->getInterfaces()
-                            ->getNode(kIntfID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kIntfID, &outState);
-      } else {
-        neighborTable = outState->getVlans()
-                            ->getNode(kVlanID)
-                            ->template getNeighborTable<NeighborTableT>()
-                            ->modify(kVlanID, &outState);
-      }
+      neighborTable = outState->getInterfaces()
+                          ->getNode(kIntfID)
+                          ->template getNeighborTable<NeighborTableT>()
+                          ->modify(kIntfID, &outState);
       auto reachableNeighborState = NeighborState::REACHABLE;
       auto neighborPort = PortDescriptor(masterLogicalPortIds()[0]);
       auto existingEntry = neighborTable->getEntryIf(ip);
@@ -282,7 +255,8 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       beforeQueueOutPkts[queueId] =
           this->getLatestPortStats(this->masterLogicalPortIds()[0])
-              .get_queueOutPackets_()
+              .queueOutPackets_()
+              .value()
               .at(queueId);
     }
 
@@ -310,7 +284,8 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
     for (const auto& queueId : utility::kQueuePerhostQueueIds()) {
       afterQueueOutPkts[queueId] =
           this->getLatestPortStats(this->masterLogicalPortIds()[0])
-              .get_queueOutPackets_()
+              .queueOutPackets_()
+              .value()
               .at(queueId);
     }
 
@@ -632,7 +607,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+    auto intf = firstInterfaceWithPortsForTesting(getProgrammedState());
     auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto intfMac = intf->getMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
@@ -681,27 +656,25 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
   std::unique_ptr<utility::EcmpSetupAnyNPorts6> helper_;
 };
 
-TYPED_TEST_SUITE(SaiAclTableGroupTrafficTest, NbrTableTypes);
-
-TYPED_TEST(
-    SaiAclTableGroupTrafficTest,
-    VerifyQueuePerHostAclTableAndTtlAclTable) {
+TEST_F(SaiAclTableGroupTrafficTest, VerifyQueuePerHostAclTableAndTtlAclTable) {
   if (!this->isSupported()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
-#endif
+#else
     return;
+#endif
   }
 
   this->verifyMultipleAclTablesHelper();
 }
 
-TYPED_TEST(SaiAclTableGroupTrafficTest, VerifyDscpMarkingAndTtlAclTable) {
+TEST_F(SaiAclTableGroupTrafficTest, VerifyDscpMarkingAndTtlAclTable) {
   if (!this->isSupported()) {
 #if defined(GTEST_SKIP)
     GTEST_SKIP();
-#endif
+#else
     return;
+#endif
   }
 
   this->verifyDscpTtlAclTablesHelper();

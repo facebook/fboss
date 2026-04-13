@@ -10,6 +10,8 @@
 
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 
+#include "fboss/cli/fboss2/CmdHandler.cpp"
+
 namespace facebook::fboss {
 
 CmdConfigReloadTraits::RetType CmdConfigReload::queryClient(
@@ -24,5 +26,8 @@ CmdConfigReloadTraits::RetType CmdConfigReload::queryClient(
 void CmdConfigReload::printOutput(const RetType& logMsg) {
   std::cout << logMsg << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdConfigReload, CmdConfigReloadTraits>::run();
 
 } // namespace facebook::fboss
