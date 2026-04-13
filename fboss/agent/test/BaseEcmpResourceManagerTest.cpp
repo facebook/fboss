@@ -256,6 +256,7 @@ std::vector<StateDelta> BaseEcmpResourceManagerTest::consolidate(
     XLOG(DBG2) << " Checking deltas, num deltas: " << deltas.size();
     assertDeltasForOverflow(deltas);
     assertResourceMgrCorrectness(*consolidator_, deltas.back().newState());
+    assertAllDeltaIdsResolvable(deltas);
   }
   XLOG(DBG2) << " Consolidator update done";
   CHECK(state_->isPublished());
@@ -609,7 +610,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
         ASSERT_NE(consolidatorGrpInfo, nullptr);
         if (!route->getForwardInfo().getOverrideEcmpSwitchingMode()) {
           primaryEcmpGroups.insert(
-              route->getForwardInfo().normalizedNextHops());
+              getNormalizedNextHops(targetState, route->getForwardInfo()));
         }
         if (consolidatorToCheck == consolidator_.get()) {
           /*
@@ -691,7 +692,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
               route->getForwardInfo().getOverrideEcmpSwitchingMode(),
               consolidatorToCheck->getBackupEcmpSwitchingMode());
           EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
-          backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+          backupEcmpGroups.insert(
+              getNormalizedNextHops(targetState, route->getForwardInfo()));
         }
         if (getEcmpCompressionThresholdPct()) {
           EXPECT_TRUE(
@@ -702,7 +704,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
                   ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
                   ->getOverrideNextHops());
           // Merged groups also take up primary ecmp groups
-          mergedEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+          mergedEcmpGroups.insert(
+              getNormalizedNextHops(targetState, route->getForwardInfo()));
         }
       } else {
         EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())

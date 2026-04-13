@@ -15,6 +15,7 @@
 #include "fboss/agent/FbossHwUpdateError.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/ThriftHandler.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -33,6 +34,8 @@
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
+
+DECLARE_bool(enable_nexthop_id_manager);
 
 using namespace facebook::fboss;
 using namespace facebook::stats;
@@ -93,6 +96,19 @@ class ThriftTest : public ::testing::Test {
   }
   SwSwitch* sw_;
   std::unique_ptr<HwTestHandle> handle_;
+};
+
+// Fixture that enables NextHop ID manager before creating the switch.
+// Required for MySid entries with nexthops to have their IDs allocated.
+class ThriftTestWithNhopIdMgr : public ThriftTest {
+ public:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    ThriftTest::SetUp();
+  }
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
 };
 
 TEST_F(ThriftTest, getInterfaceDetail) {
@@ -2853,7 +2869,7 @@ TEST_F(ThriftTest, getConfigAppliedInfo) {
     throw FbossError("No coldboot config applied time");
   }
 
-  // Adding sleep in case we immediatly check the last config applied time
+  // Adding sleep in case we immediately check the last config applied time
   /* sleep override */
   usleep(1000);
   auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -2862,7 +2878,8 @@ TEST_F(ThriftTest, getConfigAppliedInfo) {
   EXPECT_LT(initConfigAppliedInMs, currentInMs);
 
   // Try to apply a new config, the lastConfigAppliedTime should changed
-  // Adding sleep in case we apply a new config immediatly after the last config
+  // Adding sleep in case we apply a new config immediately after the last
+  // config
   /* sleep override */
   usleep(1000);
   sw_->applyConfig(
@@ -3017,6 +3034,23 @@ IpPrefix toMySidIpPrefix(const std::string& addr, uint8_t len) {
   return prefix;
 }
 
+MySidEntry makeMySidEntryWithNextHops(
+    const std::string& addr,
+    uint8_t len,
+    MySidType type,
+    const std::vector<std::string>& nhAddrs) {
+  MySidEntry entry = makeMySidEntry(addr, len, type);
+  std::vector<NextHopThrift> nextHops;
+  for (const auto& nhAddr : nhAddrs) {
+    NextHopThrift nh;
+    nh.address() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6(nhAddr));
+    nextHops.push_back(std::move(nh));
+  }
+  entry.nextHops() = std::move(nextHops);
+  return entry;
+}
+
 } // namespace
 
 TEST_F(ThriftTest, addMySidEntries) {
@@ -3054,7 +3088,7 @@ TEST_F(ThriftTest, deleteMySidEntries) {
   EXPECT_NE(nullptr, mySids->getNodeIf("2001:db8::2/64"));
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsNodeTypeWithoutNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsNodeType) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
@@ -3063,7 +3097,7 @@ TEST_F(ThriftTest, addMySidEntryRejectsNodeTypeWithoutNextHops) {
   EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
 }
 
-TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyTypeWithoutNextHops) {
+TEST_F(ThriftTest, addMySidEntryRejectsAdjacencyType) {
   ThriftHandler handler(sw_);
 
   auto entries = std::make_unique<std::vector<MySidEntry>>();
@@ -3138,4 +3172,142 @@ TEST_F(ThriftTest, mySidEntryReflectedInRib) {
   // Verify SwitchState has the entry
   auto state = sw_->getState();
   EXPECT_NE(nullptr, state->getMySids()->getNodeIf("2001:db8::1/64"));
+}
+
+TEST_F(ThriftTest, addMySidEntryRejectsDecapTypeWithNamedNextHops) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  auto entry = makeMySidEntry("2001:db8::1", 64);
+  // DECAP type with namedNextHops set — should be rejected
+  NamedRouteDestination named;
+  named.nextHopGroups() = {"group1"};
+  entry.namedNextHops() = named;
+  entries->push_back(entry);
+  EXPECT_THROW(handler.addMySidEntries(std::move(entries)), FbossError);
+}
+
+TEST_F(ThriftTest, getMySidEntriesEmpty) {
+  ThriftHandler handler(sw_);
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  EXPECT_TRUE(result.empty());
+}
+
+TEST_F(ThriftTest, getMySidEntriesReturnsAddedEntries) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  EXPECT_EQ(result.size(), 2);
+
+  std::set<std::string> prefixes;
+  for (const auto& e : result) {
+    EXPECT_EQ(*e.type(), MySidType::DECAPSULATE_AND_LOOKUP);
+    auto ip = facebook::network::toIPAddress(*e.mySid()->prefixAddress());
+    prefixes.insert(
+        folly::IPAddress::networkToString(
+            {ip, (uint8_t)*e.mySid()->prefixLength()}));
+  }
+  EXPECT_THAT(
+      prefixes,
+      testing::UnorderedElementsAre("2001:db8::1/64", "2001:db8::2/64"));
+}
+
+TEST_F(ThriftTest, getMySidEntriesReflectsDelete) {
+  ThriftHandler handler(sw_);
+
+  auto entries = std::make_unique<std::vector<MySidEntry>>();
+  entries->push_back(makeMySidEntry("2001:db8::1", 64));
+  entries->push_back(makeMySidEntry("2001:db8::2", 64));
+  handler.addMySidEntries(std::move(entries));
+
+  auto prefixes = std::make_unique<std::vector<IpPrefix>>();
+  prefixes->push_back(toMySidIpPrefix("2001:db8::1", 64));
+  handler.deleteMySidEntries(std::move(prefixes));
+
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  EXPECT_EQ(result.size(), 1);
+  auto ip = facebook::network::toIPAddress(*result[0].mySid()->prefixAddress());
+  EXPECT_EQ(
+      folly::IPAddress::networkToString(
+          {ip, (uint8_t)*result[0].mySid()->prefixLength()}),
+      "2001:db8::2/64");
+}
+
+TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
+  // Add NODE and ADJACENCY MySid entries directly via the RIB (bypassing
+  // ThriftHandler validation). Their nexthops resolve against connected routes
+  // configured in testConfigA().
+  auto ribMySidToSwitchStateFunc =
+      createRibMySidToSwitchStateFunction(std::nullopt);
+  std::vector<MySidEntry> toAdd = {
+      makeMySidEntryWithNextHops(
+          "2001:db8::1", 64, MySidType::NODE_MICRO_SID, {kNhopAddrA}),
+      makeMySidEntryWithNextHops(
+          "2001:db8::2", 64, MySidType::ADJACENCY_MICRO_SID, {kNhopAddrB}),
+  };
+  sw_->getRib()->update(
+      sw_->getScopeResolver(),
+      toAdd,
+      {} /* toDelete */,
+      "add node/adjacency mysids via rib",
+      ribMySidToSwitchStateFunc,
+      sw_);
+
+  ThriftHandler handler(sw_);
+  std::vector<MySidEntry> result;
+  handler.getMySidEntries(result);
+  ASSERT_EQ(result.size(), 2);
+
+  // Sort by prefix for deterministic assertions
+  std::sort(result.begin(), result.end(), [](const auto& a, const auto& b) {
+    return facebook::network::toIPAddress(*a.mySid()->prefixAddress()) <
+        facebook::network::toIPAddress(*b.mySid()->prefixAddress());
+  });
+
+  // Entry 0: NODE_MICRO_SID with kNhopAddrA
+  {
+    const auto& entry = result[0];
+    EXPECT_EQ(*entry.type(), MySidType::NODE_MICRO_SID);
+    auto ip = facebook::network::toIPAddress(*entry.mySid()->prefixAddress());
+    EXPECT_EQ(
+        folly::IPAddress::networkToString(
+            {ip, (uint8_t)*entry.mySid()->prefixLength()}),
+        "2001:db8::1/64");
+    ASSERT_EQ(entry.nextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.nextHops()[0].address()),
+        folly::IPAddress(kNhopAddrA));
+    ASSERT_EQ(entry.resolvedNextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.resolvedNextHops()[0].address()),
+        folly::IPAddress(kNhopAddrA));
+  }
+
+  // Entry 1: ADJACENCY_MICRO_SID with kNhopAddrB
+  {
+    const auto& entry = result[1];
+    EXPECT_EQ(*entry.type(), MySidType::ADJACENCY_MICRO_SID);
+    auto ip = facebook::network::toIPAddress(*entry.mySid()->prefixAddress());
+    EXPECT_EQ(
+        folly::IPAddress::networkToString(
+            {ip, (uint8_t)*entry.mySid()->prefixLength()}),
+        "2001:db8::2/64");
+    ASSERT_EQ(entry.nextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.nextHops()[0].address()),
+        folly::IPAddress(kNhopAddrB));
+    ASSERT_EQ(entry.resolvedNextHops()->size(), 1);
+    EXPECT_EQ(
+        facebook::network::toIPAddress(*entry.resolvedNextHops()[0].address()),
+        folly::IPAddress(kNhopAddrB));
+  }
 }

@@ -103,8 +103,8 @@ int WedgeQsfp::readTransceiver(
       logBuffer_->log(param, field, fieldValue, I2cLogBuffer::Operation::Read);
     }
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Read from transceiver " << module_ << " at offset " << offset
-              << " with length " << len << " failed: " << ex.what();
+    WEDGE_QSFP_LOG(ERR) << "Read at offset " << offset << " with length " << len
+                        << " failed: " << ex.what();
     if (logBuffer_) {
       logBuffer_->log(
           param,
@@ -147,9 +147,8 @@ int WedgeQsfp::writeTransceiver(
     // Also this works because we do not write more than 1 byte for now.
     usleep(delay);
   } catch (const std::exception& ex) {
-    XLOG(ERR) << "Write to transceiver " << module_ << " at offset " << offset
-              << " with length " << len
-              << " failed: " << folly::exceptionStr(ex);
+    WEDGE_QSFP_LOG(ERR) << "Write at offset " << offset << " with length "
+                        << len << " failed: " << folly::exceptionStr(ex);
     if (logBuffer_) {
       logBuffer_->log(
           param,
@@ -193,7 +192,7 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
   std::array<uint8_t, 1> buf;
 
   if (!threadSafeI2CBus_->isPresent(module_ + 1)) {
-    XLOG(DBG3) << "Transceiver " << module_ << " not present";
+    WEDGE_QSFP_LOG(DBG3) << "not present";
     return TransceiverManagementInterface::NONE;
   }
 
@@ -204,24 +203,21 @@ TransceiverManagementInterface WedgeQsfp::getTransceiverManagementInterface() {
           buf.data(),
           // common enum to all tcvr types
           CAST_TO_INT(CmisField::MGMT_INTERFACE));
-      XLOG(DBG3) << folly::sformat(
-          "Transceiver {:d}  identifier: {:#x}", module_, buf[0]);
+      WEDGE_QSFP_LOG(DBG3) << folly::sformat("identifier: {:#x}", buf[0]);
       TransceiverManagementInterface modInterfaceType =
           QsfpModule::getTransceiverManagementInterface(buf[0], module_ + 1);
 
       if (modInterfaceType == TransceiverManagementInterface::UNKNOWN) {
-        XLOG(WARNING) << folly::sformat(
-            "Transceiver {:d} has unknown non-zero identifier: {:#x} defaulting to SFF",
-            module_,
-            buf[0]);
+        WEDGE_QSFP_LOG(WARNING) << folly::sformat(
+            "has unknown non-zero identifier: {:#x} defaulting to SFF", buf[0]);
         return TransceiverManagementInterface::SFF;
       } else if (modInterfaceType != TransceiverManagementInterface::NONE) {
         return modInterfaceType;
       }
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "Transceiver " << module_
-                << " failed to read management interface with exception: "
-                << ex.what();
+      WEDGE_QSFP_LOG(ERR)
+          << "failed to read management interface with exception: "
+          << ex.what();
       /* sleep override */
       usleep(kInterfaceDetectionRetryMillis * 1000);
     }
@@ -237,25 +233,25 @@ WedgeQsfp::futureGetTransceiverManagementInterface() {
     try {
       managementInterface = getTransceiverManagementInterface();
     } catch (const std::exception& ex) {
-      XLOG(ERR) << "WedgeQsfp " << getNum()
-                << ": Error calling getTransceiverManagementInterface(): "
-                << ex.what();
+      WEDGE_QSFP_LOG(ERR)
+          << "Error calling getTransceiverManagementInterface(): " << ex.what();
     }
     return managementInterface;
   }
 
-  return via(i2cEvb).thenValue([this, moduleNum = getNum()](auto&&) mutable {
-    TransceiverManagementInterface mgmtInterface =
-        TransceiverManagementInterface::NONE;
-    try {
-      mgmtInterface = this->getTransceiverManagementInterface();
-    } catch (const std::exception& ex) {
-      XLOG(ERR) << "WedgeQsfp " << moduleNum
-                << ": Error calling getTransceiverManagementInterface(): "
-                << ex.what();
-    }
-    return mgmtInterface;
-  });
+  return via(i2cEvb).thenValue(
+      [this](auto&&) mutable {
+        TransceiverManagementInterface mgmtInterface =
+            TransceiverManagementInterface::NONE;
+        try {
+          mgmtInterface = this->getTransceiverManagementInterface();
+        } catch (const std::exception& ex) {
+          WEDGE_QSFP_LOG(ERR)
+              << "Error calling getTransceiverManagementInterface(): "
+              << ex.what();
+        }
+        return mgmtInterface;
+      });
 }
 
 std::array<uint8_t, 16> WedgeQsfp::getModulePartNo() {
@@ -305,7 +301,8 @@ std::array<uint8_t, 2> WedgeQsfp::getFirmwareVer() {
 
   if (getTransceiverManagementInterface() !=
       TransceiverManagementInterface::CMIS) {
-    XLOG(DBG3) << "Module is not CMIS type so firmware version can't be found";
+    WEDGE_QSFP_LOG(DBG3)
+        << "Module is not CMIS type so firmware version can't be found";
     return fwVer;
   }
 
@@ -341,11 +338,10 @@ std::pair<size_t, size_t> WedgeQsfp::dumpTransceiverI2cLog() {
     try {
       entries = logBuffer_->dumpToFile();
     } catch (std::exception& ex) {
-      XLOG(ERR) << fmt::format(
-          "Failed to dump log for module{}: {:s}", module_, ex.what());
+      WEDGE_QSFP_LOG(ERR) << fmt::format("Failed to dump log: {:s}", ex.what());
     }
   } else {
-    XLOG(ERR) << fmt::format("Module has no I2C Log: {}", module_);
+    WEDGE_QSFP_LOG(ERR) << "Module has no I2C Log";
   }
 
   return entries;

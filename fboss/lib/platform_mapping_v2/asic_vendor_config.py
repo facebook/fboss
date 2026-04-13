@@ -1,7 +1,7 @@
 # pyre-strict
-from typing import Dict
+from typing import Mapping
 
-from neteng.fboss.asic_config_v2.ttypes import (
+from neteng.fboss.asic_config_v2.thrift_types import (
     AsicConfigGenType,
     AsicVendorConfigParams,
     MultistageRole,
@@ -15,24 +15,24 @@ class AsicVendorConfig:
     def get_asic_vendor_config_params(self) -> AsicVendorConfigParams:
         return self._asic_vendor_config_params
 
-    def get_asic_vendor_common_config(self) -> Dict[str, str]:
+    def get_asic_vendor_common_config(self) -> Mapping[str, str]:
         return self._asic_vendor_config_params.commonConfig
 
-    def get_asic_vendor_prod_config(self) -> Dict[str, str]:
+    def get_asic_vendor_prod_config(self) -> Mapping[str, str]:
         return self._asic_vendor_config_params.prodConfig
 
-    def get_asic_vendor_hw_test_config(self) -> Dict[str, str]:
+    def get_asic_vendor_hw_test_config(self) -> Mapping[str, str]:
         return self._asic_vendor_config_params.hwTestConfig
 
-    def get_asic_vendor_link_test_config(self) -> Dict[str, str]:
+    def get_asic_vendor_link_test_config(self) -> Mapping[str, str]:
         return self._asic_vendor_config_params.linkTestConfig
 
-    def get_asic_vendor_benchmark_config(self) -> Dict[str, str]:
+    def get_asic_vendor_benchmark_config(self) -> Mapping[str, str]:
         return self._asic_vendor_config_params.benchmarkConfig
 
     def get_asic_vendor_config(
         self, configGenType: AsicConfigGenType
-    ) -> Dict[str, str]:
+    ) -> Mapping[str, str]:
         if configGenType == AsicConfigGenType.HW_TEST:
             return self.get_asic_vendor_hw_test_config()
         elif configGenType == AsicConfigGenType.LINK_TEST:
@@ -54,7 +54,7 @@ class AsicVendorConfig:
         if not role:
             role = MultistageRole.NONE
         multistage_config = self._asic_vendor_config_params.multistageConfig
-        role_name = MultistageRole._VALUES_TO_NAMES[role]
+        role_name = MultistageRole(role).name
         if role_name not in multistage_config:
             raise Exception(
                 "multistage role {} not found in vendor config".format(role_name)

@@ -12,6 +12,7 @@
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/MySidMapUpdater.h"
 #include "fboss/agent/rib/RouteUpdater.h"
+#include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
 #include "fboss/agent/state/StateDelta.h"
 
 #include <memory>
@@ -23,13 +24,18 @@ class SwitchState;
 class SwitchIdScopeResolver;
 
 /*
- * RibToSwitchStateUpdater wraps ForwardingInformationBaseUpdater and
- * MySidMapUpdater to apply all RIB state changes to SwitchState in a
- * single operator() call. It stores the lastDelta across the combined
- * update.
+ * RibToSwitchStateUpdater wraps ForwardingInformationBaseUpdater,
+ * MySidMapUpdater, and SwitchStateNextHopIdUpdater to apply all RIB state
+ * changes to SwitchState in a single operator() call. It stores the lastDelta
+ * across the combined update.
  */
 class RibToSwitchStateUpdater {
  public:
+  enum UpdateAction {
+    UPDATE_FIB = 2,
+    UPDATE_MYSID = 4,
+  };
+
   RibToSwitchStateUpdater(
       const SwitchIdScopeResolver* resolver,
       RouterID vrf,
@@ -37,7 +43,8 @@ class RibToSwitchStateUpdater {
       const IPv6NetworkToRouteMap& v6NetworkToRoute,
       const LabelToRouteMap& labelToRoute,
       const NextHopIDManager* nextHopIDManager,
-      const MySidTable& mySidTable);
+      const MySidTable& mySidTable,
+      int actions = UPDATE_FIB | UPDATE_MYSID);
 
   std::shared_ptr<SwitchState> operator()(
       const std::shared_ptr<SwitchState>& state);
@@ -49,8 +56,10 @@ class RibToSwitchStateUpdater {
   }
 
  private:
+  int actions_;
   ForwardingInformationBaseUpdater fibUpdater_;
   MySidMapUpdater mySidUpdater_;
+  SwitchStateNextHopIdUpdater nhopIdUpdater_;
   std::optional<StateDelta> lastDelta_;
 };
 

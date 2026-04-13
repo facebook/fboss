@@ -35,6 +35,14 @@ setupThriftServer(
   // set queue timeouts
   server->setQueueTimeout(std::chrono::milliseconds(0));
   server->setSocketQueueTimeout(std::chrono::milliseconds(0));
+  // If a thrift request is in-flight during shutdown, ThriftServer will abort
+  // (SIGABRT) if it can't drain within the join timeout. The default is 20
+  // seconds which is too short when transceiver programming operations are
+  // running. Set to 140 seconds (> process_wrapper's 120 second SIGABRT
+  // timeout) so the ThriftServer never hits its own join deadline first.
+  // process_wrapper's SIGABRT at 120s is the expected termination path for a
+  // slow shutdown.
+  server->setWorkersJoinTimeout(std::chrono::seconds(140));
 
   std::vector<folly::SocketAddress> addresses;
   for (auto port : {FLAGS_port, FLAGS_migrated_port}) {

@@ -367,6 +367,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       coldBoot_(map, kCounterPrefix + "cold_boot", SUM, RATE),
       warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE),
+      warmBootFromHwSwitch_(
+          map,
+          kCounterPrefix + "warm_boot_from_hw_switch",
+          SUM,
+          RATE),
       probedStateCleanupStatus_(
           map,
           kCounterPrefix + "probed_state_cleanup_status"),

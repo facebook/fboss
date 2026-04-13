@@ -9,12 +9,15 @@
  */
 
 #include <gtest/gtest.h>
+#include "fboss/agent/HwSwitchMatcher.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
 #include "fboss/agent/state/ForwardingInformationBaseContainer.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/MySid.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -141,6 +144,30 @@ void addFibInfoToMultiSwitchMap(
   }
 
   multiSwitchFibInfoMap->addNode(switchId, fibInfo);
+}
+
+std::shared_ptr<MySid> makeMySidEntry(
+    std::optional<NextHopSetID> resolvedId,
+    std::optional<NextHopSetID> unresolvedId) {
+  state::MySidFields fields;
+  fields.type() = MySidType::NODE_MICRO_SID;
+  facebook::network::thrift::IPPrefix thriftPrefix;
+  thriftPrefix.prefixAddress() =
+      facebook::network::toBinaryAddress(folly::IPAddress("fc00:100::1"));
+  thriftPrefix.prefixLength() = 48;
+  fields.mySid() = thriftPrefix;
+  auto mySid = std::make_shared<MySid>(fields);
+  mySid->setResolvedNextHopsId(resolvedId);
+  mySid->setUnresolveNextHopsId(unresolvedId);
+  return mySid;
+}
+
+std::shared_ptr<MultiSwitchMySidMap> makeMySidMap(
+    const std::shared_ptr<MySid>& mySid) {
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+  mySidMap->addNode(
+      mySid, HwSwitchMatcher{std::unordered_set<SwitchID>{SwitchID(0)}});
+  return mySidMap;
 }
 
 } // namespace
@@ -980,7 +1007,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMaps) {
       createMultiSwitchFibInfoMap(fibsMap, idToNextHopMap, idToNextHopIdSetMap);
 
   // Call reconstructFromSwitchStateMaps with no MySid map (FIB-only case)
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
 
   // Verify maps are populated
   EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
@@ -1117,7 +1145,8 @@ TEST_F(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch) {
 
   EXPECT_EQ(multiSwitchFibInfoMap->size(), 2);
 
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
 
   // Verify all 4 NextHops are in idToNextHop map
   EXPECT_EQ(manager_->getIdToNextHop().size(), 4);
@@ -1658,7 +1687,8 @@ TEST_F(NextHopIDManagerTest, assertNextHopIdMapsSameCheck) {
       idToNextHopIdSetMap);
 
   // Reconstruction should succeed: identical maps pass the DCHECK.
-  manager_->reconstructFromSwitchStateMaps(multiSwitchFibInfoMap, nullptr);
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, nullptr, nullptr);
 
   EXPECT_EQ(manager_->getIdToNextHop().size(), 2);
   EXPECT_EQ(manager_->getIdToNextHop().at(nhId1), nh1);
@@ -1687,6 +1717,106 @@ TEST_F(NextHopIDManagerTest, lookupRouteNextHopSetIDReturnsNulloptIfMissing) {
 
   // Looking up the fully allocated set succeeds.
   EXPECT_TRUE(manager_->lookupRouteNextHopSetID({nh1, nh2}).has_value());
+}
+
+// MySid entry with only resolvedNextHopsId set: its nexthop set must be
+// registered even when no FIB routes reference it.
+TEST_F(
+    NextHopIDManagerTest,
+    reconstructFromSwitchStateMaps_MySidResolvedNextHopsId) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1);
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  std::set<state::NextHopIdType> set1{
+      static_cast<state::NextHopIdType>(nhId1),
+      static_cast<state::NextHopIdType>(nhId2)};
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1), set1);
+
+  // Empty FIB — setId1 is referenced only by the MySid entry.
+  auto multiSwitchFibInfoMap = createMultiSwitchFibInfoMap(
+      createFibsMap(), idToNextHopMap, idToNextHopIdSetMap);
+
+  auto mySid = makeMySidEntry(setId1, std::nullopt);
+  auto mySidMap = makeMySidMap(mySid);
+
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, mySidMap, nullptr);
+
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 2);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 1);
+
+  const NextHopIDSet expectedSet1 = {nhId1, nhId2};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId1), expectedSet1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet1), 1);
+}
+
+// MySid entry with both resolvedNextHopsId and unresolveNextHopsId set: both
+// nexthop sets must be registered even when no FIB routes reference them.
+TEST_F(
+    NextHopIDManagerTest,
+    reconstructFromSwitchStateMaps_MySidBothNextHopIds) {
+  NextHop nh1 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  NextHop nh2 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.2", UCMP_DEFAULT_WEIGHT);
+  NextHop nh3 =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.3", UCMP_DEFAULT_WEIGHT);
+  NextHopID nhId1 = NextHopID(1);
+  NextHopID nhId2 = NextHopID(2);
+  NextHopID nhId3 = NextHopID(3);
+  NextHopSetID setId1 = NextHopSetID(kSetIdOffset + 1); // resolved
+  NextHopSetID setId2 = NextHopSetID(kSetIdOffset + 2); // unresolved
+
+  auto idToNextHopMap = std::make_shared<IdToNextHopMap>();
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId1), nh1.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId2), nh2.toThrift());
+  idToNextHopMap->addNextHop(
+      static_cast<state::NextHopIdType>(nhId3), nh3.toThrift());
+
+  auto idToNextHopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  std::set<state::NextHopIdType> set1{
+      static_cast<state::NextHopIdType>(nhId1),
+      static_cast<state::NextHopIdType>(nhId2)};
+  std::set<state::NextHopIdType> set2{static_cast<state::NextHopIdType>(nhId3)};
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId1), set1);
+  idToNextHopIdSetMap->addNextHopIdSet(
+      static_cast<state::NextHopSetIdType>(setId2), set2);
+
+  // Empty FIB — both sets are referenced only by the MySid entry.
+  auto multiSwitchFibInfoMap = createMultiSwitchFibInfoMap(
+      createFibsMap(), idToNextHopMap, idToNextHopIdSetMap);
+
+  auto mySid = makeMySidEntry(setId1, setId2);
+  auto mySidMap = makeMySidMap(mySid);
+
+  manager_->reconstructFromSwitchStateMaps(
+      multiSwitchFibInfoMap, mySidMap, nullptr);
+
+  EXPECT_EQ(manager_->getIdToNextHop().size(), 3);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().size(), 2);
+
+  const NextHopIDSet expectedSet1 = {nhId1, nhId2};
+  const NextHopIDSet expectedSet2 = {nhId3};
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId1), expectedSet1);
+  EXPECT_EQ(manager_->getIdToNextHopIdSet().at(setId2), expectedSet2);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet1), 1);
+  EXPECT_EQ(manager_->getNextHopIDSetRefCount(expectedSet2), 1);
 }
 
 } // namespace facebook::fboss

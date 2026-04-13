@@ -5,6 +5,7 @@
 
 add_library(standalone_rib
   fboss/agent/rib/ConfigApplier.cpp
+  fboss/agent/rib/RibMySidUpdater.cpp
   fboss/agent/rib/RibRouteWeightNormalizer.cpp
   fboss/agent/rib/RouteUpdater.cpp
   fboss/agent/rib/RoutingInformationBase.cpp
@@ -41,6 +42,7 @@ add_library(fib_updater
   fboss/agent/rib/ForwardingInformationBaseUpdater.cpp
   fboss/agent/rib/MySidMapUpdater.cpp
   fboss/agent/rib/RibToSwitchStateUpdater.cpp
+  fboss/agent/rib/SwitchStateNextHopIdUpdater.cpp
 )
 
 target_link_libraries(fib_updater

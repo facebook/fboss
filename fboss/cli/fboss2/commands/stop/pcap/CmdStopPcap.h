@@ -10,10 +10,7 @@
 
 #pragma once
 
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/CmdLocalOptions.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
@@ -32,22 +29,8 @@ class CmdStopPcap : public CmdHandler<CmdStopPcap, CmdStopPcapTraits> {
   using ObjectArgType = CmdStopPcapTraits::ObjectArgType;
   using RetType = CmdStopPcapTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    std::string nameStr;
-    auto name =
-        CmdLocalOptions::getInstance()->getLocalOption("stop_pcap", "--name");
-    nameStr = name.empty() ? "packet_capture" : name;
-    auto client =
-        utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
-    client->sync_stopPktCapture(nameStr);
-    return fmt::format("Stopping packet capture \"{}\"", nameStr);
-  }
-
-  void printOutput(
-      const RetType& captureOutput,
-      std::ostream& out = std::cout) {
-    out << captureOutput << std::endl;
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+  void printOutput(const RetType& captureOutput, std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

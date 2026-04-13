@@ -1,8 +1,8 @@
 # pyre-strict
 from typing import List
 
-import neteng.fboss.asic_config_v2.ttypes as asic_config_thrift
-import neteng.fboss.platform_mapping_config.ttypes as pm_types
+import neteng.fboss.asic_config_v2.thrift_types as asic_config_thrift
+import neteng.fboss.platform_mapping_config.thrift_types as pm_types
 from fboss.lib.asic_config_v2.tomahawk6 import Tomahawk6AsicConfig
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.gen import read_all_vendor_data
@@ -34,6 +34,7 @@ class Icecube800banwConfig(Tomahawk6AsicConfig):
         return asic_vendor_config
 
     def get_static_mapping(self) -> pm_types.StaticMapping:
+        # pyre-fixme[7]: cross-boundary type mismatch until platform_mapping_v2 migrates
         return self.parser.get_static_mapping().get_static_mapping()
 
     def generate_port_config(self, mgmt_port: bool = False) -> None:

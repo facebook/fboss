@@ -383,7 +383,8 @@
               "csrOffsetCalc": "0x870 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
               "ledPerPort": 2,
-              "startPort": 41
+              "startPort": 41,
+              "lanesPerPort": 4
             },
             {
               "pmUnitScopedNamePrefix": "SMB_LED",
@@ -407,7 +408,8 @@
               "csrOffsetCalc": "0x878 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
               "ledPerPort": 2,
-              "startPort": 44
+              "startPort": 44,
+              "lanesPerPort": 4
             },
             {
               "pmUnitScopedNamePrefix": "SMB_LED",

@@ -32,6 +32,7 @@ const re2::RE2 kSlotNameRegex{"(?P<SlotType>.([A-Z]+_)+SLOT)@\\d+"};
 const re2::RE2 kSlotPathRegex{"/|(/([A-Z]+_)+SLOT@\\d+)+"};
 const re2::RE2 kInfoRomDevicePrefixRegex{"^fpga_info_(dom|iob|scm|mcb)$"};
 const re2::RE2 kI2cAdapterNameRegex{"(?P<PmUnitScopedName>.+)@(?P<Num>\\d+)"};
+const re2::RE2 kIncomingBusRegex{"INCOMING@(?P<Index>\\d+)"};
 const re2::RE2 kRpmNameRegex{"(?P<KEYWORD>[a-z]+)_bsp_kmods"};
 constexpr auto kSymlinkDirs = {
     "eeproms",
@@ -121,13 +122,53 @@ bool ConfigValidator::isValidSlotTypeConfig(
   return true;
 }
 
-bool ConfigValidator::isValidSlotConfig(const SlotConfig& slotConfig) {
+bool ConfigValidator::isValidSlotConfig(
+    const SlotConfig& slotConfig,
+    const std::string& slotName,
+    const std::map<std::string, SlotTypeConfig>& slotTypeConfigs) {
   if (slotConfig.slotType()->empty()) {
     XLOG(ERR) << "SlotType in SlotConfig must be a non-empty string";
     return false;
   }
+  auto slotType = extractSlotType(slotName);
+  if (!slotType) {
+    XLOG(ERR) << fmt::format(
+        "Invalid SlotName format {}. Must follow <SlotType>@<Num>", slotName);
+    return false;
+  }
+  if (*slotType != *slotConfig.slotType()) {
+    XLOG(ERR) << fmt::format(
+        "SlotName must contain the SlotType {} instead contains {}",
+        *slotConfig.slotType(),
+        *slotType);
+    return false;
+  }
   if (slotConfig.presenceDetection()) {
     return isValidPresenceDetection(*slotConfig.presenceDetection());
+  }
+  // Validate outgoingI2cBusNames size matches numOutgoingI2cBuses in
+  // the corresponding SlotTypeConfig
+  if (!slotTypeConfigs.contains(*slotConfig.slotType())) {
+    XLOG(ERR) << fmt::format(
+        "SlotConfig '{}' references SlotType '{}' which has no "
+        "SlotTypeConfig definition",
+        slotName,
+        *slotConfig.slotType());
+    return false;
+  }
+  const auto& slotTypeConfig = slotTypeConfigs.at(*slotConfig.slotType());
+  auto actualBuses =
+      static_cast<int32_t>(slotConfig.outgoingI2cBusNames()->size());
+  auto expectedBuses = *slotTypeConfig.numOutgoingI2cBuses();
+  if (actualBuses != expectedBuses) {
+    XLOG(ERR) << fmt::format(
+        "SlotConfig '{}' has {} outgoingI2cBusNames but SlotTypeConfig "
+        "'{}' expects {} (numOutgoingI2cBuses)",
+        slotName,
+        actualBuses,
+        *slotConfig.slotType(),
+        expectedBuses);
+    return false;
   }
   return true;
 }
@@ -192,6 +233,14 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
   }
   if (*ledCtrlBlockConfig.ledPerPort() > 4) {
     XLOG(ERR) << "ledPerPort must be a value less than or equal to 4";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.lanesPerPort() <= 0) {
+    XLOG(ERR) << "lanesPerPort must be a value greater than 0";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.lanesPerPort() > 8) {
+    XLOG(ERR) << "lanesPerPort must be a value less than or equal to 8";
     return false;
   }
   if (*ledCtrlBlockConfig.startPort() <= 0) {
@@ -898,6 +947,36 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     if (!isValidSlotTypeConfig(slotTypeConfig)) {
       return false;
     }
+    // Validate IDPROM busName is directly connected (no MUX/FPGA in between)
+    if (slotTypeConfig.idpromConfig()) {
+      const auto& busName = *slotTypeConfig.idpromConfig()->busName();
+      int index;
+      bool isIncomingBus =
+          re2::RE2::FullMatch(busName, kIncomingBusRegex, &index);
+      bool isCpuBus = std::find(
+                          config.i2cAdaptersFromCpu()->begin(),
+                          config.i2cAdaptersFromCpu()->end(),
+                          busName) != config.i2cAdaptersFromCpu()->end();
+      if (!isIncomingBus && !isCpuBus) {
+        XLOG(ERR) << fmt::format(
+            "IDPROM busName '{}' in SlotTypeConfig '{}' must be either an "
+            "INCOMING@N bus or a CPU I2C adapter from i2cAdaptersFromCpu. "
+            "IDPROM must be directly connected without MUX or FPGA in between.",
+            busName,
+            slotName);
+        return false;
+      }
+      if (isIncomingBus && index >= *slotTypeConfig.numOutgoingI2cBuses()) {
+        XLOG(ERR) << fmt::format(
+            "IDPROM busName '{}' in SlotTypeConfig '{}' references bus index "
+            "{} but numOutgoingI2cBuses is {}",
+            busName,
+            slotName,
+            index,
+            *slotTypeConfig.numOutgoingI2cBuses());
+        return false;
+      }
+    }
     // Validate that pmUnitName in slotTypeConfig exists in pmUnitConfigs
     if (slotTypeConfig.pmUnitName() &&
         !config.pmUnitConfigs()->contains(*slotTypeConfig.pmUnitName())) {
@@ -1016,20 +1095,7 @@ bool ConfigValidator::isValidPmUnitConfig(
   // Validate SlotConfigs
   for (const auto& [slotName, slotConfig] :
        *pmUnitConfig.outgoingSlotConfigs()) {
-    auto slotType = extractSlotType(slotName);
-    if (!slotType) {
-      XLOG(ERR) << fmt::format(
-          "Invalid SlotName format {}. Must follow <SlotType>@<Num>", slotName);
-      return false;
-    }
-    if (*slotType != *slotConfig.slotType()) {
-      XLOG(ERR) << fmt::format(
-          "SlotName must contain the SlotType {} instead contains {}",
-          *slotConfig.slotType(),
-          *slotType);
-      return false;
-    }
-    if (!isValidSlotConfig(slotConfig)) {
+    if (!isValidSlotConfig(slotConfig, slotName, slotTypeConfigs)) {
       return false;
     }
   }

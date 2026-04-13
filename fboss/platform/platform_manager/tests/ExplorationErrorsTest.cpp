@@ -108,6 +108,32 @@ TEST(ExplorationErrorsTest, IsExpectedErrorIdprom) {
       montblancConfig, ExplorationErrorType::I2C_DEVICE_EXPLORE, "/[IDPROM]"));
 }
 
+TEST(ExplorationErrorsTest, IsExpectedErrorDarwinIdprom) {
+  // Test IDPROM error on DARWIN platform with specific device paths
+  PlatformConfig darwinConfig;
+  darwinConfig.platformName() = "DARWIN";
+
+  // Test RACKMON_SLOT IDPROM - should return true
+  EXPECT_TRUE(isExpectedError(
+      darwinConfig,
+      ExplorationErrorType::IDPROM_READ,
+      "/RACKMON_SLOT@0/[IDPROM]"));
+
+  // Test PEM_SLOT IDPROM - should return true
+  EXPECT_TRUE(isExpectedError(
+      darwinConfig, ExplorationErrorType::IDPROM_READ, "/PEM_SLOT@0/[IDPROM]"));
+
+  // Test other IDPROM paths on DARWIN - should return false
+  EXPECT_FALSE(isExpectedError(
+      darwinConfig, ExplorationErrorType::IDPROM_READ, "/[IDPROM]"));
+
+  // Test wrong error type on DARWIN with correct path - should return false
+  EXPECT_FALSE(isExpectedError(
+      darwinConfig,
+      ExplorationErrorType::I2C_DEVICE_EXPLORE,
+      "/RACKMON_SLOT@0/[IDPROM]"));
+}
+
 TEST(ExplorationErrorsTest, IsExpectedErrorRtmOutletTsensor) {
   // Test RTM outlet tsensor on LADAKH800BCLS platform
   PlatformConfig ladakhConfig;

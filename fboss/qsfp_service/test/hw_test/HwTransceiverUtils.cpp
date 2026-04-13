@@ -387,6 +387,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
     case cfg::PortProfileID::PROFILE_200G_4_PAM4_RS544X2N_OPTICAL:
     case cfg::PortProfileID::PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL:
     case cfg::PortProfileID::PROFILE_200G_1_PAM4_RS544X2N_OPTICAL:
+    case cfg::PortProfileID::PROFILE_200G_2_PAM4_RS544X2N_OPTICAL:
       verify200gProfile(mgmtInterface, mediaInterfaces);
       break;
 
@@ -506,10 +507,12 @@ void HwTransceiverUtils::verify200gProfile(
     EXPECT_TRUE(
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::FR4_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::LR4_200G ||
+        *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR2_200G ||
         *mediaId.media()->smfCode() == SMFMediaInterfaceCode::DR1_200G);
     EXPECT_TRUE(
         *mediaId.code() == MediaInterfaceCode::FR4_200G ||
         *mediaId.code() == MediaInterfaceCode::LR4_200G ||
+        *mediaId.code() == MediaInterfaceCode::DR2_200G ||
         *mediaId.code() == MediaInterfaceCode::DR1_200G);
   }
 }

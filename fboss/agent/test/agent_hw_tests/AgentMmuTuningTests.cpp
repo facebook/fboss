@@ -14,6 +14,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -113,7 +114,7 @@ class AgentMmuTuningTest : public AgentHwTest {
       for (auto dscp : dscpsToSend) {
         auto pkt = createUdpPkt(dscp);
         bytesSent += pkt->buf()->computeChainDataLength();
-        getSw()->sendPacketSwitchedAsync(std::move(pkt));
+        sendPacketSwitchedAsync(std::move(pkt));
       }
     }
 
@@ -126,7 +127,7 @@ class AgentMmuTuningTest : public AgentHwTest {
     });
   }
   MacAddress dstMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
   std::unique_ptr<facebook::fboss::TxPacket> createUdpPkt(
       uint8_t dscpVal) const {

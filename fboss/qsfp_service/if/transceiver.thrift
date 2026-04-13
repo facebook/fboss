@@ -239,6 +239,7 @@ enum MediaInterfaceCode {
   FR4_800G = 31,
   FR2_400G = 32,
   FR1_200G = 33,
+  DR2_200G = 34,
 }
 
 // The extended specification compliance code of the transceiver module.
@@ -297,6 +298,7 @@ enum SMFMediaInterfaceCode {
   FR4_400G = 0x1D,
   LR4_10_400G = 0x1E,
   DR1_200G = 0x73,
+  DR2_200G = 0x98,
   DR2_400G = 0x75,
   DR4_800G = 0x77,
   DR1_100G = 0x14,

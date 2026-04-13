@@ -9,6 +9,7 @@
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
 #include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -242,7 +243,8 @@ class NextHopIDManager {
    */
   void reconstructFromSwitchStateMaps(
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
  private:
   static constexpr int64_t kNextHopIDStart = 1;
@@ -305,12 +307,24 @@ class NextHopIDManager {
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
   FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMaps_MySidResolvedNextHopsId);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMaps_MySidBothNextHopIds);
   FRIEND_TEST(NextHopIDManagerTest, allocateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, updateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, deallocateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupWarmBoot);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes);
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      nhopRefCountBumped_afterResolvingNhopWithIntfId);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
 };
 
 } // namespace facebook::fboss

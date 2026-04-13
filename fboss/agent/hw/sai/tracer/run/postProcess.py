@@ -11,6 +11,8 @@
 # across multiple C++ files with a single header file and main file
 # for ease of compilation and execution.
 
+# pyre-unsafe
+
 import argparse
 import os
 import re

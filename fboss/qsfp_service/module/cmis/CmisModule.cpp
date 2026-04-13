@@ -2738,37 +2738,43 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
                                   : configMapping);
   }
-  if (laneProgramValues.size() == kMaxOsfpNumLanes) {
-    AllLaneConfig stageSet0Config;
-    for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
-      if (auto laneCapability =
-              getApplicationField(laneProgramValues[lane], lane)) {
-        uint8_t currApSelCode = laneCapability.value().ApSelCode;
-        for (auto currApLane = lane;
-             currApLane < lane + laneCapability.value().hostLaneCount;
-             currApLane++) {
-          const uint8_t lanesToProgram =
-              laneMask(lane, lane + laneCapability.value().hostLaneCount);
-          const uint8_t explicitControl =
-              setExplicitControl(state, lanesToProgram);
-          stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
-              (lane << DATA_PATH_ID_BITSHIFT) | explicitControl;
-        }
-        lane += laneCapability.value().hostLaneCount;
-      } else {
-        stageSet0Config[lane++] = 0;
-      }
-    }
-    writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
-
-    // Trigger the Set 0 application code setting to be applied on data
-    // path init for all the lanes. The actual data-path init will be
-    // triggered from the caller function
-    uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
-    writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
-
-    datapathResetPendingMask_ = applySetForSpecificLanes;
+  if (laneProgramValues.size() != kMaxOsfpNumLanes) {
+    XLOG(WARNING) << "Transceiver " << getNameString() << " port "
+                  << state.startHostLane << ": "
+                  << "Failed to find valid speed combo for speed "
+                  << apache::thrift::util::enumNameSafe(state.speed)
+                  << ", module will not be reprogrammed";
+    return;
   }
+  AllLaneConfig stageSet0Config;
+  for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
+    if (auto laneCapability =
+            getApplicationField(laneProgramValues[lane], lane)) {
+      uint8_t currApSelCode = laneCapability.value().ApSelCode;
+      for (auto currApLane = lane;
+           currApLane < lane + laneCapability.value().hostLaneCount;
+           currApLane++) {
+        const uint8_t lanesToProgram =
+            laneMask(lane, lane + laneCapability.value().hostLaneCount);
+        const uint8_t explicitControl =
+            setExplicitControl(state, lanesToProgram);
+        stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
+            (lane << DATA_PATH_ID_BITSHIFT) | explicitControl;
+      }
+      lane += laneCapability.value().hostLaneCount;
+    } else {
+      stageSet0Config[lane++] = 0;
+    }
+  }
+  writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
+
+  // Trigger the Set 0 application code setting to be applied on data
+  // path init for all the lanes. The actual data-path init will be
+  // triggered from the caller function
+  uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
+  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
+
+  datapathResetPendingMask_ = applySetForSpecificLanes;
 }
 
 /*
@@ -3103,7 +3109,11 @@ void CmisModule::setApplicationCodeLocked(
   if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
       !isRequestValidMultiportSpeedConfig(
           state.speed, state.startHostLane, numHostLanes)) {
-    QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Programming App sel on ALL lanes: speed={}, startHostLane={}, numHostLanes={}",
+        apache::thrift::util::enumNameSafe(state.speed),
+        state.startHostLane,
+        numHostLanes);
     uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,

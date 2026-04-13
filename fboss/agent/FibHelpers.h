@@ -99,6 +99,19 @@ void populateIdMapsForRoute(
     std::shared_ptr<IdToNextHopMap>& dstIdToNhMap);
 
 /*
+ * Merge two sets of ID maps: clone primary maps, then add any entries
+ * from secondary maps that are not already present. Returns the merged
+ * maps. Used to build a universal ID map
+ * containing IDs from both old and new states.
+ */
+std::pair<std::shared_ptr<IdToNextHopIdSetMap>, std::shared_ptr<IdToNextHopMap>>
+mergeNextHopIdMaps(
+    const std::shared_ptr<IdToNextHopIdSetMap>& primarySetMap,
+    const std::shared_ptr<IdToNextHopMap>& primaryNhMap,
+    const std::shared_ptr<IdToNextHopIdSetMap>& secondarySetMap,
+    const std::shared_ptr<IdToNextHopMap>& secondaryNhMap);
+
+/*
  * Copy ID maps (idToNextHopIdSetMap and idToNextHopMap) from sourceState
  * to dstState for each switch. Returns the modified state.
  */

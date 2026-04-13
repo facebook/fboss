@@ -70,7 +70,7 @@ void addTrapPacketAcl(
     cfg::ToCpuAction toCpuAction) {
   cfg::AclEntry entry{};
   entry.name() = folly::to<std::string>("trap-", prefix.first.str());
-  entry.dstIp() = prefix.first.str();
+  entry.dstIp() = folly::IPAddress::networkToString(prefix);
   if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
     entry.etherType() =
         prefix.first.isV6() ? cfg::EtherType::IPv6 : cfg::EtherType::IPv4;

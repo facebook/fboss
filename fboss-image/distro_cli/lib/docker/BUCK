@@ -1,0 +1,14 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_distro")
+
+python_library(
+    name = "docker",
+    srcs = glob(["*.py"]),
+    base_module = "distro_cli.lib.docker",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/lib:constants",
+        "//fboss/github/fboss-image/distro_cli/lib:paths",
+    ],
+)

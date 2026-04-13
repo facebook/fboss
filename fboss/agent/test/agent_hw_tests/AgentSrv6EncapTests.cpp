@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -11,9 +12,14 @@
 #include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -44,13 +50,27 @@ class AgentSrv6EncapTest : public AgentHwTest {
   static constexpr uint8_t kEncapRoutePrefixLen{64};
   const folly::IPAddressV6 kEncapRouteDstIp{"2800:2::1"};
   static constexpr int kNumNextHops{4};
+  static constexpr uint8_t kECT1{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
-      return {ProductionFeature::SRV6_ENCAP, ProductionFeature::LAG};
+      return {
+          ProductionFeature::SRV6_ENCAP,
+          ProductionFeature::L3_QOS,
+          ProductionFeature::ECN,
+          ProductionFeature::LAG};
     }
-    return {ProductionFeature::SRV6_ENCAP};
+    return {
+        ProductionFeature::SRV6_ENCAP,
+        ProductionFeature::L3_QOS,
+        ProductionFeature::ECN};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_resolve_nexthops_from_id = true;
   }
 
   cfg::SwitchConfig initialConfig(
@@ -75,6 +95,12 @@ class AgentSrv6EncapTest : public AgentHwTest {
         {folly::CIDRNetwork{kSid0, 128},
          folly::CIDRNetwork{kSid1, 128},
          folly::CIDRNetwork{kSid2, 128}});
+    utility::addOlympicQueueConfig(
+        &cfg,
+        ensemble.getL3Asics(),
+        /*addWredConfig=*/false,
+        /*addEcnConfig=*/true);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     return cfg;
   }
 
@@ -256,7 +282,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     constexpr auto kTc{42};
     constexpr auto kTtl{24};
     auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
@@ -287,7 +313,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
       this->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), injectPort.value());
     } else {
-      this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      this->sendPacketSwitchedAsync(std::move(txPacket));
     }
 
     auto frameRx = snooper.waitForPacket(1);
@@ -590,6 +616,116 @@ TYPED_TEST(AgentSrv6EncapTest, multipleSidListsSameNextHop) {
         std::nullopt /*injectPort*/,
         folly::IPAddress("2800:3::1"));
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
+  auto setup = [this]() {
+    if constexpr (TestFixture::kIsTrunk) {
+      this->applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
+    this->resolveV4AndV6NextHops(2);
+    this->template addEncapRoute<folly::CIDRNetworkV6>(
+        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen}, {{this->kSid0}});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    // Send 512 SRv6 packets (DSCP 5, ECN ECT1, ~7000B payload).
+    // In UNIFORM mode, outer header copies DSCP+ECN bits from inner.
+    auto sendFloodPackets = [this, &intfMac]() {
+      auto tcField = static_cast<uint8_t>((5 << 2) | this->kECT1);
+      for (int i = 0; i < 512; ++i) {
+        auto txPacket = utility::makeUDPTxPacket(
+            this->getSw(),
+            this->getVlanIDForTx(),
+            intfMac,
+            intfMac,
+            folly::IPAddressV6("1::10"),
+            this->kEncapRouteDstIp,
+            8000,
+            8001,
+            tcField,
+            64,
+            std::vector<uint8_t>(7000, 0xff));
+        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    };
+
+    // After encap, outer dst = SID, ECN CE = 0x3
+    auto isEcnMarked = [this](
+                           const folly::IPAddressV6& dstAddr, uint8_t ecnBits) {
+      return dstAddr == this->kSid0 && ecnBits == 0x3;
+    };
+
+    utility::verifySrv6EcnMarking(
+        this->getAgentEnsemble(), egressPort, sendFloodPackets, isEcnMarked);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verify that SRv6-encapsulated packets are placed in the correct egress
+// queue based on the inner packet's DSCP. In UNIFORM mode, inner DSCP is
+// copied to the outer header, so the egress queue is determined by the
+// inner DSCP value.
+TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
+  auto setup = [this]() {
+    if constexpr (TestFixture::kIsTrunk) {
+      this->applyConfigAndEnableTrunks(
+          this->initialConfig(*this->getAgentEnsemble()));
+    }
+    this->resolveV4AndV6NextHops(this->kNumNextHops);
+    this->template addEncapRoute<folly::CIDRNetworkV6>(
+        {this->kEncapRoutePrefix, this->kEncapRoutePrefixLen}, {{this->kSid0}});
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort({egressPort});
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    auto sendPacket = [this, &intfMac](int dscp, bool frontPanel, PortID port) {
+      auto txPacket = utility::makeUDPTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("1::10"),
+          this->kEncapRouteDstIp,
+          8000,
+          8001,
+          dscp << 2,
+          255);
+      if (frontPanel) {
+        this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
+      } else {
+        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    };
+
+    // Send all packets first, then verify queue counters
+    for (bool frontPanel : {false, true}) {
+      auto portStatsBefore = this->getLatestPortStats(egressPort);
+      for (const auto& [queue, dscps] : utility::kOlympicQueueToDscp()) {
+        for (auto dscp : dscps) {
+          sendPacket(dscp, frontPanel, injectPort);
+        }
+      }
+      for (const auto& [queue, dscps] : utility::kOlympicQueueToDscp()) {
+        utility::verifyQueueHit(
+            portStatsBefore, queue, this->getSw(), egressPort, dscps.size());
+      }
+    }
+  };
+
   this->verifyAcrossWarmBoots(setup, verify);
 }
 

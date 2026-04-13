@@ -54,6 +54,7 @@ cpp_unittest(
         "UdfTests.cpp",
         "VlanTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         "//common/network/if:if-cpp2-types",
         "//common/stats:monotonic_counter",

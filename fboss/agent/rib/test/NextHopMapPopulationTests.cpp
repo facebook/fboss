@@ -248,16 +248,13 @@ class NextHopMapPopulationTest : public ::testing::Test {
     return fibInfo ? fibInfo->getIdToNextHopIdSetMap() : nullptr;
   }
 
-  const NextHopIDManager* getNextHopIDManager() {
-    return sw_->getRib()->getNextHopIDManager();
-  }
-
   // Verifies that the ID maps in switch state match the ID maps in the
   // NextHopIDManager
   void verifyIdMapsMatchIdManager() {
     auto stateIdToNextHopMap = getIdToNextHopMap();
     auto stateIdToNextHopIdSetMap = getIdToNextHopIdSetMap();
-    auto* manager = getNextHopIDManager();
+    auto manager = sw_->getRib()->getNextHopIDManagerCopy();
+    ASSERT_NE(manager, nullptr);
     const auto& managerIdToNextHop = manager->getIdToNextHop();
     const auto& managerIdToNextHopIdSet = manager->getIdToNextHopIdSet();
 

@@ -337,8 +337,7 @@ std::map<std::string, HwPortStats> AgentEnsembleTest::getNextUpdatedHwPortStats(
         getSw()->getAllHwPortStats(portStats);
         // Since each port can have a unique timestamp, compare with the first
         // port
-        auto firstPortStat = &portStats.begin()->second;
-        if (firstPortStat->timestamp_() == timestamp) {
+        if (*portStats.begin()->second.timestamp_() == timestamp) {
           return false;
         }
         // Make sure that the other ports have valid stats
@@ -369,7 +368,7 @@ void AgentEnsembleTest::assertNoInDiscards(int maxNumDiscards) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
     lastStatRefTime = *portStats.begin()->second.timestamp_();
 
-    for (auto [port, stats] : portStats) {
+    for (const auto& [port, stats] : portStats) {
       auto inDiscards = *stats.inDiscards_();
       XLOG(DBG2) << "Port: " << port << " in discards: " << inDiscards
                  << " in bytes: " << *stats.inBytes_()
@@ -392,7 +391,7 @@ void AgentEnsembleTest::assertNoInErrors(int maxNumDiscards) {
     auto portStats = getNextUpdatedHwPortStats(lastStatRefTime);
     lastStatRefTime = *portStats.begin()->second.timestamp_();
 
-    for (auto [port, stats] : portStats) {
+    for (const auto& [port, stats] : portStats) {
       auto inErrors = *stats.inErrors_();
       XLOG(DBG2) << "Port: " << port << " in errors: " << inErrors
                  << " in bytes: " << *stats.inBytes_()

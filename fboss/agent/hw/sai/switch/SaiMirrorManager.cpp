@@ -123,6 +123,12 @@ SaiMirrorHandle::~SaiMirrorHandle() {
 }
 
 void SaiMirrorManager::addNode(const std::shared_ptr<Mirror>& mirror) {
+  XLOG(DBG2) << "addMirrorNode: id=" << mirror->getID()
+             << " switchId=" << mirror->getSwitchId()
+             << " isResolved=" << mirror->isResolved() << " egressPortDesc="
+             << (mirror->getEgressPortDesc().has_value()
+                     ? mirror->getEgressPortDesc()->str()
+                     : "none");
   if (!mirror->isResolved()) {
     return;
   }

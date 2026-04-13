@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwSwitchMySidUpdater.h"
 #include "fboss/agent/SwSwitchRouteUpdateWrapper.h"
@@ -10,9 +11,15 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
+#include "fboss/agent/test/utils/CoppTestUtils.h"
+#include "fboss/agent/test/utils/OlympicTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
+#include "fboss/agent/test/utils/PortTestUtils.h"
+#include "fboss/agent/test/utils/QosTestUtils.h"
+#include "fboss/agent/test/utils/Srv6TestUtils.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
@@ -38,33 +45,45 @@ class AgentSrv6DecapTest : public AgentHwTest {
   const folly::IPAddressV6 kV6RouteDstIp{"2800:2::1"};
   const folly::IPAddressV4 kV4RoutePrefix{"100.0.0.0"};
   const folly::IPAddressV4 kV4RouteDstIp{"100.0.0.1"};
-  const folly::IPAddressV6 kMySidAddr{"3001:db8:e001::"};
+  const folly::IPAddressV6 kMySidAddr{"3001:db8:7fff::"};
+  static constexpr uint8_t kMySidPrefixLen{48};
+  static constexpr uint8_t kECT1{1};
 
   std::vector<ProductionFeature> getProductionFeaturesVerified()
       const override {
     if constexpr (kIsTrunk) {
-      return {ProductionFeature::SRV6_DECAP, ProductionFeature::LAG};
+      return {
+          ProductionFeature::SRV6_DECAP,
+          ProductionFeature::L3_QOS,
+          ProductionFeature::ECN,
+          ProductionFeature::LAG};
     }
-    return {ProductionFeature::SRV6_DECAP};
+    return {
+        ProductionFeature::SRV6_DECAP,
+        ProductionFeature::L3_QOS,
+        ProductionFeature::ECN};
+  }
+
+  void setCmdLineFlagOverrides() const override {
+    AgentHwTest::setCmdLineFlagOverrides();
+    FLAGS_enable_nexthop_id_manager = true;
+    FLAGS_resolve_nexthops_from_id = true;
   }
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    cfg::SwitchConfig cfg;
+    constexpr auto kNumNextHops = 4;
+    auto cfg = utility::onePortPerInterfaceConfig(
+        ensemble.getSw(),
+        ensemble.masterLogicalPortIds(),
+        true /*interfaceHasSubnet*/);
     if constexpr (kIsTrunk) {
-      cfg = utility::oneL3IntfTwoPortConfig(
-          ensemble.getSw(),
-          ensemble.masterLogicalPortIds()[0],
-          ensemble.masterLogicalPortIds()[1]);
-      utility::addAggPort(
-          1, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[0])}, &cfg);
-      utility::addAggPort(
-          2, {static_cast<int32_t>(ensemble.masterLogicalPortIds()[1])}, &cfg);
-    } else {
-      cfg = utility::onePortPerInterfaceConfig(
-          ensemble.getSw(),
-          ensemble.masterLogicalPortIds(),
-          true /*interfaceHasSubnet*/);
+      for (int i = 0; i < kNumNextHops; ++i) {
+        utility::addAggPort(
+            i + 1,
+            {static_cast<int32_t>(ensemble.masterLogicalPortIds()[i])},
+            &cfg);
+      }
     }
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
@@ -74,6 +93,12 @@ class AgentSrv6DecapTest : public AgentHwTest {
         &cfg,
         std::set<folly::CIDRNetwork>{
             {kV6RouteDstIp, 128}, {kV4RouteDstIp, 32}});
+    utility::addOlympicQueueConfig(
+        &cfg,
+        ensemble.getL3Asics(),
+        /*addWredConfig=*/false,
+        /*addEcnConfig=*/true);
+    utility::addOlympicQosMaps(cfg, ensemble.getL3Asics());
     return cfg;
   }
 
@@ -113,10 +138,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // IPv4 route with regular next hops (no SID lists)
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
-    // Add a mySid entry for decapsulation
-    // G200 required use of local uSid range 0xe000 - 0xffff
-    // for uA, uA part of uNuA, uDT*, B6_ENCAPS_RED
-    addMySidEntry("3001:db8:e001::", 48);
+    addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
   }
 
   template <typename CIDRNetworkT>
@@ -177,14 +199,16 @@ class AgentSrv6DecapTest : public AgentHwTest {
     auto bytesBefore = *portStatsBefore.outBytes_();
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     constexpr uint16_t kSrcPort{8000};
     constexpr uint16_t kDstPort{8001};
     constexpr uint8_t kInnerHopLimit{64};
     constexpr uint8_t kOuterHopLimit{24};
-    constexpr uint8_t kTc{42};
-    auto outerTcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
-                                  : static_cast<uint8_t>(kTc << 2);
+    constexpr uint8_t kInnerPktTc{42};
+    constexpr uint8_t kOuterPktTc{24};
+    auto outerTcField = ecnMarked
+        ? static_cast<uint8_t>((kOuterPktTc << 2) | 0x3)
+        : static_cast<uint8_t>(kOuterPktTc << 2);
 
     // Outer IPv6: dst = mySid address (triggers decap)
     // Inner IP: dst matches route prefix (forwarded after decap)
@@ -203,7 +227,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kSrcPort,
           kDstPort,
           outerTcField,
-          kTc /* innerDscp */,
+          kInnerPktTc /* innerDscp */,
           kOuterHopLimit,
           kInnerHopLimit);
     } else {
@@ -219,7 +243,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
           kSrcPort,
           kDstPort,
           outerTcField,
-          kTc << 2 /* innerTrafficClass */,
+          kInnerPktTc << 2 /* innerTrafficClass */,
           kOuterHopLimit,
           kInnerHopLimit);
     }
@@ -246,7 +270,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       this->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), injectPort.value());
     } else {
-      this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      this->sendPacketSwitchedAsync(std::move(txPacket));
     }
 
     auto frameRx = snooper.waitForPacket(1);
@@ -281,7 +305,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       // MT-878 is fixed
       EXPECT_EQ(v4Hdr.ttl, kInnerHopLimit - 1);
       // DSCP is preserved
-      EXPECT_EQ(v4Hdr.dscp, kTc);
+      EXPECT_EQ(v4Hdr.dscp, kOuterPktTc);
       EXPECT_EQ(v4Hdr.ecn, ecnMarked ? 0x3 : 0);
       rxUdp = rxV4->udpPayload();
     } else {
@@ -300,7 +324,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       // MT-878 is fixed
       EXPECT_EQ(v6Hdr.hopLimit, kInnerHopLimit - 1);
       // DSCP is preserved
-      EXPECT_EQ(v6Hdr.trafficClass >> 2, kTc);
+      EXPECT_EQ(v6Hdr.trafficClass >> 2, kOuterPktTc);
       EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
       rxUdp = rxV6->udpPayload();
     }
@@ -342,6 +366,157 @@ TYPED_TEST(AgentSrv6DecapTest, sendPacketForDecap) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     this->verifyDecapCpuAndFrontPanel(egressPort);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
+  auto setup = [this]() { this->setupHelper(); };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    // Send 512 IPv6-in-IPv6 packets (outer DSCP 5 + ECN ECT1, inner TC = 0).
+    // UNIFORM decap copies outer DSCP+ECN to inner.
+    auto sendFloodPackets = [this, &intfMac]() {
+      auto outerTcField = static_cast<uint8_t>((5 << 2) | this->kECT1);
+      for (int i = 0; i < 512; ++i) {
+        auto txPacket = utility::makeIpInIpTxPacket(
+            this->getSw(),
+            this->getVlanIDForTx().value(),
+            intfMac,
+            intfMac,
+            folly::IPAddressV6("1::1"),
+            this->kMySidAddr,
+            folly::IPAddressV6("1::10"),
+            this->kV6RouteDstIp,
+            8000,
+            8001,
+            outerTcField,
+            0 /* innerTrafficClass */,
+            64,
+            std::optional<uint8_t>(64),
+            std::vector<uint8_t>(7000, 0xff));
+        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    };
+
+    // After decap, inner (now outer) dst = route dst, ECN CE = 0x3
+    auto isEcnMarked = [this](
+                           const folly::IPAddressV6& dstAddr, uint8_t ecnBits) {
+      return dstAddr == this->kV6RouteDstIp && ecnBits == 0x3;
+    };
+
+    utility::verifySrv6EcnMarking(
+        this->getAgentEnsemble(), egressPort, sendFloodPackets, isEcnMarked);
+  };
+
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+// Verify that SRv6-decapsulated packets are placed in the correct egress
+// queue based on the outer packet's DSCP. The outer DSCP determines queue
+// classification at ingress. In UNIFORM mode, outer DSCP is also copied
+// to the inner (forwarded) packet.
+TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
+  auto setup = [this]() { this->setupHelper(); };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort(egressPort);
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    auto sendPacket = [this, &intfMac](int dscp, bool frontPanel, PortID port) {
+      // Outer DSCP determines queue classification.
+      // Inner TC is 0 — overwritten by UNIFORM decap.
+      auto txPacket = utility::makeIpInIpTxPacket(
+          this->getSw(),
+          this->getVlanIDForTx().value(),
+          intfMac,
+          intfMac,
+          folly::IPAddressV6("1::1"),
+          this->kMySidAddr,
+          folly::IPAddressV6("1::10"),
+          this->kV6RouteDstIp,
+          8000,
+          8001,
+          dscp << 2,
+          0 /* innerTrafficClass */,
+          64,
+          64);
+      if (frontPanel) {
+        this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), port);
+      } else {
+        this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      }
+    };
+
+    // Send all packets first, then verify queue counters
+    for (bool frontPanel : {false, true}) {
+      auto portStatsBefore = this->getLatestPortStats(egressPort);
+      for (const auto& [queue, dscps] : utility::kOlympicQueueToDscp()) {
+        for (auto dscp : dscps) {
+          sendPacket(dscp, frontPanel, injectPort);
+        }
+      }
+      for (const auto& [queue, dscps] : utility::kOlympicQueueToDscp()) {
+        utility::verifyQueueHit(
+            portStatsBefore, queue, this->getSw(), egressPort, dscps.size());
+      }
+    }
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
+  auto setup = [this]() { this->setupHelper(); };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort(egressPort);
+
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    // Outer dst IP matches the mySid /48 prefix but is not the last uSid.
+    // The packet should be dropped.
+    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:ffff:1:2::"};
+
+    auto txPacket = utility::makeIpInIpTxPacket(
+        this->getSw(),
+        this->getVlanIDForTx().value(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("1::1"),
+        kNonLastSegmentDst,
+        folly::IPAddressV6("1::10"),
+        this->kV6RouteDstIp,
+        8000,
+        8001,
+        0 /* outerTcField */,
+        0 /* innerTrafficClass */,
+        64,
+        64);
+
+    this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
+      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+    });
   };
   this->verifyAcrossWarmBoots(setup, verify);
 }

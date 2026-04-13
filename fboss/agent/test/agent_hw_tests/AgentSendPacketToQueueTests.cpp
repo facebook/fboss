@@ -15,6 +15,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AsicUtils.h"
 #include "fboss/agent/test/utils/TrafficPolicyTestUtils.h"
@@ -75,7 +76,7 @@ void AgentSendPacketToQueueTest::checkSendPacket(
             .at(queueID);
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     // packet format shouldn't be matter in this test
     auto pkt = utility::makeUDPTxPacket(
         getSw(),
@@ -172,7 +173,7 @@ TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
     }
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto randomMac = folly::MacAddress("01:02:03:04:05:06");
     // send packets with random dst mac to flood the vlan
     for (int i = 0; i < 100; i++) {

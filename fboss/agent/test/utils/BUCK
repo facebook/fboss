@@ -10,9 +10,13 @@ cpp_library(
     exported_deps = [
         ":config_utils",
         ":load_balancer_test_utils",
+        ":packet_snooper",
+        ":port_test_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/test:agent_ensemble",
+        "//fboss/lib:common_utils",
+        "//folly:network_address",
     ],
 )
 
@@ -54,6 +58,7 @@ cpp_library(
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:utils",
         "//fboss/lib:common_utils",
         "//folly:network_address",
         "//folly/logging:logging",
@@ -103,6 +108,7 @@ cpp_library(
     headers = ["FabricTestUtils.h"],
     exported_deps = [
         "fbsource//third-party/googletest:gtest",
+        "//fboss/agent:agent_features",
         "//fboss/agent:fboss-types",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent/hw/test:config_factory",
@@ -291,6 +297,7 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:utils",
         "//fboss/lib:common_utils",
         "//folly:network_address",
     ],
@@ -409,6 +416,7 @@ cpp_library(
         "//fboss/agent/test:ecmp_helper",
         "//fboss/agent/test:linkstate_toggler",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:utils",
     ],
 )
 
@@ -540,6 +548,7 @@ cpp_library(
         "//fboss/agent:validated_shell_commands-cpp2-types",
         "//fboss/agent/packet:packet_factory",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:utils",
     ],
 )
 
@@ -582,6 +591,7 @@ cpp_library(
     ],
     exported_deps = [
         ":acl_test_utils",
+        ":port_test_utils",
         "//fboss/agent:asic_utils",
         "//fboss/agent:fboss-types",
         "//fboss/agent:packet",
@@ -591,6 +601,9 @@ cpp_library(
         "//fboss/agent/test:agent_ensemble",
         "//fboss/agent/test:resourcelibutil",
         "//fboss/agent/test:test_ensemble_if",
+        "//fboss/agent/test:utils",
+        "//fboss/lib:common_utils",
+        "//folly:map_util",
         "//folly:network_address",
     ],
 )
@@ -702,6 +715,7 @@ cpp_library(
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test:agent_hw_test",
         "//fboss/agent/test:ecmp_helper",
+        "//fboss/agent/test:utils",
     ],
 )
 

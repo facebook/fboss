@@ -1,18 +1,25 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+#include <gtest/gtest.h>
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RouteUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBase.h"
+#include "fboss/agent/state/ForwardingInformationBaseMap.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/MySidMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/state/RouteTypes.h"
-
-#include <gtest/gtest.h>
+#include "fboss/agent/test/TestUtils.h"
 
 using namespace facebook::fboss;
+
+DECLARE_bool(enable_nexthop_id_manager);
 
 namespace {
 
@@ -378,4 +385,55 @@ TEST(FromThriftWithMySid, PreservesMySidType) {
   auto mySidTableCopy = rib->getMySidTableCopy();
   ASSERT_EQ(mySidTableCopy.size(), 1);
   EXPECT_EQ(*mySidTableCopy[prefix].type(), MySidType::DECAPSULATE_AND_LOOKUP);
+}
+
+// --- Tests for fromThrift initializing nextHopIDManager_ via fibsInfoMap ---
+
+// Verifies that fromThrift with a real fibsInfoMap (containing nexthop id maps)
+// and a mySidMap (with a MySid referencing a nexthop set) correctly populates
+// the nextHopIDManager via reconstructFromSwitchStateMaps. This covers the
+// warm-boot path where MySid entries have nexthop sets not referenced by
+// routes.
+TEST(FromThriftWithFibsInfoMap, NextHopIDManagerPopulatedViaMySid) {
+  FLAGS_enable_nexthop_id_manager = true;
+  constexpr int64_t kNhopId = 1;
+  constexpr int64_t kSetId = 1LL << 62;
+
+  // Build FibInfo with id maps containing one nexthop and one nexthop set
+  NextHop nhop =
+      makeResolvedNextHop(InterfaceID(1), "10.0.0.1", UCMP_DEFAULT_WEIGHT);
+  auto idToNhopMap = std::make_shared<IdToNextHopMap>();
+  idToNhopMap->addNextHop(kNhopId, nhop.toThrift());
+
+  auto idToNhopIdSetMap = std::make_shared<IdToNextHopIdSetMap>();
+  idToNhopIdSetMap->addNextHopIdSet(kSetId, {kNhopId});
+
+  auto fibInfo = std::make_shared<FibInfo>();
+  fibInfo->resetFibsMap(std::make_shared<ForwardingInformationBaseMap>());
+  fibInfo->setIdToNextHopMap(idToNhopMap);
+  fibInfo->setIdToNextHopIdSetMap(idToNhopIdSetMap);
+
+  auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+  fibsInfoMap->addNode("id=0", fibInfo);
+
+  // Build MySid whose resolvedNextHopsId references the nexthop set above
+  auto mySid = makeMySid();
+  mySid->setResolvedNextHopsId(NextHopSetID(kSetId));
+  auto mySidMap = std::make_shared<MultiSwitchMySidMap>();
+  mySidMap->addNode(mySid, scope());
+
+  std::map<int32_t, state::RouteTableFields> ribThrift;
+  ribThrift.emplace(0, state::RouteTableFields{});
+
+  auto rib = RoutingInformationBase::fromThrift(
+      ribThrift, fibsInfoMap, nullptr, mySidMap);
+
+  auto idManager = rib->getNextHopIDManagerCopy();
+  ASSERT_NE(idManager, nullptr);
+  EXPECT_NE(
+      idManager->getIdToNextHop().find(NextHopID(kNhopId)),
+      idManager->getIdToNextHop().end());
+  EXPECT_NE(
+      idManager->getIdToNextHopIdSet().find(NextHopSetID(kSetId)),
+      idManager->getIdToNextHopIdSet().end());
 }

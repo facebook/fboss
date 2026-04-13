@@ -16,7 +16,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
-#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
+#include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 namespace facebook::fboss {
 
@@ -37,7 +37,7 @@ class CmdConfigInterfacePfcConfig : public CmdHandler<
 
   RetType queryClient(
       const HostInfo& hostInfo,
-      const utils::InterfacesConfig& interfaceConfig,
+      const utils::InterfaceList& interfaces,
       const ObjectArgType& config);
 
   void printOutput(const RetType& logMsg);

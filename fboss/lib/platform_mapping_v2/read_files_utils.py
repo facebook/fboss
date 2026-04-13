@@ -9,8 +9,8 @@ from fboss.lib.platform_mapping_v2.port_profile_mapping import PortProfileMappin
 from fboss.lib.platform_mapping_v2.profile_settings import ProfileSettings
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-from neteng.fboss.asic_config_v2.ttypes import AsicVendorConfigParams
-from neteng.fboss.phy.ttypes import (
+from neteng.fboss.asic_config_v2.thrift_types import AsicVendorConfigParams
+from neteng.fboss.phy.phy.thrift_types import (
     FecMode,
     InterfaceType,
     IpModulation,
@@ -18,7 +18,7 @@ from neteng.fboss.phy.ttypes import (
     RxSettings,
     TxSettings,
 )
-from neteng.fboss.platform_mapping_config.ttypes import (
+from neteng.fboss.platform_mapping_config.thrift_types import (
     Chip,
     ChipSetting,
     ChipType,
@@ -33,12 +33,13 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SpeedSetting,
     TransceiverOverrideSetting,
 )
-from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed, PortType
-from neteng.fboss.transceiver.ttypes import (
-    MediaInterfaceCode,
-    TransmitterTechnology,
-    Vendor,
+from neteng.fboss.switch_config.thrift_types import (
+    PortProfileID,
+    PortSpeed,
+    PortType,
+    Scope,
 )
+from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
 
 
 def get_content(directory: Dict[str, str], filename: str) -> str:
@@ -94,9 +95,9 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
         a_chip = Chip(
             slot_id=int(row[Column.A_SLOT_ID]),
             chip_id=int(row[Column.A_CHIP_ID]),
-            chip_type=ChipType._NAMES_TO_VALUES[row[Column.A_CHIP_TYPE]],
+            chip_type=ChipType[row[Column.A_CHIP_TYPE]],
             core_id=int(row[Column.A_CORE_ID]),
-            core_type=CoreType._NAMES_TO_VALUES[row[Column.A_CORE_TYPE]],
+            core_type=CoreType[row[Column.A_CORE_TYPE]],
         )
         a_connection_end = ConnectionEnd(
             chip=a_chip,
@@ -107,9 +108,9 @@ def read_static_mapping(directory: Dict[str, str], prefix: str) -> StaticMapping
             z_chip = Chip(
                 slot_id=int(row[Column.Z_SLOT_ID]),
                 chip_id=int(row[Column.Z_CHIP_ID]),
-                chip_type=ChipType._NAMES_TO_VALUES[row[Column.Z_CHIP_TYPE]],
+                chip_type=ChipType[row[Column.Z_CHIP_TYPE]],
                 core_id=int(row[Column.Z_CORE_ID]),
-                core_type=CoreType._NAMES_TO_VALUES[row[Column.Z_CORE_TYPE]],
+                core_type=CoreType[row[Column.Z_CORE_TYPE]],
             )
             z_lane = Lane(
                 logical_id=int(row[Column.Z_CORE_LANE]),
@@ -168,13 +169,9 @@ def read_port_profile_mapping(
             virtual_device_id = None
         supported_profiles = []
         for profile in row[Column.SUPPORTED_PROFILES].split("-"):
-            if int(profile) not in PortProfileID._VALUES_TO_NAMES:
-                raise Exception("Don't understand profile ", profile)
-            supported_profiles.append(int(profile))
-        port_type = row[Column.PORT_TYPE]
-        if int(port_type) not in PortType._VALUES_TO_NAMES:
-            raise Exception("Don't understand port type", port_type)
-        scope = row[Column.SCOPE]
+            supported_profiles.append(PortProfileID(int(profile)))
+        port_type = PortType(int(row[Column.PORT_TYPE]))
+        scope = Scope(int(row[Column.SCOPE]))
         if Column.PARENT_PORT < len(row) and row[Column.PARENT_PORT]:
             parent_port_id = int(row[Column.PARENT_PORT])
         else:
@@ -192,10 +189,8 @@ def read_port_profile_mapping(
             attached_coreid=attached_coreid,
             attached_core_portid=attached_core_portid,
             virtual_device_id=virtual_device_id,
-            # pyre-fixme[6]: Expected `PortType` for 7th param but got `int`.
-            port_type=int(port_type),
-            # pyre-fixme[6]: Expected `Scope` for 8th param but got `int`.
-            scope=int(scope),
+            port_type=port_type,
+            scope=scope,
             parent_port_id=parent_port_id,
             controlling_port=controlling_port,
         )
@@ -216,34 +211,34 @@ def read_profile_settings(directory: Dict[str, str], prefix: str) -> ProfileSett
             continue
         row = line.split(",")
         speed = int(row[Column.PORT_SPEED_MBPS])
-        if speed not in PortSpeed._VALUES_TO_NAMES:
+        try:
+            PortSpeed(speed)
+        except ValueError:
             raise Exception("Invalid speed ", speed)
-        a_chip_type = ChipType._NAMES_TO_VALUES[row[Column.A_CHIP_TYPE]]
+        a_chip_type = ChipType[row[Column.A_CHIP_TYPE]]
         if row[Column.Z_CHIP_TYPE]:
-            z_chip_type = ChipType._NAMES_TO_VALUES[row[Column.Z_CHIP_TYPE]]
+            z_chip_type = ChipType[row[Column.Z_CHIP_TYPE]]
         else:
             z_chip_type = None
         num_lanes = int(row[Column.NUM_LANES])
-        modulation = IpModulation._NAMES_TO_VALUES[row[Column.MODULATION]]
-        a_fec = FecMode._NAMES_TO_VALUES[row[Column.A_FEC]]
+        modulation = IpModulation[row[Column.MODULATION]]
+        a_fec = FecMode[row[Column.A_FEC]]
         #  if empty, Z_FEC default to None
-        z_fec = (
-            FecMode._NAMES_TO_VALUES[row[Column.Z_FEC]] if row[Column.Z_FEC] else None
-        )
-        media_type = TransmitterTechnology._NAMES_TO_VALUES[row[Column.MEDIA_TYPE]]
+        z_fec = FecMode[row[Column.Z_FEC]] if row[Column.Z_FEC] else None
+        media_type = TransmitterTechnology[row[Column.MEDIA_TYPE]]
         a_interface_type = (
-            InterfaceType._NAMES_TO_VALUES[row[Column.A_INTERFACE_TYPE]]
+            InterfaceType[row[Column.A_INTERFACE_TYPE]]
             if row[Column.A_INTERFACE_TYPE]
             else InterfaceType.NONE
         )
         z_interface_type = (
-            InterfaceType._NAMES_TO_VALUES[row[Column.Z_INTERFACE_TYPE]]
+            InterfaceType[row[Column.Z_INTERFACE_TYPE]]
             if row[Column.Z_INTERFACE_TYPE]
             else InterfaceType.NONE
         )
         profiles.append(
             SpeedSetting(
-                speed=speed,
+                speed=PortSpeed(speed),
                 a_chip_settings=ChipSetting(
                     chip_type=a_chip_type,
                     chip_interface_type=a_interface_type,
@@ -287,8 +282,8 @@ def read_si_settings(
         chip = Chip(
             slot_id=int(row[Column.SLOT_ID]),
             chip_id=int(row[Column.CHIP_ID]),
-            chip_type=ChipType._NAMES_TO_VALUES[row[Column.CHIP_TYPE]],
-            core_type=CoreType._NAMES_TO_VALUES[row[Column.CORE_TYPE]],
+            chip_type=ChipType[row[Column.CHIP_TYPE]],
+            core_type=CoreType[row[Column.CORE_TYPE]],
             core_id=int(row[Column.CORE_ID]),
         )
         pin_connection = SiSettingPinConnection(
@@ -298,15 +293,18 @@ def read_si_settings(
 
         lane_speed = None
         if row[Column.LANE_SPEED]:
-            if int(row[Column.LANE_SPEED]) not in PortSpeed._VALUES_TO_NAMES:
+            try:
+                PortSpeed(int(row[Column.LANE_SPEED]))
+            except ValueError:
                 raise Exception("Invalid speed ", row[Column.LANE_SPEED])
-            lane_speed = int(row[Column.LANE_SPEED])
+            lane_speed = PortSpeed(int(row[Column.LANE_SPEED]))
 
         media_type = None
         if row[Column.MEDIA_TYPE]:
-            if row[Column.MEDIA_TYPE] not in TransmitterTechnology._NAMES_TO_VALUES:
+            try:
+                media_type = TransmitterTechnology[row[Column.MEDIA_TYPE]]
+            except KeyError:
                 raise Exception("Invalid media type ", row[Column.MEDIA_TYPE])
-            media_type = TransmitterTechnology._NAMES_TO_VALUES[row[Column.MEDIA_TYPE]]
 
         cable_length = None
         if row[Column.CABLE_LENGTH]:
@@ -336,200 +334,205 @@ def read_si_settings(
                 )
             tcvr_setting = TransceiverOverrideSetting(vendor=vendor)
         si_setting_factor = SiSettingFactor(
-            # pyre-fixme[6]: Expected `Optional[PortSpeed]` for 1st param but got `Optional[int]`.
             lane_speed=lane_speed,
             media_type=media_type,
             cable_length=cable_length,
             tcvr_override_setting=tcvr_setting,
         )
 
-        tx_setting = TxSettings()
+        tx_kwargs: Dict[str, Any] = {}
         if chip.core_type == CoreType.G200:
             if "TX_PRE3" in column_names and row[Column.TX_PRE3]:
-                tx_setting.firPre3 = int(row[Column.TX_PRE3])
+                tx_kwargs["firPre3"] = int(row[Column.TX_PRE3])
             if "TX_PRE2" in column_names and row[Column.TX_PRE2]:
-                tx_setting.firPre2 = int(row[Column.TX_PRE2])
+                tx_kwargs["firPre2"] = int(row[Column.TX_PRE2])
             if "TX_PRE1" in column_names and row[Column.TX_PRE1]:
-                tx_setting.firPre1 = int(row[Column.TX_PRE1])
+                tx_kwargs["firPre1"] = int(row[Column.TX_PRE1])
             if "TX_MAIN" in column_names and row[Column.TX_MAIN]:
-                tx_setting.firMain = int(row[Column.TX_MAIN])
+                tx_kwargs["firMain"] = int(row[Column.TX_MAIN])
             if "TX_POST1" in column_names and row[Column.TX_POST1]:
-                tx_setting.firPost1 = int(row[Column.TX_POST1])
+                tx_kwargs["firPost1"] = int(row[Column.TX_POST1])
             if "TX_POST2" in column_names and row[Column.TX_POST2]:
-                tx_setting.firPost2 = int(row[Column.TX_POST2])
+                tx_kwargs["firPost2"] = int(row[Column.TX_POST2])
             if "TX_POST3" in column_names and row[Column.TX_POST3]:
-                tx_setting.firPost3 = int(row[Column.TX_POST3])
+                tx_kwargs["firPost3"] = int(row[Column.TX_POST3])
         else:
             if "TX_PRE3" in column_names and row[Column.TX_PRE3]:
-                tx_setting.pre3 = int(row[Column.TX_PRE3])
+                tx_kwargs["pre3"] = int(row[Column.TX_PRE3])
             if "TX_PRE2" in column_names and row[Column.TX_PRE2]:
-                tx_setting.pre2 = int(row[Column.TX_PRE2])
+                tx_kwargs["pre2"] = int(row[Column.TX_PRE2])
             if "TX_PRE1" in column_names and row[Column.TX_PRE1]:
-                tx_setting.pre = int(row[Column.TX_PRE1])
+                tx_kwargs["pre"] = int(row[Column.TX_PRE1])
             if "TX_MAIN" in column_names and row[Column.TX_MAIN]:
-                tx_setting.main = int(row[Column.TX_MAIN])
+                tx_kwargs["main"] = int(row[Column.TX_MAIN])
             if "TX_POST1" in column_names and row[Column.TX_POST1]:
-                tx_setting.post = int(row[Column.TX_POST1])
+                tx_kwargs["post"] = int(row[Column.TX_POST1])
             if "TX_POST2" in column_names and row[Column.TX_POST2]:
-                tx_setting.post2 = int(row[Column.TX_POST2])
+                tx_kwargs["post2"] = int(row[Column.TX_POST2])
             if "TX_POST3" in column_names and row[Column.TX_POST3]:
-                tx_setting.post3 = int(row[Column.TX_POST3])
+                tx_kwargs["post3"] = int(row[Column.TX_POST3])
 
         if "TX_PRECODING" in column_names and row[Column.TX_PRECODING]:
-            tx_setting.precoding = int(row[Column.TX_PRECODING])
+            tx_kwargs["precoding"] = int(row[Column.TX_PRECODING])
         if "TX_DIFF_ENCODER_EN" in column_names and row[Column.TX_DIFF_ENCODER_EN]:
-            tx_setting.diffEncoderEn = int(row[Column.TX_DIFF_ENCODER_EN])
+            tx_kwargs["diffEncoderEn"] = int(row[Column.TX_DIFF_ENCODER_EN])
         if "TX_DIG_GAIN" in column_names and row[Column.TX_DIG_GAIN]:
-            tx_setting.digGain = int(row[Column.TX_DIG_GAIN])
+            tx_kwargs["digGain"] = int(row[Column.TX_DIG_GAIN])
         if "TX_DRIVER_SWING" in column_names and row[Column.TX_DRIVER_SWING]:
-            tx_setting.driverSwing = int(row[Column.TX_DRIVER_SWING])
+            tx_kwargs["driverSwing"] = int(row[Column.TX_DRIVER_SWING])
         if "TX_DRIVE_CURRENT" in column_names and row[Column.TX_DRIVE_CURRENT]:
-            tx_setting.driveCurrent = int(row[Column.TX_DRIVE_CURRENT])
+            tx_kwargs["driveCurrent"] = int(row[Column.TX_DRIVE_CURRENT])
         if "TX_FFE_COEFF_0" in column_names and row[Column.TX_FFE_COEFF_0]:
-            tx_setting.ffeCoeff0 = int(row[Column.TX_FFE_COEFF_0])
+            tx_kwargs["ffeCoeff0"] = int(row[Column.TX_FFE_COEFF_0])
         if "TX_FFE_COEFF_1" in column_names and row[Column.TX_FFE_COEFF_1]:
-            tx_setting.ffeCoeff1 = int(row[Column.TX_FFE_COEFF_1])
+            tx_kwargs["ffeCoeff1"] = int(row[Column.TX_FFE_COEFF_1])
         if "TX_FFE_COEFF_2" in column_names and row[Column.TX_FFE_COEFF_2]:
-            tx_setting.ffeCoeff2 = int(row[Column.TX_FFE_COEFF_2])
+            tx_kwargs["ffeCoeff2"] = int(row[Column.TX_FFE_COEFF_2])
         if "TX_FFE_COEFF_3" in column_names and row[Column.TX_FFE_COEFF_3]:
-            tx_setting.ffeCoeff3 = int(row[Column.TX_FFE_COEFF_3])
+            tx_kwargs["ffeCoeff3"] = int(row[Column.TX_FFE_COEFF_3])
         if "TX_FFE_COEFF_4" in column_names and row[Column.TX_FFE_COEFF_4]:
-            tx_setting.ffeCoeff4 = int(row[Column.TX_FFE_COEFF_4])
+            tx_kwargs["ffeCoeff4"] = int(row[Column.TX_FFE_COEFF_4])
         if "TX_INNER_EYE_NEG" in column_names and row[Column.TX_INNER_EYE_NEG]:
-            tx_setting.innerEyeNeg = int(row[Column.TX_INNER_EYE_NEG])
+            tx_kwargs["innerEyeNeg"] = int(row[Column.TX_INNER_EYE_NEG])
         if "TX_INNER_EYE_POS" in column_names and row[Column.TX_INNER_EYE_POS]:
-            tx_setting.innerEyePos = int(row[Column.TX_INNER_EYE_POS])
+            tx_kwargs["innerEyePos"] = int(row[Column.TX_INNER_EYE_POS])
         if "TX_LDO_BYPASS" in column_names and row[Column.TX_LDO_BYPASS]:
-            tx_setting.ldoBypass = int(row[Column.TX_LDO_BYPASS])
+            tx_kwargs["ldoBypass"] = int(row[Column.TX_LDO_BYPASS])
         if "TX_FFE_COEFF_5" in column_names and row[Column.TX_FFE_COEFF_5]:
-            tx_setting.ffeCoeff5 = int(row[Column.TX_FFE_COEFF_5])
+            tx_kwargs["ffeCoeff5"] = int(row[Column.TX_FFE_COEFF_5])
+        tx_setting = TxSettings(**tx_kwargs)
 
-        rx_setting = RxSettings()
+        rx_kwargs: Dict[str, Any] = {}
         if "RX_REACH" in column_names and row[Column.RX_REACH]:
-            rx_setting.rxReach = (
+            rx_kwargs["rxReach"] = (
                 RxReach.RX_NORMAL_REACH
                 if int(row[Column.RX_REACH]) == 0
                 else RxReach.RX_EXTENDED_REACH
             )
         if "RX_CTLE_CODE" in column_names and row[Column.RX_CTLE_CODE]:
-            rx_setting.ctlCode = int(row[Column.RX_CTLE_CODE])
+            rx_kwargs["ctlCode"] = int(row[Column.RX_CTLE_CODE])
         if "RX_DSP_MODE" in column_names and row[Column.RX_DSP_MODE]:
-            rx_setting.dspMode = int(row[Column.RX_DSP_MODE])
+            rx_kwargs["dspMode"] = int(row[Column.RX_DSP_MODE])
         if "RX_AFE_TRIM" in column_names and row[Column.RX_AFE_TRIM]:
-            rx_setting.afeTrim = int(row[Column.RX_AFE_TRIM])
+            rx_kwargs["afeTrim"] = int(row[Column.RX_AFE_TRIM])
         if "RX_INSTG_BOOST1_STRT" in column_names and row[Column.RX_INSTG_BOOST1_STRT]:
-            rx_setting.instgBoost1Start = int(row[Column.RX_INSTG_BOOST1_STRT])
+            rx_kwargs["instgBoost1Start"] = int(row[Column.RX_INSTG_BOOST1_STRT])
         if "RX_INSTG_BOOST1_STEP" in column_names and row[Column.RX_INSTG_BOOST1_STEP]:
-            rx_setting.instgBoost1Step = int(row[Column.RX_INSTG_BOOST1_STEP])
+            rx_kwargs["instgBoost1Step"] = int(row[Column.RX_INSTG_BOOST1_STEP])
         if "RX_INSTG_BOOST1_STOP" in column_names and row[Column.RX_INSTG_BOOST1_STOP]:
-            rx_setting.instgBoost1Stop = int(row[Column.RX_INSTG_BOOST1_STOP])
+            rx_kwargs["instgBoost1Stop"] = int(row[Column.RX_INSTG_BOOST1_STOP])
         if (
             "RX_INSTG_BOOST2_OR_HR_STRT" in column_names
             and row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
         ):
-            rx_setting.instgBoost2OrHrStart = int(
+            rx_kwargs["instgBoost2OrHrStart"] = int(
                 row[Column.RX_INSTG_BOOST2_OR_HR_STRT]
             )
         if (
             "RX_INSTG_BOOST2_OR_HR_STEP" in column_names
             and row[Column.RX_INSTG_BOOST2_OR_HR_STEP]
         ):
-            rx_setting.instgBoost2OrHrStep = int(row[Column.RX_INSTG_BOOST2_OR_HR_STEP])
+            rx_kwargs["instgBoost2OrHrStep"] = int(
+                row[Column.RX_INSTG_BOOST2_OR_HR_STEP]
+            )
         if (
             "RX_INSTG_BOOST2_OR_HR_STOP" in column_names
             and row[Column.RX_INSTG_BOOST2_OR_HR_STOP]
         ):
-            rx_setting.instgBoost2OrHrStop = int(row[Column.RX_INSTG_BOOST2_OR_HR_STOP])
+            rx_kwargs["instgBoost2OrHrStop"] = int(
+                row[Column.RX_INSTG_BOOST2_OR_HR_STOP]
+            )
         if (
             "RX_INSTG_C1_START_1P7" in column_names
             and row[Column.RX_INSTG_C1_START_1P7]
         ):
-            rx_setting.instgC1Start1p7 = int(row[Column.RX_INSTG_C1_START_1P7])
+            rx_kwargs["instgC1Start1p7"] = int(row[Column.RX_INSTG_C1_START_1P7])
         if "RX_INSTG_C1_STEP_1P7" in column_names and row[Column.RX_INSTG_C1_STEP_1P7]:
-            rx_setting.instgC1Step1p7 = int(row[Column.RX_INSTG_C1_STEP_1P7])
+            rx_kwargs["instgC1Step1p7"] = int(row[Column.RX_INSTG_C1_STEP_1P7])
         if "RX_INSTG_C1_STOP_1P7" in column_names and row[Column.RX_INSTG_C1_STOP_1P7]:
-            rx_setting.instgC1Stop1p7 = int(row[Column.RX_INSTG_C1_STOP_1P7])
+            rx_kwargs["instgC1Stop1p7"] = int(row[Column.RX_INSTG_C1_STOP_1P7])
         if (
             "RX_INSTG_DFE_START_1P7" in column_names
             and row[Column.RX_INSTG_DFE_START_1P7]
         ):
-            rx_setting.instgDfeStart1p7 = int(row[Column.RX_INSTG_DFE_START_1P7])
+            rx_kwargs["instgDfeStart1p7"] = int(row[Column.RX_INSTG_DFE_START_1P7])
         if (
             "RX_INSTG_DFE_STEP_1P7" in column_names
             and row[Column.RX_INSTG_DFE_STEP_1P7]
         ):
-            rx_setting.instgDfeStep1p7 = int(row[Column.RX_INSTG_DFE_STEP_1P7])
+            rx_kwargs["instgDfeStep1p7"] = int(row[Column.RX_INSTG_DFE_STEP_1P7])
         if (
             "RX_INSTG_DFE_STOP_1P7" in column_names
             and row[Column.RX_INSTG_DFE_STOP_1P7]
         ):
-            rx_setting.instgDfeStop1p7 = int(row[Column.RX_INSTG_DFE_STOP_1P7])
+            rx_kwargs["instgDfeStop1p7"] = int(row[Column.RX_INSTG_DFE_STOP_1P7])
         if "RX_DIFF_ENCODER_EN" in column_names and row[Column.RX_DIFF_ENCODER_EN]:
-            rx_setting.diffEncoderEn = int(row[Column.RX_DIFF_ENCODER_EN])
+            rx_kwargs["diffEncoderEn"] = int(row[Column.RX_DIFF_ENCODER_EN])
         if (
             "RX_ENABLE_SCAN_SELECTION" in column_names
             and row[Column.RX_ENABLE_SCAN_SELECTION]
         ):
-            rx_setting.enableScanSelection = int(row[Column.RX_ENABLE_SCAN_SELECTION])
+            rx_kwargs["enableScanSelection"] = int(row[Column.RX_ENABLE_SCAN_SELECTION])
         if (
             "RX_INSTG_SCAN_USE_SR_SETTINGS" in column_names
             and row[Column.RX_INSTG_SCAN_USE_SR_SETTINGS]
         ):
-            rx_setting.instgScanUseSrSettings = int(
+            rx_kwargs["instgScanUseSrSettings"] = int(
                 row[Column.RX_INSTG_SCAN_USE_SR_SETTINGS]
             )
         if "RX_CDR_CFG_OV_EN" in column_names and row[Column.RX_CDR_CFG_OV_EN]:
-            rx_setting.cdrCfgOvEn = int(row[Column.RX_CDR_CFG_OV_EN])
+            rx_kwargs["cdrCfgOvEn"] = int(row[Column.RX_CDR_CFG_OV_EN])
         if (
             "RX_CDR_TDET_1ST_ORD_STEP_OV_VAL" in column_names
             and row[Column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
         ):
-            rx_setting.cdrTdet1stOrdStepOvVal = int(
+            rx_kwargs["cdrTdet1stOrdStepOvVal"] = int(
                 row[Column.RX_CDR_TDET_1ST_ORD_STEP_OV_VAL]
             )
         if (
             "RX_CDR_TDET_2ND_ORD_STEP_OV_VAL" in column_names
             and row[Column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
         ):
-            rx_setting.cdrTdet2ndOrdStepOvVal = int(
+            rx_kwargs["cdrTdet2ndOrdStepOvVal"] = int(
                 row[Column.RX_CDR_TDET_2ND_ORD_STEP_OV_VAL]
             )
         if (
             "RX_CDR_TDET_FINE_STEP_OV_VAL" in column_names
             and row[Column.RX_CDR_TDET_FINE_STEP_OV_VAL]
         ):
-            rx_setting.cdrTdetFineStepOvVal = int(
+            rx_kwargs["cdrTdetFineStepOvVal"] = int(
                 row[Column.RX_CDR_TDET_FINE_STEP_OV_VAL]
             )
         if "RX_LDO_BYPASS" in column_names and row[Column.RX_LDO_BYPASS]:
-            rx_setting.ldoBypass = int(row[Column.RX_LDO_BYPASS])
+            rx_kwargs["ldoBypass"] = int(row[Column.RX_LDO_BYPASS])
         if "RX_FFE_LENGTH_BITMAP" in column_names and row[Column.RX_FFE_LENGTH_BITMAP]:
-            rx_setting.ffeLengthBitmap = int(row[Column.RX_FFE_LENGTH_BITMAP])
+            rx_kwargs["ffeLengthBitmap"] = int(row[Column.RX_FFE_LENGTH_BITMAP])
         if "RX_INSTG_ENABLE_SCAN" in column_names and row[Column.RX_INSTG_ENABLE_SCAN]:
-            rx_setting.instgEnableScan = int(row[Column.RX_INSTG_ENABLE_SCAN])
+            rx_kwargs["instgEnableScan"] = int(row[Column.RX_INSTG_ENABLE_SCAN])
         if "RX_DCW_EN" in column_names and row[Column.RX_DCW_EN]:
-            rx_setting.dcwEn = int(row[Column.RX_DCW_EN])
+            rx_kwargs["dcwEn"] = int(row[Column.RX_DCW_EN])
         if (
             "RX_DCW_STEP_COARSE_OV_VAL" in column_names
             and row[Column.RX_DCW_STEP_COARSE_OV_VAL]
         ):
-            rx_setting.dcwStepCoarseOvVal = int(row[Column.RX_DCW_STEP_COARSE_OV_VAL])
+            rx_kwargs["dcwStepCoarseOvVal"] = int(row[Column.RX_DCW_STEP_COARSE_OV_VAL])
         if (
             "RX_DCW_STEP_FINE_OV_VAL" in column_names
             and row[Column.RX_DCW_STEP_FINE_OV_VAL]
         ):
-            rx_setting.dcwStepFineOvVal = int(row[Column.RX_DCW_STEP_FINE_OV_VAL])
+            rx_kwargs["dcwStepFineOvVal"] = int(row[Column.RX_DCW_STEP_FINE_OV_VAL])
         if "RX_DCW_OV_EN" in column_names and row[Column.RX_DCW_OV_EN]:
-            rx_setting.dcwOvEn = int(row[Column.RX_DCW_OV_EN])
+            rx_kwargs["dcwOvEn"] = int(row[Column.RX_DCW_OV_EN])
         if (
             "RX_FFE_LMS_DYNAMIC_GATING_EN" in column_names
             and row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
         ):
-            rx_setting.ffeLmsDynamicGatingEn = int(
+            rx_kwargs["ffeLmsDynamicGatingEn"] = int(
                 row[Column.RX_FFE_LMS_DYNAMIC_GATING_EN]
             )
         if "RX_PRECODING" in column_names and row[Column.RX_PRECODING]:
-            rx_setting.precoding = int(row[Column.RX_PRECODING])
+            rx_kwargs["precoding"] = int(row[Column.RX_PRECODING])
+        rx_setting = RxSettings(**rx_kwargs)
 
         # Handle custom collection attributes.
         tx_custom_collection = {}

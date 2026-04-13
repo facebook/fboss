@@ -1,4 +1,5 @@
 {
+  "platformName": "WEDGE800CACT",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -1672,7 +1673,7 @@
   "powerConfig": {
     "perSlotPowerConfigs": [
       {
-        "name": "PSU1",
+        "name": "PWRBRK1",
         "voltageSensorName": "MCB_U38_PWRBRK_VOUT",
         "currentSensorName": "MCB_U38_PWRBRK_IOUT"
       }

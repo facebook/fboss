@@ -107,8 +107,8 @@ void DsfStateUpdaterUtil::updateNeighborEntry(
                  << " on intf " << nbrEntryIter->second->getIntfID()
                  << " mac=" << nbrEntryIter->second->getMac() << " isNew="
                  << (!oldTable ||
-                     oldTable->find(nbrEntryIter->second->getID()) ==
-                         oldTable->cend());
+                     std::as_const(*oldTable).find(
+                         nbrEntryIter->second->getID()) == oldTable->cend());
       ++nbrEntryIter;
     }
   }
@@ -223,18 +223,24 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
               mapToUpdate->updateNode(
                   clonedNode, scopeResolver->scope(clonedNode));
             } else {
-              processRemoteInterfaceRoutes(
-                  oldNode,
-                  out,
-                  false /* add */,
-                  remoteIntfRoutesToAdd,
-                  remoteIntfRoutesToDel);
-              processRemoteInterfaceRoutes(
-                  newNode,
-                  out,
-                  true /* add */,
-                  remoteIntfRoutesToAdd,
-                  remoteIntfRoutesToDel);
+              // Only process routes if addresses or routerID changed.
+              // Neighbor-only changes don't affect routes.
+              if (oldNode->getAddresses()->toThrift() !=
+                      newNode->getAddresses()->toThrift() ||
+                  oldNode->getRouterID() != newNode->getRouterID()) {
+                processRemoteInterfaceRoutes(
+                    oldNode,
+                    out,
+                    false /* add */,
+                    remoteIntfRoutesToAdd,
+                    remoteIntfRoutesToDel);
+                processRemoteInterfaceRoutes(
+                    newNode,
+                    out,
+                    true /* add */,
+                    remoteIntfRoutesToAdd,
+                    remoteIntfRoutesToDel);
+              }
               mapToUpdate->updateNode(
                   clonedNode, scopeResolver->scope(clonedNode, in));
             }

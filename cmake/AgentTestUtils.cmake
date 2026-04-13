@@ -266,6 +266,7 @@ target_link_libraries(srv6_test_utils
   config_utils
   fboss_types
   load_balancer_test_utils
+  packet_snooper
   switch_config_cpp2
 )
 

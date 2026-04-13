@@ -484,8 +484,22 @@ struct PmdInfo {
   1: map<i16, LaneInfo> lanes;
 }
 
+// Link Training RX trained status (mirrors SAI sai_port_link_training_rx_status_t)
+enum LinkTrainingRxStatus {
+  NOT_TRAINED = 0,
+  TRAINED = 1,
+}
+
+// Link Training status information (read-only from SAI)
+struct LinkTrainingStatus {
+  1: bool linkTrainingEnabled;
+  2: optional LinkTrainingRxStatus rxStatus;
+}
+
 struct PmdState {
   1: map<i16, LaneState> lanes;
+  // Link Training status (enabled, RX trained status)
+  2: LinkTrainingStatus linkTrainingStatus;
 }
 
 struct PmdStats {

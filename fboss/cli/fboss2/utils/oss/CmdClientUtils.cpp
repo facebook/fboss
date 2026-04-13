@@ -12,6 +12,7 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
+#include "fboss/platform/fan_service/if/gen-cpp2/FanService.h"
 #include "fboss/qsfp_service/if/gen-cpp2/QsfpService.h"
 
 namespace facebook::fboss::utils {
@@ -72,6 +73,14 @@ createFsdbClient(const HostInfo& hostInfo) {
   return createPlaintextClient<
       apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>(
       hostInfo, port);
+}
+
+std::unique_ptr<
+    apache::thrift::Client<facebook::fboss::platform::fan_service::FanService>>
+createFanServiceClient(const HostInfo& hostInfo) {
+  auto port = CmdGlobalOptions::getInstance()->getFanServiceThriftPort();
+  return createPlaintextClient<apache::thrift::Client<
+      facebook::fboss::platform::fan_service::FanService>>(hostInfo, port);
 }
 
 } // namespace facebook::fboss::utils

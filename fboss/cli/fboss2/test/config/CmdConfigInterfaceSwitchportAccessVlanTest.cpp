@@ -9,7 +9,7 @@
 
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
-#include "fboss/cli/fboss2/utils/InterfacesConfig.h"
+#include "fboss/cli/fboss2/utils/InterfaceList.h"
 
 using namespace ::testing;
 
@@ -150,9 +150,9 @@ TEST_F(
   auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
   VlanIdValue vlanId({"2001"});
 
-  utils::InterfacesConfig interfaceConfig({"eth1/1/1", "eth1/2/1"});
+  utils::InterfaceList interfaces({"eth1/1/1", "eth1/2/1"});
 
-  auto result = cmd.queryClient(localhost(), interfaceConfig, vlanId);
+  auto result = cmd.queryClient(localhost(), interfaces, vlanId);
 
   EXPECT_THAT(result, HasSubstr("Successfully set access VLAN"));
   EXPECT_THAT(result, HasSubstr("eth1/1/1"));
@@ -182,8 +182,13 @@ TEST_F(
 TEST_F(
     CmdConfigInterfaceSwitchportAccessVlanTestFixture,
     queryClientThrowsOnEmptyInterfaceList) {
-  // InterfacesConfig constructor throws when given an empty list
-  EXPECT_THROW(utils::InterfacesConfig({}), std::invalid_argument);
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterfaceSwitchportAccessVlan();
+  utils::InterfaceList emptyInterfaces({});
+  VlanIdValue vlanId({"100"});
+  EXPECT_THROW(
+      cmd.queryClient(localhost(), emptyInterfaces, vlanId),
+      std::invalid_argument);
 }
 
 } // namespace facebook::fboss

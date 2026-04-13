@@ -144,4 +144,34 @@ void FwUtilImpl::performXappUpgrade(const XappConfig& xappConfig) {
   checkCmdStatus(xappCmd, exitStatus);
 }
 
+void FwUtilImpl::performPsuUtilUpgrade(const PsuUtilConfig& psuUtilConfig) {
+  // Check if the firmware binary file is present
+  if (!std::filesystem::exists(fwBinaryFile_)) {
+    throw std::runtime_error(
+        "Firmware binary file not found: " + fwBinaryFile_);
+  }
+
+  // Determine the psu_util binary location
+  std::string psuUtilBinaryPath = getUpgradeToolBinaryPath("psu_util");
+
+  // Construct the psu_util command with the provided configuration
+  std::vector<std::string> psuUtilCmd = {psuUtilBinaryPath};
+  for (const auto& arg : *psuUtilConfig.psuUtilExtraArgs()) {
+    psuUtilCmd.push_back(arg);
+  }
+
+  psuUtilCmd.push_back(fwBinaryFile_);
+
+  XLOG(INFO) << "Running: " << folly::join(" ", psuUtilCmd);
+
+  // Don't pipe stdout/stderr — let psu_util print directly to terminal
+  // so the operator sees real-time progress during firmware upgrade.
+  // This is important because PSU upgrades may trigger a reboot,
+  // and captured output would be lost.
+  folly::Subprocess p(psuUtilCmd, folly::Subprocess::Options());
+  int exitStatus = p.wait().exitStatus();
+
+  checkCmdStatus(psuUtilCmd, exitStatus);
+}
+
 } // namespace facebook::fboss::platform::fw_util

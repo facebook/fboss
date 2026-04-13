@@ -331,6 +331,9 @@ SaiPortManager::getSaiRxReach(
   return rxReach;
 }
 
+void SaiPortManager::fillInSupportedVendorExtStats(
+    std::vector<sai_stat_id_t>& /*counterIds*/) {}
+
 const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
     const PortID& portId) {
 #if defined(BRCM_SAI_SDK_GTE_13_0) && defined(BRCM_SAI_SDK_XGS)

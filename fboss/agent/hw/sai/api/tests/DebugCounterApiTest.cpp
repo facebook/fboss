@@ -77,6 +77,19 @@ TEST_F(DebugCounterApiTest, portInDebugCounter) {
   checkInCounter(debugCounterId, 1);
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+TEST_F(DebugCounterApiTest, portInDebugCounterSrv6LocalSidDrop) {
+  auto debugCounterId = debugCounterApi->create<SaiInPortDebugCounterTraits>(
+      SaiInPortDebugCounterTraits::CreateAttributes{
+          SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
+          SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+          SaiInPortDebugCounterTraits::Attributes::DropReasons{
+              {SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP}}},
+      0);
+  checkInCounter(debugCounterId, 1);
+}
+#endif
+
 TEST_F(DebugCounterApiTest, portOutDebugCounter) {
   auto debugCounterId = debugCounterApi->create<SaiOutPortDebugCounterTraits>(
       SaiOutPortDebugCounterTraits::CreateAttributes{

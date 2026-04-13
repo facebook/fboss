@@ -1221,11 +1221,13 @@ cpp_library(
         "types.cpp",
     ],
     headers = [
+        "LocalSwitchIds.h",
         "PortDescriptorTemplate.h",
         "types.h",
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":fboss-error",
         ":switch_config-cpp2-types",
         "//folly:conv",
         "//folly/json:dynamic",
@@ -1233,6 +1235,7 @@ cpp_library(
     ],
     exported_external_deps = [
         "boost",
+        ("boost", None, "boost_container"),
         ("boost", None, "boost_serialization"),
     ],
 )

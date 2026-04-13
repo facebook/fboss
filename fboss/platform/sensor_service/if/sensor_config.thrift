@@ -128,9 +128,10 @@ struct AsicCommand {
 }
 
 // `PerSlotPowerConfig`: Describes power consumption of individual slots.
-// This is used for PSU/PEM/HSC which are useful to monitor individually.
+// This is used for PSU/PEM/HSC/PWRBRK which are useful to monitor individually.
 //
-// `name`: Unique name of the power component (e.g., PSU1, PSU2, PEM1, PEM2, HSC).
+// `name`: Unique name of the power component
+//         (e.g., PSU1, PSU2, PEM1, PEM2, HSC1, HSC2, PWRBRK1, PWRBRK2).
 //
 // `powerSensorName`: Name of the power sensor if available. This should be set
 //                    if the component has a direct power measurement sensor.
@@ -151,7 +152,8 @@ struct PerSlotPowerConfig {
 
 // `PowerConfig`: Consolidates all power-related configurations.
 //
-// `perSlotPowerConfigs`: List of per-slot power configurations for PSU/PEM/HSC.
+// `perSlotPowerConfigs`: List of per-slot power configurations
+//                        for PSU/PEM/HSC/PWRBRK.
 //
 // `otherPowerSensorNames`: List of other power sensor names that are not part
 //                          of per-slot configurations (e.g., FANx power sensors).
@@ -202,8 +204,9 @@ struct TemperatureConfig {
 
 // The configuration for sensor mapping.
 struct SensorConfig {
-  1: list<PmUnitSensors> pmUnitSensorsList;
-  2: optional AsicCommand asicCommand;
+  1: string platformName;
+  6: list<PmUnitSensors> pmUnitSensorsList;
+  7: optional AsicCommand asicCommand;
   11: PowerConfig powerConfig;
   12: list<TemperatureConfig> temperatureConfigs;
 }

@@ -18,6 +18,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -378,7 +379,7 @@ TEST_F(AgentFlowletSprayTest, VerifyEcmpRandomSpray) {
       int packetCount = 200000;
       auto vlanId = getVlanIDForTx();
       auto intfMac =
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
       utility::pumpRoCETraffic(
           true,
           utility::getAllocatePktFn(getAgentEnsemble()),

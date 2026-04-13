@@ -20,6 +20,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -167,7 +168,7 @@ void ProdInvariantTest::setupConfigFlag() {
 
 void ProdInvariantTest::sendTraffic(int numPackets) {
   auto state = getSw()->getState();
-  auto intfID = utility::firstInterfaceIDWithPorts(state);
+  auto intfID = firstInterfaceIDWithPortsForTesting(state);
   auto mac = utility::getInterfaceMac(state, intfID);
   std::optional<PortID> portId = std::nullopt;
   int hopLimit = 255;
@@ -315,7 +316,8 @@ void ProdInvariantTest::verifyDscpToQueueMapping() {
 void ProdInvariantTest::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto vlanId = ensemble->getVlanIDForTx();
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(getSw()->getState());
+  auto intfMac =
+      getMacForFirstInterfaceWithPortsForTesting(getSw()->getState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 
   // if DscpMarkingTest is set, send unmarked packet matching DSCP marking ACL,

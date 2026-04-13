@@ -280,6 +280,26 @@ DEFINE_int32(
     75,
     "Percentage of DLB ECMP resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
 
+DEFINE_bool(
+    enable_mysid_resource_protection,
+    false,
+    "Enable MySID resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    mysid_resource_percentage,
+    75,
+    "Percentage of MySID resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
+DEFINE_bool(
+    enable_srv6_nexthop_resource_protection,
+    false,
+    "Enable SRv6 next hop resource protection in ResourceAccountant");
+
+DEFINE_int32(
+    srv6_nexthop_resource_percentage,
+    75,
+    "Percentage of SRv6 next hop resources (out of 100) allowed to use before ResourceAccountant rejects the update.");
+
 DEFINE_int32(
     switch_index_for_testing,
     0,
@@ -378,6 +398,11 @@ DEFINE_bool(
     "Initiate neighbor solicitation for static neighbors");
 
 DEFINE_bool(
+    arp_static_neighbor,
+    false,
+    "Initiate ARP request for static neighbors");
+
+DEFINE_bool(
     dsf_single_stage_r128_f40_e16_8k_sys_ports,
     false,
     "Allow upto 8K system ports on single stage DSF (default=6144)");
@@ -449,6 +474,12 @@ DEFINE_bool(
     "On SW agent only crash, it can collect the switch state from hw"
     " switches and recover from it. This enables hitless restarts"
     " on SW agent. This is only used for Sw Switch.");
+
+DEFINE_bool(
+    verify_recover_from_hw_switch,
+    false,
+    "When set, assert that SW agent actually warmbooted from HW switch."
+    " Used in tests to verify the warmboot-from-HW-switch path.");
 
 DEFINE_int32(
     fabric_link_monitoring_max_l1_l2_switch_ids,

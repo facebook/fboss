@@ -204,6 +204,13 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
       counterIds.emplace_back(
           managerTable_->debugCounterManager().getTrapDropCounterStatId());
     }
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+      counterIds.emplace_back(
+          managerTable_->debugCounterManager().getSrv6MySidDropCounterStatId());
+    }
+#endif
     if (platform_->getAsic()->isSupported(HwAsic::Feature::PFC)) {
       counterIds.reserve(
           counterIds.size() + SaiPortTraits::PfcCounterIdsToRead.size());
@@ -238,6 +245,7 @@ void SaiPortManager::fillInSupportedStats(PortID port) {
             HwAsic::Feature::SAI_PORT_IN_CONGESTION_DISCARDS)) {
       counterIds.emplace_back(SAI_PORT_STAT_IN_DROPPED_PKTS);
     }
+    fillInSupportedVendorExtStats(counterIds);
     return counterIds;
   };
   port2SupportedStats_.emplace(port, getSupportedStats());
@@ -1019,7 +1027,7 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       std::nullopt, // QosIngressBufferProfileList
       std::nullopt, // QosEgressBufferProfileList
       propagationDelayMediaType, // CablePropagationDelayMediaType
-#if defined(CHENAB_SAI_SDK_VERSION_2505_34_0_38)
+#if defined(CHENAB_SAI_SDK)
       0xffff, // PfcPauseDurationOverride
 #else
       std::nullopt, // PfcPauseDurationOverride
@@ -1675,7 +1683,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
      * cause port flaps.
      *
      * Hence, swap the values back if its a warmboot. As we are scheduling
-     * coldboots for AFE TRIM SEV S249471, utilize this to propogate the correct
+     * coldboots for AFE TRIM SEV S249471, utilize this to propagate the correct
      * values.
      *
      * This will help us carry on the warmboot upgrades on 400C devices while

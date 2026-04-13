@@ -160,7 +160,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
         getSw(),
         getVlanIDForTx(),
         utility::kLocalCpuMac(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         kPacketSrcIp_,
         dstIp,
         kPacketSrcPort,
@@ -652,7 +652,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
           getSw(),
           getVlanIDForTx(),
           utility::kLocalCpuMac(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
           kDestIp,
           0x4444,
@@ -974,7 +974,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithMultipleMirrors) {
       setupEcmpTraffic(
           loop.injectionPortId,
           loop.dstIp,
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
     }
     waitForStateUpdates(getSw());
@@ -1436,7 +1436,7 @@ TEST_P(AgentMirrorOnDropDnxTest, VsqReject) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -1494,7 +1494,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PrecedenceDrop) {
     setupEcmpTraffic(
         injectionPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /* disableTtlDecrement */);
     waitForStateUpdates(getSw());
   };
@@ -1620,7 +1620,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(i),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(i); // for verifing traffic rate below
@@ -1648,7 +1648,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(idx),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(idx); // for verifying traffic rate below
@@ -1733,78 +1733,142 @@ XgsModPacketParsed deserializeXgsModPacket(const folly::IOBuf* buf) {
   return parsed;
 }
 
+// Expected values for verifying a captured XGS MoD packet.
+// All fields are optional; only fields that are set will be checked.
+struct XgsModPacketExpectedValues {
+  // Outer Ethernet
+  std::optional<folly::MacAddress> srcMac;
+  std::optional<folly::MacAddress> dstMac;
+
+  // Outer IPv6
+  std::optional<folly::IPAddressV6> srcIp;
+  std::optional<folly::IPAddressV6> dstIp;
+
+  // Outer UDP
+  std::optional<uint16_t> srcPort;
+  std::optional<uint16_t> dstPort;
+
+  // IPFIX / PSAMP
+  std::optional<uint32_t> observationDomainId;
+  std::optional<uint32_t> switchId;
+  std::optional<uint16_t> ingressPort;
+  std::optional<uint8_t> dropReasonIngress;
+  std::optional<uint8_t> dropReasonMmu;
+
+  // Inner (sampled) packet - Ethernet
+  std::optional<folly::MacAddress> innerDstMac;
+  std::optional<folly::MacAddress> innerSrcMac;
+
+  // Inner (sampled) packet - IPv6
+  std::optional<folly::IPAddressV6> innerSrcIp;
+  std::optional<folly::IPAddressV6> innerDstIp;
+
+  // Inner (sampled) packet - UDP
+  std::optional<uint16_t> innerSrcPort;
+  std::optional<uint16_t> innerDstPort;
+};
+
 // Verify a captured XGS MoD packet against expected values.
-// Only checks deterministic fields; timestamps, drop reasons, and
-// scheduling metadata are masked (not compared).
+// Only checks fields that are set in the expected struct. Invariants
+// (IPFIX version, PSAMP template ID, varLenIndicator, UDP checksum == 0,
+// nextHeader == UDP) are always checked.
 void verifyXgsModCapturedPacket(
     const XgsModPacketParsed& captured,
-    const folly::MacAddress& expectedDstMac,
-    const folly::IPAddressV6& expectedSrcIp,
-    const folly::IPAddressV6& expectedDstIp,
-    uint16_t expectedSrcPort,
-    uint16_t expectedDstPort,
-    uint32_t expectedObservationDomainId,
-    uint32_t expectedSwitchId,
-    uint16_t expectedIngressPort,
-    const folly::IPAddressV6& expectedInnerSrcIp,
-    const folly::IPAddressV6& expectedInnerDstIp,
-    uint16_t expectedInnerSrcPort,
-    uint16_t expectedInnerDstPort) {
-  // Outer Ethernet - only check dst MAC; src MAC is the physical port MAC
-  // assigned by the ASIC, which is not known at test configuration time.
-  EXPECT_EQ(captured.ethHeader.getDstMac(), expectedDstMac);
+    const XgsModPacketExpectedValues& expected) {
+  // Outer Ethernet
+  if (expected.srcMac.has_value()) {
+    EXPECT_EQ(captured.ethHeader.getSrcMac(), expected.srcMac.value());
+  }
+  if (expected.dstMac.has_value()) {
+    EXPECT_EQ(captured.ethHeader.getDstMac(), expected.dstMac.value());
+  }
 
-  // IPv6 - compare deterministic fields only (skip HopLimit, PayloadLength)
-  EXPECT_EQ(captured.ipv6Header.srcAddr, expectedSrcIp);
-  EXPECT_EQ(captured.ipv6Header.dstAddr, expectedDstIp);
+  // Outer IPv6
   EXPECT_EQ(
       captured.ipv6Header.nextHeader,
       static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
+  if (expected.srcIp.has_value()) {
+    EXPECT_EQ(captured.ipv6Header.srcAddr, expected.srcIp.value());
+  }
+  if (expected.dstIp.has_value()) {
+    EXPECT_EQ(captured.ipv6Header.dstAddr, expected.dstIp.value());
+  }
 
-  // UDP - compare ports and checksum (always 0 for PSAMP)
-  EXPECT_EQ(captured.udpHeader.srcPort, expectedSrcPort);
-  EXPECT_EQ(captured.udpHeader.dstPort, expectedDstPort);
+  // Outer UDP
   EXPECT_EQ(captured.udpHeader.csum, 0);
+  if (expected.srcPort.has_value()) {
+    EXPECT_EQ(captured.udpHeader.srcPort, expected.srcPort.value());
+  }
+  if (expected.dstPort.has_value()) {
+    EXPECT_EQ(captured.udpHeader.dstPort, expected.dstPort.value());
+  }
 
   // IPFIX header
   EXPECT_EQ(captured.psampPacket.ipfixHeader.version, psamp::IPFIX_VERSION);
-  EXPECT_EQ(
-      captured.psampPacket.ipfixHeader.observationDomainId,
-      expectedObservationDomainId);
+  if (expected.observationDomainId.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.ipfixHeader.observationDomainId,
+        expected.observationDomainId.value());
+  }
 
   // PSAMP template
   EXPECT_EQ(
       captured.psampPacket.templateHeader.templateId,
       psamp::XGS_PSAMP_TEMPLATE_ID);
 
-  // PSAMP data - deterministic fields
-  EXPECT_EQ(captured.psampPacket.data.switchId, expectedSwitchId);
-  EXPECT_EQ(captured.psampPacket.data.ingressPort, expectedIngressPort);
+  // PSAMP data
   EXPECT_EQ(
       captured.psampPacket.data.varLenIndicator,
       psamp::XGS_PSAMP_VAR_LEN_INDICATOR);
+  if (expected.switchId.has_value()) {
+    EXPECT_EQ(captured.psampPacket.data.switchId, expected.switchId.value());
+  }
+  if (expected.ingressPort.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.data.ingressPort, expected.ingressPort.value());
+  }
+  if (expected.dropReasonIngress.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.data.dropReasonIngress,
+        expected.dropReasonIngress.value());
+  }
+  if (expected.dropReasonMmu.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.data.dropReasonMmu,
+        expected.dropReasonMmu.value());
+  }
 
-  // Parse the inner packet from sampledPacketData to verify its IPv6/UDP
-  // header fields. The inner packet is a truncated copy of the original
-  // dropped packet. MACs may be rewritten and VLAN tags stripped by the
-  // ASIC, so we skip the Ethernet header and compare from IPv6 onward.
+  // Inner (sampled) packet
   auto innerBuf = folly::IOBuf::copyBuffer(
       captured.psampPacket.data.sampledPacketData.data(),
       captured.psampPacket.data.sampledPacketData.size());
   folly::io::Cursor innerCursor(innerBuf.get());
 
-  // Skip inner Ethernet header (no VLAN tag in sampled data): 14 bytes
-  innerCursor.skip(14);
+  EthHdr innerEth(innerCursor);
+  if (expected.innerDstMac.has_value()) {
+    EXPECT_EQ(innerEth.getDstMac(), expected.innerDstMac.value());
+  }
+  if (expected.innerSrcMac.has_value()) {
+    EXPECT_EQ(innerEth.getSrcMac(), expected.innerSrcMac.value());
+  }
 
   IPv6Hdr innerIpv6(innerCursor);
-  EXPECT_EQ(innerIpv6.srcAddr, expectedInnerSrcIp);
-  EXPECT_EQ(innerIpv6.dstAddr, expectedInnerDstIp);
   EXPECT_EQ(innerIpv6.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
+  if (expected.innerSrcIp.has_value()) {
+    EXPECT_EQ(innerIpv6.srcAddr, expected.innerSrcIp.value());
+  }
+  if (expected.innerDstIp.has_value()) {
+    EXPECT_EQ(innerIpv6.dstAddr, expected.innerDstIp.value());
+  }
 
   UDPHeader innerUdp;
   innerUdp.parse(&innerCursor);
-  EXPECT_EQ(innerUdp.srcPort, expectedInnerSrcPort);
-  EXPECT_EQ(innerUdp.dstPort, expectedInnerDstPort);
+  if (expected.innerSrcPort.has_value()) {
+    EXPECT_EQ(innerUdp.srcPort, expected.innerSrcPort.value());
+  }
+  if (expected.innerDstPort.has_value()) {
+    EXPECT_EQ(innerUdp.dstPort, expected.innerDstPort.value());
+  }
 }
 
 class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
@@ -1940,20 +2004,26 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
 
         auto parsed = deserializeXgsModPacket(frameRx->get());
 
-        verifyXgsModCapturedPacket(
-            parsed,
-            kCollectorNextHopMac_,
-            kSwitchIp_,
-            kCollectorIp_,
-            kMirrorSrcPort,
-            kMirrorDstPort,
-            1, // observationDomainId
-            0, // switchId
-            static_cast<uint16_t>(injectionPortId),
-            kPacketSrcIp_,
-            kDropDestIp,
-            kPacketSrcPort,
-            kPacketDstPort);
+        XgsModPacketExpectedValues expected;
+        expected.srcMac = getLocalMacAddress();
+        expected.dstMac = kCollectorNextHopMac_;
+        expected.srcIp = kSwitchIp_;
+        expected.dstIp = kCollectorIp_;
+        expected.srcPort = kMirrorSrcPort;
+        expected.dstPort = kMirrorDstPort;
+        expected.observationDomainId = 1;
+        expected.switchId = 0;
+        expected.ingressPort = static_cast<uint16_t>(injectionPortId);
+        expected.dropReasonIngress = 0x1A; // L3 destination discard
+        expected.dropReasonMmu = 0x00;
+        expected.innerSrcMac = utility::kLocalCpuMac();
+        expected.innerDstMac =
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+        expected.innerSrcIp = kPacketSrcIp_;
+        expected.innerDstIp = kDropDestIp;
+        expected.innerSrcPort = kPacketSrcPort;
+        expected.innerDstPort = kPacketDstPort;
+        verifyXgsModCapturedPacket(parsed, expected);
       }
     });
   };
@@ -2001,7 +2071,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -2038,20 +2108,23 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
 
         auto parsed = deserializeXgsModPacket(frameRx->get());
 
-        verifyXgsModCapturedPacket(
-            parsed,
-            kCollectorNextHopMac_,
-            kSwitchIp_,
-            kCollectorIp_,
-            kMirrorSrcPort,
-            kMirrorDstPort,
-            1, // observationDomainId
-            0, // switchId
-            static_cast<uint16_t>(injectionPortId),
-            kPacketSrcIp_,
-            kDropDestIp,
-            kPacketSrcPort,
-            kPacketDstPort);
+        XgsModPacketExpectedValues expected;
+        expected.srcMac = getLocalMacAddress();
+        expected.dstMac = kCollectorNextHopMac_;
+        expected.srcIp = kSwitchIp_;
+        expected.dstIp = kCollectorIp_;
+        expected.srcPort = kMirrorSrcPort;
+        expected.dstPort = kMirrorDstPort;
+        expected.observationDomainId = 1;
+        expected.switchId = 0;
+        expected.ingressPort = static_cast<uint16_t>(injectionPortId);
+        expected.dropReasonIngress = 0x00; // not an ingress pipeline drop
+        expected.dropReasonMmu = 0x03; // egress port drop
+        expected.innerSrcIp = kPacketSrcIp_;
+        expected.innerDstIp = kDropDestIp;
+        expected.innerSrcPort = kPacketSrcPort;
+        expected.innerDstPort = kPacketDstPort;
+        verifyXgsModCapturedPacket(parsed, expected);
       }
     });
 
@@ -2118,20 +2191,26 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModAclDrop) {
 
         auto parsed = deserializeXgsModPacket(frameRx->get());
 
-        verifyXgsModCapturedPacket(
-            parsed,
-            kCollectorNextHopMac_,
-            kSwitchIp_,
-            kCollectorIp_,
-            kMirrorSrcPort,
-            kMirrorDstPort,
-            1, // observationDomainId
-            0, // switchId
-            static_cast<uint16_t>(injectionPortId),
-            kPacketSrcIp_,
-            kAclDropDestIp,
-            kPacketSrcPort,
-            kPacketDstPort);
+        XgsModPacketExpectedValues expected;
+        expected.srcMac = getLocalMacAddress();
+        expected.dstMac = kCollectorNextHopMac_;
+        expected.srcIp = kSwitchIp_;
+        expected.dstIp = kCollectorIp_;
+        expected.srcPort = kMirrorSrcPort;
+        expected.dstPort = kMirrorDstPort;
+        expected.observationDomainId = 1;
+        expected.switchId = 0;
+        expected.ingressPort = static_cast<uint16_t>(injectionPortId);
+        expected.dropReasonIngress = 0x10; // ingress FP drop (ACL)
+        expected.dropReasonMmu = 0x00;
+        expected.innerSrcMac = utility::kLocalCpuMac();
+        expected.innerDstMac =
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+        expected.innerSrcIp = kPacketSrcIp_;
+        expected.innerDstIp = kAclDropDestIp;
+        expected.innerSrcPort = kPacketSrcPort;
+        expected.innerDstPort = kPacketDstPort;
+        verifyXgsModCapturedPacket(parsed, expected);
       }
     });
   };
@@ -2206,7 +2285,8 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   // Non-local MAC triggers L2 drops on loopback (dst MAC mismatch).
   const auto kCollectorNonLocalMac = folly::MacAddress::fromHBO(
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState()).u64HBO() +
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
+          .u64HBO() +
       10);
 
   const folly::IPAddressV6 kTrafficLoopIp{
@@ -2239,7 +2319,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
     setupEcmpTraffic(
         trafficPortId,
         kTrafficLoopIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /*disableTtlDecrement*/);
 
     // Non-local dest MAC in the ethernet packet will result in drops on

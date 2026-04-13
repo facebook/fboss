@@ -196,7 +196,7 @@ bool isEnabledPortWithSubnet(
 std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   auto switchIdVal = static_cast<int64_t>(switchId);
   // Use (200-255):(0-255) range for DSF node loopback IPs. Therefore, the max
-  // number of switchId can be accomodated will be 56 * 256 = 14366, which is
+  // number of switchId can be accommodated will be 56 * 256 = 14366, which is
   // more than what we need in both J2 and J3.
   const auto switchIdLimit = 14366;
   CHECK_LT(switchIdVal, switchIdLimit)
@@ -1090,6 +1090,10 @@ void populateSwitchInfo(
     }
     return firstHwAsicTableItr->second;
   }();
+  // In production, all NPUs on the same device share the same DSF node name.
+  // Use the smallest switchId as the device identifier to match this behavior.
+  auto deviceSwitchId =
+      static_cast<int64_t>(switchIdToSwitchInfo.begin()->first);
   for (const auto& [switchId, switchInfo] : switchIdToSwitchInfo) {
     newSwitchIdToSwitchInfo.insert({switchId, switchInfo});
     auto hwAsicTableItr = hwAsicTable.find(switchId);
@@ -1099,8 +1103,9 @@ void populateSwitchInfo(
     const auto& hwAsic = hwAsicTableItr->second;
     if (hwAsic->getSwitchType() == cfg::SwitchType::VOQ ||
         hwAsic->getSwitchType() == cfg::SwitchType::FABRIC) {
-      newDsfNodes.insert(
-          {switchId, dsfNodeConfig(*firstHwAsic, switchId, platformType)});
+      auto dsfNode = dsfNodeConfig(*firstHwAsic, switchId, platformType);
+      dsfNode.name() = folly::sformat("hwTestSwitch{}", deviceSwitchId);
+      newDsfNodes.insert({switchId, std::move(dsfNode)});
     }
   }
   config.switchSettings()->switchIdToSwitchInfo() = newSwitchIdToSwitchInfo;

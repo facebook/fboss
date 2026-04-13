@@ -22,15 +22,18 @@
 #include "fboss/lib/firmware_storage/FbossFirmware.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
+#include "fboss/qsfp_service/TransceiverLogging.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 
-#define QSFP_LOG(level, tcvr) \
-  XLOG(level) << "Transceiver " << tcvr->getNameString() << ": "
+#define QSFP_LOG(level, tcvr)                     \
+  TCVR_LOG_BASE(level, "", tcvr->getNameString()) \
+      << getPrimaryPortName() << ": "
 
-#define QSFP_LOG_IF(level, cond, tcvr) \
-  XLOG_IF(level, cond) << "Transceiver " << tcvr->getNameString() << ": "
+#define QSFP_LOG_IF(level, cond, tcvr)                     \
+  TCVR_LOG_BASE_IF(level, cond, "", tcvr->getNameString()) \
+      << getPrimaryPortName() << ": "
 
 #define CAST_TO_INT(FIELD) static_cast<int>((FIELD))
 
@@ -329,6 +332,10 @@ class QsfpModule : public Transceiver {
     return tcvrName_;
   }
 
+  inline std::string getPrimaryPortName() const {
+    return primaryPortName_;
+  }
+
   bool upgradeFirmware(
       std::vector<std::unique_ptr<FbossFirmware>>& fwList) override;
 
@@ -460,7 +467,7 @@ class QsfpModule : public Transceiver {
   bool validateQsfpString(const std::string& value) const;
 
   /*
-   * Retreives all alarm and warning thresholds
+   * Retrieves all alarm and warning thresholds
    */
   virtual std::optional<AlarmThreshold> getThresholdInfo() = 0;
   /*

@@ -21,6 +21,7 @@
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/CmdClearInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/clear/interface/prbs/stats/CmdClearInterfacePrbsStats.h"
 #include "fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h"
+#include "fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h"
 #include "fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h"
 #include "fboss/cli/fboss2/commands/set/interface/prbs/state/CmdSetInterfacePrbsState.h"
@@ -77,6 +78,7 @@
 #include "fboss/cli/fboss2/commands/show/mac/CmdShowMacDetails.h"
 #include "fboss/cli/fboss2/commands/show/mirror/CmdShowMirror.h"
 #include "fboss/cli/fboss2/commands/show/mpls/CmdShowMplsRoute.h"
+#include "fboss/cli/fboss2/commands/show/mysid/CmdShowMySid.h"
 #include "fboss/cli/fboss2/commands/show/ndp/CmdShowNdp.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPort.h"
 #include "fboss/cli/fboss2/commands/show/port/CmdShowPortQueue.h"
@@ -383,6 +385,12 @@ const CommandTree& kCommandTree() {
        argTypeHandler<CmdShowMirrorTraits>},
 
       {"show",
+       "mysid",
+       "Show MySid entries",
+       commandHandler<CmdShowMySid>,
+       argTypeHandler<CmdShowMySidTraits>},
+
+      {"show",
        "mpls",
        "Show MPLS information",
        {{"route",
@@ -498,6 +506,11 @@ const CommandTree& kCommandTree() {
        "Shut/No-Shut Interface",
        commandHandler<CmdBounceInterface>,
        argTypeHandler<CmdBounceInterfaceTraits>},
+      {"set",
+       "fanhold",
+       "Set fan hold PWM",
+       commandHandler<CmdSetFanHold>,
+       argTypeHandler<CmdSetFanHoldTraits>},
       {
           "set",
           "interface",

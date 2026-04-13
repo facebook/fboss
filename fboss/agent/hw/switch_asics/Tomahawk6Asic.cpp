@@ -236,6 +236,7 @@ bool Tomahawk6Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PORT_LEVEL_BUFFER_CONFIGURATION_SUPPORT:
     case HwAsic::Feature::ARS_FUTURE_PORT_LOAD:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
+    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
       return false;
   }
   return false;

@@ -15,6 +15,7 @@
   FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanup); \
   FRIEND_TEST(AgentTunnelMgrTest, checkProbedDataCleanupInterfaceDown);
 
+#include <folly/ScopeGuard.h>
 #include <string>
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/ThriftHandler.h"
@@ -1388,6 +1389,152 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
   };
 
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
+}
+
+// Verifies that the fix for SEV S484794 prevents OOB traffic leak on port down.
+// When a port goes down, TunManager now programs RTN_UNREACHABLE routes for the
+// connected subnets, preventing traffic from falling back to eth0 via the
+// default route. This test disables the first port and verifies the affected
+// interface route becomes unreachable, while unaffected interfaces continue
+// routing via their fboss TUN interfaces.
+TEST_F(AgentTunnelMgrTest, verifyNoOobLeakOnPortDown) {
+  // Parse device name from "ip route get" output (e.g., "dev eth0")
+  auto parseDevFromRouteOutput = [](const std::string& output) -> std::string {
+    auto pos = output.find("dev ");
+    if (pos == std::string::npos) {
+      return "";
+    }
+    auto start = pos + 4;
+    auto end = output.find(' ', start);
+    if (end == std::string::npos) {
+      end = output.size();
+    }
+    return output.substr(start, end - start);
+  };
+
+  auto setup = [=]() {};
+  auto verify = [=, this]() {
+    // Clean up any leftover kernel entries from previous runs
+    SCOPE_EXIT {
+      utility::clearAllKernelEntries();
+    };
+    auto config = initialConfig(*getAgentEnsemble());
+
+    applyNewConfig(config);
+    waitForStateUpdates(getAgentEnsemble()->getSw());
+
+    auto tunMgr = getAgentEnsemble()->getSw()->getTunManager();
+    ASSERT_TRUE(tunMgr->isValidNlSocket())
+        << "TunManager netlink socket is not valid, cannot verify routing";
+
+    // Step 1: Identify the first port
+    auto firstPort = getAgentEnsemble()->masterLogicalPortIds()[0];
+    XLOG(INFO) << "Target port: " << firstPort;
+
+    // Step 2: Identify the interface for that port
+    auto affectedIntfID = getInterfaceIDForPort(
+        firstPort, getAgentEnsemble()->getSw()->getState());
+    XLOG(INFO) << "Affected interface: " << affectedIntfID;
+
+    // Step 3: Gather all interface information (IPv6)
+    struct IntfInfo {
+      InterfaceID intfID;
+      std::string intfIP;
+      std::string peerIP;
+    };
+    IntfInfo affectedIntf;
+    std::vector<IntfInfo> unaffectedIntfs;
+
+    for (int i = 0; i < config.interfaces()->size(); i++) {
+      if (*config.interfaces()[i].isVirtual()) {
+        continue;
+      }
+      auto intfID = InterfaceID(config.interfaces()[i].intfID().value());
+      for (int j = 0; j < config.interfaces()[i].ipAddresses()->size(); j++) {
+        auto network = folly::IPAddress::createNetwork(
+            config.interfaces()[i].ipAddresses()[j], -1, false);
+        if (network.first.isV6() && !network.first.isLinkLocal()) {
+          auto v6Bytes = network.first.asV6().toByteArray();
+          v6Bytes[15] ^= 1;
+          auto peerAddr = folly::IPAddressV6(v6Bytes);
+          IntfInfo info{intfID, network.first.str(), peerAddr.str()};
+          if (intfID == affectedIntfID) {
+            affectedIntf = info;
+          } else {
+            unaffectedIntfs.push_back(info);
+          }
+          XLOG(INFO) << "Interface " << intfID << " IP: " << network.first
+                     << " peer: " << peerAddr
+                     << (intfID == affectedIntfID ? " (AFFECTED)" : "");
+          break;
+        }
+      }
+    }
+
+    ASSERT_FALSE(affectedIntf.intfIP.empty())
+        << "Failed to find IPv6 address for affected interface "
+        << affectedIntfID;
+
+    // Step 4: Before port down — affected interface route goes via its TUN
+    auto affectedTunName = folly::to<std::string>("fboss", affectedIntf.intfID);
+    WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+      auto cmd = folly::to<std::string>(
+          "ip -6 route get ",
+          affectedIntf.peerIP,
+          " from ",
+          affectedIntf.intfIP);
+      auto output = runShellCmd(cmd);
+      auto devName = parseDevFromRouteOutput(output);
+      XLOG(INFO) << "Before port down [affected intf " << affectedIntf.intfID
+                 << "] - " << cmd << ": " << output << " (dev: " << devName
+                 << ")";
+      EXPECT_EVENTUALLY_EQ(devName, affectedTunName);
+    });
+
+    // Step 5: Bring down only the first port using link toggler
+    XLOG(INFO) << "Bringing down port " << firstPort;
+    bringDownPort(firstPort);
+
+    // Determine management interface by querying the V6 default route
+    // (2001:4860:4860::8888 is Google's public DNS server)
+    auto mgmtOutput = runShellCmd("ip -6 route get 2001:4860:4860::8888");
+    auto mgmtDev = parseDevFromRouteOutput(mgmtOutput);
+    XLOG(INFO) << "Management interface (default route): " << mgmtDev;
+
+    // Step 6: After port down — affected interface route is unreachable
+    // (fix for S484794: unreachable routes block fallback to eth0)
+    WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+      auto cmd = folly::to<std::string>(
+          "ip -6 route get ",
+          affectedIntf.peerIP,
+          " from ",
+          affectedIntf.intfIP,
+          " 2>&1");
+      auto output = runShellCmd(cmd);
+      XLOG(INFO) << "After port down [affected intf " << affectedIntf.intfID
+                 << "] - " << cmd << ": " << output;
+      // Route is unreachable, NOT falling back to management interface
+      EXPECT_EVENTUALLY_TRUE(
+          output.find("No route to host") != std::string::npos);
+    });
+
+    // Step 7: Unaffected interfaces still route via their specific TUNs
+    for (const auto& info : unaffectedIntfs) {
+      auto tunName = folly::to<std::string>("fboss", info.intfID);
+      WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
+        auto cmd = folly::to<std::string>(
+            "ip -6 route get ", info.peerIP, " from ", info.intfIP);
+        auto output = runShellCmd(cmd);
+        auto devName = parseDevFromRouteOutput(output);
+        XLOG(INFO) << "After port down [unaffected intf " << info.intfID
+                   << "] - " << cmd << ": " << output << " (dev: " << devName
+                   << ")";
+        EXPECT_EVENTUALLY_EQ(devName, tunName);
+      });
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 } // namespace facebook::fboss

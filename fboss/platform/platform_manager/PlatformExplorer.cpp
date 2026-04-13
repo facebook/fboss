@@ -1139,4 +1139,5 @@ void PlatformExplorer::genHumanReadableEeproms() {
     writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/SMB_EEPROM");
   }
 }
+
 } // namespace facebook::fboss::platform::platform_manager

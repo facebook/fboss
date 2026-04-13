@@ -29,6 +29,7 @@ cpp_library(
     name = "standalone_rib",
     srcs = [
         "ConfigApplier.cpp",
+        "RibMySidUpdater.cpp",
         "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
         "RoutingInformationBase.cpp",
@@ -70,12 +71,14 @@ cpp_unittest(
         "test/ReconstructRibFromSwitchStateTests.cpp",
         "test/RibLpmTests.cpp",
         "test/RibMySidUpdateTests.cpp",
+        "test/RibMySidUpdaterTests.cpp",
         "test/RibRollbackTests.cpp",
         "test/RibRouteNormalizerTests.cpp",
         "test/RibToSwitchStateUpdaterTests.cpp",
         "test/RouteTests.cpp",
         "test/SerDesTests.cpp",
     ],
+    test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
         ":fib_updater",
         ":network_to_route_map",
@@ -88,6 +91,7 @@ cpp_unittest(
         "//fboss/agent:fboss-error",
         "//fboss/agent:fboss-types",
         "//fboss/agent:fib_helpers",
+        "//fboss/agent:hwswitch_matcher",
         "//fboss/agent:switch_config-cpp2-types",
         "//fboss/agent:switchid_scope_resolver",
         "//fboss/agent:utils",
@@ -144,6 +148,7 @@ cpp_library(
         "ForwardingInformationBaseUpdater.cpp",
         "MySidMapUpdater.cpp",
         "RibToSwitchStateUpdater.cpp",
+        "SwitchStateNextHopIdUpdater.cpp",
     ],
     exported_deps = [
         ":network_to_route_map",

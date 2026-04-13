@@ -385,9 +385,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                     if not first_root_dir:
                         first_root_dir = root_dir
                         self.assertTrue(
-                            root_dir.startswith(
-                                f"/mnt/btrfs/updates/{component}-"
-                            ),
+                            root_dir.startswith(f"/mnt/btrfs/updates/{component}-"),
                             f"Component {component} should have valid RootDirectory after first update (got {root_dir})",
                         )
                     else:
@@ -426,9 +424,7 @@ class TestDeviceTopologyIntegration(unittest.TestCase):
                     if not second_root_dir:
                         second_root_dir = root_dir
                         self.assertTrue(
-                            root_dir.startswith(
-                                f"/mnt/btrfs/updates/{component}-"
-                            ),
+                            root_dir.startswith(f"/mnt/btrfs/updates/{component}-"),
                             f"Component {component} should have valid RootDirectory after second update (got {root_dir})",
                         )
                         # Verify RootDirectory changed (new component snapshot created)

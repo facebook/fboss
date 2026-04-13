@@ -33,6 +33,9 @@ void SaiDebugCounterManager::setupDebugCounters() {
   setupL2SwitchDropCounter();
   setupL3SwitchDropCounter();
   setupTunnelSwitchDropCounter();
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  setupSrv6MySidDropCounter();
+#endif
 }
 
 void SaiDebugCounterManager::setupPortL3BlackHoleCounter() {
@@ -258,6 +261,27 @@ void SaiDebugCounterManager::setupTunnelSwitchDropCounter() {
           SaiInSwitchDebugCounterTraits::Attributes::Index{});
 }
 
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+void SaiDebugCounterManager::setupSrv6MySidDropCounter() {
+  if (!platform_->getAsic()->isSupported(
+          HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+    return;
+  }
+  SaiInPortDebugCounterTraits::CreateAttributes attrs{
+      SAI_DEBUG_COUNTER_TYPE_PORT_IN_DROP_REASONS,
+      SAI_DEBUG_COUNTER_BIND_METHOD_AUTOMATIC,
+      SaiInPortDebugCounterTraits::Attributes::DropReasons{
+          {SAI_IN_DROP_REASON_SRV6_LOCAL_SID_DROP}}};
+
+  auto& debugCounterStore = saiStore_->get<SaiInPortDebugCounterTraits>();
+  srv6MySidDropCounter_ = debugCounterStore.setObject(attrs, attrs);
+  srv6MySidDropCounterStatId_ = SAI_PORT_STAT_IN_DROP_REASON_RANGE_BASE +
+      SaiApiTable::getInstance()->debugCounterApi().getAttribute(
+          srv6MySidDropCounter_->adapterKey(),
+          SaiInPortDebugCounterTraits::Attributes::Index{});
+}
+#endif
+
 std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
     const {
   std::set<sai_stat_id_t> stats;
@@ -276,6 +300,11 @@ std::set<sai_stat_id_t> SaiDebugCounterManager::getConfiguredDebugStatIds()
   if (egressForwardingDropCounter_) {
     stats.insert(egressForwardingDropCounterStatId_);
   }
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+  if (srv6MySidDropCounter_) {
+    stats.insert(srv6MySidDropCounterStatId_);
+  }
+#endif
   return stats;
 }
 

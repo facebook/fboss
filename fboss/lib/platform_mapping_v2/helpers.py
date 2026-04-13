@@ -1,5 +1,4 @@
 # pyre-strict
-import copy
 import json
 import re
 from collections import defaultdict
@@ -7,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-from neteng.fboss.phy.ttypes import (
+from neteng.fboss.phy.phy.thrift_types import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     FecMode,
@@ -21,13 +20,13 @@ from neteng.fboss.phy.ttypes import (
     RxSettings,
     TxSettings,
 )
-from neteng.fboss.platform_config.ttypes import (
+from neteng.fboss.platform_config.platform_config.thrift_types import (
     PlatformPortConfigFactor,
     PlatformPortConfigOverride,
     PlatformPortConfigOverrideFactor,
     PlatformPortProfileConfigEntry,
 )
-from neteng.fboss.platform_mapping_config.ttypes import (
+from neteng.fboss.platform_mapping_config.thrift_types import (
     Chip,
     ChipType,
     ConnectionEnd,
@@ -37,8 +36,8 @@ from neteng.fboss.platform_mapping_config.ttypes import (
     SiSettingPinConnection,
     SpeedSetting,
 )
-from neteng.fboss.switch_config.ttypes import PortProfileID, PortSpeed
-from neteng.fboss.transceiver.ttypes import TransmitterTechnology, Vendor
+from neteng.fboss.switch_config.thrift_types import PortProfileID, PortSpeed
+from neteng.fboss.transceiver.thrift_types import TransmitterTechnology, Vendor
 
 
 def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
@@ -65,6 +64,7 @@ def profile_to_port_speed(profile: PortProfileID) -> List[PortSpeed]:
     if profile in [
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_1_PAM4_RS544X2N_COPPER,
@@ -135,6 +135,7 @@ def num_lanes_from_profile(profile: PortProfileID) -> int:
         PortProfileID.PROFILE_50G_2_NRZ_NOFEC_COPPER,
         PortProfileID.PROFILE_100G_2_PAM4_RS544_COPPER,
         PortProfileID.PROFILE_200G_2_PAM4_RS544_COPPER,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_2_PAM4_RS544X2N_COPPER,
     ]:
@@ -184,11 +185,11 @@ def is_terminal_chip(chip_type: ChipType) -> bool:
 
 
 def get_npu_chip_name(chip: Chip) -> str:
-    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
 
 
 def get_terminal_chip_name(chip: Chip) -> str:
-    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}"
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}"
 
 
 def get_npu_chip(chip: Chip) -> DataPlanePhyChip:
@@ -222,7 +223,7 @@ def get_backplane_chip(chip: Chip) -> DataPlanePhyChip:
 
 
 def get_xphy_chip_name(chip: Chip) -> str:
-    return f"{ChipType._VALUES_TO_NAMES[chip.chip_type]}-{CoreType._VALUES_TO_NAMES[chip.core_type]}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
+    return f"{ChipType(chip.chip_type).name}-{CoreType(chip.core_type).name}-slot{chip.slot_id}/chip{chip.chip_id}/core{chip.core_id}"
 
 
 def get_xphy_chip(chip: Chip) -> DataPlanePhyChip:
@@ -254,12 +255,13 @@ def _create_xphy_profile_side_config(
         else speed_setting.z_chip_settings
     )
 
-    config = ProfileSideConfig()
-    config.numLanes = speed_setting.num_lanes
-    config.modulation = speed_setting.modulation
-    config.fec = chip_settings.chip_fec
-    config.interfaceType = chip_settings.chip_interface_type
-    config.medium = speed_setting.media_type
+    config = ProfileSideConfig(
+        numLanes=speed_setting.num_lanes,
+        modulation=speed_setting.modulation,
+        fec=chip_settings.chip_fec,
+        interfaceType=chip_settings.chip_interface_type,
+        medium=speed_setting.media_type,
+    )
     return config
 
 
@@ -271,43 +273,49 @@ def get_platform_config_entry(
     xphy_line_speed_setting: Optional[SpeedSetting] = None,
     xphy_system_speed_setting: Optional[SpeedSetting] = None,
 ) -> Optional[PlatformPortProfileConfigEntry]:
-    factor = PlatformPortConfigFactor()
+    factor = PlatformPortConfigFactor(profileID=profile)
     profile_config = PortProfileConfig()
-    factor.profileID = profile
 
-    profile_config.speed = npu_speed_setting.speed
+    profile_config_speed = npu_speed_setting.speed
 
     # Configure NPU/IPHY side
-    npu_profile_side_config = ProfileSideConfig()
     if is_npu(npu_speed_setting.a_chip_settings.chip_type) or is_npu(
         npu_speed_setting.z_chip_settings.chip_type
     ):
-        npu_profile_side_config.numLanes = npu_speed_setting.num_lanes
-        npu_profile_side_config.modulation = npu_speed_setting.modulation
-        npu_profile_side_config.fec = npu_speed_setting.a_chip_settings.chip_fec
         if is_npu(npu_speed_setting.a_chip_settings.chip_type):
-            npu_profile_side_config.interfaceType = (
-                npu_speed_setting.a_chip_settings.chip_interface_type
-            )
+            npu_interface_type = npu_speed_setting.a_chip_settings.chip_interface_type
         else:
-            npu_profile_side_config.interfaceType = (
-                npu_speed_setting.z_chip_settings.chip_interface_type
-            )
-        npu_profile_side_config.medium = npu_speed_setting.media_type
-        profile_config.iphy = npu_profile_side_config
+            npu_interface_type = npu_speed_setting.z_chip_settings.chip_interface_type
 
+        npu_profile_side_config = ProfileSideConfig(
+            numLanes=npu_speed_setting.num_lanes,
+            modulation=npu_speed_setting.modulation,
+            fec=npu_speed_setting.a_chip_settings.chip_fec,
+            interfaceType=npu_interface_type,
+            medium=npu_speed_setting.media_type,
+        )
+
+        xphy_line = None
         if xphy_line_speed_setting is not None:
             # XPHY Line side config (from XPHY→BACKPLANE row, XPHY is A-end)
-            profile_config.xphyLine = _create_xphy_profile_side_config(
+            xphy_line = _create_xphy_profile_side_config(
                 xphy_line_speed_setting, use_a_chip_settings=True
             )
 
+        xphy_system = None
         if xphy_system_speed_setting is not None:
             # XPHY System side config (from NPU→XPHY row, XPHY is Z-end)
-            profile_config.xphySystem = _create_xphy_profile_side_config(
+            xphy_system = _create_xphy_profile_side_config(
                 xphy_system_speed_setting,
                 use_a_chip_settings=False,
             )
+
+        profile_config = PortProfileConfig(
+            speed=profile_config_speed,
+            iphy=npu_profile_side_config,
+            xphyLine=xphy_line,
+            xphySystem=xphy_system,
+        )
 
         return PlatformPortProfileConfigEntry(factor=factor, profile=profile_config)
     return None
@@ -317,18 +325,15 @@ def _convert_xphy_core_type(
     from_core_type: CoreType, suffix_from: str, suffix_to: str
 ) -> Optional[CoreType]:
     """Convert between XPHY core types (e.g., LINE ↔ SYSTEM)."""
-    from_core_type_name = CoreType._VALUES_TO_NAMES[from_core_type]
+    from_core_type_name = CoreType(from_core_type).name
     if not from_core_type_name.endswith(suffix_from):
         return None
 
     target_core_type_name = from_core_type_name.replace(suffix_from, suffix_to)
 
-    for (
-        core_type_value,
-        core_type_name,
-    ) in CoreType._VALUES_TO_NAMES.items():
-        if core_type_name == target_core_type_name:
-            return core_type_value
+    for ct in CoreType:
+        if ct.name == target_core_type_name:
+            return ct
 
     return None
 
@@ -343,10 +348,8 @@ def _find_matching_xphy_connection_in_pairs(
     - When matching from SYSTEM to LINE: expected_line_lane = system_lane - 8
     - When matching from LINE to SYSTEM: expected_system_lane = line_lane + 8
     """
-    reference_core_type_name = CoreType._VALUES_TO_NAMES[
-        reference_connection.chip.core_type
-    ]
-    target_core_type_name = CoreType._VALUES_TO_NAMES[target_core_type]
+    reference_core_type_name = CoreType(reference_connection.chip.core_type).name
+    target_core_type_name = CoreType(target_core_type).name
 
     reference_lane = reference_connection.lane.logical_id
     if reference_core_type_name.endswith("_SYSTEM") and target_core_type_name.endswith(
@@ -391,9 +394,7 @@ def find_corresponding_xphy_system_lane(
     )
 
     if system_core_type is None:
-        line_core_type_name = CoreType._VALUES_TO_NAMES[
-            line_connection_end.chip.core_type
-        ]
+        line_core_type_name = CoreType(line_connection_end.chip.core_type).name
         if not line_core_type_name.endswith("_LINE"):
             raise Exception(
                 f"Expected line_connection_end to have a *_LINE core type, got {line_core_type_name}"
@@ -404,7 +405,9 @@ def find_corresponding_xphy_system_lane(
             )
 
     return _find_matching_xphy_connection_in_pairs(
-        line_connection_end, system_core_type, static_mapping._az_connections
+        line_connection_end,
+        system_core_type,
+        static_mapping._az_connections,
     )
 
 
@@ -478,19 +481,18 @@ def get_connection_pairs_for_profile(
             if (
                 next_connection_end
                 and next_connection_end.chip.chip_type == ChipType.XPHY
-                and CoreType._VALUES_TO_NAMES[
-                    next_connection_end.chip.core_type
-                ].endswith("_LINE")
+                and CoreType(next_connection_end.chip.core_type).name.endswith("_LINE")
             ):
                 system_connection = find_corresponding_xphy_system_lane(
-                    next_connection_end, static_mapping
+                    next_connection_end,
+                    static_mapping,
                 )
                 if system_connection:
                     next_connection_end = system_connection
                 else:
-                    line_core_type_name = CoreType._VALUES_TO_NAMES[
+                    line_core_type_name = CoreType(
                         next_connection_end.chip.core_type
-                    ]
+                    ).name
                     system_core_type_name = line_core_type_name.replace(
                         "_LINE", "_SYSTEM"
                     )
@@ -512,7 +514,6 @@ def get_connection_pairs_for_profile(
 
 # Creates a pin config from ConnectionEnd type
 def get_pin_config(connection_end: ConnectionEnd) -> PinConfig:
-    pin_config = PinConfig()
     if is_npu(connection_end.chip.chip_type):
         pin_name = get_npu_chip_name(connection_end.chip)
     elif is_terminal_chip(connection_end.chip.chip_type):
@@ -522,8 +523,9 @@ def get_pin_config(connection_end: ConnectionEnd) -> PinConfig:
     else:
         raise Exception("Don't understand chip type ", connection_end.chip.chip_type)
 
-    pin_config.id = PinID(chip=pin_name, lane=connection_end.lane.logical_id)
-    return pin_config
+    return PinConfig(
+        id=PinID(chip=pin_name, lane=connection_end.lane.logical_id),
+    )
 
 
 def _create_override_from_si_setting(
@@ -638,13 +640,19 @@ def _process_connection_with_si_settings(
     custom_rx_collection_list = []
 
     for si_setting_and_factor in si_setting_and_factor_list:
-        pin_conf = copy.deepcopy(pin_config)
-        if si_setting_and_factor.tx_setting != TxSettings():
-            pin_conf.tx = si_setting_and_factor.tx_setting
+        tx = (
+            si_setting_and_factor.tx_setting
+            if si_setting_and_factor.tx_setting != TxSettings()
+            else pin_config.tx
+        )
+        rx = (
+            si_setting_and_factor.rx_setting
+            if si_setting_and_factor.rx_setting != RxSettings()
+            else pin_config.rx
+        )
+        pin_conf = PinConfig(id=pin_config.id, tx=tx, rx=rx)
         if si_setting_and_factor.custom_tx_collection:
             custom_tx_collection_list.append(si_setting_and_factor.custom_tx_collection)
-        if si_setting_and_factor.rx_setting != RxSettings():
-            pin_conf.rx = si_setting_and_factor.rx_setting
         if si_setting_and_factor.custom_rx_collection:
             custom_rx_collection_list.append(si_setting_and_factor.custom_rx_collection)
 
@@ -687,7 +695,7 @@ def _process_xphy_connection(
         )
     )
 
-    core_type_name = CoreType._VALUES_TO_NAMES[connection.chip.core_type]
+    core_type_name = CoreType(connection.chip.core_type).name
     if core_type_name.endswith("_SYSTEM"):
         return configured_pins, [], custom_tx_collection_list, custom_rx_collection_list
     elif core_type_name.endswith("_LINE"):
@@ -818,7 +826,7 @@ def _create_xphy_junction(
     terminal_connection: ConnectionEnd,
 ) -> Pin:
     """Create XPHY junction pin structure."""
-    from neteng.fboss.phy.ttypes import PinJunction
+    from neteng.fboss.phy.phy.thrift_types import PinJunction
 
     xphy_sys_pin_name = get_xphy_chip_name(xphy_sys_connection.chip)
     xphy_line_pin_name = get_xphy_chip_name(xphy_line_connection.chip)
@@ -850,7 +858,7 @@ def _create_xphy_junction(
 
 def _is_xphy_system_core_type(core_type: CoreType) -> bool:
     """Check if the core type is an XPHY *_SYSTEM type."""
-    core_type_name = CoreType._VALUES_TO_NAMES[core_type]
+    core_type_name = CoreType(core_type).name
     return core_type_name.endswith("_SYSTEM")
 
 
@@ -863,12 +871,11 @@ def get_mapping_pins(connection_pairs: List[ConnectionPair]) -> List[PinConnecti
         if not (connection.a and is_npu(connection.a.chip.chip_type)):
             continue
 
-        pin_connection = PinConnection()
-
         # Set NPU side (A side)
         npu_pin_name = get_npu_chip_name(connection.a.chip)
-        pin_connection.a = PinID(chip=npu_pin_name, lane=connection.a.lane.logical_id)
+        a_pin = PinID(chip=npu_pin_name, lane=connection.a.lane.logical_id)
 
+        z_pin = None
         if connection.z and connection.z.chip:
             z_chip = connection.z.chip
             if is_xphy(z_chip.chip_type) and _is_xphy_system_core_type(
@@ -886,15 +893,15 @@ def get_mapping_pins(connection_pairs: List[ConnectionPair]) -> List[PinConnecti
                     )
 
                     if xphy_line_connection and terminal_connection:
-                        pin_connection.z = _create_xphy_junction(
+                        z_pin = _create_xphy_junction(
                             xphy_sys_connection,
                             xphy_line_connection,
                             terminal_connection,
                         )
                     else:
-                        sys_core_type_name = CoreType._VALUES_TO_NAMES[
+                        sys_core_type_name = CoreType(
                             xphy_sys_connection.chip.core_type
-                        ]
+                        ).name
                         line_core_type_name = sys_core_type_name.replace(
                             "_SYSTEM", "_LINE"
                         )
@@ -912,7 +919,7 @@ def get_mapping_pins(connection_pairs: List[ConnectionPair]) -> List[PinConnecti
                 connection_z = connection.z
                 if is_terminal_chip(connection_z.chip.chip_type):
                     terminal_pin_name = get_terminal_chip_name(connection_z.chip)
-                    pin_connection.z = Pin(
+                    z_pin = Pin(
                         end=PinID(
                             chip=terminal_pin_name,
                             lane=connection_z.lane.logical_id,
@@ -923,7 +930,7 @@ def get_mapping_pins(connection_pairs: List[ConnectionPair]) -> List[PinConnecti
                         "Unsupported chip type ", connection_z.chip.chip_type
                     )
 
-        pin_connections.append(pin_connection)
+        pin_connections.append(PinConnection(a=a_pin, z=z_pin))
 
     return pin_connections
 
@@ -933,6 +940,7 @@ def transmitter_tech_from_profile(
 ) -> List[TransmitterTechnology]:
     if profile in [
         PortProfileID.PROFILE_53POINT125G_1_PAM4_RS545_OPTICAL,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_400G_4_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_800G_8_PAM4_RS544X2N_OPTICAL,
@@ -1044,6 +1052,7 @@ def fec_from_profile(profile: PortProfileID) -> FecMode:
         PortProfileID.PROFILE_100G_2_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_100G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_100G_1_PAM4_RS544X2N_COPPER,
+        PortProfileID.PROFILE_200G_2_PAM4_RS544X2N_OPTICAL,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_COPPER,
         PortProfileID.PROFILE_200G_4_PAM4_RS544X2N_OPTICAL,

@@ -47,6 +47,10 @@
 #endif
 #endif
 
+#if defined(CHENAB_SAI_SDK)
+#include "saiportcustom.h"
+#endif
+
 DEFINE_bool(
     sai_configure_six_tap,
     false,
@@ -462,6 +466,14 @@ void fillHwPortStats(
         break;
       }
 #endif
+#if defined(CHENAB_SAI_SDK)
+      case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
+        hwPortStats.outDiscardsSll_() = value;
+        break;
+      case SAI_PORT_STAT_IF_OUT_DISCARDS_HLL:
+        hwPortStats.outDiscardsHll_() = value;
+        break;
+#endif
       default:
         auto configuredDebugCounters =
             debugCounterManager.getConfiguredDebugStatIds();
@@ -484,6 +496,11 @@ void fillHwPortStats(
         } else if (
             counterId == debugCounterManager.getEgressForwardingDropStatId()) {
           hwPortStats.outForwardingDiscards_() = value;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+        } else if (
+            counterId == debugCounterManager.getSrv6MySidDropCounterStatId()) {
+          hwPortStats.inSrv6MySidDiscards_() = value;
+#endif
         } else {
           XLOG(FATAL)
               << " Should never get here, check configured debugCounterStatIds";
@@ -2240,8 +2257,11 @@ void SaiPortManager::updatePrbsStats(PortID portId) {
   }
 #if SAI_API_VERSION >= SAI_VERSION(1, 8, 1)
   auto* handle = getPortHandleImpl(PortID(portId));
-  auto prbsConfig = GET_OPT_ATTR(Port, PrbsConfig, handle->port->attributes());
-  if (prbsConfig == SAI_PORT_PRBS_CONFIG_DISABLE) {
+  auto prbsConfigOpt =
+      std::get<std::optional<SaiPortTraits::Attributes::PrbsConfig>>(
+          handle->port->attributes());
+  if (!prbsConfigOpt.has_value() ||
+      prbsConfigOpt.value().value() == SAI_PORT_PRBS_CONFIG_DISABLE) {
     return;
   }
   auto prbsRxState = SaiApiTable::getInstance()->portApi().getAttribute(

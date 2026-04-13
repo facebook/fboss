@@ -280,6 +280,23 @@ TEST_F(FwUtilOperationsTest, PerformXappUpgradeMissingBinary) {
   EXPECT_THROW(fwUtil.performXappUpgrade(xappConfig), std::runtime_error);
 }
 
+TEST_F(FwUtilOperationsTest, PerformPsuUtilUpgradeMissingBinary) {
+  if (!createdPlatformFile_) {
+    GTEST_SKIP() << "Skipping test: unable to create platform name file";
+  }
+
+  // Create FwUtilImpl with non-existent binary file
+  std::string missingBinary = tempDir_.string() + "/missing.bin";
+  FwUtilImpl fwUtil(missingBinary, configFilePath_, false, false);
+
+  PsuUtilConfig psuUtilConfig;
+  std::vector<std::string> extraArgs = {"--psu", "auto", "upgrade"};
+  psuUtilConfig.psuUtilExtraArgs() = extraArgs;
+
+  // Should throw because binary file doesn't exist
+  EXPECT_THROW(fwUtil.performPsuUtilUpgrade(psuUtilConfig), std::runtime_error);
+}
+
 TEST_F(FwUtilOperationsTest, DoGpiosetOperationSuccess) {
   FwUtilImpl fwUtil(binaryFilePath_.string(), configFilePath_, false, false);
 

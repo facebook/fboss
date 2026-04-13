@@ -297,6 +297,9 @@ bool ResourceAccountant::checkAndUpdateEcmpResource(
   bool valid = true;
   valid &= checkAndUpdateGenericEcmpResource(route, add, state);
   valid &= checkAndUpdateArsEcmpResource(route, add, state);
+  if (FLAGS_enable_srv6_nexthop_resource_protection) {
+    valid &= checkAndUpdateSrv6NextHopResource(route, add, state);
+  }
   return valid;
 }
 
@@ -385,6 +388,9 @@ bool ResourceAccountant::routeAndEcmpStateChangedImpl(const StateDelta& delta) {
   // Ensure new state usage does not exceed ecmp_resource_percentage
   validRouteUpdate &= checkEcmpResource(false /* intermediateState */);
   validRouteUpdate &= checkArsResource(false /* intermediateState */);
+  if (FLAGS_enable_srv6_nexthop_resource_protection) {
+    validRouteUpdate &= checkSrv6NextHopResource(false /* intermediateState */);
+  }
   return validRouteUpdate;
 }
 
@@ -475,6 +481,145 @@ bool ResourceAccountant::l2StateChangedImpl(const StateDelta& delta) {
     XLOG(ERR) << "Total l2 entries in new switchState: " << l2Entries_
               << " exceeds the limit: " << FLAGS_max_l2_entries;
     return false;
+  }
+  return true;
+}
+
+void ResourceAccountant::mySidStateChangedImpl(const StateDelta& delta) {
+  DeltaFunctions::forEachChanged(
+      delta.getMySidsDelta(),
+      [&](const auto& /*oldEntry*/, const auto& /*newEntry*/) {
+        // Changed entries don't affect count
+      },
+      [&](const auto& /*newEntry*/) { mySidUsage_++; },
+      [&](const auto& /*deletedEntry*/) { mySidUsage_--; });
+}
+
+bool ResourceAccountant::checkMySidResource(bool intermediateState) {
+  uint32_t resourcePercentage =
+      intermediateState ? kHundredPercentage : FLAGS_mysid_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    const auto mySidLimit = hwAsic->getMaxMySidEntries();
+    if (mySidLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (mySidLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (mySidUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "MySID resource limit exceeded. MySID usage: "
+                   << mySidUsage_ << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+size_t ResourceAccountant::countSrv6NextHops(
+    const RouteNextHopSet& nhSet) const {
+  size_t count = 0;
+  for (const auto& nhop : nhSet) {
+    if (nhop.tunnelType() == TunnelType::SRV6_ENCAP) {
+      count++;
+    }
+  }
+  return count;
+}
+
+template <typename AddrT>
+bool ResourceAccountant::checkAndUpdateSrv6NextHopResource(
+    const std::shared_ptr<Route<AddrT>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state) {
+  const auto& fwd = route->getForwardInfo();
+  if (fwd.getAction() != RouteForwardAction::NEXTHOPS) {
+    return true;
+  }
+
+  auto nhSetId = fwd.getNormalizedResolvedNextHopSetID();
+  if (!nhSetId.has_value()) {
+    return true;
+  }
+  auto setIdVal = static_cast<int64_t>(nhSetId.value());
+
+  // Check if this NextHopSetID is already tracked
+  if (auto it = srv6NextHopSetRefMap_.find(setIdVal);
+      it != srv6NextHopSetRefMap_.end()) {
+    it->second.refCount += (add ? 1 : -1);
+    CHECK_GE(it->second.refCount, 0);
+    if (!add && it->second.refCount == 0) {
+      if (it->second.isEcmp) {
+        srv6EcmpNextHopUsage_ -= it->second.srv6Count;
+      } else {
+        srv6SingleNextHopUsage_ -= it->second.srv6Count;
+      }
+      srv6NextHopSetRefMap_.erase(it);
+    }
+    return true;
+  }
+
+  // NextHopSetID not in map. For remove, this means the route had no SRv6
+  // next hops when it was added (srv6Count was 0), so nothing to undo.
+  if (!add) {
+    return true;
+  }
+
+  // New NextHopSetID on add — resolve nhops to count SRv6
+  auto nhSet = getNormalizedNextHops(state, fwd);
+  auto srv6Count = countSrv6NextHops(nhSet);
+  if (srv6Count == 0) {
+    return true;
+  }
+
+  bool isEcmpRoute = nhSet.size() > 1;
+  srv6NextHopSetRefMap_[setIdVal] = {1, srv6Count, isEcmpRoute};
+  if (isEcmpRoute) {
+    srv6EcmpNextHopUsage_ += srv6Count;
+  } else {
+    srv6SingleNextHopUsage_ += srv6Count;
+  }
+  return true;
+}
+
+template bool
+ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV6>(
+    const std::shared_ptr<Route<folly::IPAddressV6>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
+
+template bool
+ResourceAccountant::checkAndUpdateSrv6NextHopResource<folly::IPAddressV4>(
+    const std::shared_ptr<Route<folly::IPAddressV4>>& route,
+    bool add,
+    const std::shared_ptr<SwitchState>& state);
+
+bool ResourceAccountant::checkSrv6NextHopResource(
+    bool intermediateState) const {
+  uint32_t resourcePercentage = intermediateState
+      ? kHundredPercentage
+      : FLAGS_srv6_nexthop_resource_percentage;
+
+  for (const auto& [_, hwAsic] : asicTable_->getHwAsics()) {
+    auto ecmpLimit = hwAsic->getMaxSrv6EcmpNextHops();
+    if (ecmpLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (ecmpLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (srv6EcmpNextHopUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "SRv6 ECMP next hop limit exceeded. Usage: "
+                   << srv6EcmpNextHopUsage_ << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
+    auto singleLimit = hwAsic->getMaxSrv6SingleNextHops();
+    if (singleLimit.has_value()) {
+      uint32_t enforcedLimit =
+          (singleLimit.value() * resourcePercentage) / kHundredPercentage;
+      if (srv6SingleNextHopUsage_ > enforcedLimit) {
+        XLOG(DBG2) << "SRv6 single next hop limit exceeded. Usage: "
+                   << srv6SingleNextHopUsage_
+                   << " ASIC limit: " << enforcedLimit;
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -720,6 +865,10 @@ void ResourceAccountant::stateChanged(const StateDelta& delta) {
     neighborStateChangedImpl<NdpTable>(delta);
     neighborStateChangedImpl<ArpTable>(delta);
   }
+
+  if (FLAGS_enable_mysid_resource_protection) {
+    mySidStateChangedImpl(delta);
+  }
 }
 
 // check if the resource is available for the update as per fboss limits
@@ -732,6 +881,11 @@ bool ResourceAccountant::isValidUpdate(const StateDelta& delta) {
     neighborStateChangedImpl<NdpTable>(delta);
     neighborStateChangedImpl<ArpTable>(delta);
     isValidUpdate &= checkNeighborResource();
+  }
+
+  if (FLAGS_enable_mysid_resource_protection) {
+    mySidStateChangedImpl(delta);
+    isValidUpdate &= checkMySidResource(false /* intermediateState */);
   }
 
   return isValidUpdate;

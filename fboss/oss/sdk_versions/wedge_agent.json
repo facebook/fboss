@@ -3,7 +3,7 @@
         "(c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.",
         "This file is generated. Do not modify it manually!",
         "@codegen-source : configerator\/raw_configs\/neteng\/fboss\/coop\/inputs\/platform_to_agent_sdk_version",
-        "@generated SignedSource<<389bfef78d6dd2035607468c49f21c00>>"
+        "@generated SignedSource<<b3c808383d49598bf532e02b414d8836>>"
     ],
     "MINIPACK": [
         {
@@ -79,6 +79,18 @@
             "asicSdk": "24.8.3001",
             "saiSdk": "24.8.3001",
             "saiVersion": "1.14.0"
+        },
+        {
+            "rolloutType": "PRODUCTION",
+            "asicSdk": "25.5.4210",
+            "saiSdk": "25.5.4210",
+            "saiVersion": "1.16.1"
+        },
+        {
+            "rolloutType": "RELEASE_CANDIDATE",
+            "asicSdk": "26.2.5210",
+            "saiSdk": "26.2.5210",
+            "saiVersion": "1.17.1"
         }
     ],
     "WEDGE100": [
@@ -135,8 +147,8 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "saiSdk": "14.2.0.0_odp",
+            "saiVersion": "1.17.4"
         }
     ],
     "MINIPACK3N": [
@@ -241,16 +253,16 @@
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "saiSdk": "14.2.0.0_odp",
+            "saiVersion": "1.17.4"
         }
     ],
     "LADAKH800BCLS": [
         {
             "rolloutType": "PRODUCTION",
             "asicSdk": "6.5.34",
-            "saiSdk": "14.0_ea_odp",
-            "saiVersion": "1.15.7"
+            "saiSdk": "14.2.0.0_odp",
+            "saiVersion": "1.17.4"
         }
     ]
 }

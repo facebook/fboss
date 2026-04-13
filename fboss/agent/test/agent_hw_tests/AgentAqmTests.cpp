@@ -22,6 +22,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -133,7 +134,7 @@ class AgentAqmTest : public AgentHwTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendPkt(
@@ -164,7 +165,7 @@ class AgentAqmTest : public AgentHwTest {
     if (outPort) {
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 

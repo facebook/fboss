@@ -9,11 +9,8 @@
  */
 #include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 
-#include "fboss/agent/AgentFeatures.h"
-#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
-#include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/FibInfoMap.h"
@@ -34,14 +31,12 @@ ForwardingInformationBaseUpdater::ForwardingInformationBaseUpdater(
     RouterID vrf,
     const IPv4NetworkToRouteMap& v4NetworkToRoute,
     const IPv6NetworkToRouteMap& v6NetworkToRoute,
-    const LabelToRouteMap& labelToRoute,
-    const NextHopIDManager* nextHopIDManager)
+    const LabelToRouteMap& labelToRoute)
     : resolver_(resolver),
       vrf_(vrf),
       v4NetworkToRoute_(v4NetworkToRoute),
       v6NetworkToRoute_(v6NetworkToRoute),
-      labelToRoute_(labelToRoute),
-      nextHopIDManager_(nextHopIDManager) {}
+      labelToRoute_(labelToRoute) {}
 
 std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
     const std::shared_ptr<SwitchState>& state) {
@@ -90,32 +85,6 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
   }
   auto nextFibContainer = previousFibContainer->modify(&nextState);
 
-  if (nextHopIDManager_) {
-    auto scope = resolver_->scope(previousFibContainer);
-    auto fibInfo = nextState->getFibsInfoMap()->getFibInfo(scope);
-
-    auto fibInfoPtr = fibInfo->modify(&nextState);
-    CHECK(fibInfoPtr);
-    auto id2Nhop = std::make_shared<IdToNextHopMap>();
-    auto id2NhopSetIds = std::make_shared<IdToNextHopIdSetMap>();
-    for (const auto& [id, nhop] : nextHopIDManager_->getIdToNextHop()) {
-      id2Nhop->addNextHop(id, nhop.toThrift());
-    }
-    for (const auto& [id, nhopIdSet] :
-         nextHopIDManager_->getIdToNextHopIdSet()) {
-      auto toNhopIdsThrift = [](const auto& nhopIdSet) {
-        std::set<int64_t> nhopIds;
-        std::for_each(
-            nhopIdSet.begin(), nhopIdSet.end(), [&nhopIds](const auto nhopId) {
-              nhopIds.insert(static_cast<int64_t>(nhopId));
-            });
-        return nhopIds;
-      };
-      id2NhopSetIds->addNextHopIdSet(id, toNhopIdsThrift(nhopIdSet));
-    }
-    fibInfoPtr->setIdToNextHopMap(id2Nhop);
-    fibInfoPtr->setIdToNextHopIdSetMap(id2NhopSetIds);
-  }
   if (newFibV4) {
     nextFibContainer->ref<switch_state_tags::fibV4>() = std::move(newFibV4);
   }
@@ -126,18 +95,6 @@ std::shared_ptr<SwitchState> ForwardingInformationBaseUpdater::operator()(
 
   if (newLabelFib) {
     nextState->resetLabelForwardingInformationBase(newLabelFib);
-  }
-  // This will run on every unit test. We add this check to ensure that DCHECK
-  // does not run when developers manually build and run agent-hw-tests in dev
-  // mode.
-  if (!FLAGS_verify_fib_nexthop_id_consistency) {
-    DCHECK(verifyNextHopIdConsistency(nextState));
-  }
-  // This will run on tests wherever we set
-  // FLAGS_verify_fib_nexthop_id_consistency We will only set this flag for
-  // agent-hw-tests.
-  else {
-    CHECK(verifyNextHopIdConsistency(nextState));
   }
 
   return nextState;
@@ -260,91 +217,6 @@ ForwardingInformationBaseUpdater::createUpdatedLabelFib(
     }
   }
   return updated ? newFib : nullptr;
-}
-
-bool ForwardingInformationBaseUpdater::verifyNextHopIdConsistency(
-    const std::shared_ptr<SwitchState>& state) const {
-  if (!nextHopIDManager_) {
-    return true;
-  }
-
-  auto fibContainer = state->getFibsInfoMap()->getFibContainerIf(vrf_);
-  if (!fibContainer) {
-    return true;
-  }
-  XLOG(DBG2) << "Verifying FIB NextHop ID consistency";
-  auto verifyNextHopIds = [&](const auto& route,
-                              const std::optional<NextHopSetID>& setId,
-                              const auto& expectedNhops,
-                              const std::string& idType) -> bool {
-    if (!setId) {
-      return true;
-    }
-    XLOG(DBG3) << "Verifying " << idType << " for route " << route->str()
-               << " with ID " << static_cast<int64_t>(*setId);
-    auto reconstructedNhops =
-        getNextHops(state, static_cast<NextHopSetId>(*setId));
-    std::sort(reconstructedNhops.begin(), reconstructedNhops.end());
-
-    std::vector<NextHop> expectedSorted(
-        expectedNhops.begin(), expectedNhops.end());
-    if (reconstructedNhops != expectedSorted) {
-      XLOG(ERR) << "FIB NextHop ID consistency check failed for route "
-                << route->str() << ": " << idType
-                << " nexthops mismatch. Expected Inline Nexthops: "
-                << RouteNextHopSet(expectedSorted.begin(), expectedSorted.end())
-                << " Resolved NextHops from ID: "
-                << RouteNextHopSet(
-                       reconstructedNhops.begin(), reconstructedNhops.end());
-      return false;
-    }
-    return true;
-  };
-
-  auto verifyRoutes = [&](const auto& fib) -> bool {
-    for (const auto& [_, route] : std::as_const(*fib)) {
-      if (!route->isResolved()) {
-        continue;
-      }
-      const auto& fwdInfo = route->getForwardInfo();
-
-      // Every resolved NEXTHOPS route must have IDs assigned
-      if (fwdInfo.getAction() == RouteForwardAction::NEXTHOPS) {
-        if (!fwdInfo.getResolvedNextHopSetID().has_value()) {
-          XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
-                    << " is missing resolvedNextHopSetID";
-          return false;
-        }
-        if (!fwdInfo.getNormalizedResolvedNextHopSetID().has_value()) {
-          XLOG(ERR) << "Resolved NEXTHOPS route " << route->str()
-                    << " is missing normalizedResolvedNextHopSetID";
-          return false;
-        }
-      }
-
-      if (!verifyNextHopIds(
-              route,
-              fwdInfo.getResolvedNextHopSetID(),
-              fwdInfo.getNextHopSet(),
-              "resolvedNextHopSetID")) {
-        return false;
-      }
-      if (fwdInfo.getNormalizedResolvedNextHopSetID() !=
-          fwdInfo.getResolvedNextHopSetID()) {
-        if (!verifyNextHopIds(
-                route,
-                fwdInfo.getNormalizedResolvedNextHopSetID(),
-                fwdInfo.nonOverrideNormalizedNextHops(),
-                "normalizedResolvedNextHopSetID")) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
-  return verifyRoutes(fibContainer->getFibV4()) &&
-      verifyRoutes(fibContainer->getFibV6());
 }
 
 } // namespace facebook::fboss

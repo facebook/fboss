@@ -4,6 +4,7 @@
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PortFlapHelper.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
@@ -23,8 +24,8 @@ void rxSlowPathBGPRouteChangeBenchmark(BgpRxMode mode) {
   resolveNhopForRouteGenerator<utility::FSWRouteScaleGenerator>(ensemble.get());
 
   // capture packet exiting port 0 (entering due to loopback)
-  auto dstMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
+      ensemble->getProgrammedState());
   auto ecmpHelper = utility::EcmpSetupAnyNPorts6(
       ensemble->getProgrammedState(),
       ensemble->getSw()->needL2EntryForNeighbor(),

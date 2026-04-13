@@ -22,6 +22,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
 #include "fboss/agent/TxPacket.h"
@@ -40,7 +41,7 @@ class AgentJumboFramesTest : public AgentHwTest {
   }
 
   void sendPkt(int payloadSize) {
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
         getVlanIDForTx(),
@@ -53,7 +54,7 @@ class AgentJumboFramesTest : public AgentHwTest {
         0,
         255,
         std::vector<uint8_t>(payloadSize, 0xff));
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
   }
 
  protected:

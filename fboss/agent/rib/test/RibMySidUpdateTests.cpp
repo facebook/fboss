@@ -7,9 +7,14 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
 #include "fboss/agent/rib/MySidMapUpdater.h"
+#include "fboss/agent/rib/NetworkToRouteMap.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/MySidMap.h"
+#include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/IPAddress.h>
@@ -83,6 +88,7 @@ IpPrefix toIpPrefix(const std::string& addr, uint8_t len) {
 // Callback that uses MySidMapUpdater to apply RIB MySid to SwitchState.
 StateDelta mySidToSwitchStateUpdate(
     const SwitchIdScopeResolver* resolver,
+    const NextHopIDManager* /*nextHopIDManager*/,
     const MySidTable& mySidTable,
     void* cookie) {
   auto switchState =
@@ -103,6 +109,7 @@ class FailMySidUpdate {
  public:
   StateDelta operator()(
       const SwitchIdScopeResolver* resolver,
+      const NextHopIDManager* /*nextHopIDManager*/,
       const MySidTable& mySidTable,
       void* cookie) {
     auto switchState =
@@ -128,6 +135,7 @@ class FailWithMySidInAppliedState {
 
   StateDelta operator()(
       const SwitchIdScopeResolver* resolver,
+      const NextHopIDManager* /*nextHopIDManager*/,
       const MySidTable& mySidTable,
       void* cookie) {
     auto switchState =
@@ -170,6 +178,36 @@ std::shared_ptr<MySid> makeMySid(
   mySid->setUnresolveNextHopsId(std::nullopt);
   mySid->setResolvedNextHopsId(std::nullopt);
   return mySid;
+}
+
+// Callback that uses RibToSwitchStateUpdater with UPDATE_MYSID, so that
+// SwitchStateNextHopIdUpdater runs and populates FibInfo id2NextHopSet maps.
+StateDelta mySidToSwitchStateUpdateViaRibUpdater(
+    const SwitchIdScopeResolver* resolver,
+    const NextHopIDManager* nextHopIDManager,
+    const MySidTable& mySidTable,
+    void* cookie) {
+  auto switchState =
+      static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
+  auto oldState = *switchState;
+
+  IPv4NetworkToRouteMap emptyV4;
+  IPv6NetworkToRouteMap emptyV6;
+  LabelToRouteMap emptyLabel;
+  RibToSwitchStateUpdater updater(
+      resolver,
+      RouterID(0), // don't care
+      emptyV4,
+      emptyV6,
+      emptyLabel,
+      nextHopIDManager,
+      mySidTable,
+      RibToSwitchStateUpdater::UPDATE_MYSID);
+
+  auto newState = updater(*switchState);
+  newState->publish();
+  *switchState = newState;
+  return StateDelta(oldState, newState);
 }
 
 } // namespace
@@ -445,6 +483,107 @@ TEST(RibMySidUpdate, rejectEntryWithNextHops) {
   EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
 }
 
+TEST(RibMySidUpdate, rejectBothNextHopsAndNamedNextHops) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48, MySidType::NODE_MICRO_SID);
+  NextHopThrift nhop;
+  nhop.address() =
+      facebook::network::toBinaryAddress(folly::IPAddressV6("2::2"));
+  entry.nextHops() = {nhop};
+  NamedRouteDestination named;
+  named.nextHopGroups() = {"group1"};
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "add mysid with both nexthops and named nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+}
+
+TEST(RibMySidUpdate, rejectDecapsulateTypeWithNamedNextHops) {
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  auto entry = makeMySidEntry("fc00:100::1", 48);
+  NamedRouteDestination named;
+  named.nextHopGroups() = {"group1"};
+  entry.namedNextHops() = named;
+
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          {entry},
+          {},
+          "add decap mysid with named nexthops",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 0);
+  EXPECT_EQ(switchState->getMySids()->numNodes(), 0);
+}
+
+TEST(RibMySidUpdate, invalidEntryInBatchDoesNotPartiallyMutateMySidTable) {
+  // Verify that if any entry in toAdd is invalid, mySidFromEntry throws before
+  // updateRibMySids is called, leaving mySidTable completely unmodified.
+  // Without the pre-build fix, the valid entry (first in the vector) would be
+  // written to mySidTable before the invalid entry throws. With the fix,
+  // neither entry is written.
+  RoutingInformationBase rib;
+  rib.ensureVrf(kRid);
+  auto switchState = std::make_shared<SwitchState>();
+  switchState->publish();
+
+  // Add an initial valid entry so the table is non-empty going in
+  rib.update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48)},
+      {},
+      "add initial mysid",
+      mySidToSwitchStateUpdate,
+      &switchState);
+  EXPECT_EQ(rib.getMySidTableCopy().size(), 1);
+
+  // Batch: valid entry first, then invalid (NODE_MICRO_SID with no nexthops)
+  std::vector<MySidEntry> toAdd = {
+      makeMySidEntry("fc00:200::1", 64), // valid
+      makeMySidEntry(
+          "fc00:300::1", 48, MySidType::NODE_MICRO_SID), // invalid: no nexthops
+  };
+  EXPECT_THROW(
+      rib.update(
+          scopeResolver(),
+          toAdd,
+          {},
+          "batch with invalid entry",
+          mySidToSwitchStateUpdate,
+          &switchState),
+      FbossError);
+
+  // mySidTable must contain only the original entry — the valid entry from
+  // the failed batch must not have been inserted
+  auto mySidTable = rib.getMySidTableCopy();
+  EXPECT_EQ(mySidTable.size(), 1);
+  EXPECT_NE(
+      mySidTable.find(makeSidPrefix("fc00:100::1", 48)), mySidTable.end());
+  EXPECT_EQ(
+      mySidTable.find(makeSidPrefix("fc00:200::1", 64)), mySidTable.end());
+}
+
 TEST(RibMySidUpdate, switchStateUpdatedOnAdd) {
   RoutingInformationBase rib;
   rib.ensureVrf(kRid);
@@ -708,10 +847,6 @@ class RibMySidNextHopTest : public ::testing::Test {
     rib_->ensureVrf(kRid);
   }
 
-  void TearDown() override {
-    FLAGS_enable_nexthop_id_manager = false;
-  }
-
   std::unique_ptr<RoutingInformationBase> rib_;
   std::shared_ptr<SwitchState> switchState_;
 };
@@ -914,10 +1049,62 @@ TEST_F(
 
 TEST_F(
     RibMySidNextHopTest,
+    addMySidWithGatewayNextHop_noRoutes_resolvedSetIdNotSet) {
+  // Gateway nexthop (no interface ID) with no matching VRF 0 route → resolve
+  // finds nothing, so resolvedNextHopsId should remain unset.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with unresolvable gateway nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+TEST_F(
+    RibMySidNextHopTest,
+    addMySidWithGatewayNextHop_withMatchingRoute_resolvedSetIdSet) {
+  // Inject a resolved interface route covering the gateway nexthop's address
+  // via reconfigure, then add the MySid entry → resolvedNextHopsId is set.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      noopFibUpdate,
+      &switchState_);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with resolvable gateway nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  EXPECT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+// Replacing next hops on a MySid entry should:
+// 1. Deallocate the old NextHopSetID (getNextHopsIf returns nullopt)
+// 2. Keep the new NextHopSetID alive (getNextHopsIf returns non-null)
+TEST_F(
+    RibMySidNextHopTest,
     replaceNextHopsDecrementsOldAndIncrementsNewRefCount) {
-  // Replacing next hops on a MySid entry should:
-  // 1. Deallocate the old NextHopSetID (getNextHopsIf returns nullopt)
-  // 2. Keep the new NextHopSetID alive (getNextHopsIf returns non-null)
   rib_->update(
       scopeResolver(),
       {makeMySidEntryWithNextHops(
@@ -948,10 +1135,223 @@ TEST_F(
   ASSERT_TRUE(newIdOpt.has_value());
   const auto newId = NextHopSetID(*newIdOpt);
 
-  const auto* manager = rib_->getNextHopIDManager();
+  auto manager = rib_->getNextHopIDManagerCopy();
   ASSERT_NE(manager, nullptr);
   // Old next hop set should have been deallocated (refcount dropped to 0)
   EXPECT_FALSE(manager->getNextHopsIf(oldId).has_value());
   // New next hop set should still be allocated
   EXPECT_TRUE(manager->getNextHopsIf(newId).has_value());
+}
+
+// Test fixture that sets up a SwitchState with a FibInfo node so that
+// SwitchStateNextHopIdUpdater (called via RibToSwitchStateUpdater with
+// UPDATE_MYSID) can populate FibInfo's id2NextHopSet maps.
+class RibMySidFibInfoTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    rib_ = std::make_unique<RoutingInformationBase>();
+    switchState_ = std::make_shared<SwitchState>();
+    // Add a FibInfo node so SwitchStateNextHopIdUpdater has a node to write to.
+    auto fibsInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
+    fibsInfoMap->addNode("id=0", std::make_shared<FibInfo>());
+    switchState_->resetFibsInfoMap(fibsInfoMap);
+    switchState_->publish();
+    rib_->ensureVrf(kRid);
+  }
+
+  // Returns the IdToNextHopIdSetMap from the FibInfo node in the SwitchState.
+  std::shared_ptr<IdToNextHopIdSetMap> getIdToNextHopIdSetMap() {
+    auto fibInfo = switchState_->getFibsInfoMap()->getNodeIf("id=0");
+    return fibInfo ? fibInfo->getIdToNextHopIdSetMap() : nullptr;
+  }
+
+  std::unique_ptr<RoutingInformationBase> rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibMySidFibInfoTest, mySidNextHopSetIdReflectedInFibInfo) {
+  // Adding a MySid entry with next hops allocates a NextHopSetID.  Verify that
+  // the allocated ID is written into FibInfo->id2NextHopIdSet by
+  // SwitchStateNextHopIdUpdater (called through RibToSwitchStateUpdater with
+  // UPDATE_MYSID).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with nexthops",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  const auto unresolvedId = mySidTable.at(prefix).unresolveNextHopsId();
+  ASSERT_TRUE(unresolvedId.has_value());
+
+  // The allocated NextHopSetID must appear in FibInfo's id2NextHopIdSet.
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr)
+      << "MySid unresolvedNextHopsId not found in FibInfo id2NextHopIdSet";
+}
+
+TEST_F(RibMySidFibInfoTest, deleteMySidClearsFibInfoNextHopSetId) {
+  // After deleting a MySid entry, its NextHopSetID should be removed from
+  // FibInfo->id2NextHopIdSet.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto tableAfterAdd = rib_->getMySidTableCopy();
+  ASSERT_NE(tableAfterAdd.find(prefix), tableAfterAdd.end());
+  const auto idAfterAdd = tableAfterAdd.at(prefix).unresolveNextHopsId();
+  ASSERT_TRUE(idAfterAdd.has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {},
+      {toIpPrefix("fc00:100::1", 48)},
+      "delete mysid",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  // After deletion the NextHopSetID must be absent from FibInfo.
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->getNextHopIdSetIf(*idAfterAdd), nullptr)
+      << "MySid NextHopSetId should have been removed from FibInfo after delete";
+}
+
+TEST_F(RibMySidFibInfoTest, mySidOnlyNextHopSetIdsInFibInfo) {
+  // With no routes present, only MySid-allocated NextHopSetIDs should appear
+  // in FibInfo id2NextHopIdSet (i.e. they are not shared with any route).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops(
+          "fc00:100::1", 48, {"2001:db8::1", "2001:db8::2"})},
+      {},
+      "add mysid with two nexthops",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  const auto unresolvedId = mySidTable.at(prefix).unresolveNextHopsId();
+  ASSERT_TRUE(unresolvedId.has_value());
+
+  // FibInfo should have exactly one NextHopSetID entry — the MySid's unresolved
+  // set — confirming it is not shared with any route.
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_EQ(idSetMap->size(), 1u);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr);
+}
+
+TEST_F(RibMySidFibInfoTest, resolvedNextHopSetIdReflectedInFibInfo) {
+  // When a MySid entry's gateway nexthop can be resolved via an interface
+  // route, both unresolvedNextHopsId and resolvedNextHopsId should appear in
+  // FibInfo->id2NextHopIdSet.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      noopFibUpdate,
+      &switchState_);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with resolvable gateway nexthop",
+      mySidToSwitchStateUpdateViaRibUpdater,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto mySidTable = rib_->getMySidTableCopy();
+  ASSERT_NE(mySidTable.find(prefix), mySidTable.end());
+  const auto unresolvedId = mySidTable.at(prefix).unresolveNextHopsId();
+  const auto resolvedId = mySidTable.at(prefix).resolvedNextHopsId();
+  ASSERT_TRUE(unresolvedId.has_value());
+  ASSERT_TRUE(resolvedId.has_value());
+
+  auto idSetMap = getIdToNextHopIdSetMap();
+  ASSERT_NE(idSetMap, nullptr);
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*unresolvedId), nullptr)
+      << "MySid unresolvedNextHopsId not found in FibInfo id2NextHopIdSet";
+  EXPECT_NE(idSetMap->getNextHopIdSetIf(*resolvedId), nullptr)
+      << "MySid resolvedNextHopsId not found in FibInfo id2NextHopIdSet";
+}
+
+TEST_F(RibMySidNextHopTest, routeUpdateResolvesMySidNextHops) {
+  // Add a MySid entry whose nexthop can't be resolved yet (no route exists).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with unresolvable nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+
+  // Add an interface route covering the MySid nexthop address.
+  // This route update must trigger re-resolution of MySid entries.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::2")};
+  rib_->updateRemoteInterfaceRoutes(
+      scopeResolver(), interfaceRoutes, {}, noopFibUpdate, &switchState_);
+
+  EXPECT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+TEST_F(RibMySidNextHopTest, routeDeleteUnresolvesMySidNextHops) {
+  // Add an interface route and a MySid whose nexthop resolves through it.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 64}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::2")};
+  rib_->updateRemoteInterfaceRoutes(
+      scopeResolver(), interfaceRoutes, {}, noopFibUpdate, &switchState_);
+
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add mysid with resolvable nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  ASSERT_TRUE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+
+  // Delete the interface route. MySid nexthop should become unresolved.
+  boost::container::flat_map<RouterID, std::vector<folly::CIDRNetwork>> toDel;
+  toDel[kRid].push_back({folly::IPAddress("2001:db8::"), 64});
+  rib_->updateRemoteInterfaceRoutes(
+      scopeResolver(), {}, toDel, noopFibUpdate, &switchState_);
+
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
 }

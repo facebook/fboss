@@ -58,6 +58,7 @@ using RibToSwitchStateFunction = std::function<StateDelta(
 
 using RibMySidToSwitchStateFunction = std::function<StateDelta(
     const SwitchIdScopeResolver* resolver,
+    const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
     void* cookie)>;
 /*
@@ -69,11 +70,18 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
 class RibRouteTables {
  public:
   RibRouteTables() = default;
-  explicit RibRouteTables(NextHopIDManager* nextHopIDManager)
-      : nextHopIDManager_(nextHopIDManager) {}
 
-  const NextHopIDManager* getNextHopIDManager() const {
-    return nextHopIDManager_;
+  // Returns a deep copy of the NextHopIDManager. This is an expensive
+  // operation and is intended only for tests.
+  std::unique_ptr<NextHopIDManager> getNextHopIDManagerCopy() const {
+    return synchronizedRouteTables_.withRLock(
+        [&](const auto& routeTables) -> std::unique_ptr<NextHopIDManager> {
+          if (routeTables.nextHopIDManager) {
+            return std::make_unique<NextHopIDManager>(
+                *routeTables.nextHopIDManager);
+          }
+          return nullptr;
+        });
   }
 
   template <typename RouteType, typename RouteIdType>
@@ -161,8 +169,7 @@ class RibRouteTables {
       const std::map<int32_t, state::RouteTableFields>& ribThrift,
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib,
-      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
-      NextHopIDManager* nextHopIDManager);
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap);
 
   void ensureVrf(RouterID rid);
   std::vector<RouterID> getVrfList() const;
@@ -193,8 +200,7 @@ class RibRouteTables {
 
   std::map<int32_t, state::RouteTableFields> toThrift() const;
   static RibRouteTables fromThrift(
-      const std::map<int32_t, state::RouteTableFields>&,
-      NextHopIDManager* nextHopIDManager);
+      const std::map<int32_t, state::RouteTableFields>&);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
   void updateEcmpOverrides(const StateDelta& delta);
@@ -244,7 +250,7 @@ class RibRouteTables {
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
   template <typename RibUpdateFn>
-  void updateRib(const RibUpdateFn& updateRib);
+  void updateRibMySids(const RibUpdateFn& updateRibFn);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
@@ -256,11 +262,12 @@ class RibRouteTables {
   using RouterIDToRouteTable =
       boost::container::flat_map<RouterID, VrfRouteTable>;
 
-  // TODO: Move nextHopIDManager_ into RouteTables so it gets locked in the
-  // same pattern as v4, v6 radix trees.
   struct RouteTables {
     RouterIDToRouteTable routerIDToRouteTable;
     std::unordered_map<folly::CIDRNetworkV6, std::shared_ptr<MySid>> mySidTable;
+    std::unique_ptr<NextHopIDManager> nextHopIDManager{
+        FLAGS_enable_nexthop_id_manager ? std::make_unique<NextHopIDManager>()
+                                        : nullptr};
   };
 
   using SynchronizedRouteTables = folly::Synchronized<RouteTables>;
@@ -276,10 +283,6 @@ class RibRouteTables {
           configRouterIDToInterfaceRoutes) const;
 
   SynchronizedRouteTables synchronizedRouteTables_;
-
-  // Non-owning pointer to NextHopIDManager
-  // Set by RoutingInformationBase after construction
-  NextHopIDManager* nextHopIDManager_{nullptr};
 };
 
 class RoutingInformationBase {
@@ -321,7 +324,7 @@ class RoutingInformationBase {
    * admin distance via its clientID.  This is accomplished by a mapping from
    * client IDs to admin distances provided in configuration. Unfortunately,
    * this mapping is exposed via SwSwitch, which we can't a dependency on here.
-   * The adminDistanceFromClientID allows callsites to propogate admin distances
+   * The adminDistanceFromClientID allows callsites to propagate admin distances
    * per client.
    */
   UpdateStatistics update(
@@ -473,9 +476,10 @@ class RoutingInformationBase {
       const std::map<int32_t, state::RouteTableFields>&);
   std::map<int32_t, state::RouteTableFields> warmBootState() const;
 
-  // Getter for NextHopIDManager
-  const NextHopIDManager* getNextHopIDManager() const {
-    return nextHopIDManager_.get();
+  // Returns a deep copy of the NextHopIDManager. This is an expensive
+  // operation and is intended only for tests.
+  std::unique_ptr<NextHopIDManager> getNextHopIDManagerCopy() const {
+    return ribTables_.getNextHopIDManagerCopy();
   }
 
  private:
@@ -504,7 +508,6 @@ class RoutingInformationBase {
 
   std::unique_ptr<std::thread> ribUpdateThread_;
   FbossEventBase ribUpdateEventBase_{"RibUpdateEventBase"};
-  std::unique_ptr<NextHopIDManager> nextHopIDManager_;
   RibRouteTables ribTables_;
 };
 

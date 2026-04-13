@@ -18,41 +18,41 @@ namespace facebook::fboss {
 class AgentDiagShellStressTest : public AgentHwTest {
  protected:
   void runDiagCmds() {
-    for (auto [switchId, asic] : getAsics()) {
-      switch (asic->getAsicType()) {
-        case cfg::AsicType::ASIC_TYPE_FAKE:
-        case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
-        case cfg::AsicType::ASIC_TYPE_MOCK:
-        case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
-        case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
-        case cfg::AsicType::ASIC_TYPE_JERICHO2:
-        case cfg::AsicType::ASIC_TYPE_RAMON:
-        case cfg::AsicType::ASIC_TYPE_RAMON3:
-        case cfg::AsicType::ASIC_TYPE_CHENAB:
-        case cfg::AsicType::ASIC_TYPE_AGERA3:
-        case cfg::AsicType::ASIC_TYPE_CHENAB2:
-          // No diag shell to test for these ASICs
-          break;
-        case cfg::AsicType::ASIC_TYPE_JERICHO3:
-        case cfg::AsicType::ASIC_TYPE_JERICHO4:
-        case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
-          runBcmDnxCmds(switchId);
-          break;
-        case cfg::AsicType::ASIC_TYPE_EBRO:
-        case cfg::AsicType::ASIC_TYPE_GARONNE:
-        case cfg::AsicType::ASIC_TYPE_YUBA:
-        case cfg::AsicType::ASIC_TYPE_G202X:
-          runLeabaDiagCmds(switchId);
-          break;
-        case cfg::AsicType::ASIC_TYPE_TRIDENT2:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
-        case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
-          runBcmDiagCmds(switchId);
-      }
+    auto switchId = getCurrentSwitchIdForTesting();
+    auto asic = hwAsicForSwitch(switchId);
+    switch (asic->getAsicType()) {
+      case cfg::AsicType::ASIC_TYPE_FAKE:
+      case cfg::AsicType::ASIC_TYPE_FAKE_NO_WARMBOOT:
+      case cfg::AsicType::ASIC_TYPE_MOCK:
+      case cfg::AsicType::ASIC_TYPE_ELBERT_8DD:
+      case cfg::AsicType::ASIC_TYPE_SANDIA_PHY:
+      case cfg::AsicType::ASIC_TYPE_JERICHO2:
+      case cfg::AsicType::ASIC_TYPE_RAMON:
+      case cfg::AsicType::ASIC_TYPE_RAMON3:
+      case cfg::AsicType::ASIC_TYPE_CHENAB:
+      case cfg::AsicType::ASIC_TYPE_AGERA3:
+      case cfg::AsicType::ASIC_TYPE_CHENAB2:
+        // No diag shell to test for these ASICs
+        break;
+      case cfg::AsicType::ASIC_TYPE_JERICHO3:
+      case cfg::AsicType::ASIC_TYPE_JERICHO4:
+      case cfg::AsicType::ASIC_TYPE_QUMRAN4D:
+        runBcmDnxCmds(switchId);
+        break;
+      case cfg::AsicType::ASIC_TYPE_EBRO:
+      case cfg::AsicType::ASIC_TYPE_GARONNE:
+      case cfg::AsicType::ASIC_TYPE_YUBA:
+      case cfg::AsicType::ASIC_TYPE_G202X:
+        runLeabaDiagCmds(switchId);
+        break;
+      case cfg::AsicType::ASIC_TYPE_TRIDENT2:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK3:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK4:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK5:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWK6:
+      case cfg::AsicType::ASIC_TYPE_TOMAHAWKULTRA1:
+        runBcmDiagCmds(switchId);
     }
   }
 
@@ -134,6 +134,11 @@ class AgentDiagShellStressTest : public AgentHwTest {
                   << "switchId: " << static_cast<int>(id)
                   << ", exception: " << ex.what();
     }
+    // Disable debug counter to avoid persistent debug output from BCM SDK
+    // that can block stdout during subsequent SAI API calls (see D76308958)
+    ensemble->runDiagCommand(makeDiagCmd(""), out, id);
+    ensemble->runDiagCommand(makeDiagCmd("debug soc counter off"), out, id);
+    ensemble->runDiagCommand(makeDiagCmd("\x0d"), out, id);
 
     std::ignore = out;
   }

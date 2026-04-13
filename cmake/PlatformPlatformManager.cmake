@@ -220,10 +220,21 @@ target_link_libraries(platform_manager_handler
   platform_manager_pkg_manager
   platform_manager_platform_explorer
   platform_manager_service_cpp2
+  platform_manager_snapshot_builder
 )
 
 add_executable(platform_manager
   fboss/platform/platform_manager/Main.cpp
+)
+
+add_library(platform_manager_snapshot_builder
+  fboss/platform/platform_manager/PlatformSnapshotBuilder.cpp
+)
+
+target_link_libraries(platform_manager_snapshot_builder
+  fmt::fmt
+  platform_manager_config_cpp2
+  platform_manager_data_store
 )
 
 target_link_libraries(platform_manager

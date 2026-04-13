@@ -206,6 +206,7 @@ add_library(fboss_types
 target_link_libraries(fboss_types
   switch_config_cpp2
   Folly::folly
+  Boost::container
 )
 
 add_library(fib_helpers
@@ -476,6 +477,7 @@ target_link_libraries(setup_thrift_prod
 target_link_libraries(fboss_types
   switch_config_cpp2
   Folly::folly
+  Boost::container
 )
 
 add_library(fboss_event_base

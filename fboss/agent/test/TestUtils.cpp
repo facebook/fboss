@@ -10,6 +10,7 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
@@ -1334,7 +1335,7 @@ RouteNextHopEntry makeExpectedRouteNextHopEntry(
 
   CHECK(sw);
   CHECK(sw->getRib());
-  auto* idManager = sw->getRib()->getNextHopIDManager();
+  auto idManager = sw->getRib()->getNextHopIDManagerCopy();
   if (idManager) {
     // Lookup resolvedNextHopSetID for the nhops
     auto resolvedId = idManager->lookupRouteNextHopSetID(entry.getNextHopSet());
@@ -1703,6 +1704,24 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
       config,
       nullptr);
   return sw;
+}
+
+folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::getMacForFirstInterfaceWithPorts(
+      state, SwitchID(FLAGS_switch_id_for_testing));
+}
+
+InterfaceID firstInterfaceIDWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::firstInterfaceIDWithPorts(
+      state, SwitchID(FLAGS_switch_id_for_testing));
+}
+
+std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::firstInterfaceWithPorts(
+      state, SwitchID(FLAGS_switch_id_for_testing));
 }
 
 } // namespace facebook::fboss

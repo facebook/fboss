@@ -190,6 +190,7 @@ enum PortProfileID {
   PROFILE_400G_2_PAM4_RS544X2N_COPPER = 58,
   PROFILE_200G_1_PAM4_RS544X2N_COPPER = 59,
   PROFILE_100G_1_PAM4_RS544X2N_COPPER = 60,
+  PROFILE_200G_2_PAM4_RS544X2N_OPTICAL = 61,
 }
 
 enum Scope {
@@ -1337,6 +1338,14 @@ struct Port {
    * Controls whether cable length measurement is enabled on the port.
    */
   38: optional bool clmEnable;
+
+  /*
+   * Link Training (IEEE 802.3 Cl.72/93/162) enable configuration.
+   * Controls whether link training is enabled on the port.
+   * When enabled, TX equalization is negotiated between link partners.
+   * When not set, the agent uses ASIC-level default behavior (disabled).
+   */
+  39: optional bool linkTraining;
 }
 
 enum LacpPortRate {
@@ -1636,6 +1645,7 @@ struct Interface {
    * These fields contains information of remote GPU */
   18: optional string desiredPeerName;
   19: optional string desiredPeerAddressIPv6;
+  20: optional string desiredPeerAddressIPv4;
 }
 
 struct StaticRouteWithNextHops {

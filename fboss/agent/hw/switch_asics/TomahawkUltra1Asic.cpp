@@ -27,21 +27,18 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::PKTIO:
     case HwAsic::Feature::INGRESS_FIELD_PROCESSOR_FLEX_COUNTER:
     case HwAsic::Feature::OBM_COUNTERS:
-    case HwAsic::Feature::BUFFER_POOL:
     case HwAsic::Feature::EGRESS_QUEUE_FLEX_COUNTER:
     case HwAsic::Feature::INGRESS_L3_INTERFACE:
     case HwAsic::Feature::DETAILED_L2_UPDATE:
     case HwAsic::Feature::TELEMETRY_AND_MONITORING:
     case HwAsic::Feature::ALPM_ROUTE_PROJECTION:
     case HwAsic::Feature::MAC_AGING:
-    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
     case HwAsic::Feature::SFLOW_SHIM_VERSION_FIELD:
     case HwAsic::Feature::EGRESS_MIRRORING:
     case HwAsic::Feature::EGRESS_SFLOW:
     case HwAsic::Feature::DEFAULT_VLAN:
     case HwAsic::Feature::SAI_ACL_ENTRY_SRC_PORT_QUALIFIER:
     case HwAsic::Feature::TRAFFIC_HASHING:
-    case HwAsic::Feature::ACL_TABLE_GROUP:
     case HwAsic::Feature::CPU_PORT:
     case HwAsic::Feature::CPU_QUEUES:
     case HwAsic::Feature::VRF:
@@ -65,8 +62,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ECMP_HASH_V4:
     case HwAsic::Feature::ECMP_HASH_V6:
     case HwAsic::Feature::FEC_CORRECTED_BITS:
-    case HwAsic::Feature::MEDIA_TYPE:
-    case HwAsic::Feature::FEC:
     case HwAsic::Feature::ECMP_MEMBER_WIDTH_INTROSPECTION:
     case HwAsic::Feature::SAI_MPLS_QOS:
     case HwAsic::Feature::QOS_MAP_GLOBAL:
@@ -88,7 +83,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::ARS_PORT_ATTRIBUTES:
     case HwAsic::Feature::ARS_ALTERNATE_MEMBERS:
     case HwAsic::Feature::SAI_EAPOL_TRAP:
-    case HwAsic::Feature::L3_MTU_ERROR_TRAP:
     case HwAsic::Feature::SAI_USER_DEFINED_TRAP:
     case HwAsic::Feature::ACL_COUNTER_LABEL:
     case HwAsic::Feature::ECMP_DLB_OFFSET:
@@ -101,7 +95,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::ACL_BYTE_COUNTER:
     case HwAsic::Feature::SAI_PRBS:
-    case HwAsic::Feature::L3_INTF_MTU:
     case HwAsic::Feature::CPU_QUEUE_WATERMARK_STATS:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_SHARED_WATERMARK:
     case HwAsic::Feature::INGRESS_PRIORITY_GROUP_HEADROOM_WATERMARK:
@@ -115,7 +108,6 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::TEMPERATURE_MONITORING:
     case HwAsic::Feature::ACL_SET_ECMP_HASH_ALGORITHM:
     case HwAsic::Feature::SET_NEXT_HOP_GROUP_HASH_ALGORITHM:
-    case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
     case HwAsic::Feature::SAI_PORT_PG_DROP_STATUS:
     case HwAsic::Feature::SAI_PORT_ERR_STATUS:
     case HwAsic::Feature::RX_FREQUENCY_PPM:
@@ -233,6 +225,16 @@ bool TomahawkUltra1Asic::isSupported(Feature feature) const {
     case HwAsic::Feature::SAI_SERDES_PRECODING:
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
+    case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
+    // TU1 SDK 15.0/15.1 unsupported features (Accton/Broadcom CSPs)
+    case HwAsic::Feature::FEC:
+    case HwAsic::Feature::MEDIA_TYPE:
+    case HwAsic::Feature::BUFFER_POOL:
+    case HwAsic::Feature::SAI_PORT_SPEED_CHANGE:
+    case HwAsic::Feature::L3_MTU_ERROR_TRAP:
+    case HwAsic::Feature::L3_INTF_MTU:
+    case HwAsic::Feature::MANAGEMENT_PORT_MULTICAST_QUEUE_ALPHA:
+    case HwAsic::Feature::ACL_TABLE_GROUP:
       return false;
   }
   return false;

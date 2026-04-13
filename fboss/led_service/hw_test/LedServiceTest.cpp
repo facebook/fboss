@@ -171,12 +171,17 @@ void LedServiceTest::checkLedColor(
       << enumToName<led::LedColor>(currentColor) << " for test " << testNum;
   EXPECT_EQ(ledState.currentLedState()->ledColor().value(), color)
       << "LED state should be " << enumToName<led::LedColor>(color)
-      << " for port " << portName.value() << " for test " << testNum;
+      << " for port " << portName.value() << " but current color is "
+      << enumToName<led::LedColor>(
+             ledState.currentLedState()->ledColor().value())
+      << " for test " << testNum;
   std::set<led::LedState> ledStateSet = ledManager_->getLedStateFromHW(port);
   for (const auto& state : ledStateSet) {
     EXPECT_EQ(state.ledColor().value(), color)
         << "LED state in IO should be " << enumToName<led::LedColor>(color)
-        << " for port " << portName.value() << " for test " << testNum;
+        << " for port " << portName.value() << " but current color is "
+        << enumToName<led::LedColor>(state.ledColor().value()) << " for test "
+        << testNum;
   }
   // // If the visual_delay_sec flag is specified, add a delay to enable seeing
   // the LED change
@@ -200,7 +205,9 @@ void LedServiceTest::checkLedBlink(
   for (const auto& state : ledStateSet) {
     EXPECT_EQ(state.blink().value(), blink)
         << "LED state in IO should be " << enumToName<led::Blink>(blink)
-        << " for port " << portName.value() << " for test " << testNum;
+        << " for port " << portName.value() << " but current blink is "
+        << enumToName<led::Blink>(state.blink().value()) << " for test "
+        << testNum;
   }
   // If the visual_delay_sec flag is specified, add a delay to enable seeing the
   // LED blink.
@@ -673,6 +680,65 @@ TEST_F(LedServiceTest, testTcvrLos) {
       }
     }
   }
+}
+
+TEST_F(LedServiceTest, visualForceAllLeds) {
+  auto* bspMgr = dynamic_cast<BspLedManager*>(ledManager_);
+  if (!bspMgr) {
+    GTEST_SKIP() << "Test only supported on BSP LED platforms";
+  }
+
+  auto transceivers = getAllTransceivers(platformMap_);
+
+  auto forceAllLeds = [&](led::LedColor color, led::Blink blink) {
+    auto ledState = utility::constructLedState(color, blink);
+    for (auto tcvr : transceivers) {
+      auto ledControllers =
+          bspMgr->getBspSystemContainer()->getLedController(tcvr + 1);
+      for (auto& [ledId, ctrlPair] : ledControllers) {
+        ctrlPair.first->setLedState(ledState);
+        auto actualState = ctrlPair.first->getLedState();
+        EXPECT_EQ(actualState, ledState)
+            << "LED " << ledId << " for transceiver " << tcvr
+            << " expected color "
+            << enumToName<led::LedColor>(ledState.ledColor().value())
+            << " blink " << enumToName<led::Blink>(ledState.blink().value())
+            << " but got color "
+            << enumToName<led::LedColor>(actualState.ledColor().value())
+            << " blink " << enumToName<led::Blink>(actualState.blink().value());
+      }
+    }
+    /* sleep override */
+    sleep(FLAGS_visual_delay_sec);
+  };
+
+  // 1- Force all LEDs to Blue (no blink)
+  XLOG(INFO) << "Forcing all LEDs to Blue";
+  forceAllLeds(led::LedColor::BLUE, led::Blink::OFF);
+
+  // 2- Force all LEDs to Blue + slow blinking
+  XLOG(INFO) << "Forcing all LEDs to Blue + slow blinking";
+  forceAllLeds(led::LedColor::BLUE, led::Blink::SLOW);
+
+  // 3- Force all LEDs to Blue + fast blinking
+  XLOG(INFO) << "Forcing all LEDs to Blue + fast blinking";
+  forceAllLeds(led::LedColor::BLUE, led::Blink::FAST);
+
+  // 4- Force all LEDs to Yellow (no blink)
+  XLOG(INFO) << "Forcing all LEDs to Yellow";
+  forceAllLeds(led::LedColor::YELLOW, led::Blink::OFF);
+
+  // 5- Force all LEDs to Yellow + slow blinking
+  XLOG(INFO) << "Forcing all LEDs to Yellow + slow blinking";
+  forceAllLeds(led::LedColor::YELLOW, led::Blink::SLOW);
+
+  // 6- Force all LEDs to Yellow + fast blinking
+  XLOG(INFO) << "Forcing all LEDs to Yellow + fast blinking";
+  forceAllLeds(led::LedColor::YELLOW, led::Blink::FAST);
+
+  // 7- Force all LEDs to Off + no blink
+  XLOG(INFO) << "Forcing all LEDs to Off";
+  forceAllLeds(led::LedColor::OFF, led::Blink::OFF);
 }
 
 } // namespace facebook::fboss

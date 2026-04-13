@@ -51,12 +51,13 @@ folly::MacAddress getInterfaceMac(
     InterfaceID intf);
 folly::MacAddress getMacForFirstInterfaceWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> switchId = std::nullopt);
+    const SwitchID& switchId);
 InterfaceID firstInterfaceIDWithPorts(
     const std::shared_ptr<SwitchState>& state,
-    std::optional<SwitchID> switchId = std::nullopt);
+    const SwitchID& switchId);
 std::shared_ptr<Interface> firstInterfaceWithPorts(
-    const std::shared_ptr<SwitchState>& state);
+    const std::shared_ptr<SwitchState>& state,
+    const SwitchID& switchId);
 std::vector<folly::IPAddress> getIntfAddrs(
     const std::shared_ptr<SwitchState>& state,
     const InterfaceID& intf);

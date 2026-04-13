@@ -179,6 +179,33 @@ include(CMakeParseArguments)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Match Python's -march flag when building with -python variant dependencies.
+# Cython extensions inherit -march from Python sysconfig (e.g. -march=x86-64-v2
+# on CentOS Stream 9), but cmake does not.  All C++ code linking against
+# folly-python's libfolly.so must use the same -march to avoid F14LinkCheck
+# ABI mismatch.
+if(Python3_EXECUTABLE)
+  set(_py3_exe "${Python3_EXECUTABLE}")
+else()
+  set(_py3_exe "python3")
+endif()
+execute_process(
+  COMMAND ${_py3_exe} -c "
+import sysconfig
+f = sysconfig.get_config_var('CFLAGS') or ''
+m = next((x for x in f.split() if x.startswith('-march=')), '')
+print(m)"
+  OUTPUT_VARIABLE _python_march
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+  RESULT_VARIABLE _march_rc
+)
+if(_march_rc EQUAL 0 AND _python_march)
+  message(STATUS "Adding ${_python_march} from Python sysconfig")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_python_march}")
+endif()
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-variable")
@@ -233,7 +260,7 @@ find_package(Glog REQUIRED)
 include_directories(${GLOG_INCLUDE_DIRS})
 find_package(folly CONFIG REQUIRED)
 include_directories(${FOLLY_INCLUDE_DIR})
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS container filesystem)
 include_directories(${Boost_INCLUDE_DIR})
 find_package(fb303 CONFIG REQUIRED)
 find_package(fizz CONFIG REQUIRED)
@@ -311,7 +338,7 @@ find_package(python-pyyaml REQUIRED)
 
 # Generate thrift deps and libraries
 include(FBThriftCppLibrary)
-include(FBThriftPyLibrary)
+include(FBThriftPythonLibrary)
 
 # Thrift libraries
 add_fbthrift_cpp_library(
@@ -323,11 +350,9 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  fb303_py
+add_fbthrift_python_library(
+  fb303_python
   common/fb303/if/fb303.thrift
-  SERVICES
-    FacebookService
   OPTIONS
     json
 )
@@ -338,10 +363,10 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  network_address_py
+add_fbthrift_python_library(
+  network_address_python
   common/network/if/Address.thrift
-  NAMESPACE "facebook.network.Address"
+  NAMESPACE "facebook.network"
   OPTIONS
     json
 )
@@ -352,10 +377,10 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  mpls_py
+add_fbthrift_python_library(
+  mpls_python
   fboss/agent/if/mpls.thrift
-  NAMESPACE "neteng.fboss.mpls"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
 )
@@ -373,10 +398,10 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  fboss_common_py
+add_fbthrift_python_library(
+  fboss_common_python
   fboss/lib/if/fboss_common.thrift
-  NAMESPACE "neteng.fboss.fboss_common"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
 )
@@ -391,16 +416,16 @@ add_fbthrift_cpp_library(
     fboss_common_cpp2
     mpls_cpp2
 )
-add_fbthrift_py_library(
-  switch_config_py
+add_fbthrift_python_library(
+  switch_config_python
   fboss/agent/switch_config.thrift
-  NAMESPACE "neteng.fboss.switch_config"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
   DEPENDS
-    common_py
-    fboss_common_py
-    mpls_py
+    common_python
+    mpls_python
+    fboss_common_python
 )
 add_fbthrift_cpp_library(
   agent_config_cpp2
@@ -431,17 +456,19 @@ add_fbthrift_cpp_library(
     asic_config_v2_cpp2
     phy_cpp2
 )
-add_fbthrift_py_library(
-  platform_config_py
+add_fbthrift_python_library(
+  platform_config_python
   fboss/agent/platform_config.thrift
   NAMESPACE "neteng.fboss.platform_config"
   OPTIONS
     json
   DEPENDS
-    bcm_config_py
-    asic_config_py
-    asic_config_v2_py
-    phy_py
+    asic_config_v2_python
+    asic_config_python
+    bcm_config_python
+    phy_python
+    switch_config_python
+    transceiver_python
 )
 add_fbthrift_cpp_library(
   switch_reachability_cpp2
@@ -469,8 +496,8 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  prbs_py
+add_fbthrift_python_library(
+  prbs_python
   fboss/lib/phy/prbs.thrift
   NAMESPACE "neteng.fboss.prbs"
   OPTIONS
@@ -483,8 +510,8 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  link_py
+add_fbthrift_python_library(
+  link_python
   fboss/lib/phy/link.thrift
   NAMESPACE "neteng.fboss.link"
   OPTIONS
@@ -500,15 +527,15 @@ add_fbthrift_cpp_library(
     link_cpp2
     prbs_cpp2
 )
-add_fbthrift_py_library(
-  transceiver_py
+add_fbthrift_python_library(
+  transceiver_python
   fboss/qsfp_service/if/transceiver.thrift
-  NAMESPACE "neteng.fboss.transceiver"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
   DEPENDS
-    link_py
-    prbs_py
+    link_python
+    prbs_python
 )
 add_fbthrift_cpp_library(
   transceiver_properties_cpp2
@@ -625,18 +652,19 @@ add_fbthrift_cpp_library(
     fb303_cpp2
     io_stats_cpp2
 )
-add_fbthrift_py_library(
-  phy_py
+add_fbthrift_python_library(
+  phy_python
   fboss/lib/phy/phy.thrift
   NAMESPACE "neteng.fboss.phy"
   OPTIONS
     json
   DEPENDS
-    switch_config_py
-    transceiver_py
-    fboss_py
-    fb303_py
-    io_stats_py
+    switch_config_python
+    transceiver_python
+    fb303_python
+    fboss_python
+    prbs_python
+    io_stats_python
 )
 add_fbthrift_cpp_library(
   optic_cpp2
@@ -654,8 +682,8 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  fboss_py
+add_fbthrift_python_library(
+  fboss_python
   fboss/agent/if/fboss.thrift
   NAMESPACE "neteng.fboss"
   OPTIONS
@@ -677,15 +705,15 @@ add_fbthrift_cpp_library(
     mpls_cpp2
     network_address_cpp2
 )
-add_fbthrift_py_library(
-  common_py
+add_fbthrift_python_library(
+  common_python
   fboss/agent/if/common.thrift
-  NAMESPACE "neteng.fboss.common"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
   DEPENDS
-    mpls_py
-    network_address_py
+    mpls_python
+    network_address_python
 )
 add_fbthrift_cpp_library(
   product_info_cpp2
@@ -745,8 +773,8 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-    bcm_config_py
+add_fbthrift_python_library(
+  bcm_config_python
   fboss/agent/hw/bcm/bcm_config.thrift
   NAMESPACE "neteng.fboss.bcm_config"
   OPTIONS
@@ -759,8 +787,8 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  asic_config_py
+add_fbthrift_python_library(
+  asic_config_python
   fboss/agent/hw/sai/config/asic_config.thrift
   NAMESPACE "neteng.fboss.asic_config"
   OPTIONS
@@ -773,10 +801,10 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-add_fbthrift_py_library(
-  asic_config_v2_py
+add_fbthrift_python_library(
+  asic_config_v2_python
   fboss/agent/hw/config/asic_config_v2.thrift
-  NAMESPACE "neteng.fboss.asic_config_v2"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
 )
@@ -848,11 +876,10 @@ add_fbthrift_cpp_library(
     json
     reflection
 )
-
-add_fbthrift_py_library(
-  io_stats_py
+add_fbthrift_python_library(
+  io_stats_python
   fboss/lib/if/io_stats.thrift
-  NAMESPACE "neteng.fboss.io_stats"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
 )
@@ -975,10 +1002,10 @@ add_fbthrift_cpp_library(
     json
 )
 
-add_fbthrift_py_library(
-  platform_mapping_config_py
+add_fbthrift_python_library(
+  platform_mapping_config_python
   fboss/lib/platform_mapping_v2/platform_mapping_config.thrift
-  NAMESPACE "neteng.fboss.platform_mapping_config"
+  NAMESPACE "neteng.fboss"
   OPTIONS
     json
 )

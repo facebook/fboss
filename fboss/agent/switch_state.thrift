@@ -176,6 +176,8 @@ struct PortFields {
   64: optional string serdesCustomCollection;
   // Cable Length Measurement (CLM) enable configuration for this port
   65: optional bool clmEnable;
+  // Link Training (IEEE 802.3 Cl.72/93/162) enable configuration for this port
+  66: optional bool linkTraining;
 }
 
 typedef ctrl.SystemPortThrift SystemPortFields
@@ -676,6 +678,7 @@ struct InterfaceFields {
   /* These fields contains information of remote GPU */
   24: optional string desiredPeerName;
   25: optional string desiredPeerAddressIPv6;
+  26: optional string desiredPeerAddressIPv4;
 }
 
 enum LacpState {

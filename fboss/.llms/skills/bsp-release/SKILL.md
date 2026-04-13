@@ -107,12 +107,14 @@ Prompt user for target switch hostname(s) if not already provided. Run in backgr
 ```bash
 # Test on current kernel only (usually sufficient):
 buck2 run fbcode//fboss/util/facebook/platform_utils:bspctl -- \
-  test <kmod_name> <version> <hostname>
+  test <kmod_name> <version> <hostname> --loops 5
 
 # Test across all kernels (safer, but slower and requires kerctl):
 buck2 run fbcode//fboss/util/facebook/platform_utils:bspctl -- \
-  test <kmod_name> <version> <hostname> --all-kernels
+  test <kmod_name> <version> <hostname> --all-kernels --loops 5
 ```
+
+Always pass `--loops 5`. The default (100) is excessive for release validation.
 
 Ask the user whether to test on the current kernel or all kernels. Single-kernel is usually sufficient; all-kernels is safer but requires `kerctl install` to work and reboots the switch between kernels.
 
@@ -142,6 +144,15 @@ git log --oneline v<prev_version>..main  # commits since that tag
 ```
 Use this commit list — do NOT use raw `git log` without a base tag, as it will include commits already in the previous release.
 
+**IMPORTANT:** Always include the source repo commit hash (HEAD at build time) in the diff summary. This makes it possible to retroactively identify exactly which source commit was used for a given release, and to tag the source repo later if needed. Record it as:
+```
+Source commit: <full_sha> (fboss.bsp.<vendor>)
+```
+Capture this during the build step and carry it forward:
+```bash
+cd ~/local/fboss.bsp.<vendor> && git rev-parse HEAD
+```
+
 **Test plan:** Include the `bspctl test` output (platform_manager success output, bsp_tests results). Paste the output and reference it as `{<paste-number>}`.
 
 Tell user: "kernel-externals diff needs review and landing before we can continue."
@@ -167,6 +178,15 @@ buck2 run fbcode//fboss/util/facebook/platform_utils:bspctl -- \
 ```
 
 Downloads the published SRPM, computes sha256, updates `modules.cinc` and `sandcastle_rpms.cinc`, runs `arc build && arc canary`, and commits.
+
+**CRITICAL:** `arc build && arc canary` must succeed in the configerator repo before proceeding. Two reasons:
+1. `arc build` generates materialized config files that are required for the diff to land.
+2. `arc canary` pushes the config changes to canary hosts. Without this, the subsequent `arc build //:x86_64` in the linux repo will build against the *old* config and won't actually test the new module entry.
+
+If `bspctl prepare-configerator` times out during `arc build`, run it manually:
+```bash
+cd ~/configerator && arc build && arc canary
+```
 
 **Before submitting**, verify the RPM builds correctly in the linux repo. Check out any fb branch (the specific version doesn't matter):
 ```bash

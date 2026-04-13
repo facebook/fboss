@@ -428,7 +428,8 @@ bool assertNextHopIdMapsSame(
 
 void NextHopIDManager::reconstructFromSwitchStateMaps(
     const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
-    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap) {
+    const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+    const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib) {
   DCHECK(assertNextHopIdMapsSame(fibsInfoMap));
   clearNhopIdManagerState();
 
@@ -581,18 +582,41 @@ void NextHopIDManager::reconstructFromSwitchStateMaps(
     }
   }
 
-  // MySid pass: register/bump refcounts for MySid entries' unresolveNextHopsId.
+  // MySid pass: register/bump refcounts for MySid entries' nexthop set IDs.
   // FibInfo contains all MySid nexthop IDs in its id maps, but those sets may
   // not be referenced by any routes. processNhopSetId handles both new
   // registration and refcount-bumping for already-registered sets.
   if (mySidMap && fibId2NhopMap && fibId2NhopIdSetMap) {
     for (const auto& miter : std::as_const(*mySidMap)) {
       for (const auto& [key, mySid] : std::as_const(*miter.second)) {
-        auto setIdOpt = mySid->getUnresolveNextHopsId();
-        if (!setIdOpt) {
-          continue;
+        if (auto setIdOpt = mySid->getResolvedNextHopsId()) {
+          processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
         }
-        processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
+        if (auto setIdOpt = mySid->getUnresolveNextHopsId()) {
+          processNhopSetId(*setIdOpt, fibId2NhopMap, fibId2NhopIdSetMap);
+        }
+      }
+    }
+  }
+
+  // MPLS pass: reconstruct nexthop IDs from label FIB entries.
+  // Label routes are stored separately from IPv4/IPv6 FIBs, so they need
+  // their own iteration pass.
+  if (labelFib && fibId2NhopMap && fibId2NhopIdSetMap) {
+    for (const auto& [switchId, labelFibInner] : std::as_const(*labelFib)) {
+      for (const auto& [label, route] : std::as_const(*labelFibInner)) {
+        const auto& fwdInfo = route->getForwardInfo();
+        if (auto setIdOpt = fwdInfo.getResolvedNextHopSetID()) {
+          processNhopSetId(
+              NextHopSetID(*setIdOpt), fibId2NhopMap, fibId2NhopIdSetMap);
+        }
+        if (auto normalizedSetIdOpt =
+                fwdInfo.getNormalizedResolvedNextHopSetID()) {
+          processNhopSetId(
+              NextHopSetID(*normalizedSetIdOpt),
+              fibId2NhopMap,
+              fibId2NhopIdSetMap);
+        }
       }
     }
   }

@@ -32,6 +32,9 @@ class SwSwitchWarmBootHelper {
       const std::string& bootType,
       const std::string& sdkVersion,
       const std::string& agentVersion);
+  bool isWarmBootFromHwSwitch() const {
+    return recoveredStateFromHW_.has_value();
+  }
 
  private:
   void setCanWarmBoot();

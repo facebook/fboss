@@ -75,6 +75,12 @@ class TxPacket : public Packet {
   TxPacket() {}
   static std::unique_ptr<TxPacket> allocateTxPacket(size_t size);
 
+  /**
+   * Create a deep copy of this TxPacket, including buffer contents.
+   * Handles IOBuf chains correctly via folly::io::Cursor.
+   */
+  std::unique_ptr<TxPacket> clone() const;
+
  private:
   explicit TxPacket(size_t size);
 

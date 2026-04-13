@@ -48,7 +48,7 @@ void AgentQosSchedulerTestBase::sendUdpPkt(uint8_t dscpVal, bool frontPanel) {
         createUdpPkt(dscpVal),
         ecmpHelper6.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID());
   } else {
-    getSw()->sendPacketSwitchedAsync(createUdpPkt(dscpVal));
+    sendPacketSwitchedAsync(createUdpPkt(dscpVal));
   }
 }
 

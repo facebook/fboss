@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -134,7 +135,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   folly::IPAddressV6 kDestIp() const {

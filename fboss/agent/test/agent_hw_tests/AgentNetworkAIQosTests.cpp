@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -133,7 +134,7 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
 
     const PortDescriptor port(portId);
     RoutePrefixV6 route{ip, 128};
@@ -201,7 +202,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
                               const folly::IPAddressV6& dstIp,
                               std::optional<PortID> portId = std::nullopt) {
     folly::IPAddressV6 kSrcIp("2402::1");
-    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+    const auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
         ensemble->getProgrammedState());
     const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
@@ -219,7 +220,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
     if (portId.has_value()) {
       ensemble->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), *portId);
     } else {
-      ensemble->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   };
 

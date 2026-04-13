@@ -115,6 +115,15 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
           ]
         },
         {
+          "combinationName": "4x200G-DR2",
+          "ports": [
+            {"speed": 200000, "hostLanes": {"start": 0, "count": 2}, "mediaLanes": {"start": 0, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34},
+            {"speed": 200000, "hostLanes": {"start": 2, "count": 2}, "mediaLanes": {"start": 2, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34},
+            {"speed": 200000, "hostLanes": {"start": 4, "count": 2}, "mediaLanes": {"start": 4, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34},
+            {"speed": 200000, "hostLanes": {"start": 6, "count": 2}, "mediaLanes": {"start": 6, "count": 2}, "mediaLaneCode": {"smfCode": 0x98}, "mediaInterfaceCode": 34}
+          ]
+        },
+        {
           "combinationName": "8x100G-DR1",
           "ports": [
             {"speed": 100000, "hostLanes": {"start": 0, "count": 1}, "mediaLanes": {"start": 0, "count": 1}, "mediaLaneCode": {"smfCode": 0x14}, "mediaInterfaceCode": 28},
@@ -250,6 +259,13 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
           "ports": [
             {"speed": 200000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x19}, "mediaInterfaceCode": 21},
             {"speed": 400000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x1E}, "mediaInterfaceCode": 6}
+          ]
+        },
+        {
+          "combinationName": "2x100G-CWDM4",
+          "ports": [
+            {"speed": 100000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1},
+            {"speed": 100000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x10}, "mediaInterfaceCode": 1}
           ]
         }
       ],

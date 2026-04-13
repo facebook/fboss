@@ -15,9 +15,9 @@
 namespace facebook::fboss {
 // PCA9548MultiplexedBus represents a I2C bus connected
 // to a bank of PCA9548 multiplexers. We assume that
-// a) multiplexers are at contigous addresses,
+// a) multiplexers are at contiguous addresses,
 // b) QSFPs are ordered w.r.t to multiplexers, so QSFP 1-8 go to
-// multiplexer 1, 9-16 go to multplexer 2  and so on
+// multiplexer 1, 9-16 go to multiplexer 2  and so on
 // This is true on the platforms we have. If things change its
 // easy to adapt this class to take a mapping of multiplexer
 // addresses and QSFP to multiplexer mapping and work off that.

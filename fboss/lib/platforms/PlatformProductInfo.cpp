@@ -165,7 +165,8 @@ void PlatformProductInfo::initMode() {
     } else if (
         modelName.find("Meru800biac") == 0 ||
         modelName.find("MERU800BIAC") == 0 ||
-        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0) {
+        modelName.find("EFT-DL-7700R4C-38PE-C-F") == 0 ||
+        modelName.find("FB-DL-7700R4C-38PE-C-F") == 0) {
       type_ = PlatformType::PLATFORM_MERU800BIAC;
     } else if (
         modelName.find("Meru800bfa") == 0 ||
@@ -205,7 +206,8 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_LADAKH800BCLS;
     } else if (
         modelName.find("Icecube800banw") == 0 ||
-        modelName.find("ICECUBE800BANW") == 0) {
+        modelName.find("ICECUBE800BANW") == 0 ||
+        modelName.find("ASY-92647-101") == 0) {
       type_ = PlatformType::PLATFORM_ICECUBE800BANW;
     } else if (modelName.find("J4Sim") == 0 || modelName.find("J4SIM") == 0) {
       type_ = PlatformType::PLATFORM_J4SIM;

@@ -14,6 +14,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -46,7 +47,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
       uint8_t dscpVal) const {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     return utility::makeUDPTxPacket(
@@ -74,7 +75,7 @@ class Agent2QueueToOlympicQoSTest : public AgentHwTest {
       getAgentEnsemble()->getSw()->sendPacketOutOfPortAsync(
           std::move(txPacket), outPort);
     } else {
-      getAgentEnsemble()->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
 

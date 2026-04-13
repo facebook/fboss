@@ -100,8 +100,8 @@ class DeviceUpdater:
             )
 
         component_data = self.manifest.get_component(self.component)
-        has_download = "download" in component_data
-        has_execute = "execute" in component_data
+        has_download = "download" in component_data  # pyre-ignore[58]
+        has_execute = "execute" in component_data  # pyre-ignore[58]
 
         if not has_download and not has_execute:
             raise DeviceUpdateError(

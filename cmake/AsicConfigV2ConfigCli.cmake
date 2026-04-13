@@ -17,6 +17,7 @@ set(
     "fboss/lib/asic_config_v2/tomahawk6.py"
     "fboss/lib/asic_config_v2/montblanc.py"
     "fboss/lib/asic_config_v2/tomahawk5.py"
+    "fboss/lib/asic_config_v2/wedge800bact.py"
     "fboss/lib/platform_mapping_v2/asic_vendor_config.py"
     "fboss/lib/platform_mapping_v2/gen.py"
     "fboss/lib/platform_mapping_v2/helpers.py"
@@ -28,19 +29,18 @@ set(
     "fboss/lib/platform_mapping_v2/static_mapping.py"
 )
 
-add_fb_python_executable(
+add_fb_thrift_python_executable(
     fboss-asic-config-gen
     MAIN_MODULE fboss.lib.asic_config_v2.gen:generate_all_asic_configs
     SOURCES ${ASIC_CONFIG_V2_PY_SRCS}
     DEPENDS
-        asic_config_v2_py
-        platform_config_py
-        switch_config_py
-        transceiver_py
-        phy_py
-        platform_mapping_config_py
-        fboss_common_py
-        FBThrift::thrift_py
+        asic_config_v2_python
+        platform_config_python
+        switch_config_python
+        transceiver_python
+        phy_python
+        platform_mapping_config_python
+        fboss_common_python
         python-pyyaml::python-pyyaml
 )
 

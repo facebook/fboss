@@ -5,6 +5,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 
 namespace facebook::fboss {
@@ -18,7 +19,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendPacket(
@@ -42,7 +43,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
         255, // hopLimit
         std::move(payload));
     // Forward the packet in the pipeline
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
   }
 
   std::vector<folly::IPAddressV6> getOneRemoteHostIpPerInterfacePort() {
