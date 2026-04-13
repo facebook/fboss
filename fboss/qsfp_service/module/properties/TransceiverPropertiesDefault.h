@@ -468,6 +468,41 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
       "speedChangeTransitions": [
         ["2x800G-FR4", "4x400G-FR2"]
       ]
+    },
+    "35": {
+      "firstApplicationAdvertisement": {
+        "mediaInterfaceCode": {"smfCode": 0x77},
+        "hostStartLanes": [0],
+        "hostInterfaceCode": 0x52
+      },
+      "smfLength": 500,
+      "numHostLanes": 8,
+      "numMediaLanes": 4,
+      "displayName": "DR4_800G_GEARBOX",
+      "supportedSpeedCombinations": [
+        {
+          "combinationName": "1x800G-DR4",
+          "ports": [
+            {"speed": 800000, "hostLanes": {"start": 0, "count": 8}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x77}, "mediaInterfaceCode": 22},
+          ]
+        },
+        {
+          "combinationName": "2x400G-DR4",
+          "ports": [
+            {"speed": 400000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 2}, "mediaLaneCode": {"smfCode": 0x75}, "mediaInterfaceCode": 27},
+            {"speed": 400000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 2, "count": 2}, "mediaLaneCode": {"smfCode": 0x75}, "mediaInterfaceCode": 27},
+            ]
+        },
+        {
+          "combinationName": "4x200G-DR4",
+          "ports": [
+            {"speed": 200000, "hostLanes": {"start": 0, "count": 2}, "mediaLanes": {"start": 0, "count": 1}, "mediaLaneCode": {"smfCode": 0x73}, "mediaInterfaceCode": 24},
+            {"speed": 200000, "hostLanes": {"start": 2, "count": 2}, "mediaLanes": {"start": 1, "count": 1}, "mediaLaneCode": {"smfCode": 0x73}, "mediaInterfaceCode": 24},
+            {"speed": 200000, "hostLanes": {"start": 4, "count": 2}, "mediaLanes": {"start": 2, "count": 1}, "mediaLaneCode": {"smfCode": 0x73}, "mediaInterfaceCode": 24},
+            {"speed": 200000, "hostLanes": {"start": 6, "count": 2}, "mediaLanes": {"start": 3, "count": 1}, "mediaLaneCode": {"smfCode": 0x73}, "mediaInterfaceCode": 24},
+            ]
+        }
+      ]
     }
   }
 })";
