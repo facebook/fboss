@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/HwLinkStateDependentTest.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/lib/CommonUtils.h"
 
 namespace facebook::fboss {
@@ -99,7 +100,7 @@ TEST_F(HwSplitAgentCallbackTest, txPacket) {
       1);
 
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
   auto pkt = utility::makeIpTxPacket(
       [hwSwitch = getHwSwitch()](uint32_t size) {

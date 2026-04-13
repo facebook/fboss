@@ -160,7 +160,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
         getSw(),
         getVlanIDForTx(),
         utility::kLocalCpuMac(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         kPacketSrcIp_,
         dstIp,
         kPacketSrcPort,
@@ -652,7 +652,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
           getSw(),
           getVlanIDForTx(),
           utility::kLocalCpuMac(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
           kDestIp,
           0x4444,
@@ -974,7 +974,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithMultipleMirrors) {
       setupEcmpTraffic(
           loop.injectionPortId,
           loop.dstIp,
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
     }
     waitForStateUpdates(getSw());
@@ -1436,7 +1436,7 @@ TEST_P(AgentMirrorOnDropDnxTest, VsqReject) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -1494,7 +1494,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PrecedenceDrop) {
     setupEcmpTraffic(
         injectionPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /* disableTtlDecrement */);
     waitForStateUpdates(getSw());
   };
@@ -1620,7 +1620,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(i),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(i); // for verifing traffic rate below
@@ -1648,7 +1648,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(idx),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(idx); // for verifying traffic rate below
@@ -2018,7 +2018,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
         expected.dropReasonMmu = 0x00;
         expected.innerSrcMac = utility::kLocalCpuMac();
         expected.innerDstMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         expected.innerSrcIp = kPacketSrcIp_;
         expected.innerDstIp = kDropDestIp;
         expected.innerSrcPort = kPacketSrcPort;
@@ -2071,7 +2071,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -2205,7 +2205,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModAclDrop) {
         expected.dropReasonMmu = 0x00;
         expected.innerSrcMac = utility::kLocalCpuMac();
         expected.innerDstMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         expected.innerSrcIp = kPacketSrcIp_;
         expected.innerDstIp = kAclDropDestIp;
         expected.innerSrcPort = kPacketSrcPort;
@@ -2285,7 +2285,8 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   // Non-local MAC triggers L2 drops on loopback (dst MAC mismatch).
   const auto kCollectorNonLocalMac = folly::MacAddress::fromHBO(
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState()).u64HBO() +
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
+          .u64HBO() +
       10);
 
   const folly::IPAddressV6 kTrafficLoopIp{
@@ -2318,7 +2319,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
     setupEcmpTraffic(
         trafficPortId,
         kTrafficLoopIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /*disableTtlDecrement*/);
 
     // Non-local dest MAC in the ethernet packet will result in drops on

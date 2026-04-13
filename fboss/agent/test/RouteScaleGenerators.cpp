@@ -211,7 +211,7 @@ HgridUuRouteScaleGenerator::HgridUuRouteScaleGenerator(
 
 /*
  * Double UU scale plus 4K /64 to give us just over ~100K prefixes.
- * This is our anticupated worst case route scale in the near to mid
+ * This is our anticipated worst case route scale in the near to mid
  * term
  */
 AnticipatedRouteScaleGenerator::AnticipatedRouteScaleGenerator(

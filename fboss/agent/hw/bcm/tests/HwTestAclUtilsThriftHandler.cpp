@@ -165,6 +165,10 @@ bool HwTestThriftHandler::areAllAclEntriesEnabled() {
   return isDefaultAclTableEnabled();
 }
 
+bool HwTestThriftHandler::isAclTableGroupEnabled(int32_t /*aclStage*/) {
+  return isDefaultAclTableEnabled();
+}
+
 } // namespace utility
 } // namespace fboss
 } // namespace facebook

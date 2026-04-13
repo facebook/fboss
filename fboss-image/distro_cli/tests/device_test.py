@@ -10,6 +10,7 @@
 """Unit tests for device commands."""
 
 import argparse
+import json
 import shutil
 import subprocess
 import tarfile
@@ -30,6 +31,8 @@ from distro_cli.cmds.device import (
     ssh_command,
     update_command,
 )
+from distro_cli.lib.cli import CLI
+from distro_cli.lib.device_update import DeviceUpdateError, DeviceUpdater
 from distro_cli.lib.distro_infra import DISTRO_INFRA_CONTAINER
 from distro_cli.lib.docker import container
 from distro_cli.lib.exceptions import DistroInfraError
@@ -80,7 +83,7 @@ class TestDeviceCommands(unittest.TestCase):
 
         exit_code = container.run_container(
             image="fboss_distro_infra",
-            command=["/distro_infra/run_distro_infra.sh", "--intf", "lo"],
+            command=["/distro_infra/run_distro_infra.sh", "--intf", "lo", "--nodhcpv6"],
             volumes=volumes,
             ephemeral=False,
             detach=True,
@@ -213,27 +216,67 @@ class TestDeviceCommands(unittest.TestCase):
                 self.test_mac, Path("/tmp/test_image.tar")
             )
 
-    def test_image_stub(self):
-        """Test image command (stub)"""
-        args = argparse.Namespace(mac=self.test_mac, image_path=str(self.image_path))
-        # Call command - just verify it doesn't crash
+    def test_image_command_with_tarball(self):
+        """Test image command with tarball extraction"""
+        self.setup_image_command_test()
+
+        temp_dir = tempfile.mkdtemp()
+        test_file = Path(temp_dir) / "test_file.txt"
+        test_file.write_text("test content")
+        tarball_path = Path(temp_dir) / "test_image.tar"
+        with tarfile.open(tarball_path, "w") as tar:
+            tar.add(test_file, arcname="test_file.txt")
+
+        args = argparse.Namespace(mac=self.test_mac, image_path=str(tarball_path))
         image_command(args)
+
+        mac_dir = self.verify_image_command_common(self.test_mac)
+
+        extracted_file = mac_dir / "test_file.txt"
+        self.assertTrue(extracted_file.exists())
+        self.assertEqual(extracted_file.read_text(), "test content")
+
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def test_image_command_with_directory(self):
+        """Test image command failure with directory (only tarballs supported)"""
+        self.setup_image_command_test()
+
+        temp_dir = tempfile.mkdtemp()
+        dir_path = Path(temp_dir) / "test_image_dir"
+        dir_path.mkdir()
+        file1 = dir_path / "file1.txt"
+        file2 = dir_path / "file2.txt"
+        file1.write_text("content1")
+        file2.write_text("content2")
+
+        args = argparse.Namespace(mac=self.test_mac, image_path=str(dir_path))
+        with self.assertRaises(SystemExit) as excinfo:
+            image_command(args)
+        self.assertEqual(excinfo.exception.code, 1)
+
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def test_image_command_with_single_file(self):
+        """Test image command failure with non-tarball file"""
+        self.setup_image_command_test()
+
+        temp_dir = tempfile.mkdtemp()
+        single_file_path = Path(temp_dir) / "single_file.bin"
+        single_file_path.write_text("single file content")
+
+        args = argparse.Namespace(mac=self.test_mac, image_path=str(single_file_path))
+        with self.assertRaises(SystemExit) as excinfo:
+            image_command(args)
+        self.assertEqual(excinfo.exception.code, 1)
+
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
     def test_reprovision_stub(self):
         """Test reprovision command (stub)"""
         args = argparse.Namespace(mac=self.test_mac)
         # Call command - just verify it doesn't crash
         reprovision_command(args)
-
-    def test_update_stub(self):
-        """Test update command (stub)"""
-        args = argparse.Namespace(
-            mac=self.test_mac,
-            manifest=str(self.manifest_path),
-            components=["kernel", "sai"],
-        )
-        # Call command - just verify it doesn't crash
-        update_command(args)
 
     @patch("distro_cli.cmds.device.container.exec_in_container")
     @patch("distro_cli.cmds.device.container.container_is_running")
@@ -617,6 +660,249 @@ class TestDownloadWithCache(unittest.TestCase):
 
                 self.assertIn("Failed to download", str(context.exception))
                 self.assertIn(full_url, str(context.exception))
+
+
+class TestDeviceUpdater(unittest.TestCase):
+    """Unit tests for DeviceUpdater class"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.test_data_dir = Path(__file__).parent / "data"
+        self.update_manifest_path = self.test_data_dir / "update_manifest.json"
+
+    def test_validate_non_updatable_component(self):
+        """Test that non-updatable components raise error"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="kernel",
+        )
+        with self.assertRaises(DeviceUpdateError) as ctx:
+            updater.validate()
+        self.assertIn("is not updatable", str(ctx.exception))
+        self.assertIn("Updatable components:", str(ctx.exception))
+
+    def test_validate_component_not_in_manifest(self):
+        """Test that component in COMPONENT_SERVICES but missing from manifest raises error"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(
+                {
+                    "distribution_formats": {"onie": "test.bin"},
+                    "kernel": {"download": "https://example.com/kernel.tar"},
+                },
+                f,
+            )
+            temp_manifest_path = Path(f.name)
+        self.addCleanup(temp_manifest_path.unlink)
+
+        manifest = ImageManifest(temp_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+        )
+        with self.assertRaises(DeviceUpdateError) as ctx:
+            updater.validate()
+        self.assertIn("not found in manifest", str(ctx.exception))
+
+    def test_validate_component_with_no_services_allowed_for_other_dependencies(self):
+        """Test that component with empty services list is allowed for other_dependencies"""
+        # Create a manifest with other_dependencies
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(
+                {
+                    "distribution_formats": {"onie": "test.bin"},
+                    "kernel": {"download": "https://example.com/kernel.tar"},
+                    "other_dependencies": [
+                        {"download": "https://example.com/nano.rpm"}
+                    ],
+                },
+                f,
+            )
+            temp_manifest_path = Path(f.name)
+        self.addCleanup(temp_manifest_path.unlink)
+
+        manifest = ImageManifest(temp_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="other_dependencies",
+        )
+        updater.validate()
+
+    def test_validate_component_with_no_services_raises_error(self):
+        """Test that component with empty services list raises error (except other_dependencies)"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-platform-stack",
+        )
+        # Patch COMPONENT_SERVICES to have empty list for platform-stack
+        with patch(
+            "distro_cli.lib.device_update.COMPONENT_SERVICES",
+            {"fboss-platform-stack": [], "fboss-forwarding-stack": ["wedge_agent"]},
+        ):
+            with self.assertRaises(DeviceUpdateError) as ctx:
+                updater.validate()
+            self.assertIn("has no services defined", str(ctx.exception))
+
+    def test_validate_component_without_download_or_execute(self):
+        """Test that component without download or execute raises error"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(
+                {
+                    "distribution_formats": {"onie": "test.bin"},
+                    "kernel": {"download": "https://example.com/kernel.tar"},
+                    "fboss-forwarding-stack": {},
+                },
+                f,
+            )
+            temp_manifest_path = Path(f.name)
+        self.addCleanup(temp_manifest_path.unlink)
+
+        manifest = ImageManifest(temp_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+        )
+        with self.assertRaises(DeviceUpdateError) as ctx:
+            updater.validate()
+        self.assertIn("neither 'download' nor 'execute'", str(ctx.exception))
+
+    def test_validate_success_forwarding_stack(self):
+        """Test successful validation for fboss-forwarding-stack"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+        )
+        # Should not raise
+        updater.validate()
+
+    def test_validate_success_platform_stack(self):
+        """Test successful validation for fboss-platform-stack"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-platform-stack",
+        )
+        # Should not raise
+        updater.validate()
+
+    def test_get_services_from_component_services(self):
+        """Test that services are correctly read from COMPONENT_SERVICES dict"""
+        manifest = ImageManifest(self.update_manifest_path)
+
+        updater1 = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+        )
+        self.assertEqual(
+            updater1._get_services(),
+            ["wedge_agent", "fsdb", "qsfp_service"],
+        )
+
+        updater2 = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-platform-stack",
+        )
+        self.assertEqual(
+            updater2._get_services(),
+            [
+                "platform_manager",
+                "sensor_service",
+                "fan_service",
+                "data_corral_service",
+            ],
+        )
+
+    def test_get_services_for_other_dependencies(self):
+        """Test that other_dependencies returns empty service list"""
+        # Create a manifest with other_dependencies
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(
+                {
+                    "distribution_formats": {"onie": "test.bin"},
+                    "kernel": {"download": "https://example.com/kernel.tar"},
+                    "other_dependencies": [
+                        {"download": "https://example.com/nano.rpm"}
+                    ],
+                },
+                f,
+            )
+            temp_manifest_path = Path(f.name)
+        self.addCleanup(temp_manifest_path.unlink)
+
+        manifest = ImageManifest(temp_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="other_dependencies",
+        )
+        self.assertEqual(updater._get_services(), [])
+
+    def test_update_requires_device_ip(self):
+        """Test that update() raises DeviceUpdateError when device_ip is not set"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+            device_ip=None,
+        )
+        with self.assertRaises(DeviceUpdateError) as ctx:
+            updater.update()
+        self.assertIn("Device IP not set", str(ctx.exception))
+
+    def test_acquire_artifacts_and_services(self):
+        """Test services are available for platform-stack component"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-platform-stack",
+        )
+
+        # Validate first
+        updater.validate()
+
+        # Verify services come from COMPONENT_SERVICES dict
+        services = updater._get_services()
+        self.assertEqual(
+            services,
+            [
+                "platform_manager",
+                "sensor_service",
+                "fan_service",
+                "data_corral_service",
+            ],
+        )
+
+    def test_acquire_artifacts_forwarding_stack(self):
+        """Test services are available for forwarding-stack component"""
+        manifest = ImageManifest(self.update_manifest_path)
+        updater = DeviceUpdater(
+            mac="aa:bb:cc:dd:ee:ff",
+            manifest=manifest,
+            component="fboss-forwarding-stack",
+        )
+
+        # Validate first
+        updater.validate()
+
+        # Verify services come from COMPONENT_SERVICES dict
+        services = updater._get_services()
+        self.assertEqual(
+            services,
+            ["wedge_agent", "fsdb", "qsfp_service"],
+        )
 
 
 if __name__ == "__main__":

@@ -624,7 +624,7 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
 
     // Create adjacencies on all test ports
     auto dstMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     for (int idx = 0; idx < portIds.size(); idx++) {
       this->applyNewState([&](const std::shared_ptr<SwitchState>& in) {
         utility::EcmpSetupAnyNPorts6 ecmpHelper6(
@@ -639,7 +639,7 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
     XLOG(DBG0) << "Dumping port configurations:";
     for (int idx = 0; idx < portIds.size(); idx++) {
       auto mac =
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
       XLOG(DBG0) << "   Port " << portIds[idx]
                  << ", IPv6: " << cfg.interfaces()[idx].ipAddresses()[1]
                  << ", Intf MAC: " << mac;

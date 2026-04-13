@@ -467,7 +467,7 @@ class QsfpModule : public Transceiver {
   bool validateQsfpString(const std::string& value) const;
 
   /*
-   * Retreives all alarm and warning thresholds
+   * Retrieves all alarm and warning thresholds
    */
   virtual std::optional<AlarmThreshold> getThresholdInfo() = 0;
   /*

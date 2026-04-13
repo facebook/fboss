@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -136,7 +137,7 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
   // PacketStreamHandler::handlePacket() which delivers it via stream.
   void sendPacketOutPort(PortID port) {
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto iobuf = folly::IOBuf::create(64);
     iobuf->append(64);
@@ -159,7 +160,7 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
   // suitable for sending via the packetSink sink.
   std::string buildAifmCtrlFrame() {
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto iobuf = folly::IOBuf::create(64);
     iobuf->append(64);

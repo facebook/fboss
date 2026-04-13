@@ -1218,7 +1218,7 @@ void SaiMacsecManager::setupMacsecState(
  * removeMacsecPipeline
  *
  * Helper function to remove the Macsec pipeline object from the port. After
- * this the port will send/recieve plaintext packets
+ * this the port will send/receive plaintext packets
  */
 void SaiMacsecManager::removeMacsecPipeline(
     PortID linePort,

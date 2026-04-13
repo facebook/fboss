@@ -21,6 +21,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -191,7 +192,7 @@ class AgentCoppTest : public AgentHwTest {
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     utility::sendTcpPkts(
         getSw(),
         numPktsToSend,
@@ -226,7 +227,7 @@ class AgentCoppTest : public AgentHwTest {
       ips.insert(*ipv6Addr);
     };
     auto switchId = getSwitchIdUnderTest(*getAgentEnsemble());
-    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
+    auto intfId = firstInterfaceIDWithPortsForTesting(getProgrammedState());
     auto config = this->initialConfig(*getAgentEnsemble());
     for (const auto& configIntf : *config.interfaces()) {
       if (InterfaceID(*configIntf.intfID()) == intfId) {
@@ -293,7 +294,7 @@ class AgentCoppTest : public AgentHwTest {
     const auto kNumPktsToSend = 1;
     auto vlanId = getVlanIDForTx();
     auto destinationMac = dstMac.value_or(
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     auto sendAndInspect = [=, this]() {
       auto pkt = utility::makeTCPTxPacket(
           getSw(),
@@ -329,7 +330,7 @@ class AgentCoppTest : public AgentHwTest {
       bool expectPktTrap) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     // arbit
     const auto srcIp =
         folly::IPAddress(dstIpAddress.isV4() ? "1.0.0.11" : "1::11");
@@ -391,7 +392,7 @@ class AgentCoppTest : public AgentHwTest {
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
 
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeEthTxPacket(
@@ -443,7 +444,7 @@ class AgentCoppTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           useInterfaceMac
-              ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+              ? getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
               : getLocalMacAddress());
       resolveNeighborAndProgramRoutes(ecmpHelper, 1);
     } else {
@@ -451,7 +452,7 @@ class AgentCoppTest : public AgentHwTest {
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
           useInterfaceMac
-              ? utility::getMacForFirstInterfaceWithPorts(getProgrammedState())
+              ? getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
               : getLocalMacAddress());
       flat_set<PortDescriptor> ports;
       ports.insert(PortDescriptor(AggregatePortID(1)));
@@ -486,7 +487,7 @@ class AgentCoppTest : public AgentHwTest {
       bool outOfPort) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeARPTxPacket(
@@ -538,7 +539,7 @@ class AgentCoppTest : public AgentHwTest {
       bool selfSolicit,
       bool expectRxPacket = true) {
     InterfaceID intfId =
-        utility::firstInterfaceIDWithPorts(getProgrammedState());
+        firstInterfaceIDWithPortsForTesting(getProgrammedState());
     auto intf = getProgrammedState()->getInterfaces()->getNode(intfId);
     std::optional<VlanID> vlanId{};
     if (intf->getType() == cfg::InterfaceType::VLAN) {
@@ -546,7 +547,7 @@ class AgentCoppTest : public AgentHwTest {
     }
     auto myAddr = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -614,7 +615,7 @@ class AgentCoppTest : public AgentHwTest {
       const int expectedPktDelta = 1) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto beforeOutPkts = utility::getQueueOutPacketsWithRetry(
         getSw(),
@@ -654,11 +655,11 @@ class AgentCoppTest : public AgentHwTest {
 
   void
   sendDHCPv6Pkts(int numPktsToSend, DHCPv6Type type, int ttl, bool outOfPort) {
-    auto intfId = utility::firstInterfaceIDWithPorts(getProgrammedState());
+    auto intfId = firstInterfaceIDWithPortsForTesting(getProgrammedState());
     auto myIpv6 = utility::getIntfAddrsV6(getProgrammedState(), intfId)[0];
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto neighborMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     for (int i = 0; i < numPktsToSend; i++) {
@@ -994,8 +995,8 @@ TYPED_TEST(AgentCoppTest, CpuPortIpv6LinkLocalUcastIp) {
       skipTtlDecrement = true;
     } else {
       // use interface mac, otherwise would be dropped on dnx
-      dstMac =
-          utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+      dstMac = getMacForFirstInterfaceWithPortsForTesting(
+          this->getProgrammedState());
       skipTtlDecrement = false;
       utility::PacketMatchFields fields{dstMac};
       packetComparatorFn = utility::makePacketComparator(fields);
@@ -1363,7 +1364,7 @@ TYPED_TEST(AgentCoppTest, DhcpPacketToMidPriQ) {
 
   auto verify = [=, this]() {
     auto intfID =
-        utility::firstInterfaceIDWithPorts(this->getProgrammedState());
+        firstInterfaceIDWithPortsForTesting(this->getProgrammedState());
     auto v4IntfAddr =
         utility::getIntfAddrsV4(this->getProgrammedState(), intfID)[0];
     auto v6IntfAddr =
@@ -1472,7 +1473,7 @@ class AgentCoppQosTest : public AgentHwTest {
 
   void setupEcmpDataplaneLoop() {
     auto dstMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
 
     utility::EcmpSetupAnyNPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor(), dstMac);
@@ -1514,7 +1515,7 @@ class AgentCoppQosTest : public AgentHwTest {
       uint8_t trafficClass = 0,
       std::optional<std::vector<uint8_t>> payload = std::nullopt) {
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     utility::sendTcpPkts(
         getSw(),
         numPktsToSend,
@@ -1538,7 +1539,7 @@ class AgentCoppQosTest : public AgentHwTest {
     auto minPktsForLineRate =
         getAgentEnsemble()->getMinPktsForLineRate(port) * 2;
     auto dstMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
 
     // Create a loop with specified destination packets.
     // We want to send atleast 2 traffic streams to ensure we dont run

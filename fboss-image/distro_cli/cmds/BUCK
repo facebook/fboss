@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:python_library.bzl", "python_library")
+
+oncall("fboss_distro")
+
+python_library(
+    name = "device",
+    srcs = ["device.py"],
+    base_module = "distro_cli.cmds",
+    labels = ["autodeps2_generated"],
+    deps = [
+        "//fboss/github/fboss-image/distro_cli/lib:cli",
+        "//fboss/github/fboss-image/distro_cli/lib:device_update",
+        "//fboss/github/fboss-image/distro_cli/lib:distro_infra",
+        "//fboss/github/fboss-image/distro_cli/lib:exceptions",
+        "//fboss/github/fboss-image/distro_cli/lib:manifest",
+        "//fboss/github/fboss-image/distro_cli/lib/docker:docker",
+    ],
+)

@@ -1,9 +1,11 @@
 #!/bin/bash
+set -e
 
 INTERFACE=""
 PERSIST_DIR=""
 DISTRO_CONTAINER_NAME="fboss-distro-infra" # This should match DISTRO_CONTAINER_NAME in distro_cli/cmds/device.py
 NODHCPV6=""
+DISTRO_CONTAINER_NAME="fboss-distro-infra" # This should match DISTRO_CONTAINER_NAME in distro_cli/cmds/device.py
 
 help() {
   echo "Usage: $0 [--nodhcpv6] --intf <interface> --persist-dir <persistent dir>"

@@ -376,7 +376,8 @@
               "csrOffsetCalc": "0x65c0 + ({portNum} - {startPort})*0x10 + ({ledNum} - 1)*0x10",
               "numPorts": 1,
               "ledPerPort": 4,
-              "startPort": 39
+              "startPort": 39,
+              "lanesPerPort": 4
             }
           ],
           "sysLedCtrlConfigs": [

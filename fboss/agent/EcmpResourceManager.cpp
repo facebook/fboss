@@ -1434,7 +1434,8 @@ EcmpResourceManager::routeAddedNoCompressionThreshold(
     bool ecmpLimitReached,
     InputOutputState* inOutState) {
   CHECK(!getEcmpCompressionThresholdPct());
-  auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
+  auto nhopSet = getNormalizedNextHops(
+      inOutState->getInputNewState(), newRoute->getForwardInfo());
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
     DCHECK(grpInfo->isUninitialized());
@@ -1505,7 +1506,8 @@ EcmpResourceManager::routeAddedNoOverrideNhops(
   // ECMP compression
   CHECK(getEcmpCompressionThresholdPct());
   DCHECK(!newRoute->getForwardInfo().getOverrideNextHops().has_value());
-  auto nhopSet = newRoute->getForwardInfo().normalizedNextHops();
+  auto nhopSet = getNormalizedNextHops(
+      inOutState->getInputNewState(), newRoute->getForwardInfo());
   auto [grpInfo, grpInserted] = getOrCreateGroupInfo(nhopSet, *inOutState);
   if (grpInserted) {
     DCHECK(grpInfo->isUninitialized());
@@ -1600,7 +1602,8 @@ EcmpResourceManager::routeAddedWithOverrideNhops(
   XLOG(DBG2) << " Processing route with override nhops: " << newRoute->str();
   auto nonOverrideNhops = getNonOverrideNormalizedNextHops(
       inOutState->getInputNewState(), newRoute->getForwardInfo());
-  auto overrideNhops = newRoute->getForwardInfo().normalizedNextHops();
+  auto overrideNhops = getNormalizedNextHops(
+      inOutState->getInputNewState(), newRoute->getForwardInfo());
   auto [overrideGrpInfo, overrideGrpInserted] =
       getOrCreateGroupInfo(overrideNhops, *inOutState);
   auto [grpInfo, grpInserted] =

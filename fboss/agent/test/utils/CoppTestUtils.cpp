@@ -24,6 +24,7 @@
 #include "fboss/lib/CommonUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -1615,7 +1616,7 @@ void sendAndVerifyPkts(
     PortID srcPort,
     uint8_t trafficClass) {
   auto sendPkts = [&] {
-    auto intf = utility::firstInterfaceWithPorts(swState);
+    auto intf = firstInterfaceWithPortsForTesting(swState);
     std::optional<VlanID> vlanId =
         utility::getSwitchVlanIDForTx(switchPtr, intf);
 

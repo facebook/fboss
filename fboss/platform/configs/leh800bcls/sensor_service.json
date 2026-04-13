@@ -1,4 +1,5 @@
 {
+  "platformName": "LEH800BCLS",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",

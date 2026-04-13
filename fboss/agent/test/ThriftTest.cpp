@@ -2869,7 +2869,7 @@ TEST_F(ThriftTest, getConfigAppliedInfo) {
     throw FbossError("No coldboot config applied time");
   }
 
-  // Adding sleep in case we immediatly check the last config applied time
+  // Adding sleep in case we immediately check the last config applied time
   /* sleep override */
   usleep(1000);
   auto currentInMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -2878,7 +2878,8 @@ TEST_F(ThriftTest, getConfigAppliedInfo) {
   EXPECT_LT(initConfigAppliedInMs, currentInMs);
 
   // Try to apply a new config, the lastConfigAppliedTime should changed
-  // Adding sleep in case we apply a new config immediatly after the last config
+  // Adding sleep in case we apply a new config immediately after the last
+  // config
   /* sleep override */
   usleep(1000);
   sw_->applyConfig(

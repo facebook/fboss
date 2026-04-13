@@ -2974,6 +2974,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->clmEnable().value_or(false) ==
           orig->getClmEnable().value_or(false) &&
       portConf->clmEnable().has_value() == orig->getClmEnable().has_value() &&
+      portConf->linkTraining().value_or(false) ==
+          orig->getLinkTraining().value_or(false) &&
+      portConf->linkTraining().has_value() ==
+          orig->getLinkTraining().has_value() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3065,6 +3069,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setClmEnable(portConf->clmEnable().value());
   } else {
     newPort->setClmEnable(std::nullopt);
+  }
+  if (portConf->linkTraining().has_value()) {
+    newPort->setLinkTraining(portConf->linkTraining().value());
+  } else {
+    newPort->setLinkTraining(std::nullopt);
   }
   return newPort;
 }
@@ -4824,7 +4833,7 @@ ThriftConfigApplier::updatePortFlowletConfigs(bool* changed) {
 
   // origPortFlowletConfigs, newPortFlowletConfigs both are configured
   // and with with same size
-  // check if there is any upate on it when compared
+  // check if there is any update on it when compared
   // with last one
   for (auto& portFlowletConfig : *newCfgedPortFlowlets) {
     auto newPortFlowletConfig = createPortFlowletConfig(
@@ -4889,7 +4898,7 @@ ThriftConfigApplier::updateBufferPoolConfigs(bool* changed) {
 
   // origBufferPoolConfigs, newBufferPoolConfigs both are configured
   // and with with same size
-  // check if there is any upate on it when compared
+  // check if there is any update on it when compared
   // with last one
   for (auto& bufferPoolConfig : *newCfgedBufferPools) {
     auto newBufferPoolConfig =
@@ -6109,7 +6118,12 @@ ThriftConfigApplier::createMirrorOnDropReport(
   }
 
   // Determine the switchId for looking up the first interface MAC.
-  std::optional<SwitchID> modSwitchId = getAnySwitchId(asic->getSwitchType());
+  auto modSwitchId = getAnySwitchId(asic->getSwitchType());
+  if (!modSwitchId.has_value()) {
+    throw FbossError(
+        "No switchId found for switch type: ",
+        static_cast<int>(asic->getSwitchType()));
+  }
 
   // Determine the mirror recirculation port.
   std::optional<PortID> mirrorPortId;
@@ -6194,7 +6208,7 @@ ThriftConfigApplier::createMirrorOnDropReport(
       *config->truncateSize(),
       static_cast<uint8_t>(*config->dscp()),
       getLocalMacAddress().toString(),
-      utility::getMacForFirstInterfaceWithPorts(new_, modSwitchId).toString(),
+      utility::getMacForFirstInterfaceWithPorts(new_, *modSwitchId).toString(),
       *config->modEventToConfigMap(),
       *config->agingGroupAgingIntervalUsecs(),
       config->samplingRate().to_optional());

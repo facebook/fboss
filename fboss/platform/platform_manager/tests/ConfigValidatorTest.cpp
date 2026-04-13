@@ -219,6 +219,34 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
       sensorConfig};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 7: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
+  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {};
+  config.numXcvrs() = 1;
+  auto defaultPciDev = getValidPciDeviceConfig();
+  LedCtrlBlockConfig defaultLedCtrl;
+  defaultLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
+  defaultLedCtrl.deviceName() = "port_led";
+  defaultLedCtrl.csrOffsetCalc() = "0x1000";
+  defaultLedCtrl.numPorts() = 1;
+  defaultLedCtrl.ledPerPort() = 1;
+  defaultLedCtrl.startPort() = 1;
+  defaultPciDev.ledCtrlBlockConfigs() = {defaultLedCtrl};
+  auto pmUnitCfg = config.pmUnitConfigs()->at("SCM");
+  pmUnitCfg.pciDeviceConfigs() = {defaultPciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitCfg}};
+  auto versionedPciDev = getValidPciDeviceConfig();
+  LedCtrlBlockConfig versionedLedCtrl;
+  versionedLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
+  versionedLedCtrl.deviceName() = "port_led";
+  versionedLedCtrl.csrOffsetCalc() = "0x2000";
+  versionedLedCtrl.numPorts() = 1;
+  versionedLedCtrl.ledPerPort() = 1;
+  versionedLedCtrl.startPort() = 1;
+  versionedPciDev.ledCtrlBlockConfigs() = {versionedLedCtrl};
+  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
@@ -294,6 +322,18 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   pmUnitConfig.i2cDeviceConfigs()->emplace_back(i2cConfig2);
   pmUnitConfig.pciDeviceConfigs() = {};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 10: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  auto pciDevWithLed = getValidPciDeviceConfig();
+  pciDevWithLed.ledCtrlBlockConfigs() = {};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.pciDeviceConfigs() = {pciDevWithLed};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() =
+      *pmUnitConfig.i2cDeviceConfigs();
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {pciDevWithLed};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
@@ -914,6 +954,25 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
   config.ledPerPort() = 5;
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
   config.ledPerPort() = 2;
+
+  // Test case: Valid lanesPerPort (default is 8)
+  config.lanesPerPort() = 8;
+  EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: Zero lanesPerPort
+  config.lanesPerPort() = 0;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.lanesPerPort() = 8;
+
+  // Test case: Negative lanesPerPort
+  config.lanesPerPort() = -1;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.lanesPerPort() = 8;
+
+  // Test case: lanesPerPort > 8
+  config.lanesPerPort() = 9;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.lanesPerPort() = 8;
 
   // Test case: Negative startPort
   config.startPort() = -1;

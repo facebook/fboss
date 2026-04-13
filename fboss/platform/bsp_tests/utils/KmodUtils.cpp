@@ -47,20 +47,27 @@ void KmodUtils::unloadKmods(const BspKmodsFile& kmods) {
   }
 }
 
+std::string KmodUtils::getVendorKeyword(
+    const platform_manager::PlatformConfig& platformConfig) {
+  const re2::RE2 kBspRpmNameRe("(?P<KEYWORD>[a-z]+)_bsp_kmods");
+  std::string keyword;
+  re2::RE2::FullMatch(
+      *platformConfig.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
+  return keyword;
+}
+
+std::string KmodUtils::getKernelVersion() {
+  return platform_manager::package_manager::SystemInterface()
+      .getHostKernelVersion();
+}
+
 // Run fbsp-remove.sh script
 void KmodUtils::fbspRemove(
     const platform_manager::PlatformConfig& platformConfig) {
   // Find fbsp-remove.sh script path
   constexpr auto kremoveScriptPath = "/usr/local/{}_bsp/{}/fbsp-remove.sh";
-  const re2::RE2 kBspRpmNameRe = "(?P<KEYWORD>[a-z]+)_bsp_kmods";
-  std::string keyword{};
-  re2::RE2::FullMatch(
-      *platformConfig.bspKmodsRpmName(), kBspRpmNameRe, &keyword);
   std::string fbspPath = fmt::format(
-      kremoveScriptPath,
-      keyword,
-      platform_manager::package_manager::SystemInterface()
-          .getHostKernelVersion());
+      kremoveScriptPath, getVendorKeyword(platformConfig), getKernelVersion());
 
   XLOG(DBG) << "Running fbsp-remove: " << fbspPath;
   auto result = PlatformUtils().execCommand(fmt::format("{} -f", fbspPath));

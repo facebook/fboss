@@ -196,7 +196,7 @@ bool isEnabledPortWithSubnet(
 std::vector<std::string> getLoopbackIps(SwitchID switchId) {
   auto switchIdVal = static_cast<int64_t>(switchId);
   // Use (200-255):(0-255) range for DSF node loopback IPs. Therefore, the max
-  // number of switchId can be accomodated will be 56 * 256 = 14366, which is
+  // number of switchId can be accommodated will be 56 * 256 = 14366, which is
   // more than what we need in both J2 and J3.
   const auto switchIdLimit = 14366;
   CHECK_LT(switchIdVal, switchIdLimit)

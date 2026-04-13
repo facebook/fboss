@@ -5,6 +5,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 
 namespace facebook::fboss {
@@ -18,7 +19,7 @@ class AgentVoqSwitchLineRateTest : public AgentVoqSwitchTest {
   }
 
   folly::MacAddress getIntfMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendPacket(

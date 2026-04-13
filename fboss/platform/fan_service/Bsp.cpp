@@ -228,7 +228,7 @@ std::map<std::string, std::vector<OpticData>> Bsp::processOpticEntries(
 
     float temp = static_cast<float>(*(tcvrStats.sensor()->temp()->value()));
     // Skip entries where temperature is 0.0 - meaning the port is
-    // not populated in qsfp_service or read failure occured.
+    // not populated in qsfp_service or read failure occurred.
     if (temp == 0.0) {
       continue;
     }

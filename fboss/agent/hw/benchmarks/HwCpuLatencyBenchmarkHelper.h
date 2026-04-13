@@ -7,6 +7,7 @@
 #include "fboss/agent/benchmarks/AgentBenchmarks.h"
 #include "fboss/agent/packet/EthFrame.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -226,8 +227,8 @@ inline std::unique_ptr<TxPacket> createLatencyTestPacket(
   if (!vlanId) {
     vlanId = ensemble->getVlanIDForTx();
   }
-  auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
+      ensemble->getProgrammedState());
 
   auto payload = encodePayload(sequenceNumber);
   uint8_t trafficClass = kNetworkControlDscp << 2;
@@ -477,8 +478,8 @@ inline MultiPortCpuLatencySetup createAllPortCpuLatencyEnsemble() {
       createAgentEnsemble(initialConfigFn, false /*disableLinkStateToggler*/);
 
   auto allPorts = ensemble->masterLogicalInterfacePortIds();
-  auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
+      ensemble->getProgrammedState());
 
   // Per-port IP and VLAN mappings
   // onePortPerInterfaceConfig assigns VlanID(kBaseVlanId + index) per port

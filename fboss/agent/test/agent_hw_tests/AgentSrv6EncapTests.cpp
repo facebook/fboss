@@ -12,6 +12,7 @@
 #include "fboss/agent/state/Srv6Tunnel.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -281,7 +282,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
     }
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     constexpr auto kTc{42};
     constexpr auto kTtl{24};
     auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
@@ -633,7 +634,7 @@ TYPED_TEST(AgentSrv6EncapTest, verifySrv6EncapEcnMarking) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     // Send 512 SRv6 packets (DSCP 5, ECN ECT1, ~7000B payload).
     // In UNIFORM mode, outer header copies DSCP+ECN bits from inner.
@@ -689,7 +690,7 @@ TYPED_TEST(AgentSrv6EncapTest, VerifyDscpQueueMapping) {
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     auto injectPort = this->findInjectPort({egressPort});
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     auto sendPacket = [this, &intfMac](int dscp, bool frontPanel, PortID port) {
       auto txPacket = utility::makeUDPTxPacket(

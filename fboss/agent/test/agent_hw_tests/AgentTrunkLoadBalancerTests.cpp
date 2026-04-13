@@ -19,6 +19,7 @@
 #include "fboss/agent/state/LabelForwardingAction.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
@@ -171,7 +172,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
     auto firstVlanID = getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
 
     utility::pumpTraffic(
         isV6,
@@ -196,7 +197,7 @@ class AgentTrunkLoadBalancerTest : public AgentHwTest {
           PortID(masterLogicalPortIds()[aggInfo.numPhysicalPorts()]);
     }
     auto firstVlanID = getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     utility::pumpMplsTraffic(
         isV6,
         utility::getAllocatePktFn(getAgentEnsemble()),

@@ -1,4 +1,5 @@
 {
+  "platformName": "SAMPLE_PLATFORM",
   "pmUnitSensorsList": [
     {
       "slotPath": "/SMB_SLOT@0",

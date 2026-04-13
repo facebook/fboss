@@ -375,8 +375,8 @@ class SwSwitch : public HwSwitchCallback {
    * will be thrown in the caller's thread.
    *
    * Note though that its upto the HwSwitch implementation to decide which state
-   * upate failures it can protect against. For things HwSwitch does not protect
-   * against it may just fail hard,
+   * update failures it can protect against. For things HwSwitch does not
+   * protect against it may just fail hard,
    *
    */
   void updateStateWithHwFailureProtection(
@@ -1124,7 +1124,7 @@ class SwSwitch : public HwSwitchCallback {
       const std::shared_ptr<SwitchState>& newState) const;
 
   /*
-   * Notifies all the observers that a state update occured.
+   * Notifies all the observers that a state update occurred.
    */
   void notifyStateObservers(const StateDelta& delta);
 

@@ -46,12 +46,14 @@ add_library(agent_test_utils
 )
 
 target_link_libraries(agent_test_utils
+  agent_features
   core
   label_forwarding_utils
   hw_mock
   monolithic_switch_handler
   multi_switch_hw_switch_handler
   route_distribution_gen
+  state_utils
 )
 
 add_library(ecmp_helper
@@ -92,6 +94,7 @@ add_library(agent_test_lib
 )
 
 target_link_libraries(agent_test_lib
+  agent_test_utils
   main
   qsfp_cpp2
   qsfp_service_client
@@ -195,6 +198,7 @@ add_library(agent_ensemble
 )
 
 target_link_libraries(agent_ensemble
+  agent_test_utils
   handler
   hw_link_state_toggler
   route_distribution_gen

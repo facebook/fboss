@@ -544,7 +544,8 @@ TEST_F(NeighborManagerTest, linkDownReResolve) {
       SaiPortDescriptor(PortID(h0.port.id)));
   checkUnresolved(arpEntry);
   saiManagerTable->neighborManager().removeNeighbor(arpEntry);
-  // mac table entry for neigbor entry gets kicked out when neighbor is deleted.
+  // mac table entry for neighbor entry gets kicked out when neighbor is
+  // deleted.
   saiManagerTable->fdbManager().removeFdbEntry(
       arpEntry->getIntfID(), arpEntry->getMac());
   arpEntry = resolveArp(intf0.id, h0);

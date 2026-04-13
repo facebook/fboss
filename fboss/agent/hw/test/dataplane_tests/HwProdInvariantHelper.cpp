@@ -18,6 +18,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/EcmpDataPlaneTestUtil.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -229,7 +230,7 @@ void HwProdInvariantHelper::disableTtl() {
 
 void HwProdInvariantHelper::verifyQueuePerHostMapping(bool dscpMarkingTest) {
   auto vlanId = ensemble_->getVlanIDForTx();
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
       ensemble_->getProgrammedState());
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64NBO());
 

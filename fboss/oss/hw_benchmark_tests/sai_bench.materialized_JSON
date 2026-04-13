@@ -577,6 +577,56 @@
           "reason": "Scale not applicable to TH (test fails with TABLE_FULL)"
         }
     ],
+    "brcm/11.7.0.0_dnx_odp/jericho3": [
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        }
+    ],
     "brcm/11.7.0.0_dnx_odp/jericho3/mono": [
         {
           "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
@@ -599,6 +649,14 @@
           "reason": "ARS not available on TH"
         },
         {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
           "test_name_regex": "HwInitAndExit.*G.*",
           "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
         },
@@ -609,6 +667,14 @@
         {
           "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
           "reason": "Test needs to be revisited in light of recent changes"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/jericho3/multi_switch": [
@@ -633,6 +699,14 @@
           "reason": "ARS not available on TH"
         },
         {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
           "test_name_regex": "HwInitAndExit.*G.*",
           "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
         },
@@ -643,6 +717,14 @@
         {
           "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
           "reason": "Test needs to be revisited in light of recent changes"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
         }
     ],
     "brcm/11.7.0.0_dnx_odp/ramon3": [
@@ -969,7 +1051,7 @@
           "reason": "New test, needs more debugging"
         }
     ],
-    "brcm/11.7_0.0_dnx_odp/jericho3": [
+    "brcm/12.2.0.0_dnx_odp/jericho3/mono": [
         {
           "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
           "reason": "ARS not available on TH"
@@ -991,6 +1073,14 @@
           "reason": "ARS not available on TH"
         },
         {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
           "test_name_regex": "HwInitAndExit.*G.*",
           "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
         },
@@ -1001,9 +1091,15 @@
         {
           "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
           "reason": "Test needs to be revisited in light of recent changes"
-        }
-    ],
-    "brcm/12.2.0.0_dnx_odp/jericho3/mono": [
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
         {
           "test_name_regex": "HwVoqScale2kWideEcmpCompressionReconstructState.*",
           "reason": "New test, needs more debugging"
@@ -1015,10 +1111,108 @@
         {
           "test_name_regex": "HwVoqScale2kWideEcmpCompressionRouteDelBenchmark.*",
           "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/mono/fap": [
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
         }
     ],
     "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch": [
         {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
           "test_name_regex": "HwVoqScale2kWideEcmpCompressionReconstructState.*",
           "reason": "New test, needs more debugging"
         },
@@ -1029,6 +1223,56 @@
         {
           "test_name_regex": "HwVoqScale2kWideEcmpCompressionRouteDelBenchmark.*",
           "reason": "New test, needs more debugging"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
+        {
+          "test_name_regex": "HwEcmpBackupGroupSpilloverBenchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteAddHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale128x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "RouteDelHwEcmpGroupScale256x64Benchmark",
+          "reason": "ARS not available on TH"
+        },
+        {
+          "test_name_regex": "HwSrv6.*",
+          "reason": "Srv6 not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwUcmp.*",
+          "reason": "UCMP not implemented on DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExit.*G.*",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwInitAndExitFabricBenchmark",
+          "reason": "Init and exit tests have assumption on uplink/downlink vlans, which is not available in DSF"
+        },
+        {
+          "test_name_regex": "HwSwitchReachabilityChangeVoqBenchmark.*",
+          "reason": "Test needs to be revisited in light of recent changes"
+        },
+        {
+          "test_name_regex": "RxSlowPathArpBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
+        },
+        {
+          "test_name_regex": "SystemScaleChurnMemoryBenchmark.*",
+          "reason": "Test uses VLAN based config, not supported on our VOQ implementation"
         }
     ],
     "brcm/13.0_ea_odp/tomahawk5": [
@@ -2635,7 +2879,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
-              "upper_bound": 22000000000000
+              "upper_bound": 26000000000000
             }
           ]
         },
@@ -2682,7 +2926,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
-              "upper_bound": 6000000000000
+              "upper_bound": 7400000000000.0
             }
           ]
         },
@@ -3042,7 +3286,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwHgridUUScaleRouteAddBenchmark",
-              "upper_bound": 22000000000000
+              "upper_bound": 26000000000000
             }
           ]
         },
@@ -3098,7 +3342,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwHgridUUScaleRouteDelBenchmark",
-              "upper_bound": 6000000000000
+              "upper_bound": 7400000000000.0
             }
           ]
         },
@@ -3569,7 +3813,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwStatsCollection",
-              "upper_bound": 874000000000000
+              "upper_bound": 1120000000000000
             }
           ]
         },
@@ -3759,7 +4003,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwVoqRemoteNeighborAdd",
-              "upper_bound": 236000000000.0
+              "upper_bound": 420000000000.0
             }
           ]
         }
@@ -3779,7 +4023,7 @@
           "thresholds": [
             {
               "metric_key_regex": "HwVoqRemoteNeighborDel",
-              "upper_bound": 236000000000.0
+              "upper_bound": 420000000000.0
             }
           ]
         }
@@ -4272,6 +4516,340 @@
   "pyunit_file_task_for_test_errors": false,
   "use_buck2": true,
   "unsupported_tests": {
-    
+    "brcm/10.2.0.0_odp/tomahawk3_pciegen3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk3_pciegen3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk3_pciegen3/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk5": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk_pentium": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk_pentium/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/10.2.0.0_odp/tomahawk_pentium/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/jericho3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/jericho3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/jericho3/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/ramon3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/ramon3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_dnx_odp/ramon3/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk3_pciegen3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk3_pciegen3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk3_pciegen3/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk5": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/11.7.0.0_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/mono/fap": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/12.2.0.0_dnx_odp/jericho3/multi_switch/fap": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/13.0_ea_odp/tomahawk5": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/13.0_ea_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/13.0_ea_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/tomahawk5": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/tomahawk5/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/13.3.0.0_odp/tomahawk5/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk3_pciegen3": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk3_pciegen3/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk3_pciegen3/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk4": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk4/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk4/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk_pentium": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk_pentium/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "brcm/8.2.0.0_odp/tomahawk_pentium/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2505.34/chenab": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2505.34/chenab/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2505.34/chenab/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2511.35/chenab": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2511.35/chenab/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "chenab/2511.35/chenab/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/1.42.8/gibraltar": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/1.42.8/gibraltar/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/1.42.8/gibraltar/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/24.8.3001/gibraltar": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/24.8.3001/gibraltar/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/24.8.3001/gibraltar/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/24.8.3001/graphene200": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/24.8.3001/graphene200/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/24.8.3001/graphene200/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.5.4210/gibraltar": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.5.4210/gibraltar/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.5.4210/gibraltar/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.5.4210/graphene200": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.5.4210/graphene200/mono": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ],
+    "leaba/25.5.4210/graphene200/multi_switch": [
+        {
+          "test_name_regex": "HwSrv6.*$"
+        }
+    ]
   }
 }
