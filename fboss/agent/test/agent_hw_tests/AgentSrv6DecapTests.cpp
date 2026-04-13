@@ -45,7 +45,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
   const folly::IPAddressV6 kV6RouteDstIp{"2800:2::1"};
   const folly::IPAddressV4 kV4RoutePrefix{"100.0.0.0"};
   const folly::IPAddressV4 kV4RouteDstIp{"100.0.0.1"};
-  const folly::IPAddressV6 kMySidAddr{"3001:db8:efff::"};
+  const folly::IPAddressV6 kMySidAddr{"3001:db8:7fff::"};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr uint8_t kECT1{1};
 
