@@ -95,6 +95,7 @@ cpp_unittest(
     supports_static_listing = False,
     test_main = "//fboss/agent/test:fboss_test_main",
     deps = [
+        "fbsource//third-party/fmt:fmt",
         "fbsource//third-party/googletest:gmock",
         "fbsource//third-party/re2:re2",
         ":hw_test_handle",
@@ -151,6 +152,7 @@ cpp_unittest(
         "//fboss/agent/packet:pktutil",
         "//fboss/agent/rib:nexthop_id_manager",
         "//fboss/agent/rib:standalone_rib",
+        "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",
         "//fboss/agent/test/utils:nexthop_id_test_utils",

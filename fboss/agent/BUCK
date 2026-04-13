@@ -1227,6 +1227,7 @@ cpp_library(
     ],
     exported_deps = [
         "fbsource//third-party/fmt:fmt",
+        ":fboss-error",
         ":switch_config-cpp2-types",
         "//folly:conv",
         "//folly/json:dynamic",
