@@ -2974,6 +2974,10 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
       portConf->clmEnable().value_or(false) ==
           orig->getClmEnable().value_or(false) &&
       portConf->clmEnable().has_value() == orig->getClmEnable().has_value() &&
+      portConf->linkTraining().value_or(false) ==
+          orig->getLinkTraining().value_or(false) &&
+      portConf->linkTraining().has_value() ==
+          orig->getLinkTraining().has_value() &&
       newFabricLinkMonSwitchId == orig->getPortSwitchId()) {
     return nullptr;
   }
@@ -3065,6 +3069,11 @@ shared_ptr<Port> ThriftConfigApplier::updatePort(
     newPort->setClmEnable(portConf->clmEnable().value());
   } else {
     newPort->setClmEnable(std::nullopt);
+  }
+  if (portConf->linkTraining().has_value()) {
+    newPort->setLinkTraining(portConf->linkTraining().value());
+  } else {
+    newPort->setLinkTraining(std::nullopt);
   }
   return newPort;
 }
