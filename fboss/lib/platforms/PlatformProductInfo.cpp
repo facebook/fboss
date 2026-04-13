@@ -299,7 +299,7 @@ void PlatformProductInfo::initMode() {
       type_ = PlatformType::PLATFORM_WEDGE400C_FABRIC;
     } else if (
         FLAGS_mode == "montblanc" || FLAGS_mode == "montblancm" ||
-        FLAGS_mode == "minipack3ba") {
+        FLAGS_mode == "minipack3ba" || FLAGS_mode == "minipack3bam") {
       type_ = PlatformType::PLATFORM_MONTBLANC;
     } else if (FLAGS_mode == "icecube800bc" || FLAGS_mode == "icecube800bcm") {
       type_ = PlatformType::PLATFORM_ICECUBE800BC;
