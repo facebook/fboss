@@ -2428,4 +2428,53 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+// XGS warmboot test subclass. Config changes across warmboot require HW
+// writes, so failHwCallsOnWarmboot must be false.
+class AgentMirrorOnDropXgsWarmbootTest : public AgentMirrorOnDropXgsTest {
+ protected:
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+};
+
+// Verifies warmboot enablement of MoD with sampling on TH5.
+// Coldboot: switch comes up WITHOUT MoD. After warmboot, MoD with sampling
+// is added and verified to be programmed on the ASIC by checking switch state.
+TEST_F(AgentMirrorOnDropXgsWarmbootTest, XgsModWarmbootEnableSampling) {
+  const int kSamplingRate = 90000;
+
+  auto setup = []() {};
+
+  auto verify = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    EXPECT_TRUE(reports == nullptr || reports->numNodes() == 0);
+  };
+
+  auto setupPostWb = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-wb-enable-sampling",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_,
+        kSamplingRate));
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verifyPostWb = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    ASSERT_NE(reports, nullptr);
+    auto report = reports->getNodeIf("xgs-mod-wb-enable-sampling");
+    ASSERT_NE(report, nullptr);
+    EXPECT_EQ(report->getSamplingRate(), kSamplingRate);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
+}
+
 } // namespace facebook::fboss
