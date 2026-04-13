@@ -6,7 +6,7 @@
     "MCB_SLOT": {
       "numOutgoingI2cBuses": 0,
       "idpromConfig": {
-        "busName": "SMBus I801 adapter at 5000",
+        "busName": "CPU_BUS@0",
         "address": "0x54",
         "kernelDeviceName": "24c02"
       },
@@ -54,15 +54,69 @@
     }
   },
   "i2cAdaptersFromCpu": [
-    "SMBus I801 adapter at 5000"
+    "CPU_BUS@0"
   ],
+  "versionedPmUnitConfigs": {
+    "NETLAKE": [
+      {
+        "pmUnitConfig": {
+          "pluggedInSlotType": "COMESE_SLOT",
+          "i2cDeviceConfigs": [
+            {
+              "busName": "INCOMING@0",
+              "address": "0x20",
+              "kernelDeviceName": "pmbus",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
+            },
+            {
+              "busName": "INCOMING@0",
+              "address": "0x21",
+              "kernelDeviceName": "pmbus",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x40",
+              "kernelDeviceName": "ina230",
+              "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x4c",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_TSENSOR1"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x4a",
+              "kernelDeviceName": "tmp75",
+              "pmUnitScopedName": "COME_TSENSOR2"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x50",
+              "kernelDeviceName": "spd5118",
+              "pmUnitScopedName": "COME_DIMM1_TSENSOR"
+            },
+            {
+              "busName": "INCOMING@1",
+              "address": "0x51",
+              "kernelDeviceName": "spd5118",
+              "pmUnitScopedName": "COME_DIMM2_TSENSOR"
+            }
+          ]
+        },
+        "productSubVersion": 1
+      }
+    ]
+  },
   "pmUnitConfigs": {
     "MCB": {
       "pluggedInSlotType": "MCB_SLOT",
       "embeddedSensorConfigs": [
         {
           "pmUnitScopedName": "CPU_CORE_TEMP",
-          "sysfsPath": "/sys/bus/platform/devices/coretemp.0"
+          "sysfsPath": "/sys/bus/pci/drivers/k10temp/0000:00:18.3"
         }
       ],
       "pciDeviceConfigs": [
@@ -380,7 +434,7 @@
               "deviceName": "port_led",
               "csrOffsetCalc": "0x40590 + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
               "numPorts": 1,
-              "ledPerPort": 1,
+              "ledPerPort": 2,
               "startPort": 33,
               "lanesPerPort": 4
             }
@@ -682,13 +736,13 @@
         {
           "busName": "SCM_MUX_A@1",
           "address": "0x4c",
-          "kernelDeviceName": "lm75b",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "SCM_TSENSOR1"
         },
         {
           "busName": "SCM_MUX_A@1",
           "address": "0x4d",
-          "kernelDeviceName": "lm75b",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "SCM_TSENSOR2"
         },
         {
@@ -740,7 +794,7 @@
         {
           "busName": "INCOMING@0",
           "address": "0x4a",
-          "kernelDeviceName": "lm75b",
+          "kernelDeviceName": "lm75",
           "pmUnitScopedName": "RUNBMC_TSENSOR"
         }
       ]
@@ -861,37 +915,25 @@
       "i2cDeviceConfigs": [
         {
           "busName": "INCOMING@0",
-          "address": "0x11",
-          "kernelDeviceName": "mp9941",
+          "address": "0x20",
+          "kernelDeviceName": "mp29608",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR1"
         },
         {
           "busName": "INCOMING@0",
-          "address": "0x22",
-          "kernelDeviceName": "mp9941",
+          "address": "0x21",
+          "kernelDeviceName": "mp29608",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR2"
         },
         {
-          "busName": "INCOMING@0",
-          "address": "0x45",
-          "kernelDeviceName": "mp9941",
+          "busName": "INCOMING@1",
+          "address": "0x40",
+          "kernelDeviceName": "ina230",
           "pmUnitScopedName": "COME_VOLTAGE_MONITOR3"
         },
         {
-          "busName": "INCOMING@0",
-          "address": "0x66",
-          "kernelDeviceName": "mp9941",
-          "pmUnitScopedName": "COME_VOLTAGE_MONITOR4"
-        },
-        {
-          "busName": "INCOMING@0",
-          "address": "0x76",
-          "kernelDeviceName": "mp2993",
-          "pmUnitScopedName": "COME_VOLTAGE_MONITOR5"
-        },
-        {
           "busName": "INCOMING@1",
-          "address": "0x48",
+          "address": "0x4c",
           "kernelDeviceName": "tmp75",
           "pmUnitScopedName": "COME_TSENSOR1"
         },
@@ -900,6 +942,18 @@
           "address": "0x4a",
           "kernelDeviceName": "tmp75",
           "pmUnitScopedName": "COME_TSENSOR2"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x50",
+          "kernelDeviceName": "spd5118",
+          "pmUnitScopedName": "COME_DIMM1_TSENSOR"
+        },
+        {
+          "busName": "INCOMING@1",
+          "address": "0x51",
+          "kernelDeviceName": "spd5118",
+          "pmUnitScopedName": "COME_DIMM2_TSENSOR"
         }
       ]
     }
@@ -946,10 +1000,10 @@
     "/run/devmap/sensors/COME_VOLTAGE_MONITOR1": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR1]",
     "/run/devmap/sensors/COME_VOLTAGE_MONITOR2": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR2]",
     "/run/devmap/sensors/COME_VOLTAGE_MONITOR3": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR3]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR4": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR4]",
-    "/run/devmap/sensors/COME_VOLTAGE_MONITOR5": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_VOLTAGE_MONITOR5]",
     "/run/devmap/sensors/COME_TSENSOR1": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_TSENSOR1]",
     "/run/devmap/sensors/COME_TSENSOR2": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_TSENSOR2]",
+    "/run/devmap/sensors/COME_DIMM1_TSENSOR": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_DIMM1_TSENSOR]",
+    "/run/devmap/sensors/COME_DIMM2_TSENSOR": "/SCM_SLOT@0/COMESE_SLOT@0/[COME_DIMM2_TSENSOR]",
     "/run/devmap/cplds/MCB_CPLD": "/[MCB_CPLD]",
     "/run/devmap/cplds/SCM_CPLD": "/SCM_SLOT@0/[SCM_CPLD]",
     "/run/devmap/cplds/SMB_CPLD": "/SMB_SLOT@0/[SMB_CPLD]",
