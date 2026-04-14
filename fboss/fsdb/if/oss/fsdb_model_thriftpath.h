@@ -20009,7 +20009,8 @@ std::pair<apache::thrift::ident::em_counters_used, Child<::std::int32_t, ::apach
 std::pair<apache::thrift::ident::em_counters_free, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::em_counters_max, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
 std::pair<apache::thrift::ident::system_ports_free, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
-std::pair<apache::thrift::ident::voqs_free, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
+std::pair<apache::thrift::ident::voqs_free, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>,
+std::pair<apache::thrift::ident::my_sid_entries_free, Child<::std::int32_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::i32_t>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -20068,6 +20069,7 @@ std::pair<apache::thrift::ident::voqs_free, Child<::std::int32_t, ::apache::thri
     STRUCT_CHILD_GETTERS(em_counters_max, 51);
     STRUCT_CHILD_GETTERS(system_ports_free, 52);
     STRUCT_CHILD_GETTERS(voqs_free, 53);
+    STRUCT_CHILD_GETTERS(my_sid_entries_free, 54);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -20124,6 +20126,7 @@ std::pair<apache::thrift::ident::voqs_free, Child<::std::int32_t, ::apache::thri
     else if constexpr (__id == apache::thrift::FieldId{51}) { return em_counters_max(); }
     else if constexpr (__id == apache::thrift::FieldId{52}) { return system_ports_free(); }
     else if constexpr (__id == apache::thrift::FieldId{53}) { return voqs_free(); }
+    else if constexpr (__id == apache::thrift::FieldId{54}) { return my_sid_entries_free(); }
   }
 };
 

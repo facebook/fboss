@@ -1772,6 +1772,13 @@ void SaiSwitch::updateResourceUsage(const LockPolicyT& lockPolicy) {
     hwResourceStats_.l3_ipv6_host_free() = switchApi.getAttribute(
         saiSwitchId_,
         SaiSwitchTraits::Attributes::AvailableIpv6NeighborEntry{});
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    if (platform_->getAsic()->isSupported(
+            HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER)) {
+      hwResourceStats_.my_sid_entries_free() = switchApi.getAttribute(
+          saiSwitchId_, SaiSwitchTraits::Attributes::AvailableMySidEntry{});
+    }
+#endif
     if (getSwitchType() == cfg::SwitchType::VOQ) {
       uint64_t sysPortsFree, voqsFree;
       saiCheckError(sai_object_type_get_availability(

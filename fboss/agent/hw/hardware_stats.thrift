@@ -241,6 +241,9 @@ struct HwResourceStats {
   // VOQ system resources
   52: i32 system_ports_free = STAT_UNINITIALIZED;
   53: i32 voqs_free = STAT_UNINITIALIZED;
+
+  // SRV6 MySid resources
+  54: i32 my_sid_entries_free = STAT_UNINITIALIZED;
 }
 
 struct HwAsicErrors {
