@@ -344,7 +344,7 @@ CLI::App* CmdSubcommands::addCommand(
               "interface_config",
               args,
               "<port-list> [<attr> <value> ...] where <attr> is one "
-              "of: description, mtu");
+              "of: description, mtu, profile");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:

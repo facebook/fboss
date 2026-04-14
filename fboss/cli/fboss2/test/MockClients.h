@@ -141,6 +141,7 @@ class MockFbossCtrlAgent : public FbossCtrlSvIf {
       getAllEcmpDetails,
       (std::vector<facebook::fboss::EcmpDetails>&));
   MOCK_METHOD(void, getConfigAppliedInfo, (ConfigAppliedInfo&));
+  MOCK_METHOD(void, getPlatformMapping, (cfg::PlatformMapping&));
 };
 
 class MockFbossQsfpService : public QsfpServiceSvIf {
@@ -156,6 +157,9 @@ class MockFbossQsfpService : public QsfpServiceSvIf {
           std::map<int32_t, std::string>&,
           std::unique_ptr<std::vector<int32_t>>,
           bool));
+  MOCK_METHOD2(
+      getAllPortSupportedProfiles,
+      void(std::map<std::string, std::vector<cfg::PortProfileID>>&, bool));
 };
 
 #ifdef IS_OSS

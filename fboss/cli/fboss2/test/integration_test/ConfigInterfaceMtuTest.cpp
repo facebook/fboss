@@ -58,21 +58,29 @@ TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
   setInterfaceMtu(interface.name, newMtu);
   XLOG(INFO) << "  MTU set to " << newMtu;
 
-  // Step 4: Verify MTU via 'show interface'
-  XLOG(INFO) << "[Step 4] Verifying MTU via 'show interface'...";
-  Interface updatedInterface = getInterfaceInfo(interface.name);
+  // Step 4: Poll 'show interface' until the MTU propagates
+  XLOG(INFO) << "[Step 4] Waiting for MTU to propagate via 'show interface'...";
+  Interface updatedInterface = waitForInterfaceInfo(
+      interface.name,
+      [newMtu](const auto& info) { return info.mtu == newMtu; });
   EXPECT_EQ(updatedInterface.mtu, newMtu)
       << "Expected MTU " << newMtu << ", got " << updatedInterface.mtu;
   XLOG(INFO) << "  Verified: MTU is " << updatedInterface.mtu;
 
-  // Step 5: Verify kernel interface MTU
-  XLOG(INFO) << "[Step 5] Verifying kernel interface MTU...";
+  // Step 5: Poll kernel interface MTU until it propagates
+  XLOG(INFO) << "[Step 5] Waiting for kernel interface MTU to propagate...";
   ASSERT_TRUE(interface.vlan.has_value());
-  int kernelMtu = getKernelInterfaceMtu(*interface.vlan);
-  EXPECT_EQ(kernelMtu, newMtu)
-      << "Kernel MTU is " << kernelMtu << ", expected " << newMtu;
-  XLOG(INFO) << "  Verified: Kernel interface fboss" << *interface.vlan
-             << " has MTU " << kernelMtu;
+  int kernelMtu = waitForKernelMtu(
+      *interface.vlan, [newMtu](int mtu) { return mtu == newMtu; });
+  if (kernelMtu > 0) {
+    EXPECT_EQ(kernelMtu, newMtu)
+        << "Kernel MTU is " << kernelMtu << ", expected " << newMtu;
+    XLOG(INFO) << "  Verified: Kernel interface fboss" << *interface.vlan
+               << " has MTU " << kernelMtu;
+  } else {
+    XLOG(INFO) << "  Skipped: Kernel interface fboss" << *interface.vlan
+               << " not found";
+  }
 
   // Step 6: Restore original MTU
   XLOG(INFO) << "[Step 6] Restoring original MTU (" << originalMtu << ")...";

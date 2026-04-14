@@ -26,6 +26,7 @@
 #include <unordered_set>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -38,6 +39,7 @@ namespace {
 const std::unordered_set<std::string> kKnownAttributes = {
     "description",
     "mtu",
+    "profile",
 };
 } // namespace
 
@@ -81,7 +83,7 @@ InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
     if (!isKnownAttribute(attr)) {
       throw std::invalid_argument(
           fmt::format(
-              "Unknown attribute '{}'. Valid attributes are: description, mtu",
+              "Unknown attribute '{}'. Valid attributes are: description, mtu, profile",
               attr));
     }
 
@@ -113,8 +115,55 @@ InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 
+std::string applyProfile(
+    const HostInfo& hostInfo,
+    const utils::InterfaceList& interfaces,
+    const std::string& value) {
+  // Parse first — fast error for completely invalid strings
+  cfg::PortProfileID requestedProfile = ProfileValidator::parseProfile(value);
+
+  // PROFILE_DEFAULT: skip hardware validation, reset both fields to defaults
+  if (requestedProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
+    for (const utils::Intf& intf : interfaces) {
+      cfg::Port* port = intf.getPort();
+      if (port) {
+        port->profileID() = cfg::PortProfileID::PROFILE_DEFAULT;
+        port->speed() = cfg::PortSpeed::DEFAULT;
+      }
+    }
+    return "profile=PROFILE_DEFAULT, speed=auto";
+  }
+
+  // Non-default: validate against hardware + optics.
+  // Build validator once (queries Agent + QSFP); reuse across all ports.
+  ProfileValidator validator(hostInfo);
+
+  // Speed is a property of the profile, not the port — look it up once
+  // using the first port's ID to avoid rebuilding PlatformMapping per port.
+  const cfg::Port* firstPort = interfaces.begin()->getPort();
+  PortID firstPortId(
+      firstPort ? static_cast<uint32_t>(*firstPort->logicalID()) : 0);
+  cfg::PortSpeed profileSpeed =
+      validator.getProfileSpeed(firstPortId, requestedProfile);
+
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    const std::string& portName = *port->name();
+    validator.validateProfile(portName, value);
+    port->profileID() = requestedProfile;
+    port->speed() = profileSpeed;
+  }
+
+  // Normalize to uppercase for display
+  std::string upperValue = value;
+  std::transform(
+      upperValue.begin(), upperValue.end(), upperValue.begin(), ::toupper);
+  return fmt::format(
+      "profile={}, speed={}", upperValue, static_cast<int64_t>(profileSpeed));
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
-    const HostInfo& /* hostInfo */,
+    const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
   const auto& interfaces = interfaceConfig.getInterfaces();
   const auto& attributes = interfaceConfig.getAttributes();
@@ -126,7 +175,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   // If no attributes provided, this is a pass-through to subcommands
   if (!interfaceConfig.hasAttributes()) {
     throw std::runtime_error(
-        "Incomplete command. Either provide attributes (description, mtu) "
+        "Incomplete command. Either provide attributes (description, mtu, profile) "
         "or use a subcommand (switchport)");
   }
 
@@ -169,6 +218,8 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.push_back(fmt::format("mtu={}", mtu));
+    } else if (attr == "profile") {
+      results.push_back(applyProfile(hostInfo, interfaces, value));
     }
   }
 
