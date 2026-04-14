@@ -355,6 +355,10 @@ void LookupClassRouteUpdater::processInterfaceAdded(
     PortID portID(id);
     std::ignore = portInfo;
     auto port = switchState->getPorts()->getNodeIf(portID);
+    if (!port) {
+      XLOG(FATAL) << "Port " << portID << " not found in state for vlan "
+                  << vlanID;
+    }
     // routes are re-added once outside the for loop
     processPortAdded(stateDelta, port, false /* don't re-add all routes */);
   }
