@@ -46,7 +46,7 @@ When running tests with `run_test.py`, you may need to specify the following var
 - **$CONFIG**: Path to the hardware test configuration file for your platform
 - **$QSFP_CONFIG**: Path to the QSFP test configuration file for your platform
 - **$ASIC**: ASIC identifier for production features filtering. Available ASICs can be found in `./share/production_features/asic_production_features.materialized_JSON` under the `asicToFeatureNames` key.
-- **$KEY**: Test configuration key for skipping known bad or unsupported tests. The key format is: `vendor/coldboot-sai/warmboot-sai/asic` (e.g., `brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk`). Available keys can be found in:
+- **$KEY**: Test configuration key for skipping known bad or unsupported tests, used with `--skip-known-bad-tests`. The key format is: `vendor/coldboot-sai/warmboot-sai/asic` (e.g., `brcm/8.2.0.0_odp/8.2.0.0_odp/tomahawk`). Each test runner uses default known-bad and unsupported test files for the lookup, but these can be overridden with `--known-bad-tests-file` and `--unsupported-tests-file` if needed. Available keys can be found in:
   - For SAI Agent tests: `./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON`
   - For SAI tests: `./share/sai_hw_unsupported_tests/sai_hw_unsupported_tests.materialized_JSON`
   - For QSFP tests: `./share/qsfp_unsupported_tests/fboss_qsfp_unsupported_tests.materialized_JSON`
