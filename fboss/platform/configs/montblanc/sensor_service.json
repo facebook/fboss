@@ -648,6 +648,54 @@
           "thresholds": {
             "minAlarmVal": 1
           }
+        },
+        {
+          "name": "CPLD_PSU_L_PG",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/cpld_psu_l_pg",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
+        },
+        {
+          "name": "CPLD_PSU_R_PG",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/cpld_psu_r_pg",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
+        },
+        {
+          "name": "PSU_L_AC_OK",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/psu_l_ac_ok",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
+        },
+        {
+          "name": "PSU_R_AC_OK",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/psu_r_ac_ok",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
+        },
+        {
+          "name": "PDB_L_SENSOR_INT",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/pdb_l_sensor_int",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
+        },
+        {
+          "name": "PDB_R_SENSOR_INT",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/pdb_r_sensor_int",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
         }
       ]
     },
