@@ -28,8 +28,10 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 # This script runs hardware tests for FBOSS. It supports multiple test types:
 # - sai_agent: SAI agent hardware tests
 # - sai: SAI hardware tests
+# - bcm: BCM hardware tests
 # - qsfp: QSFP hardware tests
 # - link: Link tests
+# - platform: Platform service hardware tests
 # - benchmark: Benchmark tests
 # - cli: CLI tests
 #
@@ -53,6 +55,9 @@ from qsfp_service_utils import cleanup_qsfp_service, setup_and_start_qsfp_servic
 # Run specific tests using filter:
 #   ./run_test.py sai --config $CONFIG --filter=HwVlanTest.VlanApplyConfig
 #   ./run_test.py sai --config $CONFIG --filter=*Route*V6*
+#
+# Run tests with multiple filters and negative filter:
+#   ./run_test.py sai --config $CONFIG --filter=*Vlan*:*Port*:-*Mac*:*Intf*
 #
 # Run tests from a filter file:
 #   ./run_test.py sai_agent --config $CONFIG --filter_file=./share/hw_sanity_tests/t0_agent_hw_tests.conf
@@ -96,8 +101,6 @@ OPT_ARG_PLATFORM_MAPPING_OVERRIDE_PATH = "--platform_mapping_override_path"
 OPT_ARG_BSP_PLATFORM_MAPPING_OVERRIDE_PATH = "--bsp_platform_mapping_override_path"
 OPT_ARG_SAI_REPLAYER_LOGGING = "--sai_replayer_logging"
 OPT_ARG_SKIP_KNOWN_BAD_TESTS = "--skip-known-bad-tests"
-OPT_ARG_OSS = "--oss"
-OPT_ARG_NO_OSS = "--no-oss"
 OPT_ARG_MGT_IF = "--mgmt-if"
 OPT_ARG_FRUID_PATH = "--fruid-path"
 OPT_ARG_SIMULATOR = "--simulator"
@@ -113,7 +116,6 @@ OPT_ARG_SETUP_WB = "--setup-for-warmboot"
 OPT_ARG_TEST_RUN_TIMEOUT = "--test-run-timeout"
 OPT_ARG_DISABLE_FSDB = "--disable-fsdb"
 OPT_ARG_FSDB_CONFIG_FILE = "--fsdb-config"
-OPT_ARG_FSDB_BIN_PATH = "--fsdb-bin-path"
 SUB_CMD_BCM = "bcm"
 SUB_CMD_SAI = "sai"
 SUB_CMD_QSFP = "qsfp"
@@ -1077,7 +1079,6 @@ class LinkTestRunner(TestRunner):
         # Start FSDB service if not disabled
         if not args.disable_fsdb:
             setup_and_start_fsdb_service(
-                fsdb_service_bin_path=args.fsdb_bin_path,
                 fsdb_service_config_path=args.fsdb_config,
                 is_warm_boot=False,
             )
@@ -1103,7 +1104,6 @@ class LinkTestRunner(TestRunner):
         # Start FSDB service if not disabled
         if not args.disable_fsdb:
             setup_and_start_fsdb_service(
-                fsdb_service_bin_path=args.fsdb_bin_path,
                 fsdb_service_config_path=args.fsdb_config,
                 is_warm_boot=True,
             )
@@ -1941,20 +1941,6 @@ if __name__ == "__main__":
     )
 
     ap.add_argument(
-        OPT_ARG_OSS,
-        action="store_true",
-        help="OSS build",
-    )
-
-    ap.add_argument(
-        OPT_ARG_NO_OSS,
-        action="store_false",
-        dest="oss",
-        help="No OSS build",
-    )
-    ap.set_defaults(oss=True)
-
-    ap.add_argument(
         OPT_ARG_FRUID_PATH,
         type=str,
         default="/var/facebook/fboss/fruid.json",
@@ -2026,14 +2012,6 @@ if __name__ == "__main__":
         ),
         default=None,
     )
-    ap.add_argument(
-        OPT_ARG_FSDB_BIN_PATH,
-        nargs="?",
-        type=str,
-        help="FBOSS FSDB binary path(absolute path).",
-        default=None,
-    )
-
     # Add subparsers for different test types
     subparsers = ap.add_subparsers()
 
@@ -2099,9 +2077,7 @@ if __name__ == "__main__":
     args = ap.parse_known_args()
     args = ap.parse_args(args[1], args[0])
 
-    if args.oss and (
-        ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ)
-    ):
+    if ("FBOSS_BIN" not in os.environ) or ("FBOSS_LIB" not in os.environ):
         print("FBOSS environment not set. Run `source /opt/fboss/bin/setup_fboss_env'")
         sys.exit(0)
 

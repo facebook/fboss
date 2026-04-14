@@ -4,7 +4,6 @@ import os
 import subprocess
 import typing as t
 
-
 _DEFAULT_OSS_FSDB_SERVICE_PATH = "/opt/fboss/bin/fsdb"
 # TODO: Add file.
 _DEFAULT_OSS_FSDB_SERVICE_CONFIG_PATH = "/opt/fboss/share/link_test_configs/fsdb.conf"
@@ -47,19 +46,17 @@ WantedBy=multi-user.target
 
 
 def _cleanup_fsdb_service_rsyslog_conf() -> None:
-    subprocess.run(f"rm {_FSDB_SERVICE_RSYSLOG_CONF_PATH}", shell=True)
-    subprocess.run("systemctl restart rsyslog", shell=True)
+    subprocess.run(f"rm {_FSDB_SERVICE_RSYSLOG_CONF_PATH}", check=False, shell=True)
+    subprocess.run("systemctl restart rsyslog", check=False, shell=True)
 
 
 def _setup_fsdb_service(
-    fsdb_service_bin_path: t.Optional[str] = None,
     fsdb_service_config_path: t.Optional[str] = None,
 ) -> None:
     print(f"Setting up {_FSDB_SERVICE_OSS}")
 
     # Prepare fsdb_service binary and config file
-    if not fsdb_service_bin_path:
-        fsdb_service_bin_path = _DEFAULT_OSS_FSDB_SERVICE_PATH
+    fsdb_service_bin_path = _DEFAULT_OSS_FSDB_SERVICE_PATH
     if not os.path.exists(fsdb_service_bin_path):
         raise Exception(f"fsdb_service binary: {fsdb_service_bin_path} does not exist")
 
@@ -94,15 +91,16 @@ def _setup_fsdb_service(
     with open(_FSDB_SERVICE_RSYSLOG_CONF_PATH, "w") as f:
         f.write(_FSDB_SERVICE_RSYSLOG_CONF_CONTENT)
         f.flush()
-    subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
-
-    return
+    subprocess.run("systemctl restart rsyslog; sleep 5", check=False, shell=True)
 
 
 def _setup_fsdb_service_coldboot() -> None:
-    subprocess.run(f"mkdir -p {_DEFAULT_FSDB_SERVICE_VOLATILE_DIR}", shell=True)
+    subprocess.run(
+        f"mkdir -p {_DEFAULT_FSDB_SERVICE_VOLATILE_DIR}", check=False, shell=True
+    )
     subprocess.run(
         f"touch {_DEFAULT_FSDB_SERVICE_VOLATILE_DIR}/{_FSDB_SERVICE_COLD_BOOT_FILE}",
+        check=False,
         shell=True,
     )
 
@@ -115,19 +113,20 @@ def _start_fsdb_service(is_warm_boot: bool = False) -> None:
     if not is_warm_boot:
         _setup_fsdb_service_coldboot()
 
-    subprocess.run(f"systemctl enable {_FSDB_SERVICE_UNIT_FILE_PATH}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
-    subprocess.run(f"systemctl start {_FSDB_SERVICE_OSS}; sleep 10", shell=True)
-
-    return
+    subprocess.run(
+        f"systemctl enable {_FSDB_SERVICE_UNIT_FILE_PATH}", check=False, shell=True
+    )
+    subprocess.run("systemctl daemon-reload", check=False, shell=True)
+    subprocess.run(
+        f"systemctl start {_FSDB_SERVICE_OSS}; sleep 10", check=False, shell=True
+    )
 
 
 def setup_and_start_fsdb_service(
-    fsdb_service_bin_path: t.Optional[str] = None,
     fsdb_service_config_path: t.Optional[str] = None,
     is_warm_boot: bool = False,
 ) -> None:
-    _setup_fsdb_service(fsdb_service_bin_path, fsdb_service_config_path)
+    _setup_fsdb_service(fsdb_service_config_path)
     _start_fsdb_service(is_warm_boot)
 
 
@@ -138,15 +137,17 @@ def cleanup_fsdb_service() -> None:
     """
     print(f"Cleaning up {_FSDB_SERVICE_OSS}")
 
-    subprocess.run(f"systemctl stop {_FSDB_SERVICE_PROD}", shell=True)
-    subprocess.run(f"systemctl stop {_FSDB_SERVICE_FOR_TESTING}", shell=True)
-    subprocess.run(f"systemctl stop {_FSDB_SERVICE_OSS}", shell=True)
-    subprocess.run(f"systemctl disable {_FSDB_SERVICE_OSS}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
+    subprocess.run(f"systemctl stop {_FSDB_SERVICE_PROD}", check=False, shell=True)
+    subprocess.run(
+        f"systemctl stop {_FSDB_SERVICE_FOR_TESTING}", check=False, shell=True
+    )
+    subprocess.run(f"systemctl stop {_FSDB_SERVICE_OSS}", check=False, shell=True)
+    subprocess.run(f"systemctl disable {_FSDB_SERVICE_OSS}", check=False, shell=True)
+    subprocess.run("systemctl daemon-reload", check=False, shell=True)
 
     # Just wanna be safe, also use pkill in case systemctl stop gets stuck
-    subprocess.run(f"pkill -f {_FSDB_SERVICE_PROD}", shell=True)
-    subprocess.run(f"pkill -f {_FSDB_SERVICE_FOR_TESTING}", shell=True)
-    subprocess.run(f"pkill -f {_FSDB_SERVICE_OSS}", shell=True)
+    subprocess.run(f"pkill -f {_FSDB_SERVICE_PROD}", check=False, shell=True)
+    subprocess.run(f"pkill -f {_FSDB_SERVICE_FOR_TESTING}", check=False, shell=True)
+    subprocess.run(f"pkill -f {_FSDB_SERVICE_OSS}", check=False, shell=True)
 
     _cleanup_fsdb_service_rsyslog_conf()
