@@ -2140,6 +2140,42 @@ struct Srv6Tunnel {
   9: common.TunnelType tunnelType;
 }
 
+// MySID (My SRv6 SID) configuration types.
+// MySID entries define how the switch handles packets matching its SRv6 SIDs.
+
+// uA (adjacency) MySID: forward to the neighbor on a port.
+// portName is either a physical port (e.g., "eth1/1/1") or a
+// port-channel (e.g., "Port-Channel301").
+struct AdjacencyMySidConfig {
+  1: string portName;
+  // Whether to resolve IPv6 (true) or IPv4 (false) neighbor on the port
+  2: bool isV6 = true;
+  // Optional: explicit neighbor address. If unset, resolves from NDP/ARP.
+  3: optional string address;
+}
+
+// uN (node) MySID: shift SID and forward to next SRv6 node.
+struct NodeMySidConfig {
+  1: string nodeAddress;
+}
+
+// uDT46 (decap) MySID: decapsulate and do VRF lookup on inner packet.
+struct DecapMySidConfig {}
+
+// A single MySID entry config — exactly one variant must be set.
+union MySidEntryConfig {
+  1: AdjacencyMySidConfig adjacency;
+  2: NodeMySidConfig node;
+  3: DecapMySidConfig decap;
+}
+
+struct MySidConfig {
+  // Shared locator prefix for all MySID entries (e.g., "3001:db8::/32")
+  1: string locatorPrefix;
+  // Map from function ID (i16) to MySID entry config
+  2: map<i16, MySidEntryConfig> entries;
+}
+
 enum DsfNodeType {
   FABRIC_NODE = 1,
   INTERFACE_NODE = 2,
@@ -2472,4 +2508,5 @@ struct SwitchConfig {
   57: list<MirrorOnDropReport> mirrorOnDropReports = [];
   58: optional list<StaticMacEntry> staticMacAddrs;
   59: optional list<Srv6Tunnel> srv6Tunnels;
+  60: optional MySidConfig mySidConfig;
 }
