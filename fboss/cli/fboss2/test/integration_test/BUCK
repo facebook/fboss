@@ -19,6 +19,7 @@ cpp_binary(
     srcs = [
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
+        "ConfigInterfaceProfileTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
         "ConfigSessionClearTest.cpp",
         "ConfigSessionRestartTest.cpp",
