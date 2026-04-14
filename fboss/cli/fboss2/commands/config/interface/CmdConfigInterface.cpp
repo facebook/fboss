@@ -25,7 +25,7 @@
 #include <unordered_set>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
-#include "fboss/cli/fboss2/commands/config/interface/SpeedValidation.h"
+#include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -38,7 +38,7 @@ namespace {
 const std::unordered_set<std::string> kKnownAttributes = {
     "description",
     "mtu",
-    "speed",
+    "profile",
 };
 } // namespace
 
@@ -82,7 +82,7 @@ InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
     if (!isKnownAttribute(attr)) {
       throw std::invalid_argument(
           fmt::format(
-              "Unknown attribute '{}'. Valid attributes are: description, mtu, speed",
+              "Unknown attribute '{}'. Valid attributes are: description, mtu, profile",
               attr));
     }
 
@@ -114,6 +114,53 @@ InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
   interfaces_ = utils::InterfaceList(std::move(portNames));
 }
 
+std::string applyProfile(
+    const HostInfo& hostInfo,
+    const utils::InterfaceList& interfaces,
+    const std::string& value) {
+  // Parse first — fast error for completely invalid strings
+  cfg::PortProfileID requestedProfile = ProfileValidator::parseProfile(value);
+
+  // PROFILE_DEFAULT: skip hardware validation, reset both fields to defaults
+  if (requestedProfile == cfg::PortProfileID::PROFILE_DEFAULT) {
+    for (const utils::Intf& intf : interfaces) {
+      cfg::Port* port = intf.getPort();
+      if (port) {
+        port->profileID() = cfg::PortProfileID::PROFILE_DEFAULT;
+        port->speed() = cfg::PortSpeed::DEFAULT;
+      }
+    }
+    return "profile=PROFILE_DEFAULT, speed=auto";
+  }
+
+  // Non-default: validate against hardware + optics.
+  // Build validator once (queries Agent + QSFP); reuse across all ports.
+  ProfileValidator validator(hostInfo);
+
+  // Speed is a property of the profile, not the port — look it up once
+  // using the first port's ID to avoid rebuilding PlatformMapping per port.
+  const cfg::Port* firstPort = interfaces.begin()->getPort();
+  PortID firstPortId(
+      firstPort ? static_cast<uint32_t>(*firstPort->logicalID()) : 0);
+  cfg::PortSpeed profileSpeed =
+      validator.getProfileSpeed(firstPortId, requestedProfile);
+
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    const std::string& portName = *port->name();
+    validator.validateProfile(portName, value);
+    port->profileID() = requestedProfile;
+    port->speed() = profileSpeed;
+  }
+
+  // Normalize to uppercase for display
+  std::string upperValue = value;
+  std::transform(
+      upperValue.begin(), upperValue.end(), upperValue.begin(), ::toupper);
+  return fmt::format(
+      "profile={}, speed={}", upperValue, static_cast<int64_t>(profileSpeed));
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -127,7 +174,7 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   // If no attributes provided, this is a pass-through to subcommands
   if (!interfaceConfig.hasAttributes()) {
     throw std::runtime_error(
-        "Incomplete command. Either provide attributes (description, mtu, speed) "
+        "Incomplete command. Either provide attributes (description, mtu, profile) "
         "or use a subcommand (switchport)");
   }
 
@@ -170,45 +217,8 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
         }
       }
       results.push_back(fmt::format("mtu={}", mtu));
-    } else if (attr == "speed") {
-      // Parse requested speed using unified API
-      cfg::PortSpeed requestedSpeed = SpeedValidator::parseSpeed(value);
-
-      // If speed is DEFAULT (auto or "0"), skip validation and just apply
-      if (requestedSpeed == cfg::PortSpeed::DEFAULT) {
-        for (const utils::Intf& intf : interfaces) {
-          cfg::Port* port = intf.getPort();
-          if (port) {
-            port->speed() = requestedSpeed;
-          }
-        }
-        results.emplace_back("speed=auto");
-        continue;
-      }
-
-      // For non-auto speeds, use SpeedValidator for comprehensive validation.
-      // Construct once (queries Thrift) then reuse across all ports.
-      SpeedValidator validator(hostInfo);
-
-      // Validate and apply speed for each port
-      for (const utils::Intf& intf : interfaces) {
-        cfg::Port* port = intf.getPort();
-
-        const std::string& portName = *port->name();
-
-        // Validate speed and get matching profiles
-        auto matchingProfiles = validator.validateSpeed(portName, value);
-
-        // Select the first matching profile
-        cfg::PortProfileID selectedProfile = matchingProfiles[0];
-
-        // Set both speed and profile
-        port->speed() = requestedSpeed;
-        port->profileID() = selectedProfile;
-      }
-
-      results.push_back(
-          fmt::format("speed={}", static_cast<int64_t>(requestedSpeed)));
+    } else if (attr == "profile") {
+      results.push_back(applyProfile(hostInfo, interfaces, value));
     }
   }
 
