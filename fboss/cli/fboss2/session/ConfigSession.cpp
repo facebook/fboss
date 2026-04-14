@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 #include <folly/FileUtil.h>
 #include <folly/String.h>
-#include <folly/Subprocess.h>
 #include <folly/json/dynamic.h>
 #include <folly/json/json.h>
 #include <glog/logging.h>
@@ -35,15 +34,16 @@
 #include <stdexcept>
 #include <string>
 #include <system_error>
-#include <thread>
 #include <utility>
 #include <vector>
 #include "fboss/agent/AgentDirectoryUtil.h"
+#include "fboss/agent/SwitchInfoUtils.h"
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
@@ -307,6 +307,19 @@ ConfigSession::ConfigSession(
   initializeSession();
 }
 
+ConfigSession::ConfigSession(
+    std::string sessionConfigDir,
+    std::string systemConfigDir,
+    std::unique_ptr<FbossServiceUtil> fbossServiceUtil)
+    : sessionConfigDir_(std::move(sessionConfigDir)),
+      systemConfigDir_(std::move(systemConfigDir)),
+      username_(getUsername()),
+      git_(std::make_unique<Git>(systemConfigDir_)),
+      fbossServiceUtil_(std::move(fbossServiceUtil)) {
+  // Don't call initializeSession() - this constructor is for testing only
+  // and tests don't need git initialization or config file copying
+}
+
 namespace {
 std::unique_ptr<ConfigSession>& getInstancePtr() {
   static std::unique_ptr<ConfigSession> instance;
@@ -460,15 +473,6 @@ std::string ConfigSession::getSystemMetadataPath() const {
   return getCliConfigDir() + "/cli_metadata.json";
 }
 
-std::string ConfigSession::getServiceName(cli::ServiceType service) {
-  // TODO: Add support for multi_switch mode with sw_agent and hw_agent
-  switch (service) {
-    case cli::ServiceType::AGENT:
-      return "wedge_agent";
-  }
-  throw std::runtime_error("Unknown service type");
-}
-
 void ConfigSession::loadMetadata() {
   std::string metadataPath = getMetadataPath();
   // Note: We don't initialize requiredActions_ here since getRequiredAction()
@@ -521,6 +525,10 @@ void ConfigSession::saveMetadata() {
       metadataPath, prettyJson, 0644, folly::SyncType::WITH_SYNC);
 }
 
+std::string ConfigSession::getServiceName(cli::ServiceType service) {
+  return FbossServiceUtil::getServiceName(service);
+}
+
 void ConfigSession::updateRequiredAction(
     cli::ServiceType service,
     cli::ConfigActionLevel actionLevel) {
@@ -571,159 +579,37 @@ const std::vector<std::string>& ConfigSession::getCommands() const {
   return commands_;
 }
 
-void ConfigSession::restartService(
-    cli::ServiceType service,
-    cli::ConfigActionLevel level) {
-  std::string serviceName = getServiceName(service);
-  std::string restartType = (level == cli::ConfigActionLevel::AGENT_COLDBOOT)
-      ? "coldboot"
-      : "warmboot";
-
-  LOG(INFO) << "Restarting " << serviceName << " via systemd (" << restartType
-            << ")...";
-
-  // For coldboot, we need to stop the service, create cold_boot_once files,
-  // then start the service
-  if (level == cli::ConfigActionLevel::AGENT_COLDBOOT) {
-    // Step 1: Stop the service
-    try {
-      folly::Subprocess stopProc(
-          {"/usr/bin/sudo", "/usr/bin/systemctl", "stop", serviceName});
-      stopProc.waitChecked();
-    } catch (const std::exception& ex) {
-      throw std::runtime_error(
-          fmt::format("Failed to stop {}: {}", serviceName, ex.what()));
-    }
-
-    // Step 2: Create coldboot files
-    // TODO: Add support for multi_switch mode with hw_agent@0, hw_agent@1, etc.
-    const std::vector<std::string> coldbootFiles = {
-        "/dev/shm/fboss/warm_boot/cold_boot_once", // for sw_agent
-    };
-    for (const auto& file : coldbootFiles) {
-      // Ensure parent directory exists
-      fs::path filePath(file);
-      std::error_code ec;
-      fs::create_directories(filePath.parent_path(), ec);
-      if (ec) {
-        throw std::runtime_error(
-            fmt::format(
-                "Failed to create directory for coldboot file {}: {}",
-                file,
-                ec.message()));
-      }
-      // Create the file (touch equivalent)
-      std::ofstream touchFile(file);
-      if (!touchFile.good()) {
-        // If we failed due to permissions, try using sudo touch
-        int savedErrno = errno;
-        if (savedErrno == EACCES || savedErrno == EPERM) {
-          try {
-            folly::Subprocess touchProc(
-                {"/usr/bin/sudo", "/usr/bin/touch", file});
-            touchProc.waitChecked();
-          } catch (const std::exception& ex) {
-            throw std::runtime_error(
-                fmt::format(
-                    "Failed to create coldboot file {} (permission denied, sudo touch also failed): {}",
-                    file,
-                    ex.what()));
-          }
-        } else {
-          throw std::runtime_error(
-              fmt::format(
-                  "Failed to create coldboot file {}: {}",
-                  file,
-                  folly::errnoStr(savedErrno)));
-        }
-      } else {
-        touchFile.close();
-      }
-      if (!fs::exists(file)) {
-        throw std::runtime_error(
-            fmt::format(
-                "Failed to create coldboot file {}: file does not exist after creation",
-                file));
-      }
-    }
-
-    // Step 3: Start the service
-    try {
-      folly::Subprocess startProc(
-          {"/usr/bin/sudo", "/usr/bin/systemctl", "start", serviceName});
-      startProc.waitChecked();
-    } catch (const std::exception& ex) {
-      throw std::runtime_error(
-          fmt::format("Failed to start {}: {}", serviceName, ex.what()));
-    }
-  } else {
-    // For warmboot, just do a simple restart
-    try {
-      folly::Subprocess restartProc(
-          {"/usr/bin/sudo", "/usr/bin/systemctl", "restart", serviceName});
-      restartProc.waitChecked();
-    } catch (const std::exception& ex) {
-      throw std::runtime_error(
-          fmt::format("Failed to restart {}: {}", serviceName, ex.what()));
-    }
-  }
-
-  // Wait for the service to be active (up to 60 seconds)
-  constexpr int maxWaitSeconds = 60;
-  constexpr int pollIntervalMs = 500;
-  int waitedMs = 0;
-
-  while (waitedMs < maxWaitSeconds * 1000) {
-    try {
-      folly::Subprocess checkProc(
-          {"/usr/bin/systemctl", "is-active", "--quiet", serviceName});
-      checkProc.waitChecked();
-      // If waitChecked() doesn't throw, the service is active
-      LOG(INFO) << serviceName << " is now active";
-      return;
-    } catch (const folly::CalledProcessError&) {
-      // Service not active yet, keep waiting
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(pollIntervalMs));
-    waitedMs += pollIntervalMs;
-  }
-
-  throw std::runtime_error(
-      fmt::format(
-          "{} did not become active within {} seconds",
-          serviceName,
-          maxWaitSeconds));
-}
-
-void ConfigSession::reloadServiceConfig(
-    cli::ServiceType service,
-    const HostInfo& hostInfo) {
-  switch (service) {
-    case cli::ServiceType::AGENT: {
-      auto client = utils::createClient<
-          apache::thrift::Client<facebook::fboss::FbossCtrl>>(hostInfo);
-      client->sync_reloadConfig();
-      LOG(INFO) << "Config reloaded for " << getServiceName(service);
-      break;
-    }
-      // TODO: Add cases for future services (e.g., BGP)
+void ConfigSession::ensureFbossServiceUtil() {
+  if (!fbossServiceUtil_) {
+    auto& config = getAgentConfig();
+    const auto& args = *config.defaultCommandLineArgs();
+    bool multiSwitch =
+        args.count("multi_switch") && args.at("multi_switch") == "true";
+    fbossServiceUtil_ = std::make_unique<FbossServiceUtil>(
+        getSwitchInfoFromConfig(&(*config.sw())), multiSwitch);
   }
 }
 
-void ConfigSession::applyServiceActions(
+std::map<cli::ServiceType, std::vector<std::string>>
+ConfigSession::applyServiceActions(
     const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
     const HostInfo& hostInfo) {
+  ensureFbossServiceUtil();
+  std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   for (const auto& [service, level] : actions) {
     switch (level) {
       case cli::ConfigActionLevel::AGENT_COLDBOOT:
       case cli::ConfigActionLevel::AGENT_WARMBOOT:
-        restartService(service, level);
+        serviceNames[service] =
+            fbossServiceUtil_->restartService(service, level);
         break;
       case cli::ConfigActionLevel::HITLESS:
-        reloadServiceConfig(service, hostInfo);
+        serviceNames[service] =
+            fbossServiceUtil_->reloadConfig(service, hostInfo);
         break;
     }
   }
+  return serviceNames;
 }
 
 void ConfigSession::loadConfig() {
@@ -856,7 +742,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
 
   // Early return if there are no changes to commit
   if (sessionConfigData == oldConfigData && requiredActions_.empty()) {
-    return CommitResult{"", {}};
+    return CommitResult{"", {}, {}};
   }
 
   // Copy the metadata file alongside the config revision
@@ -896,8 +782,9 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
 
   // Apply the config based on the required action level
   std::string commitSha;
+  std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   try {
-    applyServiceActions(actions, hostInfo);
+    serviceNames = applyServiceActions(actions, hostInfo);
 
     // Create a Git commit with all changed files:
     // - cli/agent.conf (the config file)
@@ -952,7 +839,7 @@ ConfigSession::CommitResult ConfigSession::commit(const HostInfo& hostInfo) {
   // Force config reload from system config on next access
   configLoaded_ = false;
 
-  return CommitResult{commitSha, actions};
+  return CommitResult{commitSha, actions, serviceNames};
 }
 
 void ConfigSession::rebase() {
