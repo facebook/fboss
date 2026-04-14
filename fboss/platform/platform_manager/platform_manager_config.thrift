@@ -632,7 +632,6 @@ struct MdioBusBlockConfig {
 //
 // The remaining fields are configs per controller block in the FPGA
 //
-// TODO: Add MDIO support
 struct PciDeviceConfig {
   1: string pmUnitScopedName;
   2: string vendorId;
