@@ -95,6 +95,17 @@ class SaiPhyManager : public PhyManager {
       std::optional<TransceiverInfo> transceiverInfo,
       bool needResetDataPath) override;
 
+  /*
+   * removeOnePort
+   *
+   * Remove a programmed port from the PHY. This applies a SwitchState delta
+   * that removes the port, triggering SaiPortManager::removePort() which
+   * tears down the port connector, serdes, line port, and system port SAI
+   * objects. The PhyManager cache is also cleared so the port can be
+   * re-programmed from scratch.
+   */
+  void removeOnePort(PortID portId);
+
   template <typename platformT, typename xphychipT>
   void initializeSlotPhysImpl(PimID pimID, bool warmBoot);
 
