@@ -229,7 +229,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       PortID egressPort,
       bool ecnMarked,
       bool isV4,
-      const utility::EthFrame& origFrame) {
+      std::optional<PortID> injectPort = std::nullopt) {
     constexpr uint8_t kHopLimit{24};
     constexpr uint8_t kTc{42};
 
@@ -239,9 +239,8 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     utility::SwSwitchPacketSnooper snooper(
         this->getSw(), "srv6MidpointSnooper");
 
-    // Re-send so snooper can capture — caller already sent once for stats,
-    // but snooper needs its own send.
-    sendMidpointPacket(ecnMarked, isV4);
+    // Single send: snooper sees the same packet used for inner-payload checks.
+    auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -293,8 +292,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       bool ecnMarked,
       bool isV4,
       std::optional<PortID> injectPort = std::nullopt) {
-    auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
-    assertMidpointForwarding(egressPort, ecnMarked, isV4, origFrame);
+    assertMidpointForwarding(egressPort, ecnMarked, isV4, injectPort);
   }
 
   void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
