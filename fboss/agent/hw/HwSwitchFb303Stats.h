@@ -269,6 +269,14 @@ class HwSwitchFb303Stats {
   void sramLowBufferLimitHitCount() {
     sramLowBufferLimitHitCount_.addValue(1);
   }
+
+  void updateGlobalWatermarkMax(
+      uint64_t globalHeadroomBytes,
+      uint64_t globalSharedBytes,
+      uint64_t configuredHeadroomPoolSizeBytes,
+      uint64_t configuredSharedPoolSizeBytes,
+      bool headroomWatermarkSupported);
+
   void fabricConnectivityMissingCount(int64_t value);
   void fabricConnectivityMismatchCount(int64_t value);
   void fabricConnectivityBogusCount(int64_t value);
@@ -559,6 +567,15 @@ class HwSwitchFb303Stats {
   TLCounter isolationFirmwareFuncStatus_;
   TLTimeseries pfcDeadlockDetectionCount_;
   TLTimeseries pfcDeadlockRecoveryCount_;
+  TLCounter globalHeadroomWatermarkMaxCounter_;
+  TLCounter globalSharedWatermarkMaxCounter_;
+  uint64_t globalHeadroomWatermarkMax_{0};
+  uint64_t globalSharedWatermarkMax_{0};
+  std::chrono::steady_clock::time_point hourlyWatermarkStatsPublishTime_{
+      std::chrono::steady_clock::now()};
+  bool counterPublished_{false};
+  TLCounter globalHeadroomWatermarkPeakUsagePct_;
+  TLCounter globalSharedWatermarkPeakUsagePct_;
 };
 
 } // namespace facebook::fboss

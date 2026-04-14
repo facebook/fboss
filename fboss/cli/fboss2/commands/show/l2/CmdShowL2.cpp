@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowL2.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -20,4 +21,6 @@ void CmdShowL2::printOutput(const RetType& message, std::ostream& out) {
   out << message << std::endl;
 }
 
+// Explicit template instantiation
+template void CmdHandler<CmdShowL2, CmdShowL2Traits>::run();
 } // namespace facebook::fboss

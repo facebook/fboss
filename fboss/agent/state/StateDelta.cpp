@@ -29,6 +29,7 @@
 
 #include "fboss/agent/FsdbHelper.h"
 #include "fboss/agent/HwSwitchMatcher.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/SflowCollector.h"
 #include "fboss/agent/state/Srv6TunnelMap.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -307,6 +308,10 @@ ThriftMapDelta<IpTunnelMap> StateDelta::getIpTunnelsDelta() const {
 ThriftMapDelta<Srv6TunnelMap> StateDelta::getSrv6TunnelsDelta() const {
   return getFirstMapDelta<Srv6TunnelMap>(
       old_->getSrv6Tunnels(), new_->getSrv6Tunnels());
+}
+
+ThriftMapDelta<MySidMap> StateDelta::getMySidsDelta() const {
+  return getFirstMapDelta<MySidMap>(old_->getMySids(), new_->getMySids());
 }
 
 MultiSwitchMapDelta<MultiTeFlowTable> StateDelta::getTeFlowEntriesDelta()

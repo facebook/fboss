@@ -13,7 +13,7 @@
       "pmUnitName": "MCB"
     },
     "FCB_SLOT": {
-      "numOutgoingI2cBuses": 1,
+      "numOutgoingI2cBuses": 3,
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x50",
@@ -31,7 +31,7 @@
       "pmUnitName": "SCM"
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 5,
+      "numOutgoingI2cBuses": 4,
       "idpromConfig": {
         "busName": "INCOMING@0",
         "address": "0x50",
@@ -788,10 +788,20 @@
               "pmUnitScopedNamePrefix": "SMB",
               "deviceName": "port_led",
               "csrOffsetCalc": "0x19000 + ({portNum} - {startPort})*0x0 + ({ledNum} - 1)*0x0",
-              "numPorts": 33,
+              "numPorts": 32,
               "ledPerPort": 2,
               "startPort": 33,
               "iobufOffsetCalc": "0x1902c + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4"
+            },
+            {
+              "pmUnitScopedNamePrefix": "SMB",
+              "deviceName": "port_led",
+              "csrOffsetCalc": "0x19000 + ({portNum} - {startPort})*0x0 + ({ledNum} - 1)*0x0",
+              "numPorts": 1,
+              "ledPerPort": 2,
+              "startPort": 65,
+              "iobufOffsetCalc": "0x1902c + ({portNum} - {startPort})*0x8 + ({ledNum} - 1)*0x4",
+              "lanesPerPort": 2
             }
           ],
           "sysLedCtrlConfigs": [

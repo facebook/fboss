@@ -9,6 +9,8 @@
 #include <vector>
 #include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/ForwardingInformationBaseMap.h"
+#include "fboss/agent/state/LabelForwardingInformationBase.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NextHopIdMaps.h"
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
@@ -194,6 +196,14 @@ class NextHopIDManager {
   std::optional<RouteNextHopSet> getNextHopsForName(
       const std::string& name) const;
 
+  // Get the RouteNextHopSet for a given NextHopSetID
+  // Throws FbossError if the NextHopSetID is not found
+  RouteNextHopSet getNextHops(NextHopSetID nextHopSetID) const;
+
+  // Get the RouteNextHopSet for a given NextHopSetID
+  // Returns std::nullopt if the NextHopSetID is not found
+  std::optional<RouteNextHopSet> getNextHopsIf(NextHopSetID nextHopSetID) const;
+
   // Get all named next-hop groups
   const std::unordered_map<std::string, RouteNextHopSet>&
   getNameToNextHopSetMap() const {
@@ -231,8 +241,10 @@ class NextHopIDManager {
    * switches. NextHopID manager is common across all switches, but the NextHop
    * ID maps in the switch state are specific to each switch.
    */
-  void reconstructFromFib(
-      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap);
+  void reconstructFromSwitchStateMaps(
+      const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
+      const std::shared_ptr<MultiSwitchMySidMap>& mySidMap,
+      const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFib);
 
  private:
   static constexpr int64_t kNextHopIDStart = 1;
@@ -293,14 +305,26 @@ class NextHopIDManager {
       getOrAllocRouteNextHopSetIDSubSetSuperSetNextHops);
   FRIEND_TEST(NextHopIDManagerTest, delOrDecrRouteNextHopSetID);
   FRIEND_TEST(NextHopIDManagerTest, updateRouteNextHopSetID);
-  FRIEND_TEST(NextHopIDManagerTest, reconstructFromFib);
-  FRIEND_TEST(NextHopIDManagerTest, reconstructFromFibMultiSwitch);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMaps);
+  FRIEND_TEST(NextHopIDManagerTest, reconstructFromSwitchStateMapsMultiSwitch);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMaps_MySidResolvedNextHopsId);
+  FRIEND_TEST(
+      NextHopIDManagerTest,
+      reconstructFromSwitchStateMaps_MySidBothNextHopIds);
   FRIEND_TEST(NextHopIDManagerTest, allocateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, updateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, deallocateNamedNextHopGroup);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupWarmBoot);
   FRIEND_TEST(NextHopIDManagerTest, namedNextHopGroupSharesSetIdWithRoutes);
   FRIEND_TEST(NextHopIDManagerTest, routeReusesNamedNextHopGroupSetId);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      nhopRefCountBumped_afterResolvingNhopWithIntfId);
+  FRIEND_TEST(
+      RibMySidUpdaterTest,
+      twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
 };
 
 } // namespace facebook::fboss

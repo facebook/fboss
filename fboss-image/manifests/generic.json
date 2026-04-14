@@ -1,0 +1,29 @@
+{
+  "distribution_formats": {
+    "usb": "fboss-distro-image_usb.iso",
+    "pxe": "fboss-distro-image_pxe.tar",
+    "onie": "fboss-distro-image_onie.bin"
+  },
+  "kernel": {
+    "execute": ["../kernel/scripts/build_kernel.sh", "6.11.1", "/output"],
+    "artifact": "kernel-6.11.1.rpms.tar"
+  },
+  "other_dependencies": [
+  ],
+  "fboss-platform-stack": {
+    "download": "file:///tmp/fboss-image-staging/platform_fboss_bins.tar.gz"
+  },
+  "bsps": {
+    "download": "file:///tmp/fboss-image-staging/fboss_bsp_kmods.tar"
+  },
+  "sai": {
+    "download": "file:///tmp/fboss-image-staging/fboss_sai_kmods.tar"
+  },
+  "fboss-forwarding-stack": [
+    {"download": "file:///tmp/fboss-image-staging/agent_fboss_bins.tar.zst"},
+    {"download": "file:///tmp/fboss-image-staging/fsdb_fboss_bins.tar.zst"},
+    {"download": "file:///tmp/fboss-image-staging/qsfp_fboss_bins.tar.zst"}
+  ],
+  "image_build_hooks": {
+  }
+}

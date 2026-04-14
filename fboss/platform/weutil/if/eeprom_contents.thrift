@@ -41,7 +41,7 @@ struct EepromContents {
 
 @hack.Attributes{
   attributes = [
-    "\Oncalls('net_ui')",
+    "\Oncalls('bb_ops_ui')",
     "\JSEnum(shape('flow_enum' => false))",
     "\GraphQLEnum('NetengFbossPlatformProductionState')",
     "\SelfDescriptive",

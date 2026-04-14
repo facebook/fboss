@@ -138,4 +138,7 @@ const std::vector<sai_stat_id_t>& SaiPortManager::getSupportedPfcDurationStats(
   return stats;
 }
 
+void SaiPortManager::fillInSupportedVendorExtStats(
+    std::vector<sai_stat_id_t>& /*counterIds*/) {}
+
 } // namespace facebook::fboss

@@ -338,4 +338,125 @@ TEST_F(PlatformManagerHandlerTest, GetFirmwareVersions_ReturnsPopulatedMap) {
   EXPECT_EQ(response.firmwareVersions()->at("MCB_FPGA"), "4.5.6");
 }
 
+TEST_F(PlatformManagerHandlerTest, GetPlatformSnapshot_ReturnsPopulatedTree) {
+  // Setup config with root PmUnit (SCM) that has I2C devices and a child slot
+  PlatformConfig snapshotConfig;
+  snapshotConfig.platformName() = "TEST_PLATFORM";
+  snapshotConfig.rootSlotType() = "SCM_SLOT";
+  snapshotConfig.rootPmUnitName() = "SCM";
+  snapshotConfig.i2cAdaptersFromCpu() = {"SMBus I801 adapter at 2000"};
+  snapshotConfig.bspKmodsRpmName() = "test_bsp_kmods";
+  snapshotConfig.bspKmodsRpmVersion() = "1.0.0-1";
+
+  SlotTypeConfig scmSlotType;
+  scmSlotType.numOutgoingI2cBuses() = 0;
+  scmSlotType.pmUnitName() = "SCM";
+
+  SlotTypeConfig smbSlotType;
+  smbSlotType.numOutgoingI2cBuses() = 1;
+  smbSlotType.pmUnitName() = "SMB";
+
+  snapshotConfig.slotTypeConfigs() = {
+      {"SCM_SLOT", scmSlotType},
+      {"SMB_SLOT", smbSlotType},
+  };
+
+  // Root PmUnit with an I2C sensor (references CPU bus by adapter name)
+  // and an outgoing slot whose bus comes from an I2C mux on the root PmUnit
+  PmUnitConfig scmConfig;
+  scmConfig.pluggedInSlotType() = "SCM_SLOT";
+
+  I2cDeviceConfig sensorConfig;
+  sensorConfig.busName() = "SMBus I801 adapter at 2000";
+  sensorConfig.address() = "0x48";
+  sensorConfig.kernelDeviceName() = "lm75";
+  sensorConfig.pmUnitScopedName() = "INLET_SENSOR";
+  scmConfig.i2cDeviceConfigs() = {sensorConfig};
+
+  SlotConfig smbSlotConfig;
+  smbSlotConfig.slotType() = "SMB_SLOT";
+  smbSlotConfig.outgoingI2cBusNames() = {"SCM_MUX@0"};
+  scmConfig.outgoingSlotConfigs() = {{"SMB_SLOT@0", smbSlotConfig}};
+
+  // Child PmUnit with a mux
+  PmUnitConfig smbConfig;
+  smbConfig.pluggedInSlotType() = "SMB_SLOT";
+
+  I2cDeviceConfig muxConfig;
+  muxConfig.busName() = "INCOMING@0";
+  muxConfig.address() = "0x50";
+  muxConfig.kernelDeviceName() = "pca9548";
+  muxConfig.pmUnitScopedName() = "SMB_MUX";
+  muxConfig.numOutgoingChannels() = 8;
+  smbConfig.i2cDeviceConfigs() = {muxConfig};
+
+  snapshotConfig.pmUnitConfigs() = {{"SCM", scmConfig}, {"SMB", smbConfig}};
+
+  // Populate DataStore
+  DataStore dataStore(snapshotConfig);
+  dataStore.updateI2cBusNum(std::nullopt, "SMBus I801 adapter at 2000", 0);
+  dataStore.updateI2cBusNum("/", "SCM_MUX@0", 3);
+  dataStore.updateI2cBusNum("/SMB_SLOT@0", "INCOMING@0", 5);
+  dataStore.updatePmUnitName("/", "SCM");
+  dataStore.updatePmUnitName("/SMB_SLOT@0", "SMB");
+
+  MockPlatformExplorer explorer(snapshotConfig, dataStore);
+  PlatformManagerHandler handler(explorer, dataStore, snapshotConfig);
+
+  PlatformSnapshot response;
+  handler.getPlatformSnapshot(response);
+
+  // Verify top-level fields
+  EXPECT_EQ(*response.platformName(), "TEST_PLATFORM");
+  EXPECT_EQ(response.i2cAdaptersFromCpu()->size(), 1);
+  EXPECT_EQ(response.i2cAdaptersFromCpu()->at(0), "SMBus I801 adapter at 2000");
+
+  // Verify root PMUnit's I2C device has kernel bus name
+  ASSERT_EQ(response.rootSlot()->pluggedInPMUnit()->i2cDevices()->size(), 1);
+  auto& sensor = response.rootSlot()->pluggedInPMUnit()->i2cDevices()->at(0);
+  EXPECT_EQ(*sensor.busName(), "i2c-0");
+  EXPECT_EQ(*sensor.addr(), 0x48);
+  EXPECT_EQ(*sensor.kernelDeviceName(), "lm75");
+  EXPECT_EQ(*sensor.pmUnitScopedName(), "INLET_SENSOR");
+
+  // Verify outgoing slot
+  ASSERT_EQ(response.rootSlot()->pluggedInPMUnit()->outgoingSlots()->size(), 1);
+  auto& slot =
+      response.rootSlot()->pluggedInPMUnit()->outgoingSlots()->at("SMB_SLOT@0");
+  EXPECT_EQ(*slot.slotType(), "SMB_SLOT");
+  ASSERT_EQ(slot.outgoingI2cBusNames()->size(), 1);
+  EXPECT_EQ(slot.outgoingI2cBusNames()->at(0), "i2c-3");
+
+  // Verify child PMUnit in slot
+  ASSERT_TRUE(slot.pluggedInPMUnit().has_value());
+  EXPECT_EQ(*slot.pluggedInPMUnit()->name(), "SMB");
+  ASSERT_EQ(slot.pluggedInPMUnit()->i2cDevices()->size(), 1);
+  auto& mux = slot.pluggedInPMUnit()->i2cDevices()->at(0);
+  EXPECT_EQ(*mux.busName(), "i2c-5");
+  EXPECT_EQ(*mux.pmUnitScopedName(), "SMB_MUX");
+  ASSERT_TRUE(mux.numOutgoingChannels().has_value());
+  EXPECT_EQ(*mux.numOutgoingChannels(), 8);
+
+  // Verify i2cPathToHumanFriendlyName map
+  EXPECT_EQ(response.i2cPathToHumanFriendlyName()->size(), 3);
+  // Global-scope CPU bus uses root path
+  EXPECT_EQ(
+      response.i2cPathToHumanFriendlyName()->at("i2c-0"),
+      "/[SMBus I801 adapter at 2000]");
+  // Mux channel on root PmUnit
+  EXPECT_EQ(response.i2cPathToHumanFriendlyName()->at("i2c-3"), "/[SCM_MUX@0]");
+  // INCOMING bus on child slot
+  EXPECT_EQ(
+      response.i2cPathToHumanFriendlyName()->at("i2c-5"),
+      "/SMB_SLOT@0/[INCOMING@0]");
+}
+
+TEST_F(PlatformManagerHandlerTest, GetPlatformSnapshot_EmptyWhenNotExplored) {
+  PlatformSnapshot response;
+  handler_->getPlatformSnapshot(response);
+
+  EXPECT_EQ(*response.platformName(), "TestPlatform");
+  EXPECT_TRUE(response.rootSlot()->slotType()->empty());
+}
+
 } // namespace facebook::fboss::platform::platform_manager

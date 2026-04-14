@@ -5,6 +5,7 @@
 #include "fboss/agent/hw/bcm/BcmError.h"
 #include "fboss/agent/hw/bcm/BcmSwitch.h"
 
+#include "fboss/agent/hw/bcm/BcmAclStat.h"
 #include "fboss/agent/hw/bcm/BcmAclTable.h"
 #include "fboss/agent/hw/bcm/BcmStatUpdater.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -116,6 +117,29 @@ bool HwTestThriftHandler::isStatProgrammedInAclTable(
       std::move(aclEntryNames), std::move(counterName), std::move(types));
 }
 
+void HwTestThriftHandler::getDefaultAclTableStatCountInfo(
+    AclStatCountInfo& info) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+
+  bcm_field_group_t gid =
+      bcmSwitch->getPlatform()->getAsic()->getDefaultACLGroupID();
+  int aclCount;
+  auto rv = bcm_field_entry_multi_get(
+      bcmSwitch->getUnit(), gid, 0, nullptr, &aclCount);
+  bcmCheckError(rv, "failed to get field group entry count");
+
+  info.aclEntryCount() = aclCount;
+  info.aclStatCount() = BcmAclStat::getNumAclStatsInFpGroup(bcmSwitch, gid);
+  info.counterCount() = bcmSwitch->getStatUpdater()->getAclStatCounterCount();
+}
+
+bool HwTestThriftHandler::isAclStatDeleted(
+    std::unique_ptr<std::string> statName) {
+  auto bcmSwitch = static_cast<const BcmSwitch*>(hwSwitch_);
+  auto aclTable = bcmSwitch->getAclTable();
+  return aclTable->getAclStat(*statName) == nullptr;
+}
+
 bool HwTestThriftHandler::isAclEntrySame(
     std::unique_ptr<state::AclEntryFields> aclEntry,
     std::unique_ptr<std::string> /* aclTableName */) {
@@ -138,6 +162,10 @@ bool HwTestThriftHandler::isAclEntrySame(
 }
 
 bool HwTestThriftHandler::areAllAclEntriesEnabled() {
+  return isDefaultAclTableEnabled();
+}
+
+bool HwTestThriftHandler::isAclTableGroupEnabled(int32_t /*aclStage*/) {
   return isDefaultAclTableEnabled();
 }
 

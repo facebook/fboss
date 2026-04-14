@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "CmdShowFabricMonitoringCounters.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <folly/Conv.h>
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
@@ -93,4 +94,11 @@ RetType CmdShowFabricMonitoringCounters::createModel(
   return model;
 }
 
+// Explicit template instantiation
+template void CmdHandler<
+    CmdShowFabricMonitoringCounters,
+    CmdShowFabricMonitoringCountersTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricMonitoringCounters,
+    CmdShowFabricMonitoringCountersTraits>::getValidFilters();
 } // namespace facebook::fboss

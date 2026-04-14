@@ -140,7 +140,7 @@ class ComponentBuilder:
         # Allow empty components
         if not has_download and not has_execute:
             logger.info(f"Component '{self.component_name}' is empty, skipping")
-            return None
+            return None  # pyre-ignore[7]
 
         if has_download:
             return self._download_component(self.component_data["download"])

@@ -556,36 +556,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 272
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip35",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 3
@@ -1621,36 +1591,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip36",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 280
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip36",
-                      "lane": 0
                     }
                   }
                 ]
@@ -2696,36 +2636,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 264
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip34",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 11
@@ -3761,36 +3671,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip33",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 256
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip33",
-                      "lane": 0
                     }
                   }
                 ]
@@ -4836,36 +4716,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 304
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip39",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 19
@@ -5901,36 +5751,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip40",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 312
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip40",
-                      "lane": 0
                     }
                   }
                 ]
@@ -6976,36 +6796,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 296
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip38",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 27
@@ -8041,36 +7831,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip37",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 288
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip37",
-                      "lane": 0
                     }
                   }
                 ]
@@ -9116,36 +8876,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 336
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip43",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 35
@@ -10181,36 +9911,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip44",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 344
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip44",
-                      "lane": 0
                     }
                   }
                 ]
@@ -11256,36 +10956,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 328
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip42",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 43
@@ -12321,36 +11991,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip41",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 320
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip41",
-                      "lane": 0
                     }
                   }
                 ]
@@ -13396,36 +13036,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 368
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip47",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 51
@@ -14461,36 +14071,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip48",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 376
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip48",
-                      "lane": 0
                     }
                   }
                 ]
@@ -15536,36 +15116,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 360
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip46",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 59
@@ -16601,36 +16151,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip45",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 352
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip45",
-                      "lane": 0
                     }
                   }
                 ]
@@ -17676,36 +17196,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 408
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip52",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 67
@@ -18741,36 +18231,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip51",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 400
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip51",
-                      "lane": 0
                     }
                   }
                 ]
@@ -19816,36 +19276,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 384
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip49",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 75
@@ -20881,36 +20311,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip50",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 392
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip50",
-                      "lane": 0
                     }
                   }
                 ]
@@ -21956,36 +21356,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 440
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip56",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 83
@@ -23021,36 +22391,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip55",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 432
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip55",
-                      "lane": 0
                     }
                   }
                 ]
@@ -24096,36 +23436,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 416
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip53",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 91
@@ -25161,36 +24471,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip54",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 424
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip54",
-                      "lane": 0
                     }
                   }
                 ]
@@ -26236,36 +25516,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 472
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip60",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 99
@@ -27301,36 +26551,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip59",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 464
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip59",
-                      "lane": 0
                     }
                   }
                 ]
@@ -28376,36 +27596,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 448
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip57",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 107
@@ -29441,36 +28631,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip58",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 456
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip58",
-                      "lane": 0
                     }
                   }
                 ]
@@ -30516,36 +29676,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 504
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip64",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 115
@@ -31581,36 +30711,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip63",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 496
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip63",
-                      "lane": 0
                     }
                   }
                 ]
@@ -32656,36 +31756,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 480
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip61",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 123
@@ -33721,36 +32791,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip62",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 488
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip62",
-                      "lane": 0
                     }
                   }
                 ]
@@ -34796,36 +33836,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 232
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip30",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 131
@@ -35861,36 +34871,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip29",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 224
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip29",
-                      "lane": 0
                     }
                   }
                 ]
@@ -36936,36 +35916,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 240
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip31",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 139
@@ -38001,36 +36951,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip32",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 248
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip32",
-                      "lane": 0
                     }
                   }
                 ]
@@ -39076,36 +37996,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 200
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip26",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 147
@@ -40141,36 +39031,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip25",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 192
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip25",
-                      "lane": 0
                     }
                   }
                 ]
@@ -41216,36 +40076,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 208
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip27",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 155
@@ -42281,36 +41111,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip28",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 216
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip28",
-                      "lane": 0
                     }
                   }
                 ]
@@ -43356,36 +42156,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 168
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip22",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 163
@@ -44421,36 +43191,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip21",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 160
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip21",
-                      "lane": 0
                     }
                   }
                 ]
@@ -45496,36 +44236,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 176
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip23",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 171
@@ -46561,36 +45271,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip24",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 184
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip24",
-                      "lane": 0
                     }
                   }
                 ]
@@ -47636,36 +46316,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 136
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip18",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 179
@@ -48701,36 +47351,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip17",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 128
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip17",
-                      "lane": 0
                     }
                   }
                 ]
@@ -49776,36 +48396,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 144
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip19",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 187
@@ -50841,36 +49431,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip20",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 152
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip20",
-                      "lane": 0
                     }
                   }
                 ]
@@ -51916,36 +50476,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 96
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip13",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 195
@@ -52981,36 +51511,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip14",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 104
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip14",
-                      "lane": 0
                     }
                   }
                 ]
@@ -54056,36 +52556,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 120
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip16",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 203
@@ -55121,36 +53591,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip15",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 112
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip15",
-                      "lane": 0
                     }
                   }
                 ]
@@ -56196,36 +54636,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 64
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip9",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 211
@@ -57261,36 +55671,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip10",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 72
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip10",
-                      "lane": 0
                     }
                   }
                 ]
@@ -58336,36 +56716,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 88
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip12",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 219
@@ -59401,36 +57751,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip11",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 80
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip11",
-                      "lane": 0
                     }
                   }
                 ]
@@ -60476,36 +58796,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 32
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip5",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 227
@@ -61541,36 +59831,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip6",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 40
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip6",
-                      "lane": 0
                     }
                   }
                 ]
@@ -62616,36 +60876,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 56
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip8",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 235
@@ -63681,36 +61911,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip7",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 48
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip7",
-                      "lane": 0
                     }
                   }
                 ]
@@ -64756,36 +62956,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 0
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip1",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 243
@@ -65821,36 +63991,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                     "id": {
                       "chip": "TRANSCEIVER-OSFP-slot1/chip2",
                       "lane": 3
-                    }
-                  }
-                ]
-              }
-          },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 8
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip2",
-                      "lane": 0
                     }
                   }
                 ]
@@ -66896,36 +65036,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 24
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip4",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 251
@@ -67966,36 +66076,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
                 ]
               }
           },
-          "47": {
-              "pins": {
-                "iphy": [
-                  {
-                    "id": {
-                      "chip": "NPU-CHENAB_NIF-slot1/chip1/core0",
-                      "lane": 16
-                    },
-                    "tx": {
-                      "pre": -15,
-                      "pre2": 5,
-                      "main": 43,
-                      "post": 0,
-                      "post2": 0,
-                      "post3": 0,
-                      "driveCurrent": 55,
-                      "pre3": 0
-                    }
-                  }
-                ],
-                "transceiver": [
-                  {
-                    "id": {
-                      "chip": "TRANSCEIVER-OSFP-slot1/chip3",
-                      "lane": 0
-                    }
-                  }
-                ]
-              }
-          },
           "50": {
               "subsumedPorts": [
                 255
@@ -69015,21 +67095,6 @@ constexpr auto kJsonPlatformMappingStr = R"(
           "fec": 11,
           "medium": 1,
           "interfaceType": 12
-        }
-      }
-    },
-    {
-      "factor": {
-        "profileID": 47
-      },
-      "profile": {
-        "speed": 100000,
-        "iphy": {
-          "numLanes": 1,
-          "modulation": 2,
-          "fec": 11,
-          "medium": 3,
-          "interfaceType": 1
         }
       }
     },

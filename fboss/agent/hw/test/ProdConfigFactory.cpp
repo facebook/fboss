@@ -99,6 +99,8 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_WEDGE:
     case PM::PLATFORM_WEDGE100:
     case PM::PLATFORM_WEDGE400C:
+    case PM::PLATFORM_WEDGE800CACT:
+    case PM::PLATFORM_WEDGE800BACT:
     case PM::PLATFORM_WEDGE400:
     case PM::PLATFORM_YAMP:
     case PM::PLATFORM_MORGAN800CC:
@@ -110,6 +112,7 @@ uint16_t uplinksCountFromSwitch(PlatformType mode) {
     case PM::PLATFORM_DARWIN:
     case PM::PLATFORM_DARWIN48V:
     case PM::PLATFORM_TAHAN800BC:
+    case PM::PLATFORM_TAHANSB800BC:
     case PM::PLATFORM_ICECUBE800BC:
     case PM::PLATFORM_ICETEA800BC:
     case PM::PLATFORM_MONTBLANC:
@@ -155,6 +158,9 @@ cfg::PortSpeed getPortSpeed(
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
     case PlatformType::PLATFORM_TAHAN800BC:
+    case PlatformType::PLATFORM_TAHANSB800BC:
+    case PlatformType::PLATFORM_WEDGE800BACT:
+    case PlatformType::PLATFORM_WEDGE800CACT:
       portSpeed = cfg::PortSpeed::FOURHUNDREDG;
       break;
     default:

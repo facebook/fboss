@@ -68,6 +68,7 @@ void FakeSai::clear() {
   fs->tunnelTermManager.clear();
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
   fs->srv6SidListManager.clear();
+  fs->mySidEntryManager.clear();
 #endif
   fs->systemPortManager.clear();
 }

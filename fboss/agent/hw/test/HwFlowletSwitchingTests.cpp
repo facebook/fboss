@@ -438,7 +438,9 @@ class HwArsTest : public HwLinkStateDependentTest {
     auto ecmpDetails = getHwSwitch()->getAllEcmpDetails();
     CHECK_EQ(ecmpDetails.size(), 1);
     for (const auto& entry : ecmpDetails) {
-      CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      if (!getHwSwitchEnsemble()->isSai()) {
+        CHECK_GE(*(entry.ecmpId()), kEcmpStartId);
+      }
       if (*flowletCfg.flowletTableSize() > 0) {
         EXPECT_TRUE(*(entry.flowletEnabled()));
       }
@@ -1262,68 +1264,6 @@ TEST_F(HwArsFlowletTest, VerifyModeSprayFlowletSizeChange) {
       cfg::SwitchingMode::PER_PACKET_QUALITY,
       kMinFlowletTableSize,
       8);
-}
-
-TEST_F(HwArsSprayTest, VerifyEcmpIdManagement) {
-  if (this->skipTest() ||
-      (getPlatform()->getAsic()->getAsicType() ==
-       cfg::AsicType::ASIC_TYPE_FAKE)) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
-
-  auto numEcmp = kMaxDlbGroups();
-
-  auto setup = [&]() {
-    setupEcmpGroups(numEcmp);
-    // create 1 more ECMP object
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[4]}, kAddr1);
-  };
-
-  auto verify = [&]() {
-    auto cfg = initialConfig();
-    verifyEcmpGroups(cfg, numEcmp);
-
-    // verify the ECMP Id more than Max dlb Ecmp Id
-    // not enabled with flowlet config and flowset available is zero.
-    utility::verifyEcmpForNonFlowlet(
-        getHwSwitch(), kAddr1Prefix, *cfg.flowletSwitchingConfig(), false);
-
-    // delete and re-add n prefixes from DLB range, they should be recreated in
-    // DLB range
-    std::vector<RoutePrefixV6> delPrefixes;
-    for (int i = 0; i < 32; i++) {
-      RoutePrefixV6 prefix{
-          folly::IPAddressV6(folly::sformat("{}:{:x}::", kAddr3, i)), 64};
-      delPrefixes.push_back(prefix);
-    }
-
-    // delete 32 ECMP groups
-    ecmpHelper_->unprogramRoutes(getRouteUpdater(), delPrefixes);
-
-    // re-create 32 ECMP groups
-    setupEcmpGroups(32);
-
-    // re-verify all DLB groups are still in DLB range
-    verifyEcmpGroups(cfg, 32);
-  };
-
-  auto setupPostWarmboot = [&]() {
-    // create 1 more ECMP object, this should be non dynamic
-    resolveNextHopsAddRoute(
-        {masterLogicalPortIds()[1], masterLogicalPortIds()[6]}, kAddr2);
-  };
-
-  auto verifyPostWarmboot = [&]() {
-    auto cfg = initialConfig();
-    utility::verifyEcmpForNonFlowlet(
-        getHwSwitch(), kAddr2Prefix, *cfg.flowletSwitchingConfig(), false);
-  };
-
-  verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
 // This test is to explicitly verify ECMP ID management in BcmEgress

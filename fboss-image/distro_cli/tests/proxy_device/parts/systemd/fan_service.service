@@ -1,0 +1,13 @@
+[Unit]
+Description=Fan Service
+After=network.target device-init.service
+Requires=device-init.service
+
+[Service]
+Type=simple
+ExecStart=/opt/fboss/bin/fan_service
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

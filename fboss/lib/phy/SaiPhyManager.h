@@ -95,6 +95,17 @@ class SaiPhyManager : public PhyManager {
       std::optional<TransceiverInfo> transceiverInfo,
       bool needResetDataPath) override;
 
+  /*
+   * removeOnePort
+   *
+   * Remove a programmed port from the PHY. This applies a SwitchState delta
+   * that removes the port, triggering SaiPortManager::removePort() which
+   * tears down the port connector, serdes, line port, and system port SAI
+   * objects. The PhyManager cache is also cleared so the port can be
+   * re-programmed from scratch.
+   */
+  void removeOnePort(PortID portId);
+
   template <typename platformT, typename xphychipT>
   void initializeSlotPhysImpl(PimID pimID, bool warmBoot);
 
@@ -167,8 +178,6 @@ class SaiPhyManager : public PhyManager {
   class PlatformInfo {
    public:
     explicit PlatformInfo(std::unique_ptr<SaiPlatform> platform);
-    PlatformInfo(PlatformInfo&&) = default;
-    PlatformInfo& operator=(PlatformInfo&&) = default;
     ~PlatformInfo();
 
     using StateUpdateFn = std::function<std::shared_ptr<SwitchState>(
@@ -185,6 +194,9 @@ class SaiPhyManager : public PhyManager {
     }
 
    private:
+    PlatformInfo(PlatformInfo&&) = delete;
+    PlatformInfo& operator=(PlatformInfo&&) = delete;
+
     void setState(const std::shared_ptr<SwitchState>& newState);
     std::unique_ptr<SaiPlatform> saiPlatform_;
     // Don't hold locked access to SwitchState for long periods. Instead

@@ -153,7 +153,7 @@ class AgentMacLearningTest : public AgentHwTest {
      *  and all devices).
      */
 
-    // State udpate that will add/remove MacEntry happens asynchronously in
+    // State update that will add/remove MacEntry happens asynchronously in
     // Event base. Give it chance to run.
     // Typically the MAC learning is immediate post a packet sent, but retries
     // help avoid test noise.
@@ -388,7 +388,7 @@ class AgentMacLearningTest : public AgentHwTest {
         mac,
         ETHERTYPE::ETHERTYPE_LLDP);
 
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
     auto newPortStats =
         getAgentEnsemble()->getLatestPortStats(masterLogicalPortIds()[1]);
 
@@ -466,7 +466,7 @@ class AgentMacSwLearningModeTest : public AgentMacLearningTest {
     verifyAcrossWarmBoots(setup, verify);
   }
 
-  // After the initial sw learning, expect no more l2 udpate as aging is
+  // After the initial sw learning, expect no more l2 update as aging is
   // disabled.
   void testSwLearningNoCycleHelper(PortDescriptor portDescr) {
     auto setup = [this, portDescr]() {
@@ -1191,7 +1191,7 @@ class AgentMacLearningBatchEntriesTest : public AgentMacLearningTest {
           getSw()->sendPacketOutOfPortAsync(
               std::move(txPacket), outPort.value());
         } else {
-          getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+          sendPacketSwitchedAsync(std::move(txPacket));
         }
 
         ++numSentPackets;
@@ -1623,7 +1623,7 @@ TEST_F(
   };
 
   auto verify = [this, &macs, &extraMac]() {
-    // Verify all orignal 1K macs and the extra one have been learnt
+    // Verify all original 1K macs and the extra one have been learnt
     macs.push_back(extraMac);
     verifyAllMacsLearnt(macs);
   };
@@ -1724,7 +1724,7 @@ class AgentMacLearningStaticConfigTest : public AgentMacLearnDisabledTest {
         ETHERTYPE::ETHERTYPE_LLDP);
 
     // Send packet out via packet switching (not via a specific port)
-    getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+    sendPacketSwitchedAsync(std::move(txPacket));
 
     // Wait for packet processing and get new stats
     WITH_RETRIES({

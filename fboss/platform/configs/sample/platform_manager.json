@@ -13,7 +13,7 @@
       }
     },
     "SMB_SLOT": {
-      "numOutgoingI2cBuses": 8,
+      "numOutgoingI2cBuses": 3,
       "idpromConfig": {
         "busName": "INCOMING@2",
         "address": "0x11",
@@ -345,7 +345,8 @@
     ]
   },
   "i2cAdaptersFromCpu": [
-    "CPU"
+    "CPU@0",
+    "CPU@1"
   ],
   "symbolicLinkToDevicePath": {
     "/run/devmap/eeproms/CHASSIS_EEPROM": "/SMB_SLOT@0/[CHASSIS_EEPROM]",

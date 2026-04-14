@@ -11,13 +11,14 @@
 #include "fboss/agent/hw/sai/switch/SaiNextHopGroupManager.h"
 
 #include "fboss/agent/FbossError.h"
+#include "fboss/agent/hw/sai/api/SaiApiTable.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiArsProfileManager.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiNeighborManager.h"
 #include "fboss/agent/hw/sai/switch/SaiNextHopManager.h"
 #include "fboss/agent/hw/sai/switch/SaiRouterInterfaceManager.h"
-#include "fboss/agent/hw/sai/switch/SaiSrv6Manager.h"
+#include "fboss/agent/hw/sai/switch/SaiSrv6SidListManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
@@ -67,11 +68,22 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
   for (const auto& swNextHop : swNextHops) {
     // Compute the sai id of the next hop's router interface
-    InterfaceID interfaceId = swNextHop.intf();
+    const InterfaceID interfaceId = swNextHop.intf();
     auto routerInterfaceHandle =
         managerTable_->routerInterfaceManager().getRouterInterfaceHandle(
             interfaceId);
     if (!routerInterfaceHandle) {
+      // For multi-NPU switches, skip next hops whose interface is not on this
+      // ASIC. The route will still be programmed with the remaining next hops
+      // that are local to this ASIC.
+      if (platform_->hasMultipleSwitches()) {
+        XLOG(DBG3)
+            << "Skipping next hop without sai_router_interface for InterfaceID: "
+            << interfaceId
+            << " on switchId: " << platform_->getAsic()->getSwitchId().value();
+        continue;
+      }
+      // For single switch cases, this is an error
       throw FbossError("Missing SAI router interface for ", interfaceId);
     }
     resolvedNextHops.emplace_back(folly::poly_cast<ResolvedNextHop>(swNextHop));
@@ -81,8 +93,9 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
     if (!resolvedNextHop.srv6SegmentList().empty()) {
       auto [sidListKey, sidListAttrs] = makeSrv6SidListKeyAndAttributes(
           routerInterfaceHandle->adapterKey(), resolvedNextHop);
-      auto sidListHandle = managerTable_->srv6Manager().addOrReuseSrv6SidList(
-          sidListKey, sidListAttrs);
+      auto sidListHandle =
+          managerTable_->srv6SidListManager().addOrReuseSrv6SidList(
+              sidListKey, sidListAttrs);
       sidListId = sidListHandle->managedSidList->getSidList()->adapterKey();
       srv6SidListMap.emplace(&resolvedNextHop, std::move(sidListHandle));
     }
@@ -94,6 +107,17 @@ SaiNextHopGroupManager::incRefOrAddNextHopGroup(const SaiNextHopGroupKey& key) {
 #endif
     nextHopGroupAdapterHostKey.nhopMemberSet.insert(
         std::make_pair(nhk, swNextHop.weight()));
+  }
+
+  // For multi-NPU switches, if all next hops were filtered out (none have
+  // router interfaces on this ASIC), we should not create an empty group.
+  // Return the existing handle which will be empty/null.
+  if (nextHopGroupAdapterHostKey.nhopMemberSet.empty() &&
+      platform_->hasMultipleSwitches()) {
+    XLOG(DBG3) << "All next hops filtered out on switchId: "
+               << platform_->getAsic()->getSwitchId().value()
+               << ", not creating empty next hop group";
+    return nextHopGroupHandle;
   }
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
@@ -393,6 +417,48 @@ cfg::SwitchingMode SaiNextHopGroupManager::getNextHopGroupSwitchingMode(
     return nextHopGroupHandle->desiredArsMode_.value();
   }
   return cfg::SwitchingMode::FIXED_ASSIGNMENT;
+}
+
+std::vector<EcmpDetails> SaiNextHopGroupManager::getAllEcmpDetails() const {
+  std::vector<EcmpDetails> ecmpDetails;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+  // Collect ARS interval and table size from the ARS handle once
+  int16_t flowletInterval = 0;
+  int32_t flowletTableSize = 0;
+  const auto* arsHandle = managerTable_->arsManager().getArsHandle();
+  if (arsHandle && arsHandle->ars) {
+    auto arsSaiId = arsHandle->ars->adapterKey();
+    try {
+      flowletInterval = static_cast<int16_t>(
+          SaiApiTable::getInstance()->arsApi().getAttribute(
+              arsSaiId, SaiArsTraits::Attributes::IdleTime{}));
+      flowletTableSize = static_cast<int32_t>(
+          SaiApiTable::getInstance()->arsApi().getAttribute(
+              arsSaiId, SaiArsTraits::Attributes::MaxFlows{}));
+    } catch (const std::exception& e) {
+      XLOG(ERR) << "Failed to get ARS attributes: " << e.what();
+    }
+  }
+#endif
+
+  for (const auto& entry : handles_) {
+    auto handle = entry.second.lock();
+    if (!handle || !handle->nextHopGroup) {
+      continue;
+    }
+    EcmpDetails ecmp;
+    ecmp.ecmpId() = static_cast<int32_t>(handle->nextHopGroup->adapterKey());
+    const bool flowletEnabled = isEcmpModeDynamic(handle->desiredArsMode_);
+    ecmp.flowletEnabled() = flowletEnabled;
+#if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
+    if (flowletEnabled) {
+      ecmp.flowletInterval() = flowletInterval;
+      ecmp.flowletTableSize() = flowletTableSize;
+    }
+#endif
+    ecmpDetails.emplace_back(std::move(ecmp));
+  }
+  return ecmpDetails;
 }
 
 NextHopGroupMember::NextHopGroupMember(

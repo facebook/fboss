@@ -7,6 +7,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -75,7 +76,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
 
   void disableTTLDecrements(
       const utility::EcmpSetupTargetedPorts6& ecmpHelper) {
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    utility::disablePortTTLDecrementIfSupported(
         getAgentEnsemble(),
         ecmpHelper.getRouterId(),
         ecmpHelper.nhop(PortDescriptor(getPort0())));
@@ -93,7 +94,8 @@ class AgentPortBandwidthTest : public AgentHwTest {
         "Resolve next hops");
     RoutePrefixV6 route{kDestIp(), 128};
     auto wrapper = getSw()->getRouteUpdater();
-    ecmpHelper6.programRoutes(&wrapper, {portDesc}, {route});
+    ecmpHelper6.programRoutes(
+        &wrapper, {portDesc}, {route}, {}, std::nullopt, true);
     disableTTLDecrements(ecmpHelper6);
   }
 
@@ -133,7 +135,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   folly::IPAddressV6 kDestIp() const {

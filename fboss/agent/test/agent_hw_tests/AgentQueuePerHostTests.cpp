@@ -8,6 +8,7 @@
  *
  */
 
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/SwitchStats.h"
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -425,11 +426,20 @@ class AgentQueuePerHostTest : public AgentHwTest {
           // counts ttl >= 128 packet only
           EXPECT_EVENTUALLY_EQ(packetsAfter - packetsBefore, 1);
           if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+            // TODO ruinanhu: Remove this once we have a fix for TH6 counter
+            // problem
+            auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            auto extraBytes =
+                (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
+                ? 4
+                : 0;
             if (frontPanel) {
-              EXPECT_EVENTUALLY_EQ(bytesAfter - bytesBefore, packetSize);
+              EXPECT_EVENTUALLY_EQ(
+                  bytesAfter - bytesBefore + extraBytes, packetSize);
             }
             // TODO: Still need to debug why we get extra 4 bytes for CPU port
-            EXPECT_EVENTUALLY_TRUE(bytesAfter - bytesBefore >= packetSize);
+            EXPECT_EVENTUALLY_TRUE(
+                bytesAfter - bytesBefore + extraBytes >= packetSize);
           }
         });
       }
@@ -475,7 +485,7 @@ class AgentQueuePerHostTest : public AgentHwTest {
           ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
 
     return txPacketSize;

@@ -26,9 +26,10 @@ cpp_unittest(
     ],
     compiler_flags = QSFP_COMMON_COMPILER_FLAGS,
     deps = [
+        ":fake-transceiver-impl",
+        ":transceiver-tests-helper",
         "//fboss/qsfp_service/module:qsfp-module",
-        "//fboss/qsfp_service/module/tests:fake-transceiver-impl",
-        "//fboss/qsfp_service/module/tests:transceiver-tests-helper",
+        "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//fboss/qsfp_service/test:transceiver_manager_test_helper",
         "//fboss/qsfp_service/test/hw_test:hw_transceiver_utils",
     ],

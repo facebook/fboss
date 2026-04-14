@@ -74,6 +74,8 @@ cpp_library(
         "MirrorMap.cpp",
         "MirrorOnDropReport.cpp",
         "MirrorOnDropReportMap.cpp",
+        "MySid.cpp",
+        "MySidMap.cpp",
         "NdpEntry.cpp",
         "NdpResponseEntry.cpp",
         "NdpResponseTable.cpp",

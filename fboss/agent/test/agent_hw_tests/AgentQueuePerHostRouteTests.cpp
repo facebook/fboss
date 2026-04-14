@@ -169,7 +169,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   }
 
   void setupHelper(bool blockNeighbor) {
-    // Disable neigbor updates to prevent stats increment
+    // Disable neighbor updates to prevent stats increment
     FLAGS_disable_neighbor_updates = true;
     this->getAgentEnsemble()->bringDownPort(this->masterLogicalPortIds()[1]);
     if (blockNeighbor) {
@@ -185,7 +185,7 @@ class AgentQueuePerHostRouteTest : public AgentHwTest {
   }
 
   void verifyHelper(bool useFrontPanel, bool blockNeighbor) {
-    // Disable neigbor updates to prevent stats increment
+    // Disable neighbor updates to prevent stats increment
     FLAGS_disable_neighbor_updates = true;
     this->getNextUpdatedPortStats(this->masterLogicalPortIds()[0]);
     XLOG(DBG2) << "verify send packets "

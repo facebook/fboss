@@ -77,6 +77,14 @@ void getNextHopInfoThrift(
   if (topologyInfoPtr != nullptr) {
     nextHopInfo.topologyInfo() = *topologyInfoPtr;
   }
+
+  if (!nextHop.srv6SegmentList()->empty()) {
+    std::vector<std::string> sidStrs;
+    for (const auto& sid : *nextHop.srv6SegmentList()) {
+      sidStrs.push_back(getAddrStr(sid));
+    }
+    nextHopInfo.srv6SegmentList() = std::move(sidStrs);
+  }
 }
 
 std::string getMplsLabelStr(const cli::NextHopInfo& nextHopInfo) {
@@ -140,6 +148,14 @@ std::string getWeightStr(const cli::NextHopInfo& nextHopInfo) {
   return weightStr;
 }
 
+std::string getSrv6SidListStr(const cli::NextHopInfo& nextHopInfo) {
+  auto sidListPtr = apache::thrift::get_pointer(nextHopInfo.srv6SegmentList());
+  if (sidListPtr == nullptr || sidListPtr->empty()) {
+    return "";
+  }
+  return fmt::format(" SRv6 SID List [{}]", folly::join(",", *sidListPtr));
+}
+
 std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
   auto ifNamePtr = apache::thrift::get_pointer(nextHopInfo.ifName());
   std::string viaStr;
@@ -150,14 +166,16 @@ std::string getNextHopInfoStr(const cli::NextHopInfo& nextHopInfo) {
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
   std::string topologyStr = getTopologyInfoStr(nextHopInfo);
+  std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}{}",
+      "{}{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
       weightStr,
       labelStr,
-      topologyStr);
+      topologyStr,
+      srv6SidStr);
   return ret;
 }
 
@@ -204,13 +222,15 @@ std::string getNextHopInfoStr(
   std::string labelStr = getMplsLabelStr(nextHopInfo);
   std::string interfaceIDStr = getInterfaceIDStr(nextHopInfo);
   std::string weightStr = getWeightStr(nextHopInfo);
+  std::string srv6SidStr = getSrv6SidListStr(nextHopInfo);
   auto ret = fmt::format(
-      "{}{}{}{}{}",
+      "{}{}{}{}{}{}",
       interfaceIDStr,
       nextHopInfo.addr().value(),
       viaStr,
       weightStr,
-      labelStr);
+      labelStr,
+      srv6SidStr);
   return ret;
 }
 

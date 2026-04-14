@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
 #include "fboss/agent/test/utils/NeighborTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -606,7 +607,7 @@ class SaiAclTableGroupTrafficTest : public HwLinkStateDependentTest {
       IP_PROTO proto,
       std::optional<uint16_t> l4SrcPort,
       std::optional<uint16_t> l4DstPort) {
-    auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+    auto intf = firstInterfaceWithPortsForTesting(getProgrammedState());
     auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto intfMac = intf->getMac();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);

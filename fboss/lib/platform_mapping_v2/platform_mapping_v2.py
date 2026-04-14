@@ -1,6 +1,6 @@
 # pyre-strict
 import sys
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from fboss.lib.platform_mapping_v2.asic_vendor_config import AsicVendorConfig
 from fboss.lib.platform_mapping_v2.helpers import (
@@ -29,13 +29,13 @@ from fboss.lib.platform_mapping_v2.read_files_utils import (
 )
 from fboss.lib.platform_mapping_v2.si_settings import SiSettings
 from fboss.lib.platform_mapping_v2.static_mapping import StaticMapping
-from neteng.fboss.phy.ttypes import (
+from neteng.fboss.phy.phy.thrift_types import (
     DataPlanePhyChip,
     DataPlanePhyChipType,
     PortPinConfig,
     Side,
 )
-from neteng.fboss.platform_config.ttypes import (
+from neteng.fboss.platform_config.platform_config.thrift_types import (
     PlatformMapping,
     PlatformPortConfig,
     PlatformPortConfigOverride,
@@ -44,7 +44,7 @@ from neteng.fboss.platform_config.ttypes import (
     PlatformPortMapping,
     PlatformPortProfileConfigEntry,
 )
-from neteng.fboss.switch_config.ttypes import PortProfileID, PortType
+from neteng.fboss.switch_config.thrift_types import PortProfileID, PortType
 
 # If you want to generate multiple platform mapping variants for a single platform,
 # define a base platform that includes common files (e.g. si_settings.csv) and
@@ -70,6 +70,15 @@ _PLATFORM_VARIANTS_MAP: Dict[str, List[str]] = {
     "tahan800bc": [
         "tahan800bc_chassis",
         "tahan800bc_test_fixture",
+    ],
+    "tahansb800bc": [
+        "tahansb800bc_rack",
+        "tahansb800bc_test_fixture",
+        "tahansb800bc_link_training",
+    ],
+    "ladakh800bcls": [
+        "ladakh800bcls_rack",
+        "ladakh800bcls_test_fixture",
     ],
     "montblanc": [
         "montblanc_odd_ports_8x100G",
@@ -206,21 +215,22 @@ class PlatformMappingV2:
         self.pm_parser = PlatformMappingParser(
             directory_map, platform, multi_npu, version
         )
+        self._name2entry: Dict[str, PlatformPortEntry] = {}
         self.platform_mapping: PlatformMapping = self._generate_platform_mapping()
 
     def get_platform_mapping(self) -> PlatformMapping:
         return self.platform_mapping
 
-    def get_platform_profiles(self) -> List[PlatformPortProfileConfigEntry]:
+    def get_platform_profiles(self) -> Sequence[PlatformPortProfileConfigEntry]:
         return self.platform_mapping.platformSupportedProfiles
 
-    def get_platform_port_map(self) -> Dict[int, PlatformPortEntry]:
+    def get_platform_port_map(self) -> Mapping[int, PlatformPortEntry]:
         return self.platform_mapping.ports
 
-    def get_chips(self) -> List[DataPlanePhyChip]:
+    def get_chips(self) -> Sequence[DataPlanePhyChip]:
         return self.platform_mapping.chips
 
-    def get_override_factors(self) -> Optional[List[PlatformPortConfigOverride]]:
+    def get_override_factors(self) -> Optional[Sequence[PlatformPortConfigOverride]]:
         return self.platform_mapping.portConfigOverrides
 
     # Sort unique_factors by:
@@ -232,7 +242,7 @@ class PlatformMappingV2:
         # Use empty string or 0 if list is empty or attribute is missing
         factor = factor_in[0]
         profile = (
-            str(factor.profiles[0])
+            str(int(factor.profiles[0]))
             if getattr(factor, "profiles", None)
             and factor.profiles is not None
             and len(factor.profiles) > 0
@@ -307,20 +317,22 @@ class PlatformMappingV2:
         unique_factors_list = sorted(unique_factors, key=self._sort_key)
 
         for unique_factor, driver_peaking in unique_factors_list:
-            platform_port_config_override = PlatformPortConfigOverride()
-            platform_port_config_override.factor = unique_factor
-            platform_port_config_override.driverPeaking = dict[int, int](driver_peaking)
             port_pin_config_list: List[PortPinConfig] = []
             for merged_factor, merged_port_pin_config_list, _ in merged_factors:
                 if merged_factor == unique_factor:
                     port_pin_config_list.extend(merged_port_pin_config_list or [])
-            final_port_pin_config = PortPinConfig(iphy=[])
+            all_iphy_pins = []
             for port_pin_config in port_pin_config_list:
                 if len(port_pin_config.iphy) > 0:
-                    final_port_pin_config.iphy.extend(port_pin_config.iphy)
+                    all_iphy_pins.extend(port_pin_config.iphy)
 
-            if len(final_port_pin_config.iphy) > 0:
-                platform_port_config_override.pins = final_port_pin_config
+            if len(all_iphy_pins) > 0:
+                final_port_pin_config = PortPinConfig(iphy=all_iphy_pins)
+                platform_port_config_override = PlatformPortConfigOverride(
+                    factor=unique_factor,
+                    driverPeaking=dict[int, int](driver_peaking),
+                    pins=final_port_pin_config,
+                )
                 retval.append(platform_port_config_override)
 
         return retval
@@ -371,7 +383,8 @@ class PlatformMappingV2:
         for profile in all_profiles:
             # Get NPU speed setting (always required)
             npu_speed_setting = self.pm_parser.get_profile_settings().get_speed_setting(
-                profile, DataPlanePhyChipType.IPHY
+                profile,
+                DataPlanePhyChipType.IPHY,
             )
 
             # Get XPHY line speed setting
@@ -379,7 +392,9 @@ class PlatformMappingV2:
             try:
                 xphy_line_speed_setting = (
                     self.pm_parser.get_profile_settings().get_speed_setting(
-                        profile, DataPlanePhyChipType.XPHY, Side.LINE
+                        profile,
+                        DataPlanePhyChipType.XPHY,
+                        Side.LINE,
                     )
                 )
             except Exception:
@@ -391,7 +406,9 @@ class PlatformMappingV2:
             try:
                 xphy_system_speed_setting = (
                     self.pm_parser.get_profile_settings().get_speed_setting(
-                        profile, DataPlanePhyChipType.XPHY, Side.SYSTEM
+                        profile,
+                        DataPlanePhyChipType.XPHY,
+                        Side.SYSTEM,
                     )
                 )
             except Exception:
@@ -423,15 +440,13 @@ class PlatformMappingV2:
         for port_id, port_detail in (
             self.pm_parser.get_port_profile_mapping().get_ports().items()
         ):
-            port_entry = PlatformPortEntry()
-            port_entry.supportedProfiles = {}
+            supported_profiles = {}
             all_connection_pairs = []
             # Get pins for all supported profiles
             for profile in port_detail.supported_profiles:
-                platform_port_config = PlatformPortConfig()
-
                 speed_setting = self.pm_parser.get_profile_settings().get_speed_setting(
-                    profile=profile, phy_chip_type=DataPlanePhyChipType.IPHY
+                    profile=profile,
+                    phy_chip_type=DataPlanePhyChipType.IPHY,
                 )
                 profile_connections = get_connection_pairs_for_profile(
                     static_mapping=self.pm_parser.get_static_mapping(),
@@ -440,10 +455,9 @@ class PlatformMappingV2:
                     profile=profile,
                 )
                 all_connection_pairs = all_connection_pairs + profile_connections
-                # can get the overrides from here per profile
 
                 [
-                    platform_port_config.pins,
+                    pins,
                     platform_port_config_override,
                 ] = get_pin_data_from_connections(
                     connections=profile_connections,
@@ -457,33 +471,41 @@ class PlatformMappingV2:
                 )
                 if len(platform_port_config_override) > 0:
                     port_config_overrides.extend(platform_port_config_override)
-                port_entry.supportedProfiles[profile] = platform_port_config
+                supported_profiles[profile] = PlatformPortConfig(pins=pins)
 
             # We now know pins used for each of the supported profiles.
             # Combine all the pins and populate mapping.pins
-            mapping = PlatformPortMapping()
-            mapping.id = port_id
-            mapping.name = port_detail.port_name
             all_connection_pairs = get_unique_connection_pairs(all_connection_pairs)
-            mapping.pins = get_mapping_pins(all_connection_pairs)
+            mapping_pins = get_mapping_pins(all_connection_pairs)
             # Sort pins by lane id of the 'a' end
-            mapping.pins = sorted(mapping.pins, key=lambda pin: pin.a.lane)
+            mapping_pins = sorted(mapping_pins, key=lambda pin: pin.a.lane)
             # If explicit controlling_port is specified in the CSV, use it directly.
-            if port_detail.controlling_port is not None:
-                mapping.controllingPort = port_detail.controlling_port
-            else:
-                mapping.controllingPort = port_id
-            mapping.portType = port_detail.port_type
-            mapping.scope = port_detail.scope
-            if port_detail.attached_coreid is not None:
-                mapping.attachedCoreId = port_detail.attached_coreid
-            if port_detail.attached_core_portid is not None:
-                mapping.attachedCorePortIndex = port_detail.attached_core_portid
-            if port_detail.virtual_device_id is not None:
-                mapping.virtualDeviceId = port_detail.virtual_device_id
-            port_entry.mapping = mapping
+            controlling_port = (
+                port_detail.controlling_port
+                if port_detail.controlling_port is not None
+                else port_id
+            )
+            mapping = PlatformPortMapping(
+                id=port_id,
+                name=port_detail.port_name,
+                pins=mapping_pins,
+                controllingPort=controlling_port,
+                portType=port_detail.port_type,
+                scope=port_detail.scope,
+                attachedCoreId=port_detail.attached_coreid,
+                attachedCorePortIndex=port_detail.attached_core_portid,
+                virtualDeviceId=port_detail.virtual_device_id,
+            )
+            port_entry = PlatformPortEntry(
+                supportedProfiles=dict(
+                    sorted(supported_profiles.items(), key=lambda x: int(x[0]))
+                ),
+                mapping=mapping,
+            )
 
             ports[port_id] = port_entry
+
+            self._name2entry[mapping.name] = port_entry
 
         # Sort and Merge port_config_overrides
         merged_port_config_overrides = self._sort_and_merge_port_config_overrides(
@@ -495,8 +517,20 @@ class PlatformMappingV2:
         # The logic is - when a port is left with no iphy pins to use after some
         # other port uses its iphy pins, then the former port needs to be a
         # subsumed port controlled by the later port
+        #
+        # Two-pass approach: first collect what changes need to be made,
+        # then reconstruct the affected structs with the new data.
+        # This is needed because thrift-python structs are immutable.
+
+        # First pass: collect subsumedPorts and controllingPort updates
+        # Key: (port_id, profile) -> list of subsumed port ids
+        subsumed_ports_map: Dict[int, Dict[int, List[int]]] = {}
+        # Key: port_id -> new controlling port id
+        controlling_port_updates: Dict[int, int] = {}
+        # Key: port_id -> list of subsumed port ids for HYPER_PORT
+        hyper_port_subsumed: Dict[int, List[int]] = {}
+
         for port_id, port_entry in ports.items():
-            # Check if explicit controlling_port was set in CSV
             port_detail = self.pm_parser.get_port_profile_mapping().get_ports()[port_id]
             has_explicit_controlling_port = port_detail.controlling_port is not None
 
@@ -510,8 +544,9 @@ class PlatformMappingV2:
                         ):
                             continue
                         for (
-                            other_port_config
-                        ) in other_port_entry.supportedProfiles.values():
+                            other_profile,
+                            other_port_config,
+                        ) in other_port_entry.supportedProfiles.items():
                             other_port_pin_ids = [
                                 pin_config.id
                                 for pin_config in other_port_config.pins.iphy
@@ -524,13 +559,43 @@ class PlatformMappingV2:
                                 needed_iphy_pin_id in other_port_pin_ids
                                 for needed_iphy_pin_id in needed_pin_ids
                             ):
-                                if not other_port_config.subsumedPorts:
-                                    other_port_config.subsumedPorts = []
-                                if port_id not in other_port_config.subsumedPorts:
-                                    other_port_config.subsumedPorts.append(port_id)
-                                # Only set controllingPort if not explicitly set in CSV
+                                if other_port_id not in subsumed_ports_map:
+                                    subsumed_ports_map[other_port_id] = {}
+                                if (
+                                    other_profile
+                                    not in subsumed_ports_map[other_port_id]
+                                ):
+                                    subsumed_ports_map[other_port_id][
+                                        other_profile
+                                    ] = []
+                                if (
+                                    port_id
+                                    not in subsumed_ports_map[other_port_id][
+                                        other_profile
+                                    ]
+                                ):
+                                    subsumed_ports_map[other_port_id][
+                                        other_profile
+                                    ].append(port_id)
                                 if not has_explicit_controlling_port:
-                                    port_entry.mapping.controllingPort = other_port_id
+                                    # For some platforms, the controlling port is the root port
+                                    if self.platform in (
+                                        "icecube800banw",
+                                        "icecube800bc",
+                                        "tahansb800bc",
+                                    ):
+                                        # port ethx/x/[1-8] use ethx/x/1 as the controlling port
+                                        rootPortName = (
+                                            port_entry.mapping.name[:-1] + "1"
+                                        )
+                                        rootPortEntry = self._name2entry[rootPortName]
+                                        controlling_port_updates[port_id] = (
+                                            rootPortEntry.mapping.controllingPort
+                                        )
+                                    else:
+                                        controlling_port_updates[port_id] = (
+                                            other_port_id
+                                        )
 
                 elif port_entry.mapping.portType == PortType.HYPER_PORT:
                     for other_port_id, other_port_entry in ports.items():
@@ -545,15 +610,59 @@ class PlatformMappingV2:
                         ):
                             continue
                         if other_port_detail.parent_port_id == port_id:
-                            if not port_entry.supportedProfiles[
-                                PortProfileID.PROFILE_DEFAULT
-                            ].subsumedPorts:
-                                port_entry.supportedProfiles[
-                                    PortProfileID.PROFILE_DEFAULT
-                                ].subsumedPorts = []
-                            port_entry.supportedProfiles[
-                                PortProfileID.PROFILE_DEFAULT
-                            ].subsumedPorts.append(other_port_id)
+                            if port_id not in hyper_port_subsumed:
+                                hyper_port_subsumed[port_id] = []
+                            hyper_port_subsumed[port_id].append(other_port_id)
+
+        # Second pass: reconstruct ports with subsumedPorts and controllingPort updates
+        for port_id in set(
+            list(subsumed_ports_map.keys())
+            + list(controlling_port_updates.keys())
+            + list(hyper_port_subsumed.keys())
+        ):
+            old_entry = ports[port_id]
+            new_supported_profiles = {}
+            for profile, port_config in old_entry.supportedProfiles.items():
+                subsumed = None
+                if (
+                    port_id in subsumed_ports_map
+                    and profile in subsumed_ports_map[port_id]
+                ):
+                    subsumed = subsumed_ports_map[port_id][profile]
+                elif (
+                    port_id in hyper_port_subsumed
+                    and profile == PortProfileID.PROFILE_DEFAULT
+                ):
+                    subsumed = hyper_port_subsumed[port_id]
+                if subsumed is not None:
+                    new_supported_profiles[profile] = PlatformPortConfig(
+                        pins=port_config.pins,
+                        subsumedPorts=subsumed,
+                    )
+                else:
+                    new_supported_profiles[profile] = port_config
+
+            new_controlling_port = old_entry.mapping.controllingPort
+            if port_id in controlling_port_updates:
+                new_controlling_port = controlling_port_updates[port_id]
+
+            new_mapping = PlatformPortMapping(
+                id=old_entry.mapping.id,
+                name=old_entry.mapping.name,
+                pins=old_entry.mapping.pins,
+                controllingPort=new_controlling_port,
+                portType=old_entry.mapping.portType,
+                scope=old_entry.mapping.scope,
+                attachedCoreId=old_entry.mapping.attachedCoreId,
+                attachedCorePortIndex=old_entry.mapping.attachedCorePortIndex,
+                virtualDeviceId=old_entry.mapping.virtualDeviceId,
+            )
+            ports[port_id] = PlatformPortEntry(
+                supportedProfiles=dict(
+                    sorted(new_supported_profiles.items(), key=lambda x: int(x[0]))
+                ),
+                mapping=new_mapping,
+            )
 
         sorted_ports = dict(sorted(ports.items()))
         if len(merged_port_config_overrides) == 0:

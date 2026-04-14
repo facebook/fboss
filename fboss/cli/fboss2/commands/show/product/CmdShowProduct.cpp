@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/product/CmdShowProduct.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -34,5 +35,8 @@ void CmdShowProduct::printOutput(const RetType& model, std::ostream& out) {
   out << "OEM: " << model.oem().value() << std::endl;
   out << "Serial: " << model.serial().value() << std::endl;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowProduct, CmdShowProductTraits>::run();
 
 } // namespace facebook::fboss

@@ -36,7 +36,8 @@ bool RouteFields<AddrT>::operator==(const RouteFields& rf) const {
 
 template <typename AddrT>
 RouteDetails RouteFields<AddrT>::toRouteDetails(
-    bool normalizedNhopWeights) const {
+    const RouteNextHopSet& nhopSet,
+    const std::optional<RouteNextHopSet>& normalizedNhopSet) const {
   RouteDetails rd;
   if constexpr (
       std::is_same_v<folly::IPAddressV6, AddrT> ||
@@ -60,9 +61,6 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     }
     return nhops;
   };
-  // if no overrideNextHops nonOverrideNormalizedNextHops == normalizedNextHops
-  auto nhopSet = normalizedNhopWeights ? fwd().nonOverrideNormalizedNextHops()
-                                       : fwd().getNextHopSet();
   rd.nextHops() = fillNextHops(nhopSet, rd);
 
   // Add the multi-nexthops
@@ -80,9 +78,9 @@ RouteDetails RouteFields<AddrT>::toRouteDetails(
     rd.overridenEcmpMode() = *fwd().getOverrideEcmpSwitchingMode();
   }
   if (isResolved() && fwd().getOverrideNextHops().has_value()) {
-    auto overrideNhopSet = normalizedNhopWeights ? fwd().normalizedNextHops()
-                                                 : *fwd().getOverrideNextHops();
-    rd.overridenNextHops() = fillNextHops(overrideNhopSet, rd);
+    auto nhops = normalizedNhopSet.has_value() ? *normalizedNhopSet
+                                               : *fwd().getOverrideNextHops();
+    rd.overridenNextHops() = fillNextHops(nhops, rd);
   }
   return rd;
 }
@@ -168,9 +166,11 @@ template struct RouteFields<folly::IPAddressV6>;
 template struct RouteFields<LabelID>;
 
 template <typename AddrT>
-RouteDetails Route<AddrT>::toRouteDetails(bool normalizedNhopWeights) const {
+RouteDetails Route<AddrT>::toRouteDetails(
+    const RouteNextHopSet& nhopSet,
+    const std::optional<RouteNextHopSet>& normalizedNhopSet) const {
   RouteFields<AddrT> fields{this->toThrift()};
-  return fields.toRouteDetails(normalizedNhopWeights);
+  return fields.toRouteDetails(nhopSet, normalizedNhopSet);
 }
 
 template <typename AddrT>

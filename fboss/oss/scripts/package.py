@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# pyre-unsafe
+
 import argparse
 import concurrent.futures
 import os
@@ -40,7 +42,6 @@ FORWARDING_EXTRA = {
     RUN_SCRIPTS_DIR / "setup_fboss_env": "bin/setup_fboss_env",
     RUN_SCRIPTS_DIR / "topology.cdf": "bin/topology.cdf",
     RUN_CONFIGS_DIR / "default_configs": "share/default_configs",
-    RUN_CONFIGS_DIR / "j2cp": "share/j2cp",
     RUN_CONFIGS_DIR / "j3b": "share/j3b",
     RUN_CONFIGS_DIR / "janga800bic": "share/janga800bic",
     RUN_CONFIGS_DIR / "r3": "share/r3",

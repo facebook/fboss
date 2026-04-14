@@ -121,6 +121,10 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           kCounterPrefix + "state_update.us",
           facebook::fb303::ExportTypeConsts::kCountAvg,
           facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
+      ribRouteProgrammingTimeUs_(
+          kCounterPrefix + "rib_route_programming_time.us",
+          facebook::fb303::ExportTypeConsts::kCountAvg,
+          facebook::fb303::QuantileConsts::kP50_P95_P99_P100),
       thriftRequestCompletionTimeMs_(
           kCounterPrefix + "thrift_request_completion_time.ms",
           facebook::fb303::ExportTypeConsts::kCountAvg,
@@ -363,6 +367,11 @@ SwitchStats::SwitchStats(ThreadLocalStatsMap* map, int numSwitches)
           RATE),
       coldBoot_(map, kCounterPrefix + "cold_boot", SUM, RATE),
       warmBoot_(map, kCounterPrefix + "warm_boot", SUM, RATE),
+      warmBootFromHwSwitch_(
+          map,
+          kCounterPrefix + "warm_boot_from_hw_switch",
+          SUM,
+          RATE),
       probedStateCleanupStatus_(
           map,
           kCounterPrefix + "probed_state_cleanup_status"),

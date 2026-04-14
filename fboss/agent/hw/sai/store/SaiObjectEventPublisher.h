@@ -18,68 +18,68 @@
 
 namespace facebook::fboss {
 
-template <>
-struct IsPublisherKeyAdapterHostKey<SaiIpNextHopTraits> : std::true_type {};
+// Publisher declarations: each publisher needs IsObjectPublisher +
+// PublisherKey. For AdapterHostKey publishers, custom_type is monostate (key ==
+// AdapterHostKey). For custom key publishers, custom_type is the key type
+// itself.
 
 template <>
-struct IsPublisherKeyAdapterHostKey<SaiMplsNextHopTraits> : std::true_type {};
-
-#if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
+struct IsObjectPublisher<SaiNeighborTraits> : std::true_type {};
 template <>
-struct IsPublisherKeyAdapterHostKey<SaiSrv6SidlistNextHopTraits>
-    : std::true_type {};
-#endif
-
-template <>
-struct IsPublisherKeyAdapterHostKey<SaiNeighborTraits> : std::true_type {};
+struct PublisherKey<SaiNeighborTraits> {
+  using type = typename SaiNeighborTraits::AdapterHostKey;
+  using custom_type = std::monostate;
+};
 
 template <>
 struct IsObjectPublisher<SaiIpNextHopTraits> : std::true_type {};
+template <>
+struct PublisherKey<SaiIpNextHopTraits> {
+  using type = typename SaiIpNextHopTraits::AdapterHostKey;
+  using custom_type = std::monostate;
+};
 
 template <>
 struct IsObjectPublisher<SaiMplsNextHopTraits> : std::true_type {};
+template <>
+struct PublisherKey<SaiMplsNextHopTraits> {
+  using type = typename SaiMplsNextHopTraits::AdapterHostKey;
+  using custom_type = std::monostate;
+};
 
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <>
 struct IsObjectPublisher<SaiSrv6SidlistNextHopTraits> : std::true_type {};
+template <>
+struct PublisherKey<SaiSrv6SidlistNextHopTraits> {
+  using type = typename SaiSrv6SidlistNextHopTraits::AdapterHostKey;
+  using custom_type = std::monostate;
+};
 #endif
 
 template <>
-struct IsObjectPublisher<SaiNeighborTraits> : std::true_type {};
-
-template <>
 struct IsObjectPublisher<SaiBridgePortTraits> : std::true_type {};
-
 template <>
-struct IsPublisherKeyCustomType<SaiBridgePortTraits> : std::true_type {};
-
-template <>
-struct PublisherKey<SaiBridgePortTraits>
-    : detail::PublisherKeyInternal<SaiBridgePortTraits, SaiPortDescriptor> {};
-
-template <>
-struct IsObjectPublisher<SaiVlanRouterInterfaceTraits> : std::true_type {};
-
-template <>
-struct IsPublisherKeyCustomType<SaiVlanRouterInterfaceTraits> : std::true_type {
+struct PublisherKey<SaiBridgePortTraits> {
+  using type = SaiPortDescriptor;
+  using custom_type = SaiPortDescriptor;
 };
 
 template <>
-struct PublisherKey<SaiVlanRouterInterfaceTraits>
-    : detail::PublisherKeyInternal<SaiVlanRouterInterfaceTraits, InterfaceID> {
+struct IsObjectPublisher<SaiVlanRouterInterfaceTraits> : std::true_type {};
+template <>
+struct PublisherKey<SaiVlanRouterInterfaceTraits> {
+  using type = InterfaceID;
+  using custom_type = InterfaceID;
 };
 
 template <>
 struct IsObjectPublisher<SaiFdbTraits> : std::true_type {};
-
 template <>
-struct IsPublisherKeyCustomType<SaiFdbTraits> : std::true_type {};
-
-template <>
-struct PublisherKey<SaiFdbTraits>
-    : detail::PublisherKeyInternal<
-          SaiFdbTraits,
-          std::tuple<InterfaceID, folly::MacAddress>> {};
+struct PublisherKey<SaiFdbTraits> {
+  using type = std::tuple<InterfaceID, folly::MacAddress>;
+  using custom_type = std::tuple<InterfaceID, folly::MacAddress>;
+};
 
 template <typename>
 class SaiObject;

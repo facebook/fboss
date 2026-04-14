@@ -28,3 +28,16 @@ target_link_libraries(weutil_fboss_eeprom_interface_test
 )
 
 gtest_discover_tests(weutil_fboss_eeprom_interface_test)
+
+add_executable(weutil_parser_utils_test
+  fboss/platform/weutil/test/ParserUtilsTest.cpp
+)
+
+target_link_libraries(weutil_parser_utils_test
+  weutil_fboss_eeprom_interface
+  Folly::folly
+  ${GTEST}
+  ${LIBGMOCK_LIBRARIES}
+)
+
+gtest_discover_tests(weutil_parser_utils_test)

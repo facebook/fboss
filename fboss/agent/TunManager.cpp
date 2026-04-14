@@ -72,8 +72,21 @@ void TunManager::stopProcessing() {
   if (observingState_) {
     sw_->unregisterStateObserver(this);
   }
-  std::lock_guard<std::mutex> lock(mutex_);
-  stop();
+  // Run stop() on the EventBase thread to synchronize with any in-flight
+  // TunIntf::handlerReady callbacks. unregisterHandler() prevents new
+  // dispatches but does NOT cancel an already-running callback. By
+  // scheduling stop() on the evb, we guarantee it runs after any pending
+  // handlerReady invocation completes, closing the race window between
+  // stopProcessing() and SwSwitch::stop() tearing down members.
+  if (evb_->isRunning()) {
+    evb_->runImmediatelyOrRunInFbossEventBaseThreadAndWait([this] {
+      std::lock_guard<std::mutex> lock(mutex_);
+      stop();
+    });
+  } else {
+    std::lock_guard<std::mutex> lock(mutex_);
+    stop();
+  }
   nl_close(sock_);
   nl_socket_free(sock_);
 }
@@ -166,6 +179,12 @@ void TunManager::addNewIntf(
     addTunAddress(ifID, ifName, ifIndex, addr.first, addr.second);
   }
 
+  // If interface is created in DOWN state, program unreachable routes
+  // to prevent traffic from falling back to OOB via eth0.
+  if (!isUp) {
+    addUnreachableRoutesForIntf(ifID, addrs);
+  }
+
   // Store it in local map on success
   ret.first->second = std::move(intf);
 }
@@ -175,6 +194,9 @@ void TunManager::removeIntf(InterfaceID ifID) {
   if (iter == intfs_.end()) {
     throw FbossError("Cannot find interface ", ifID, " for deleting.");
   }
+
+  // Remove any unreachable routes for this interface (if it was down)
+  removeUnreachableRoutesForIntf(ifID);
 
   // Remove all source routing rules attached to this interface. Addresses
   // and routes are automatically removed once interface is deteled.
@@ -627,6 +649,89 @@ void TunManager::addRemoveRouteTable(
                << (ifID.has_value() ? " for interface " + std::to_string(*ifID)
                                     : "");
   }
+}
+
+void TunManager::addRemoveUnreachableRoute(
+    const folly::CIDRNetwork& prefix,
+    bool add) {
+  auto route = rtnl_route_alloc();
+  SCOPE_EXIT {
+    rtnl_route_put(route);
+  };
+
+  auto family = prefix.first.family();
+  auto error = rtnl_route_set_family(route, family);
+  nlCheckError(error, "Failed to set family to ", family);
+
+  rtnl_route_set_table(route, RT_TABLE_MAIN);
+  rtnl_route_set_scope(route, RT_SCOPE_UNIVERSE);
+  rtnl_route_set_protocol(route, RTPROT_FBOSS);
+
+  error = rtnl_route_set_type(route, RTN_UNREACHABLE);
+  nlCheckError(error, "Failed to set type to RTN_UNREACHABLE");
+
+  auto destaddr = nl_addr_build(
+      family,
+      const_cast<unsigned char*>(prefix.first.bytes()),
+      prefix.first.byteCount());
+  if (!destaddr) {
+    throw FbossError("Failed to build destination address for ", prefix.first);
+  }
+  SCOPE_EXIT {
+    nl_addr_put(destaddr);
+  };
+
+  nl_addr_set_prefixlen(destaddr, prefix.second);
+  error = rtnl_route_set_dst(route, destaddr);
+  nlCheckError(
+      error,
+      "Failed to set destination for unreachable route to ",
+      prefix.first,
+      "/",
+      static_cast<int>(prefix.second));
+
+  if (add) {
+    error = rtnl_route_add(sock_, route, NLM_F_REPLACE);
+  } else {
+    error = rtnl_route_delete(sock_, route, 0);
+  }
+  if (error < 0) {
+    XLOG(ERR) << "Failed to " << (add ? "add" : "remove")
+              << " unreachable route " << prefix.first << "/"
+              << static_cast<int>(prefix.second)
+              << " in main table. ErrorCode: " << error;
+  } else {
+    XLOG(DBG2) << (add ? "Added" : "Removed") << " unreachable route "
+               << prefix.first << "/" << static_cast<int>(prefix.second)
+               << " in main table";
+  }
+}
+
+void TunManager::addUnreachableRoutesForIntf(
+    InterfaceID ifID,
+    const Interface::Addresses& addrs) {
+  for (const auto& [addr, mask] : addrs) {
+    if (addr.isLinkLocal()) {
+      continue;
+    }
+    auto networkAddr = addr.mask(mask);
+    folly::CIDRNetwork prefix{networkAddr, mask};
+    addRemoveUnreachableRoute(prefix, true);
+    unreachableRoutes_[ifID].insert(prefix);
+  }
+  XLOG(DBG2) << "Programmed unreachable routes for down interface " << ifID;
+}
+
+void TunManager::removeUnreachableRoutesForIntf(InterfaceID ifID) {
+  auto it = unreachableRoutes_.find(ifID);
+  if (it == unreachableRoutes_.end()) {
+    return;
+  }
+  for (const auto& prefix : it->second) {
+    addRemoveUnreachableRoute(prefix, false);
+  }
+  unreachableRoutes_.erase(it);
+  XLOG(DBG2) << "Removed unreachable routes for interface " << ifID;
 }
 
 void TunManager::addRemoveSourceRouteRule(
@@ -1212,9 +1317,16 @@ void TunManager::sync(std::shared_ptr<SwitchState> state) {
           setIntfStatus(ifName, ifIndex, newStatus);
         }
 
+        // Interface going DOWN: program unreachable routes to prevent
+        // control-plane traffic from falling back to OOB via eth0.
+        if (oldStatus && !newStatus) {
+          addUnreachableRoutesForIntf(ifID, oldAddrs);
+        }
+
         // We need to add route-table and tun-addresses if interface is
         // brought up recently.
         if (!oldStatus && newStatus) {
+          removeUnreachableRoutesForIntf(ifID);
           addRouteTable(ifID, ifIndex);
           // Remove old source route rules to avoid duplicates
           for (const auto& addr : oldAddrs) {

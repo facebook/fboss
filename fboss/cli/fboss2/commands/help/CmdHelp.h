@@ -11,14 +11,14 @@ class CmdHelp {
  private:
   ReverseHelpTree tree_;
 
-  ReverseHelpTree revHelpTree(std::vector<CommandTree>& cmdTrees) {
+  ReverseHelpTree revHelpTree(const std::vector<CommandTree>& cmdTrees) {
     ReverseHelpTree root;
-    for (auto cmdTree : cmdTrees) {
+    for (const auto& cmdTree : cmdTrees) {
       for (const auto& cmd : cmdTree) {
         auto& objectName = cmd.name;
         auto& verb = cmd.verb;
         auto& verbHelp = cmd.help;
-        auto subcommands = cmd.subcommands;
+        const auto& subcommands = cmd.subcommands;
         const auto& validFilterOptional = cmd.validFilterHandler;
         ValidFilterMapType validFilterMap = {};
         if (validFilterOptional.has_value()) {
@@ -38,7 +38,7 @@ class CmdHelp {
         if (subcommands.size() == 0) {
           revHelp[helpInfo] = std::vector<Command>();
         }
-        for (Command c : subcommands) {
+        for (const Command& c : subcommands) {
           revHelp[helpInfo].push_back(c);
         }
       }
@@ -47,7 +47,7 @@ class CmdHelp {
   }
 
  public:
-  explicit CmdHelp(std::vector<CommandTree> cmdTrees) {
+  explicit CmdHelp(const std::vector<CommandTree>& cmdTrees) {
     tree_ = revHelpTree(cmdTrees);
   }
 
@@ -64,7 +64,7 @@ class CmdHelp {
   }
 
   void printSubCommandTree(
-      std::vector<Command> subCmds,
+      const std::vector<Command>& subCmds,
       size_t level,
       std::ostream& out) {
     for (const auto& cmd : subCmds) {
@@ -136,5 +136,9 @@ class CmdHelp {
     return localOptionInfo;
   }
 };
+
+inline utils::ObjectArgTypeId helpArgTypeHandler() {
+  return utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
+}
 
 } // namespace facebook::fboss

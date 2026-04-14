@@ -1,4 +1,5 @@
 {
+  "platformName": "ICECUBE",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -3270,7 +3271,7 @@
     "perSlotPowerConfigs": [
       {
         "__comment__": "48V HOTSWAP LTC4287 monitors the power consumption of the main input",
-        "name": "HSC",
+        "name": "HSC1",
         "powerSensorName": "MCB_PU1066_LTC4287_P48V_PIN"
       }
     ],

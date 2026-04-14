@@ -91,7 +91,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionFieldsRemove) {
 
 TEST(ThriftUnionNodeTests, ThriftUnionFieldsConstructFromThrift) {
   TestUnion data;
-  data.inlineString_ref() = "HelloThere";
+  data.inlineString() = "HelloThere";
 
   ThriftUnionFields<TestUnion> fields(data);
 
@@ -130,7 +130,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeGetSet) {
 
 TEST(ThriftUnionNodeTests, ThriftUnionNodeConstructFromThrift) {
   TestUnion data;
-  data.inlineString_ref() = "HelloThere";
+  data.inlineString() = "HelloThere";
 
   ThriftUnionNode<TestUnion> fields(data);
 
@@ -143,7 +143,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeConstructFromThrift) {
 
 TEST(ThriftUnionNodeTests, ThriftUnionNodeVisit) {
   TestUnion data;
-  data.inlineString_ref() = "HelloThere";
+  data.inlineString() = "HelloThere";
 
   ThriftUnionNode<TestUnion> fields(data);
 
@@ -182,7 +182,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeClone) {
   auto portRange = buildPortRange(100, 999);
 
   TestUnion data;
-  data.inlineStruct_ref() = portRange;
+  data.inlineStruct() = portRange;
 
   auto node = std::make_shared<ThriftUnionNode<TestUnion>>(data);
 
@@ -203,7 +203,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeModify) {
   auto portRange = buildPortRange(100, 999);
 
   TestUnion data;
-  data.inlineStruct_ref() = portRange;
+  data.inlineStruct() = portRange;
 
   auto node = std::make_shared<ThriftUnionNode<TestUnion>>(data);
 
@@ -238,7 +238,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeModify) {
 
 TEST(ThriftUnionNodeTests, ThriftUnionNodeRemove) {
   TestUnion data;
-  data.inlineBool_ref() = true;
+  data.inlineBool() = true;
 
   auto node = std::make_shared<ThriftUnionNode<TestUnion>>(data);
 
@@ -269,7 +269,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionNodeRemove) {
 
 TEST(ThriftUnionNodeTests, ThriftUnionFieldsEncode) {
   TestUnion data;
-  data.inlineString_ref() = "UnionData";
+  data.inlineString() = "UnionData";
 
   ThriftUnionFields<TestUnion> fields(data);
 
@@ -293,7 +293,7 @@ TEST(ThriftUnionNodeTests, ThriftUnionFieldsEncode) {
 
 TEST(ThriftUnionNodeTests, ThriftUnionNodeEncode) {
   TestUnion data;
-  data.inlineString_ref() = "UnionData";
+  data.inlineString() = "UnionData";
 
   auto node = std::make_shared<ThriftUnionNode<TestUnion>>(data);
   ASSERT_EQ(node->toThrift(), data);

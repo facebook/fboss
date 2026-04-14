@@ -11,7 +11,7 @@
 #include "fboss/agent/RouteUpdateWrapper.h"
 
 #include "fboss/agent/AddressUtil.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 
 #include "fboss/agent/state/SwitchState.h"
@@ -157,8 +157,8 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         configRoutes_->staticMplsRoutesWithNextHops,
         configRoutes_->staticMplsRoutesToNull,
         configRoutes_->staticMplsRoutesToCpu,
-        *fibUpdateFn_,
-        fibUpdateCookie_);
+        *ribToSwitchStateFunc_,
+        ribToSwitchStateCookie_);
   }
   if (!remoteLoopbackIntfRouteToAdd_.empty() ||
       !remoteLoopbackIntfRouteToDel_.empty()) {
@@ -166,8 +166,8 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         resolver_,
         remoteLoopbackIntfRouteToAdd_,
         remoteLoopbackIntfRouteToDel_,
-        *fibUpdateFn_,
-        fibUpdateCookie_);
+        *ribToSwitchStateFunc_,
+        ribToSwitchStateCookie_);
   }
   for (auto [ridClientId, addDelRoutes] : ribRoutesToAddDel_) {
     auto stats = getRib()->update(
@@ -179,8 +179,8 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         addDelRoutes.toDel,
         syncFibFor.find(ridClientId) != syncFibFor.end(),
         "RIB update",
-        *fibUpdateFn_,
-        fibUpdateCookie_);
+        *ribToSwitchStateFunc_,
+        ribToSwitchStateCookie_);
     printStats(stats);
     updateStats(stats);
   }
@@ -195,8 +195,8 @@ void RouteUpdateWrapper::programStandAloneRib(const SyncFibFor& syncFibFor) {
         addDelRoutes.toDel,
         syncFibFor.find(ridClientId) != syncFibFor.end(),
         "MPLS RIB update",
-        *fibUpdateFn_,
-        fibUpdateCookie_);
+        *ribToSwitchStateFunc_,
+        ribToSwitchStateCookie_);
     printMplsStats(stats);
   }
 }
@@ -208,10 +208,20 @@ void RouteUpdateWrapper::programClassID(
     bool async) {
   if (async) {
     getRib()->setClassIDAsync(
-        resolver_, rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
+        resolver_,
+        rid,
+        prefixes,
+        *ribToSwitchStateFunc_,
+        classId,
+        ribToSwitchStateCookie_);
   } else {
     getRib()->setClassID(
-        resolver_, rid, prefixes, *fibUpdateFn_, classId, fibUpdateCookie_);
+        resolver_,
+        rid,
+        prefixes,
+        *ribToSwitchStateFunc_,
+        classId,
+        ribToSwitchStateCookie_);
   }
 }
 

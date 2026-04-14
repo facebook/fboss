@@ -61,4 +61,7 @@ int64_t getSystemPortMin(
     const std::unique_ptr<TopologyInfo>& topologyInfo,
     const std::string& switchName);
 
+std::map<std::string, std::set<std::string>> getRdswConnectedFabricPorts(
+    const std::unique_ptr<TopologyInfo>& topologyInfo);
+
 } // namespace facebook::fboss::utility

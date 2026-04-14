@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/teflow/CmdShowTeFlow.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 namespace facebook::fboss {
 
@@ -92,5 +93,8 @@ CmdShowTeFlow::RetType CmdShowTeFlow::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowTeFlow, CmdShowTeFlowTraits>::run();
 
 } // namespace facebook::fboss

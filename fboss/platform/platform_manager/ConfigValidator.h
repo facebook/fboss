@@ -24,7 +24,10 @@ class ConfigValidator {
       const std::map<std::string, SlotTypeConfig>& slotTypeConfigs,
       const PmUnitConfig& pmUnitConfig);
   bool isValidSlotTypeConfig(const SlotTypeConfig& slotTypeConfig);
-  bool isValidSlotConfig(const SlotConfig& slotConfig);
+  bool isValidSlotConfig(
+      const SlotConfig& slotConfig,
+      const std::string& slotName,
+      const std::map<std::string, SlotTypeConfig>& slotTypeConfigs);
   bool isValidFpgaIpBlockConfig(const FpgaIpBlockConfig& fpgaIpBlockConfig);
   bool isValidLedCtrlBlockConfig(const LedCtrlBlockConfig& ledCtrlBlockConfig);
   bool isValidXcvrCtrlBlockConfig(
@@ -65,6 +68,8 @@ class ConfigValidator {
       std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
+  bool isValidLedCtrlBlockXcvrCoverage(const PlatformConfig& config);
+  bool isValidXcvrCtrlBlockXcvrCoverage(const PlatformConfig& config);
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);

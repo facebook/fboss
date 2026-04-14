@@ -51,6 +51,7 @@ _sai_invariant_mono_agent_test_prefix = "sai_invariant_agent_test_mono"
         ] if sai_impl.name == "leaba" or sai_impl.version in [
             "14.0_ea_odp",
             "14.2.0.0_odp",
+            "15.0_ea_odp",
         ] else [],
         versions = to_versions(sai_impl),
         deps = [
@@ -86,6 +87,7 @@ _sai_invariant_multi_agent_test_prefix = "sai_invariant_agent_test_multi_switch"
         ] if sai_impl.name == "leaba" or sai_impl.version in [
             "14.0_ea_odp",
             "14.2.0.0_odp",
+            "15.0_ea_odp",
         ] else [],
         versions = to_versions(sai_impl),
         deps = [

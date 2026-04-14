@@ -77,6 +77,7 @@ folly::coro::Task<void> BaseSubscription::heartbeatLoop() {
       requestPruneWithReason(ret.value());
       break;
     }
+    lastHeartbeatSentAt_.store(getCurrentTimeMs(), std::memory_order_relaxed);
   }
   co_return;
 }

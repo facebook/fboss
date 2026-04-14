@@ -5,7 +5,6 @@ namespace hack NetengFbossPlatformManager
 namespace py3 fboss.platform.platform_manager
 
 include "thrift/annotation/thrift.thrift"
-include "thrift/annotation/cpp.thrift"
 include "thrift/annotation/hack.thrift"
 
 include "fboss/platform/platform_manager/platform_manager_snapshot.thrift"
@@ -17,7 +16,7 @@ package;
 
 @hack.Attributes{
   attributes = [
-    "\Oncalls('net_ui')",
+    "\Oncalls('bb_ops_ui')",
     "\JSEnum(shape('flow_enum' => false))",
     "\GraphQLEnum('NetengFbossPlatformManagerExplorationStatus')",
     "\SelfDescriptive",
@@ -34,7 +33,7 @@ enum ExplorationStatus {
 
 @hack.Attributes{
   attributes = [
-    "\Oncalls('net_ui')",
+    "\Oncalls('bb_ops_ui')",
     "\JSEnum(shape('flow_enum' => false))",
     "\GraphQLEnum('NetengFbossPlatformManagerErrorCode')",
     "\SelfDescriptive",

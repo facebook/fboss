@@ -17,6 +17,7 @@
 #include "fboss/agent/state/StateUpdate.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
+#include "fboss/lib/phy/CredoSdkVersion.h"
 #include "fboss/lib/phy/NullPortStats.h"
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 
@@ -382,6 +383,45 @@ std::shared_ptr<SwitchState> SaiPhyManager::portUpdateHelper(
   }
   return newState;
 }
+/*
+ * removeOnePort
+ *
+ * Remove a programmed port from the PHY by applying a SwitchState delta that
+ * removes the port object. This triggers SaiSwitch::stateChanged() which calls
+ * SaiPortManager::removePort(), tearing down the port connector, serdes,
+ * line port, and system port SAI objects. The PhyManager cache is also cleared
+ * so the port can be re-programmed from scratch.
+ */
+void SaiPhyManager::removeOnePort(PortID portId) {
+  const auto& wLockedCache = getWLockedCache(portId);
+
+  auto globalPhyID = getGlobalXphyIDbyPortIDLocked(wLockedCache);
+
+  if (wLockedCache->systemLanes.empty() && wLockedCache->lineLanes.empty()) {
+    XLOG(DBG2) << "Port " << portId << " not programmed, skip removal";
+    return;
+  }
+
+  auto updateFn = [portId](std::shared_ptr<SwitchState> in) {
+    auto portObj = in->getPorts()->getNodeIf(portId);
+    if (!portObj) {
+      return std::shared_ptr<SwitchState>(nullptr);
+    }
+    auto newState = in->clone();
+    auto newPorts = newState->getPorts()->modify(&newState);
+    newPorts->removeNode(portId);
+    return newState;
+  };
+  getPlatformInfo(globalPhyID)
+      ->applyUpdate(
+          folly::sformat("Port {} remove", static_cast<int>(portId)), updateFn);
+
+  wLockedCache->systemLanes.clear();
+  wLockedCache->lineLanes.clear();
+  wLockedCache->speed.reset();
+  wLockedCache->profile.reset();
+}
+
 /*
  * programOnePort
  *
@@ -1147,7 +1187,7 @@ void SaiPhyManager::gracefulExit() {
     // Loop through all xphy in the pim
     for (auto& platformItr : pimPlatform) {
       GlobalXphyID xphyID = platformItr.first;
-#ifndef CREDO_SDK_0_9_0
+#if CREDO_SDK_VERSION < CREDO_SDK_VERSION_0_9_0
       if (getSaiPlatform(xphyID)->getAsic()->getAsicType() ==
           cfg::AsicType::ASIC_TYPE_ELBERT_8DD) {
         return;

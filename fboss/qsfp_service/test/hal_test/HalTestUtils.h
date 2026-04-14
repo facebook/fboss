@@ -10,6 +10,7 @@
 
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
+#include "fboss/qsfp_service/if/gen-cpp2/transceiver_properties_types.h"
 #include "fboss/qsfp_service/module/Transceiver.h"
 #include "fboss/qsfp_service/module/cmis/CmisModule.h"
 #include "fboss/qsfp_service/test/hal_test/BspTransceiverImpl.h"
@@ -40,30 +41,20 @@ std::map<int, HalTestModule> createAllQsfpModules(const HalTestConfig& config);
 // Load HalTestConfig from a JSON file.
 HalTestConfig loadHalTestConfig(const std::string& configPath);
 
-ProgramTransceiverState createProgramTransceiverState(TcvrOperationalMode mode);
+// Build a ProgramTransceiverState from a SpeedCombination's port list.
+ProgramTransceiverState createProgramTransceiverState(
+    const SpeedCombination& combo);
 
-// Returns the expected per-lane MediaInterfaceCodes for a given operational
-// mode.
+// Build expected per-lane MediaInterfaceCodes from a SpeedCombination.
 std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
-    TcvrOperationalMode mode);
+    const std::string& comboDescription,
+    const SpeedCombination& combo);
 
-// Returns the effective media interface configs — user-provided if set,
-// otherwise falls back to the thrift const default.
-const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>&
-getMediaInterfaceConfigs(const HalTestConfig& config);
+// Collect all speed combination descriptions from TransceiverPropertiesManager.
+std::vector<std::string> getAllSpeedCombinationDescriptions();
 
-// Collect all speed-change transitions from a media-interface config map.
-std::vector<std::pair<TcvrOperationalMode, TcvrOperationalMode>>
-getAllSpeedChangeTransitions(
-    const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>& configs);
-
-// Check if a module's media interface code has a given transition in its
-// config.
-bool isSpeedChangeSupportedForModule(
-    QsfpModule* module,
-    const HalTestConfig& config,
-    TcvrOperationalMode from,
-    TcvrOperationalMode to);
+// Collect all speed-change transitions from TransceiverPropertiesManager.
+std::vector<std::pair<std::string, std::string>> getAllSpeedChangeTransitions();
 
 // Upgrade firmware on a module to the specified versions.
 // Returns true if an upgrade was performed.

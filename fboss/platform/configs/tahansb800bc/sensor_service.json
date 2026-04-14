@@ -1,4 +1,5 @@
 {
+  "platformName": "TAHANSB800BC",
   "pmUnitSensorsList": [
     {
       "slotPath": "/",
@@ -844,7 +845,7 @@
           "sysfsPath": "/run/devmap/sensors/OSFP_PWR/curr1_input",
           "type": 2,
           "thresholds": {
-            "minAlarmVal": -1.5
+            "minAlarmVal": -2.5
           },
           "compute": "@/1000.0"
         },
@@ -866,7 +867,7 @@
           "type": 2,
           "thresholds": {
             "maxAlarmVal": 110,
-            "minAlarmVal": -1.5,
+            "minAlarmVal": -2.5,
             "upperCriticalVal": 120
           },
           "compute": "@/1000.0"
@@ -2918,7 +2919,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -2927,7 +2928,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -2936,7 +2937,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_1/temp3_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -3218,7 +3219,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp1_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -3227,7 +3228,7 @@
           "sysfsPath": "/run/devmap/sensors/SMB_TH6_SENSOR_TMP432_2/temp2_input",
           "type": 3,
           "thresholds": {
-            "upperCriticalVal": 100
+            "upperCriticalVal": 95
           },
           "compute": "@/1000.0"
         },
@@ -4201,7 +4202,7 @@
     "perSlotPowerConfigs": [
       {
         "__comment__": "Hot-swap VRM chip ltc4287 monitors the main power consumption of the system",
-        "name": "HSC",
+        "name": "HSC1",
         "powerSensorName": "MCB_PU1066_XP48R0V_HOTSWAP_PIN"
       }
     ],

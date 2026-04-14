@@ -107,7 +107,8 @@ reconstructStateAndRib(
     rib = RoutingInformationBase::fromThrift(
         *(warmBootState->routeTables()),
         state->getFibsInfoMap(),
-        state->getLabelForwardingInformationBase());
+        state->getLabelForwardingInformationBase(),
+        state->getMySids());
   } else {
     state = SwitchState::fromThrift(state::SwitchState{});
     /* cold boot, setup default rib */

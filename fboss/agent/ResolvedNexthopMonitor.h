@@ -4,6 +4,7 @@
 
 #include "fboss/agent/StateObserver.h"
 
+#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/state/Route.h"
 
 namespace facebook::fboss {
@@ -51,23 +52,27 @@ class ResolvedNexthopMonitor : public StateObserver {
 
  private:
   template <typename RouteT>
-  void processAddedRouteNextHops(const std::shared_ptr<RouteT>& route) {
+  void processAddedRouteNextHops(
+      const std::shared_ptr<RouteT>& route,
+      const std::shared_ptr<SwitchState>& state) {
     if (skipRoute(route)) {
       return;
     }
     const auto& fwd = route->getForwardInfo();
-    for (auto nhop : fwd.normalizedNextHops()) {
+    for (auto nhop : getNormalizedNextHops(state, fwd)) {
       added_.emplace_back(nhop.addr(), nhop.intf(), 0);
     }
   }
 
   template <typename RouteT>
-  void processRemovedRouteNextHops(const std::shared_ptr<RouteT>& route) {
+  void processRemovedRouteNextHops(
+      const std::shared_ptr<RouteT>& route,
+      const std::shared_ptr<SwitchState>& state) {
     if (skipRoute(route)) {
       return;
     }
     const auto& fwd = route->getForwardInfo();
-    for (auto nhop : fwd.normalizedNextHops()) {
+    for (auto nhop : getNormalizedNextHops(state, fwd)) {
       removed_.emplace_back(nhop.addr(), nhop.intf(), 0);
     }
   }
@@ -75,9 +80,11 @@ class ResolvedNexthopMonitor : public StateObserver {
   template <typename RouteT>
   void processChangedRouteNextHops(
       const std::shared_ptr<RouteT>& oldRoute,
-      const std::shared_ptr<RouteT>& newRoute) {
-    processRemovedRouteNextHops(oldRoute);
-    processAddedRouteNextHops(newRoute);
+      const std::shared_ptr<RouteT>& newRoute,
+      const std::shared_ptr<SwitchState>& oldState,
+      const std::shared_ptr<SwitchState>& newState) {
+    processRemovedRouteNextHops(oldRoute, oldState);
+    processAddedRouteNextHops(newRoute, newState);
   }
 
   template <typename RouteT>

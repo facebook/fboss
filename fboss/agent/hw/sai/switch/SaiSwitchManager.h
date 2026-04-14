@@ -135,6 +135,7 @@ class SaiSwitchManager {
   void setPfcWatchdogTimerGranularity(int pfcWatchdogTimerGranularityMsec);
   void setEnablePfcMonitoring(bool enablePfcMonitoring);
   void setCreditRequestProfileSchedulerMode(cfg::QueueScheduling scheduling);
+  void setSwitchingMode(cfg::PacketForwardingMode mode);
   void setModuleIdToCreditRequestProfileParam(
       const std::optional<std::map<int32_t, int32_t>>&
           moduleIdToCreditRequestProfileParam);

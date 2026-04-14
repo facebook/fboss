@@ -9,6 +9,7 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
@@ -90,7 +91,7 @@ class AgentMirroringTest : public AgentHwTest {
   void sendPackets(int count, size_t payloadSize = 1) {
     auto params = utility::getMirrorTestParams<AddrT>();
     auto vlanId = getVlanIDForTx();
-    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+    const auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
         getAgentEnsemble()->getProgrammedState());
     const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
@@ -112,7 +113,7 @@ class AgentMirroringTest : public AgentHwTest {
           0,
           255,
           payload);
-      getSw()->sendPacketSwitchedAsync(std::move(pkt));
+      sendPacketSwitchedAsync(std::move(pkt));
       i++;
     }
     WITH_RETRIES({

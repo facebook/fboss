@@ -23,6 +23,7 @@
 #include "fboss/qsfp_service/module/TransceiverImpl.h"
 #include "fboss/qsfp_service/module/cmis/CmisFieldInfo.h"
 #include "fboss/qsfp_service/module/cmis/CmisHelper.h"
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 
 #include <thrift/lib/cpp/util/EnumUtils.h>
 
@@ -53,7 +54,6 @@ constexpr int kUsecDatapathStateUpdateTime = 10000000; // 10 seconds
 constexpr int kUsecDatapathStatePollTime = 500000; // 500 ms
 constexpr double kU16TypeLsbDivisor = 256.0;
 constexpr int kVdmDescriptorLength = 2;
-constexpr int kFR4LiteSMFLength = 500; // 500 meters
 
 // Definitions for CDB Histogram
 constexpr int kCdbSymErrHistBinSize = 6;
@@ -68,8 +68,6 @@ constexpr uint8_t DP_INIT_MAX_MASK = 0x0F;
 constexpr uint8_t DP_DINIT_MAX_MASK = 0xF0;
 constexpr uint8_t DP_DINIT_BITSHIFT = 4;
 
-// Tunable module const expr
-constexpr double kMhzToGhzFactor = 0.000001;
 // DeInitAllMask
 constexpr uint8_t kFullDataPathDeInitMask = 0xFF;
 
@@ -1233,9 +1231,15 @@ bool CmisModule::getMediaInterfaceId(
       mediaInterface[lane].lane() = lane;
       MediaInterfaceUnion media;
       media.smfCode() = smfMediaInterface;
-      mediaInterface[lane].code() =
-          CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
-              smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
+      if (TransceiverPropertiesManager::isKnown(getModuleMediaInterface())) {
+        mediaInterface[lane].code() =
+            TransceiverPropertiesManager::mediaLaneCodeToMediaInterfaceCode(
+                static_cast<uint8_t>(smfMediaInterface));
+      } else {
+        mediaInterface[lane].code() =
+            CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
+                smfMediaInterface, CmisHelper::getSmfMediaInterfaceMapping());
+      }
       if (mediaInterface[lane].code() == MediaInterfaceCode::UNKNOWN) {
         QSFP_LOG(ERR, this)
             << "Unable to find MediaInterfaceCode for "
@@ -2057,13 +2061,13 @@ std::optional<VdmPerfMonitorStats> CmisModule::getVdmPerfMonitorStats() {
     QSFP_LOG(ERR, this) << "Failed to get VDM Perf Monitor PAM4 alarm data";
   }
   if (!fillVdmPerfMonitorCoherentVdm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "Coherent VDM stats not available";
+    QSFP_LOG(DBG5, this) << "Coherent VDM stats not available";
   }
   if (!fillVdmPerfMonitorFecPm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "FEC PM stats not available";
+    QSFP_LOG(DBG5, this) << "FEC PM stats not available";
   }
   if (!fillVdmPerfMonitorLinkPm(vdmStats)) {
-    QSFP_LOG(DBG2, this) << "Link PM stats not available";
+    QSFP_LOG(DBG5, this) << "Link PM stats not available";
   }
 
   QSFP_LOG(DBG5, this) << "Read VDM Performance Monitoring stats";
@@ -2708,6 +2712,16 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             CmisHelper::getActiveValidSpeedCombinations(),
             CmisHelper::getActiveSpeedApplication());
   } else {
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, state.speed);
+    }
+    SmfSpeedApplicationMap configMapping;
+    if (!configCodes.empty()) {
+      configMapping[state.speed] = std::move(configCodes);
+    }
     laneProgramValues =
         CmisHelper::getValidMultiportSpeedConfig<SMFMediaInterfaceCode>(
             state.speed,
@@ -2716,40 +2730,51 @@ void CmisModule::setApplicationSelectCodeAllPorts(
             laneMask(state.startHostLane, numHostLanes),
             getNameString(),
             moduleCapabilities_,
-            CmisHelper::getSmfValidSpeedCombinations(),
-            CmisHelper::getSmfSpeedApplicationMapping());
+            TransceiverPropertiesManager::isKnown(mediaInterface)
+                ? TransceiverPropertiesManager::getSpeedCombinations<
+                      SMFMediaInterfaceCode>(mediaInterface)
+                : std::vector<
+                      std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
+            configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
+                                  : configMapping);
   }
-  if (laneProgramValues.size() == kMaxOsfpNumLanes) {
-    AllLaneConfig stageSet0Config;
-    for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
-      if (auto laneCapability =
-              getApplicationField(laneProgramValues[lane], lane)) {
-        uint8_t currApSelCode = laneCapability.value().ApSelCode;
-        for (auto currApLane = lane;
-             currApLane < lane + laneCapability.value().hostLaneCount;
-             currApLane++) {
-          const uint8_t lanesToProgram =
-              laneMask(lane, lane + laneCapability.value().hostLaneCount);
-          const uint8_t explicitControl =
-              setExplicitControl(state, lanesToProgram);
-          stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
-              (lane << DATA_PATH_ID_BITSHIFT) | explicitControl;
-        }
-        lane += laneCapability.value().hostLaneCount;
-      } else {
-        stageSet0Config[lane++] = 0;
+  if (laneProgramValues.size() != kMaxOsfpNumLanes) {
+    XLOG(WARNING) << "Transceiver " << getNameString() << " port "
+                  << state.startHostLane << ": "
+                  << "Failed to find valid speed combo for speed "
+                  << apache::thrift::util::enumNameSafe(state.speed)
+                  << ", module will not be reprogrammed";
+    return;
+  }
+  AllLaneConfig stageSet0Config;
+  for (auto lane = 0; lane < kMaxOsfpNumLanes;) {
+    if (auto laneCapability =
+            getApplicationField(laneProgramValues[lane], lane)) {
+      uint8_t currApSelCode = laneCapability.value().ApSelCode;
+      for (auto currApLane = lane;
+           currApLane < lane + laneCapability.value().hostLaneCount;
+           currApLane++) {
+        const uint8_t lanesToProgram =
+            laneMask(lane, lane + laneCapability.value().hostLaneCount);
+        const uint8_t explicitControl =
+            setExplicitControl(state, lanesToProgram);
+        stageSet0Config[currApLane] = currApSelCode << APP_SEL_BITSHIFT |
+            (lane << DATA_PATH_ID_BITSHIFT) | explicitControl;
       }
+      lane += laneCapability.value().hostLaneCount;
+    } else {
+      stageSet0Config[lane++] = 0;
     }
-    writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
-
-    // Trigger the Set 0 application code setting to be applied on data
-    // path init for all the lanes. The actual data-path init will be
-    // triggered from the caller function
-    uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
-    writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
-
-    datapathResetPendingMask_ = applySetForSpecificLanes;
   }
+  writeCmisField(CmisField::APP_SEL_LANE_1_8, stageSet0Config.data());
+
+  // Trigger the Set 0 application code setting to be applied on data
+  // path init for all the lanes. The actual data-path init will be
+  // triggered from the caller function
+  uint8_t applySetForSpecificLanes = laneMask(0, kMaxOsfpNumLanes);
+  writeCmisField(CmisField::STAGE_CTRL_SET_0, &applySetForSpecificLanes);
+
+  datapathResetPendingMask_ = applySetForSpecificLanes;
 }
 
 /*
@@ -2903,8 +2928,20 @@ CmisModule::getAppSelCodeForSpeed(
     appCodes = CmisHelper::getInterfaceCode<ActiveCuHostInterfaceCode>(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
-    appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
-        speed, CmisHelper::getSmfSpeedApplicationMapping());
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    if (!configCodes.empty()) {
+      for (auto code : configCodes) {
+        appCodes.push_back(static_cast<uint8_t>(code));
+      }
+    } else {
+      appCodes = CmisHelper::getInterfaceCode<SMFMediaInterfaceCode>(
+          speed, CmisHelper::getSmfSpeedApplicationMapping());
+    }
   }
 
   if (appCodes.empty()) {
@@ -3072,7 +3109,11 @@ void CmisModule::setApplicationCodeLocked(
   if (getIdentifier() == TransceiverModuleIdentifier::OSFP &&
       !isRequestValidMultiportSpeedConfig(
           state.speed, state.startHostLane, numHostLanes)) {
-    QSFP_LOG(INFO, this) << "Programming App sel on ALL lanes";
+    QSFP_LOG(INFO, this) << folly::sformat(
+        "Programming App sel on ALL lanes: speed={}, startHostLane={}, numHostLanes={}",
+        apache::thrift::util::enumNameSafe(state.speed),
+        state.startHostLane,
+        numHostLanes);
     uint8_t hostLaneMask = laneMask(state.startHostLane, numHostLanes);
     appSelectFunc = std::bind(
         &CmisModule::setApplicationSelectCodeAllPorts,
@@ -3130,6 +3171,16 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         CmisHelper::getActiveValidSpeedCombinations(),
         CmisHelper::getActiveSpeedApplication());
   } else {
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    SmfSpeedApplicationMap configMapping;
+    if (!configCodes.empty()) {
+      configMapping[speed] = std::move(configCodes);
+    }
     return CmisHelper::checkSpeedCombo<SMFMediaInterfaceCode>(
         speed,
         startHostLane,
@@ -3138,8 +3189,13 @@ bool CmisModule::isRequestValidMultiportSpeedConfig(
         tcvrName,
         moduleCapabilities_,
         currHwSpeedConfig,
-        CmisHelper::getSmfValidSpeedCombinations(),
-        CmisHelper::getSmfSpeedApplicationMapping());
+        TransceiverPropertiesManager::isKnown(mediaInterface)
+            ? TransceiverPropertiesManager::getSpeedCombinations<
+                  SMFMediaInterfaceCode>(mediaInterface)
+            : std::vector<
+                  std::array<SMFMediaInterfaceCode, kMaxOsfpNumLanes>>{},
+        configMapping.empty() ? CmisHelper::getSmfSpeedApplicationMapping()
+                              : configMapping);
   }
 }
 
@@ -3340,8 +3396,20 @@ bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
     appCodes = CmisHelper::getInterfaceCode(
         speed, CmisHelper::getActiveSpeedApplication());
   } else {
-    appCodes = CmisHelper::getInterfaceCode(
-        speed, CmisHelper::getSmfSpeedApplicationMapping());
+    auto mediaInterface = getModuleMediaInterface();
+    std::vector<SMFMediaInterfaceCode> configCodes;
+    if (TransceiverPropertiesManager::isKnown(mediaInterface)) {
+      configCodes = TransceiverPropertiesManager::getMediaCodesForSpeed<
+          SMFMediaInterfaceCode>(mediaInterface, speed);
+    }
+    if (!configCodes.empty()) {
+      for (auto code : configCodes) {
+        appCodes.push_back(static_cast<uint8_t>(code));
+      }
+    } else {
+      appCodes = CmisHelper::getInterfaceCode(
+          speed, CmisHelper::getSmfSpeedApplicationMapping());
+    }
   }
   if (appCodes.empty()) {
     // Speed Not supported
@@ -3559,43 +3627,35 @@ uint8_t CmisModule::frequencyGridToGridSelection(FrequencyGrid grid) const {
 int16_t CmisModule::getChannelNumFromFrequency(
     int32_t frequencyMhz,
     FrequencyGrid frequencyGrid) {
+  int64_t diffMhz = static_cast<int64_t>(frequencyMhz) - kDefaultFrequencyMhz;
   int32_t channelNum = 0;
   switch (frequencyGrid) {
     case FrequencyGrid::LASER_150GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40) - 3);
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000 - 3);
       break;
     case FrequencyGrid::LASER_100GHZ:
-      channelNum =
-          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 10);
+      channelNum = static_cast<int32_t>((diffMhz * 10) / 1000000);
       break;
     case FrequencyGrid::LASER_75GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000);
       break;
     case FrequencyGrid::LASER_50GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 20));
+      channelNum = static_cast<int32_t>((diffMhz * 20) / 1000000);
       break;
     case FrequencyGrid::LASER_33GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 30));
+      channelNum = static_cast<int32_t>((diffMhz * 30) / 1000000);
       break;
     case FrequencyGrid::LASER_25GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 40));
+      channelNum = static_cast<int32_t>((diffMhz * 40) / 1000000);
       break;
     case FrequencyGrid::LASER_12P5GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 80));
+      channelNum = static_cast<int32_t>((diffMhz * 80) / 1000000);
       break;
     case FrequencyGrid::LASER_6P25GHZ:
-      channelNum =
-          (((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 160));
+      channelNum = static_cast<int32_t>((diffMhz * 160) / 1000000);
       break;
     case FrequencyGrid::LASER_3P125GHZ:
-      channelNum =
-          ((frequencyMhz - kDefaultFrequencyMhz) * kMhzToGhzFactor * 320);
+      channelNum = static_cast<int32_t>((diffMhz * 320) / 1000000);
       break;
     default:
       throw FbossError(
@@ -3801,30 +3861,18 @@ MediaInterfaceCode CmisModule::getModuleMediaInterface() const {
     auto firstModuleCapability = moduleCapabilities_.begin();
     auto smfCode = static_cast<SMFMediaInterfaceCode>(
         firstModuleCapability->moduleMediaInterface);
-    if (isLpoModule()) {
-      moduleMediaInterface = MediaInterfaceCode::FR4_LPO_2x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::FR4_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      if (getQsfpSMFLength() == kFR4LiteSMFLength) {
-        // Lite Modules are not LPO modules but have a reach of 500m.
-        moduleMediaInterface = MediaInterfaceCode::FR4_LITE_2x400G;
-      } else {
-        moduleMediaInterface = MediaInterfaceCode::FR4_2x400G;
-      }
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR4_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::DR4_2x400G;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::LR4_10_400G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::LR4_2x400G_10KM;
-    } else if (
-        smfCode == SMFMediaInterfaceCode::DR4_800G &&
-        firstModuleCapability->hostStartLanes.size() == 2) {
-      moduleMediaInterface = MediaInterfaceCode::DR4_2x800G;
-    } else {
+    std::vector<int> hostStartLanes(
+        firstModuleCapability->hostStartLanes.begin(),
+        firstModuleCapability->hostStartLanes.end());
+    auto smfLength = static_cast<int>(getQsfpSMFLength());
+    // Config-driven SMF derivation
+    moduleMediaInterface = TransceiverPropertiesManager::deriveSmfCode(
+        static_cast<uint8_t>(smfCode),
+        hostStartLanes,
+        firstModuleCapability->moduleHostInterface,
+        smfLength);
+    if (moduleMediaInterface == MediaInterfaceCode::UNKNOWN) {
+      // Fallback to existing mapping for unrecognized modules
       moduleMediaInterface =
           CmisHelper::getMediaInterfaceCode<SMFMediaInterfaceCode>(
               smfCode, CmisHelper::getSmfMediaInterfaceMapping());
@@ -5654,7 +5702,7 @@ bool CmisModule::fillVdmPerfMonitorPam4AlarmData(
  * which is expected for non-coherent modules.
  */
 bool CmisModule::fillVdmPerfMonitorCoherentVdm(VdmPerfMonitorStats& vdmStats) {
-  if (!isVdmSupported() || !cacheIsValid()) {
+  if (!isTunableOptics() || !isVdmSupported() || !cacheIsValid()) {
     return false;
   }
 

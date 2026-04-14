@@ -8,9 +8,14 @@ cpp_library(
         "Tahansb800bcPlatformMapping.cpp",
     ],
     headers = [
+        "Tahansb800bcLinkTrainingPlatformMapping.h",
         "Tahansb800bcPlatformMapping.h",
+        "Tahansb800bcProdPlatformMapping.h",
+        "Tahansb800bcTestPlatformMapping.h",
     ],
     exported_deps = [
+        "//fboss/agent:agent_features",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//folly/logging:logging",
     ],
 )

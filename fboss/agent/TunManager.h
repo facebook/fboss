@@ -15,8 +15,12 @@
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/types.h"
 
+#include <set>
+#include <unordered_map>
+
 #include <boost/container/flat_map.hpp>
 #include <fb303/ThreadCachedServiceData.h>
+#include <folly/IPAddress.h>
 
 extern "C" {
 #include <netlink/object.h>
@@ -223,6 +227,26 @@ class TunManager : public StateObserver {
   void removeRouteTable(InterfaceID ifID, int ifIndex) {
     addRemoveRouteTable(ifID, ifIndex, false);
   }
+
+  /**
+   * Add/remove an RTN_UNREACHABLE route in the main routing table for a
+   * connected subnet. When a front-panel interface goes down, these routes
+   * prevent traffic destined to the interface's subnets from falling back
+   * to the management interface (eth0) via the default route.
+   */
+  void addRemoveUnreachableRoute(const folly::CIDRNetwork& prefix, bool add);
+
+  /**
+   * Program unreachable routes for all connected subnets of a down interface.
+   */
+  void addUnreachableRoutesForIntf(
+      InterfaceID ifID,
+      const Interface::Addresses& addrs);
+
+  /**
+   * Remove all unreachable routes previously programmed for an interface.
+   */
+  void removeUnreachableRoutesForIntf(InterfaceID ifID);
 
   /**
    * Creates a tableId for given interface.
@@ -463,6 +487,17 @@ class TunManager : public StateObserver {
 
   /*< Container to store probed rules from kernel */
   std::vector<ProbedRule> probedRules_;
+
+  /**
+   * Track unreachable routes programmed for down interfaces.
+   * When a front-panel interface goes down, RTN_UNREACHABLE routes are added
+   * to the main routing table for the interface's connected subnets. This
+   * prevents traffic from falling back to the management interface (eth0).
+   * Key: InterfaceID, Value: set of CIDRNetwork prefixes with unreachable
+   * routes.
+   */
+  std::unordered_map<InterfaceID, std::set<folly::CIDRNetwork>>
+      unreachableRoutes_;
 
   enum : uint8_t {
     /**

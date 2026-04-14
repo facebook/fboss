@@ -46,9 +46,6 @@ cpp_library(
         "//fboss/agent/platforms/common/j4sim:j4sim_platform_mapping",  # @manual
         "//fboss/agent/platforms/common/janga800bic:janga800bic_platform_mapping",
         "//fboss/agent/platforms/common/ladakh800bcls:ladakh800bcls_platform_mapping",
-        "//fboss/agent/platforms/common/meru400bfu:meru400bfu_platform_mapping",
-        "//fboss/agent/platforms/common/meru400bia:meru400bia_platform_mapping",
-        "//fboss/agent/platforms/common/meru400biu:meru400biu_platform_mapping",
         "//fboss/agent/platforms/common/meru800bfa:meru800bfa_platform_mapping",
         "//fboss/agent/platforms/common/meru800bia:meru800bia_platform_mapping",
         "//fboss/agent/platforms/common/minipack:minipack_platform_mapping",

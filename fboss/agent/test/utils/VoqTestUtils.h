@@ -109,6 +109,8 @@ int getTrafficClassToCpuVoqId(const HwAsic* hwAsic, int trafficClass);
 
 SwitchID getRemoteVoqSwitchId(SwSwitch* sw);
 
+SystemPortID getFirstRemoteGlobalSystemPortId(const SwSwitch& sw);
+
 void addRemoteSysPortAndInterface(
     SwSwitch* sw,
     const SwitchID& remoteSwitchID,

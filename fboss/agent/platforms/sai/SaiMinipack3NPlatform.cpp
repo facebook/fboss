@@ -31,16 +31,30 @@ SaiMinipack3NPlatform::getSaiProfileVendorExtensionValues() const {
   auto kv_map = SaiYangraPlatform::getSaiProfileVendorExtensionValues();
   auto itr = kv_map.find("SAI_KEY_AUTO_POPULATE_PORT_DB");
   if (itr != kv_map.end()) {
-    // no auto discovery of ports for minipack3n
+    // Disable auto-population of the port database. When enabled, the SDK
+    // discovers ports by querying the ASIC and populates its port DB
+    // automatically. On Minipack3N, port definitions come from the seed
+    // XML (minipack3n.xml) in the agent config, so auto-discovery is not
+    // needed.
     kv_map.erase(itr);
   }
-  // Independent module mode is governed by the board design
-  // 0 :- DEPENDENT_MODULE_MODE - firmware owns programming the transcievers -
-  // 1 :- INDEPENDENT_MODULE_MODE - if external component like (qsfp) programs
-  // the transcievers  but firmware acts as relay.
-  // 2 :- STANDALONE_MODULE_MODE if external component like (qsfp) programs the
-  // transcievers without involvement of firmware.
+
+  // Override module mode from INDEPENDENT (1) to STANDALONE (2).
+  // Minipack3N's board design has qsfp_service programming transceivers
+  // directly over I2C without any ASIC firmware involvement. In
+  // INDEPENDENT mode (base Yangra), the firmware still acts as a relay
+  // for transceiver commands. STANDALONE removes the firmware from the
+  // path entirely, which is required for Minipack3N's direct-attach
+  // transceiver management architecture.
+  // 0 = DEPENDENT: firmware owns transceiver programming
+  // 1 = INDEPENDENT: external programs, firmware relays
+  // 2 = STANDALONE: external programs, no firmware involvement
   kv_map.insert_or_assign("SAI_INDEPENDENT_MODULE_MODE", "2");
+
+  // Set initial SerDes precoding for all ports at creation time, avoiding
+  // the need to configure precoding per-port via port_serdes objects.
+  // 0 = precoding unset (SDK default), 1 = ON, 2 = OFF.
+  // Minipack3N sets to OFF based on board signal integrity requirements.
   kv_map.insert(std::make_pair("SAI_KEY_PORT_CREATE_INITIAL_PRECODING", "2"));
   return kv_map;
 }

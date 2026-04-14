@@ -104,7 +104,10 @@ struct RouteFields
   void forEachChild(Fn /*fn*/) {}
   bool operator==(const RouteFields& rf) const;
 
-  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
+  RouteDetails toRouteDetails(
+      const RouteNextHopSet& nhopSet,
+      const std::optional<RouteNextHopSet>& normalizedNhopSet =
+          std::nullopt) const;
   bool isHostRoute() const {
     if constexpr (
         std::is_same_v<folly::IPAddressV6, AddrT> ||
@@ -331,7 +334,10 @@ class Route : public ThriftStructNode<Route<AddrT>, ThriftFieldsT<AddrT>> {
   }
 
   // THRIFT_COPY
-  RouteDetails toRouteDetails(bool normalizedNhopWeights = false) const;
+  RouteDetails toRouteDetails(
+      const RouteNextHopSet& nhopSet,
+      const std::optional<RouteNextHopSet>& normalizedNhopSet =
+          std::nullopt) const;
 
   /*
    * clone and clear all forwarding info. Forwarding info will be recomputed

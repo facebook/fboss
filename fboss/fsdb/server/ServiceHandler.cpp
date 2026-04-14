@@ -9,6 +9,7 @@
 #include <thrift/lib/cpp2/server/Cpp2Worker.h>
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/fsdb/if/gen-cpp2/fsdb_common_constants.h"
+#include "fboss/fsdb/oper/DeltaValue.h"
 #include "fboss/fsdb/oper/PathValidator.h"
 #include "fboss/fsdb/oper/SubscriptionCommon.h"
 #include "folly/CancellationToken.h"
@@ -360,7 +361,9 @@ OperPublisherInfo ServiceHandler::makePublisherInfo(
   return info;
 }
 
-void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
+void ServiceHandler::registerPublisher(
+    const OperPublisherInfo& info,
+    std::shared_ptr<folly::Synchronized<PublisherStreamState>> streamState) {
   XLOG(DBG2) << "Publisher connected " << *info.publisherId() << " : "
              << folly::join("/", *info.path()->raw());
   if (info.publisherId()->empty()) {
@@ -369,7 +372,9 @@ void ServiceHandler::registerPublisher(const OperPublisherInfo& info) {
   }
   auto key = ClientKey(
       *info.publisherId(), buildPathUnion(info), *info.type(), *info.isStats());
-  auto resp = activePublishers_.wlock()->insert({std::move(key), info});
+  ActivePublisherEntry entry{info, std::move(streamState)};
+  auto resp =
+      activePublishers_.wlock()->insert({std::move(key), std::move(entry)});
   if (!resp.second) {
     throw Utils::createFsdbException(
         FsdbErrorCode::ID_ALREADY_EXISTS, "Dup publisher id");
@@ -459,7 +464,10 @@ ServiceHandler::makeSinkConsumer(
   }
 
   auto info = makePublisherInfo(path, publisherId, pubSubType, isStats);
-  registerPublisher(info);
+  auto streamState =
+      std::make_shared<folly::Synchronized<PublisherStreamState>>();
+  streamState->wlock()->connectedAt = std::time(nullptr);
+  registerPublisher(info, streamState);
   std::shared_ptr<FsdbErrorCode> disconnectReason =
       std::make_shared<FsdbErrorCode>(FsdbErrorCode::ALL_PUBLISHERS_GONE);
   auto cleanupPublisher =
@@ -473,17 +481,25 @@ ServiceHandler::makeSinkConsumer(
        disconnectReason = std::move(disconnectReason),
        cleanupPublisher = std::move(cleanupPublisher),
        path = std::move(path),
-       isStats](folly::coro::AsyncGenerator<PubUnit&&> gen)
+       isStats,
+       streamState =
+           std::move(streamState)](folly::coro::AsyncGenerator<PubUnit&&> gen)
           -> folly::coro::Task<OperPubFinalResponse> {
         OperPubFinalResponse finalResponse;
         try {
           while (auto chunk = co_await gen.next()) {
             XLOG(DBG5) << " chunk received";
             std::optional<StorageError> patchErr;
+            bool isHeartbeat = false;
+            size_t chunkSize = 0;
             if constexpr (std::is_same_v<PubUnit, OperState>) {
               updateMetadata(chunk->metadata().ensure());
+              isHeartbeat = *chunk->isHeartbeat();
+              if (!isHeartbeat && chunk->contents().has_value()) {
+                chunkSize = chunk->contents()->size();
+              }
               if (isStats) {
-                if (*chunk->isHeartbeat()) {
+                if (isHeartbeat) {
                   operStatsStorage_.publisherHeartbeat(
                       path.begin(), path.end(), chunk->metadata().ensure());
                 } else {
@@ -491,7 +507,7 @@ ServiceHandler::makeSinkConsumer(
                       path.begin(), path.end(), *chunk);
                 }
               } else {
-                if (*chunk->isHeartbeat()) {
+                if (isHeartbeat) {
                   operStorage_.publisherHeartbeat(
                       path.begin(), path.end(), chunk->metadata().ensure());
                 } else {
@@ -515,15 +531,26 @@ ServiceHandler::makeSinkConsumer(
                       }),
                   chunk->changes()->end());
 
+              isHeartbeat = chunk->changes()->empty();
+              if (!isHeartbeat) {
+                for (const auto& change : *chunk->changes()) {
+                  if (change.oldState().has_value()) {
+                    chunkSize += change.oldState()->size();
+                  }
+                  if (change.newState().has_value()) {
+                    chunkSize += change.newState()->size();
+                  }
+                }
+              }
               if (isStats) {
-                if (chunk->changes()->empty()) {
+                if (isHeartbeat) {
                   operStatsStorage_.publisherHeartbeat(
                       path.begin(), path.end(), chunk->metadata().ensure());
                 } else {
                   patchErr = operStatsStorage_.patch(*chunk);
                 }
               } else {
-                if (chunk->changes()->empty()) {
+                if (isHeartbeat) {
                   operStorage_.publisherHeartbeat(
                       path.begin(), path.end(), chunk->metadata().ensure());
                 } else {
@@ -557,9 +584,19 @@ ServiceHandler::makeSinkConsumer(
                         heartbeat->metadata().value());
                   }
                 }
+                // Update heartbeat timestamp before continuing
+                {
+                  auto state = streamState->wlock();
+                  auto nowMs = getCurrentTimeMs();
+                  state->lastHeartbeatReceivedAt = nowMs;
+                }
                 continue;
               }
               auto patchChunk = chunk->move_patch();
+              chunkSize = getPatchNodeSize(*patchChunk.patch());
+              for (const auto& pathElem : *patchChunk.basePath()) {
+                chunkSize += pathElem.size();
+              }
               updateMetadata(*patchChunk.metadata());
               if (isStats) {
                 patchErr = operStatsStorage_.patch(std::move(patchChunk));
@@ -567,6 +604,26 @@ ServiceHandler::makeSinkConsumer(
                 patchErr = operStorage_.patch(std::move(patchChunk));
               }
             }
+
+            // Update per-stream tracking state
+            {
+              auto state = streamState->wlock();
+              auto nowMs = getCurrentTimeMs();
+              if (isHeartbeat) {
+                state->lastHeartbeatReceivedAt = nowMs;
+              } else {
+                state->lastUpdateReceivedAt = nowMs;
+                state->numUpdatesReceived++;
+                state->receivedDataSize += chunkSize;
+                if (!patchErr) {
+                  state->lastUpdatePublishedAt = nowMs;
+                  if (state->initialSyncCompletedAt == 0) {
+                    state->initialSyncCompletedAt = nowMs;
+                  }
+                }
+              }
+            }
+
             XLOG(DBG5) << "Chunk patch result "
                        << (patchErr
                                ? fmt::format("error: {}", patchErr->toString())
@@ -1127,6 +1184,10 @@ ServiceHandler::co_subscribeOperStateDelta(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   (*item).allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
               co_yield std::move((*item).val);
             }
           })};
@@ -1213,6 +1274,10 @@ ServiceHandler::co_subscribeOperStateDeltaExtended(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   item->allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
 
               auto&& delta = std::move(item->val);
 
@@ -1255,6 +1320,10 @@ ServiceHandler::co_subscribeOperStatsDelta(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   (*item).allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
               co_yield std::move((*item).val);
             }
           })};
@@ -1341,6 +1410,10 @@ ServiceHandler::co_subscribeOperStatsDeltaExtended(
               // Update served data size and then yield
               streamReader.streamInfo_->servedDataSize.fetch_add(
                   item->allocatedBytes, std::memory_order_relaxed);
+              streamReader.streamInfo_->numUpdatesServed.fetch_add(
+                  1, std::memory_order_relaxed);
+              streamReader.streamInfo_->lastUpdateWrittenAt.store(
+                  getCurrentTimeMs(), std::memory_order_relaxed);
               auto&& delta = std::move(item->val);
 
               OperSubDeltaUnit unit;
@@ -1392,6 +1465,10 @@ ServiceHandler::co_subscribeState(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1439,6 +1516,10 @@ ServiceHandler::co_subscribeStats(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1488,6 +1569,10 @@ ServiceHandler::co_subscribeStateExtended(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1537,6 +1622,10 @@ ServiceHandler::co_subscribeStatsExtended(std::unique_ptr<SubRequest> request) {
           // Update served data size and then yield
           streamReader.streamInfo_->servedDataSize.fetch_add(
               (*item).allocatedBytes, std::memory_order_relaxed);
+          streamReader.streamInfo_->numUpdatesServed.fetch_add(
+              1, std::memory_order_relaxed);
+          streamReader.streamInfo_->lastUpdateWrittenAt.store(
+              getCurrentTimeMs(), std::memory_order_relaxed);
           co_yield std::move((*item).val);
         }
       });
@@ -1611,13 +1700,39 @@ ServiceHandler::co_getOperStatsExtended(
   co_return std::move(ret);
 }
 
+namespace {
+
+void populatePublisherStreamState(
+    OperPublisherInfo& info,
+    const folly::Synchronized<PublisherStreamState>& streamState) {
+  // Copy under rlock for a consistent snapshot
+  PublisherStreamState stateCopy;
+  {
+    auto state = streamState.rlock();
+    stateCopy = *state;
+  }
+  info.connectedAt() = stateCopy.connectedAt;
+  info.initialSyncCompletedAt() = stateCopy.initialSyncCompletedAt;
+  info.lastUpdateReceivedAt() = stateCopy.lastUpdateReceivedAt;
+  info.lastHeartbeatReceivedAt() = stateCopy.lastHeartbeatReceivedAt;
+  info.lastUpdatePublishedAt() = stateCopy.lastUpdatePublishedAt;
+  info.numUpdatesReceived() = stateCopy.numUpdatesReceived;
+  info.receivedDataSize() = stateCopy.receivedDataSize;
+}
+
+} // namespace
+
 folly::coro::Task<std::unique_ptr<PublisherIdToOperPublisherInfo>>
 ServiceHandler::co_getAllOperPublisherInfos() {
   auto publishers = std::make_unique<PublisherIdToOperPublisherInfo>();
   activePublishers_.withRLock([&](const auto& activePublishers) {
     for (const auto& it : activePublishers) {
-      auto& publisher = it.second;
-      (*publishers)[*publisher.publisherId()].push_back(publisher);
+      auto& entry = it.second;
+      auto info = entry.info;
+      if (entry.streamState) {
+        populatePublisherStreamState(info, *entry.streamState);
+      }
+      (*publishers)[*info.publisherId()].push_back(std::move(info));
     }
   });
   co_return publishers;
@@ -1630,11 +1745,16 @@ ServiceHandler::co_getOperPublisherInfos(
   auto publishers = std::make_unique<PublisherIdToOperPublisherInfo>();
   activePublishers_.withRLock([&](const auto& activePublishers) {
     for (const auto& it : activePublishers) {
-      auto& publisher = it.second;
-      if (publisherIds->find(*publisher.publisherId()) == publisherIds->end()) {
+      auto& entry = it.second;
+      if (publisherIds->find(*entry.info.publisherId()) ==
+          publisherIds->end()) {
         continue;
       }
-      (*publishers)[*publisher.publisherId()].push_back(publisher);
+      auto info = entry.info;
+      if (entry.streamState) {
+        populatePublisherStreamState(info, *entry.streamState);
+      }
+      (*publishers)[*info.publisherId()].push_back(std::move(info));
     }
   });
   co_return publishers;
@@ -1671,6 +1791,25 @@ void mergeOperSubscriberInfo(
           }
           if (subInfo.servedDataSize().has_value()) {
             sub.servedDataSize() = *subInfo.servedDataSize();
+          }
+          if (subInfo.initialSyncCompletedAt().has_value()) {
+            sub.initialSyncCompletedAt() = *subInfo.initialSyncCompletedAt();
+          }
+          if (subInfo.lastUpdateEnqueuedAt().has_value()) {
+            sub.lastUpdateEnqueuedAt() = *subInfo.lastUpdateEnqueuedAt();
+          }
+          if (subInfo.lastHeartbeatSentAt().has_value()) {
+            sub.lastHeartbeatSentAt() = *subInfo.lastHeartbeatSentAt();
+          }
+          if (subInfo.lastEnqueuedUpdatePublishedAt().has_value()) {
+            sub.lastEnqueuedUpdatePublishedAt() =
+                *subInfo.lastEnqueuedUpdatePublishedAt();
+          }
+          if (subInfo.lastUpdateWrittenAt().has_value()) {
+            sub.lastUpdateWrittenAt() = *subInfo.lastUpdateWrittenAt();
+          }
+          if (subInfo.numUpdatesServed().has_value()) {
+            sub.numUpdatesServed() = *subInfo.numUpdatesServed();
           }
         }
       }

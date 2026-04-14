@@ -123,7 +123,8 @@ class SaiRouteManager {
   void changeRoute(
       const std::shared_ptr<Route<AddrT>>& oldSwRoute,
       const std::shared_ptr<Route<AddrT>>& newSwRoute,
-      RouterID routerId);
+      RouterID routerId,
+      const std::shared_ptr<SwitchState>& state);
 
   std::vector<std::shared_ptr<SaiRoute>> makeInterfaceToMeRoutes(
       const std::shared_ptr<Interface>& swInterface);
@@ -131,7 +132,8 @@ class SaiRouteManager {
   template <typename AddrT>
   void addRoute(
       const std::shared_ptr<Route<AddrT>>& swRoute,
-      RouterID routerId);
+      RouterID routerId,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename AddrT>
   void removeRoute(
@@ -166,7 +168,8 @@ class SaiRouteManager {
       SaiRouteHandle* routeHandle,
       RouterID routerId,
       const std::shared_ptr<Route<AddrT>>& oldRoute,
-      const std::shared_ptr<Route<AddrT>>& newRoute);
+      const std::shared_ptr<Route<AddrT>>& newRoute,
+      const std::shared_ptr<SwitchState>& state);
 
   template <typename AddrT>
   bool validRoute(const std::shared_ptr<Route<AddrT>>& swRoute);

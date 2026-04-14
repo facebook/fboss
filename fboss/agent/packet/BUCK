@@ -54,6 +54,17 @@ cpp_library(
 )
 
 cpp_library(
+    name = "ipfix_header",
+    srcs = [
+        "IpfixHeader.cpp",
+    ],
+    exported_deps = [
+        ":hdr_parse_error",
+        "//folly/io:iobuf",
+    ],
+)
+
+cpp_library(
     name = "pktutil",
     srcs = [
         "PktUtil.cpp",

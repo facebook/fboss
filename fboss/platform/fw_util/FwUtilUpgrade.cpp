@@ -34,6 +34,10 @@ void FwUtilImpl::doUpgradeOperation(
     if (upgradeConfig.xappArgs().has_value()) {
       performXappUpgrade(upgradeConfig.xappArgs().value());
     }
+  } else if (*upgradeConfig.commandType() == "psu_util") {
+    if (upgradeConfig.psuUtilArgs().has_value()) {
+      performPsuUtilUpgrade(upgradeConfig.psuUtilArgs().value());
+    }
   } else {
     throw std::runtime_error(
         "Unsupported command type: " + *upgradeConfig.commandType());

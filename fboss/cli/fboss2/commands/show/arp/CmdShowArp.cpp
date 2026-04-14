@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowArp.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <fboss/agent/if/gen-cpp2/ctrl_constants.h>
 #include <fboss/agent/if/gen-cpp2/ctrl_types.h>
@@ -124,5 +125,10 @@ RetType CmdShowArp::createModel(
   }
   return model;
 }
+
+// Explicit template instantiation
+template void CmdHandler<CmdShowArp, CmdShowArpTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowArp, CmdShowArpTraits>::getValidFilters();
 
 } // namespace facebook::fboss

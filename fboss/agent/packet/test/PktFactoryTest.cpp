@@ -585,7 +585,8 @@ TEST(PktFactoryTest, makeIpInIpTxPacket) {
       /*dstPort=*/6001,
       /*outerTrafficClass=*/0x20,
       /*innerTrafficClass=*/0x10,
-      /*hopLimit=*/64);
+      /*outerHopLimit=*/64,
+      /*innerHopLimit=*/128);
   ASSERT_NE(pkt, nullptr);
   auto frame = makeEthFrame(*pkt, /*skipTtlDecrement=*/true);
   auto outerV6 = frame.v6PayLoad();
@@ -603,10 +604,55 @@ TEST(PktFactoryTest, makeIpInIpTxPacket) {
   EXPECT_EQ(innerV6->header().srcAddr, innerSrcIp);
   EXPECT_EQ(innerV6->header().dstAddr, innerDstIp);
   EXPECT_EQ(innerV6->header().trafficClass, 0x10);
+  EXPECT_EQ(innerV6->header().hopLimit, 128);
   auto udp = innerV6->udpPayload();
   ASSERT_TRUE(udp.has_value());
   EXPECT_EQ(udp->header().srcPort, 6000);
   EXPECT_EQ(udp->header().dstPort, 6001);
+}
+
+TEST(PktFactoryTest, makeIpInIpTxPacketWithInnerV4) {
+  auto outerSrcIp = folly::IPAddressV6("2001:db8:1::1");
+  auto outerDstIp = folly::IPAddressV6("2001:db8:1::2");
+  auto innerSrcIp = folly::IPAddressV4("10.0.0.1");
+  auto innerDstIp = folly::IPAddressV4("10.0.0.2");
+  auto pkt = makeIpInIpTxPacket(
+      &TxPacket::allocateTxPacket,
+      kTestVlan,
+      kSrcMac,
+      kDstMac,
+      outerSrcIp,
+      outerDstIp,
+      innerSrcIp,
+      innerDstIp,
+      /*srcPort=*/7000,
+      /*dstPort=*/7001,
+      /*outerTrafficClass=*/0x20,
+      /*innerDscp=*/0x10,
+      /*outerHopLimit=*/64,
+      /*innerHopLimit=*/128);
+  ASSERT_NE(pkt, nullptr);
+  auto frame = makeEthFrame(*pkt, /*skipTtlDecrement=*/true);
+  auto outerV6 = frame.v6PayLoad();
+  ASSERT_TRUE(outerV6.has_value());
+  EXPECT_EQ(outerV6->header().srcAddr, outerSrcIp);
+  EXPECT_EQ(outerV6->header().dstAddr, outerDstIp);
+  EXPECT_EQ(outerV6->header().trafficClass, 0x20);
+  EXPECT_EQ(outerV6->header().hopLimit, 64);
+  EXPECT_EQ(
+      outerV6->header().nextHeader,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV4));
+  // Inner IPv4 packet
+  auto* innerV4 = outerV6->v4PayLoad();
+  ASSERT_NE(innerV4, nullptr);
+  EXPECT_EQ(innerV4->header().srcAddr, innerSrcIp);
+  EXPECT_EQ(innerV4->header().dstAddr, innerDstIp);
+  EXPECT_EQ(innerV4->header().dscp, 0x10);
+  EXPECT_EQ(innerV4->header().ttl, 128);
+  auto udp = innerV4->udpPayload();
+  ASSERT_TRUE(udp.has_value());
+  EXPECT_EQ(udp->header().srcPort, 7000);
+  EXPECT_EQ(udp->header().dstPort, 7001);
 }
 
 // --- makeARPTxPacket tests ---

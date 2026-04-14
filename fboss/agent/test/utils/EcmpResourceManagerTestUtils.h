@@ -56,6 +56,12 @@ void assertDeltasForOverflow(
     const EcmpResourceManager& resourceManager,
     const std::vector<StateDelta>& deltas);
 
+void assertAllRouteIdsResolvable(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& context);
+
+void assertAllDeltaIdsResolvable(const std::vector<StateDelta>& deltas);
+
 void assertRollbacks(
     EcmpResourceManager& newEcmpResourceMgr,
     const std::shared_ptr<SwitchState>& startState,

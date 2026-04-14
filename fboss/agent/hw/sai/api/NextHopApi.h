@@ -82,15 +82,10 @@ struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_IP> {
 #if SAI_API_VERSION >= SAI_VERSION(1, 12, 0)
 template <typename Attributes>
 struct NextHopTraitsAttributes<Attributes, SAI_NEXT_HOP_TYPE_SRV6_SIDLIST> {
-  using AdapterHostKey = std::tuple<
-      typename Attributes::RouterInterfaceId,
-      typename Attributes::Ip,
-      typename Attributes::TunnelId,
-      typename Attributes::Srv6SidlistId>;
+  using AdapterHostKey = std::
+      tuple<typename Attributes::TunnelId, typename Attributes::Srv6SidlistId>;
   using CreateAttributes = std::tuple<
       typename Attributes::Type,
-      typename Attributes::RouterInterfaceId,
-      typename Attributes::Ip,
       typename Attributes::TunnelId,
       typename Attributes::Srv6SidlistId,
       std::optional<typename Attributes::DisableTtlDecrement>>;

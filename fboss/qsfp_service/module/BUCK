@@ -52,6 +52,7 @@ cpp_library(
         "//fboss/qsfp_service/lib:qsfp-config-parser-helper",
         "//fboss/qsfp_service/lib:qsfp-service-client",
         "//fboss/qsfp_service/module/cmis:cmis-cpp2-types",
+        "//fboss/qsfp_service/module/properties:transceiver-properties-manager",
         "//fboss/qsfp_service/module/sff:sff-cpp2-types",
         "//fboss/qsfp_service/module/sff:sff8472-cpp2-types",
         "//folly:format",

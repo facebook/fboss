@@ -1,0 +1,20 @@
+load("@fbcode//registry:defs.bzl", "rpm")
+
+oncall("fboss_platform")
+
+rpm.builder(
+    name = "fb-fboss-devmem2",
+    configurations = [
+        rpm.configuration(
+            arch = "x86_64",
+        ),
+    ],
+    features = [
+        rpm.install(
+            src = "fbsource//third-party/tp2/devmem2/1.0.0:devmem2-bin",
+            dst = "/usr/local/bin/devmem2",
+            mode = 0o555,
+        ),
+    ],
+    summary = "devmem2 binary built from third-party2",
+)

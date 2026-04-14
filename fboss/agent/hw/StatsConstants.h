@@ -69,6 +69,10 @@ inline folly::StringPiece constexpr kInDstNullDiscards() {
   return "in_dst_null_discards";
 }
 
+inline folly::StringPiece constexpr kInSrv6MySidDiscards() {
+  return "in_srv6_mysid_discards";
+}
+
 inline folly::StringPiece constexpr kInDroppedPkts() {
   return "in_dropped_pkts";
 }
@@ -342,5 +346,13 @@ inline folly::StringPiece constexpr kRxPfcDurationUsec() {
 
 inline folly::StringPiece constexpr kTxPfcDurationUsec() {
   return "tx_pfc_duration_usec";
+}
+
+inline folly::StringPiece constexpr kOutDiscardsSll() {
+  return "out_discards_switch_lifetime_limit";
+}
+
+inline folly::StringPiece constexpr kOutDiscardsHll() {
+  return "out_discards_headroom_lifetime_limit";
 }
 } // namespace facebook::fboss

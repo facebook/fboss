@@ -153,6 +153,7 @@ typedef enum _sai_port_extensions_attr_t {
   SAI_PORT_ATTR_PFC_MONITOR_DIRECTION,
   SAI_PORT_ATTR_EXT_CABLE_PROPAGATION_DELAY_MEDIA_TYPE,
   SAI_PORT_ATTR_EXT_PFC_PAUSE_DURATION_OVERRIDE,
+  SAI_PORT_ATTR_CABLE_PROPAGATION_DELAY_MEASURE,
 } sai_port_extensions_attr_t;
 
 typedef enum _sai_ingress_priority_group_extensions_attr_t {

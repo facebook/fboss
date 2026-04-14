@@ -1381,7 +1381,8 @@ std::shared_ptr<SwitchState> SwSwitch::preInit(SwitchFlags flags) {
     rib_ = RoutingInformationBase::fromThrift(
         rib_->toThrift(),
         state->getFibsInfoMap(),
-        state->getLabelForwardingInformationBase());
+        state->getLabelForwardingInformationBase(),
+        state->getMySids());
   }
 
   fb303::fbData->setCounter(kHwUpdateFailures, 0);
@@ -2266,8 +2267,14 @@ void SwSwitch::handlePacket(std::unique_ptr<RxPacket> pkt) {
     }
   }
 
-  auto intf = getState()->getInterfaces()->getNodeIf(
-      getState()->getInterfaceIDForPort(getPortFromPkt(pkt.get())));
+  auto intfIdOpt = state->getInterfaceIDForPortIf(getPortFromPkt(pkt.get()));
+  if (!intfIdOpt) {
+    XLOG_EVERY_N(ERR, 10000)
+        << "No interface for port " << pkt->getSrcPort() << ", dropping pkt";
+    portStats(pkt)->pktDropped();
+    return;
+  }
+  auto intf = state->getInterfaces()->getNodeIf(intfIdOpt.value());
   handlePacketImpl(std::move(pkt), intf);
 }
 
@@ -3018,6 +3025,9 @@ void SwSwitch::publishBootTypeStats() {
         break;
       case BootType::WARM_BOOT:
         stats()->warmBoot();
+        if (swSwitchWarmbootHelper_->isWarmBootFromHwSwitch()) {
+          stats()->warmBootFromHwSwitch();
+        }
         break;
       case BootType::UNINITIALIZED:
         CHECK(0);
@@ -3385,10 +3395,10 @@ bool SwSwitch::sendPacketOutViaThriftStream(
 
 bool SwSwitch::sendPacketSwitchedAsync(
     std::unique_ptr<TxPacket> pkt,
-    std::optional<SwitchID> switchId) noexcept {
+    const LocalSwitchIDs& switchIds) noexcept {
   pcapMgr_->packetSent(pkt.get());
   if (!multiHwSwitchHandler_->sendPacketSwitchedAsync(
-          std::move(pkt), switchId)) {
+          std::move(pkt), switchIds)) {
     // Just log an error for now.  There's not much the caller can do about
     // send failures--even on successful return from sendPacketSwitchedAsync()
     // the send may ultimately fail since it occurs asynchronously in the

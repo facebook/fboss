@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AlpmUtils.h"
 #include "fboss/agent/FibHelpers.h"
+#include "fboss/agent/state/FibInfo.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/TestUtils.h"
 
@@ -53,23 +54,24 @@ std::map<RouteNextHopSet, uint32_t> getEcmpGroups2RefCnt(
     const std::shared_ptr<SwitchState>& in,
     const std::function<bool(const RouteNextHopEntry&)>&& filter) {
   std::map<RouteNextHopSet, uint32_t> ecmpGroups2RefCnt;
-  auto fill = [&ecmpGroups2RefCnt, &filter](const auto& fibIn) {
+  auto fill = [&ecmpGroups2RefCnt, &filter, &in](const auto& fibIn) {
     for (const auto& [_, route] : std::as_const(*fibIn)) {
-      if (!route->isResolved() ||
-          route->getForwardInfo().normalizedNextHops().size() <= 1) {
+      if (!route->isResolved()) {
+        continue;
+      }
+      auto nhops = getNormalizedNextHops(in, route->getForwardInfo());
+      if (nhops.size() <= 1) {
         continue;
       }
       if (!filter(route->getForwardInfo())) {
-        auto pitr = ecmpGroups2RefCnt.find(
-            route->getForwardInfo().normalizedNextHops());
+        auto pitr = ecmpGroups2RefCnt.find(nhops);
         if (pitr != ecmpGroups2RefCnt.end()) {
           ++pitr->second;
           XLOG(DBG4) << "Processed route: " << route->str()
                      << " primary ECMP groups count unchanged: "
                      << ecmpGroups2RefCnt.size();
         } else {
-          ecmpGroups2RefCnt.insert(
-              {route->getForwardInfo().normalizedNextHops(), 1});
+          ecmpGroups2RefCnt.insert({nhops, 1});
           XLOG(DBG4) << "Processed route: " << route->str()
                      << " primary ECMP groups count incremented: "
                      << ecmpGroups2RefCnt.size();
@@ -251,7 +253,8 @@ void assertFibAndGroupsMatch(
         ASSERT_TRUE(grpOverrideNhops.has_value());
         EXPECT_EQ(fwdInfo.getOverrideNextHops(), grpOverrideNhops);
         // Assert that override nhops map to existing merged group
-        auto nmitr = nhopsToMergedGroups.find(fwdInfo.normalizedNextHops());
+        auto nmitr =
+            nhopsToMergedGroups.find(getNormalizedNextHops(state, fwdInfo));
         ASSERT_NE(nmitr, nhopsToMergedGroups.end());
         // Bump up route ref to merged groups
         auto mGroupRefItr =
@@ -323,7 +326,7 @@ void assertNumRoutesWithNhopOverrides(
       }
       CHECK(route);
       bool isEcmpRoute = route->isResolved() &&
-          route->getForwardInfo().normalizedNextHops().size() > 1;
+          getNormalizedNextHops(state, route->getForwardInfo()).size() > 1;
       if (!isEcmpRoute) {
         continue;
       }
@@ -360,17 +363,21 @@ void assertDeltasForOverflow(
   EXPECT_LE(
       primaryEcmpTypeGroups2RefCnt.size(),
       resourceManager.getMaxPrimaryEcmpGroups());
-  auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](const auto& oldRoute) {
+  auto routeDeleted = [&primaryEcmpTypeGroups2RefCnt](
+                          const auto& oldRoute,
+                          const std::shared_ptr<SwitchState>& state) {
     XLOG(DBG2) << " Route deleted: " << oldRoute->str();
-    if (!oldRoute->isResolved() ||
-        oldRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+    if (!oldRoute->isResolved()) {
+      return;
+    }
+    auto nhops = getNormalizedNextHops(state, oldRoute->getForwardInfo());
+    if (nhops.size() <= 1) {
       return;
     }
     if (oldRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
-    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        oldRoute->getForwardInfo().normalizedNextHops());
+    auto pitr = primaryEcmpTypeGroups2RefCnt.find(nhops);
     ASSERT_NE(pitr, primaryEcmpTypeGroups2RefCnt.end());
     EXPECT_GE(pitr->second, 1);
     --pitr->second;
@@ -381,24 +388,27 @@ void assertDeltasForOverflow(
                  << " on pfx: " << oldRoute->str();
     }
   };
-  auto routeAdded = [&primaryEcmpTypeGroups2RefCnt,
-                     &resourceManager](const auto& newRoute) {
+  auto routeAdded = [&primaryEcmpTypeGroups2RefCnt, &resourceManager](
+                        const auto& newRoute,
+                        const std::shared_ptr<SwitchState>& state) {
     XLOG(DBG2) << " Route added: " << newRoute->str();
-    if (!newRoute->isResolved() ||
-        newRoute->getForwardInfo().normalizedNextHops().size() <= 1) {
+    if (!newRoute->isResolved()) {
+      return;
+    }
+    auto nhops = getNormalizedNextHops(state, newRoute->getForwardInfo());
+    if (nhops.size() <= 1) {
       return;
     }
     if (newRoute->getForwardInfo().getOverrideEcmpSwitchingMode().has_value()) {
       return;
     }
-    auto pitr = primaryEcmpTypeGroups2RefCnt.find(
-        newRoute->getForwardInfo().normalizedNextHops());
+    auto pitr = primaryEcmpTypeGroups2RefCnt.find(nhops);
     if (pitr != primaryEcmpTypeGroups2RefCnt.end()) {
       ++pitr->second;
     } else {
       bool inserted{false};
-      std::tie(pitr, inserted) = primaryEcmpTypeGroups2RefCnt.insert(
-          {newRoute->getForwardInfo().normalizedNextHops(), 1});
+      std::tie(pitr, inserted) =
+          primaryEcmpTypeGroups2RefCnt.insert({nhops, 1});
       EXPECT_TRUE(inserted);
       XLOG(DBG2) << " Primary ECMP group count incremented to: "
                  << primaryEcmpTypeGroups2RefCnt.size()
@@ -419,6 +429,8 @@ void assertDeltasForOverflow(
   auto idx = 1;
   for (const auto& delta : deltas) {
     XLOG(DBG2) << " Processing delta #" << idx++;
+    auto oldState = delta.oldState();
+    auto newState = delta.newState();
     processFibsDeltaInHwSwitchOrder(
         delta,
         [=](RouterID /*rid*/, const auto& oldRoute, const auto& newRoute) {
@@ -426,29 +438,29 @@ void assertDeltasForOverflow(
             return;
           }
           if (oldRoute->isResolved() && !newRoute->isResolved()) {
-            routeDeleted(oldRoute);
+            routeDeleted(oldRoute, oldState);
             return;
           }
           if (!oldRoute->isResolved() && newRoute->isResolved()) {
-            routeAdded(newRoute);
+            routeAdded(newRoute, newState);
             return;
           }
           // Both old and new are resolved
           CHECK(oldRoute->isResolved() && newRoute->isResolved());
           if (oldRoute->getForwardInfo() != newRoute->getForwardInfo()) {
             // First process as a add route, since ECMP is make before break
-            routeAdded(newRoute);
-            routeDeleted(oldRoute);
+            routeAdded(newRoute, newState);
+            routeDeleted(oldRoute, oldState);
           }
         },
         [=](RouterID /*rid*/, const auto& newRoute) {
           if (newRoute->isResolved()) {
-            routeAdded(newRoute);
+            routeAdded(newRoute, newState);
           }
         },
         [=](RouterID /*rid*/, const auto& oldRoute) {
           if (oldRoute->isResolved()) {
-            routeDeleted(oldRoute);
+            routeDeleted(oldRoute, oldState);
           }
         });
     EXPECT_LE(
@@ -497,6 +509,64 @@ void assertRollbacks(
   auto deltas = applyDelta(StateDelta(startState, endState));
   XLOG(DBG2) << " Rolling back to start state";
   applyDelta(StateDelta(deltas.back().newState(), startState));
+}
+
+void assertAllRouteIdsResolvable(
+    const std::shared_ptr<SwitchState>& state,
+    const std::string& context) {
+  if (!FLAGS_resolve_nexthops_from_id) {
+    return;
+  }
+  auto fibsInfoMap = state->getFibsInfoMap();
+  ASSERT_NE(fibsInfoMap, nullptr) << context;
+  for (const auto& [matcherStr, fibInfo] : std::as_const(*fibsInfoMap)) {
+    auto fibsMap = fibInfo->getfibsMap();
+    if (!fibsMap) {
+      continue;
+    }
+    for (const auto& [rid, fibContainer] : std::as_const(*fibsMap)) {
+      auto checkFib = [&](const auto& routeFib) {
+        if (!routeFib) {
+          return;
+        }
+        for (const auto& [_, route] : std::as_const(*routeFib)) {
+          if (!route->isResolved()) {
+            continue;
+          }
+          const auto& fwdInfo = route->getForwardInfo();
+          if (fwdInfo.getAction() != RouteNextHopEntry::Action::NEXTHOPS) {
+            continue;
+          }
+          auto resolvedSetId = fwdInfo.getResolvedNextHopSetID();
+          auto normalizedSetId = fwdInfo.getNormalizedResolvedNextHopSetID();
+          if (!resolvedSetId.has_value() && !normalizedSetId.has_value()) {
+            continue;
+          }
+          if (resolvedSetId.has_value()) {
+            EXPECT_NO_THROW(
+                getNextHops(state, static_cast<NextHopSetId>(*resolvedSetId)))
+                << context << " route=" << route->str()
+                << " resolvedSetId=" << *resolvedSetId;
+          }
+          if (normalizedSetId.has_value()) {
+            EXPECT_NO_THROW(
+                getNextHops(state, static_cast<NextHopSetId>(*normalizedSetId)))
+                << context << " route=" << route->str()
+                << " normalizedSetId=" << *normalizedSetId;
+          }
+        }
+      };
+      checkFib(fibContainer->getFibV6());
+      checkFib(fibContainer->getFibV4());
+    }
+  }
+}
+
+void assertAllDeltaIdsResolvable(const std::vector<StateDelta>& deltas) {
+  for (size_t i = 0; i < deltas.size(); ++i) {
+    auto context = "delta[" + std::to_string(i) + "].newState()";
+    assertAllRouteIdsResolvable(deltas[i].newState(), context);
+  }
 }
 
 void assertRibFibEquivalence(

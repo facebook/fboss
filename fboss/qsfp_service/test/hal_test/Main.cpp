@@ -1,35 +1,28 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <cstdlib>
-#include <string>
-
 #include <folly/init/Init.h>
 #include <gtest/gtest.h>
 
-namespace {
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
+#include "fboss/qsfp_service/test/hal_test/HalTest.h"
 
-// Aborts the test binary if any test in the "T0HalTest" suite (firmware
-// upgrade) fails, since subsequent tests depend on successful firmware upgrade.
-class AbortOnFirmwareUpgradeFailure : public testing::EmptyTestEventListener {
- public:
-  void OnTestEnd(const testing::TestInfo& testInfo) override {
-    if (std::string(testInfo.test_suite_name()) == "T0HalTest" &&
-        testInfo.result()->Failed()) {
-      GTEST_LOG_(ERROR)
-          << "Firmware upgrade test failed — aborting remaining tests";
-      std::exit(EXIT_FAILURE);
-    }
-  }
-};
-
-} // namespace
+DEFINE_string(
+    hal_test_transceiver_properties_config,
+    "",
+    "Path to transceiver_properties.json config file for HAL tests. "
+    "If empty, uses the built-in default config.");
 
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   folly::init(&argc, &argv);
 
-  testing::UnitTest::GetInstance()->listeners().Append(
-      new AbortOnFirmwareUpgradeFailure());
+  if (!FLAGS_hal_test_transceiver_properties_config.empty()) {
+    facebook::fboss::TransceiverPropertiesManager::init(
+        FLAGS_hal_test_transceiver_properties_config);
+  } else {
+    facebook::fboss::TransceiverPropertiesManager::initDefault();
+  }
+  facebook::fboss::registerApplicationModeTests();
 
   return RUN_ALL_TESTS();
 }

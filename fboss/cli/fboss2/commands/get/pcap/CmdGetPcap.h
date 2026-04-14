@@ -10,10 +10,7 @@
 
 #pragma once
 
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include "fboss/cli/fboss2/CmdLocalOptions.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
 
 namespace facebook::fboss {
@@ -32,29 +29,8 @@ class CmdGetPcap : public CmdHandler<CmdGetPcap, CmdGetPcapTraits> {
   using ObjectArgType = CmdGetPcapTraits::ObjectArgType;
   using RetType = CmdGetPcapTraits::RetType;
 
-  RetType queryClient(const HostInfo& hostInfo) {
-    std::string nameStr;
-    auto name =
-        CmdLocalOptions::getInstance()->getLocalOption("get_pcap", "--name");
-    nameStr =
-        name.empty() ? "packet_capture.pcap" : fmt::format("{}.pcap", name);
-    std::string remoteStr = fmt::format(
-        "netops@{}:/var/facebook/fboss/captures/{}",
-        hostInfo.getName(),
-        nameStr);
-    std::string cmdStr = fmt::format("scp {} .", remoteStr);
-    utils::runCmd(cmdStr);
-    return fmt::format(
-        "Getting a copy of the packet capture \"{}\" from {}...",
-        nameStr,
-        hostInfo.getName());
-  }
-
-  void printOutput(
-      const RetType& captureOutput,
-      std::ostream& out = std::cout) {
-    out << captureOutput << std::endl;
-  }
+  RetType queryClient(const HostInfo& hostInfo);
+  void printOutput(const RetType& captureOutput, std::ostream& out = std::cout);
 };
 
 } // namespace facebook::fboss

@@ -22,6 +22,8 @@ class ConfigValidator {
 
   bool isValidXappConfig(const fw_util_config::XappConfig& xappConfig);
 
+  bool isValidPsuUtilConfig(const fw_util_config::PsuUtilConfig& psuUtilConfig);
+
   bool isValidJtagConfig(const fw_util_config::JtagConfig& jtagConfig);
 
   bool isValidGpiosetConfig(const fw_util_config::GpiosetConfig& gpiosetConfig);

@@ -272,6 +272,10 @@ class SaiPortManager {
       PortSerdesSaiId serdesSaiPortId,
       const PortID& swPortID,
       uint8_t numPmdLanes) const;
+  std::vector<phy::TxSettings> getTxSettings(
+      PortSerdesSaiId serdesSaiPortId,
+      PortID swPortID,
+      uint8_t numPmdLanes) const;
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 3) || defined(TAJO_SDK_VERSION_1_42_8)
   std::vector<sai_port_lane_latch_status_t> getRxSignalDetect(
       PortSaiId saiPortId,
@@ -377,6 +381,7 @@ class SaiPortManager {
           bufferProfileHandles);
   const std::vector<sai_stat_id_t>& supportedStats(PortID port);
   void fillInSupportedStats(PortID port);
+  void fillInSupportedVendorExtStats(std::vector<sai_stat_id_t>& counterIds);
   bool fecStatsSupported(PortID portID) const;
   SaiPortHandle* getPortHandleImpl(PortID swId) const;
   SaiQueueHandle* getQueueHandleImpl(

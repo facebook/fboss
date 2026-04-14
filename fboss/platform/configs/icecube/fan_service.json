@@ -17,9 +17,6 @@
   "sensors": [
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
       "pidSetting": {
         "kp": 2,
@@ -31,34 +28,43 @@
       }
     },
     {
+      "sensorName": "MCB_POWER_BRICK1_TEMP",
+      "pwmCalcType": "SENSOR_PWM_CALC_TYPE_INCREMENTAL_PID",
+      "pidSetting": {
+        "kp": 5,
+        "ki": 0.6,
+        "kd": 0,
+        "setPoint": 100.0,
+        "posHysteresis": 0,
+        "negHysteresis": 3.0
+      }
+    },
+    {
       "sensorName": "PIC_T_U12_INLET_LM75_1_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
-        "43": 30,
-        "44": 35,
-        "47": 40,
-        "52": 50
+        "38": 35,
+        "40": 40,
+        "43": 45,
+        "47": 50
       },
       "normalDownTable": {
-        "55": 50,
-        "54": 40,
-        "49": 35,
-        "46": 30
+        "45": 50,
+        "41": 45,
+        "38": 40,
+        "36": 35
       },
       "failUpTable": {
-        "43": 40,
-        "44": 45,
-        "47": 50,
-        "52": 60
+        "38": 40,
+        "40": 45,
+        "43": 50,
+        "47": 55
       },
       "failDownTable": {
-        "55": 60,
-        "54": 50,
-        "49": 45,
-        "46": 40
+        "45": 55,
+        "41": 50,
+        "38": 45,
+        "36": 40
       }
     }
   ],
@@ -158,6 +164,7 @@
       "zoneName": "zone1",
       "sensorNames": [
         "CPU_UNCORE_TEMP",
+        "MCB_POWER_BRICK1_TEMP",
         "PIC_T_U12_INLET_LM75_1_TEMP"
       ],
       "fanNames": [
@@ -170,7 +177,7 @@
         "FAN_4_F",
         "FAN_4_R"
       ],
-      "slope": 10
+      "slope": 5
     }
   ]
 }

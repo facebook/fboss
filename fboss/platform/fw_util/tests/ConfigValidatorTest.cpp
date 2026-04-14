@@ -441,7 +441,8 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         UpgradeMissingArgsTestCase{"jam", "Jam"},
         UpgradeMissingArgsTestCase{"xapp", "Xapp"},
-        UpgradeMissingArgsTestCase{"flashrom", "Flashrom"}),
+        UpgradeMissingArgsTestCase{"flashrom", "Flashrom"},
+        UpgradeMissingArgsTestCase{"psu_util", "PsuUtil"}),
     [](const ::testing::TestParamInfo<UpgradeMissingArgsTestCase>& info) {
       return info.param.testName;
     });
@@ -487,6 +488,35 @@ TEST(ConfigValidatorTest, ValidUpgradeXapp) {
   fwConfig.upgrade() = upgrade;
 
   fwConfigs["bios"] = fwConfig;
+  config.fwConfigs() = fwConfigs;
+
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+}
+
+TEST(ConfigValidatorTest, ValidUpgradePsuUtil) {
+  auto config = FwUtilConfig();
+  std::map<std::string, FwConfig> fwConfigs;
+
+  FwConfig fwConfig;
+  VersionConfig versionConfig;
+  versionConfig.versionType() = "full_command";
+  versionConfig.getVersionCmd() = "echo 0.4.6";
+  fwConfig.version() = versionConfig;
+  fwConfig.priority() = 8;
+
+  std::vector<UpgradeConfig> upgrade;
+  UpgradeConfig upgradeConfigPsuUtil;
+  upgradeConfigPsuUtil.commandType() = "psu_util";
+
+  PsuUtilConfig psuUtilConfig;
+  std::vector<std::string> extraArgs = {"--psu", "auto", "upgrade"};
+  psuUtilConfig.psuUtilExtraArgs() = extraArgs;
+  upgradeConfigPsuUtil.psuUtilArgs() = psuUtilConfig;
+
+  upgrade.push_back(upgradeConfigPsuUtil);
+  fwConfig.upgrade() = upgrade;
+
+  fwConfigs["psu"] = fwConfig;
   config.fwConfigs() = fwConfigs;
 
   EXPECT_TRUE(ConfigValidator().isValid(config));

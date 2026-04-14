@@ -132,6 +132,21 @@ class EbroAsic : public TajoAsic {
   uint32_t getNumMemoryBuffers() const override {
     return 1;
   }
+
+  std::vector<prbs::PrbsPolynomial> getSupportedPrbsPolynomials()
+      const override {
+    if (isP4WarmbootEnabled()) {
+      return {
+          prbs::PrbsPolynomial::PRBS9,
+          prbs::PrbsPolynomial::PRBS11,
+          prbs::PrbsPolynomial::PRBS13,
+          prbs::PrbsPolynomial::PRBS15,
+          prbs::PrbsPolynomial::PRBS31,
+      };
+    }
+    return {};
+  }
+
   bool isP4WarmbootEnabled() const {
     auto p4WarmbootSdkVersion = getAsicSdkVersion(p4WarmbootBaseSdk);
     return currentSdkVersion_.has_value() &&

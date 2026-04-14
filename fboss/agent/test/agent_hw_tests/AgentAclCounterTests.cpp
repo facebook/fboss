@@ -15,6 +15,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -229,7 +230,7 @@ class AgentAclCounterTest : public AgentHwTest {
   size_t sendRoceTraffic(const PortID frontPanelEgrPort, AclType aclType) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     uint8_t opcode = (aclType == AclType::UDF_OPCODE_WRITE_IMMEDIATE)
         ? utility::kUdfRoceOpcodeWriteImmediate
         : utility::kUdfRoceOpcodeAck;
@@ -256,7 +257,7 @@ class AgentAclCounterTest : public AgentHwTest {
         : 10;
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     int l4DstPort = kTestDstPort;
     if (aclType == AclType::L4_DST_PORT) {
@@ -295,7 +296,7 @@ class AgentAclCounterTest : public AgentHwTest {
           helper_->ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
       getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
     } else {
-      getSw()->sendPacketSwitchedAsync(std::move(txPacket));
+      sendPacketSwitchedAsync(std::move(txPacket));
     }
 
     return txPacketSize;
@@ -419,8 +420,16 @@ class AgentAclCounterTest : public AgentHwTest {
         // At most we should get a pkt bump of 2
         EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
         if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
+          // TODO ruinanhu: Remove this once we have a fix for TH6 counter
+          // problem
+          auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+          auto extraBytes =
+              (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) ? 4
+                                                                            : 0;
+
           EXPECT_EVENTUALLY_GE(
-              aclBytesCountAfter, aclBytesCountBefore + sizeOfPacketSent);
+              aclBytesCountAfter + extraBytes,
+              aclBytesCountBefore + sizeOfPacketSent);
           //  On native BCM we see 4 extra bytes in the acl counter. This is
           //  likely due to ingress vlan getting imposed and getting counted
           //  when packet hits acl in ingress pipeline

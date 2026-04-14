@@ -32,6 +32,7 @@
 #include "fboss/agent/state/Mirror.h"
 #include "fboss/agent/state/MirrorMap.h"
 #include "fboss/agent/state/MirrorOnDropReportMap.h"
+#include "fboss/agent/state/MySidMap.h"
 #include "fboss/agent/state/NodeMapDelta.h"
 #include "fboss/agent/state/PortMap.h"
 #include "fboss/agent/state/QosPolicyMap.h"
@@ -112,6 +113,7 @@ class StateDelta {
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getSystemPortsDelta() const;
   ThriftMapDelta<IpTunnelMap> getIpTunnelsDelta() const;
   ThriftMapDelta<Srv6TunnelMap> getSrv6TunnelsDelta() const;
+  ThriftMapDelta<MySidMap> getMySidsDelta() const;
   MultiSwitchMapDelta<MultiTeFlowTable> getTeFlowEntriesDelta() const;
   // Remote object deltas
   MultiSwitchMapDelta<MultiSwitchSystemPortMap> getRemoteSystemPortsDelta()

@@ -4,8 +4,8 @@
 
 #include <folly/logging/xlog.h>
 
-#include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/SwSwitch.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -39,11 +39,12 @@ RouteNextHopEntry::NextHopSet NextHopResolver<AddrT>::resolveNextHops(
     const std::shared_ptr<SwitchState>& state,
     const AddrT& destinationIp,
     const RouterID& routerId) const {
-  const auto route = sw_->longestMatch<AddrT>(state, destinationIp, routerId);
-  if (!route || !route->isResolved()) {
+  auto result = sw_->getRib()->getRouteAndNextHops(
+      destinationIp, routerId, /*normalized=*/false);
+  if (!result || !result->first->isResolved()) {
     return RouteNextHopEntry::NextHopSet();
   }
-  return getNextHops(state, route->getForwardInfo());
+  return result->second;
 }
 
 template <typename AddrT>

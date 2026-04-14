@@ -305,7 +305,7 @@ struct SpecialHandlerInfo {
 };
 void from_json(const nlohmann::json& j, SpecialHandlerInfo& m);
 
-// Storage for address ranges. Provides comparision operators
+// Storage for address ranges. Provides comparison operators
 // to allow for it to be used as a key in a map --> This allows
 // for us to do quick lookups of addr to register map to use.
 struct AddrRange {

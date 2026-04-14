@@ -3,6 +3,7 @@
 #include "fboss/agent/test/utils/MultiPortTrafficTestUtils.h"
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/QosTestUtils.h"
 
 namespace facebook::fboss::utility {
@@ -28,8 +29,8 @@ std::vector<folly::IPAddressV6> getOneRemoteHostIpPerHyperPort(
 
 void setupEcmpDataplaneLoopOnAllPorts(
     facebook::fboss::AgentEnsemble* ensemble) {
-  auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(ensemble->getProgrammedState());
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
+      ensemble->getProgrammedState());
   utility::EcmpSetupTargetedPorts6 ecmpHelper(
       ensemble->getProgrammedState(),
       ensemble->getSw()->needL2EntryForNeighbor(),
@@ -58,9 +59,10 @@ void setupEcmpDataplaneLoopOnAllPorts(
     routePrefixes.emplace_back(prefix, 128);
   }
   auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-  ecmpHelper.programRoutes(&routeUpdater, portDescSets, routePrefixes);
+  ecmpHelper.programRoutes(
+      &routeUpdater, portDescSets, routePrefixes, {}, std::nullopt, true);
   for (auto& nhop : ecmpHelper.getNextHops()) {
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    utility::disablePortTTLDecrementIfSupported(
         ensemble, ecmpHelper.getRouterId(), nhop);
   }
 }

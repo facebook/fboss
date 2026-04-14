@@ -62,7 +62,7 @@ class ImageManifest:
             return None
         return self.data[component]
 
-    def resolve_path(self, path: str) -> Path:
+    def resolve_path(self, path: str) -> str | Path:
         """Resolve a path relative to the manifest file."""
         if path.startswith("http://") or path.startswith("https://"):
             return path

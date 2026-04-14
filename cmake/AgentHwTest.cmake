@@ -153,6 +153,7 @@ add_library(hw_switch_ensemble
 )
 
 target_link_libraries(hw_switch_ensemble
+  agent_test_utils
   hw_link_state_toggler
   switchid_scope_resolver
   core

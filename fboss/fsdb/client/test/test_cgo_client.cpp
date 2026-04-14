@@ -9,7 +9,6 @@
 
 #include "fboss/fsdb/client/FsdbPubSubManager.h"
 #include "fboss/fsdb/client/instantiations/FsdbCowStateSubManager.h"
-#include "fboss/fsdb/if/FsdbModel.h"
 #include "fboss/fsdb/tests/utils/FsdbTestServer.h"
 #include "fboss/lib/thrift_service_client/ConnectionOptions.h"
 

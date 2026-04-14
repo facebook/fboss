@@ -4,6 +4,8 @@
 
 #include <folly/logging/xlog.h>
 
+#include <algorithm>
+
 #include "fboss/agent/FbossError.h"
 
 DEFINE_string(hal_test_config, "", "Path to HAL test config JSON file");
@@ -84,6 +86,57 @@ std::vector<int> HalTest::getPresentTransceiverIds() const {
     }
   }
   return presentIds;
+}
+
+void HalTest::forEachTransceiverParallel(
+    std::function<void(hal_test::TransceiverTestResult&, int)> fn,
+    std::function<bool(int)> filter) {
+  auto tcvrIds = getPresentTransceiverIds();
+  XLOG(INFO) << "forEachTransceiverParallel: running for " << tcvrIds.size()
+             << " present transceiver(s)";
+
+  auto results = hal_test::runForAllTransceivers(tcvrIds, [&](int tcvrId) {
+    hal_test::TransceiverTestResult result;
+    result.tcvrId = tcvrId;
+    if (filter && !filter(tcvrId)) {
+      XLOG(INFO) << "Transceiver " << tcvrId << ": skipped by filter";
+      result.skipped = true;
+      return result;
+    }
+    XLOG(INFO) << "Transceiver " << tcvrId << ": starting test";
+    fn(result, tcvrId);
+    XLOG(INFO) << "Transceiver " << tcvrId
+               << ": finished (passed=" << result.passed << ")";
+    return result;
+  });
+
+  int skipped = 0;
+  int passed = 0;
+  int failed = 0;
+  for (const auto& r : results) {
+    if (r.skipped) {
+      ++skipped;
+    } else if (r.passed) {
+      ++passed;
+    } else {
+      ++failed;
+      for (const auto& f : r.failures) {
+        XLOG(ERR) << "Transceiver " << r.tcvrId << ": " << f;
+      }
+      if (!r.fatalFailure.empty()) {
+        XLOG(ERR) << "Transceiver " << r.tcvrId
+                  << " (fatal): " << r.fatalFailure;
+      }
+    }
+  }
+  XLOG(INFO) << "forEachTransceiverParallel: " << passed << " passed, "
+             << failed << " failed, " << skipped << " skipped";
+
+  if (skipped == static_cast<int>(results.size())) {
+    GTEST_SKIP() << "No transceiver matched filter";
+  }
+
+  hal_test::reportTransceiverResults(results);
 }
 
 } // namespace facebook::fboss

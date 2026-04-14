@@ -564,10 +564,11 @@ std::pair<uint64_t, uint64_t> startRxMeasure(AgentEnsemble* ensemble) {
       std::make_unique<SwSwitchRouteUpdateWrapper>(
           ensemble->getSw(), ensemble->getSw()->getRib()),
       IntfPorts,
-      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), 128}});
-  // Disable TTL decrements
+      {RoutePrefixV6{folly::IPAddressV6("2620:0:1cfe:face:b00c::4"), 128}},
+      {},
+      true);
   for (const auto& nextHop : ecmpHelper.getNextHops()) {
-    utility::ttlDecrementHandlingForLoopbackTraffic(
+    utility::disablePortTTLDecrementIfSupported(
         ensemble, ecmpHelper.getRouterId(), nextHop);
   }
   constexpr uint8_t kCpuQueue = 0;

@@ -65,8 +65,15 @@ LedManager::~LedManager() {
  * This function is called from updateLedStatus.
  * The function will trigger re-calculation of the ledState for all ports
  */
-void LedManager::triggerLedUpdate() {
-  for (auto& [portId, portDisplayInfo] : portDisplayMap_) {
+void LedManager::triggerLedUpdate(const std::vector<PortID>& portIds) {
+  for (const auto& portId : portIds) {
+    auto itr = portDisplayMap_.find(portId);
+    if (itr == portDisplayMap_.end()) {
+      XLOG(ERR) << "Unexpected portId " << portId
+                << " not found in portDisplayMap_";
+      continue;
+    }
+    auto& portDisplayInfo = itr->second;
     if (portDisplayInfo.forcedOn || portDisplayInfo.forcedOff) {
       continue;
     }
@@ -107,6 +114,7 @@ void LedManager::updateLedStatus(
     // No change in port info so return from here
     return;
   }
+  std::vector<PortID> portsToTriggerLedUpdate;
 
   for (const auto& [portId, switchStateUpdate] : newSwitchState) {
     // Step 1. Update all operational info
@@ -139,9 +147,10 @@ void LedManager::updateLedStatus(
     portInfo.drained = switchStateUpdate.drained;
 
     portDisplayMap_[portId] = portInfo;
+    portsToTriggerLedUpdate.push_back(PortID(portId));
   }
 
-  triggerLedUpdate();
+  triggerLedUpdate(portsToTriggerLedUpdate);
 }
 
 /*
@@ -160,7 +169,7 @@ void LedManager::updateLedStatus(
     // No change in port info so return from here
     return;
   }
-
+  std::vector<facebook::fboss::PortID> portsToTriggerLedUpdate;
   std::map<uint32_t, PortLosInfo> portLosMap;
   for (const auto& [tcvrId, stateUpdate] : newTcvrUpdate) {
     if (!stateUpdate.present) {
@@ -202,13 +211,14 @@ void LedManager::updateLedStatus(
           los += folly::sformat(" Lane={:d} rxLos={:d} ", lane, laneLos);
         }
         XLOG(DBG3) << "Port " << swPort << " name " << portName << los;
+        portsToTriggerLedUpdate.push_back(swPort);
       }
     }
   }
   if (portLosMap_ != portLosMap) {
     portLosMap_ = portLosMap;
     XLOG(DBG2) << "Port LOS map changed";
-    triggerLedUpdate();
+    triggerLedUpdate(portsToTriggerLedUpdate);
   }
 }
 

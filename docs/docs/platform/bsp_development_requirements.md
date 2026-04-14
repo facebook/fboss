@@ -326,12 +326,19 @@ MODULE_DEVICE_TABLE(auxiliary, fpga_info_id_table);
 ```
 
 * The `fpga_info` driver shall export the following sysfs files to userspace:
+  * `fw_ver`
+    * **Description**: This file reports the FPGA's firmware version in the format
+      `"%u.%u\n", major_ver, minor_ver`
+    * **Type**: unsigned integer
+    * **Read/Write**: RO
   * `fpga_ver`
-    * FPGA's major firmware version
-    * Type: unsigned integer
-* `fpga_sub_ver`
-  * FPGA's minor fimrware version
-  * Type: unsigned integer
+    * **Description**: FPGA's major firmware version
+    * **Type**: unsigned integer
+    * **Read/Write**: RO
+  * `fpga_sub_ver`
+    * **Description**: FPGA's minor firmware version
+    * **Type**: unsigned integer
+    * **Read/Write**: RO
 
 #### 5.3.2 I2C Controller (i2c_master)
 
@@ -751,10 +758,8 @@ LED Naming Conventions:
 * Any index (port num, fan num, led id) must be a 1-based integer.
 
 * **Port LEDs:**
-  * If there is one LED per port, the LED sysfs entry must be
-    `port%d_led:<color>:status`. E.g.: `port1_led:blue:status`.
-  * If there are multiple LEDs per port, the LED sysfs entries must be
-    `port%d_led%d:<color>:status`. E.g.: `port32_led1:blue:status`
+  * The LED sysfs entries must be `port%d_led%d:<color>:status`.
+    E.g.: `port1_led1:blue:status`, `port32_led2:amber:status`
   * Device name must match `port_led`
 * **Fan LEDs:**
   * The LED sysfs entry must be `fan%d_led:<color>:status`. For example,

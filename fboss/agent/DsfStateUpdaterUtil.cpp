@@ -3,8 +3,8 @@
 #include "fboss/agent/DsfStateUpdaterUtil.h"
 
 #include "fboss/agent/VoqUtils.h"
-#include "fboss/agent/rib/ForwardingInformationBaseUpdater.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
+#include "fboss/agent/rib/RibToSwitchStateUpdater.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/StateDelta.h"
 
@@ -17,20 +17,22 @@ facebook::fboss::StateDelta updateFibForRemoteConnectedRoutes(
     const facebook::fboss::IPv6NetworkToRouteMap& v6NetworkToRoute,
     const facebook::fboss::LabelToRouteMap& labelToRoute,
     facebook::fboss::NextHopIDManager const* nextHopIDManager,
+    const facebook::fboss::MySidTable& mySidTable,
     void* cookie) {
-  facebook::fboss::ForwardingInformationBaseUpdater fibUpdater(
+  facebook::fboss::RibToSwitchStateUpdater ribToSwitchStateUpdater(
       resolver,
       vrf,
       v4NetworkToRoute,
       v6NetworkToRoute,
       labelToRoute,
-      nextHopIDManager);
+      nextHopIDManager,
+      mySidTable);
 
   auto nextStatePtr =
       static_cast<std::shared_ptr<facebook::fboss::SwitchState>*>(cookie);
 
-  fibUpdater(*nextStatePtr);
-  auto lastDelta = fibUpdater.getLastDelta();
+  ribToSwitchStateUpdater(*nextStatePtr);
+  auto lastDelta = ribToSwitchStateUpdater.getLastDelta();
   CHECK(lastDelta.has_value());
   return facebook::fboss::StateDelta(lastDelta->oldState(), *nextStatePtr);
 }
@@ -88,6 +90,11 @@ void DsfStateUpdaterUtil::updateNeighborEntry(
     if (skipProgramming(nbrEntryIter)) {
       XLOG(DBG2) << "Skip programming remote neighbor: "
                  << nbrEntryIter->second->str();
+      XLOG(DBG3) << "Skip remote neighbor " << nbrEntryIter->second->getIP()
+                 << " on intf " << nbrEntryIter->second->getIntfID()
+                 << " (linkLocal="
+                 << nbrEntryIter->second->getIP().isLinkLocal() << ", state="
+                 << static_cast<int>(nbrEntryIter->second->getState()) << ")";
       nbrEntryIter = clonedTable->erase(nbrEntryIter);
     } else {
       // Entries received from remote are non-Local on current node
@@ -96,6 +103,12 @@ void DsfStateUpdaterUtil::updateNeighborEntry(
       nbrEntryIter->second->setNoHostRoute(false);
       updateResolvedTimestamp(oldTable, nbrEntryIter);
       XLOG(DBG2) << "Program remote neighbor: " << nbrEntryIter->second->str();
+      XLOG(DBG3) << "Program remote neighbor " << nbrEntryIter->second->getIP()
+                 << " on intf " << nbrEntryIter->second->getIntfID()
+                 << " mac=" << nbrEntryIter->second->getMac() << " isNew="
+                 << (!oldTable ||
+                     std::as_const(*oldTable).find(
+                         nbrEntryIter->second->getID()) == oldTable->cend());
       ++nbrEntryIter;
     }
   }
@@ -210,18 +223,24 @@ std::shared_ptr<SwitchState> DsfStateUpdaterUtil::getUpdatedState(
               mapToUpdate->updateNode(
                   clonedNode, scopeResolver->scope(clonedNode));
             } else {
-              processRemoteInterfaceRoutes(
-                  oldNode,
-                  out,
-                  false /* add */,
-                  remoteIntfRoutesToAdd,
-                  remoteIntfRoutesToDel);
-              processRemoteInterfaceRoutes(
-                  newNode,
-                  out,
-                  true /* add */,
-                  remoteIntfRoutesToAdd,
-                  remoteIntfRoutesToDel);
+              // Only process routes if addresses or routerID changed.
+              // Neighbor-only changes don't affect routes.
+              if (oldNode->getAddresses()->toThrift() !=
+                      newNode->getAddresses()->toThrift() ||
+                  oldNode->getRouterID() != newNode->getRouterID()) {
+                processRemoteInterfaceRoutes(
+                    oldNode,
+                    out,
+                    false /* add */,
+                    remoteIntfRoutesToAdd,
+                    remoteIntfRoutesToDel);
+                processRemoteInterfaceRoutes(
+                    newNode,
+                    out,
+                    true /* add */,
+                    remoteIntfRoutesToAdd,
+                    remoteIntfRoutesToDel);
+              }
               mapToUpdate->updateNode(
                   clonedNode, scopeResolver->scope(clonedNode, in));
             }

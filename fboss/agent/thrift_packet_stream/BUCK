@@ -39,8 +39,8 @@ cpp_library(
         "//common/fb303/cpp:fb303",
         "//fboss/agent/if:packet_stream-cpp2-services",
         "//folly:cancellation_token",
-        "//folly/experimental/coro:async_generator",
-        "//folly/experimental/coro:with_cancellation",
+        "//folly/coro:async_generator",
+        "//folly/coro:with_cancellation",
         "//folly/logging:logging",
     ],
 )

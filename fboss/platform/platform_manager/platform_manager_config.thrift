@@ -535,6 +535,10 @@ struct LedCtrlConfig {
 //  portNum=2, ledNum=2, startPort=1:
 //    iobufOffsetCalc: "0x1000 + (2 - 1)*0x8 + (2 - 1)*0x4"
 //    iobufOffsetCalc: "0x100c"
+//
+// `lanesPerPort`: Number of transceiver lanes per port in this block.
+//  Used to build the lane-to-LED mapping in BspPlatformMapping.
+//
 struct LedCtrlBlockConfig {
   1: string pmUnitScopedNamePrefix;
   2: string deviceName;
@@ -543,6 +547,7 @@ struct LedCtrlBlockConfig {
   5: i32 ledPerPort;
   6: i32 startPort;
   7: string iobufOffsetCalc;
+  8: i32 lanesPerPort = 8;
 }
 
 // Defines generic MDIO BUS Controller block in FPGAs.
@@ -776,12 +781,14 @@ struct PlatformConfig {
   12: map<string, PmUnitConfig> pmUnitConfigs;
 
   // List of the i2c buses created from the CPU.  Entries can use either:
-  //  (a) Virtual name "CPU_BUS@0" — resolved at runtime by detecting the
+  //  (a) Virtual names "CPU_BUS@N" — resolved at runtime by detecting the
   //      CPU vendor (via folly::CpuId) and scanning sysfs for the
   //      corresponding adapter:
-  //        - Intel: matches "SMBus I801 adapter at <offset>" (one per
-  //          unit).  Only CPU_BUS@0 is supported today.
-  //        - AMD: not yet implemented (throws at runtime).
+  //        - Intel: matches "SMBus I801 adapter at <offset>" by adapter
+  //          name.  Only CPU_BUS@0 is supported today.
+  //        - AMD: identifies DesignWare I2C buses via ACPI
+  //          firmware_node/path under /sys/devices/platform/AMDI0010:*.
+  //          CPU_BUS@0 maps to \_SB_.I2CB, CPU_BUS@1 to \_SB_.I2CA.
   //  (b) Exact adapter name matching /sys/bus/i2c/devices/i2c-N/name
   //      (e.g. "SMBus I801 adapter at 5000").
   // All entries in a single config must use the same style.

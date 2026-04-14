@@ -136,8 +136,7 @@ void SensorServiceImpl::fetchSensorData() {
 
   processTemperature(polledData, *sensorConfig_.temperatureConfigs());
 
-  processInputVoltage(
-      polledData, *sensorConfig_.powerConfig()->inputVoltageSensors());
+  processInputVoltage(polledData, *sensorConfig_.powerConfig());
 
   publishAggStats(polledData);
 
@@ -462,8 +461,10 @@ void SensorServiceImpl::processTemperature(
 }
 
 void SensorServiceImpl::processInputVoltage(
-    const std::map<std::string, SensorData>& polledData,
-    const std::vector<std::string>& inputVoltageSensors) {
+    std::map<std::string, SensorData>& polledData,
+    const PowerConfig& powerConfig) {
+  const auto& inputVoltageSensors = *powerConfig.inputVoltageSensors();
+
   auto getSensorValue = [&](const std::string& sensorName) {
     auto it = polledData.find(sensorName);
     if (it != polledData.end()) {
@@ -490,14 +491,40 @@ void SensorServiceImpl::processInputVoltage(
 
   publishDerivedStats(kMaxInputVoltage, maxVoltage);
 
-  // Determine input power type based on voltage
-  // AC if maxVoltage > kACVoltageThreshold, DC otherwise
-  // We only do this once as power input type should not change during the
+  // Determine input power type using voltage ranges from PowerConfig:
+  // - AC: voltage >= acVoltageMin (default 90V)
+  // - DC: dcVoltageMin (default 9V) <= voltage <= dcVoltageMax (default 64V)
+  // - Unknown: outside both ranges
+  // We only determine power type once as it should not change during the
   // sensor service execution lifetime
-  if (maxVoltage && *maxVoltage > kMinVoltageThreshold &&
-      inputPowerType_ == kInputPowerTypeUnknown) {
-    inputPowerType_ = (*maxVoltage > kACVoltageThreshold) ? kInputPowerTypeAC
-                                                          : kInputPowerTypeDC;
+  if (maxVoltage && inputPowerType_ == kInputPowerTypeUnknown) {
+    if (*maxVoltage >= *powerConfig.acVoltageMin()) {
+      inputPowerType_ = kInputPowerTypeAC;
+    } else if (
+        *maxVoltage >= *powerConfig.dcVoltageMin() &&
+        *maxVoltage <= *powerConfig.dcVoltageMax()) {
+      inputPowerType_ = kInputPowerTypeDC;
+    }
+    // Apply voltage thresholds from PowerConfig (defaults defined in thrift)
+    if (inputPowerType_ != kInputPowerTypeUnknown) {
+      auto [lowerCriticalVoltage, upperCriticalVoltage] =
+          (inputPowerType_ == kInputPowerTypeAC)
+          ? std::make_pair(
+                static_cast<float>(*powerConfig.acVoltageMin()),
+                static_cast<float>(*powerConfig.acVoltageMax()))
+          : std::make_pair(
+                static_cast<float>(*powerConfig.dcVoltageMin()),
+                static_cast<float>(*powerConfig.dcVoltageMax()));
+      for (const auto& sensorName : inputVoltageSensors) {
+        auto it = polledData.find(sensorName);
+        if (it != polledData.end() &&
+            !it->second.thresholds()->lowerCriticalVal().has_value() &&
+            !it->second.thresholds()->upperCriticalVal().has_value()) {
+          it->second.thresholds()->lowerCriticalVal() = lowerCriticalVoltage;
+          it->second.thresholds()->upperCriticalVal() = upperCriticalVoltage;
+        }
+      }
+    }
   }
   publishDerivedStats(kInputPowerType, inputPowerType_);
 

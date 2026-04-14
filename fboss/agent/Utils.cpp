@@ -29,9 +29,6 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 
 #include "fboss/agent/platforms/common/janga800bic/Janga800bicPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bfu/Meru400bfuPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400bia/Meru400biaPlatformMapping.h"
-#include "fboss/agent/platforms/common/meru400biu/Meru400biuPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaP1PlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bfa/Meru800bfaPlatformMapping.h"
 #include "fboss/agent/platforms/common/meru800bia/Meru800biaPlatformMapping.h"
@@ -989,12 +986,6 @@ std::set<SwitchID> getAllSwitchIDsForSwitch(
 
 uint32_t getRemotePortOffset(const PlatformType platformType) {
   switch (platformType) {
-    case PlatformType::PLATFORM_MERU400BIU:
-      return 256;
-    case PlatformType::PLATFORM_MERU400BIA:
-      return 256;
-    case PlatformType::PLATFORM_MERU400BFU:
-      return 0;
     case PlatformType::PLATFORM_MERU800BFA:
     case PlatformType::PLATFORM_MERU800BFA_P1:
       return 0;
@@ -1021,6 +1012,7 @@ std::string runShellCmd(const std::string& cmd) {
     result += buffer.data();
   }
 
+  XLOG(DBG4) << "Command: [ " << cmd << " ] output: [ " << result << " ]";
   return result;
 }
 
@@ -1053,18 +1045,6 @@ const facebook::fboss::PlatformMapping* FOLLY_NULLABLE
 getPlatformMappingForPlatformType(
     const facebook::fboss::PlatformType platformType) {
   switch (platformType) {
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BIU: {
-      static facebook::fboss::Meru400biuPlatformMapping meru400biu;
-      return &meru400biu;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BIA: {
-      static facebook::fboss::Meru400biaPlatformMapping meru400bia;
-      return &meru400bia;
-    }
-    case facebook::fboss::PlatformType::PLATFORM_MERU400BFU: {
-      static facebook::fboss::Meru400bfuPlatformMapping meru400bfu;
-      return &meru400bfu;
-    }
     case facebook::fboss::PlatformType::PLATFORM_MERU800BFA: {
       static facebook::fboss::Meru800bfaPlatformMapping meru800bfa{
           true /*multiNpuPlatformMapping*/};

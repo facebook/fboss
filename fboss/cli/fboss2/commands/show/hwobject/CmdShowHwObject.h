@@ -22,6 +22,13 @@ struct CmdShowHwObjectTraits : public ReadCommandTraits {
   using RetType = std::string;
 };
 
+// Common query logic shared by cached and uncached hw-object commands.
+// The only difference is the cached parameter passed to listHwObjects.
+std::string queryHwObjects(
+    const HostInfo& hostInfo,
+    const CmdShowHwObjectTraits::ObjectArgType& queriedHwObjectTypes,
+    bool cached);
+
 class CmdShowHwObject
     : public CmdHandler<CmdShowHwObject, CmdShowHwObjectTraits> {
  public:

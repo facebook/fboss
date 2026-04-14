@@ -54,7 +54,8 @@
     defined(SAI_VERSION_11_3_0_0_ODP) || defined(SAI_VERSION_11_7_0_0_ODP) ||  \
     defined(SAI_VERSION_12_2_0_0_ODP) || defined(SAI_VERSION_13_0_EA_ODP) ||   \
     defined(SAI_VERSION_13_3_0_0_ODP) || defined(SAI_VERSION_14_0_EA_ODP) ||   \
-    defined(SAI_VERSION_14_2_0_0_ODP) || defined(SAI_VERSION_15_0_EA_ODP)
+    defined(SAI_VERSION_14_2_0_0_ODP) || defined(SAI_VERSION_15_0_EA_ODP) ||   \
+    defined(SAI_VERSION_15_4_EA_ODP)
 #define BRCM_SAI_SDK_XGS
 #endif
 
@@ -78,7 +79,8 @@
 #define BRCM_SAI_SDK_XGS_AND_DNX
 #endif
 
-#if defined(SAI_VERSION_15_0_EA_ODP) || defined(SAI_VERSION_15_0_EA_DNX_ODP)
+#if defined(SAI_VERSION_15_0_EA_ODP) || \
+    defined(SAI_VERSION_15_0_EA_DNX_ODP) || defined(SAI_VERSION_15_4_EA_ODP)
 #define BRCM_SAI_SDK_GTE_15_0
 #endif
 
@@ -115,7 +117,7 @@
 #define BRCM_SAI_SDK_DNX_GTE_13_0
 #endif
 
-#if defined(SAI_VERSION_15_0_EA_ODP)
+#if defined(SAI_VERSION_15_0_EA_ODP) || defined(SAI_VERSION_15_4_EA_ODP)
 #define BRCM_SAI_SDK_XGS_GTE_15_0
 #endif
 
@@ -186,17 +188,21 @@
 
 #if defined(TAJO_SDK_VERSION_1_42_8) || defined(TAJO_SDK_VERSION_24_8_3001) || \
     defined(TAJO_SDK_VERSION_25_5_4210) ||                                     \
-    defined(TAJO_SDK_VERSION_25_11_5210)
+    defined(TAJO_SDK_VERSION_25_11_5210) ||                                    \
+    defined(TAJO_SDK_VERSION_26_2_5210)
 #define TAJO_SDK_EBRO
 #endif
 
-#if defined(TAJO_SDK_VERSION_24_8_3001) || \
-    defined(TAJO_SDK_VERSION_25_5_4210) || \
-    defined(TAJO_SDK_VERSION_25_11_5210)
+#if defined(TAJO_SDK_VERSION_24_8_3001) ||  \
+    defined(TAJO_SDK_VERSION_25_5_4210) ||  \
+    defined(TAJO_SDK_VERSION_25_11_5210) || \
+    defined(TAJO_SDK_VERSION_26_2_5210)
 #define TAJO_SDK_GTE_24_8_3001
 #endif
 
-#if defined(TAJO_SDK_VERSION_25_5_4210) || defined(TAJO_SDK_VERSION_25_11_5210)
+#if defined(TAJO_SDK_VERSION_25_5_4210) ||  \
+    defined(TAJO_SDK_VERSION_25_11_5210) || \
+    defined(TAJO_SDK_VERSION_26_2_5210)
 #define TAJO_SDK_GTE_25_5
 #endif
 

@@ -9,6 +9,7 @@
  */
 
 #include "CmdShowLldp.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <re2/re2.h>
 #include <algorithm>
@@ -281,4 +282,8 @@ RetType CmdShowLldp::createModel(
   return model;
 }
 
+// Explicit template instantiation
+template void CmdHandler<CmdShowLldp, CmdShowLldpTraits>::run();
+template const ValidFilterMapType
+CmdHandler<CmdShowLldp, CmdShowLldpTraits>::getValidFilters();
 } // namespace facebook::fboss

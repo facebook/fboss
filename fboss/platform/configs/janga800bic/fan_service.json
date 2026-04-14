@@ -14,10 +14,6 @@
   "optics": [
     {
       "opticName": "qsfp_group_1",
-      "access": {
-        "accessType": "ACCESS_TYPE_QSFP"
-      },
-      "portList": [],
       "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {
@@ -58,9 +54,6 @@
   "sensors": [
     {
       "sensorName": "SMB_U17_INNER_RIGHT_LM75_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "25": 30,
@@ -93,9 +86,6 @@
     },
     {
       "sensorName": "CPU_UNCORE_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "80": 20,
@@ -128,9 +118,6 @@
     },
     {
       "sensorName": "SMB_E1S_SSD_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "55": 20,
@@ -159,9 +146,6 @@
     },
     {
       "sensorName": "PDB_PS1_12V_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "55": 20,
@@ -198,9 +182,6 @@
     },
     {
       "sensorName": "PDB_PS2_12V_TEMP",
-      "access": {
-        "accessType": "ACCESS_TYPE_THRIFT"
-      },
       "pwmCalcType": "SENSOR_PWM_CALC_TYPE_FOUR_LINEAR_TABLE",
       "normalUpTable": {
         "55": 20,

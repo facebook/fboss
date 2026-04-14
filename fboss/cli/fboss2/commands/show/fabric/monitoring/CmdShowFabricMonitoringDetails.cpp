@@ -1,6 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "CmdShowFabricMonitoringDetails.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include "fboss/cli/fboss2/utils/CmdClientUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtils.h"
@@ -90,4 +91,11 @@ void CmdShowFabricMonitoringDetails::printOutput(
   out << table << std::endl;
 }
 
+// Explicit template instantiation
+template void CmdHandler<
+    CmdShowFabricMonitoringDetails,
+    CmdShowFabricMonitoringDetailsTraits>::run();
+template const ValidFilterMapType CmdHandler<
+    CmdShowFabricMonitoringDetails,
+    CmdShowFabricMonitoringDetailsTraits>::getValidFilters();
 } // namespace facebook::fboss

@@ -2,6 +2,10 @@
 
 #include "fboss/qsfp_service/test/hal_test/HalTestUtils.h"
 
+#include <atomic>
+#include <set>
+#include <thread>
+
 #include <folly/Conv.h>
 #include <folly/FileUtil.h>
 #include <folly/Format.h>
@@ -13,7 +17,8 @@
 #include "fboss/lib/firmware_storage/FbossFwStorage.h"
 #include "fboss/qsfp_service/if/gen-cpp2/qsfp_service_config_types.h"
 #include "fboss/qsfp_service/if/gen-cpp2/transceiver_types.h"
-#include "fboss/qsfp_service/test/hal_test/gen-cpp2/hal_test_config_constants.h"
+
+#include "fboss/qsfp_service/module/properties/TransceiverPropertiesManager.h"
 
 namespace facebook::fboss::hal_test {
 
@@ -59,7 +64,7 @@ BspTransceiverMapping buildBspTransceiverMapping(
         fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}/xcvr_reset_{}", id, id);
   }
   reset.mask() = 1;
-  reset.resetHoldHi() = 0;
+  reset.resetHoldHi() = 1;
   ac.reset() = reset;
 
   mapping.accessControl() = ac;
@@ -110,170 +115,79 @@ HalTestConfig loadHalTestConfig(const std::string& configPath) {
       contents);
 }
 
-TransceiverPortState createTransceiverPortState(
-    uint8_t startHostLane,
-    uint8_t numHostLanes,
-    cfg::PortSpeed speed) {
-  TransceiverPortState portState;
-  portState.portName = fmt::format("dummyPort/{:d}", startHostLane);
-  portState.startHostLane = startHostLane;
-  portState.speed = speed;
-  portState.numHostLanes = numHostLanes;
-  return portState;
-}
-
-std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
-    TcvrOperationalMode mode) {
-  switch (mode) {
-    case TcvrOperationalMode::MODE_8x100G_FR1:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR1_100G);
-    case TcvrOperationalMode::MODE_8x200G_DR1:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR1_200G);
-    case TcvrOperationalMode::MODE_8x100G_DR1:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR1_100G);
-    case TcvrOperationalMode::MODE_2x400G_FR4:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR4_400G);
-    case TcvrOperationalMode::MODE_2x800G_DR4:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR4_800G);
-    case TcvrOperationalMode::MODE_2x200G_FR4:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR4_200G);
-    case TcvrOperationalMode::MODE_400G_FR4_200G_FR4:
-      return {
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_200G};
-    case TcvrOperationalMode::MODE_200G_FR4_400G_FR4:
-      return {
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_200G,
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_400G,
-          MediaInterfaceCode::FR4_400G};
-    case TcvrOperationalMode::MODE_4x400G_DR2:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::DR2_400G);
-    case TcvrOperationalMode::MODE_1x800G_FR8:
-      return std::vector<MediaInterfaceCode>(8, MediaInterfaceCode::FR8_800G);
-  }
-}
-
 ProgramTransceiverState createProgramTransceiverState(
-    TcvrOperationalMode mode) {
-  std::vector<TransceiverPortState> portStates;
-  switch (mode) {
-    case TcvrOperationalMode::MODE_8x100G_FR1:
-      for (int i = 0; i < 8; i++) {
-        portStates.push_back(
-            createTransceiverPortState(i, 1, cfg::PortSpeed::HUNDREDG));
-      }
-      break;
-    case TcvrOperationalMode::MODE_2x400G_FR4:
-      portStates.push_back(
-          createTransceiverPortState(0, 4, cfg::PortSpeed::FOURHUNDREDG));
-      portStates.push_back(
-          createTransceiverPortState(4, 4, cfg::PortSpeed::FOURHUNDREDG));
-      break;
-    case TcvrOperationalMode::MODE_2x800G_DR4:
-      portStates.push_back(
-          createTransceiverPortState(0, 4, cfg::PortSpeed::EIGHTHUNDREDG));
-      portStates.push_back(
-          createTransceiverPortState(4, 4, cfg::PortSpeed::EIGHTHUNDREDG));
-      break;
-    case TcvrOperationalMode::MODE_8x200G_DR1:
-      for (int i = 0; i < 8; i++) {
-        portStates.push_back(
-            createTransceiverPortState(i, 1, cfg::PortSpeed::TWOHUNDREDG));
-      }
-      break;
-    case TcvrOperationalMode::MODE_2x200G_FR4:
-      portStates.push_back(
-          createTransceiverPortState(0, 4, cfg::PortSpeed::TWOHUNDREDG));
-      portStates.push_back(
-          createTransceiverPortState(4, 4, cfg::PortSpeed::TWOHUNDREDG));
-      break;
-    case TcvrOperationalMode::MODE_400G_FR4_200G_FR4:
-      portStates.push_back(
-          createTransceiverPortState(0, 4, cfg::PortSpeed::FOURHUNDREDG));
-      portStates.push_back(
-          createTransceiverPortState(4, 4, cfg::PortSpeed::TWOHUNDREDG));
-      break;
-    case TcvrOperationalMode::MODE_200G_FR4_400G_FR4:
-      portStates.push_back(
-          createTransceiverPortState(0, 4, cfg::PortSpeed::TWOHUNDREDG));
-      portStates.push_back(
-          createTransceiverPortState(4, 4, cfg::PortSpeed::FOURHUNDREDG));
-      break;
-    case TcvrOperationalMode::MODE_4x400G_DR2:
-      for (int i = 0; i < 4; i++) {
-        portStates.push_back(
-            createTransceiverPortState(i * 2, 2, cfg::PortSpeed::FOURHUNDREDG));
-      }
-      break;
-    case TcvrOperationalMode::MODE_1x800G_FR8:
-      portStates.push_back(
-          createTransceiverPortState(0, 8, cfg::PortSpeed::EIGHTHUNDREDG));
-      break;
-    case TcvrOperationalMode::MODE_8x100G_DR1:
-      for (int i = 0; i < 8; i++) {
-        portStates.push_back(
-            createTransceiverPortState(i, 1, cfg::PortSpeed::HUNDREDG));
-      }
-      break;
-  }
+    const SpeedCombination& combo) {
   ProgramTransceiverState state;
-  for (auto portState : portStates) {
+  for (const auto& port : *combo.ports()) {
+    TransceiverPortState portState;
+    auto startHostLane = static_cast<uint8_t>(*port.hostLanes()->start());
+    portState.portName = fmt::format("dummyPort/{:d}", startHostLane);
+    portState.startHostLane = startHostLane;
+    portState.speed = *port.speed();
+    portState.numHostLanes = static_cast<uint8_t>(*port.hostLanes()->count());
     state.ports.emplace(portState.portName, portState);
   }
   return state;
 }
 
-const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>&
-getMediaInterfaceConfigs(const HalTestConfig& config) {
-  if (config.mediaInterfaceConfigs()->empty()) {
-    return hal_test_config_constants::DEFAULT_MEDIA_INTERFACE_CONFIGS();
+std::vector<MediaInterfaceCode> getExpectedMediaInterfaceCodes(
+    const std::string& comboDescription,
+    const SpeedCombination& combo) {
+  std::vector<MediaInterfaceCode> result(8, MediaInterfaceCode::UNKNOWN);
+  for (const auto& port : *combo.ports()) {
+    auto mediaLaneCodeValue =
+        extractFromMediaInterfaceUnion<SMFMediaInterfaceCode>(
+            *port.mediaLaneCode());
+    auto mediaInterfaceCode =
+        TransceiverPropertiesManager::mediaLaneCodeToMediaInterfaceCode(
+            static_cast<uint8_t>(mediaLaneCodeValue));
+    if (mediaInterfaceCode == MediaInterfaceCode::UNKNOWN) {
+      throw FbossError(
+          "Unknown SMF media interface code 0x",
+          fmt::format("{:02x}", static_cast<int>(mediaLaneCodeValue)),
+          " in speed combination ",
+          comboDescription);
+    }
+    auto start = *port.hostLanes()->start();
+    auto count = *port.hostLanes()->count();
+    for (int i = 0; i < count; i++) {
+      result[start + i] = mediaInterfaceCode;
+    }
   }
-  return *config.mediaInterfaceConfigs();
+  return result;
 }
 
-std::vector<std::pair<TcvrOperationalMode, TcvrOperationalMode>>
-getAllSpeedChangeTransitions(
-    const std::map<MediaInterfaceCode, HalTestMediaInterfaceConfig>& configs) {
-  std::vector<std::pair<TcvrOperationalMode, TcvrOperationalMode>> result;
-  for (const auto& [_, mediaConfig] : configs) {
-    for (const auto& transition : *mediaConfig.speedChangeTransitions()) {
-      if (transition.size() == 2) {
-        result.emplace_back(transition[0], transition[1]);
+std::vector<std::string> getAllSpeedCombinationDescriptions() {
+  std::set<std::string> seen;
+  std::vector<std::string> result;
+  for (auto code : TransceiverPropertiesManager::getKnownCodes()) {
+    const auto& props = TransceiverPropertiesManager::getProperties(code);
+    for (const auto& combo : *props.supportedSpeedCombinations()) {
+      const auto& desc = *combo.combinationName();
+      if (seen.insert(desc).second) {
+        result.push_back(desc);
       }
     }
   }
   return result;
 }
 
-bool isSpeedChangeSupportedForModule(
-    QsfpModule* module,
-    const HalTestConfig& config,
-    TcvrOperationalMode from,
-    TcvrOperationalMode to) {
-  auto mediaInterface = module->getModuleMediaInterface();
-  const auto& mediaConfigs = getMediaInterfaceConfigs(config);
-  auto it = mediaConfigs.find(mediaInterface);
-  if (it == mediaConfigs.end()) {
-    return false;
-  }
-  for (const auto& transition : *it->second.speedChangeTransitions()) {
-    if (transition.size() == 2 && transition[0] == from &&
-        transition[1] == to) {
-      return true;
+std::vector<std::pair<std::string, std::string>>
+getAllSpeedChangeTransitions() {
+  std::set<std::pair<std::string, std::string>> seen;
+  std::vector<std::pair<std::string, std::string>> result;
+  for (auto code : TransceiverPropertiesManager::getKnownCodes()) {
+    const auto& props = TransceiverPropertiesManager::getProperties(code);
+    for (const auto& transition : *props.speedChangeTransitions()) {
+      if (transition.size() == 2) {
+        auto pair = std::make_pair(transition[0], transition[1]);
+        if (seen.insert(pair).second) {
+          result.push_back(std::move(pair));
+        }
+      }
     }
   }
-  return false;
+  return result;
 }
 
 namespace {
@@ -386,14 +300,17 @@ bool upgradeFirmware(QsfpModule* module, const cfg::Firmware& desiredFw) {
 int applyStartupFirmwareUpgrades(
     const HalTestConfig& config,
     std::map<int, HalTestModule>& modules) {
-  int upgraded = 0;
+  std::atomic<int> upgraded{0};
+
+  // Collect entries that are eligible for upgrade
+  struct UpgradeTask {
+    int id;
+    const HalTestTransceiverEntry* entry;
+    HalTestModule* halModule;
+  };
+  std::vector<UpgradeTask> tasks;
 
   for (const auto& entry : *config.transceivers()) {
-    if (!entry.startupConfig().has_value() ||
-        !entry.startupConfig()->firmware().has_value()) {
-      continue;
-    }
-
     int id = *entry.id();
     auto it = modules.find(id);
     if (it == modules.end()) {
@@ -409,13 +326,26 @@ int applyStartupFirmwareUpgrades(
       continue;
     }
 
-    if (upgradeFirmware(
-            halModule.module.get(), *entry.startupConfig()->firmware())) {
-      ++upgraded;
-    }
+    tasks.push_back({id, &entry, &halModule});
   }
 
-  return upgraded;
+  // Run upgrades in parallel
+  std::vector<std::thread> threads;
+  threads.reserve(tasks.size());
+  for (const auto& task : tasks) {
+    threads.emplace_back([&upgraded, &task]() {
+      if (upgradeFirmware(
+              task.halModule->module.get(),
+              *task.entry->startupConfig()->firmware())) {
+        ++upgraded;
+      }
+    });
+  }
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  return upgraded.load();
 }
 
 } // namespace facebook::fboss::hal_test

@@ -9,22 +9,49 @@
  */
 
 #include "fboss/cli/fboss2/CmdHandler.h"
-#include <thrift/lib/cpp2/visitation/for_each.h>
+#include <thrift/lib/cpp2/op/Get.h>
 #include "fboss/cli/fboss2/CmdGlobalOptions.h"
+#include "fboss/cli/fboss2/CmdList.h"
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
+#include "fboss/cli/fboss2/utils/AggregateOp.h"
+#include "fboss/cli/fboss2/utils/AggregateUtils.h"
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "thrift/lib/cpp/util/EnumUtils.h"
 #include "thrift/lib/cpp2/protocol/Serializer.h"
 
+#include <fmt/format.h>
+#include <folly/Conv.h>
+#include <folly/Demangle.h>
+#include <folly/ScopeGuard.h>
+#include <folly/Traits.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/logging/xlog.h>
-#include <cstring>
+#include <folly/stop_watch.h>
+#include <cstddef>
+#include <cstdint>
+#include <exception>
 #include <future>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
 #include <queue>
 #include <stdexcept>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-using ThriftField = apache::thrift::metadata::ThriftField;
-using ThriftType = apache::thrift::metadata::ThriftType;
+namespace {
+template <typename T>
+struct is_vector : std::false_type {};
+
+template <typename T, typename Alloc>
+struct is_vector<std::vector<T, Alloc>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_vector_v = is_vector<T>::value;
+} // namespace
 
 template <typename CmdTypeT>
 void printTabular(
@@ -159,20 +186,10 @@ void printAggregate(
 
 namespace facebook::fboss {
 
-static bool hasRun = false;
-
 template <typename CmdTypeT, typename CmdTypeTraits>
 void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
-  // Parsing library invokes every chained command handler, but we only need
-  // the 'leaf' command handler to be invoked. Thus, after the first (leaf)
-  // command handler is invoked, simply return.
-  // TODO: explore if the parsing library provides a better way to implement
-  // this.
-  if (hasRun) {
-    return;
-  }
-
-  hasRun = true;
+  // Note: The callback wrapper in CmdSubcommands.cpp ensures that only the
+  // leaf command handler is invoked. It checks if get_subcommands() is empty.
   auto extraOptionsEC =
       CmdGlobalOptions::getInstance()->validateNonFilterOptions();
   if (extraOptionsEC != cli::CliOptionResult::EOK) {
@@ -273,8 +290,6 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     });
   }
 
-  executor.join();
-
   if (!parsedAggregationInput.has_value()) {
     if (CmdGlobalOptions::getInstance()->getFmt().isJson()) {
       printJson(impl(), futureList, std::cout, std::cerr);
@@ -285,6 +300,11 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     printAggregate<CmdTypeT>(parsedAggregationInput, futureList, validAggs);
   }
 
+  // Join after printing: the print functions call .get() on each future,
+  // which blocks until that individual result is ready, enabling streaming
+  // output (especially for tabular mode) instead of waiting for all tasks.
+  executor.join();
+
   std::queue<std::pair<std::string, std::string>> executionFailures{};
 
   for (auto& fut : futureList) {
@@ -294,11 +314,19 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::runHelper() {
     }
   }
 
-  // Collect errors and display at end of execution
+  // Collect errors and display at end of execution, then throw if any failures
+  std::string combinedErrors;
   while (!executionFailures.empty()) {
     auto [host, errStr] = executionFailures.front();
     executionFailures.pop();
     XLOG(ERR) << host << " - Error in command execution: " << errStr;
+    if (!combinedErrors.empty()) {
+      combinedErrors += "; ";
+    }
+    combinedErrors += fmt::format("{}: {}", host, errStr);
+  }
+  if (!combinedErrors.empty()) {
+    throw std::runtime_error(combinedErrors);
   }
 }
 
@@ -333,7 +361,9 @@ void CmdHandler<CmdTypeT, CmdTypeTraits>::run() {
     runHelper();
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
-    exit(1);
+    // Rethrow so the caller can handle appropriately (e.g., tests can catch and
+    // check exit codes, CLI main() can exit with non-zero status)
+    throw;
   }
 }
 
@@ -351,16 +381,16 @@ bool CmdHandler<CmdTypeT, CmdTypeTraits>::isFilterable() {
   if constexpr (
       apache::thrift::is_thrift_struct_v<RetType> &&
       CmdTypeT::Traits::ALLOW_FILTERING == true) {
-    apache::thrift::for_each_field(
-        RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
-          const auto& fieldType = *meta.type();
-          const auto& thriftBaseType = fieldType.getType();
+    apache::thrift::op::for_each_field_id<RetType>([&]<class Id>(Id) {
+      auto field_ref = apache::thrift::op::get<Id>(RetType{});
+      using FieldRefType = std::remove_cvref_t<decltype(field_ref)>;
+      using ValueType = typename FieldRefType::value_type;
 
-          if (thriftBaseType != ThriftType::Type::t_list) {
-            filterable = false;
-          }
-          numFields += 1;
-        });
+      if constexpr (!is_vector_v<ValueType>) {
+        filterable = false;
+      }
+      numFields += 1;
+    });
   }
 
   if (numFields != 1) {
@@ -384,16 +414,16 @@ bool CmdHandler<CmdTypeT, CmdTypeTraits>::isAggregatable() {
   if constexpr (
       apache::thrift::is_thrift_struct_v<RetType> &&
       CmdTypeT::Traits::ALLOW_AGGREGATION) {
-    apache::thrift::for_each_field(
-        RetType(), [&](const ThriftField& meta, auto&& /*field_ref*/) {
-          const auto& fieldType = *meta.type();
-          const auto& thriftBaseType = fieldType.getType();
+    apache::thrift::op::for_each_field_id<RetType>([&]<class Id>(Id) {
+      auto field_ref = apache::thrift::op::get<Id>(RetType{});
+      using FieldRefType = std::remove_cvref_t<decltype(field_ref)>;
+      using ValueType = typename FieldRefType::value_type;
 
-          if (thriftBaseType != ThriftType::Type::t_list) {
-            aggregatable = false;
-          }
-          numFields += 1;
-        });
+      if constexpr (!is_vector_v<ValueType>) {
+        aggregatable = false;
+      }
+      numFields += 1;
+    });
   }
 
   if (numFields != 1) {
@@ -402,13 +432,10 @@ bool CmdHandler<CmdTypeT, CmdTypeTraits>::isAggregatable() {
   return aggregatable;
 }
 
-template <class T>
-using get_value_type_t = typename T::value_type;
-
 /* Logic: We first check if this thrift struct is filterable at all. If it is,
  we constuct a filter map that contains filterable fields. For now, only
  primitive fields will be added to the filter map and considered filterable.
- Also, here we are traversing the nested thrift struct using the visitation
+ Also, here we are traversing the nested thrift struct using the reflection
  api. for that, we start with the RetType() object and get to the fields of
  the inner struct using reflection. This is a much cleaner approach than the
  one that redirects through each command's handler to get the inner struct.
@@ -424,67 +451,59 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
   if constexpr (
       apache::thrift::is_thrift_struct_v<RetType> &&
       CmdTypeT::Traits::ALLOW_FILTERING == true) {
-    apache::thrift::for_each_field(
-        RetType(),
-        [&filterMap, this](
-            const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
-          if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
-                            void,
-                            get_value_type_t,
-                            folly::remove_cvref_t<
-                                decltype(*outer_field_ref)>>>) {
-            using NestedType = get_value_type_t<
-                folly::remove_cvref_t<decltype(*outer_field_ref)>>;
-            if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
-              apache::thrift::for_each_field(
-                  NestedType(),
-                  [&, this](const ThriftField& meta, auto&& /*field_ref*/) {
-                    const auto& fieldType = *meta.type();
-                    const auto& thriftBaseType = fieldType.getType();
+    apache::thrift::op::for_each_field_id<RetType>([&filterMap,
+                                                    this]<class OuterId>(
+                                                       OuterId) {
+      auto outer_field_ref = apache::thrift::op::get<OuterId>(RetType{});
+      using OuterFieldRefType = std::remove_cvref_t<decltype(outer_field_ref)>;
+      using OuterValueType = typename OuterFieldRefType::value_type;
 
-                    // we are only supporting filtering on primitive typed
-                    // keys for now. This will be expanded as we proceed.
-                    if (thriftBaseType == ThriftType::Type::t_primitive) {
-                      const auto& thriftType = fieldType.get_t_primitive();
-                      switch (thriftType) {
-                        case ThriftPrimitiveType::THRIFT_STRING_TYPE:
-                          filterMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::TypeVerifier<std::string>>(
-                              *meta.name(),
-                              impl().getAcceptedFilterValues()[*meta.name()]);
-                          break;
+      if constexpr (is_vector_v<OuterValueType>) {
+        using NestedType = typename OuterValueType::value_type;
+        if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
+          apache::thrift::op::for_each_field_id<
+              NestedType>([&, this]<class InnerId>(InnerId) {
+            auto inner_field_ref =
+                apache::thrift::op::get<InnerId>(NestedType{});
+            using InnerFieldRefType =
+                std::remove_cvref_t<decltype(inner_field_ref)>;
+            using InnerValueType = typename InnerFieldRefType::value_type;
 
-                        case ThriftPrimitiveType::THRIFT_I16_TYPE:
-                          filterMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::TypeVerifier<int16_t>>(
-                              *meta.name());
-                          break;
+            // Use the field name directly as map key - get_name_v returns a
+            // folly::StringPiece pointing to static storage (string literal)
+            const auto& field_name_view =
+                apache::thrift::op::get_name_v<NestedType, InnerId>;
+            // Create a string for TypeVerifier constructor
+            std::string field_name_str(field_name_view);
 
-                        case ThriftPrimitiveType::THRIFT_I32_TYPE:
-                          filterMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::TypeVerifier<int32_t>>(
-                              *meta.name());
-                          break;
-
-                        case ThriftPrimitiveType::THRIFT_I64_TYPE:
-                          filterMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::TypeVerifier<int64_t>>(
-                              *meta.name());
-                          break;
-
-                        case ThriftPrimitiveType::THRIFT_BYTE_TYPE:
-                          filterMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::TypeVerifier<std::byte>>(
-                              *meta.name());
-                          break;
-
-                        default:;
-                      }
-                    }
-                  });
+            // we are only supporting filtering on primitive typed
+            // keys for now. This will be expanded as we proceed.
+            if constexpr (std::is_same_v<InnerValueType, std::string>) {
+              filterMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<std::string>>(
+                      field_name_str,
+                      impl().getAcceptedFilterValues()[field_name_str]);
+            } else if constexpr (std::is_same_v<InnerValueType, int16_t>) {
+              filterMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<int16_t>>(
+                      field_name_str);
+            } else if constexpr (std::is_same_v<InnerValueType, int32_t>) {
+              filterMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<int32_t>>(
+                      field_name_str);
+            } else if constexpr (std::is_same_v<InnerValueType, int64_t>) {
+              filterMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<int64_t>>(
+                      field_name_str);
+            } else if constexpr (std::is_same_v<InnerValueType, std::byte>) {
+              filterMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::TypeVerifier<std::byte>>(
+                      field_name_str);
             }
-          }
-        });
+          });
+        }
+      }
+    });
   }
   return filterMap;
 }
@@ -495,7 +514,7 @@ CmdHandler<CmdTypeT, CmdTypeTraits>::getValidFilters() {
  AggInfo object that contains information about the operations that are
  permitted for this column. This information is subsequenlty used to perform
  aggregate validation. Also, here we are traversing the nested thrift struct
- using the visitation api. for that, we start with the RetType() object and
+ using the reflection api. for that, we start with the RetType() object and
  get to the fields of the inner struct using reflection.
  */
 template <typename CmdTypeT, typename CmdTypeTraits>
@@ -508,102 +527,91 @@ const ValidAggMapType CmdHandler<CmdTypeT, CmdTypeTraits>::getValidAggs() {
   if constexpr (
       apache::thrift::is_thrift_struct_v<RetType> &&
       CmdTypeT::Traits::ALLOW_AGGREGATION) {
-    apache::thrift::for_each_field(
-        RetType(),
-        [&aggMap](const ThriftField& /*outer_meta*/, auto&& outer_field_ref) {
-          if constexpr (apache::thrift::is_thrift_struct_v<folly::detected_or_t<
-                            void,
-                            get_value_type_t,
-                            folly::remove_cvref_t<
-                                decltype(*outer_field_ref)>>>) {
-            using NestedType = get_value_type_t<
-                folly::remove_cvref_t<decltype(*outer_field_ref)>>;
-            if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
-              apache::thrift::for_each_field(
-                  NestedType(),
-                  [&](const ThriftField& meta, auto&& /*field_ref*/) {
-                    const auto& fieldType = *meta.type();
-                    const auto& thriftBaseType = fieldType.getType();
+    apache::thrift::op::for_each_field_id<RetType>([&aggMap]<class OuterId>(
+                                                       OuterId) {
+      auto outer_field_ref = apache::thrift::op::get<OuterId>(RetType{});
+      using OuterFieldRefType = std::remove_cvref_t<decltype(outer_field_ref)>;
+      using OuterValueType = typename OuterFieldRefType::value_type;
 
-                    // Aggregation only supported on numerical keys
-                    if (thriftBaseType == ThriftType::Type::t_primitive) {
-                      const auto& thriftType = fieldType.get_t_primitive();
-                      switch (thriftType) {
-                        case ThriftPrimitiveType::THRIFT_I16_TYPE:
-                          aggMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::AggInfo<int16_t>>(
-                              *meta.name(),
-                              std::vector<AggregateOpEnum>{
-                                  AggregateOpEnum::SUM,
-                                  AggregateOpEnum::AVG,
-                                  AggregateOpEnum::MIN,
-                                  AggregateOpEnum::MAX,
-                                  AggregateOpEnum::COUNT});
-                          break;
+      if constexpr (is_vector_v<OuterValueType>) {
+        using NestedType = typename OuterValueType::value_type;
+        if constexpr (apache::thrift::is_thrift_struct_v<NestedType>) {
+          apache::thrift::op::for_each_field_id<NestedType>([&]<class InnerId>(
+                                                                InnerId) {
+            auto inner_field_ref =
+                apache::thrift::op::get<InnerId>(NestedType{});
+            using InnerFieldRefType =
+                std::remove_cvref_t<decltype(inner_field_ref)>;
+            using InnerValueType = typename InnerFieldRefType::value_type;
 
-                        case ThriftPrimitiveType::THRIFT_I32_TYPE:
-                          aggMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::AggInfo<int32_t>>(
-                              *meta.name(),
-                              std::vector<AggregateOpEnum>{
-                                  AggregateOpEnum::SUM,
-                                  AggregateOpEnum::AVG,
-                                  AggregateOpEnum::MIN,
-                                  AggregateOpEnum::MAX,
-                                  AggregateOpEnum::COUNT});
-                          break;
+            // Use the field name directly as map key - get_name_v returns a
+            // folly::StringPiece pointing to static storage (string literal)
+            const auto& field_name_view =
+                apache::thrift::op::get_name_v<NestedType, InnerId>;
+            // Create a string for AggInfo constructor
+            std::string field_name_str(field_name_view);
 
-                        case ThriftPrimitiveType::THRIFT_I64_TYPE:
-                          aggMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::AggInfo<int64_t>>(
-                              *meta.name(),
-                              std::vector<AggregateOpEnum>{
-                                  AggregateOpEnum::SUM,
-                                  AggregateOpEnum::AVG,
-                                  AggregateOpEnum::MIN,
-                                  AggregateOpEnum::MAX,
-                                  AggregateOpEnum::COUNT});
-                          break;
-
-                        case ThriftPrimitiveType::THRIFT_FLOAT_TYPE:
-                          aggMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::AggInfo<float>>(
-                              *meta.name(),
-                              std::vector<AggregateOpEnum>{
-                                  AggregateOpEnum::SUM,
-                                  AggregateOpEnum::AVG,
-                                  AggregateOpEnum::MIN,
-                                  AggregateOpEnum::MAX,
-                                  AggregateOpEnum::COUNT});
-                          break;
-
-                        case ThriftPrimitiveType::THRIFT_DOUBLE_TYPE:
-                          aggMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::AggInfo<double>>(
-                              *meta.name(),
-                              std::vector<AggregateOpEnum>{
-                                  AggregateOpEnum::SUM,
-                                  AggregateOpEnum::AVG,
-                                  AggregateOpEnum::MIN,
-                                  AggregateOpEnum::MAX,
-                                  AggregateOpEnum::COUNT});
-                          break;
-
-                        case ThriftPrimitiveType::THRIFT_STRING_TYPE:
-                          aggMap[*meta.name()] = std::make_shared<
-                              CmdGlobalOptions::AggInfo<std::string>>(
-                              *meta.name(),
-                              std::vector<AggregateOpEnum>{
-                                  AggregateOpEnum::COUNT});
-                          break;
-                        default:
-                          (void)0; // do nothing
-                      }
-                    }
-                  });
+            // Aggregation only supported on numerical keys
+            if constexpr (std::is_same_v<InnerValueType, int16_t>) {
+              aggMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::AggInfo<int16_t>>(
+                      field_name_str,
+                      std::vector<AggregateOpEnum>{
+                          AggregateOpEnum::SUM,
+                          AggregateOpEnum::AVG,
+                          AggregateOpEnum::MIN,
+                          AggregateOpEnum::MAX,
+                          AggregateOpEnum::COUNT});
+            } else if constexpr (std::is_same_v<InnerValueType, int32_t>) {
+              aggMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::AggInfo<int32_t>>(
+                      field_name_str,
+                      std::vector<AggregateOpEnum>{
+                          AggregateOpEnum::SUM,
+                          AggregateOpEnum::AVG,
+                          AggregateOpEnum::MIN,
+                          AggregateOpEnum::MAX,
+                          AggregateOpEnum::COUNT});
+            } else if constexpr (std::is_same_v<InnerValueType, int64_t>) {
+              aggMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::AggInfo<int64_t>>(
+                      field_name_str,
+                      std::vector<AggregateOpEnum>{
+                          AggregateOpEnum::SUM,
+                          AggregateOpEnum::AVG,
+                          AggregateOpEnum::MIN,
+                          AggregateOpEnum::MAX,
+                          AggregateOpEnum::COUNT});
+            } else if constexpr (std::is_same_v<InnerValueType, float>) {
+              aggMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::AggInfo<float>>(
+                      field_name_str,
+                      std::vector<AggregateOpEnum>{
+                          AggregateOpEnum::SUM,
+                          AggregateOpEnum::AVG,
+                          AggregateOpEnum::MIN,
+                          AggregateOpEnum::MAX,
+                          AggregateOpEnum::COUNT});
+            } else if constexpr (std::is_same_v<InnerValueType, double>) {
+              aggMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::AggInfo<double>>(
+                      field_name_str,
+                      std::vector<AggregateOpEnum>{
+                          AggregateOpEnum::SUM,
+                          AggregateOpEnum::AVG,
+                          AggregateOpEnum::MIN,
+                          AggregateOpEnum::MAX,
+                          AggregateOpEnum::COUNT});
+            } else if constexpr (std::is_same_v<InnerValueType, std::string>) {
+              aggMap[field_name_view] =
+                  std::make_shared<CmdGlobalOptions::AggInfo<std::string>>(
+                      field_name_str,
+                      std::vector<AggregateOpEnum>{AggregateOpEnum::COUNT});
             }
-          }
-        });
+          });
+        }
+      }
+    });
   }
   return aggMap;
 }

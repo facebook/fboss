@@ -359,7 +359,7 @@ TYPED_TEST(StaticL2ForNeighorObserverTest, ageMacWhileNeighborResolved) {
   this->resolveMac(this->kMacAddress());
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
   this->unresolveMac(this->kMacAddress());
-  // MAC entry still exists due to the fact that a neigbor still
+  // MAC entry still exists due to the fact that a neighbor still
   // refers to it.
   this->verifyMacEntryExists(MacEntryType::STATIC_ENTRY);
 }

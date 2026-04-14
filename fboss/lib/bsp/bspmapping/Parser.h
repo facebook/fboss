@@ -19,10 +19,6 @@ inline constexpr folly::StringPiece kPortMappingMinipack3BTACsv{
     "Minipack3BTA_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMinipack3NCsv{
     "Minipack3N_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMeru400bfuCsv{
-    "Meru400bfu_BspMapping.csv"};
-inline constexpr folly::StringPiece kPortMappingMeru400biuCsv{
-    "Meru400biu_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMeru800biaCsv{
     "Meru800bia_BspMapping.csv"};
 inline constexpr folly::StringPiece kPortMappingMeru800bfaCsv{

@@ -225,4 +225,16 @@ bool verifyRemoteSystemPortShelState(
     int32_t remoteSystemPortID,
     const cfg::PortState& expectedPortState);
 
+// Collect fb303 counters from all switches.
+std::map<std::string, std::map<std::string, int64_t>>
+collectSwAgentFb303Counters(const std::vector<std::string>& switches);
+
+// Get fb303 counter value for a specific port and counter type
+// statType defaults to "sum" (e.g., use "rate.60" for per-minute rates)
+int64_t getFb303CounterValue(
+    const std::map<std::string, int64_t>& counters,
+    const std::string& portName,
+    const std::string& counterSuffix,
+    const std::string& statType = "sum");
+
 } // namespace facebook::fboss::utility

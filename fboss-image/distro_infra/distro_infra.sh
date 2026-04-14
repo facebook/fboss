@@ -1,8 +1,11 @@
 #!/bin/bash
+set -e
 
 INTERFACE=""
 PERSIST_DIR=""
+DISTRO_CONTAINER_NAME="fboss-distro-infra" # This should match DISTRO_CONTAINER_NAME in distro_cli/cmds/device.py
 NODHCPV6=""
+DISTRO_CONTAINER_NAME="fboss-distro-infra" # This should match DISTRO_CONTAINER_NAME in distro_cli/cmds/device.py
 
 help() {
   echo "Usage: $0 [--nodhcpv6] --intf <interface> --persist-dir <persistent dir>"
@@ -61,7 +64,11 @@ fi
 
 mkdir -p "${PERSIST_DIR}"
 
+# Write interface name to persistent directory so it can be read by distro_cli
+echo -n "${INTERFACE}" >"${PERSIST_DIR}/interface_name.txt"
+
 # Run the Docker container with the parsed arguments
 docker run --rm -it --network host --cap-add=NET_ADMIN \
   --volume "$(realpath "${PERSIST_DIR}")":/distro_infra/persistent:rw \
+  --name "${DISTRO_CONTAINER_NAME}" \
   fboss_distro_infra /distro_infra/run_distro_infra.sh "${NODHCPV6}" --intf "${INTERFACE}"

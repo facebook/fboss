@@ -9,6 +9,7 @@
  */
 
 #include "fboss/cli/fboss2/commands/show/fsdb/CmdShowFsdbSubscribers.h"
+#include "fboss/cli/fboss2/CmdHandler.cpp"
 
 #include <folly/coro/BlockingWait.h>
 #include <unistd.h>
@@ -21,9 +22,8 @@ namespace facebook::fboss {
 CmdShowFsdbSubscribers::RetType CmdShowFsdbSubscribers::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& fsdbClientid) {
-  auto client =
-      utils::createClient<facebook::fboss::fsdb::FsdbServiceAsyncClient>(
-          hostInfo);
+  auto client = utils::createClient<
+      apache::thrift::Client<facebook::fboss::fsdb::FsdbService>>(hostInfo);
 
   fsdb::SubscriberIds subscribers(fsdbClientid.begin(), fsdbClientid.end());
 
@@ -84,5 +84,9 @@ void CmdShowFsdbSubscribers::printOutput(
   }
   out << table << std::endl;
 }
+
+// Explicit template instantiation
+template void
+CmdHandler<CmdShowFsdbSubscribers, CmdShowFsdbSubscriberTraits>::run();
 
 } // namespace facebook::fboss

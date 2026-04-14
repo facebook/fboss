@@ -71,7 +71,7 @@ class RuntimeConfigBuilderTest : public ::testing::Test {
 
 // Test that getActualAdapter correctly resolves a direct bus (non-INCOMING)
 TEST_F(RuntimeConfigBuilderTest, DirectBusResolution) {
-  testGetActualAdapter("SCM", "CPU@0", "SCM_SLOT", "SCM", "CPU", 0);
+  testGetActualAdapter("SCM", "CPU@0", "SCM_SLOT", "SCM", "CPU@0", 0);
 }
 
 // Test that getActualAdapter correctly resolves a single INCOMING step
@@ -109,12 +109,13 @@ TEST_F(RuntimeConfigBuilderTest, CpuAdaptersAdded) {
   }
 
   // Verify that the runtime config contains cpu adapters
-  ASSERT_TRUE(cpuAdapters.size() == 1);
+  ASSERT_EQ(cpuAdapters.size(), 2);
 
   // Verify that the cpu adapters have the correct properties
   for (const auto& adapter : cpuAdapters) {
-    EXPECT_EQ(*adapter.pmName(), "SCM.CPU");
-    EXPECT_EQ(*adapter.busName(), "CPU");
+    EXPECT_TRUE(
+        *adapter.pmName() == "SCM.CPU@0" || *adapter.pmName() == "SCM.CPU@1");
+    EXPECT_TRUE(*adapter.busName() == "CPU@0" || *adapter.busName() == "CPU@1");
   }
 }
 
@@ -142,12 +143,12 @@ TEST_F(RuntimeConfigBuilderTest, MuxAdaptersAdded) {
       EXPECT_EQ(*adapter.isCpuAdapter(), false);
       EXPECT_EQ(*adapter.busName(), "YOLO_MUX1");
       EXPECT_EQ(*adapter.muxAdapterInfo()->deviceName(), "pca9x44");
-      EXPECT_EQ(*adapter.muxAdapterInfo()->parentAdapterChannel(), 1);
+      EXPECT_EQ(*adapter.muxAdapterInfo()->parentAdapterChannel(), 0);
       EXPECT_EQ(*adapter.muxAdapterInfo()->numOutgoingChannels(), 4);
       EXPECT_EQ(*adapter.muxAdapterInfo()->address(), "0x55");
       auto parent_adapter = *adapter.muxAdapterInfo()->parentAdapter();
       EXPECT_EQ(*parent_adapter.isCpuAdapter(), true);
-      EXPECT_EQ(*parent_adapter.pmName(), "SCM.CPU");
+      EXPECT_EQ(*parent_adapter.pmName(), "SCM.CPU@1");
     }
   }
 }

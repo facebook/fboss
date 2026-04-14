@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/PacketSendUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -184,6 +185,13 @@ void AgentEnsemble::startAgent(bool failHwCallsOnWarmboot) {
     initializer->initAgent(this, hwWriteBehavior);
   }));
   initializer->initializer()->waitForInitDone();
+
+  if (FLAGS_verify_recover_from_hw_switch) {
+    CHECK_EQ(getSw()->getBootType(), BootType::WARM_BOOT)
+        << "verify_recover_from_hw_switch is set but boot type is not WARM_BOOT";
+    CHECK(getSw()->getWarmBootHelper()->isWarmBootFromHwSwitch())
+        << "verify_recover_from_hw_switch is set but did not warmboot from HW switch";
+  }
 
   if (getSw()->getBootType() == BootType::COLD_BOOT) {
     if (linkToggler_ != nullptr) {
@@ -766,7 +774,7 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
 }
 
 std::optional<VlanID> AgentEnsemble::getVlanIDForTx() const {
-  auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+  auto intf = firstInterfaceWithPortsForTesting(getProgrammedState());
   return getSw()->getVlanIDForTx(intf);
 }
 

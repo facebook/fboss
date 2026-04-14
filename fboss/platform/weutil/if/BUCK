@@ -12,6 +12,9 @@ thrift_library(
     ],
     thrift_cpp2_options = "json",
     thrift_srcs = {"weutil_config.thrift": []},
+    deps = [
+        "//thrift/annotation:thrift",
+    ],
 )
 
 thrift_library(
@@ -23,4 +26,8 @@ thrift_library(
     py3_namespace = "facebook.fboss.platform",
     thrift_cpp2_options = "json",
     thrift_srcs = {"eeprom_contents.thrift": []},
+    deps = [
+        "//thrift/annotation:hack",
+        "//thrift/annotation:thrift",
+    ],
 )

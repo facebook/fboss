@@ -11,6 +11,7 @@ namespace facebook::fboss {
 sai_srv6_api_t* wrappedSrv6Api();
 
 SET_ATTRIBUTE_FUNC_DECLARATION(Srv6SidList);
+SET_ATTRIBUTE_FUNC_DECLARATION(MySidEntry);
 #endif
 
 } // namespace facebook::fboss

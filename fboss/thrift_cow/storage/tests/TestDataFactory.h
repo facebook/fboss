@@ -154,9 +154,9 @@ class FsdbStateDataFactory : public IDataGenerator {
   TaggedOperState getStateUpdate(int version, bool minimal) override;
 
  protected:
-  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot();
-  SwitchState buildSwitchState();
-  FibContainerFields buildFibData();
+  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot(int version);
+  SwitchState buildSwitchState(int version);
+  FibContainerFields buildFibData(int version);
   SwitchStateScale getRoleScale(RoleSelector role);
 
   RouteFields createRouteFields(
@@ -225,21 +225,25 @@ class BgpRibMapDataGenerator : public IDataGenerator {
   TaggedOperState getStateUpdate(int version, bool minimal) override;
 
  protected:
-  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot();
-  fsdb::BgpData buildBgpData();
+  fsdb::FsdbOperStateRoot buildFsdbOperStateRoot(int version);
+  fsdb::BgpData buildBgpData(int version);
   BgpRibMapScale getScale(RoleSelector role);
 
   // Helper methods to create BGP structures
-  TRibEntry buildTRibEntry(const BgpRibMapScale& scale, int index, bool isV6);
-  facebook::neteng::fboss::bgp_attr::TIpPrefix createPrefix(
+  TRibEntry buildTRibEntry(
+      const BgpRibMapScale& scale,
       int index,
-      bool isV6);
+      bool isV6,
+      int version);
+  facebook::neteng::fboss::bgp_attr::TIpPrefix
+  createPrefix(int index, bool isV6, int keySet);
   neteng::fboss::bgp::thrift::TBgpPath createBgpPath(
       int entryIndex,
       int pathIndex,
       int numCommunities,
       int numAsPathSegments,
-      int numExtCommunities);
+      int numExtCommunities,
+      int asPathVersion);
   std::string createPrefixKey(
       const facebook::neteng::fboss::bgp_attr::TIpPrefix& prefix);
 

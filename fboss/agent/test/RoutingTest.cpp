@@ -119,7 +119,7 @@ const IOBuf createV6MulticastPacket(const folly::IPAddressV6& srcAddr) {
 }
 
 /**
- * Expectation comparision for RxPacket being sent to Host.
+ * Expectation comparison for RxPacket being sent to Host.
  */
 RxMatchFn matchRxPacket(const IOBuf& expBuf) {
   return [expBuf](const RxPacket* rcvdPkt) {
@@ -133,7 +133,7 @@ RxMatchFn matchRxPacket(const IOBuf& expBuf) {
 }
 
 /**
- * Expectation comparision for TxPacket being sent to Switch
+ * Expectation comparison for TxPacket being sent to Switch
  */
 TxMatchFn matchTxPacket(
     const folly::MacAddress& srcMac,
@@ -141,7 +141,7 @@ TxMatchFn matchTxPacket(
     VlanID vlanID,
     uint16_t protocol,
     std::unique_ptr<IOBuf> expBuf) {
-  // Write these into header. NOTE expPkt is being modified for comparision.
+  // Write these into header. NOTE expPkt is being modified for comparison.
   expBuf->prepend(EthHdr::SIZE);
   folly::io::RWPrivateCursor rwCursor(expBuf.get());
   TxPacket::writeEthHeader(&rwCursor, dstMac, srcMac, vlanID, protocol);

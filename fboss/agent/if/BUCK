@@ -54,6 +54,7 @@ thrift_library(
         "//fboss/agent:switch_config",
         "//fboss/agent/hw:hardware_stats",
         "//fboss/lib/phy:phy",
+        "//fboss/lib/phy:prbs",
         "//fboss/qsfp_service/if:transceiver",
     ],
 )
@@ -113,7 +114,6 @@ thrift_library(
         ":mpls",
         "//common/network/if:if",
         "//thrift/annotation:cpp",
-        "//thrift/annotation:scope",
         "//thrift/annotation:thrift",
     ],
 )
@@ -243,7 +243,6 @@ thrift_library(
         "cpp2",
         "py-deprecated",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "go",
         "rust",
         "python",
@@ -271,7 +270,6 @@ thrift_library(
         "cpp2",
         "py-deprecated",
         "py3-deprecated",
-        "py-deprecated-asyncio",
         "go",
         "rust",
         "python",

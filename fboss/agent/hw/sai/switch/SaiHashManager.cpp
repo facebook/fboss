@@ -9,7 +9,6 @@
  */
 
 #include "fboss/agent/hw/sai/switch/SaiHashManager.h"
-#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/store/SaiStore.h"
 #include "fboss/agent/hw/sai/switch/SaiManagerTable.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitchManager.h"

@@ -46,6 +46,12 @@ struct XappConfig {
   1: list<string> xappExtraArgs;
 }
 
+// Define the struct for psu_util tooling upgrade cases
+struct PsuUtilConfig {
+  // psu_util extra arguments
+  1: list<string> psuUtilExtraArgs;
+}
+
 // Define a struct for gpioset firmware configuration
 struct GpiosetConfig {
   // GPIO chip for gpioset
@@ -119,8 +125,10 @@ struct UpgradeConfig {
   2: optional FlashromConfig flashromArgs;
   // cases where jam is being used
   3: optional JamConfig jamArgs;
-  // cases where xam is being used
+  // cases where xapp is being used
   4: optional XappConfig xappArgs;
+  // cases where psu_util is being used
+  5: optional PsuUtilConfig psuUtilArgs;
 }
 
 // Define a struct for version configuration

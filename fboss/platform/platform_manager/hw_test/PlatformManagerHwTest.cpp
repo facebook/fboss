@@ -14,6 +14,7 @@
 #include "fboss/platform/platform_manager/PkgManager.h"
 #include "fboss/platform/platform_manager/PlatformExplorer.h"
 #include "fboss/platform/platform_manager/PlatformManagerHandler.h"
+#include "fboss/platform/xcvr_lib/XcvrLib.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -27,39 +28,7 @@ const std::map<ExplorationStatus, std::vector<ExplorationStatus>>
         {ExplorationStatus::SUCCEEDED, {}},
         {ExplorationStatus::SUCCEEDED_WITH_EXPECTED_ERRORS, {}},
         {ExplorationStatus::FAILED, {}}};
-
-// Find the number of LEDs configured for a given xcvr number.
-int getNumLedsForXcvr(int xcvrNum, const PlatformConfig& platformConfig) {
-  int ledCount = 0;
-
-  for (const auto& [pmUnitName, pmUnitConfig] :
-       *platformConfig.pmUnitConfigs()) {
-    for (const auto& pciDeviceConfig : *pmUnitConfig.pciDeviceConfigs()) {
-      // Check individual LED control configs
-      for (const auto& ledCtrlConfig : *pciDeviceConfig.ledCtrlConfigs()) {
-        if (*ledCtrlConfig.portNumber() == xcvrNum) {
-          ledCount++;
-        }
-      }
-
-      // Check LED control block configs
-      for (const auto& ledBlockConfig :
-           *pciDeviceConfig.ledCtrlBlockConfigs()) {
-        int startPort = *ledBlockConfig.startPort();
-        int numPorts = *ledBlockConfig.numPorts();
-        int ledPerPort = *ledBlockConfig.ledPerPort();
-
-        // Check if xcvrNum falls within this block's port range
-        if (xcvrNum >= startPort && xcvrNum < startPort + numPorts) {
-          ledCount += ledPerPort;
-        }
-      }
-    }
-  }
-
-  return ledCount;
-}
-}; // namespace
+} // namespace
 
 namespace fs = std::filesystem;
 
@@ -109,9 +78,7 @@ class PlatformManagerHwTest : public ::testing::Test {
     auto platformName = platformConfig_.platformName().value();
     auto maxSetupTime = PlatformExplorer::kMaxSetupTime;
     if (platformName == "MORGAN800CC") {
-      maxSetupTime = PlatformExplorer::kMaxSetupTimeMorgan800CC;
-    } else if (platformName == "MERU800BFA" || platformName == "MERU800BIA") {
-      maxSetupTime = PlatformExplorer::kMaxSetupTimeMeru800;
+      maxSetupTime = PlatformExplorer::kMaxSetupTimeViolaters;
     }
     EXPECT_LE(duration, maxSetupTime) << fmt::format(
         "Exploration time {}s exceeded maximum allowed {}s",
@@ -134,6 +101,7 @@ class PlatformManagerHwTest : public ::testing::Test {
   }
 
   PlatformConfig platformConfig_{ConfigUtils().getConfig()};
+  fboss::XcvrLib xcvrLib_{platformConfig_};
   DataStore dataStore_{platformConfig_};
   PlatformExplorerWrapper platformExplorer_{platformConfig_, dataStore_};
   PkgManager pkgManager_{platformConfig_};
@@ -217,20 +185,10 @@ TEST_F(PlatformManagerHwTest, XcvrCtrlFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
-  for (auto xcvrId = 1; xcvrId <= *platformConfig_.numXcvrs(); xcvrId++) {
-    auto xcvrCtrlDir =
-        fs::path(fmt::format("/run/devmap/xcvrs/xcvr_ctrl_{}", xcvrId));
-    fs::path presenceFile, resetFile;
-    std::string presenceFileName, resetFileName;
-    if (*platformConfig_.bspKmodsRpmName() == "cisco_bsp_kmods") {
-      presenceFileName = "xcvr_present";
-      resetFileName = "xcvr_reset";
-    } else {
-      presenceFileName = fmt::format("xcvr_present_{}", xcvrId);
-      resetFileName = fmt::format("xcvr_reset_{}", xcvrId);
-    }
-    presenceFile = xcvrCtrlDir / fs::path(presenceFileName);
-    resetFile = xcvrCtrlDir / fs::path(resetFileName);
+  for (auto xcvrId = 1; xcvrId <= xcvrLib_.getNumTransceivers(); xcvrId++) {
+    auto presenceFile =
+        fs::path(xcvrLib_.getXcvrPresenceSysfsPath(xcvrId).value());
+    auto resetFile = fs::path(xcvrLib_.getXcvrResetSysfsPath(xcvrId).value());
     EXPECT_TRUE(fs::exists(presenceFile))
         << fmt::format("{} doesn't exist", presenceFile.string());
     EXPECT_TRUE(fs::exists(resetFile))
@@ -251,9 +209,8 @@ TEST_F(PlatformManagerHwTest, XcvrIoFiles) {
   fs::remove_all("/run/devmap/xcvrs");
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
-  for (auto xcvrId = 1; xcvrId <= *platformConfig_.numXcvrs(); xcvrId++) {
-    auto xcvrIoPath =
-        fs::path(fmt::format("/run/devmap/xcvrs/xcvr_io_{}", xcvrId));
+  for (auto xcvrId = 1; xcvrId <= xcvrLib_.getNumTransceivers(); xcvrId++) {
+    auto xcvrIoPath = fs::path(xcvrLib_.getXcvrIODevicePath(xcvrId).value());
     EXPECT_TRUE(fs::is_character_file(xcvrIoPath))
         << fmt::format("{} isn't a character file", xcvrIoPath.string());
   }
@@ -264,36 +221,28 @@ TEST_F(PlatformManagerHwTest, XcvrLedFiles) {
   EXPECT_FALSE(fs::exists("/run/devmap/xcvrs"));
   explorationOk();
 
-  bool isDarwin = platformConfig_.platformName().value() == "DARWIN" ||
-      platformConfig_.platformName().value() == "DARWIN48V";
+  auto primaryColor = xcvrLib_.getPrimaryLedColor();
+  auto secondaryColor = fboss::XcvrLib::LedColor::AMBER;
 
-  std::string firstColorName = isDarwin ? "green" : "blue";
-  std::string secondColorName = "amber";
-  for (auto xcvrNum = 1; xcvrNum <= *platformConfig_.numXcvrs(); xcvrNum++) {
-    auto numLeds = getNumLedsForXcvr(xcvrNum, platformConfig_);
+  for (auto xcvrNum = 1; xcvrNum <= xcvrLib_.getNumTransceivers(); xcvrNum++) {
+    auto numLeds = xcvrLib_.getNumLedsForTransceiver(xcvrNum).value();
     for (auto ledNum = 1; ledNum <= numLeds; ledNum++) {
-      auto firstLedDir = fs::path(
-          fmt::format(
-              "/sys/class/leds/port{}_led{}:{}:status",
-              xcvrNum,
-              ledNum,
-              firstColorName));
-      auto secondLedDir = fs::path(
-          fmt::format(
-              "/sys/class/leds/port{}_led{}:{}:status",
-              xcvrNum,
-              ledNum,
-              secondColorName));
+      auto primaryLedDir = fs::path(
+          xcvrLib_.getLedSysfsPath(xcvrNum, ledNum, primaryColor).value());
+      auto secondaryLedDir = fs::path(
+          xcvrLib_.getLedSysfsPath(xcvrNum, ledNum, secondaryColor).value());
 
       XLOG(DBG2) << fmt::format(
-          "Checking {} and {}", firstLedDir.string(), secondLedDir.string());
+          "Checking {} and {}",
+          primaryLedDir.string(),
+          secondaryLedDir.string());
       for (auto& ledFile : {"brightness", "max_brightness", "trigger"}) {
-        auto firstLedFullPath = firstLedDir / fs::path(ledFile);
-        auto secondLedFullPath = secondLedDir / fs::path(ledFile);
-        EXPECT_TRUE(fs::exists(firstLedFullPath))
-            << fmt::format("{} doesn't exist", firstLedFullPath.string());
-        EXPECT_TRUE(fs::exists(secondLedFullPath))
-            << fmt::format("{} doesn't exist", secondLedFullPath.string());
+        auto primaryLedFullPath = primaryLedDir / fs::path(ledFile);
+        auto secondaryLedFullPath = secondaryLedDir / fs::path(ledFile);
+        EXPECT_TRUE(fs::exists(primaryLedFullPath))
+            << fmt::format("{} doesn't exist", primaryLedFullPath.string());
+        EXPECT_TRUE(fs::exists(secondaryLedFullPath))
+            << fmt::format("{} doesn't exist", secondaryLedFullPath.string());
       }
     }
   }

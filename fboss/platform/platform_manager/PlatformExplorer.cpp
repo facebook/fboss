@@ -20,6 +20,7 @@
 #include "fboss/platform/platform_manager/Utils.h"
 #include "fboss/platform/weutil/FbossEepromInterface.h"
 #include "fboss/platform/weutil/IoctlSmbusEepromReader.h"
+#include "fboss/platform/weutil/ParserUtils.h"
 
 namespace facebook::fboss::platform::platform_manager {
 namespace {
@@ -336,25 +337,34 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     directly with ioctl and written to the /run/devmap file. See:
     https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
     */
+    uint16_t eepromOffset = *idpromConfig.offset();
     if ((platformConfig_.platformName().value() == "MERU800BFA" ||
          platformConfig_.platformName().value() == "MERU800BIA" ||
          platformConfig_.platformName().value() == "ICECUBE800BANW" ||
          platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
         (!(idpromConfig.busName()->starts_with("INCOMING")) &&
          *idpromConfig.address() == "0x50")) {
+      // ICECUBE800BANW has SMB at root level, others have SCM
+      std::string eepromName =
+          (platformConfig_.platformName().value() == "ICECUBE800BANW")
+          ? "SMB_EEPROM"
+          : "MERU_SCM_EEPROM";
       try {
         std::string eepromDir = "/run/devmap/eeproms/";
-        std::string eepromName = "MERU_SCM_EEPROM";
         eepromPath = eepromDir + eepromName;
         IoctlSmbusEepromReader::readEeprom(
             eepromDir,
             eepromName,
-            0,
+            eepromOffset,
             std::stoi(*idpromConfig.address(), nullptr, 16),
-            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()));
+            dataStore_.getI2cBusNum(slotPath, *idpromConfig.busName()),
+            kMaxEepromDataRegionSize);
+        // The parsed file contains data starting at offset 0
+        eepromOffset = 0;
       } catch (const std::exception& e) {
         auto errMsg = fmt::format(
-            "Could not read MERU_SCM_EEPROM for {}: {}",
+            "Could not read EEPROM {} for {}: {}",
+            eepromName,
             *idpromConfig.address(),
             e.what());
         XLOG(ERR) << errMsg;
@@ -374,8 +384,7 @@ std::optional<std::string> PlatformExplorer::getPmUnitNameFromSlot(
     try {
       auto idpromDevicePath = Utils().createDevicePath(slotPath, "IDPROM");
       dataStore_.updateEepromContents(
-          idpromDevicePath,
-          FbossEepromInterface(eepromPath, *idpromConfig.offset()));
+          idpromDevicePath, FbossEepromInterface(eepromPath, eepromOffset));
       const auto& eepromContents =
           dataStore_.getEepromContents(idpromDevicePath);
       if (idpromDevicePath == *platformConfig_.chassisEepromDevicePath()) {
@@ -1119,8 +1128,16 @@ void PlatformExplorer::genHumanReadableEeproms() {
   // Hence, the eeproms were created through custom utility and not listed under
   // `symbolicLinkToDevicePath()`
   // See: https://github.com/facebookexternal/fboss.bsp.arista/pull/31/files
-  if (std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
+  if ((platformConfig_.platformName().value() == "MERU800BFA" ||
+       platformConfig_.platformName().value() == "MERU800BIA" ||
+       platformConfig_.platformName().value() == "BLACKWOLF800BANW") &&
+      std::filesystem::exists("/run/devmap/eeproms/MERU_SCM_EEPROM")) {
     writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/MERU_SCM_EEPROM");
   }
+  if (platformConfig_.platformName().value() == "ICECUBE800BANW" &&
+      std::filesystem::exists("/run/devmap/eeproms/SMB_EEPROM")) {
+    writeEepromContent("/[IDPROM]", "/run/devmap/eeproms/SMB_EEPROM");
+  }
 }
+
 } // namespace facebook::fboss::platform::platform_manager

@@ -9,6 +9,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
+#include "fboss/agent/packet/bcm/XgsPsampMod.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/TestUtils.h"
@@ -86,6 +87,12 @@ class AgentMirrorOnDropTest : public AgentHwTest {
   const int16_t kMirrorSrcPort = 0x6666;
   const int16_t kMirrorDstPort = 0x7777;
 
+  // Packet fields used in makePacket() — used to verify inner packet in MoD
+  const folly::IPAddressV6 kPacketSrcIp_{
+      "2401:2222:2222:2222:2222:2222:2222:2222"};
+  static constexpr uint16_t kPacketSrcPort = 0x4444;
+  static constexpr uint16_t kPacketDstPort = 0x5555;
+
   std::string portDesc(const PortID& portId) {
     const auto& cfg = getAgentEnsemble()->getCurrentConfig();
     for (const auto& port : *cfg.ports()) {
@@ -110,11 +117,16 @@ class AgentMirrorOnDropTest : public AgentHwTest {
       return ecmpHelper.resolveNextHops(state, {port});
     });
     auto routeUpdater = getSw()->getRouteUpdater();
-    ecmpHelper.programRoutes(&routeUpdater, {port}, {std::move(route)});
-
+    ecmpHelper.programRoutes(
+        &routeUpdater,
+        {port},
+        {std::move(route)},
+        {},
+        std::nullopt,
+        disableTtlDecrement ? std::make_optional(true) : std::nullopt);
     if (disableTtlDecrement) {
       for (auto& nhop : ecmpHelper.getNextHops()) {
-        utility::ttlDecrementHandlingForLoopbackTraffic(
+        utility::disablePortTTLDecrementIfSupported(
             getAgentEnsemble(), ecmpHelper.getRouterId(), nhop);
       }
     }
@@ -148,11 +160,11 @@ class AgentMirrorOnDropTest : public AgentHwTest {
         getSw(),
         getVlanIDForTx(),
         utility::kLocalCpuMac(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
-        folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
+        kPacketSrcIp_,
         dstIp,
-        0x4444,
-        0x5555,
+        kPacketSrcPort,
+        kPacketDstPort,
         (priority * 8) << 2, // dscp is the 6 MSBs in TC
         255,
         std::move(payload));
@@ -640,7 +652,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
           getSw(),
           getVlanIDForTx(),
           utility::kLocalCpuMac(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
           kDestIp,
           0x4444,
@@ -962,7 +974,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithMultipleMirrors) {
       setupEcmpTraffic(
           loop.injectionPortId,
           loop.dstIp,
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
     }
     waitForStateUpdates(getSw());
@@ -1424,7 +1436,7 @@ TEST_P(AgentMirrorOnDropDnxTest, VsqReject) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -1482,7 +1494,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PrecedenceDrop) {
     setupEcmpTraffic(
         injectionPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /* disableTtlDecrement */);
     waitForStateUpdates(getSw());
   };
@@ -1608,7 +1620,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(i),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(i); // for verifing traffic rate below
@@ -1636,7 +1648,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(idx),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(idx); // for verifying traffic rate below
@@ -1702,6 +1714,163 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
   verifyAcrossWarmBoots(setup, verify);
 }
 
+// Parsed representation of a complete XGS MoD packet
+struct XgsModPacketParsed {
+  EthHdr ethHeader;
+  IPv6Hdr ipv6Header;
+  UDPHeader udpHeader;
+  psamp::XgsPsampModPacket psampPacket;
+};
+
+// Deserialize a raw IOBuf containing a complete XGS MoD packet
+XgsModPacketParsed deserializeXgsModPacket(const folly::IOBuf* buf) {
+  XgsModPacketParsed parsed;
+  folly::io::Cursor cursor(buf);
+  parsed.ethHeader = EthHdr(cursor);
+  parsed.ipv6Header = IPv6Hdr(cursor);
+  parsed.udpHeader.parse(&cursor);
+  parsed.psampPacket = psamp::XgsPsampModPacket::deserialize(cursor);
+  return parsed;
+}
+
+// Expected values for verifying a captured XGS MoD packet.
+// All fields are optional; only fields that are set will be checked.
+struct XgsModPacketExpectedValues {
+  // Outer Ethernet
+  std::optional<folly::MacAddress> srcMac;
+  std::optional<folly::MacAddress> dstMac;
+
+  // Outer IPv6
+  std::optional<folly::IPAddressV6> srcIp;
+  std::optional<folly::IPAddressV6> dstIp;
+
+  // Outer UDP
+  std::optional<uint16_t> srcPort;
+  std::optional<uint16_t> dstPort;
+
+  // IPFIX / PSAMP
+  std::optional<uint32_t> observationDomainId;
+  std::optional<uint32_t> switchId;
+  std::optional<uint16_t> ingressPort;
+  std::optional<uint8_t> dropReasonIngress;
+  std::optional<uint8_t> dropReasonMmu;
+
+  // Inner (sampled) packet - Ethernet
+  std::optional<folly::MacAddress> innerDstMac;
+  std::optional<folly::MacAddress> innerSrcMac;
+
+  // Inner (sampled) packet - IPv6
+  std::optional<folly::IPAddressV6> innerSrcIp;
+  std::optional<folly::IPAddressV6> innerDstIp;
+
+  // Inner (sampled) packet - UDP
+  std::optional<uint16_t> innerSrcPort;
+  std::optional<uint16_t> innerDstPort;
+};
+
+// Verify a captured XGS MoD packet against expected values.
+// Only checks fields that are set in the expected struct. Invariants
+// (IPFIX version, PSAMP template ID, varLenIndicator, UDP checksum == 0,
+// nextHeader == UDP) are always checked.
+void verifyXgsModCapturedPacket(
+    const XgsModPacketParsed& captured,
+    const XgsModPacketExpectedValues& expected) {
+  // Outer Ethernet
+  if (expected.srcMac.has_value()) {
+    EXPECT_EQ(captured.ethHeader.getSrcMac(), expected.srcMac.value());
+  }
+  if (expected.dstMac.has_value()) {
+    EXPECT_EQ(captured.ethHeader.getDstMac(), expected.dstMac.value());
+  }
+
+  // Outer IPv6
+  EXPECT_EQ(
+      captured.ipv6Header.nextHeader,
+      static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
+  if (expected.srcIp.has_value()) {
+    EXPECT_EQ(captured.ipv6Header.srcAddr, expected.srcIp.value());
+  }
+  if (expected.dstIp.has_value()) {
+    EXPECT_EQ(captured.ipv6Header.dstAddr, expected.dstIp.value());
+  }
+
+  // Outer UDP
+  EXPECT_EQ(captured.udpHeader.csum, 0);
+  if (expected.srcPort.has_value()) {
+    EXPECT_EQ(captured.udpHeader.srcPort, expected.srcPort.value());
+  }
+  if (expected.dstPort.has_value()) {
+    EXPECT_EQ(captured.udpHeader.dstPort, expected.dstPort.value());
+  }
+
+  // IPFIX header
+  EXPECT_EQ(captured.psampPacket.ipfixHeader.version, psamp::IPFIX_VERSION);
+  if (expected.observationDomainId.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.ipfixHeader.observationDomainId,
+        expected.observationDomainId.value());
+  }
+
+  // PSAMP template
+  EXPECT_EQ(
+      captured.psampPacket.templateHeader.templateId,
+      psamp::XGS_PSAMP_TEMPLATE_ID);
+
+  // PSAMP data
+  EXPECT_EQ(
+      captured.psampPacket.data.varLenIndicator,
+      psamp::XGS_PSAMP_VAR_LEN_INDICATOR);
+  if (expected.switchId.has_value()) {
+    EXPECT_EQ(captured.psampPacket.data.switchId, expected.switchId.value());
+  }
+  if (expected.ingressPort.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.data.ingressPort, expected.ingressPort.value());
+  }
+  if (expected.dropReasonIngress.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.data.dropReasonIngress,
+        expected.dropReasonIngress.value());
+  }
+  if (expected.dropReasonMmu.has_value()) {
+    EXPECT_EQ(
+        captured.psampPacket.data.dropReasonMmu,
+        expected.dropReasonMmu.value());
+  }
+
+  // Inner (sampled) packet
+  auto innerBuf = folly::IOBuf::copyBuffer(
+      captured.psampPacket.data.sampledPacketData.data(),
+      captured.psampPacket.data.sampledPacketData.size());
+  folly::io::Cursor innerCursor(innerBuf.get());
+
+  EthHdr innerEth(innerCursor);
+  if (expected.innerDstMac.has_value()) {
+    EXPECT_EQ(innerEth.getDstMac(), expected.innerDstMac.value());
+  }
+  if (expected.innerSrcMac.has_value()) {
+    EXPECT_EQ(innerEth.getSrcMac(), expected.innerSrcMac.value());
+  }
+
+  IPv6Hdr innerIpv6(innerCursor);
+  EXPECT_EQ(innerIpv6.nextHeader, static_cast<uint8_t>(IP_PROTO::IP_PROTO_UDP));
+  if (expected.innerSrcIp.has_value()) {
+    EXPECT_EQ(innerIpv6.srcAddr, expected.innerSrcIp.value());
+  }
+  if (expected.innerDstIp.has_value()) {
+    EXPECT_EQ(innerIpv6.dstAddr, expected.innerDstIp.value());
+  }
+
+  UDPHeader innerUdp;
+  innerUdp.parse(&innerCursor);
+  if (expected.innerSrcPort.has_value()) {
+    EXPECT_EQ(innerUdp.srcPort, expected.innerSrcPort.value());
+  }
+  if (expected.innerDstPort.has_value()) {
+    EXPECT_EQ(innerUdp.dstPort, expected.innerDstPort.value());
+  }
+}
+
 class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
  public:
   std::vector<ProductionFeature> getProductionFeaturesVerified()
@@ -1749,6 +1918,11 @@ class AgentMirrorOnDropXgsTest : public AgentMirrorOnDropTest {
       EXPECT_EVENTUALLY_GE(stableCount, kStableIterations);
     });
   }
+
+  // Ingress buffer pool shared size large enough for MoD pool allocation
+  // (2580 cells) plus PG min guarantees across all ports, but small enough
+  // to trigger MMU drops without excessive packet injection.
+  static constexpr auto kModGlobalSharedBytes{2'000'000};
 };
 
 cfg::MirrorOnDropReport makeXgsModReport(
@@ -1776,8 +1950,9 @@ cfg::MirrorOnDropReport makeXgsModReport(
   return report;
 }
 
-// Basic verification test for Tomahawk5 (XGS platform) used in NSF clusters.
-TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
+// Verifies MoD captures packets dropped due to no matching route (default
+// route discard) on Tomahawk5 (XGS platform).
+TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
   PortID injectionPortId = masterLogicalInterfacePortIds()[0];
   PortID mirrorPortId = masterLogicalInterfacePortIds()[1];
   PortID collectorPortId = masterLogicalInterfacePortIds()[2];
@@ -1816,7 +1991,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
     XLOG(INFO) << "Sent packet to trigger drop, waiting for MoD packet...";
     XLOG(INFO) << "Original packet:\n" << PktUtil::hexDump(pkt->buf());
 
-    // Wait for and capture the MoD packet - just dump it, no verification
+    // Wait for and capture the MoD packet
     WITH_RETRIES_N(5, {
       XLOG(DBG3) << "Waiting for mirror packet...";
       std::optional<std::unique_ptr<folly::IOBuf>> frameRx =
@@ -1824,11 +1999,218 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsMod) {
       EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
 
       if (frameRx.has_value()) {
-        // Simply dump the captured packet without verification
-        XLOG(INFO) << "Captured MoD packet:";
-        // TODO(T248453397) - Payload validation
-        XLOG(INFO) << PktUtil::hexDump(frameRx->get());
-        XLOG(INFO) << "XGS MoD test completed - packet captured and dumped";
+        XLOG(INFO) << "Captured MoD packet:\n"
+                   << PktUtil::hexDump(frameRx->get());
+
+        auto parsed = deserializeXgsModPacket(frameRx->get());
+
+        XgsModPacketExpectedValues expected;
+        expected.srcMac = getLocalMacAddress();
+        expected.dstMac = kCollectorNextHopMac_;
+        expected.srcIp = kSwitchIp_;
+        expected.dstIp = kCollectorIp_;
+        expected.srcPort = kMirrorSrcPort;
+        expected.dstPort = kMirrorDstPort;
+        expected.observationDomainId = 1;
+        expected.switchId = 0;
+        expected.ingressPort = static_cast<uint16_t>(injectionPortId);
+        expected.dropReasonIngress = 0x1A; // L3 destination discard
+        expected.dropReasonMmu = 0x00;
+        expected.innerSrcMac = utility::kLocalCpuMac();
+        expected.innerDstMac =
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+        expected.innerSrcIp = kPacketSrcIp_;
+        expected.innerDstIp = kDropDestIp;
+        expected.innerSrcPort = kPacketSrcPort;
+        expected.innerDstPort = kPacketDstPort;
+        verifyXgsModCapturedPacket(parsed, expected);
+      }
+    });
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test verifies MoD captures MMU drops caused by buffer exhaustion.
+TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
+  PortID injectionPortId = masterLogicalInterfacePortIds()[0];
+  PortID collectorPortId = masterLogicalInterfacePortIds()[1];
+  PortID txOffPortId = masterLogicalInterfacePortIds()[2];
+  const int kPriority = 2;
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+  XLOG(DBG3) << "Tx off port: " << portDesc(txOffPortId);
+
+  auto setup = [&]() {
+    cfg::SwitchConfig config = getAgentEnsemble()->getCurrentConfig();
+
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-mmu-drop-test",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_));
+
+    // Lossy PG (headroom=0) with larger globalShared (kModGlobalSharedBytes)
+    // to ensure enough shared buffer for the MoD pool (2580 cells) after PG
+    // min guarantees, but small enough to trigger MMU drops quickly.
+    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    utility::setupPfcBuffers(
+        getAgentEnsemble(),
+        config,
+        {injectionPortId},
+        {}, // losslessPgIds
+        {kPriority}, // lossyPgIds
+        {}, // tcToPgOverride
+        utility::PfcBufferParams::getPfcBufferParams(
+            hwAsic->getAsicType(), kModGlobalSharedBytes));
+
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    setupEcmpTraffic(
+        txOffPortId,
+        kDropDestIp,
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
+    waitForStateUpdates(getSw());
+  };
+
+  auto verify = [&]() {
+    // Disable TX on egress port to cause buffer buildup and MMU drops
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, false);
+
+    utility::SwSwitchPacketSnooper snooper(getSw(), "xgs-mmu-drop-snooper");
+    snooper.ignoreUnclaimedRxPkts();
+
+    // Send traffic on the lossy PG priority to fill the buffer.
+    // Drops occur once shared buffer is exhausted.
+    XLOG(INFO) << "Sending packets to trigger MMU drops...";
+    std::unique_ptr<TxPacket> pkt =
+        sendPackets(10000, injectionPortId, kDropDestIp, kPriority);
+    XLOG(INFO) << "Sample packet:\n" << PktUtil::hexDump(pkt->buf());
+
+    WITH_RETRIES({
+      auto portStats = getLatestPortStats(injectionPortId);
+      XLOG(DBG2) << "In congestion discards: "
+                 << *portStats.inCongestionDiscards_();
+      EXPECT_EVENTUALLY_GT(*portStats.inCongestionDiscards_(), 0);
+    });
+
+    WITH_RETRIES_N(5, {
+      XLOG(DBG3) << "Waiting for MoD packet...";
+      std::optional<std::unique_ptr<folly::IOBuf>> frameRx =
+          snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      if (frameRx.has_value()) {
+        XLOG(INFO) << "Captured MoD packet for MMU drop:\n"
+                   << PktUtil::hexDump(frameRx->get());
+
+        auto parsed = deserializeXgsModPacket(frameRx->get());
+
+        XgsModPacketExpectedValues expected;
+        expected.srcMac = getLocalMacAddress();
+        expected.dstMac = kCollectorNextHopMac_;
+        expected.srcIp = kSwitchIp_;
+        expected.dstIp = kCollectorIp_;
+        expected.srcPort = kMirrorSrcPort;
+        expected.dstPort = kMirrorDstPort;
+        expected.observationDomainId = 1;
+        expected.switchId = 0;
+        expected.ingressPort = static_cast<uint16_t>(injectionPortId);
+        expected.dropReasonIngress = 0x00; // not an ingress pipeline drop
+        expected.dropReasonMmu = 0x03; // egress port drop
+        expected.innerSrcIp = kPacketSrcIp_;
+        expected.innerDstIp = kDropDestIp;
+        expected.innerSrcPort = kPacketSrcPort;
+        expected.innerDstPort = kPacketDstPort;
+        verifyXgsModCapturedPacket(parsed, expected);
+      }
+    });
+
+    // Note: Do NOT consume remaining MoD packets here.
+    // Trapping MoD packets triggers more drops, causing infinite MoD loop.
+
+    // Re-enable TX (required for SDK cleanup)
+    utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), txOffPortId, true);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
+// Test verifies that MoD captures packets dropped by ACL rules.
+TEST_F(AgentMirrorOnDropXgsTest, XgsModAclDrop) {
+  PortID injectionPortId = masterLogicalInterfacePortIds()[0];
+  PortID collectorPortId = masterLogicalInterfacePortIds()[1];
+  XLOG(DBG3) << "Injection port: " << portDesc(injectionPortId);
+  XLOG(DBG3) << "Collector port: " << portDesc(collectorPortId);
+
+  const folly::IPAddressV6 kAclDropDestIp{"2401:db00:e112:9100:1006::1"};
+
+  auto setup = [&]() {
+    cfg::SwitchConfig config = getAgentEnsemble()->getCurrentConfig();
+
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-acl-drop-test",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_));
+
+    cfg::AclEntry aclEntry;
+    aclEntry.name() = "acl-drop-by-dstip";
+    aclEntry.dstIp() = fmt::format("{}/128", kAclDropDestIp.str());
+    aclEntry.actionType() = cfg::AclActionType::DENY;
+    utility::addAclEntry(&config, aclEntry, utility::kDefaultAclTable());
+
+    utility::addTrapPacketAcl(&config, kCollectorNextHopMac_);
+    applyNewConfig(config);
+    setupEcmpTraffic(collectorPortId, kCollectorIp_, kCollectorNextHopMac_);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verify = [&]() {
+    utility::SwSwitchPacketSnooper snooper(getSw(), "xgs-mod-acl-drop-snooper");
+    snooper.ignoreUnclaimedRxPkts();
+
+    std::unique_ptr<TxPacket> pkt =
+        sendPackets(1, injectionPortId, kAclDropDestIp);
+
+    XLOG(INFO) << "Sent packet to trigger ACL drop, waiting for MoD packet...";
+    XLOG(INFO) << "Original packet:\n" << PktUtil::hexDump(pkt->buf());
+
+    WITH_RETRIES_N(5, {
+      XLOG(DBG3) << "Waiting for mirror packet...";
+      std::optional<std::unique_ptr<folly::IOBuf>> frameRx =
+          snooper.waitForPacket(1);
+      EXPECT_EVENTUALLY_TRUE(frameRx.has_value());
+
+      if (frameRx.has_value()) {
+        XLOG(INFO) << "Captured MoD packet for ACL drop:\n"
+                   << PktUtil::hexDump(frameRx->get());
+
+        auto parsed = deserializeXgsModPacket(frameRx->get());
+
+        XgsModPacketExpectedValues expected;
+        expected.srcMac = getLocalMacAddress();
+        expected.dstMac = kCollectorNextHopMac_;
+        expected.srcIp = kSwitchIp_;
+        expected.dstIp = kCollectorIp_;
+        expected.srcPort = kMirrorSrcPort;
+        expected.dstPort = kMirrorDstPort;
+        expected.observationDomainId = 1;
+        expected.switchId = 0;
+        expected.ingressPort = static_cast<uint16_t>(injectionPortId);
+        expected.dropReasonIngress = 0x10; // ingress FP drop (ACL)
+        expected.dropReasonMmu = 0x00;
+        expected.innerSrcMac = utility::kLocalCpuMac();
+        expected.innerDstMac =
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+        expected.innerSrcIp = kPacketSrcIp_;
+        expected.innerDstIp = kAclDropDestIp;
+        expected.innerSrcPort = kPacketSrcPort;
+        expected.innerDstPort = kPacketDstPort;
+        verifyXgsModCapturedPacket(parsed, expected);
       }
     });
   };
@@ -1903,7 +2285,8 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   // Non-local MAC triggers L2 drops on loopback (dst MAC mismatch).
   const auto kCollectorNonLocalMac = folly::MacAddress::fromHBO(
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState()).u64HBO() +
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
+          .u64HBO() +
       10);
 
   const folly::IPAddressV6 kTrafficLoopIp{
@@ -1936,7 +2319,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
     setupEcmpTraffic(
         trafficPortId,
         kTrafficLoopIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /*disableTtlDecrement*/);
 
     // Non-local dest MAC in the ethernet packet will result in drops on
@@ -2045,4 +2428,98 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+// XGS warmboot test subclass. Config changes across warmboot require HW
+// writes, so failHwCallsOnWarmboot must be false.
+class AgentMirrorOnDropXgsWarmbootTest : public AgentMirrorOnDropXgsTest {
+ protected:
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+};
+
+// Verifies warmboot enablement of MoD with sampling on TH5.
+// Coldboot: switch comes up WITHOUT MoD. After warmboot, MoD with sampling
+// is added and verified to be programmed on the ASIC by checking switch state.
+TEST_F(AgentMirrorOnDropXgsWarmbootTest, XgsModWarmbootEnableSampling) {
+  const int kSamplingRate = 90000;
+
+  auto setup = []() {};
+
+  auto verify = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    EXPECT_TRUE(reports == nullptr || reports->numNodes() == 0);
+  };
+
+  auto setupPostWb = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-wb-enable-sampling",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_,
+        kSamplingRate));
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verifyPostWb = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    ASSERT_NE(reports, nullptr);
+    auto report = reports->getNodeIf("xgs-mod-wb-enable-sampling");
+    ASSERT_NE(report, nullptr);
+    EXPECT_EQ(report->getSamplingRate(), kSamplingRate);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
+}
+
+// Verifies warmboot disablement of MoD with sampling on TH5.
+// Coldboot: switch comes up WITH MoD sampling configured and verified to be
+// programmed on the ASIC by checking switch state. After warmboot, MoD config
+// is removed and verified to be absent from switch state.
+TEST_F(AgentMirrorOnDropXgsWarmbootTest, XgsModWarmbootDisableSampling) {
+  const int kSamplingRate = 90000;
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-wb-disable-sampling",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_,
+        kSamplingRate));
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verify = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    ASSERT_NE(reports, nullptr);
+    auto report = reports->getNodeIf("xgs-mod-wb-disable-sampling");
+    ASSERT_NE(report, nullptr);
+    EXPECT_EQ(report->getSamplingRate(), kSamplingRate);
+  };
+
+  auto setupPostWb = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->clear();
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verifyPostWb = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    EXPECT_TRUE(reports == nullptr || reports->numNodes() == 0);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
+}
+
 } // namespace facebook::fboss
