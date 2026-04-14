@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import sys
+import sysconfig
 import tempfile
 
 
@@ -184,7 +185,11 @@ def detect_toolchain():
     """
     try:
         gxx_version = subprocess.run(
-            ["g++", "--version"], capture_output=True, text=True, timeout=5
+            ["g++", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
         )
     except (subprocess.TimeoutExpired, OSError) as e:
         print_info(f"Warning: Could not detect compiler: {e}")
@@ -242,6 +247,80 @@ def detect_toolchain():
     }
 
 
+def _extract_clang_cxxflags():
+    """Read clang-specific CXXFLAGS from CMakeLists.txt.
+
+    Returns the list of flags, or None if CMakeLists.txt is not found.
+    """
+    cxxflags = []
+    try:
+        with open(os.path.join(os.getcwd(), "CMakeLists.txt")) as f:
+            content = f.read()
+    except FileNotFoundError:
+        print_info("Warning: CMakeLists.txt not found, skipping clang-specific flags")
+        return None
+
+    clang_section_match = re.search(
+        r'if\s*\(\s*CMAKE_CXX_COMPILER_ID\s+MATCHES\s+"Clang"\s*\)(.*?)endif\(\)',
+        content,
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    if clang_section_match:
+        clang_section = clang_section_match.group(1)
+        for line_match in re.finditer(r'CMAKE_CXX_FLAGS.*?"([^"]*)"', clang_section):
+            flags_part = line_match.group(1)
+            for flag in re.findall(r"(-[A-Za-z0-9_\-=]+)", flags_part):
+                cxxflags.append(flag)
+
+    additional_flags = [
+        "-std=c++20",
+        "-Wno-deprecated-ofast",
+        "-Wno-reserved-identifier",
+        "-Wno-unsafe-buffer-usage",
+        "-Wno-logical-op-parentheses",
+        "-Wno-deprecated-declarations",
+        "-Wno-undef",
+    ]
+    for flag in additional_flags:
+        if flag not in cxxflags:
+            cxxflags.insert(0, flag)
+
+    return cxxflags
+
+
+def _detect_python_march_flag(cxxflags):
+    """Detect -march flag from Python sysconfig and append to cxxflags if found."""
+    try:
+        py_cflags = sysconfig.get_config_var("CFLAGS") or ""
+        for token in py_cflags.split():
+            if token.startswith("-march="):
+                if token not in cxxflags:
+                    cxxflags.append(token)
+                    print_info(
+                        f"Added {token} from Python sysconfig"
+                        " to match Cython extensions"
+                    )
+                break
+    except Exception as e:
+        print_info(f"WARNING: failed to detect -march from Python sysconfig: {e}")
+
+
+def _patch_manifests_disable_binutils():
+    """Disable binutils in manifests when using clang."""
+    for manifest in glob.glob(
+        os.path.join(path_to("build", "fbcode_builder", "manifests"), "*")
+    ):
+        if not os.path.isfile(manifest):
+            continue
+        with open(manifest) as f:
+            content = f.read()
+        if "\nbinutils" in content:
+            with open(manifest, "w") as f:
+                f.write(content.replace("\nbinutils", "\n#binutils"))
+            print_info(f"Patching manifest {manifest} to disable binutils")
+
+
 def setup_clang_environment(toolchain_info):
     """
     Set up the environment for building with clang.
@@ -264,44 +343,9 @@ def setup_clang_environment(toolchain_info):
         return
 
     # Read clang-specific CXXFLAGS from CMakeLists.txt using regex
-    cxxflags = []
-    try:
-        with open(os.path.join(os.getcwd(), "CMakeLists.txt"), "r") as f:
-            content = f.read()
-    except FileNotFoundError:
-        # CMakeLists.txt not found - this can happen during Docker build
-        print_info("Warning: CMakeLists.txt not found, skipping clang-specific flags")
+    cxxflags = _extract_clang_cxxflags()
+    if cxxflags is None:
         return
-
-    # Extract the clang-specific section: if (CMAKE_CXX_COMPILER_ID MATCHES "Clang") ... endif()
-    clang_section_match = re.search(
-        r'if\s*\(\s*CMAKE_CXX_COMPILER_ID\s+MATCHES\s+"Clang"\s*\)(.*?)endif\(\)',
-        content,
-        re.DOTALL | re.IGNORECASE,
-    )
-
-    if clang_section_match:
-        clang_section = clang_section_match.group(1)
-        # Extract CMAKE_CXX_FLAGS lines and get all flags from them
-        for line_match in re.finditer(r'CMAKE_CXX_FLAGS.*?"([^"]*)"', clang_section):
-            flags_part = line_match.group(1)
-            # Extract individual flags (e.g., -Wno-something, -DFMT_USE_CONSTEVAL=0)
-            for flag in re.findall(r"(-[A-Za-z0-9_\-=]+)", flags_part):
-                cxxflags.append(flag)
-
-    # Add additional flags needed for third-party dependencies
-    additional_flags = [
-        "-std=c++20",
-        "-Wno-deprecated-ofast",
-        "-Wno-reserved-identifier",
-        "-Wno-unsafe-buffer-usage",
-        "-Wno-logical-op-parentheses",
-        "-Wno-deprecated-declarations",
-        "-Wno-undef",
-    ]
-    for flag in additional_flags:
-        if flag not in cxxflags:
-            cxxflags.insert(0, flag)
 
     # Helper to prepend a value to an environment variable
     def prepend_env(new, var, sep=" "):
@@ -321,21 +365,7 @@ def setup_clang_environment(toolchain_info):
     # (folly-python, fbthrift-python, fizz-python, etc.) so their libfolly.so
     # and Cython extensions agree on F14IntrinsicsMode.  The same detection
     # also exists in fboss/github/CMakeLists.txt for direct cmake invocations.
-    try:
-        import sysconfig
-
-        py_cflags = sysconfig.get_config_var("CFLAGS") or ""
-        for token in py_cflags.split():
-            if token.startswith("-march="):
-                if token not in cxxflags:
-                    cxxflags.append(token)
-                    print_info(
-                        f"Added {token} from Python sysconfig"
-                        " to match Cython extensions"
-                    )
-                break
-    except Exception as e:
-        print_info(f"WARNING: failed to detect -march from Python sysconfig: {e}")
+    _detect_python_march_flag(cxxflags)
 
     # Set CXXFLAGS - prepend to existing flags
     prepend_env(" ".join(cxxflags), "CXXFLAGS")
@@ -355,18 +385,7 @@ def setup_clang_environment(toolchain_info):
     prepend_env(llvm_lib_dir, "LD_LIBRARY_PATH", ":")
 
     # Make sure we don't install binutils when we use clang.
-    # This is ugly but makes gcc compatibility simpler.
-    for manifest in glob.glob(
-        os.path.join(path_to("build", "fbcode_builder", "manifests"), "*")
-    ):
-        if not os.path.isfile(manifest):
-            continue
-        with open(manifest, "r") as f:
-            content = f.read()
-        if "\nbinutils" in content:
-            with open(manifest, "w") as f:
-                f.write(content.replace("\nbinutils", "\n#binutils"))
-            print_info(f"Patching manifest {manifest} to disable binutils")
+    _patch_manifests_disable_binutils()
 
 
 def _edit_libsai_manifest(version):
@@ -565,7 +584,7 @@ def main():
 
     # Call the real getdeps.py with all arguments
     print_info(f"Executing getdeps.py with args: {args.getdeps_args}")
-    os.execv(getdeps_path, [getdeps_path] + args.getdeps_args)
+    os.execv(getdeps_path, [getdeps_path, *args.getdeps_args])
 
 
 if __name__ == "__main__":
