@@ -537,6 +537,7 @@ class HwAsic {
     // reducing latency for scale-up switches.
     CUT_THROUGH_FORWARDING,
     SRV6_MYSID_DISCARD_COUNTER,
+    SRV6_MYSID_RESOURCE_COUNTER,
   };
 
   enum class AsicMode {

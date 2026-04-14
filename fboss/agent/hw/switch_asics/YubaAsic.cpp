@@ -238,6 +238,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
+    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
       return false;
   }
   return false;

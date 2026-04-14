@@ -6,6 +6,7 @@
 #include <folly/json.h>
 #include <folly/json/dynamic.h>
 #include <gtest/gtest.h>
+#include <chrono>
 #include <map>
 #include <optional>
 #include <string>
@@ -114,6 +115,15 @@ class Fboss2IntegrationTest : public ::testing::Test {
    * This ensures each test starts with a fresh session based on current HEAD.
    */
   void discardSession() const;
+
+  /**
+   * Wait until the FBOSS agent is responsive (ready to serve thrift requests).
+   * Polls 'show interface' until it succeeds or timeout is reached.
+   * Use this after triggering a warmboot or coldboot restart.
+   * @param timeout Maximum time to wait (default: 120 seconds)
+   */
+  void waitForAgentReady(
+      std::chrono::seconds timeout = std::chrono::seconds(300)) const;
 
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;

@@ -372,7 +372,6 @@ TEST(Rib, Update) {
 TEST(RibToSwitchStateUpdater, Deduplication) {
   using namespace facebook::fboss;
 
-  const RouterID vrfZero{0};
   RoutePrefixV6 prefix{folly::IPAddressV6("2a03:2880:ff:1e::"), 64};
 
   cfg::SwitchConfig config;

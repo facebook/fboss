@@ -364,6 +364,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_OPTICAL:
       verify25gProfile(mgmtInterface, mediaInterfaces);
       break;
 

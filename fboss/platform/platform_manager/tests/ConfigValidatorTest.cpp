@@ -1915,3 +1915,244 @@ TEST(ConfigValidatorTest, CpldSysfsAttrs) {
   tooMany.pop_back();
   EXPECT_TRUE(validator.isValidCpldSysfsAttrs(tooMany));
 }
+
+TEST(ConfigValidatorTest, LedCtrlBlockXcvrCoverage) {
+  auto makeLedBlock = [](int16_t startPort,
+                         int16_t numPorts,
+                         int16_t ledPerPort,
+                         int16_t lanesPerPort) {
+    LedCtrlBlockConfig block;
+    block.pmUnitScopedNamePrefix() = "MCB_LED";
+    block.deviceName() = "port_led";
+    block.csrOffsetCalc() = "0x1000";
+    block.startPort() = startPort;
+    block.numPorts() = numPorts;
+    block.ledPerPort() = ledPerPort;
+    block.lanesPerPort() = lanesPerPort;
+    return block;
+  };
+
+  ConfigValidator validator;
+
+  // Valid: no LED blocks, no xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 0;
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: xcvrs present but no LED blocks
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: LED blocks cover all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {
+        makeLedBlock(1, 3, 2, 8), makeLedBlock(4, 1, 1, 4)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in coverage (ports 1-2 covered, but numXcvrs=4)
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {makeLedBlock(1, 2, 2, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in middle (ports 1-2 and 5-6 covered, but 3-4 missing)
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {
+        makeLedBlock(1, 2, 2, 8), makeLedBlock(5, 2, 2, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: single block covers all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 8;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {makeLedBlock(1, 8, 2, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: ports split across two separate PmUnits
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.ledCtrlBlockConfigs() = {makeLedBlock(1, 2, 2, 8)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.ledCtrlBlockConfigs() = {makeLedBlock(3, 2, 1, 4)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: ports split across two PmUnits but gap in middle
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.ledCtrlBlockConfigs() = {makeLedBlock(1, 2, 2, 8)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.ledCtrlBlockConfigs() = {makeLedBlock(5, 2, 1, 4)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+}
+
+TEST(ConfigValidatorTest, XcvrCtrlBlockXcvrCoverage) {
+  auto makeXcvrCtrlBlock = [](int32_t startPort, int32_t numPorts) {
+    XcvrCtrlBlockConfig block;
+    block.pmUnitScopedNamePrefix() = "MCB_XCVR";
+    block.deviceName() = "xcvr_ctrl";
+    block.csrOffsetCalc() = "0x1000";
+    block.startPort() = startPort;
+    block.numPorts() = numPorts;
+    return block;
+  };
+
+  ConfigValidator validator;
+
+  // Valid: no xcvr ctrl blocks, no xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 0;
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: xcvrs present but no xcvr ctrl blocks
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: xcvr ctrl blocks cover all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {
+        makeXcvrCtrlBlock(1, 3), makeXcvrCtrlBlock(4, 1)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in xcvr ctrl coverage (ports 1-2 covered, but numXcvrs=4)
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 2)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in middle of xcvr ctrl coverage
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {
+        makeXcvrCtrlBlock(1, 2), makeXcvrCtrlBlock(5, 2)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: single xcvr ctrl block covers all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 8;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: xcvr ctrl blocks split across two PmUnits
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 2)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(3, 2)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: xcvr ctrl blocks split across two PmUnits but gap in middle
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 2)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(5, 2)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+}
