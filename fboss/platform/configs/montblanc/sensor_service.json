@@ -632,6 +632,22 @@
             "maxAlarmVal": 180
           },
           "compute": "(1000/1780)*@/1000000"
+        },
+        {
+          "name": "PDB_PSU_R_ALERT",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/pdb_psu_r_alert",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
+        },
+        {
+          "name": "PDB_PSU_L_ALERT",
+          "sysfsPath": "/run/devmap/cplds/MCB_CPLD/pdb_psu_l_alert",
+          "type": 6,
+          "thresholds": {
+            "minAlarmVal": 1
+          }
         }
       ]
     },
