@@ -131,6 +131,13 @@ All I2C devices should be connected in one of the following ways:
 
 PMUnit presence bits must be managed by the chips present in the parent PMUnit.
 
+### Presence Detection
+
+PlatformManager can detect whether a PmUnit (FRU) is physically present in a slot. Before exploring a slot, it checks if a PmUnit is actually plugged in. This serves two key purposes:
+
+- Prevents errors caused by attempting to access empty slots.
+- Enables reporting of which slots are populated, supporting hot-plug detection and proper handling of optional components.
+
 ## Root PmUnit
 
 This is the PmUnit which is used by Platform Manager as the starting node for

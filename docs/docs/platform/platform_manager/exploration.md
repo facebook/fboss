@@ -24,33 +24,9 @@ on the platform based on the configuration file.
 5. **Publish Versions**: Read and publish firmware/hardware versions
 6. **Report Status**: Log results and publish ODS counters
 
-## Exploration Status
+## Exploration Status and Errors
 
-After exploration, the status is one of:
-
-| Status                           | Description                                                  |
-| -------------------------------- | ------------------------------------------------------------ |
-| `SUCCEEDED`                      | All devices explored without errors                          |
-| `SUCCEEDED_WITH_EXPECTED_ERRORS` | Completed with expected errors (e.g., empty optional slots)  |
-| `FAILED`                         | Exploration encountered unexpected errors                    |
-| `IN_PROGRESS`                    | Exploration is currently running                             |
-| `UNSTARTED`                      | Exploration has not started                                  |
-
-## Error Types
-
-Exploration errors are categorized by type:
-
-| Error Type                | Description                                                       |
-| ------------------------- | ----------------------------------------------------------------- |
-| `I2C_DEVICE_CREATE`       | Failed to create an I2C device                                    |
-| `I2C_DEVICE_REG_INIT`     | Failed to initialize I2C device registers                         |
-| `I2C_DEVICE_EXPLORE`      | Failed during I2C device exploration                              |
-| `RUN_DEVMAP_SYMLINK`      | Failed to create symlink in /run/devmap                           |
-| `PCI_DEVICE_EXPLORE`      | Failed to explore PCI device                                      |
-| `PCI_SUB_DEVICE_CREATE_*` | Failed to create FPGA sub-device (I2C adapter, SPI, GPIO, etc.)   |
-| `IDPROM_READ`             | Failed to read IDPROM                                             |
-| `SLOT_PM_UNIT_ABSENCE`    | PmUnit not present in slot                                        |
-| `SLOT_PRESENCE_CHECK`     | Failed to check slot presence                                     |
+Exploration status and errors can be found in [platform_manager_service.thrift](https://github.com/facebook/fboss/blob/main/fboss/platform/platform_manager/platform_manager_service.thrift) under `ExplorationStatus` and `ExplorationError`.
 
 
 ## Querying Exploration Results
