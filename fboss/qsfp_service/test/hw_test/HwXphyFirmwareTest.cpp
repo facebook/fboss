@@ -10,6 +10,7 @@
 #include "fboss/qsfp_service/test/hw_test/HwTest.h"
 
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/lib/phy/CredoSdkVersion.h"
 #include "fboss/lib/phy/ExternalPhy.h"
 #include "fboss/lib/phy/PhyManager.h"
 #include "fboss/qsfp_service/test/hw_test/HwQsfpEnsemble.h"
@@ -32,8 +33,15 @@ TEST_F(HwXphyFirmwareTest, CheckDefaultXphyFirmwareVersion) {
   switch (platformType) {
     case PlatformType::PLATFORM_ELBERT:
       desiredFw.version() = 1;
+#if CREDO_SDK_VERSION >= CREDO_SDK_VERSION_1_2_7
+      // SDK 1.2.7+ returns minorVersion as (minor << 16) | patch
+      // Firmware 1.94.11 -> minorVersion = (94 << 16) | 11 = 6160395
+      desiredFw.versionStr() = "1.6160395";
+      desiredFw.minorVersion() = 6160395;
+#else
       desiredFw.versionStr() = "1.93";
       desiredFw.minorVersion() = 93;
+#endif
       break;
     case PlatformType::PLATFORM_FUJI:
 #ifdef BARCHETTA2_SDK_7_4
