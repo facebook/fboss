@@ -36,6 +36,7 @@ class RouterInterfaceApiTest : public ::testing::Test {
          typeAttribute,
          vlanIdAttribute,
          std::nullopt,
+         std::nullopt,
          std::nullopt},
         0);
     EXPECT_EQ(rifId, fs->routeInterfaceManager.get(rifId).id);
@@ -67,6 +68,7 @@ class RouterInterfaceApiTest : public ::testing::Test {
         {virtualRouterIdAttribute,
          typeAttribute,
          portIdAttribute,
+         std::nullopt,
          std::nullopt,
          std::nullopt},
         0);
