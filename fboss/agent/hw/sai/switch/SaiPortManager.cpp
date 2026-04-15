@@ -1288,11 +1288,11 @@ void SaiPortManager::processPortBufferPoolConfigs(
 
   // Currently only supported in Chenab. The various scaling factors
   // and min guarantees configured per profile is capture in the google
-  // sheet https://fburl.com/gsheet/jahz9e6m
+  // sheet, v12 https://fburl.com/gsheet/mlecs9mi
   const cfg::MMUScalingFactor kIngressPortPoolScalingFactor{
-      cfg::MMUScalingFactor::EIGHT};
+      cfg::MMUScalingFactor::TWO};
   const cfg::MMUScalingFactor kEgressPortLossyPoolScalingFactor{
-      cfg::MMUScalingFactor::EIGHT};
+      cfg::MMUScalingFactor::TWO};
   const cfg::MMUScalingFactor kEgressPortLosslessPoolScalingFactor{
       cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT};
   const int kPoolPortReservedBytes{0};
