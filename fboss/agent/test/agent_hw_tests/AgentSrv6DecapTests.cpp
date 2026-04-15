@@ -124,7 +124,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     this->resolveNeighbors(ecmpHelper4, numNextHops);
   }
 
-  void setupHelper(bool resolveNeighbors = true) {
+  void setupHelper(bool resolveNeighbors = true, bool addMySid = true) {
     if constexpr (kIsTrunk) {
       applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
@@ -138,7 +138,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // IPv4 route with regular next hops (no SID lists)
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
-    addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
+    if (addMySid) {
+      addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
+    }
   }
 
   template <typename CIDRNetworkT>
@@ -160,7 +162,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     routeUpdater.program();
   }
 
-  void addMySidEntry(const std::string& addr, uint8_t prefixLen) {
+  MySidEntry makeMySidEntry(const std::string& addr, uint8_t prefixLen) {
     MySidEntry entry;
     entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
     facebook::network::thrift::IPPrefix prefix;
@@ -168,6 +170,11 @@ class AgentSrv6DecapTest : public AgentHwTest {
         facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
     prefix.prefixLength() = prefixLen;
     entry.mySid() = prefix;
+    return entry;
+  }
+
+  void addMySidEntry(const std::string& addr, uint8_t prefixLen) {
+    auto entry = makeMySidEntry(addr, prefixLen);
     auto sw = this->getSw();
     auto rib = sw->getRib();
     auto ribMySidToSwitchStateFunc =
@@ -177,6 +184,27 @@ class AgentSrv6DecapTest : public AgentHwTest {
         {entry},
         {} /* toDelete */,
         "addMySidEntry",
+        ribMySidToSwitchStateFunc,
+        sw);
+  }
+
+  void removeMySidEntry(const std::string& addr, uint8_t prefixLen) {
+    facebook::network::thrift::IPPrefix prefix;
+    prefix.prefixAddress() =
+        facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
+    prefix.prefixLength() = prefixLen;
+    IpPrefix ipPrefix;
+    ipPrefix.ip() = *prefix.prefixAddress();
+    ipPrefix.prefixLength() = prefixLen;
+    auto sw = this->getSw();
+    auto rib = sw->getRib();
+    auto ribMySidToSwitchStateFunc =
+        createRibMySidToSwitchStateFunction(std::nullopt);
+    rib->update(
+        sw->getScopeResolver(),
+        {} /* toAdd */,
+        {ipPrefix},
+        "removeMySidEntry",
         ribMySidToSwitchStateFunc,
         sw);
   }
@@ -516,6 +544,44 @@ TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
       EXPECT_EVENTUALLY_GT(
           portStatsAfter.inSrv6MySidDiscards_().value_or(0),
           portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+    });
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6DecapTest, verifyMySidResourceUsage) {
+  auto setup = []() {};
+
+  auto verify = [this]() {
+    auto switchId = this->getCurrentSwitchIdForTesting();
+
+    // Trigger stats collection and get baseline.
+    this->getLatestPortStats(this->masterLogicalPortIds());
+    auto statsBefore = this->getSw()->getHwSwitchStatsExpensive(switchId);
+    auto mySidFreeBefore =
+        statsBefore.hwResourceStats()->my_sid_entries_free().value();
+
+    // Add a decap mySid entry and verify counter decreased by 1.
+    this->addMySidEntry(this->kMySidAddr.str(), this->kMySidPrefixLen);
+
+    WITH_RETRIES({
+      this->getLatestPortStats(this->masterLogicalPortIds());
+      auto statsAfter = this->getSw()->getHwSwitchStatsExpensive(switchId);
+      auto mySidFreeAfter =
+          statsAfter.hwResourceStats()->my_sid_entries_free().value();
+      EXPECT_EVENTUALLY_EQ(mySidFreeAfter, mySidFreeBefore - 1);
+    });
+
+    // Remove the mySid entry and verify counter returns to baseline.
+    this->removeMySidEntry(this->kMySidAddr.str(), this->kMySidPrefixLen);
+
+    WITH_RETRIES({
+      this->getLatestPortStats(this->masterLogicalPortIds());
+      auto statsAfterDelete =
+          this->getSw()->getHwSwitchStatsExpensive(switchId);
+      auto mySidFreeAfterDelete =
+          statsAfterDelete.hwResourceStats()->my_sid_entries_free().value();
+      EXPECT_EVENTUALLY_EQ(mySidFreeAfterDelete, mySidFreeBefore);
     });
   };
   this->verifyAcrossWarmBoots(setup, verify);
