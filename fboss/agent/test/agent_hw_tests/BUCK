@@ -224,6 +224,7 @@ cpp_library(
         "AgentSrv6DecapTests.cpp",
         "AgentSrv6EncapTests.cpp",
         "AgentSrv6MidpointTest.cpp",
+        "AgentSrv6ResourceUsageTests.cpp",
         "AgentStateReconstructionTests.cpp",
         "AgentSwitchStateReplayTest.cpp",
         "AgentSwitchStatsTxCounterTests.cpp",
