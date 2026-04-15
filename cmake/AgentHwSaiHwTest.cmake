@@ -252,11 +252,8 @@ function(BUILD_SAI_TEST SAI_IMPL_NAME SAI_IMPL_ARG)
     fboss/agent/hw/sai/hw_test/SaiNextHopGroupTest.cpp
     fboss/agent/hw/sai/hw_test/SaiPortUtils.cpp
     fboss/agent/hw/sai/hw_test/SaiPortAdminStateTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiLinkStateRollbackTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiNeighborRollbackTests.cpp
     fboss/agent/hw/sai/hw_test/SaiRollbackTest.cpp
     fboss/agent/hw/sai/hw_test/SaiRouteRollbackTests.cpp
-    fboss/agent/hw/sai/hw_test/SaiQPHRollbackTests.cpp
   )
 
   add_sai_sdk_dependencies(sai_test-${SAI_IMPL_NAME})
