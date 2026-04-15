@@ -55,7 +55,7 @@ class AgentPortBandwidthTest : public AgentHwTest {
   const HwAsic* getHwAsic() {
     auto asics = getAgentEnsemble()->getSw()->getHwAsicTable()->getL3Asics();
     CHECK(!asics.empty());
-    return checkSameAndGetAsic(asics);
+    return checkSameAndGetAsicForTesting(asics);
   }
 
   void _configureBandwidth(

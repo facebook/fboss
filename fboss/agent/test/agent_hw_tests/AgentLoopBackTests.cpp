@@ -82,7 +82,7 @@ class AgentLoopBackTest : public AgentHwTest {
     };
     auto verify = [=, this]() {
       const auto switchType =
-          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
               ->getSwitchType();
       for (auto frontPanel : {true, false}) {
         auto beforePortStats = getLatestPortStats(this->portIdToTest());

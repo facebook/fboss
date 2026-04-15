@@ -428,7 +428,8 @@ class AgentQueuePerHostTest : public AgentHwTest {
           if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
             // TODO ruinanhu: Remove this once we have a fix for TH6 counter
             // problem
-            auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            auto hwAsic =
+                checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
             auto extraBytes =
                 (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6)
                 ? 4

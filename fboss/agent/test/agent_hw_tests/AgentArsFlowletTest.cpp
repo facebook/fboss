@@ -1,5 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -40,7 +41,7 @@ class AgentArsFlowletTest : public AgentArsBase {
   }
 
   int kMinSamplingRate() const {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
 
     bool isTH3 = asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3;
     return getAgentEnsemble()->isSai() ? (isTH3 ? 1000 : 512)
@@ -71,7 +72,7 @@ class AgentArsFlowletTest : public AgentArsBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addFlowletConfigs(
         cfg,
         ensemble.masterLogicalPortIds(),
@@ -115,7 +116,8 @@ class AgentArsFlowletTest : public AgentArsBase {
     AgentArsBase::updatePortFlowletConfigName(cfg);
   }
   bool supportsFuturePortLoad() const {
-    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     return hwAsic->isSupported(HwAsic::Feature::ARS_FUTURE_PORT_LOAD);
   }
 

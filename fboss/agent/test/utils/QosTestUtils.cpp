@@ -219,7 +219,7 @@ void verifyVoQHit(
     facebook::fboss::SystemPortID egressPort,
     int delta) {
   auto l3Asics = sw->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics, FLAGS_switch_id_for_testing);
   int voqId = getTrafficClassToVoqId(asic, queueId);
   auto queueBytesBefore = portStatsBefore.queueOutBytes_()->find(voqId) !=
           portStatsBefore.queueOutBytes_()->end()

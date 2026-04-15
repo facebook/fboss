@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/benchmarks/HwRouteScaleBenchmarkHelpers.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/AsicUtils.h"
@@ -52,7 +53,7 @@ BENCHMARK(HwVoqScale2kWideEcmpCompressionReconstructState) {
   auto updater = ensemble->getSw()->getRouteUpdater();
   ecmpHelper.programRoutes(&updater, nhopSets, prefixes);
   auto l3Asics = ensemble->getL3Asics();
-  auto asic = checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsicForTesting(l3Asics);
   CHECK(asic->getMaxEcmpGroups().has_value());
   EcmpResourceManager resourceMgr(
       *asic->getMaxEcmpGroups(), 100 /*compressionPenaltyThresholdPct*/);

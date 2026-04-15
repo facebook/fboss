@@ -16,6 +16,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/TrapPacketUtils.h"
@@ -33,7 +34,7 @@ class AgentIpInIpTunnelTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -174,7 +175,7 @@ TEST_F(AgentIpInIpTunnelTest, IpinIpNoTunnelConfigured) {
   auto setup = [=, this]() {
     auto ensemble = getAgentEnsemble();
     auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble->getSw()->getPlatformMapping(),
         asic,
@@ -210,7 +211,7 @@ TEST_F(AgentIpInIpTunnelTest, DecapPacketParsing) {
   auto verify = [=, this]() {
     auto ensemble = getAgentEnsemble();
     auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
 
     utility::SwSwitchPacketSnooper snooper(getSw(), "snooper");
     sendIpInIpPacketPort(kTunnelTermDstIp, "dead::1", 0xFA, 0xCE);

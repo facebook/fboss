@@ -297,7 +297,7 @@ class AgentPacketSendReceiveTest : public AgentHwTest, public PacketObserverIf {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());
@@ -374,7 +374,7 @@ class AgentPacketSendReceiveLagTest : public AgentPacketSendReceiveTest {
       const AgentEnsemble& ensemble) const override {
     auto masterLogicalPortIds = ensemble.masterLogicalPortIds();
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto cfg = utility::oneL3IntfTwoPortConfig(
         ensemble.getSw()->getPlatformMapping(),
         asic,
@@ -474,7 +474,7 @@ class AgentPacketFloodTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     // Use multiplePortsPerIntfConfig with portsPerVlan=2 to put both ports in
     // same VLAN
     auto cfg = utility::multiplePortsPerIntfConfig(
@@ -501,7 +501,7 @@ class AgentPacketFloodTest : public AgentHwTest {
   bool checkPacketFlooding(
       std::map<PortID, HwPortStats>& portStatsBefore,
       bool v6) {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     auto portStatsAfter = getLatestPortStats(masterLogicalPortIds());
     for (auto portId : getLogicalPortIDs()) {
       auto packetsBefore = v6 ? *portStatsBefore[portId].outMulticastPkts_()
@@ -640,7 +640,7 @@ class AgentPacketSendLldpTest : public AgentHwTest {
 
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());

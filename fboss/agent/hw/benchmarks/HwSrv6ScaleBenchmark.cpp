@@ -8,6 +8,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
@@ -27,7 +28,7 @@ constexpr int kPortsPerLag = 2;
 
 AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
   return [](const AgentEnsemble& ensemble) {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     // Ensure even number of ports for 2-port LAGs
     auto allPorts = ensemble.masterLogicalPortIds();
     auto numPorts = (allPorts.size() / kPortsPerLag) * kPortsPerLag;

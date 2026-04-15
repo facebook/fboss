@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/HwTestFlowletSwitchingUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <gtest/gtest.h>
 #include "fboss/agent/AsicUtils.h"
@@ -266,7 +267,7 @@ void runCint(TestEnsembleIf* ensemble, const std::string& cintStr) {
 }
 
 void setEcmpMemberStatus(const TestEnsembleIf* ensemble) {
-  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+  auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
   if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
     return;
   }

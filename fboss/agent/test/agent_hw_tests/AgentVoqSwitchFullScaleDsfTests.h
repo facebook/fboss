@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentVoqSwitchTests.h"
 
 #include "fboss/agent/AsicUtils.h"
@@ -33,7 +34,8 @@ class AgentVoqSwitchFullScaleDsfNodesTest : public AgentVoqSwitchTest {
   }
 
   int getMaxEcmpGroup() const {
-    auto groups = checkSameAndGetAsic(getL3Asics())->getMaxEcmpGroups();
+    auto groups =
+        checkSameAndGetAsicForTesting(getL3Asics())->getMaxEcmpGroups();
     CHECK(groups.has_value());
     return *groups;
   }

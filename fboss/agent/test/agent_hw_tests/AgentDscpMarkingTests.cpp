@@ -48,7 +48,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     utility::addOlympicQosMaps(cfg, l3Asics);
     // drop packets are match to avoid packets matching multiple times in L3
     // loop case
@@ -124,7 +124,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
       // Add the DSCP remarking ACLs
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto l3Asics = getAgentEnsemble()->getL3Asics();
-      auto asic = checkSameAndGetAsic(l3Asics);
+      auto asic = checkSameAndGetAsicForTesting(l3Asics);
       utility::addDscpReclassificationAcls(
           asic, &newCfg, ecmpHelper.ecmpPortDescriptorAt(0).phyPortID());
       applyNewConfig(newCfg);

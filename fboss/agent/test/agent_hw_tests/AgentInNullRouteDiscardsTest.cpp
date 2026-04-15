@@ -70,8 +70,9 @@ TEST_F(AgentInNullRouteDiscardsCounterTest, nullRouteHit) {
   };
   PortID portId = masterLogicalInterfaceOrHyperPortIds()[0];
   auto verify = [=, this]() {
-    auto isVoqSwitch = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                           ->getSwitchType() == cfg::SwitchType::VOQ;
+    auto isVoqSwitch =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType() == cfg::SwitchType::VOQ;
     auto portStatsBefore = getLatestPortStats(portId);
     auto switchDropStatsBefore = getAggregatedSwitchDropStats();
     pumpTraffic(true);

@@ -30,7 +30,7 @@ class AgentNetworkAIQosTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -75,7 +75,7 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto portIds = ensemble.masterLogicalInterfacePortIds();
     std::vector<PortID> testPortIds{portIds[0]};
 

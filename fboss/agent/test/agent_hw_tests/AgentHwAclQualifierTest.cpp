@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
@@ -531,7 +532,7 @@ TEST_F(AgentHwAclQualifierTest, AclRemove) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
 
     cfg::AclEntry acl0{};
     acl0.name() = "acl0";
@@ -630,7 +631,7 @@ TEST_F(AgentHwAclQualifierTest, AclEmptyCodeIcmp) {
     // Destination Unreachable(type=3):Source host isolated(code=8)
     acl.name() = "acl0";
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     if (asic->isSupported(HwAsic::Feature::ACL_ENTRY_ETHER_TYPE)) {
       acl.etherType() = cfg::EtherType::IPv4;
     }
@@ -725,7 +726,7 @@ TEST_F(AgentHwAclQualifierTest, AclIp6Qualifiers) {
     auto& ensemble = *getAgentEnsemble();
     auto newCfg = initialConfig(ensemble);
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
 
     cfg::AclEntry acl{};
     acl.name() = "ip6";

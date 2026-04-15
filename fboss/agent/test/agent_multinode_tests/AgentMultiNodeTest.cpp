@@ -1,6 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_multinode_tests/AgentMultiNodeDsfUtils.h"
@@ -22,7 +23,7 @@ cfg::SwitchConfig AgentMultiNodeTest::initialConfig(
   XLOG(DBG0) << "initialConfig() loaded config from file " << FLAGS_config;
 
   auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
   auto it = asic->desiredLoopbackModes().find(cfg::PortType::INTERFACE_PORT);
   CHECK(it != asic->desiredLoopbackModes().end());

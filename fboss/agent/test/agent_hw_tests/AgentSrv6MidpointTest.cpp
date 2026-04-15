@@ -81,7 +81,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
         &cfg,

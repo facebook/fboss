@@ -142,7 +142,7 @@ class AgentSendPacketToMulticastQueueTest : public AgentHwTest {
 TEST_F(AgentSendPacketToMulticastQueueTest, SendPacketOutOfPortToMCQueue) {
   auto ensemble = getAgentEnsemble();
   auto l3Asics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsicForTesting(l3Asics);
   auto masterLogicalPortIds = ensemble->masterLogicalPortIds();
   auto port = masterLogicalPortIds[0];
 

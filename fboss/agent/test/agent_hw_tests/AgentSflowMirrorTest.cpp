@@ -380,8 +380,7 @@ device:
   }
 
   const HwAsic* checkSameAndGetAsic() const {
-    return facebook::fboss::checkSameAndGetAsic(
-        getAgentEnsemble()->getL3Asics());
+    return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
   }
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {

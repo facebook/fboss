@@ -87,7 +87,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     }
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
         &cfg,

@@ -109,8 +109,8 @@ void waitPfcCounterIncrease(
     // TODO(maxgg): CS00012381334 - Rx counters not incrementing on TH5/TH6
     // However we know PFC is working as long as TX PFC is being generated, so
     // skip validating RX PFC counters on TH5 for now.
-    auto asicType = facebook::fboss::checkSameAndGetAsic(ensemble->getL3Asics())
-                        ->getAsicType();
+    auto asicType =
+        checkSameAndGetAsicForTesting(ensemble->getL3Asics())->getAsicType();
     if (asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK5 &&
         asicType != facebook::fboss::cfg::AsicType::ASIC_TYPE_TOMAHAWK6) {
       EXPECT_EVENTUALLY_GT(rxPfcCtr, 0);
@@ -285,7 +285,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
  public:
   void TearDown() override {
     if (!FLAGS_list_production_feature) {
-      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto asic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
         auto ports = masterLogicalInterfacePortIds();
         getAgentEnsemble()->bringDownPorts(ports);
@@ -563,7 +564,8 @@ class AgentTrafficPfcTest : public AgentHwTest {
         // TODO(maxgg): Investigate TH3/4 WithScaleCfg failure when queue is
         // set to losslessPriority (2).
 
-        auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+        auto asic =
+            checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
         if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB &&
             vlan.has_value()) {
           // If we want to use a provided vlan ID, we need to send packets out
@@ -641,7 +643,7 @@ class AgentTrafficPfcTest : public AgentHwTest {
         lossyPgIds,
         tcToPgOverride,
         testParams.buffer);
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     if (isSupportedOnAllAsics(HwAsic::Feature::MULTIPLE_EGRESS_BUFFER_POOL)) {
       utility::setupMultipleEgressPoolAndQueueConfigs(
           cfg, kLosslessPgIds, asic->getMMUSizeBytes());
@@ -937,7 +939,7 @@ TEST_F(AgentTrafficPfcGenTest, verifyBufferPoolWatermarks) {
   };
 
   auto verify = [&]() {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     std::optional<VlanID> vlanId;
     if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       vlanId = kTxForVlanForChenab;
@@ -1005,7 +1007,7 @@ TEST_F(AgentTrafficPfcGenTest, verifyIngressPriorityGroupWatermarks) {
   };
 
   auto verify = [&]() {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     std::optional<VlanID> vlanId;
     if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       vlanId = kTxForVlanForChenab;
@@ -1168,7 +1170,8 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
       // can be programmed and we need to ensure that the configured value here
       // is in sync with what is in SAI/SDK to avoid a reprogramming attempt
       // during warmboot.
-      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto asic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       switch (asic->getAsicType()) {
         case cfg::AsicType::ASIC_TYPE_JERICHO2:
         case cfg::AsicType::ASIC_TYPE_JERICHO3:
@@ -1220,7 +1223,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
       const PortID& port,
       const PortID& txOffPortId,
       const folly::IPAddressV6& ip) {
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       // As traffic cannot trigger deadlock for DNX, force back
       // to back PFC frame generation which causes a deadlock!
@@ -1390,7 +1393,7 @@ class AgentTrafficPfcWatchdogTest : public AgentTrafficPfcGenTest {
   void cleanupPfcDeadlockDetectionTrigger(const PortID& portId) {
     // Enable credit WD and TX on port
     utility::setCreditWatchdogAndPortTx(getAgentEnsemble(), portId, true);
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO3) {
       std::string out;
       auto switchID = scopeResolver().scope(portId).switchId();

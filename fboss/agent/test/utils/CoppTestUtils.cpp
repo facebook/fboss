@@ -139,7 +139,7 @@ uint16_t getCoppHighPriQueueId(const HwAsic* hwAsic) {
 }
 
 uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
-  auto hwAsic = checkSameAndGetAsic(hwAsics);
+  auto hwAsic = checkSameAndGetAsic(hwAsics, FLAGS_switch_id_for_testing);
   switch (hwAsic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_JERICHO3:
     case cfg::AsicType::ASIC_TYPE_JERICHO4:
@@ -175,7 +175,7 @@ uint16_t getCoppMidPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
 }
 
 uint16_t getCoppHighPriQueueId(const std::vector<const HwAsic*>& hwAsics) {
-  auto hwAsic = checkSameAndGetAsic(hwAsics);
+  auto hwAsic = checkSameAndGetAsic(hwAsics, FLAGS_switch_id_for_testing);
   return getCoppHighPriQueueId(hwAsic);
 }
 
@@ -299,7 +299,7 @@ void addCpuQueueConfig(
     const std::vector<const HwAsic*>& asics,
     bool isSai,
     bool setQueueRate) {
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   std::vector<cfg::PortQueue> cpuQueues;
 
   cfg::PortQueue queue0;
@@ -396,7 +396,7 @@ void setDefaultCpuTrafficPolicyConfig(
     cfg::SwitchConfig& config,
     const std::vector<const HwAsic*>& asics,
     bool isSai) {
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
 
   if (!hwAsic->isSupported(HwAsic::Feature::CPU_QUEUES)) {
     return;
@@ -778,7 +778,7 @@ std::shared_ptr<facebook::fboss::Interface> getEligibleInterface(
 void setTTLZeroCpuConfig(
     const std::vector<const HwAsic*>& asics,
     cfg::SwitchConfig& config) {
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   if (!hwAsic->isSupported(HwAsic::Feature::SAI_TTL0_PACKET_FORWARD_ENABLE)) {
     // don't configure if not supported
     return;
@@ -1347,7 +1347,7 @@ std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueuesForBcm(
 std::vector<cfg::PacketRxReasonToQueue> getCoppRxReasonToQueues(
     const std::vector<const HwAsic*>& hwAsics,
     bool isSai) {
-  auto hwAsic = checkSameAndGetAsic(hwAsics);
+  auto hwAsic = checkSameAndGetAsic(hwAsics, FLAGS_switch_id_for_testing);
   return isSai ? getCoppRxReasonToQueuesForSai(hwAsic)
                : getCoppRxReasonToQueuesForBcm(hwAsic);
 }
