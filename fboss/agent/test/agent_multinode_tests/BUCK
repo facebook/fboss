@@ -15,6 +15,7 @@ cpp_library(
         "AgentMultiNodeProcessRestartTest.cpp",
         "AgentMultiNodeTest.cpp",
         "AgentMultiNodeUtils.cpp",
+        "AgentMultiNodeVoqSwitchHyperPortTests.cpp",
         "AgentMultiNodeVoqSwitchNeighborTests.cpp",
         "AgentMultiNodeVoqSwitchNoTrafficDropsTests.cpp",
         "AgentMultiNodeVoqSwitchTests.cpp",
