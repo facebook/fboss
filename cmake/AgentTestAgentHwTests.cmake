@@ -9,6 +9,7 @@ add_library(agent_qos_test_src
   fboss/agent/test/agent_hw_tests/AgentDscpQueueMappingTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentNetworkAIQosTests.cpp
+  fboss/agent/test/agent_hw_tests/AgentEgressQueueScalingFactorTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosSchedulerTests.cpp
   fboss/agent/test/agent_hw_tests/AgentOlympicQosTests.cpp
   fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.cpp
@@ -22,6 +23,7 @@ target_link_libraries(agent_qos_test_src
   config_factory
   copp_test_utils
   ecmp_helper
+  multi_port_traffic_test_utils
   network_ai_qos_utils
   olympic_qos_utils
   packet_factory
