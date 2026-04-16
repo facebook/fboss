@@ -73,7 +73,7 @@ class ControlLogic {
   void updateOpticsPwms(SensorData& sensorData);
   bool /* pwm update fail */
   programFan(const Zone& zone, const Fan& fan, int16_t fanPwm);
-  int16_t calculateZonePwm(const Zone& zone, bool boostMode);
+  int16_t calculateZonePwm(const Zone& zone, bool boostMode, bool specialMode);
   void updateTargetPwm(const Sensor& sensorItem, int numFanFailed);
   void programLed(const Fan& fan, bool fanFailed);
   bool isFanPresentInDevice(const Fan& fan);
@@ -90,5 +90,6 @@ class ControlLogic {
       pidLogics_;
   std::shared_ptr<SensorData> pSensorData_{nullptr};
   bool boostMode_{false};
+  bool specialMode_{false};
 };
 } // namespace facebook::fboss::platform::fan_service

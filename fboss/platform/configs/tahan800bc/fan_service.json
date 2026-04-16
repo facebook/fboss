@@ -2,10 +2,14 @@
   "pwmBoostOnNumDeadFan": 1,
   "pwmBoostOnNumDeadSensor": 0,
   "pwmBoostOnNoQsfpAfterInSec": 55,
-  "pwmBoostValue": 80,
+  "pwmBoostValue": 100,
+  "pwmSpecialModeNumDeadFan": 2,
+  "pwmSpecialModeValue": 30,
   "pwmTransitionValue": 55,
   "pwmLowerThreshold": 20,
   "pwmUpperThreshold": 100,
+  "shutdownCmd": "echo 0 > /run/devmap/cplds/TAHAN_SMB_CPLD/th5_pwr_en",
+  "shutdownCOMeCmd": "echo 0 > /run/devmap/cplds/SMB_CPLD_1/come_pwr_ctrl",
   "controlInterval": {
     "sensorReadInterval": 5,
     "pwmUpdateInterval": 5
@@ -16,36 +20,36 @@
       "aggregationType": "OPTIC_AGGREGATION_TYPE_INCREMENTAL_PID",
       "pidSettings": {
         "OPTIC_TYPE_800_GENERIC": {
-          "kp": 2,
+          "kp": 6,
           "ki": 0.6,
           "kd": 0,
           "setPoint": 65.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         },
         "OPTIC_TYPE_400_GENERIC": {
-          "kp": 2,
+          "kp": 6,
           "ki": 0.6,
           "kd": 0,
           "setPoint": 65.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         },
         "OPTIC_TYPE_200_GENERIC": {
-          "kp": 2,
+          "kp": 6,
           "ki": 0.6,
           "kd": 0,
           "setPoint": 65.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         },
         "OPTIC_TYPE_100_GENERIC": {
-          "kp": 2,
+          "kp": 6,
           "ki": 0.6,
           "kd": 0,
           "setPoint": 65.0,
           "posHysteresis": 0.0,
-          "negHysteresis": 2.0
+          "negHysteresis": 3.0
         }
       }
     }
@@ -67,20 +71,6 @@
         "33": 50,
         "38": 60,
         "48": 100
-      },
-      "failUpTable": {
-        "25": 80,
-        "30": 80,
-        "35": 80,
-        "40": 80,
-        "50": 80
-      },
-      "failDownTable": {
-        "23": 80,
-        "28": 80,
-        "33": 80,
-        "38": 80,
-        "48": 80
       }
     },
     {
@@ -99,20 +89,6 @@
         "88": 40,
         "93": 50,
         "97": 80
-      },
-      "failUpTable": {
-        "80": 80,
-        "85": 80,
-        "90": 80,
-        "95": 80,
-        "99": 80
-      },
-      "failDownTable": {
-        "78": 80,
-        "83": 80,
-        "88": 80,
-        "93": 80,
-        "97": 80
       }
     },
     {
@@ -128,18 +104,6 @@
         "53": 20,
         "63": 30,
         "73": 40,
-        "78": 80
-      },
-      "failUpTable": {
-        "55": 80,
-        "65": 80,
-        "75": 80,
-        "80": 80
-      },
-      "failDownTable": {
-        "53": 80,
-        "63": 80,
-        "73": 80,
         "78": 80
       }
     },
@@ -161,22 +125,6 @@
         "83": 35,
         "93": 40,
         "98": 80
-      },
-      "failUpTable": {
-        "55": 80,
-        "65": 80,
-        "75": 80,
-        "85": 80,
-        "95": 80,
-        "100": 80
-      },
-      "failDownTable": {
-        "53": 80,
-        "63": 80,
-        "73": 80,
-        "83": 80,
-        "93": 80,
-        "98": 80
       }
     },
     {
@@ -196,22 +144,6 @@
         "73": 30,
         "83": 35,
         "93": 40,
-        "98": 80
-      },
-      "failUpTable": {
-        "55": 80,
-        "65": 80,
-        "75": 80,
-        "85": 80,
-        "95": 80,
-        "100": 80
-      },
-      "failDownTable": {
-        "53": 80,
-        "63": 80,
-        "73": 80,
-        "83": 80,
-        "93": 80,
         "98": 80
       }
     }

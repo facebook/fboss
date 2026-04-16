@@ -96,6 +96,19 @@ bool ConfigValidator::isValid(const FanServiceConfig& config) {
     }
   }
 
+  if (config.pwmSpecialModeNumDeadFan()) {
+    if (!config.pwmSpecialModeValue()) {
+      XLOG(ERR)
+          << "pwmSpecialModeValue must be set when pwmSpecialModeNumDeadFan is defined";
+      return false;
+    }
+    if (!config.shutdownCOMeCmd() || config.shutdownCOMeCmd()->empty()) {
+      XLOG(ERR)
+          << "shutdownCOMeCmd must be set when pwmSpecialModeNumDeadFan is defined";
+      return false;
+    }
+  }
+
   return true;
 }
 

@@ -214,13 +214,30 @@ void ControlLogic::updateTargetPwm(const Sensor& sensor, int numFanFailed) {
       tableToUse =
           accelerate ? *sensor.normalUpTable() : *sensor.normalDownTable();
     } else if (moreThanOneDeadFanExists) {
-      tableToUse = accelerate
-          ? (sensor.twoRotorsFailUpTable() ? *sensor.twoRotorsFailUpTable()
-                                           : *sensor.failUpTable())
-          : (sensor.twoRotorsFailDownTable() ? *sensor.twoRotorsFailDownTable()
-                                             : *sensor.failDownTable());
+      if (accelerate) {
+        if (sensor.twoRotorsFailUpTable().has_value())
+          tableToUse = *sensor.twoRotorsFailUpTable();
+        else if (sensor.failUpTable().has_value())
+          tableToUse = *sensor.failUpTable();
+        else
+          tableToUse = *sensor.normalUpTable();
+      } else {
+        if (sensor.twoRotorsFailDownTable().has_value())
+          tableToUse = *sensor.twoRotorsFailDownTable();
+        else if (sensor.failDownTable().has_value())
+          tableToUse = *sensor.failDownTable();
+        else
+          tableToUse = *sensor.normalDownTable();
+      }
     } else {
-      tableToUse = accelerate ? *sensor.failUpTable() : *sensor.failDownTable();
+      if (accelerate) {
+        tableToUse = sensor.failUpTable().has_value() ? *sensor.failUpTable()
+                                                      : *sensor.normalUpTable();
+      } else {
+        tableToUse = sensor.failDownTable().has_value()
+            ? *sensor.failDownTable()
+            : *sensor.normalDownTable();
+      }
     }
 
     // Start with the lowest value
@@ -491,7 +508,10 @@ void ControlLogic::programLed(const Fan& fan, bool fanFailed) {
       fmt::format(kLedWriteFailure, *fan.fanName()), !ret);
 }
 
-int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
+int16_t ControlLogic::calculateZonePwm(
+    const Zone& zone,
+    bool boostMode,
+    bool specialMode) {
   auto zoneType = *zone.zoneType();
   int16_t zonePwm{0};
   int totalPwmConsidered{0};
@@ -520,6 +540,9 @@ int16_t ControlLogic::calculateZonePwm(const Zone& zone, bool boostMode) {
   }
   if (boostMode) {
     zonePwm = std::max(zonePwm, *config_.pwmBoostValue());
+  }
+  if (specialMode) {
+    zonePwm = *config_.pwmSpecialModeValue();
   }
 
   XLOG(INFO) << fmt::format(
@@ -623,7 +646,7 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
   XLOG(INFO) << "Processing Optics ...";
   updateOpticsPwms(*pS);
 
-  // STEP 3.5: Shutdown the system if overtemp is detected
+  // STEP 3.5: Shutdown the ASIC if overtemp is detected
   for (auto& sensorName : overtempWatchList_) {
     auto sensorEntry = pS->getSensorEntry(sensorName);
     if (sensorEntry) {
@@ -631,10 +654,10 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
     }
   }
   if (overtempCondition_.checkIfOvertemp()) {
-    XLOG(ERR) << fmt::format("Running shutdown command");
+    XLOG(ERR) << fmt::format("Running shutdown ASIC command");
     structuredLogger_.logAlert(
         "emergency_shutdown",
-        "System overtemp detected, running shutdown command",
+        "System overtemp detected, running shutdown ASIC command",
         {{}});
     pBsp_->emergencyShutdown(true);
   }
@@ -682,10 +705,25 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
         "boost_mode_activated", {{"reason", boostModeReason}});
   }
 
-  // STEP 5: Calculate and program fan PWMs
+  // STEP 5: Determine whether special mode is necessary
+  std::string specialModeReason;
+  if (config_.pwmSpecialModeNumDeadFan() &&
+      *config_.pwmSpecialModeNumDeadFan() != 0 &&
+      numFanFailed >= *config_.pwmSpecialModeNumDeadFan()) {
+    specialMode_ = true;
+    specialModeReason =
+        fmt::format("Special mode enabled for {} fan failures", numFanFailed);
+    XLOG(INFO) << specialModeReason;
+  }
+  if (specialMode_) {
+    structuredLogger_.logEvent(
+        "special_mode_activated", {{"reason", specialModeReason}});
+  }
+
+  // STEP 6: Calculate and program fan PWMs
   fanStatuses_.withWLock([&](auto& fanStatuses) {
     for (const auto& zone : *config_.zones()) {
-      int16_t zonePwm = calculateZonePwm(zone, boostMode_);
+      int16_t zonePwm = calculateZonePwm(zone, boostMode_, specialMode_);
       std::unordered_set<std::string> zoneFans(
           zone.fanNames()->begin(), zone.fanNames()->end());
       for (const auto& fan : *config_.fans()) {
@@ -693,10 +731,15 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
           continue;
         }
 
-        int16_t fanPwm = calculateFanPwm(
-            *zone.slope(),
-            *fanStatuses[*fan.fanName()].pwmToProgram(),
-            zonePwm);
+        int16_t fanPwm;
+        if (specialMode_) {
+          fanPwm = zonePwm;
+        } else {
+          fanPwm = calculateFanPwm(
+              *zone.slope(),
+              *fanStatuses[*fan.fanName()].pwmToProgram(),
+              zonePwm);
+        }
         bool fanFailed = programFan(zone, fan, fanPwm);
         updatePwmState(zone, fanPwm);
 
@@ -708,11 +751,18 @@ void ControlLogic::updateControl(std::shared_ptr<SensorData> pS) {
       }
     }
 
-    // STEP 6: Program fan LEDs
+    // STEP 7: Program fan LEDs
     for (const auto& fan : *config_.fans()) {
       programLed(fan, *fanStatuses[*fan.fanName()].fanFailed());
     }
   });
+
+  // STEP 8: Shutdown the ASIC and COMe if special mode is enabled
+  if (specialMode_) {
+    XLOG(INFO) << fmt::format("Running shutdown ASIC and COMe command");
+    pBsp_->emergencyShutdown(true);
+    pBsp_->COMeShutdown(true);
+  }
 }
 
 int16_t ControlLogic::calculateFanPwm(
