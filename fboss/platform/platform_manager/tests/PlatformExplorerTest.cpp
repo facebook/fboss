@@ -129,10 +129,10 @@ TEST(PlatformExplorerTest, PublishHardwareVersions) {
 
   // Directly populate the hardware versions in the dataStore
   // This simulates what updateHardwareVersions() does when reading from EEPROM
-  dataStore.updateHardwareVersion(PlatformExplorer::kChassisEepromVersion, "5");
-  dataStore.updateHardwareVersion(PlatformExplorer::kProductionState, "GA");
-  dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "V3");
-  dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "A2");
+  dataStore.updateHardwareVersion(PlatformExplorer::kChassisEepromVersion, "6");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionState, "4");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "3");
+  dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "1");
 
   PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
@@ -140,10 +140,11 @@ TEST(PlatformExplorerTest, PublishHardwareVersions) {
   explorer.publishHardwareVersions();
 
   // Verify the hardware versions were published to ODS counters
-  expectHardwareVersion(PlatformExplorer::kChassisEepromVersionODS, "5");
-  expectHardwareVersion(PlatformExplorer::kProductionStateODS, "GA");
-  expectHardwareVersion(PlatformExplorer::kProductionSubStateODS, "V3");
-  expectHardwareVersion(PlatformExplorer::kVariantVersionODS, "A2");
+  expectHardwareVersion(PlatformExplorer::kChassisEepromVersionODS, "6");
+  expectHardwareVersion(PlatformExplorer::kProductionStateODS, "4");
+  expectHardwareVersion(PlatformExplorer::kProductionSubStateODS, "3");
+  expectHardwareVersion(PlatformExplorer::kVariantVersionODS, "1");
+  expectHardwareVersion(PlatformExplorer::kFullVersionODS, "4.3.1");
 }
 
 TEST(PlatformExplorerTest, SymlinkExceptionHandling) {
