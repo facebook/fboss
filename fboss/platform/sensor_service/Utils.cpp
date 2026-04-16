@@ -2,7 +2,6 @@
 
 #include "fboss/platform/sensor_service/Utils.h"
 
-#include <array>
 #include <chrono>
 
 #include <exprtk.hpp>
@@ -22,30 +21,28 @@ namespace {
 // Returns true if lhs > rhs, false otherwise.
 struct {
   bool operator()(
-      const std::array<int16_t, 3>& l1,
-      const std::array<int16_t, 3>& l2,
-      uint8_t i = 0) {
-    if (i == 3) {
-      return false;
+      const platform_manager::PmUnitVersion& l1,
+      const platform_manager::PmUnitVersion& l2) {
+    if (*l1.productProductionState() != *l2.productProductionState()) {
+      return *l1.productProductionState() > *l2.productProductionState();
     }
-    if (l1[i] > l2[i]) {
-      return true;
+    if (*l1.productVersion() != *l2.productVersion()) {
+      return *l1.productVersion() > *l2.productVersion();
     }
-    if (l1[i] < l2[i]) {
-      return false;
-    }
-    return (*this)(l1, l2, ++i);
+    return *l1.productSubVersion() > *l2.productSubVersion();
   }
   bool operator()(
       const VersionedPmSensor& vSensor1,
       const VersionedPmSensor& vSensor2) {
-    return (*this)(
-        {*vSensor1.productProductionState(),
-         *vSensor1.productVersion(),
-         *vSensor1.productSubVersion()},
-        {*vSensor2.productProductionState(),
-         *vSensor2.productVersion(),
-         *vSensor2.productSubVersion()});
+    if (*vSensor1.productProductionState() !=
+        *vSensor2.productProductionState()) {
+      return *vSensor1.productProductionState() >
+          *vSensor2.productProductionState();
+    }
+    if (*vSensor1.productVersion() != *vSensor2.productVersion()) {
+      return *vSensor1.productVersion() > *vSensor2.productVersion();
+    }
+    return *vSensor1.productSubVersion() > *vSensor2.productSubVersion();
   }
 } VersionedSensorComparator;
 } // namespace
@@ -95,22 +92,24 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
   const auto pmUnitInfo = fetcher.fetch(slotPath);
   // Use the latest PmUnitInfo as the best effort because eventually the latest
   // respins will only be deployed to DC. So more merits to tailor towards them
-  // with an assumption that latest respions will mainly be in the DC.
-  if (!pmUnitInfo) {
+  // with an assumption that latest respins will mainly be in the DC.
+  if (!pmUnitInfo || !pmUnitInfo->version()) {
     XLOG(INFO) << fmt::format(
-        "Fail to fetch PmUnitInfo at {} from PlatformManager. "
+        "No version available for PmUnit at {}. "
         "Fall back to the latest VersionedPmSensor",
         slotPath);
     return versionedSensors.front();
   }
+  const auto& fetchedVersion = *pmUnitInfo->version();
   for (const auto& versionedSensor : versionedSensors) {
     // Find a VersionedSensor that satisfies fetched PmUnitInfo version.
     // i.e. PmUnitInfo version >= VersionedSensor sensor
-    if (!VersionedSensorComparator(
-            {*versionedSensor.productProductionState(),
-             *versionedSensor.productVersion(),
-             *versionedSensor.productSubVersion()},
-            *pmUnitInfo)) {
+    platform_manager::PmUnitVersion sensorVersion;
+    sensorVersion.productProductionState() =
+        *versionedSensor.productProductionState();
+    sensorVersion.productVersion() = *versionedSensor.productVersion();
+    sensorVersion.productSubVersion() = *versionedSensor.productSubVersion();
+    if (!VersionedSensorComparator(sensorVersion, fetchedVersion)) {
       XLOG(INFO) << fmt::format(
           "Resolved to VersionedPmSensor of version {}.{}.{}",
           *versionedSensor.productProductionState(),
