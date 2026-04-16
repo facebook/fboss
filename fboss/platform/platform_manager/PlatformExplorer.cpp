@@ -977,6 +977,24 @@ void PlatformExplorer::publishHardwareVersions() {
         variantIt->second);
     fb303::fbData->setCounter(fmt::format(kFullVersionODS, combined), 1);
   }
+  // Report per-PmUnit versions. Keyed by name+version, so duplicate PmUnit
+  // names (e.g. multiple PSUs) collapse into one counter per unique version.
+  for (const auto& [slotPath, pmUnitInfo] :
+       dataStore_.getSlotPathToPmUnitInfo()) {
+    const auto& version = pmUnitInfo.version();
+    if (!version) {
+      fb303::fbData->setCounter(
+          fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), "unspecified"), 1);
+      continue;
+    }
+    auto versionStr = fmt::format(
+        "{}.{}.{}",
+        *version->productProductionState(),
+        *version->productVersion(),
+        *version->productSubVersion());
+    fb303::fbData->setCounter(
+        fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), versionStr), 1);
+  }
 }
 
 PlatformManagerStatus PlatformExplorer::getPMStatus() const {

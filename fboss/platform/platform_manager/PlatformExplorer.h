@@ -51,6 +51,8 @@ class PlatformExplorer {
   auto static constexpr kVariantVersionODS =
       "platform_explorer.variant_version.{}";
   auto static constexpr kFullVersionODS = "platform_explorer.full_version.{}";
+  auto static constexpr kPmUnitVersionODS =
+      "platform_explorer.{}.pmunit_version.{}";
 
   auto static constexpr kFwVerErrorFileNotFound = "ERROR_FILE_NOT_FOUND";
   auto static constexpr kFwVerErrorEmptyFile = "ERROR_EMPTY_FILE";
