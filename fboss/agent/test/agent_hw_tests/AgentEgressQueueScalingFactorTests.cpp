@@ -143,4 +143,44 @@ class AgentEgressQueueScalingFactorTest : public AgentHwTest {
   }
 };
 
+// Validates that changing the MMU scaling factor on a queue works
+// both before and after warm boot. Traffic loops at line rate on
+// all ports. The verify phase changes scaling factor from ONE to
+// EIGHT and back to ONE on the silver queue, checking traffic
+// continues to flow on all ports. The same verify runs pre and
+// post warm boot.
+TEST_F(
+    AgentEgressQueueScalingFactorTest,
+    VerifyScalingFactorChangeWithTraffic) {
+  auto allPortIds = masterLogicalInterfacePortIds();
+  auto numPorts = std::min(static_cast<int>(allPortIds.size()), kMaxTestPorts);
+  std::vector<PortID> portIds(
+      allPortIds.begin(), allPortIds.begin() + numPorts);
+
+  auto setup = [portIds, this]() {
+    utility::setupEcmpDataplaneLoopOnPorts(getAgentEnsemble(), portIds);
+    startTrafficOnPorts(portIds);
+  };
+
+  auto verify = [portIds, this]() {
+    auto queueId =
+        utility::getOlympicQueueId(utility::OlympicQueueType::SILVER);
+
+    // Verify traffic with initial scaling factor (ONE)
+    verifyTrafficFlowingOnPorts(portIds);
+
+    // Change scaling factor from ONE to EIGHT
+    applyNewConfig(
+        getConfigWithScalingFactor(queueId, cfg::MMUScalingFactor::EIGHT));
+    verifyTrafficFlowingOnPorts(portIds);
+
+    // Change scaling factor back from EIGHT to ONE
+    applyNewConfig(
+        getConfigWithScalingFactor(queueId, cfg::MMUScalingFactor::ONE));
+    verifyTrafficFlowingOnPorts(portIds);
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
+}
+
 } // namespace facebook::fboss
