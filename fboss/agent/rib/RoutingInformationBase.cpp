@@ -1241,6 +1241,91 @@ void RoutingInformationBase::updateStateInRibThread(
   ribUpdateEventBase_.runInEventBaseThreadAndWait([fn] { fn(); });
 }
 
+template <typename RibUpdateFn>
+void RibRouteTables::updateRibNamedNextHopGroups(
+    const RibUpdateFn& updateRibFn) {
+  auto lockedRouteTables = synchronizedRouteTables_.wlock();
+  if (!lockedRouteTables->nextHopIDManager) {
+    throw FbossError("NextHopIDManager not initialized");
+  }
+  updateRibFn(lockedRouteTables->nextHopIDManager.get());
+}
+
+void RibRouteTables::updateFibNamedNextHopGroups(
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  try {
+    auto lockedRouteTables = synchronizedRouteTables_.rlock();
+    stateUpdateFn(lockedRouteTables->nextHopIDManager.get());
+  } catch (const FbossHwUpdateError& hwUpdateError) {
+    {
+      SCOPE_FAIL {
+        XLOG(FATAL) << " RIB Rollback failed, aborting program";
+      };
+      auto lockedRouteTables = synchronizedRouteTables_.wlock();
+      // Reconstruct NextHopIDManager from the applied state to restore
+      // consistency between RIB and switch state
+      if (lockedRouteTables->nextHopIDManager) {
+        lockedRouteTables->nextHopIDManager->reconstructFromSwitchStateMaps(
+            hwUpdateError.appliedState->getFibsInfoMap(),
+            hwUpdateError.appliedState->getMySids(),
+            hwUpdateError.appliedState->getLabelForwardingInformationBase());
+      }
+    }
+    throw;
+  }
+}
+
+void RibRouteTables::addOrUpdateNamedNextHopGroups(
+    const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  // Pre-validate all groups before mutating state. If any group is invalid,
+  // throw before any partial state is written. This matches the MySid batch
+  // validation pattern (mySidFromEntry pre-validates all entries).
+  for (const auto& [name, nextHopSet] : groups) {
+    if (name.empty()) {
+      throw FbossError("Named next-hop group name cannot be empty");
+    }
+    if (nextHopSet.empty()) {
+      throw FbossError(
+          "Named next-hop group '", name, "' has empty nexthop set");
+    }
+  }
+  updateRibNamedNextHopGroups([&](NextHopIDManager* nextHopIDManager) {
+    for (const auto& [name, nextHopSet] : groups) {
+      nextHopIDManager->allocateNamedNextHopGroup(name, nextHopSet);
+    }
+  });
+  updateFibNamedNextHopGroups(stateUpdateFn);
+}
+
+void RibRouteTables::deleteNamedNextHopGroups(
+    const std::vector<std::string>& names,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  updateRibNamedNextHopGroups([&](NextHopIDManager* nextHopIDManager) {
+    for (const auto& name : names) {
+      if (nextHopIDManager->hasNamedNextHopGroup(name)) {
+        nextHopIDManager->deallocateNamedNextHopGroup(name);
+      }
+    }
+  });
+  updateFibNamedNextHopGroups(stateUpdateFn);
+}
+
+void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
+    const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  updateStateInRibThread([&]() {
+    ribTables_.addOrUpdateNamedNextHopGroups(groups, stateUpdateFn);
+  });
+}
+
+void RoutingInformationBase::deleteNamedNextHopGroups(
+    const std::vector<std::string>& names,
+    const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  updateStateInRibThread(
+      [&]() { ribTables_.deleteNamedNextHopGroups(names, stateUpdateFn); });
+}
+
 state::RouteTableFields RibRouteTables::VrfRouteTable::toThrift() const {
   state::RouteTableFields obj{};
   obj.v4NetworkToRoute() = v4NetworkToRoute.toThrift();

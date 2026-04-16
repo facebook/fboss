@@ -210,6 +210,12 @@ class NextHopIDManager {
     return nameToNextHopSet_;
   }
 
+  // Get all name to NextHopSetID mappings
+  const std::unordered_map<std::string, NextHopSetID>& getNameToNextHopSetID()
+      const {
+    return nameToNextHopSetID_;
+  }
+
   // Check if a named next-hop group exists
   bool hasNamedNextHopGroup(const std::string& name) const {
     return nameToNextHopSet_.find(name) != nameToNextHopSet_.end();
