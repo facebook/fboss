@@ -307,10 +307,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       EXPECT_EQ(v4Hdr.dstAddr, kV4RouteDstIp);
       // Outer header hop limit should get decremented and
       // copied
-      // EXPECT_EQ(v4Hdr.ttl, kOuterHopLimit - 1);
-      // FIXME - change to outer hop limit check once
-      // MT-878 is fixed
-      EXPECT_EQ(v4Hdr.ttl, kInnerHopLimit - 1);
+      EXPECT_EQ(v4Hdr.ttl, kOuterHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v4Hdr.dscp, kOuterPktTc);
       EXPECT_EQ(v4Hdr.ecn, ecnMarked ? 0x3 : 0);
@@ -326,10 +323,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
       EXPECT_EQ(v6Hdr.dstAddr, kV6RouteDstIp);
       // Outer header hop limit should get decremented and
       // copied
-      // EXPECT_EQ(v4Hdr.hopLimit, kOuterHopLimit - 1);
-      // FIXME - change to outer hop limit check once
-      // MT-878 is fixed
-      EXPECT_EQ(v6Hdr.hopLimit, kInnerHopLimit - 1);
+      EXPECT_EQ(v6Hdr.hopLimit, kOuterHopLimit - 1);
       // DSCP is preserved
       EXPECT_EQ(v6Hdr.trafficClass >> 2, kOuterPktTc);
       EXPECT_EQ(v6Hdr.trafficClass & 0x3, ecnMarked ? 0x3 : 0);
