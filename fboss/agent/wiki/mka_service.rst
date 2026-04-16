@@ -136,7 +136,7 @@ MKA Module
 
 MKAMoule maintains a map of l2Port -> MKASession, for each l2 port on which a CAK has been configured.
 MKAModule creates 2 thread pools
-* IOThread pools (2 threads) - for pdu send, recieve
+* IOThread pools (2 threads) - for pdu send, receive
 * CPU/Worker thread pool (1 thread) - for pdu processing, key server election, hardware programming.
 
 Its extremely important to **NOT** queue any h/w programming or long compute work on IO thread pool threads.
