@@ -45,7 +45,7 @@ std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
     id2NhopSetIds->addNextHopIdSet(id, nhopIds);
   }
 
-  // Update id maps in each FibInfo across all switches
+  // Update id maps and named next-hop group mappings in each FibInfo
   for (const auto& [matcher, _] : std::as_const(*state->getFibsInfoMap())) {
     auto fibInfo = nextState->getFibsInfoMap()->getNodeIf(matcher);
     if (!fibInfo) {
@@ -54,6 +54,18 @@ std::shared_ptr<SwitchState> SwitchStateNextHopIdUpdater::operator()(
     auto fibInfoPtr = fibInfo->modify(&nextState);
     fibInfoPtr->setIdToNextHopMap(id2Nhop);
     fibInfoPtr->setIdToNextHopIdSetMap(id2NhopSetIds);
+
+    // Sync named next-hop group mappings from NextHopIDManager.
+    const auto& nameToNextHopSetMap =
+        nextHopIDManager_->getNameToNextHopSetMap();
+    std::map<std::string, NextHopSetId> nameToSetIdMap;
+    for (const auto& [name, _] : nameToNextHopSetMap) {
+      auto setIdOpt = nextHopIDManager_->getNextHopSetIDForName(name);
+      if (setIdOpt) {
+        nameToSetIdMap[name] = static_cast<NextHopSetId>(*setIdOpt);
+      }
+    }
+    fibInfoPtr->setNameToNextHopSetId(nameToSetIdMap);
   }
 
   return nextState;
