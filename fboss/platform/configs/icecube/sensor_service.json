@@ -582,6 +582,10 @@
           "name": "MCB_FAN1_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN1_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -630,6 +634,10 @@
           "name": "MCB_FAN2_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN2_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -678,6 +686,10 @@
           "name": "MCB_FAN3_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN3_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -726,6 +738,10 @@
           "name": "MCB_FAN4_INA238_TEMP",
           "sysfsPath": "/run/devmap/sensors/MCB_FAN4_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -756,6 +772,10 @@
           "name": "MCB_PU925_TPS25990_COME_P12V_TEMP",
           "sysfsPath": "/run/devmap/sensors/LOAD_SWITCH_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -810,6 +830,10 @@
           "name": "MCB_PU1066_LTC4287_P48V_TEMP",
           "sysfsPath": "/run/devmap/sensors/48V_HSC_MONITOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 115,
+            "upperCriticalVal": 125
+          },
           "compute": "@/1000.0"
         },
         {
@@ -842,6 +866,10 @@
           "name": "BMC_U9_THERMAL_SENSOR_TMP1075_TEMP",
           "sysfsPath": "/run/devmap/sensors/RUNBMC_THERMAL_SENSOR/temp1_input",
           "type": 3,
+          "thresholds": {
+            "maxAlarmVal": 70,
+            "upperCriticalVal": 75
+          },
           "compute": "@/1000.0"
         }
       ]
