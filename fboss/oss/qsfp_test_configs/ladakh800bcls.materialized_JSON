@@ -1790,6 +1790,14 @@
             }
           ]
       },
+      "T-OL8CNH-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
       "T-OL8CNH-NFL": {
           "versions": [
             {
@@ -1799,6 +1807,30 @@
           ]
       },
       "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NFY": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NST": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NYT": {
           "versions": [
             {
               "fwType": 1,
