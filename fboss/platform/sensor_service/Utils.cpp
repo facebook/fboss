@@ -78,7 +78,7 @@ float Utils::computeExpression(
 }
 
 std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
-    const PmUnitInfoFetcher& fetcher,
+    const std::optional<platform_manager::PmUnitInfo>& pmUnitInfo,
     const std::string& slotPath,
     std::vector<VersionedPmSensor> versionedSensors) {
   if (versionedSensors.empty()) {
@@ -89,7 +89,6 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
       versionedSensors.begin(),
       versionedSensors.end(),
       VersionedSensorComparator);
-  const auto pmUnitInfo = fetcher.fetch(slotPath);
   // Use the latest PmUnitInfo as the best effort because eventually the latest
   // respins will only be deployed to DC. So more merits to tailor towards them
   // with an assumption that latest respins will mainly be in the DC.
@@ -110,7 +109,7 @@ std::optional<VersionedPmSensor> Utils::resolveVersionedSensors(
     sensorVersion.productVersion() = *versionedSensor.productVersion();
     sensorVersion.productSubVersion() = *versionedSensor.productSubVersion();
     if (!VersionedSensorComparator(sensorVersion, fetchedVersion)) {
-      XLOG(INFO) << fmt::format(
+      XLOG(DBG1) << fmt::format(
           "Resolved to VersionedPmSensor of version {}.{}.{}",
           *versionedSensor.productProductionState(),
           *versionedSensor.productVersion(),
