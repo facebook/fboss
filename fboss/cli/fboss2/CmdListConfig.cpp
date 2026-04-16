@@ -16,6 +16,8 @@
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
@@ -134,6 +136,18 @@ const CommandTree& kConfigCommandTree() {
                "Set queuing policy for interface",
                commandHandler<CmdConfigInterfaceQueuingPolicy>,
                argTypeHandler<CmdConfigInterfaceQueuingPolicyTraits>,
+           },
+           {
+               "ipv6",
+               "Configure IPv6 settings for interface",
+               commandHandler<CmdConfigInterfaceIpv6>,
+               argTypeHandler<CmdConfigInterfaceIpv6Traits>,
+               {{
+                   "nd",
+                   "Configure IPv6 Neighbor Discovery (NDP/RA) settings",
+                   commandHandler<CmdConfigInterfaceIpv6Nd>,
+                   argTypeHandler<CmdConfigInterfaceIpv6NdTraits>,
+               }},
            },
            {
                "switchport",

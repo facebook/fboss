@@ -297,6 +297,17 @@ CLI::App* CmdSubcommands::addCommand(
               "watchdog-detection-time, watchdog-recovery-action, "
               "watchdog-recovery-time");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NDP_CONFIG_ATTRS:
+          subCmd->add_option(
+              "ndp_config_attrs",
+              args,
+              "<attr> [<value>] ... where <attr> is one of: "
+              "ra-interval <seconds>, ra-lifetime <seconds>, "
+              "hop-limit <0-255>, prefix-valid-lifetime <seconds>, "
+              "prefix-preferred-lifetime <seconds>, "
+              "managed-config-flag, other-config-flag, "
+              "ra-address <ip>");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME:
           subCmd->add_option(
               "queuing_policy_name", args, "Queuing policy name");
