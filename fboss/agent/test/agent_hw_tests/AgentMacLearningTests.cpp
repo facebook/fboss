@@ -1623,7 +1623,7 @@ TEST_F(
   };
 
   auto verify = [this, &macs, &extraMac]() {
-    // Verify all orignal 1K macs and the extra one have been learnt
+    // Verify all original 1K macs and the extra one have been learnt
     macs.push_back(extraMac);
     verifyAllMacsLearnt(macs);
   };

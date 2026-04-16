@@ -447,7 +447,7 @@ class CmisModule : public QsfpModule {
       CmisField field,
       double (*conversion)(uint16_t value));
   /*
-   * Retreives all alarm and warning thresholds
+   * Retrieves all alarm and warning thresholds
    */
   std::optional<AlarmThreshold> getThresholdInfo() override;
   /*
@@ -734,6 +734,11 @@ class CmisModule : public QsfpModule {
    */
   void ensureRxOutputSquelchEnabled(
       const std::vector<HostLaneSettings>& hostLaneSettings) override;
+
+  /*
+   * Disable TX and RX squelch on all lanes for tunable optics modules.
+   */
+  void disableTxRxSquelchForTunableOptics();
 
   /*
    * Check if the module has accepted the lane configuration specified by

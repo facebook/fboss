@@ -15,6 +15,7 @@
 #include <vector>
 #include "fboss/agent/gen-cpp2/agent_config_types.h"
 #include "fboss/cli/fboss2/gen-cpp2/cli_metadata_types.h"
+#include "fboss/cli/fboss2/session/FbossServiceUtil.h"
 #include "fboss/cli/fboss2/session/Git.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PortMap.h"
@@ -115,6 +116,9 @@ class ConfigSession {
     // Maps each service to the action level that was applied during commit.
     // Services not in this map had no action taken.
     std::map<cli::ServiceType, cli::ConfigActionLevel> actions;
+    // Maps each service to the list of actual systemd service names that were
+    // restarted/reloaded (e.g., "fboss_sw_agent", "fboss_hw_agent@0", etc.)
+    std::map<cli::ServiceType, std::vector<std::string>> serviceNames;
   };
 
   // Atomically commit the session to /etc/coop/cli/agent.conf and create a git
@@ -184,6 +188,12 @@ class ConfigSession {
   // Constructor for testing with custom paths
   ConfigSession(std::string sessionConfigDir, std::string systemConfigDir);
 
+  // Constructor for testing with custom paths and mock FbossServiceUtil
+  ConfigSession(
+      std::string sessionConfigDir,
+      std::string systemConfigDir,
+      std::unique_ptr<FbossServiceUtil> fbossServiceUtil);
+
   // Set the singleton instance (for testing only)
   static void setInstance(std::unique_ptr<ConfigSession> instance);
 
@@ -194,6 +204,14 @@ class ConfigSession {
   // Virtual to allow tests to override with mock command lines.
   virtual std::string readCommandLineFromProc() const;
 
+  // Apply actions (restart or reload) to all services based on their action
+  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
+  // the config.
+  // Returns a map of service type to list of actual systemd service names.
+  std::map<cli::ServiceType, std::vector<std::string>> applyServiceActions(
+      const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
+      const HostInfo& hostInfo);
+
  private:
   std::string sessionConfigDir_; // Typically ~/.fboss2
   std::string systemConfigDir_; // Typically /etc/coop
@@ -201,6 +219,9 @@ class ConfigSession {
 
   // Git instance for version control operations
   std::unique_ptr<Git> git_;
+
+  // Service orchestration for systemd operations
+  std::unique_ptr<FbossServiceUtil> fbossServiceUtil_;
 
   // Lazy-initialized configuration and port map
   cfg::AgentConfig agentConfig_;
@@ -230,21 +251,8 @@ class ConfigSession {
   void loadMetadata();
   void saveMetadata();
 
-  // Restart a service via systemd and wait for it to be active
-  // For AGENT_WARMBOOT, does a simple restart.
-  // For AGENT_COLDBOOT, creates cold_boot_once files before restarting.
-  void restartService(cli::ServiceType service, cli::ConfigActionLevel level);
-
-  // Reload config for a service without restart (for HITLESS changes).
-  // Each service type has its own reload mechanism.
-  void reloadServiceConfig(cli::ServiceType service, const HostInfo& hostInfo);
-
-  // Apply actions (restart or reload) to all services based on their action
-  // levels. For WARMBOOT/COLDBOOT, restarts the service. For HITLESS, reloads
-  // the config.
-  void applyServiceActions(
-      const std::map<cli::ServiceType, cli::ConfigActionLevel>& actions,
-      const HostInfo& hostInfo);
+  // Lazily initialize fbossServiceUtil_ from the loaded agent config.
+  void ensureFbossServiceUtil();
 
   // Initialize the session (creates session config file if it doesn't exist)
   void initializeSession();

@@ -18,6 +18,7 @@
 
 #include "fboss/agent/AsicUtils.h"
 
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -47,7 +48,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     utility::addOlympicQosMaps(cfg, l3Asics);
     // drop packets are match to avoid packets matching multiple times in L3
     // loop case
@@ -117,13 +118,13 @@ class AgentDscpMarkingTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           RouterID(0));
       resolveNeighborAndProgramRoutes(ecmpHelper, kDefaultEcmpWidth);
       // Add the DSCP remarking ACLs
       auto newCfg{initialConfig(*getAgentEnsemble())};
       auto l3Asics = getAgentEnsemble()->getL3Asics();
-      auto asic = checkSameAndGetAsic(l3Asics);
+      auto asic = checkSameAndGetAsicForTesting(l3Asics);
       utility::addDscpReclassificationAcls(
           asic, &newCfg, ecmpHelper.ecmpPortDescriptorAt(0).phyPortID());
       applyNewConfig(newCfg);
@@ -133,7 +134,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           RouterID(0));
       auto portId = ecmpHelper.ecmpPortDescriptorAt(0).phyPortID();
       auto portStatsBefore = getLatestPortStats(portId);
@@ -231,7 +232,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
       std::optional<uint16_t> l4DstPort) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     std::unique_ptr<facebook::fboss::TxPacket> txPacket;
@@ -272,7 +273,7 @@ class AgentDscpMarkingTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper(
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           RouterID(0));
       auto outPort =
           ecmpHelper.ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();

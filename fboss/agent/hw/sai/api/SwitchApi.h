@@ -260,6 +260,13 @@ struct SaiSwitchTraits {
         SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY,
         sai_uint32_t,
         SaiIntDefault<sai_uint32_t>>;
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    using AvailableMySidEntry = SaiAttribute<
+        EnumType,
+        SAI_SWITCH_ATTR_AVAILABLE_MY_SID_ENTRY,
+        sai_uint32_t,
+        SaiIntDefault<sai_uint32_t>>;
+#endif
     using IngressAcl = SaiAttribute<
         EnumType,
         SAI_SWITCH_ATTR_INGRESS_ACL,
@@ -1049,6 +1056,9 @@ SAI_ATTRIBUTE_NAME(Switch, AvailableNextHopGroupEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableNextHopGroupMemberEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv4NeighborEntry)
 SAI_ATTRIBUTE_NAME(Switch, AvailableIpv6NeighborEntry)
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+SAI_ATTRIBUTE_NAME(Switch, AvailableMySidEntry)
+#endif
 
 SAI_ATTRIBUTE_NAME(Switch, Led)
 SAI_ATTRIBUTE_NAME(Switch, LedReset)

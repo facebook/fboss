@@ -18,7 +18,9 @@ uint32_t getFabricPortsPerVirtualDevice(const cfg::AsicType asicType);
 int getMaxNumberOfFabricPorts(const cfg::AsicType asicType);
 
 void checkSameAsicType(const std::vector<const HwAsic*>& asics);
-const HwAsic* checkSameAndGetAsic(const std::vector<const HwAsic*>& asics);
+const HwAsic* checkSameAndGetAsic(
+    const std::vector<const HwAsic*>& asics,
+    int32_t switchId = 0);
 cfg::AsicType checkSameAndGetAsicType(const cfg::SwitchConfig& config);
 
 } // namespace facebook::fboss

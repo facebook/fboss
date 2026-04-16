@@ -966,6 +966,35 @@ void PlatformExplorer::publishHardwareVersions() {
   } else {
     XLOG(ERR) << "Variant Indicator not set";
   }
+  // Report combined chassis variant: <production_state>.<sub_state>.<variant>
+  if (prodStateIt != hardwareVersions.end() &&
+      prodSubStateIt != hardwareVersions.end() &&
+      variantIt != hardwareVersions.end()) {
+    auto combined = fmt::format(
+        "{}.{}.{}",
+        prodStateIt->second,
+        prodSubStateIt->second,
+        variantIt->second);
+    fb303::fbData->setCounter(fmt::format(kFullVersionODS, combined), 1);
+  }
+  // Report per-PmUnit versions. Keyed by name+version, so duplicate PmUnit
+  // names (e.g. multiple PSUs) collapse into one counter per unique version.
+  for (const auto& [slotPath, pmUnitInfo] :
+       dataStore_.getSlotPathToPmUnitInfo()) {
+    const auto& version = pmUnitInfo.version();
+    if (!version) {
+      fb303::fbData->setCounter(
+          fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), "unspecified"), 1);
+      continue;
+    }
+    auto versionStr = fmt::format(
+        "{}.{}.{}",
+        *version->productProductionState(),
+        *version->productVersion(),
+        *version->productSubVersion());
+    fb303::fbData->setCounter(
+        fmt::format(kPmUnitVersionODS, *pmUnitInfo.name(), versionStr), 1);
+  }
 }
 
 PlatformManagerStatus PlatformExplorer::getPMStatus() const {

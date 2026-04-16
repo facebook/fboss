@@ -4,6 +4,7 @@
 
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestEcmpConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -60,7 +61,7 @@ void AgentOverflowTestBase::startPacketTxRxVerify() {
   packetRxVerifyRunning_ = true;
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   auto dstIp = folly::IPAddress::createNetwork(
                    getSw()->getConfig().interfaces()[0].ipAddresses()[0])
                    .first;

@@ -19,6 +19,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/hw/test/HwHashPolarizationTestUtils.h"
 
@@ -125,7 +126,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
   void runFirstHash(const std::vector<cfg::LoadBalancer>& firstHashes) {
     auto ecmpPorts = getEcmpPorts();
     auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
     {
       HwTestPacketTrapEntry trapPkts(
@@ -165,7 +166,7 @@ class HwHashPolarizationTests : public HwLinkStateDependentTest {
     XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ecmpPorts = getEcmpPorts();
     auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ecmpPorts);
 
     // Set second hash
@@ -509,7 +510,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
   void runFirstHashTrunkTest(const std::vector<cfg::LoadBalancer>& hashes) {
     auto ports = getEgressPorts(kNumAggregatePorts / 2);
     auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto preTestStats =
         getHwSwitchEnsemble()->getLatestPortStats(getEgressPorts());
     {
@@ -551,7 +552,7 @@ class HwHashTrunkPolarizationTests : public HwHashPolarizationTests {
     XLOG(DBG2) << " Num captured packets: " << rxPackets.size();
     auto ports = getEgressPorts();
     auto firstVlan = getHwSwitchEnsemble()->getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto preTestStats = getHwSwitchEnsemble()->getLatestPortStats(ports);
 
     // Set second hash

@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:cpp_library.bzl", "cpp_library")
+
+oncall("fboss_platform")
+
+cpp_library(
+    name = "xcvr_lib",
+    srcs = ["XcvrLib.cpp"],
+    headers = ["XcvrLib.h"],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        "//fboss/platform/config_lib:config_lib",
+        "//fboss/platform/platform_manager:platform_manager_config-cpp2-types",
+        "//folly/logging:logging",
+        "//thrift/lib/cpp2/protocol:protocol",
+    ],
+)

@@ -68,6 +68,8 @@ class ConfigValidator {
       std::optional<int16_t> ledNum = std::nullopt);
   bool isValidPortRanges(
       const std::vector<std::pair<int16_t, int16_t>>& startPortAndNumPorts);
+  bool isValidLedCtrlBlockXcvrCoverage(const PlatformConfig& config);
+  bool isValidXcvrCtrlBlockXcvrCoverage(const PlatformConfig& config);
   bool isValidChassisEepromDevicePath(
       const PlatformConfig& platformConfig,
       const std::string& chassisEepromDevicePath);

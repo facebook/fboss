@@ -17,6 +17,7 @@
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_constants.h"
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/PacketSendUtils.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonFileUtils.h"
@@ -773,7 +774,7 @@ void AgentEnsemble::createAndDumpOverriddenAgentConfig() {
 }
 
 std::optional<VlanID> AgentEnsemble::getVlanIDForTx() const {
-  auto intf = utility::firstInterfaceWithPorts(getProgrammedState());
+  auto intf = firstInterfaceWithPortsForTesting(getProgrammedState());
   return getSw()->getVlanIDForTx(intf);
 }
 

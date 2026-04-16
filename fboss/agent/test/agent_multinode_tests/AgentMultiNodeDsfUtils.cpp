@@ -520,7 +520,6 @@ bool verifyNoPortErrorsForSwitch(const std::string& switchName) {
   // No connected fabric ports should have errors
   XLOG(DBG2) << "Verifying Fabric Port No Error: " << switchName;
   auto connectedPorts = getConnectedFabricPorts(switchName);
-  CHECK(connectedPorts.size());
   for (const auto& [portName, portInfo] :
        getFabricPortNameToPortInfo(switchName)) {
     if (connectedPorts.count(portName) == 0) {
@@ -1738,6 +1737,23 @@ int64_t getSystemPortMin(
   auto systemPortMin = *ranges->systemPortRanges()->front().minimum();
 
   return systemPortMin;
+}
+
+std::map<std::string, std::set<std::string>> getRdswConnectedFabricPorts(
+    const std::unique_ptr<TopologyInfo>& topologyInfo) {
+  std::map<std::string, std::set<std::string>> rdswToConnectedPorts;
+
+  // RDSWs are VoQ switches that should have fabric ports connected to FDSWs
+  for (const auto& rdsw : topologyInfo->getRdsws()) {
+    auto connectedPorts = getConnectedFabricPorts(rdsw);
+    CHECK(!connectedPorts.empty())
+        << "RDSW " << rdsw << " has no connected fabric ports";
+    XLOG(DBG2) << "RDSW: " << rdsw << " has " << connectedPorts.size()
+               << " connected fabric ports";
+    rdswToConnectedPorts[rdsw] = std::move(connectedPorts);
+  }
+
+  return rdswToConnectedPorts;
 }
 
 } // namespace facebook::fboss::utility

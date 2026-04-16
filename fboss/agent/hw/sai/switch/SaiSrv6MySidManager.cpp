@@ -31,6 +31,7 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
     const std::optional<SaiMySidEntryHandle::NextHopHandle>& nexthopHandle,
     SaiManagerTable* managerTable) {
   sai_int32_t endpointBehavior;
+  sai_object_id_t vrId{SAI_NULL_OBJECT_ID};
   switch (mySid.getType()) {
     case MySidType::ADJACENCY_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UA;
@@ -38,13 +39,18 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
     case MySidType::NODE_MICRO_SID:
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UN;
       break;
-    case MySidType::DECAPSULATE_AND_LOOKUP:
+    case MySidType::DECAPSULATE_AND_LOOKUP: {
 #if SAI_API_VERSION >= SAI_VERSION(1, 16, 1)
       endpointBehavior = SAI_MY_SID_ENTRY_ENDPOINT_BEHAVIOR_UDT46;
+      auto* vrHandle =
+          managerTable->virtualRouterManager().getVirtualRouterHandle(
+              RouterID(0));
+      CHECK(vrHandle) << "No default virtual router";
+      vrId = vrHandle->virtualRouter->adapterKey();
 #else
       throw FbossError("Decapsulate with uSids requires SAI >= 1.16.0");
 #endif
-      break;
+    } break;
   }
 
   sai_object_id_t nextHopId = SAI_NULL_OBJECT_ID;
@@ -58,11 +64,6 @@ SaiMySidEntryTraits::CreateAttributes getMySidCreateAttributes(
       nextHopId = (*managedNh)->adapterKey();
     }
   }
-
-  auto* vrHandle =
-      managerTable->virtualRouterManager().getVirtualRouterHandle(RouterID(0));
-  CHECK(vrHandle) << "No default virtual router";
-  auto vrId = vrHandle->virtualRouter->adapterKey();
 
   sai_int32_t packetAction = SAI_PACKET_ACTION_FORWARD;
   if (mySid.getType() != MySidType::DECAPSULATE_AND_LOOKUP &&

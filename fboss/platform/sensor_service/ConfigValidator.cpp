@@ -10,9 +10,24 @@
 namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
 
+const std::unordered_set<std::string> kTempThresholdViolators = {
+    "ICECUBE",
+    "ICETEA",
+    "LEH800BCLS",
+    "MONTBLANC",
+    "MINIPACK3BAM",
+    "WEDGE800BACT",
+};
+
 bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   XLOG(INFO) << "Validating sensor_service config";
+  if (!isValidPlatformName(sensorConfig)) {
+    return false;
+  }
   if (!isValidPmUnitSensorsList(*sensorConfig.pmUnitSensorsList())) {
+    return false;
+  }
+  if (!isValidTemperatureSensorThresholds(sensorConfig)) {
     return false;
   }
   if (!isValidPowerConfig(sensorConfig)) {
@@ -23,6 +38,25 @@ bool ConfigValidator::isValid(const SensorConfig& sensorConfig) {
   }
   if (!isValidAsicCommand(sensorConfig)) {
     return false;
+  }
+  return true;
+}
+
+bool ConfigValidator::isValidPlatformName(const SensorConfig& sensorConfig) {
+  XLOG(DBG1) << "Validating platform name";
+  if (sensorConfig.platformName()->empty()) {
+    XLOG(ERR) << "platformName must be non-empty";
+    return false;
+  }
+  const auto& name = *sensorConfig.platformName();
+  for (char c : name) {
+    if (!std::isupper(c) && c != '_' && !std::isdigit(c)) {
+      XLOG(ERR) << fmt::format(
+          "platformName '{}' must contain only uppercase letters, digits,"
+          " and underscores",
+          name);
+      return false;
+    }
   }
   return true;
 }
@@ -344,6 +378,47 @@ std::unordered_set<std::string> ConfigValidator::getAllUniversalSensorNames(
     sensorNames.emplace(*asicCmd->sensorName());
   }
   return sensorNames;
+}
+
+bool ConfigValidator::isValidTemperatureSensorThresholds(
+    const SensorConfig& sensorConfig) {
+  const auto& platformName = *sensorConfig.platformName();
+  if (kTempThresholdViolators.count(platformName)) {
+    XLOG(WARN) << fmt::format(
+        "Platform '{}' is a known temperature threshold violator,"
+        " skipping threshold validation",
+        platformName);
+    return true;
+  }
+
+  XLOG(DBG1) << "Validating temperature sensor thresholds";
+
+  auto checkSensors = [](const std::vector<PmSensor>& sensors) -> bool {
+    for (const auto& sensor : sensors) {
+      if (*sensor.type() != SensorType::TEMPERATURE) {
+        continue;
+      }
+      if (!sensor.thresholds().has_value()) {
+        XLOG(ERR) << fmt::format(
+            "Temperature sensor '{}' must have thresholds defined",
+            *sensor.name());
+        return false;
+      }
+    }
+    return true;
+  };
+
+  for (const auto& pmUnitSensors : *sensorConfig.pmUnitSensorsList()) {
+    if (!checkSensors(*pmUnitSensors.sensors())) {
+      return false;
+    }
+    for (const auto& versionedPmSensor : *pmUnitSensors.versionedSensors()) {
+      if (!checkSensors(*versionedPmSensor.sensors())) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 bool ConfigValidator::isValidSensorName(

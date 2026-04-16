@@ -235,6 +235,14 @@ bool ConfigValidator::isValidLedCtrlBlockConfig(
     XLOG(ERR) << "ledPerPort must be a value less than or equal to 4";
     return false;
   }
+  if (*ledCtrlBlockConfig.lanesPerPort() <= 0) {
+    XLOG(ERR) << "lanesPerPort must be a value greater than 0";
+    return false;
+  }
+  if (*ledCtrlBlockConfig.lanesPerPort() > 8) {
+    XLOG(ERR) << "lanesPerPort must be a value less than or equal to 8";
+    return false;
+  }
   if (*ledCtrlBlockConfig.startPort() <= 0) {
     XLOG(ERR) << "startPort must be a value greater than 0";
     return false;
@@ -1057,6 +1065,16 @@ bool ConfigValidator::isValid(const PlatformConfig& config) {
     return false;
   }
 
+  XLOG(INFO) << "Validating xcvr LED coverage...";
+  if (!isValidLedCtrlBlockXcvrCoverage(config)) {
+    return false;
+  }
+
+  XLOG(INFO) << "Validating xcvr ctrl coverage...";
+  if (!isValidXcvrCtrlBlockXcvrCoverage(config)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -1419,6 +1437,88 @@ bool ConfigValidator::isValidVersionedPmUnitConfig(
     }
   }
   return true;
+}
+
+bool ConfigValidator::isValidLedCtrlBlockXcvrCoverage(
+    const PlatformConfig& config) {
+  if (*config.numXcvrs() == 0) {
+    return true;
+  }
+
+  const auto& platformName = *config.platformName();
+
+  // TODO: Remove once ladakh/leh ledCtrlBlockConfigs cover all xcvrs
+  if (platformName == "LADAKH800BCLS" || platformName == "LEH800BCLS") {
+    return true;
+  }
+
+  // Collect all ledCtrlBlockConfigs across all PmUnits/PciDevices
+  std::vector<const LedCtrlBlockConfig*> allLedBlocks;
+  for (const auto& [_, pmUnitConfig] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitConfig.pciDeviceConfigs()) {
+      for (const auto& block : *pciDev.ledCtrlBlockConfigs()) {
+        allLedBlocks.push_back(&block);
+      }
+    }
+  }
+
+  // Check that every xcvr port [1, numXcvrs] is covered by ledCtrlBlockConfigs
+  std::set<int16_t> coveredPorts;
+  for (const auto* block : allLedBlocks) {
+    for (int16_t port = *block->startPort();
+         port < *block->startPort() + *block->numPorts();
+         ++port) {
+      coveredPorts.insert(port);
+    }
+  }
+
+  bool valid = true;
+  for (int16_t xcvrId = 1; xcvrId <= *config.numXcvrs(); ++xcvrId) {
+    if (coveredPorts.find(xcvrId) == coveredPorts.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform {}: xcvr {} is not covered by any ledCtrlBlockConfig",
+          platformName,
+          xcvrId);
+      valid = false;
+    }
+  }
+
+  return valid;
+}
+
+bool ConfigValidator::isValidXcvrCtrlBlockXcvrCoverage(
+    const PlatformConfig& config) {
+  if (*config.numXcvrs() == 0) {
+    return true;
+  }
+
+  const auto& platformName = *config.platformName();
+
+  std::set<int16_t> coveredPorts;
+  for (const auto& [_, pmUnitConfig] : *config.pmUnitConfigs()) {
+    for (const auto& pciDev : *pmUnitConfig.pciDeviceConfigs()) {
+      for (const auto& block : *pciDev.xcvrCtrlBlockConfigs()) {
+        for (int16_t port = *block.startPort();
+             port < *block.startPort() + *block.numPorts();
+             ++port) {
+          coveredPorts.insert(port);
+        }
+      }
+    }
+  }
+
+  bool valid = true;
+  for (int16_t xcvrId = 1; xcvrId <= *config.numXcvrs(); ++xcvrId) {
+    if (coveredPorts.find(xcvrId) == coveredPorts.end()) {
+      XLOG(ERR) << fmt::format(
+          "Platform {}: xcvr {} is not covered by any xcvrCtrlBlockConfig",
+          platformName,
+          xcvrId);
+      valid = false;
+    }
+  }
+
+  return valid;
 }
 
 bool ConfigValidator::isValidPortRanges(

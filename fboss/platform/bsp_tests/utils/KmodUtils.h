@@ -19,6 +19,13 @@ class KmodUtils {
       const platform_manager::PlatformConfig& platformConfig);
   static std::vector<std::string> getLoadedKmods(
       const BspKmodsFile& expectedKmods);
+
+  // Extract the vendor keyword (e.g. "fboss") from bspKmodsRpmName
+  // (e.g. "fboss_bsp_kmods") in the platform config.
+  static std::string getVendorKeyword(
+      const platform_manager::PlatformConfig& platformConfig);
+
+  static std::string getKernelVersion();
 };
 
 } // namespace facebook::fboss::platform::bsp_tests

@@ -16,6 +16,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
@@ -161,7 +162,7 @@ void AgentVoqSwitchTest::sendLocalServiceDiscoveryMulticastPacket(
     const int numPackets) {
   auto vlanId = getVlanIDForTx();
   auto intfMac =
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   auto srcIp = folly::IPAddressV6("fe80::ff:fe00:f0b");
   auto dstIp = folly::IPAddressV6("ff15::efc0:988f");
   auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
@@ -229,7 +230,7 @@ int AgentVoqSwitchTest::sendPacket(
 void AgentVoqSwitchTest::addDscpAclWithCounter() {
   auto newCfg = initialConfig(*getAgentEnsemble());
   auto* acl = utility::addAcl_DEPRECATED(&newCfg, kDscpAclName());
-  auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+  auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
   acl->dscp() = 0x24;
   utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   utility::addAclStat(
@@ -483,7 +484,8 @@ TEST_F(AgentVoqSwitchTest, sendPacketCpuAndFrontPanel) {
 
             EXPECT_EVENTUALLY_EQ(afterOutPkts - 1, beforeOutPkts);
             int extraByteOffset = 0;
-            auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+            auto asic =
+                checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
             const auto asicMode = asic->getAsicMode();
             const auto asicType = asic->getAsicType();
             if (asic->getAsicMode() != HwAsic::AsicMode::ASIC_MODE_SIM) {
@@ -544,7 +546,7 @@ TEST_F(AgentVoqSwitchTest, trapPktsOnPort) {
   auto setup = [this, kPortDesc, &ecmpHelper]() {
     auto cfg = initialConfig(*getAgentEnsemble());
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     utility::addTrapPacketAcl(asic, &cfg, kPortDesc.phyPortID());
     applyNewConfig(cfg);
     applyNewState([=](const std::shared_ptr<SwitchState>& in) {
@@ -981,9 +983,10 @@ TEST_F(AgentVoqSwitchTest, verifyEgressCoreAndSramWatermark) {
     std::string kSramMinWm{"buffer_watermark_min_sram.p0.60"};
     // Get SRAM size per core as thats the highest possible free SRAM
     const uint64_t kSramSize =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getSramSizeBytes() /
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getNumCores();
     auto regex = kEgressCoreWm + "|" + kSramMinWm;
     sendPacket(
         ecmpHelper.ip(kPortDesc),

@@ -14,6 +14,7 @@
 #include "fboss/agent/state/Route.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -194,7 +195,7 @@ TEST_F(AgentHwResourceStatsTest, aclStats) {
     this->getLatestPortStats(this->masterLogicalPortIds());
 
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto [aclEntriesFreeBefore, aclCountersFreeBefore] = getStatsFn();
     // getSw()->isRunModeMultiSwitch() ? getMultiStatsFn() : getMonoStatsFn();
     auto acl = utility::addAcl_DEPRECATED(&newCfg, "acl0");

@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/utils/DscpMarkingUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/HwAsicTable.h"
@@ -190,7 +191,7 @@ void addDscpMarkingAclsTableHelper(
     addAclEntry(config, dscpSrcMarkingAcl, aclTableName);
 
     utility::addSetDscpAndEgressQueueActionToCfg(
-        checkSameAndGetAsic(asicTable.getL3Asics()),
+        checkSameAndGetAsicForTesting(asicTable.getL3Asics()),
         config,
         *dscpSrcMarkingAcl.name(),
         kIcpDscp(),
@@ -208,7 +209,7 @@ void addDscpMarkingAclsTableHelper(
     }
     utility::addAclEntry(config, dscpDstMarkingAcl, aclTableName);
     utility::addSetDscpAndEgressQueueActionToCfg(
-        checkSameAndGetAsic(asicTable.getL3Asics()),
+        checkSameAndGetAsicForTesting(asicTable.getL3Asics()),
         config,
         *dscpDstMarkingAcl.name(),
         kIcpDscp(),

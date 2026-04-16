@@ -11,6 +11,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -44,7 +45,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
   const folly::IPAddressV6 kV6RouteDstIp{"2800:2::1"};
   const folly::IPAddressV4 kV4RoutePrefix{"100.0.0.0"};
   const folly::IPAddressV4 kV4RouteDstIp{"100.0.0.1"};
-  const folly::IPAddressV6 kMySidAddr{"3001:db8:efff::"};
+  const folly::IPAddressV6 kMySidAddr{"3001:db8:7fff::"};
   static constexpr uint8_t kMySidPrefixLen{48};
   static constexpr uint8_t kECT1{1};
 
@@ -86,7 +87,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     }
     // Add trap ACLs for inner packet destinations so snooper can capture
     // the decapped and forwarded packets
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
         &cfg,
@@ -123,7 +124,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     this->resolveNeighbors(ecmpHelper4, numNextHops);
   }
 
-  void setupHelper(bool resolveNeighbors = true) {
+  void setupHelper(bool resolveNeighbors = true, bool addMySid = true) {
     if constexpr (kIsTrunk) {
       applyConfigAndEnableTrunks(
           this->initialConfig(*this->getAgentEnsemble()));
@@ -137,7 +138,9 @@ class AgentSrv6DecapTest : public AgentHwTest {
     // IPv4 route with regular next hops (no SID lists)
     addRoute<folly::CIDRNetworkV4>(
         {folly::IPAddressV4("100.0.0.0"), 24}, 1 /*numNextHops*/);
-    addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
+    if (addMySid) {
+      addMySidEntry(kMySidAddr.str(), kMySidPrefixLen);
+    }
   }
 
   template <typename CIDRNetworkT>
@@ -159,7 +162,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     routeUpdater.program();
   }
 
-  void addMySidEntry(const std::string& addr, uint8_t prefixLen) {
+  MySidEntry makeMySidEntry(const std::string& addr, uint8_t prefixLen) {
     MySidEntry entry;
     entry.type() = MySidType::DECAPSULATE_AND_LOOKUP;
     facebook::network::thrift::IPPrefix prefix;
@@ -167,6 +170,11 @@ class AgentSrv6DecapTest : public AgentHwTest {
         facebook::network::toBinaryAddress(folly::IPAddressV6(addr));
     prefix.prefixLength() = prefixLen;
     entry.mySid() = prefix;
+    return entry;
+  }
+
+  void addMySidEntry(const std::string& addr, uint8_t prefixLen) {
+    auto entry = makeMySidEntry(addr, prefixLen);
     auto sw = this->getSw();
     auto rib = sw->getRib();
     auto ribMySidToSwitchStateFunc =
@@ -198,7 +206,7 @@ class AgentSrv6DecapTest : public AgentHwTest {
     auto bytesBefore = *portStatsBefore.outBytes_();
 
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     constexpr uint16_t kSrcPort{8000};
     constexpr uint16_t kDstPort{8001};
     constexpr uint8_t kInnerHopLimit{64};
@@ -376,7 +384,7 @@ TYPED_TEST(AgentSrv6DecapTest, verifySrv6DecapEcnMarking) {
     auto ecmpHelper = this->makeEcmpHelper();
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     // Send 512 IPv6-in-IPv6 packets (outer DSCP 5 + ECN ECT1, inner TC = 0).
     // UNIFORM decap copies outer DSCP+ECN to inner.
@@ -428,7 +436,7 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
     auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
     auto injectPort = this->findInjectPort(egressPort);
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
 
     auto sendPacket = [this, &intfMac](int dscp, bool frontPanel, PortID port) {
       // Outer DSCP determines queue classification.
@@ -469,7 +477,54 @@ TYPED_TEST(AgentSrv6DecapTest, VerifyDscpQueueMapping) {
       }
     }
   };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
 
+TYPED_TEST(AgentSrv6DecapTest, sendDecapPacketNonLastSegmentDropped) {
+  auto setup = [this]() { this->setupHelper(); };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    auto injectPort = this->findInjectPort(egressPort);
+
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
+
+    // Outer dst IP matches the mySid /48 prefix but is not the last uSid.
+    // The packet should be dropped.
+    const folly::IPAddressV6 kNonLastSegmentDst{"3001:db8:ffff:1:2::"};
+
+    auto txPacket = utility::makeIpInIpTxPacket(
+        this->getSw(),
+        this->getVlanIDForTx().value(),
+        intfMac,
+        intfMac,
+        folly::IPAddressV6("1::1"),
+        kNonLastSegmentDst,
+        folly::IPAddressV6("1::10"),
+        this->kV6RouteDstIp,
+        8000,
+        8001,
+        0 /* outerTcField */,
+        0 /* innerTrafficClass */,
+        64,
+        64);
+
+    this->getSw()->sendPacketOutOfPortAsync(std::move(txPacket), injectPort);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
+      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+    });
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 

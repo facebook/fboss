@@ -7,6 +7,7 @@
 #include "fboss/agent/hw/HwSwitchFb303Stats.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/FabricTestUtils.h"
 #include "fboss/lib/CommonUtils.h"
@@ -497,7 +498,8 @@ class AgentBalancedInputModeTest : public AgentFabricSwitchTest {
           *config.dsfNodes(),
           remoteFabricLevel,
           i /* clusterId */,
-          checkSameAndGetAsic(ensemble.getHwAsicTable()->getFabricAsics())
+          checkSameAndGetAsicForTesting(
+              ensemble.getHwAsicTable()->getFabricAsics())
               ->getAsicType(),
           ensemble.getSw()->getPlatformType());
       config.dsfNodes()->insert({fabricSwitchId, fabricNode});

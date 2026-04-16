@@ -168,6 +168,15 @@ class Fboss2IntegrationTest : public ::testing::Test {
    */
   void discardSession() const;
 
+  /**
+   * Wait until the FBOSS agent is responsive (ready to serve thrift requests).
+   * Polls 'show interface' until it succeeds or timeout is reached.
+   * Use this after triggering a warmboot or coldboot restart.
+   * @param timeout Maximum time to wait (default: 120 seconds)
+   */
+  void waitForAgentReady(
+      std::chrono::seconds timeout = std::chrono::seconds(300)) const;
+
  private:
   Interface parseInterfaceJson(const folly::dynamic& data) const;
 

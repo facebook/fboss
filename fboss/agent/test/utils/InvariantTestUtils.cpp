@@ -13,6 +13,7 @@
 #include "fboss/agent/gen-cpp2/validated_shell_commands_constants.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -94,7 +95,7 @@ void verifyLoadBalance(
   utility::pumpTrafficAndVerifyLoadBalanced(
       [=]() {
         auto intfMac =
-            utility::getMacForFirstInterfaceWithPorts(sw->getState());
+            getMacForFirstInterfaceWithPortsForTesting(sw->getState());
         utility::pumpTraffic(
             true,
             utility::getAllocatePktFn(sw),

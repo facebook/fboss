@@ -3,6 +3,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PfcTestUtils.h"
@@ -31,7 +32,7 @@ class AgentRouterInterfaceCounterTest : public AgentHwTest {
   void pumpTraffic(bool isV6) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcIp = folly::IPAddress(isV6 ? "1001::1" : "10.0.0.1");
     auto dstIp = folly::IPAddress(isV6 ? "100:100:100::1" : "100.100.100.1");
     auto pkt = utility::makeUDPTxPacket(

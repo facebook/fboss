@@ -3,6 +3,7 @@
 #include "fboss/agent/hw/test/HwTestThriftHandler.h"
 
 #include "fboss/agent/hw/sai/store/SaiStore.h"
+#include "fboss/agent/hw/sai/switch/SaiAclTableGroupManager.h"
 #include "fboss/agent/hw/sai/switch/SaiAclTableManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
@@ -696,6 +697,15 @@ bool HwTestThriftHandler::areAllAclEntriesEnabled() {
     }
   }
   return true;
+}
+
+bool HwTestThriftHandler::isAclTableGroupEnabled(int32_t aclStage) {
+  const auto& aclTableGroupManager = static_cast<const SaiSwitch*>(hwSwitch_)
+                                         ->managerTable()
+                                         ->aclTableGroupManager();
+  auto aclTableGroupHandle = aclTableGroupManager.getAclTableGroupHandle(
+      static_cast<sai_acl_stage_t>(aclStage));
+  return aclTableGroupHandle != nullptr;
 }
 
 } // namespace utility

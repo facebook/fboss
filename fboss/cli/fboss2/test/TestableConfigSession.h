@@ -27,8 +27,21 @@ class TestableConfigSession : public ConfigSession {
       : ConfigSession(std::move(sessionConfigDir), std::move(systemConfigDir)) {
   }
 
+  // Constructor with mock FbossServiceUtil
+  TestableConfigSession(
+      std::string sessionConfigDir,
+      std::string systemConfigDir,
+      std::unique_ptr<FbossServiceUtil> fbossServiceUtil)
+      : ConfigSession(
+            std::move(sessionConfigDir),
+            std::move(systemConfigDir),
+            std::move(fbossServiceUtil)) {}
+
   // Expose protected setInstance() for testing
   using ConfigSession::setInstance;
+
+  // Expose protected applyServiceActions() for testing
+  using ConfigSession::applyServiceActions;
 
   // Set the command line to return from readCommandLineFromProc().
   // This allows tests to simulate CLI commands without /proc/self/cmdline.

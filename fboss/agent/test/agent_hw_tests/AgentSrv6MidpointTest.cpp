@@ -12,6 +12,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -80,12 +81,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
         &cfg,
-        // change mask to 128 when uSid shift is working
-        std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 32}});
+        std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 128}});
     return cfg;
   }
 
@@ -162,24 +162,21 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     throw FbossError("No UP port found besides egress port");
   }
 
-  void verifyMidpointForwarding(
-      PortID egressPort,
+  // Build and send an IPv6-in-IPv6 midpoint packet. Returns the original
+  // EthFrame (for inner-packet comparison) before the txPacket is moved.
+  utility::EthFrame sendMidpointPacket(
       bool ecnMarked,
       bool isV4,
-      std::optional<PortID> injectPort = std::nullopt) {
-    auto portStatsBefore = this->getLatestPortStats(egressPort);
-    auto bytesBefore = *portStatsBefore.outBytes_();
-
+      std::optional<PortID> injectPort = std::nullopt,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
+    auto dstAddr = outerDst.value_or(kPktOuterDst);
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(this->getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(this->getProgrammedState());
     constexpr uint8_t kHopLimit{24};
     constexpr uint8_t kTc{42};
     auto tcField = ecnMarked ? static_cast<uint8_t>((kTc << 2) | 0x3)
                              : static_cast<uint8_t>(kTc << 2);
 
-    // Outer IPv6 dst = kPktOuterDst triggers the ADJACENCY MySid at
-    // kMySidPrefix. The ASIC pops uSID 1, rewrites dst to kExpectedOuterDst,
-    // and forwards out the adjacency port.
     std::unique_ptr<TxPacket> txPacket;
     if (isV4) {
       txPacket = utility::makeIpInIpTxPacket(
@@ -188,7 +185,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
           intfMac,
           intfMac,
           folly::IPAddressV6("100::1") /* outerSrc */,
-          kPktOuterDst /* outerDst */,
+          dstAddr /* outerDst */,
           folly::IPAddressV4("10.0.0.1") /* innerSrc */,
           folly::IPAddressV4("10.0.0.2") /* innerDst */,
           8000 /* srcPort */,
@@ -204,7 +201,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
           intfMac,
           intfMac,
           folly::IPAddressV6("100::1") /* outerSrc */,
-          kPktOuterDst /* outerDst */,
+          dstAddr /* outerDst */,
           folly::IPAddressV6("2001:db8::1") /* innerSrc */,
           folly::IPAddressV6("2001:db8::2") /* innerDst */,
           8000 /* srcPort */,
@@ -215,12 +212,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
           64 /* innerHopLimit */);
     }
 
-    // Capture original frame before moving txPacket, for inner packet
-    // comparison.
     auto origFrame = utility::makeEthFrame(*txPacket);
-
-    utility::SwSwitchPacketSnooper snooper(
-        this->getSw(), "srv6MidpointSnooper");
 
     if (injectPort.has_value()) {
       this->getSw()->sendPacketOutOfPortAsync(
@@ -228,6 +220,25 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     } else {
       this->getSw()->sendPacketSwitchedAsync(std::move(txPacket));
     }
+
+    return origFrame;
+  }
+
+  void assertMidpointForwarding(
+      PortID egressPort,
+      bool ecnMarked,
+      bool isV4,
+      std::optional<PortID> injectPort = std::nullopt) {
+    constexpr uint8_t kHopLimit{24};
+    constexpr uint8_t kTc{42};
+
+    auto portStatsBefore = this->getLatestPortStats(egressPort);
+    auto bytesBefore = *portStatsBefore.outBytes_();
+
+    utility::SwSwitchPacketSnooper snooper(
+        this->getSw(), "srv6MidpointSnooper");
+
+    auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -274,6 +285,17 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
   }
 
+  void verifyMidpointForwarding(
+      PortID egressPort,
+      bool ecnMarked,
+      bool isV4,
+      std::optional<PortID> injectPort = std::nullopt) {
+    XLOG(DBG2) << "verifyMidpointForwarding: inner=" << (isV4 ? "v4" : "v6")
+               << " ecn=" << (ecnMarked ? "marked" : "unmarked")
+               << " send=" << (injectPort.has_value() ? "front-panel" : "cpu");
+    assertMidpointForwarding(egressPort, ecnMarked, isV4, injectPort);
+  }
+
   void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
     auto injectPort = findInjectPort(egressPort);
     for (bool isV4 : {false, true}) {
@@ -283,6 +305,50 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       // ECN marked
       verifyMidpointForwarding(egressPort, true, isV4);
       verifyMidpointForwarding(egressPort, true, isV4, injectPort);
+    }
+  }
+
+  void verifyMidpointDrop(
+      PortID injectPort,
+      PortID egressPort,
+      bool isV4,
+      std::optional<PortID> sendPort = std::nullopt,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
+    XLOG(DBG2) << "verifyMidpointDrop: inner=" << (isV4 ? "v4" : "v6")
+               << " send=" << (sendPort.has_value() ? "front-panel" : "cpu")
+               << " outerDst="
+               << (outerDst.has_value() ? outerDst->str() : "default");
+    auto portStatsBefore = this->getLatestPortStats(injectPort);
+    auto egressStatsBefore = this->getLatestPortStats(egressPort);
+
+    sendMidpointPacket(false /* ecnMarked */, isV4, sendPort, outerDst);
+
+    WITH_RETRIES({
+      auto portStatsAfter = this->getLatestPortStats(injectPort);
+      auto egressStatsAfter = this->getLatestPortStats(egressPort);
+      EXPECT_EVENTUALLY_GT(
+          *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
+      if (this->isSupportedOnAllAsics(
+              HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
+        EXPECT_EVENTUALLY_TRUE(
+            portStatsAfter.inSrv6MySidDiscards_().has_value());
+        EXPECT_EVENTUALLY_GT(
+            portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+            portStatsBefore.inSrv6MySidDiscards_().value_or(0));
+      }
+      // Packet should not be forwarded out the egress port.
+      EXPECT_EVENTUALLY_EQ(
+          *egressStatsAfter.outBytes_(), *egressStatsBefore.outBytes_());
+    });
+  }
+
+  void verifyMidpointDropCpuAndFrontPanel(
+      PortID egressPort,
+      std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
+    auto injectPort = findInjectPort(egressPort);
+    for (bool isV4 : {false, true}) {
+      verifyMidpointDrop(injectPort, egressPort, isV4, std::nullopt, outerDst);
+      verifyMidpointDrop(injectPort, egressPort, isV4, injectPort, outerDst);
     }
   }
 };
@@ -298,6 +364,36 @@ TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASid) {
     this->verifyMidpointCpuAndFrontPanel(egressPort);
   };
 
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6MidpointTest, sendPacketForUASidUnresolvedDropped) {
+  auto setup = [this]() {
+    this->setupHelper();
+    // Unresolve the neighbor so the mySid entry becomes unresolved.
+    auto ecmpHelper = this->makeEcmpHelper();
+    this->unresolveNeighbors(ecmpHelper, 1);
+  };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    this->verifyMidpointDropCpuAndFrontPanel(egressPort);
+  };
+  this->verifyAcrossWarmBoots(setup, verify);
+}
+
+TYPED_TEST(AgentSrv6MidpointTest, dropPacketUASidIsLastSid) {
+  auto setup = [this]() { this->setupHelper(); };
+
+  auto verify = [this]() {
+    auto ecmpHelper = this->makeEcmpHelper();
+    auto egressPort = this->getEgressPort(ecmpHelper.nhop(0).portDesc);
+    // Outer dst is the mySid prefix itself (3001:db8:1::) with no next uSID.
+    // The function bits are zero so there is no uSID to shift to — the
+    // packet should be dropped.
+    this->verifyMidpointDropCpuAndFrontPanel(egressPort, this->kMySidPrefix);
+  };
   this->verifyAcrossWarmBoots(setup, verify);
 }
 

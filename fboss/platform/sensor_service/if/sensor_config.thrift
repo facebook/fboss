@@ -204,8 +204,9 @@ struct TemperatureConfig {
 
 // The configuration for sensor mapping.
 struct SensorConfig {
-  1: list<PmUnitSensors> pmUnitSensorsList;
-  2: optional AsicCommand asicCommand;
+  1: string platformName;
+  6: list<PmUnitSensors> pmUnitSensorsList;
+  7: optional AsicCommand asicCommand;
   11: PowerConfig powerConfig;
   12: list<TemperatureConfig> temperatureConfigs;
 }

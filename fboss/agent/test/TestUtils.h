@@ -29,6 +29,7 @@
 #include "fboss/agent/mnpu/MultiSwitchHwSwitchHandler.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/state/StateDelta.h"
+#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/RouteDistributionGenerator.h"
 
 namespace facebook::fboss {
@@ -701,6 +702,18 @@ void addSwitchSettingsToState(
     int64_t switchId = 0);
 
 HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw);
+
+/*
+ * Test-only wrappers that use FLAGS_switch_id_for_testing as the switchId.
+ */
+const HwAsic* checkSameAndGetAsicForTesting(
+    const std::vector<const HwAsic*>& asics);
+folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state);
+InterfaceID firstInterfaceIDWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state);
+std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state);
 
 std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
     const AgentConfig* config,

@@ -187,4 +187,10 @@ service AgentHwTestCtrl {
     2: switch_state.SwitchSettingsFields settings,
     3: bool expectFlowsetFree,
   );
+
+  // vlan utils
+  map<i32, i32> getVlanToNumPorts();
+
+  // acl table group utils
+  bool isAclTableGroupEnabled(1: i32 aclStage);
 }

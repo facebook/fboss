@@ -105,13 +105,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "thrift_call_duration_logger",
+    headers = [
+        "ThriftCallDurationLogger.h",
+    ],
+)
+
+cpp_library(
     name = "log_thrift_call",
     srcs = [
         "LogThriftCall.cpp",
         "facebook/LogThriftCall.cpp",
     ],
     exported_deps = [
-        "//fboss/agent:stats",
+        ":thrift_call_duration_logger",
         "//folly:conv",
         "//folly:range",
         "//folly/futures:core",

@@ -236,7 +236,7 @@ struct CowFieldTraits {
       typename ConvertToNodeTraits<EnableHybridStorage, TC, NativeType>::
           isChild>;
 
-  // if the member type is overriden, use the overriden type.
+  // if the member type is overridden, use the overridden type.
   using type = std::conditional_t<
       ResolveMemberType<Derived, Ident>::value,
       std::shared_ptr<typename ResolveMemberType<Derived, Ident>::type>,

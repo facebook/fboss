@@ -62,7 +62,7 @@ TEST_F(TransceiverManagerTest, coldBootTest) {
   close(fd);
   verifyColdBootLogic();
 
-  // Sepcifically set can_qsfp_service_warm_boot to false to mimic
+  // Specifically set can_qsfp_service_warm_boot to false to mimic
   // Elbert8DD pim case which doesn't support warm boot
   gracefulExit();
   gflags::SetCommandLineOptionWithMode(

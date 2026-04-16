@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosTestBase.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
@@ -29,7 +30,7 @@ class AgentNetworkAIQosTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -74,7 +75,7 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto portIds = ensemble.masterLogicalInterfacePortIds();
     std::vector<PortID> testPortIds{portIds[0]};
 
@@ -133,7 +134,7 @@ class AgentNetworkAILossyQueueTests : public AgentQosTestBase {
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
 
     const PortDescriptor port(portId);
     RoutePrefixV6 route{ip, 128};
@@ -201,7 +202,7 @@ TEST_F(AgentNetworkAILossyQueueTests, VerifyEgressQueueDrop) {
                               const folly::IPAddressV6& dstIp,
                               std::optional<PortID> portId = std::nullopt) {
     folly::IPAddressV6 kSrcIp("2402::1");
-    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+    const auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
         ensemble->getProgrammedState());
     const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(

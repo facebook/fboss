@@ -25,29 +25,29 @@
 #define _LOGTHRIFTCALL_APPEND_PARAM(a) \
   ss << #a "=" << folly::toJson(folly::toDynamic(a)) << ",";
 
-#define LOG_THRIFT_CALL_IMPL(level, identEnvFallback, switchStats, ...) \
-  ([&](folly::StringPiece func,                                         \
-       folly::StringPiece file,                                         \
-       uint32_t line,                                                   \
-       apache::thrift::Cpp2RequestContext* ctx)                         \
-       -> std::unique_ptr<::facebook::fboss::LogThriftCall> {           \
-    if (!XLOG_IS_ON(level)) {                                           \
-      /* short circuit case to avoid unnecessary work */                \
-      return nullptr;                                                   \
-    }                                                                   \
-    static folly::Logger logger(XLOG_GET_CATEGORY_NAME());              \
-    std::stringstream ss;                                               \
-    FOLLY_PP_FOR_EACH(_LOGTHRIFTCALL_APPEND_PARAM, ##__VA_ARGS__)       \
-    return std::make_unique<::facebook::fboss::LogThriftCall>(          \
-        logger,                                                         \
-        folly::LogLevel::level,                                         \
-        func,                                                           \
-        file,                                                           \
-        line,                                                           \
-        ctx,                                                            \
-        ss.str(),                                                       \
-        identEnvFallback,                                               \
-        switchStats);                                                   \
+#define LOG_THRIFT_CALL_IMPL(level, identEnvFallback, durationLogger, ...) \
+  ([&](folly::StringPiece func,                                            \
+       folly::StringPiece file,                                            \
+       uint32_t line,                                                      \
+       apache::thrift::Cpp2RequestContext* ctx)                            \
+       -> std::unique_ptr<::facebook::fboss::LogThriftCall> {              \
+    if (!XLOG_IS_ON(level)) {                                              \
+      /* short circuit case to avoid unnecessary work */                   \
+      return nullptr;                                                      \
+    }                                                                      \
+    static folly::Logger logger(XLOG_GET_CATEGORY_NAME());                 \
+    std::stringstream ss;                                                  \
+    FOLLY_PP_FOR_EACH(_LOGTHRIFTCALL_APPEND_PARAM, ##__VA_ARGS__)          \
+    return std::make_unique<::facebook::fboss::LogThriftCall>(             \
+        logger,                                                            \
+        folly::LogLevel::level,                                            \
+        func,                                                              \
+        file,                                                              \
+        line,                                                              \
+        ctx,                                                               \
+        ss.str(),                                                          \
+        identEnvFallback,                                                  \
+        durationLogger);                                                   \
   }(__func__, __FILE__, __LINE__, getRequestContext()))
 
 /*
@@ -83,18 +83,18 @@
   LOG_THRIFT_CALL_IMPL(level, "SUDO_USER", nullptr, __VA_ARGS__)
 
 /*
- * Variant of above for logging thrift call and update Agent stats on the
- * completion time of the thrift call.
+ * Variant of above for logging thrift call and recording the completion
+ * time via a ThriftCallDurationLogger (e.g. SwitchStats in the agent).
  */
-#define LOG_THRIFT_CALL_WITH_STATS(level, switchStats, ...) \
-  LOG_THRIFT_CALL_IMPL(level, nullptr, switchStats, __VA_ARGS__)
+#define LOG_THRIFT_CALL_WITH_STATS(level, durationLogger, ...) \
+  LOG_THRIFT_CALL_IMPL(level, nullptr, durationLogger, __VA_ARGS__)
 
 #define FB_LOG_RAW_WITH_CONTEXT(...) \
   FB_LOG_RAW(__VA_ARGS__) << "[" << folly::RequestContext::get() << "] "
 
 namespace facebook::fboss {
 
-class SwitchStats;
+class ThriftCallDurationLogger;
 
 class LogThriftCall {
  public:
@@ -107,7 +107,7 @@ class LogThriftCall {
       apache::thrift::Cpp2RequestContext* ctx,
       std::string paramsStr,
       const char* identityEnvFallback = nullptr,
-      SwitchStats* switchStats = nullptr);
+      ThriftCallDurationLogger* durationLogger = nullptr);
   ~LogThriftCall();
 
   // useful for wrap(Semi)?Future
@@ -135,7 +135,7 @@ class LogThriftCall {
   std::chrono::time_point<std::chrono::steady_clock> start_;
   bool failed_{false};
   std::string paramsStr_;
-  SwitchStats* switchStats_{nullptr};
+  ThriftCallDurationLogger* durationLogger_{nullptr};
 };
 
 // inspiration for this is INSTRUMENT_THRIFT_CALL in EdenServiceHandler.

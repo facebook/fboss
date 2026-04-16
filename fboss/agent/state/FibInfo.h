@@ -114,6 +114,13 @@ class FibInfo : public ThriftStructNode<FibInfo, state::FibInfoFields> {
   // Resolve a named next-hop group to NextHops
   std::vector<NextHop> resolveNextHopSetFromName(const std::string& name) const;
 
+  // Get all name to NextHopSetId mappings
+  std::map<std::string, NextHopSetId> getNameToNextHopSetId() const;
+
+  // Replace the entire nameToNextHopSetId map
+  void setNameToNextHopSetId(
+      const std::map<std::string, NextHopSetId>& nameToSetId);
+
  private:
   // Inherit constructors required for clone()
   using Base::Base;

@@ -7,6 +7,7 @@
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/LinkStateToggler.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
 
 namespace facebook::fboss::utility {
@@ -263,7 +264,7 @@ void HwIpEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
   auto vlanId = getVlanIDForTx(ensemble, port);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
 
   utility::pumpTraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -286,7 +287,7 @@ void HwIpRoCEEcmpDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
   auto vlanId = getVlanIDForTx(ensemble, port);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,
@@ -310,7 +311,7 @@ void HwIpRoCEEcmpDestPortDataPlaneTestUtil<AddrT>::pumpTrafficThroughPort(
   auto* ensemble = BaseT::getEnsemble();
   auto programmedState = ensemble->getProgrammedState();
   auto vlanId = getVlanIDForTx(ensemble, port);
-  auto intfMac = utility::getMacForFirstInterfaceWithPorts(programmedState);
+  auto intfMac = getMacForFirstInterfaceWithPortsForTesting(programmedState);
 
   utility::pumpRoCETraffic(
       std::is_same_v<AddrT, folly::IPAddressV6>,

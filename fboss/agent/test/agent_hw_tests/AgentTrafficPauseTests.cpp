@@ -4,6 +4,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -37,7 +38,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
     std::vector<uint8_t> padding(42, 0);
     payload.insert(payload.end(), padding.begin(), padding.end());
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     for (int idx = 0; idx < count; idx++) {
       auto pkt = utility::makeEthTxPacket(
           getSw(),
@@ -63,7 +64,7 @@ class AgentTrafficPauseTest : public AgentHwTest {
       AgentEnsemble* ensemble,
       const folly::IPAddressV6& destIpv6Addr) {
     auto vlanId = ensemble->getVlanIDForTx();
-    auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+    auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
         ensemble->getProgrammedState());
     auto dscp = utility::kOlympicQueueToDscp().at(0).front();
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);

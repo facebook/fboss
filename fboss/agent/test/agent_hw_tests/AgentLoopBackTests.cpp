@@ -13,6 +13,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/PortStatsTestUtils.h"
@@ -45,7 +46,7 @@ class AgentLoopBackTest : public AgentHwTest {
   void sendPkt(bool frontPanel, uint8_t ttl, bool srcEqualDstMac) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
     auto txPacket = utility::makeUDPTxPacket(
         getSw(),
@@ -76,12 +77,12 @@ class AgentLoopBackTest : public AgentHwTest {
       utility::EcmpSetupAnyNPorts6 ecmpHelper6{
           getProgrammedState(),
           getSw()->needL2EntryForNeighbor(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
       resolveNeighborAndProgramRoutes(ecmpHelper6, kEcmpWidthForTest);
     };
     auto verify = [=, this]() {
       const auto switchType =
-          checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
               ->getSwitchType();
       for (auto frontPanel : {true, false}) {
         auto beforePortStats = getLatestPortStats(this->portIdToTest());

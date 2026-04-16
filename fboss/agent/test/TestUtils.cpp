@@ -10,7 +10,9 @@
 #include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AgentConfig.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -1703,6 +1705,29 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
       config,
       nullptr);
   return sw;
+}
+
+const HwAsic* checkSameAndGetAsicForTesting(
+    const std::vector<const HwAsic*>& asics) {
+  return checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
+}
+
+folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::getMacForFirstInterfaceWithPorts(
+      state, SwitchID(FLAGS_switch_id_for_testing));
+}
+
+InterfaceID firstInterfaceIDWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::firstInterfaceIDWithPorts(
+      state, SwitchID(FLAGS_switch_id_for_testing));
+}
+
+std::shared_ptr<Interface> firstInterfaceWithPortsForTesting(
+    const std::shared_ptr<SwitchState>& state) {
+  return utility::firstInterfaceWithPorts(
+      state, SwitchID(FLAGS_switch_id_for_testing));
 }
 
 } // namespace facebook::fboss

@@ -12,6 +12,7 @@
 #include "fboss/agent/hw/test/HwTestCoppUtils.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include <folly/IPAddress.h>
 #include <gtest/gtest.h>
@@ -39,7 +40,7 @@ class HwSflowTest : public HwLinkStateDependentTest {
   void sendUdpPkts(int numPktsToSend) {
     auto vlanId = getHwSwitchEnsemble()->getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     for (int i = 0; i < numPktsToSend; i++) {
       auto txPacket = utility::makeUDPTxPacket(
           getHwSwitch(),

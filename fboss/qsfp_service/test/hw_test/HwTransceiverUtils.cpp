@@ -126,7 +126,8 @@ void HwTransceiverUtils::verifyPortNameToLaneMap(
           if (profile == cfg::PortProfileID::PROFILE_50G_2_NRZ_RS528_OPTICAL) {
             expectedMediaLanes = {0, 1};
           } else if (
-              profile == cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL) {
+              profile == cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL ||
+              profile == cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_OPTICAL) {
             auto hostLanes = hostLaneMap[portName];
             ASSERT_TRUE(
                 hostLanes == std::vector{0} || hostLanes == std::vector{1});
@@ -364,6 +365,7 @@ void HwTransceiverUtils::verifyMediaInterfaceCompliance(
       break;
 
     case cfg::PortProfileID::PROFILE_25G_1_NRZ_NOFEC_OPTICAL:
+    case cfg::PortProfileID::PROFILE_25G_1_NRZ_RS528_OPTICAL:
       verify25gProfile(mgmtInterface, mediaInterfaces);
       break;
 

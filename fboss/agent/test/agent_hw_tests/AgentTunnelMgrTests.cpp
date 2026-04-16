@@ -1391,11 +1391,13 @@ TEST_F(AgentTunnelMgrTest, changeIpv6AddressPortDownUp) {
   verifyAcrossWarmBoots(setup, verify, setupPostWarmboot, verifyPostWarmboot);
 }
 
-// Demonstrates the OOB traffic leak problem described in SEV S484794.
-// Disables only the first port and verifies that only the route for the
-// affected interface leaks to the default route (eth0/OOB), while routes
-// for other interfaces remain routed via their fboss TUN interfaces.
-TEST_F(AgentTunnelMgrTest, demonstrateOobLeakOnPortDown) {
+// Verifies that the fix for SEV S484794 prevents OOB traffic leak on port down.
+// When a port goes down, TunManager now programs RTN_UNREACHABLE routes for the
+// connected subnets, preventing traffic from falling back to eth0 via the
+// default route. This test disables the first port and verifies the affected
+// interface route becomes unreachable, while unaffected interfaces continue
+// routing via their fboss TUN interfaces.
+TEST_F(AgentTunnelMgrTest, verifyNoOobLeakOnPortDown) {
   // Parse device name from "ip route get" output (e.g., "dev eth0")
   auto parseDevFromRouteOutput = [](const std::string& output) -> std::string {
     auto pos = output.find("dev ");
@@ -1412,6 +1414,7 @@ TEST_F(AgentTunnelMgrTest, demonstrateOobLeakOnPortDown) {
 
   auto setup = [=]() {};
   auto verify = [=, this]() {
+    // Clean up any leftover kernel entries from previous runs
     SCOPE_EXIT {
       utility::clearAllKernelEntries();
     };
@@ -1498,21 +1501,21 @@ TEST_F(AgentTunnelMgrTest, demonstrateOobLeakOnPortDown) {
     auto mgmtDev = parseDevFromRouteOutput(mgmtOutput);
     XLOG(INFO) << "Management interface (default route): " << mgmtDev;
 
-    // Step 6: After port down — affected interface route leaks to
-    // management interface (eth0/OOB)
+    // Step 6: After port down — affected interface route is unreachable
+    // (fix for S484794: unreachable routes block fallback to eth0)
     WITH_RETRIES_N_TIMED(20, std::chrono::milliseconds(100), {
       auto cmd = folly::to<std::string>(
           "ip -6 route get ",
           affectedIntf.peerIP,
           " from ",
-          affectedIntf.intfIP);
+          affectedIntf.intfIP,
+          " 2>&1");
       auto output = runShellCmd(cmd);
-      auto devName = parseDevFromRouteOutput(output);
       XLOG(INFO) << "After port down [affected intf " << affectedIntf.intfID
-                 << "] - " << cmd << ": " << output << " (dev: " << devName
-                 << ")";
-      // Route now goes via management interface instead of fboss TUN
-      EXPECT_EVENTUALLY_EQ(devName, mgmtDev);
+                 << "] - " << cmd << ": " << output;
+      // Route is unreachable, NOT falling back to management interface
+      EXPECT_EVENTUALLY_TRUE(
+          output.find("No route to host") != std::string::npos);
     });
 
     // Step 7: Unaffected interfaces still route via their specific TUNs

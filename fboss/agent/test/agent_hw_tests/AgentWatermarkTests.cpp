@@ -8,6 +8,7 @@
 #include "fboss/agent/packet/UDPHeader.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentTestAddressConstants.h"
 #include "fboss/agent/test/utils/AqmTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -72,7 +73,7 @@ class AgentWatermarkTest : public AgentHwTest {
       std::optional<PortID> port) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
 
     auto kECT1 = 0x01; // ECN capable transport ECT(1)
@@ -302,7 +303,7 @@ class AgentWatermarkTest : public AgentHwTest {
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
         (needTrafficLoop ? std::make_optional<folly::MacAddress>(
-                               utility::getMacForFirstInterfaceWithPorts(
+                               getMacForFirstInterfaceWithPortsForTesting(
                                    getProgrammedState()))
                          : std::nullopt)};
 
@@ -330,7 +331,7 @@ class AgentWatermarkTest : public AgentHwTest {
 
   void _setup(bool needTrafficLoop = false) {
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     std::optional<folly::MacAddress> macAddr{};
     if (needTrafficLoop) {
       macAddr = intfMac;

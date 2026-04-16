@@ -53,6 +53,7 @@ fboss_fbpkg_builder(
             "fbcode.enable_distributed_thinlto": "true",
             "fbcode.split-dwarf": "true",
         },
+        num_threads = 20,
     ),
     fail_on_redundant_configerator_fbpkg = False,
     override_log_paths = [

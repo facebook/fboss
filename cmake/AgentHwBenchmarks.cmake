@@ -247,6 +247,7 @@ add_library(hw_rx_slow_path_arp_rate
 )
 
 target_link_libraries(hw_rx_slow_path_arp_rate
+  agent_test_utils
   config_factory
   pkt_factory
   copp_test_utils
@@ -264,6 +265,7 @@ add_library(hw_bgp_rx_slow_path_rate
 )
 
 target_link_libraries(hw_bgp_rx_slow_path_rate
+  agent_test_utils
   packet
   mono_agent_benchmarks
   packet_factory
@@ -277,6 +279,7 @@ target_link_libraries(hw_bgp_rx_slow_path_rate
 )
 
 target_link_libraries(hw_rx_slow_path_rate
+  agent_test_utils
   config_factory
   copp_test_utils
   hw_qos_utils

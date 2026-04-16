@@ -231,6 +231,36 @@ void Fboss2IntegrationTest::commitConfig() const {
   ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
 }
 
+void Fboss2IntegrationTest::waitForAgentReady(
+    std::chrono::seconds timeout) const {
+  XLOG(INFO) << "Waiting for agent to become ready (timeout: "
+             << timeout.count() << "s)...";
+  // Wait 5s before the first poll to give the agent time to shut down and
+  // start coming back up. Polling immediately after a restart can interfere
+  // with the initialization sequence.
+  XLOG(INFO) << "  Waiting 5s before first poll...";
+  // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+  while (std::chrono::steady_clock::now() < deadline) {
+    auto result = executeCliCommand({"show", "interface"});
+    if (result.exitCode == 0) {
+      XLOG(INFO) << "Agent is ready";
+      return;
+    }
+    // Two expected failure modes during restart:
+    // 1. "Connection refused"  — process not yet listening
+    // 2. "switch is still initializing" — process up, HW init in progress
+    // Both resolve naturally once the agent finishes warmboot/coldboot (~50s).
+    XLOG(DBG1) << "Agent not ready: " << result.stderr;
+    XLOG(INFO) << "Agent not ready yet, retrying in 10s...";
+    // NOLINTNEXTLINE(facebook-hte-BadCall-sleep_for)
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+  }
+  FAIL() << "Agent did not become ready within " << timeout.count()
+         << " seconds";
+}
+
 int Fboss2IntegrationTest::getKernelInterfaceMtu(int vlanId) const {
   auto kernelIntf = fmt::format("fboss{}", vlanId);
   // Use full path to ip command since folly::Subprocess doesn't search PATH

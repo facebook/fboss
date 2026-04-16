@@ -160,7 +160,7 @@ class AgentMirrorOnDropTest : public AgentHwTest {
         getSw(),
         getVlanIDForTx(),
         utility::kLocalCpuMac(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         kPacketSrcIp_,
         dstIp,
         kPacketSrcPort,
@@ -652,7 +652,7 @@ TEST_F(AgentMirrorOnDropMtuTest, MtuTrapStillWorks) {
           getSw(),
           getVlanIDForTx(),
           utility::kLocalCpuMac(),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           folly::IPAddressV6{"2401:2222:2222:2222:2222:2222:2222:2222"},
           kDestIp,
           0x4444,
@@ -974,7 +974,7 @@ TEST_P(AgentMirrorOnDropDnxTest, ModWithMultipleMirrors) {
       setupEcmpTraffic(
           loop.injectionPortId,
           loop.dstIp,
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
     }
     waitForStateUpdates(getSw());
@@ -1323,7 +1323,8 @@ TEST_P(AgentMirrorOnDropDnxTest, VoqReject) {
     // Add neighbor on remote system port. The remoteSwitchId formula must be
     // in sync with the logic in addRemoteIntfNodeCfg().
     SwitchID remoteSwitchId = static_cast<SwitchID>(
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores() *
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getNumCores() *
         getAgentEnsemble()->getNumL3Asics());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
@@ -1436,7 +1437,7 @@ TEST_P(AgentMirrorOnDropDnxTest, VsqReject) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -1494,7 +1495,7 @@ TEST_P(AgentMirrorOnDropDnxTest, PrecedenceDrop) {
     setupEcmpTraffic(
         injectionPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /* disableTtlDecrement */);
     waitForStateUpdates(getSw());
   };
@@ -1620,7 +1621,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(i),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(i); // for verifing traffic rate below
@@ -1648,7 +1649,7 @@ TEST_F(AgentMirrorOnDropReconfigTest, ReconfigUnderTraffic) {
       setupEcmpTraffic(
           injectionPortId,
           loopIp(idx),
-          utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+          getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
           true);
 
       injectionPortIndices.push_back(idx); // for verifying traffic rate below
@@ -2018,7 +2019,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModDefaultRouteDrop) {
         expected.dropReasonMmu = 0x00;
         expected.innerSrcMac = utility::kLocalCpuMac();
         expected.innerDstMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         expected.innerSrcIp = kPacketSrcIp_;
         expected.innerDstIp = kDropDestIp;
         expected.innerSrcPort = kPacketSrcPort;
@@ -2054,7 +2055,8 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
     // Lossy PG (headroom=0) with larger globalShared (kModGlobalSharedBytes)
     // to ensure enough shared buffer for the MoD pool (2580 cells) after PG
     // min guarantees, but small enough to trigger MMU drops quickly.
-    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     utility::setupPfcBuffers(
         getAgentEnsemble(),
         config,
@@ -2071,7 +2073,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
     setupEcmpTraffic(
         txOffPortId,
         kDropDestIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()));
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()));
     waitForStateUpdates(getSw());
   };
 
@@ -2205,7 +2207,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModAclDrop) {
         expected.dropReasonMmu = 0x00;
         expected.innerSrcMac = utility::kLocalCpuMac();
         expected.innerDstMac =
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
         expected.innerSrcIp = kPacketSrcIp_;
         expected.innerDstIp = kAclDropDestIp;
         expected.innerSrcPort = kPacketSrcPort;
@@ -2285,7 +2287,8 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   // Non-local MAC triggers L2 drops on loopback (dst MAC mismatch).
   const auto kCollectorNonLocalMac = folly::MacAddress::fromHBO(
-      utility::getMacForFirstInterfaceWithPorts(getProgrammedState()).u64HBO() +
+      getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())
+          .u64HBO() +
       10);
 
   const folly::IPAddressV6 kTrafficLoopIp{
@@ -2318,7 +2321,7 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
     setupEcmpTraffic(
         trafficPortId,
         kTrafficLoopIp,
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState()),
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState()),
         true /*disableTtlDecrement*/);
 
     // Non-local dest MAC in the ethernet packet will result in drops on
@@ -2427,4 +2430,98 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModWithSampling) {
 
   verifyAcrossWarmBoots(setup, verify);
 }
+
+// XGS warmboot test subclass. Config changes across warmboot require HW
+// writes, so failHwCallsOnWarmboot must be false.
+class AgentMirrorOnDropXgsWarmbootTest : public AgentMirrorOnDropXgsTest {
+ protected:
+  bool failHwCallsOnWarmboot() const override {
+    return false;
+  }
+};
+
+// Verifies warmboot enablement of MoD with sampling on TH5.
+// Coldboot: switch comes up WITHOUT MoD. After warmboot, MoD with sampling
+// is added and verified to be programmed on the ASIC by checking switch state.
+TEST_F(AgentMirrorOnDropXgsWarmbootTest, XgsModWarmbootEnableSampling) {
+  const int kSamplingRate = 90000;
+
+  auto setup = []() {};
+
+  auto verify = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    EXPECT_TRUE(reports == nullptr || reports->numNodes() == 0);
+  };
+
+  auto setupPostWb = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-wb-enable-sampling",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_,
+        kSamplingRate));
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verifyPostWb = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    ASSERT_NE(reports, nullptr);
+    auto report = reports->getNodeIf("xgs-mod-wb-enable-sampling");
+    ASSERT_NE(report, nullptr);
+    EXPECT_EQ(report->getSamplingRate(), kSamplingRate);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
+}
+
+// Verifies warmboot disablement of MoD with sampling on TH5.
+// Coldboot: switch comes up WITH MoD sampling configured and verified to be
+// programmed on the ASIC by checking switch state. After warmboot, MoD config
+// is removed and verified to be absent from switch state.
+TEST_F(AgentMirrorOnDropXgsWarmbootTest, XgsModWarmbootDisableSampling) {
+  const int kSamplingRate = 90000;
+
+  auto setup = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->push_back(makeXgsModReport(
+        "xgs-mod-wb-disable-sampling",
+        kMirrorSrcPort,
+        kCollectorIp_,
+        kMirrorDstPort,
+        kSwitchIp_,
+        kSamplingRate));
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verify = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    ASSERT_NE(reports, nullptr);
+    auto report = reports->getNodeIf("xgs-mod-wb-disable-sampling");
+    ASSERT_NE(report, nullptr);
+    EXPECT_EQ(report->getSamplingRate(), kSamplingRate);
+  };
+
+  auto setupPostWb = [&]() {
+    auto config = getAgentEnsemble()->getCurrentConfig();
+    config.mirrorOnDropReports()->clear();
+    applyNewConfig(config);
+    waitForStateUpdates(getSw());
+  };
+
+  auto verifyPostWb = [&]() {
+    auto state = getProgrammedState();
+    auto reports = state->getMirrorOnDropReports();
+    EXPECT_TRUE(reports == nullptr || reports->numNodes() == 0);
+  };
+
+  verifyAcrossWarmBoots(setup, verify, setupPostWb, verifyPostWb);
+}
+
 } // namespace facebook::fboss

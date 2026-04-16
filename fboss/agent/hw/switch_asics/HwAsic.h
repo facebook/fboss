@@ -469,7 +469,7 @@ class HwAsic {
     DELETED_CREDITS_STAT,
     INGRESS_PRIORITY_GROUP_DROPPED_PACKETS,
     // replace all ACL based trap reasons by
-    // explicty ACL config programmed by FBOSS
+    // explicitly ACL config programmed by FBOSS
     NO_RX_REASON_TRAP,
     EGRESS_GVOQ_WATERMARK_BYTES,
     INGRESS_PRIORITY_GROUP_SHARED_WATERMARK,
@@ -537,6 +537,7 @@ class HwAsic {
     // reducing latency for scale-up switches.
     CUT_THROUGH_FORWARDING,
     SRV6_MYSID_DISCARD_COUNTER,
+    SRV6_MYSID_RESOURCE_COUNTER,
   };
 
   enum class AsicMode {
@@ -728,7 +729,7 @@ class HwAsic {
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor scalingFactor) const = 0;
+      cfg::MMUScalingFactor scalingFactor) const;
 
   virtual uint32_t getStaticQueueLimitBytes() const = 0;
 

@@ -219,6 +219,34 @@ TEST(ConfigValidatorTest, InvalidVersionedPmUnitConfigs) {
       sensorConfig};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
   EXPECT_FALSE(ConfigValidator().isValid(config));
+
+  // Test 7: Mismatched pciDeviceConfigs (via differing ledCtrlBlockConfigs)
+  versionedPmUnitConfig.pmUnitConfig()->embeddedSensorConfigs() = {};
+  config.numXcvrs() = 1;
+  auto defaultPciDev = getValidPciDeviceConfig();
+  LedCtrlBlockConfig defaultLedCtrl;
+  defaultLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
+  defaultLedCtrl.deviceName() = "port_led";
+  defaultLedCtrl.csrOffsetCalc() = "0x1000";
+  defaultLedCtrl.numPorts() = 1;
+  defaultLedCtrl.ledPerPort() = 1;
+  defaultLedCtrl.startPort() = 1;
+  defaultPciDev.ledCtrlBlockConfigs() = {defaultLedCtrl};
+  auto pmUnitCfg = config.pmUnitConfigs()->at("SCM");
+  pmUnitCfg.pciDeviceConfigs() = {defaultPciDev};
+  config.pmUnitConfigs() = {{"SCM", pmUnitCfg}};
+  auto versionedPciDev = getValidPciDeviceConfig();
+  LedCtrlBlockConfig versionedLedCtrl;
+  versionedLedCtrl.pmUnitScopedNamePrefix() = "MCB_LED";
+  versionedLedCtrl.deviceName() = "port_led";
+  versionedLedCtrl.csrOffsetCalc() = "0x2000";
+  versionedLedCtrl.numPorts() = 1;
+  versionedLedCtrl.ledPerPort() = 1;
+  versionedLedCtrl.startPort() = 1;
+  versionedPciDev.ledCtrlBlockConfigs() = {versionedLedCtrl};
+  versionedPmUnitConfig.pmUnitConfig()->pciDeviceConfigs() = {versionedPciDev};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig}}};
+  EXPECT_FALSE(ConfigValidator().isValid(config));
 }
 
 TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
@@ -294,6 +322,18 @@ TEST(ConfigValidatorTest, ValidVersionedPmUnitConfigs) {
   pmUnitConfig.i2cDeviceConfigs()->emplace_back(i2cConfig2);
   pmUnitConfig.pciDeviceConfigs() = {};
   config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
+  EXPECT_TRUE(ConfigValidator().isValid(config));
+
+  // Test 10: Valid with matching ledCtrlBlockConfigs in pciDeviceConfigs
+  auto pciDevWithLed = getValidPciDeviceConfig();
+  pciDevWithLed.ledCtrlBlockConfigs() = {};
+  pmUnitConfig = config.pmUnitConfigs()->at("SCM");
+  pmUnitConfig.pciDeviceConfigs() = {pciDevWithLed};
+  config.pmUnitConfigs() = {{"SCM", pmUnitConfig}};
+  versionedPmUnitConfig1.pmUnitConfig()->i2cDeviceConfigs() =
+      *pmUnitConfig.i2cDeviceConfigs();
+  versionedPmUnitConfig1.pmUnitConfig()->pciDeviceConfigs() = {pciDevWithLed};
   config.versionedPmUnitConfigs() = {{"SCM", {versionedPmUnitConfig1}}};
   EXPECT_TRUE(ConfigValidator().isValid(config));
 }
@@ -914,6 +954,25 @@ TEST(ConfigValidatorTest, LedCtrlBlockConfig) {
   config.ledPerPort() = 5;
   EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
   config.ledPerPort() = 2;
+
+  // Test case: Valid lanesPerPort (default is 8)
+  config.lanesPerPort() = 8;
+  EXPECT_TRUE(validator.isValidLedCtrlBlockConfig(config));
+
+  // Test case: Zero lanesPerPort
+  config.lanesPerPort() = 0;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.lanesPerPort() = 8;
+
+  // Test case: Negative lanesPerPort
+  config.lanesPerPort() = -1;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.lanesPerPort() = 8;
+
+  // Test case: lanesPerPort > 8
+  config.lanesPerPort() = 9;
+  EXPECT_FALSE(validator.isValidLedCtrlBlockConfig(config));
+  config.lanesPerPort() = 8;
 
   // Test case: Negative startPort
   config.startPort() = -1;
@@ -1855,4 +1914,245 @@ TEST(ConfigValidatorTest, CpldSysfsAttrs) {
   // Valid: exactly 64 attrs
   tooMany.pop_back();
   EXPECT_TRUE(validator.isValidCpldSysfsAttrs(tooMany));
+}
+
+TEST(ConfigValidatorTest, LedCtrlBlockXcvrCoverage) {
+  auto makeLedBlock = [](int16_t startPort,
+                         int16_t numPorts,
+                         int16_t ledPerPort,
+                         int16_t lanesPerPort) {
+    LedCtrlBlockConfig block;
+    block.pmUnitScopedNamePrefix() = "MCB_LED";
+    block.deviceName() = "port_led";
+    block.csrOffsetCalc() = "0x1000";
+    block.startPort() = startPort;
+    block.numPorts() = numPorts;
+    block.ledPerPort() = ledPerPort;
+    block.lanesPerPort() = lanesPerPort;
+    return block;
+  };
+
+  ConfigValidator validator;
+
+  // Valid: no LED blocks, no xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 0;
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: xcvrs present but no LED blocks
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: LED blocks cover all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {
+        makeLedBlock(1, 3, 2, 8), makeLedBlock(4, 1, 1, 4)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in coverage (ports 1-2 covered, but numXcvrs=4)
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {makeLedBlock(1, 2, 2, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in middle (ports 1-2 and 5-6 covered, but 3-4 missing)
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {
+        makeLedBlock(1, 2, 2, 8), makeLedBlock(5, 2, 2, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: single block covers all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 8;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.ledCtrlBlockConfigs() = {makeLedBlock(1, 8, 2, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: ports split across two separate PmUnits
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.ledCtrlBlockConfigs() = {makeLedBlock(1, 2, 2, 8)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.ledCtrlBlockConfigs() = {makeLedBlock(3, 2, 1, 4)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_TRUE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: ports split across two PmUnits but gap in middle
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.ledCtrlBlockConfigs() = {makeLedBlock(1, 2, 2, 8)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.ledCtrlBlockConfigs() = {makeLedBlock(5, 2, 1, 4)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_FALSE(validator.isValidLedCtrlBlockXcvrCoverage(config));
+  }
+}
+
+TEST(ConfigValidatorTest, XcvrCtrlBlockXcvrCoverage) {
+  auto makeXcvrCtrlBlock = [](int32_t startPort, int32_t numPorts) {
+    XcvrCtrlBlockConfig block;
+    block.pmUnitScopedNamePrefix() = "MCB_XCVR";
+    block.deviceName() = "xcvr_ctrl";
+    block.csrOffsetCalc() = "0x1000";
+    block.startPort() = startPort;
+    block.numPorts() = numPorts;
+    return block;
+  };
+
+  ConfigValidator validator;
+
+  // Valid: no xcvr ctrl blocks, no xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 0;
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: xcvrs present but no xcvr ctrl blocks
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: xcvr ctrl blocks cover all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {
+        makeXcvrCtrlBlock(1, 3), makeXcvrCtrlBlock(4, 1)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in xcvr ctrl coverage (ports 1-2 covered, but numXcvrs=4)
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 2)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: gap in middle of xcvr ctrl coverage
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {
+        makeXcvrCtrlBlock(1, 2), makeXcvrCtrlBlock(5, 2)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: single xcvr ctrl block covers all xcvrs
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 8;
+    auto pciDev = getValidPciDeviceConfig();
+    pciDev.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 8)};
+    auto pmUnit = PmUnitConfig();
+    pmUnit.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit.pciDeviceConfigs() = {pciDev};
+    config.pmUnitConfigs() = {{"SCM", pmUnit}};
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Valid: xcvr ctrl blocks split across two PmUnits
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 4;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 2)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(3, 2)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_TRUE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
+
+  // Invalid: xcvr ctrl blocks split across two PmUnits but gap in middle
+  {
+    auto config = getBasicConfig();
+    config.numXcvrs() = 6;
+    auto pciDev1 = getValidPciDeviceConfig();
+    pciDev1.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(1, 2)};
+    auto pmUnit1 = PmUnitConfig();
+    pmUnit1.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit1.pciDeviceConfigs() = {pciDev1};
+    auto pciDev2 = getValidPciDeviceConfig();
+    pciDev2.xcvrCtrlBlockConfigs() = {makeXcvrCtrlBlock(5, 2)};
+    auto pmUnit2 = PmUnitConfig();
+    pmUnit2.pluggedInSlotType() = "SCM_SLOT";
+    pmUnit2.pciDeviceConfigs() = {pciDev2};
+    config.pmUnitConfigs() = {{"MCB_1", pmUnit1}, {"MCB_2", pmUnit2}};
+    EXPECT_FALSE(validator.isValidXcvrCtrlBlockXcvrCoverage(config));
+  }
 }

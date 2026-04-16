@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/lib/CommonUtils.h"
@@ -41,7 +42,7 @@ class AgentL4PortBlackHolingTest : public AgentHwTest {
     auto srcIp = IPAddress(isV6 ? "1001::1" : "101.101.0.1");
     auto dstIp = IPAddress(isV6 ? "2001::1" : "201.101.0.1");
     auto vlanId = getVlanIDForTx();
-    auto mac = utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    auto mac = getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     enum class Dir { SRC_PORT, DST_PORT };
     for (auto l4Port = 1; l4Port <= kNumL4Ports(); ++l4Port) {
       for (auto dir : {Dir::SRC_PORT, Dir::DST_PORT}) {

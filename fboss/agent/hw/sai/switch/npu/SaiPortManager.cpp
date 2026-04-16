@@ -1683,7 +1683,7 @@ SaiPortManager::serdesAttributesFromSwPinConfigs(
      * cause port flaps.
      *
      * Hence, swap the values back if its a warmboot. As we are scheduling
-     * coldboots for AFE TRIM SEV S249471, utilize this to propogate the correct
+     * coldboots for AFE TRIM SEV S249471, utilize this to propagate the correct
      * values.
      *
      * This will help us carry on the warmboot upgrades on 400C devices while

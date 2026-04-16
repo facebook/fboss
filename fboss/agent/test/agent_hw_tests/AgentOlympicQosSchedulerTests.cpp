@@ -11,6 +11,7 @@
 #include "fboss/agent/TxPacket.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
@@ -88,7 +89,8 @@ void AgentOlympicQosSchedulerTest::verifyWRR() {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
     if (isDualStage3Q2QQos()) {
-      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto hwAsic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       auto streamType =
           *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
       utility::addNetworkAIQueueConfig(
@@ -410,9 +412,10 @@ void AgentOlympicQosSchedulerTest::verifyOlympicV2AllSPTrafficToWRR() {
   auto setup = [=, this]() {
     _setup(ecmpHelper6);
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto streamType = *(checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                            ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
-                            .begin());
+    auto streamType =
+        *(checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+              ->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT)
+              .begin());
     utility::addOlympicAllSPQueueConfig(&newCfg, streamType);
     utility::addOlympicV2QosMaps(newCfg, getAgentEnsemble()->getL3Asics());
     utility::setTTLZeroCpuConfig(getAgentEnsemble()->getL3Asics(), newCfg);

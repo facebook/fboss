@@ -183,7 +183,8 @@ cfg::SwitchConfig bgpRxBenchmarkConfig(const AgentEnsemble& ensemble) {
       ensemble.getL3Asics(),
       ensemble.isSai(),
       /* setQueueRate */ false);
-  auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto asic =
+      checkSameAndGetAsic(ensemble.getL3Asics(), FLAGS_switch_id_for_testing);
   auto trapDstIp = folly::CIDRNetwork{kDstIp, 128};
   utility::addTrapPacketAcl(asic, &config, trapDstIp);
 

@@ -204,6 +204,10 @@ class HwTestThriftHandler : public AgentHwTestCtrlSvIf {
       std::unique_ptr<::facebook::fboss::state::SwitchSettingsFields> settings,
       bool expectFlowsetFree) override;
 
+  void getVlanToNumPorts(std::map<int32_t, int32_t>& vlanToNumPorts) override;
+
+  bool isAclTableGroupEnabled(int32_t aclStage) override;
+
  private:
   HwSwitch* hwSwitch_;
 };

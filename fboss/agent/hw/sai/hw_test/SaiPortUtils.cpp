@@ -446,7 +446,7 @@ void verifyFec(
   auto* saiPortHandle =
       saiSwitch->managerTable()->portManager().getPortHandle(portID);
 
-  // retrive configured fec.
+  // retrieve configured fec.
   auto expectedFec = utility::getSaiPortFecMode(*expectedProfileConfig.fec());
 
   // Convert expectedFec back to FecMode to verify
@@ -455,7 +455,7 @@ void verifyFec(
       utility::getFecModeFromSaiFecMode(expectedFec, profileID),
       *expectedProfileConfig.fec());
 
-  // retrive programmed fec.
+  // retrieve programmed fec.
   auto& portApi = SaiApiTable::getInstance()->portApi();
   auto programmedFec = portApi.getAttribute(
       saiPortHandle->port->adapterKey(), SaiPortTraits::Attributes::FecMode{});

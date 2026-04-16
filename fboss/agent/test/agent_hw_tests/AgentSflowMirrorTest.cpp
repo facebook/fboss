@@ -25,11 +25,11 @@
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/packet/SflowStructs.h"
 #include "fboss/agent/packet/UDPDatagram.h"
-#include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/ResourceLibUtil.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
@@ -380,8 +380,7 @@ device:
   }
 
   const HwAsic* checkSameAndGetAsic() const {
-    return facebook::fboss::checkSameAndGetAsic(
-        getAgentEnsemble()->getL3Asics());
+    return checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
   }
 
   std::optional<uint32_t> getHwLogicalPortId(PortID port) const {
@@ -511,7 +510,7 @@ device:
     utility::EcmpSetupTargetedPorts6 ecmpHelper{
         getProgrammedState(),
         getSw()->needL2EntryForNeighbor(),
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
 
     const PortDescriptor port(getDataTrafficPort());
     RoutePrefixV6 route{
@@ -534,7 +533,7 @@ device:
       size_t payloadSize) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     folly::IPAddressV6 sip{"2401:db00:dead:beef::2401"};
     folly::IPAddressV6 dip{getTrafficDestinationIp(portIndex)};
     uint16_t sport = 9701;
@@ -582,7 +581,7 @@ device:
 
     // Create expected SflowPacketParsed from inputs similar to sFlowPacket
     folly::MacAddress intfMac{
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
     SflowPacketParsed expectedParsed = makeSflowV5PacketParsed(
         getVlanIDForTx() /*vlan*/,
         intfMac /*srcMac*/,
@@ -1269,7 +1268,7 @@ class AgentSflowMirrorWithLineRateTrafficTest
       facebook::fboss::AgentEnsemble* ensemble,
       const folly::IPAddressV6& dstIp) {
     folly::IPAddressV6 kSrcIp("2402::1");
-    const auto dstMac = utility::getMacForFirstInterfaceWithPorts(
+    const auto dstMac = getMacForFirstInterfaceWithPortsForTesting(
         ensemble->getProgrammedState());
     const auto srcMac = utility::MacAddressGenerator().get(dstMac.u64HBO() + 1);
 
@@ -1415,7 +1414,7 @@ class AgentSflowMirrorTruncateWithSamplesPackingTestV6
       if (capturedPacketBuf.has_value()) {
         sflowPacketCount++;
         folly::MacAddress intfMac{
-            utility::getMacForFirstInterfaceWithPorts(getProgrammedState())};
+            getMacForFirstInterfaceWithPortsForTesting(getProgrammedState())};
         bool isV4 = false;
         SflowPacketParsed expectedParsed = makeSflowV5PacketParsed(
             getVlanIDForTx() /*vlan*/,
@@ -1505,7 +1504,7 @@ class AgentSflowMirrorRemoteSystemPortTest
   // Set up route for traffic to be forwarded when sent to a specific destIp
   void setupTrafficRoute(const PortID& egressPort) {
     auto intfMac =
-        utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
     // Use a different MAC to avoid looping - add 10 to the last byte
     auto nbrMac = folly::MacAddress::fromHBO(intfMac.u64HBO() + 10);
 
@@ -1757,7 +1756,7 @@ class AgentSflowMirrorEventorTest
 
   // Stop traffic on ports by removing neighbor and adding it back.
   void stopTrafficOnAllPorts() {
-    auto intfMac = utility::getMacForFirstInterfaceWithPorts(
+    auto intfMac = getMacForFirstInterfaceWithPortsForTesting(
         getAgentEnsemble()->getProgrammedState());
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getAgentEnsemble()->getProgrammedState(),

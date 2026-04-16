@@ -9,6 +9,7 @@
  */
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 
@@ -123,7 +124,7 @@ class AgentMirroringScaleTest : public AgentHwTest {
   }
 
   uint32_t getMaxMirrorsEntries(const std::vector<const HwAsic*>& asics) const {
-    auto asic = checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsicForTesting(asics);
     uint32_t maxMirrorsEntries = asic->getMaxMirrors();
     if constexpr (
         MirrorT::mirrorType == MirrorType::INGRESS_SPAN ||

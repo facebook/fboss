@@ -610,7 +610,7 @@ void BaseEcmpResourceManagerTest::assertTargetState(
         ASSERT_NE(consolidatorGrpInfo, nullptr);
         if (!route->getForwardInfo().getOverrideEcmpSwitchingMode()) {
           primaryEcmpGroups.insert(
-              route->getForwardInfo().normalizedNextHops());
+              getNormalizedNextHops(targetState, route->getForwardInfo()));
         }
         if (consolidatorToCheck == consolidator_.get()) {
           /*
@@ -692,7 +692,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
               route->getForwardInfo().getOverrideEcmpSwitchingMode(),
               consolidatorToCheck->getBackupEcmpSwitchingMode());
           EXPECT_TRUE(consolidatorGrpInfo->isBackupEcmpGroupType());
-          backupEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+          backupEcmpGroups.insert(
+              getNormalizedNextHops(targetState, route->getForwardInfo()));
         }
         if (getEcmpCompressionThresholdPct()) {
           EXPECT_TRUE(
@@ -703,7 +704,8 @@ void BaseEcmpResourceManagerTest::assertTargetState(
                   ->getGroupInfo(RouterID(0), route->prefix().toCidrNetwork())
                   ->getOverrideNextHops());
           // Merged groups also take up primary ecmp groups
-          mergedEcmpGroups.insert(route->getForwardInfo().normalizedNextHops());
+          mergedEcmpGroups.insert(
+              getNormalizedNextHops(targetState, route->getForwardInfo()));
         }
       } else {
         EXPECT_FALSE(route->getForwardInfo().hasOverrideSwitchingModeOrNhops())

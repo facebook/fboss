@@ -20,6 +20,7 @@
 
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/hw/test/dataplane_tests/HwTestQosUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
 
 DEFINE_bool(
@@ -297,7 +298,7 @@ class HwProdInvariantsMmuLosslessTest : public HwProdInvariantsTest {
   }
 
   MacAddress dstMac() const {
-    return utility::getMacForFirstInterfaceWithPorts(getProgrammedState());
+    return getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
   }
 
   void sendTrafficInLoop() {
