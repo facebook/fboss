@@ -1058,13 +1058,9 @@ cpp_library(
         "commands/config/history/CmdConfigHistory.h",
         "commands/config/interface/CmdConfigInterface.h",
         "commands/config/interface/CmdConfigInterfaceQueuingPolicy.h",
-<<<<<<< HEAD
         "commands/config/interface/ProfileValidation.h",
-=======
-        "commands/config/interface/SpeedValidation.h",
         "commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h",
         "commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.h",
->>>>>>> 5ab8e15b60 (NOS-5739: Add config interface ipv6 nd CLI command)
         "commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h",
         "commands/config/interface/pfc_config/PfcConfigUtils.h",
         "commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h",

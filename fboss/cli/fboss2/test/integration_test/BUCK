@@ -23,7 +23,6 @@ cpp_binary(
         "ConfigInterfaceProfileTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
         "ConfigSessionClearTest.cpp",
-        "ConfigSessionRestartTest.cpp",
         "Fboss2IntegrationTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
     ],

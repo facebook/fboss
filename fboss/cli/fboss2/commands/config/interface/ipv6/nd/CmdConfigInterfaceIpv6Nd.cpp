@@ -87,11 +87,9 @@ NdpConfigAttrs::NdpConfigAttrs(std::vector<std::string> v) {
     if (!isKnownNdAttr(attrLower)) {
       throw std::invalid_argument(
           fmt::format(
-              "Unknown nd attribute '{}'. Valid attributes: "
-              "ra-interval, ra-lifetime, hop-limit, prefix-valid-lifetime, "
-              "prefix-preferred-lifetime, managed-config-flag, other-config-flag, "
-              "ra-address",
-              v[i]));
+              "Unknown nd attribute '{}'. Valid attributes: {}",
+              v[i],
+              folly::join(", ", kKnownNdAttrs)));
     }
 
     if (kValuelessNdAttrs.count(attrLower)) {
@@ -157,8 +155,7 @@ CmdConfigInterfaceIpv6NdTraits::RetType CmdConfigInterfaceIpv6Nd::queryClient(
       if (seconds < 0) {
         throw std::invalid_argument(
             fmt::format(
-                "ra-interval value {} is out of range. Valid range: 0-65535",
-                seconds));
+                "ra-interval value {} is out of range. Must be >= 0", seconds));
       }
       for (const utils::Intf& intf : interfaces) {
         cfg::Interface* iface = intf.getInterface();
@@ -181,8 +178,7 @@ CmdConfigInterfaceIpv6NdTraits::RetType CmdConfigInterfaceIpv6Nd::queryClient(
       if (seconds < 0) {
         throw std::invalid_argument(
             fmt::format(
-                "ra-lifetime value {} is out of range. Valid range: 0-65535",
-                seconds));
+                "ra-lifetime value {} is out of range. Must be >= 0", seconds));
       }
       for (const utils::Intf& intf : interfaces) {
         cfg::Interface* iface = intf.getInterface();
