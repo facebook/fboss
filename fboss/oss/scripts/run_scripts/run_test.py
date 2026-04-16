@@ -669,9 +669,8 @@ class TestRunner(abc.ABC):
         if args.coldboot_only is False:
             warmboot = True
 
-        test_binary_name = self._get_test_binary_name()
-        if test_binary_name != "qsfp_hw_test" and not os.path.exists(conf_file):
-            print("########## Conf file not found: " + conf_file)
+        if conf_file and not os.path.exists(conf_file):
+            print(f"########## Required configuration file not found: {conf_file}")
             return []
 
         test_outputs = []
