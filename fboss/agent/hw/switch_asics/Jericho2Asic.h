@@ -111,7 +111,7 @@ class Jericho2Asic : public BroadcomAsic {
       case cfg::MMUScalingFactor::ONE_32768TH:
         return -15;
       default:
-        return BroadcomAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
+        return HwAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
     }
   }
   uint32_t getThresholdGranularity() const override {

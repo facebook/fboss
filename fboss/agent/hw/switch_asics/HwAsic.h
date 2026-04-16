@@ -729,7 +729,7 @@ class HwAsic {
   virtual bool scalingFactorBasedDynamicThresholdSupported() const = 0;
 
   virtual int getBufferDynThreshFromScalingFactor(
-      cfg::MMUScalingFactor scalingFactor) const = 0;
+      cfg::MMUScalingFactor scalingFactor) const;
 
   virtual uint32_t getStaticQueueLimitBytes() const = 0;
 
