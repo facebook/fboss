@@ -564,6 +564,13 @@ TEST_F(PortApiTest, getFabricAttachedSwitchType) {
   EXPECT_EQ(swType, SAI_SWITCH_TYPE_VOQ);
 }
 
+TEST_F(PortApiTest, getLinkTrainingRxStatus) {
+  auto id = createPort(100000, {42}, true);
+  auto rxStatus = portApi->getAttribute(
+      id, SaiPortTraits::Attributes::LinkTrainingRxStatus{});
+  EXPECT_EQ(rxStatus, 0); // NOT_TRAINED default
+}
+
 TEST_F(PortApiTest, getFabricReachability) {
   const auto switchId = 3;
   auto id = createPort(100000, {42}, true);

@@ -350,6 +350,10 @@ struct SaiPortTraits {
         SAI_PORT_ATTR_LINK_TRAINING_ENABLE,
         bool,
         SaiBoolDefaultTrue>;
+    using LinkTrainingRxStatus = SaiAttribute<
+        EnumType,
+        SAI_PORT_ATTR_LINK_TRAINING_RX_STATUS,
+        sai_int32_t>;
     using FabricAttached =
         SaiAttribute<EnumType, SAI_PORT_ATTR_FABRIC_ATTACHED, bool>;
     using FabricAttachedPortIndex = SaiAttribute<
@@ -830,6 +834,7 @@ SAI_ATTRIBUTE_NAME(Port, RxFrequencyPPM)
 SAI_ATTRIBUTE_NAME(Port, RxSNR)
 #endif
 SAI_ATTRIBUTE_NAME(Port, LinkTrainingEnable)
+SAI_ATTRIBUTE_NAME(Port, LinkTrainingRxStatus)
 SAI_ATTRIBUTE_NAME(Port, SerdesLaneList)
 SAI_ATTRIBUTE_NAME(Port, DiagModeEnable)
 SAI_ATTRIBUTE_NAME(Port, FdrEnable)
