@@ -812,7 +812,7 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
     }
   };
 
-  for (int iter = minValue; iter != maxValue; ++iter) {
+  for (int iter = minValue; iter <= maxValue; ++iter) {
     auto qualifier = static_cast<cfg::AclTableQualifier>(iter);
     switch (static_cast<cfg::AclTableQualifier>(qualifier)) {
       case cfg::AclTableQualifier::DST_IPV4:
