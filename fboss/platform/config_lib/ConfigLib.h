@@ -38,6 +38,9 @@ class ConfigLib {
   virtual std::string getShowtechConfig(
       const std::optional<std::string>& platformName = std::nullopt) const;
 
+  virtual std::string getRebootCauseServiceConfig(
+      const std::optional<std::string>& platformName = std::nullopt) const;
+
  protected:
   std::string configFilePath_;
   std::optional<std::string> getConfigFromFile() const;

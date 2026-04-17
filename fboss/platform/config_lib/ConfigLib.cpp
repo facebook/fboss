@@ -143,4 +143,18 @@ std::string ConfigLib::getShowtechConfig(
   return configs::rma_showtech.at(getPlatformName(platformName));
 }
 
+std::string ConfigLib::getRebootCauseServiceConfig(
+    const std::optional<std::string>& platformName) const {
+  if (auto configJson = getConfigFromFile()) {
+    return *configJson;
+  }
+  try {
+    return configs::reboot_cause_service.at(getPlatformName(platformName));
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error(
+        "reboot_cause_service configuration not found for platform: " +
+        getPlatformName(platformName));
+  }
+}
+
 } // namespace facebook::fboss::platform
