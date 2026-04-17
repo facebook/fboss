@@ -5,6 +5,11 @@
 
 namespace facebook::fboss {
 
+bool YubaAsic::isSrv6Supported() const {
+  auto srv6MinSdk = getAsicSdkVersion(kSrv6MinSdkRequired);
+  return currentSdkVersion_.has_value() && currentSdkVersion_ >= srv6MinSdk;
+}
+
 bool YubaAsic::isSupportedNonFabric(Feature feature) const {
   switch (feature) {
     /*
