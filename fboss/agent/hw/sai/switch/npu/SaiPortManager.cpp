@@ -721,7 +721,8 @@ SaiPortTraits::CreateAttributes SaiPortManager::attributesFromSwPort(
       linkTrainingEnable;
   if (platform_->getAsic()->isSupported(HwAsic::Feature::LINK_TRAINING) &&
       (swPort->getPortType() != cfg::PortType::HYPER_PORT)) {
-    linkTrainingEnable = false;
+    // Use config value if set, otherwise default to false (backward-compatible)
+    linkTrainingEnable = swPort->getLinkTraining().value_or(false);
   }
 
   std::optional<bool> fdrEnable;

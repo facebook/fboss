@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/AsicUtils.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/agent_hw_tests/AgentQosSchedulerTestBase.h"
 #include "fboss/agent/test/utils/NetworkAITestUtils.h"
 
@@ -21,7 +22,7 @@ class AgentNetworkAIQosSchedulerTest : public AgentQosSchedulerTestBase {
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),
         true /*interfaceHasSubnet*/);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -69,7 +70,8 @@ void AgentNetworkAIQosSchedulerTest::verifySP(bool frontPanelTraffic) {
 void AgentNetworkAIQosSchedulerTest::verifyWRR() {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(
@@ -96,7 +98,8 @@ void AgentNetworkAIQosSchedulerTest::verifyWRRAndSP(
     int trafficQueueId) {
   auto setup = [=, this]() {
     auto newCfg{initialConfig(*getAgentEnsemble())};
-    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(

@@ -10,6 +10,7 @@
 
 #include <folly/IPAddress.h>
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
@@ -424,7 +425,8 @@ class AgentEcmpNeighborTest : public AgentEcmpTest {
  public:
   auto getNdpTable(PortDescriptor port, std::shared_ptr<SwitchState>& state) {
     const auto switchType =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
 
     if (switchType == cfg::SwitchType::VOQ ||
         switchType == cfg::SwitchType::NPU) {

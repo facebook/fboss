@@ -28,7 +28,7 @@ class Utils {
       const std::string& symbol = "x");
 
   std::optional<VersionedPmSensor> resolveVersionedSensors(
-      const PmUnitInfoFetcher& fetcher,
+      const std::optional<platform_manager::PmUnitInfo>& pmUnitInfo,
       const std::string& slotPath,
       std::vector<VersionedPmSensor> versionedSensors);
 

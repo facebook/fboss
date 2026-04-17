@@ -284,7 +284,8 @@ void configureMaxMacEntriesViaPacketIn(AgentEnsemble* ensemble) {
   }
 }
 void configureMaxMacEntries(AgentEnsemble* ensemble) {
-  auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsic(
+      ensemble->getHwAsicTable()->getL3Asics(), FLAGS_switch_id_for_testing);
   if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
     return;
   }
@@ -315,7 +316,8 @@ void configureMaxRouteEntries(
     const RouteDistributionGenerator& routeGenerator) {
   auto switchIds = ensemble->getHwAsicTable()->getSwitchIDs();
   CHECK_EQ(switchIds.size(), 1);
-  auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsic(
+      ensemble->getHwAsicTable()->getL3Asics(), FLAGS_switch_id_for_testing);
   auto* sw = ensemble->getSw();
   // reserve 10 ecmp for scaling routes
   auto const kMaxEcmpGropus =
@@ -502,7 +504,7 @@ void addPort2NewVlan(cfg::SwitchConfig& config, PortID portID, int vlanID) {
 cfg::SwitchConfig getSystemScaleTestSwitchConfiguration(
     const AgentEnsemble& ensemble) {
   auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(l3Asics);
+  auto asic = checkSameAndGetAsic(l3Asics, FLAGS_switch_id_for_testing);
   auto config = utility::oneL3IntfNPortConfig(
       ensemble.getSw()->getPlatformMapping(),
       asic,
@@ -778,7 +780,8 @@ void initSystemScaleChurnTest(AgentEnsemble* ensemble) {
   configureMaxMacEntries(ensemble);
   XLOG(INFO) << "starting port flaps";
   portFlapHelper.startPortFlap();
-  auto asic = checkSameAndGetAsic(ensemble->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsic(
+      ensemble->getHwAsicTable()->getL3Asics(), FLAGS_switch_id_for_testing);
 
   if (asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
       asic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK4) {

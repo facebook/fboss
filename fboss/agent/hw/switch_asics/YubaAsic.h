@@ -73,6 +73,13 @@ class YubaAsic : public TajoAsic {
     // Concept of scaling factor does not apply returning the same value TH3
     return cfg::MMUScalingFactor::TWO;
   }
+  bool scalingFactorBasedDynamicThresholdSupported() const override {
+    return true;
+  }
+  int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor scalingFactor) const override {
+    return HwAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
+  }
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
   int getMaxNumLogicalPorts() const override {
@@ -192,8 +199,10 @@ class YubaAsic : public TajoAsic {
   }
 
  private:
+  bool isSrv6Supported() const;
   bool isSupportedFabric(Feature feature) const;
   bool isSupportedNonFabric(Feature feature) const;
+  static constexpr auto kSrv6MinSdkRequired = "26.2.5210";
   std::optional<uint64_t> currentSdkVersion_{std::nullopt};
 };
 

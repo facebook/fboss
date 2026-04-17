@@ -12,6 +12,7 @@
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -45,7 +46,7 @@ class AgentNSFScaleTest : public AgentHwTest {
         ensemble.isSai(),
         cfg::SwitchingMode::PER_PACKET_QUALITY,
         cfg::SwitchingMode::PER_PACKET_RANDOM);
-    auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto streamType =
         *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
     utility::addNetworkAIQueueConfig(

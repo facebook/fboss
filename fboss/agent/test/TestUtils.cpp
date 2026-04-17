@@ -12,6 +12,7 @@
 #include "fboss/agent/AgentConfig.h"
 #include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/ApplyThriftConfig.h"
+#include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/TunManager.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
@@ -1704,6 +1705,11 @@ std::unique_ptr<SwSwitch> createSwSwitchWithMultiSwitch(
       config,
       nullptr);
   return sw;
+}
+
+const HwAsic* checkSameAndGetAsicForTesting(
+    const std::vector<const HwAsic*>& asics) {
+  return checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
 }
 
 folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(

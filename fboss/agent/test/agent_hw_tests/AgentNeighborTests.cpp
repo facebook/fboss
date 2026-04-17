@@ -149,7 +149,7 @@ class AgentNeighborTest : public AgentHwTest {
     return cfg;
   }
   VlanID kVlanID() const {
-    if (checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
+    if (checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
             ->getSwitchType() == cfg::SwitchType::NPU) {
       auto portId = portIdsForTest()[0];
       return getProgrammedState()
@@ -161,7 +161,8 @@ class AgentNeighborTest : public AgentHwTest {
   }
   InterfaceID kIntfID() const {
     auto switchType =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
     if (switchType == cfg::SwitchType::NPU) {
       return InterfaceID(static_cast<int>(kVlanID()));
     } else if (switchType == cfg::SwitchType::VOQ) {
@@ -192,7 +193,8 @@ class AgentNeighborTest : public AgentHwTest {
 
   auto getNeighborTable(std::shared_ptr<SwitchState> state) {
     auto switchType =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
 
     if (switchType == cfg::SwitchType::VOQ ||
         switchType == cfg::SwitchType::NPU) {
@@ -239,7 +241,7 @@ class AgentNeighborTest : public AgentHwTest {
     auto outState{inState->clone()};
     auto neighborTable = getNeighborTable(outState);
     auto switchType =
-        checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
     PortDescriptor port = portDescriptor();
     SystemPortID systemPortID;
@@ -333,7 +335,7 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
   template <typename AddrT = IPAddrT>
   auto getNeighborCache(std::shared_ptr<SwitchState> state) {
     auto switchType =
-        checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
 
     if constexpr (std::is_same_v<AddrT, folly::IPAddressV6>) {
@@ -372,7 +374,7 @@ class AgentNeighborResolutionTest : public AgentNeighborTest<NeighborT> {
     auto ipAddress = this->getNeighborAddress(false);
     auto neighborTable = this->getNeighborTable(outState);
     auto switchType =
-        checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics())
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics())
             ->getSwitchType();
 
     WITH_RETRIES({
@@ -648,7 +650,8 @@ class AgentNeighborOnMultiplePortsTest : public AgentHwTest {
 
   InterfaceID getInterfaceId(const PortID& portId) const {
     auto switchType =
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getSwitchType();
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getSwitchType();
 
     if (switchType == cfg::SwitchType::VOQ ||
         switchType == cfg::SwitchType::NPU) {

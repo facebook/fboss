@@ -344,7 +344,8 @@ void setupPfcBuffers(
   // create buffer pool
   std::map<std::string, cfg::BufferPoolConfig> bufferPoolCfgMap =
       cfg.bufferPoolConfigs().ensure();
-  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+  auto asic =
+      checkSameAndGetAsic(ensemble->getL3Asics(), FLAGS_switch_id_for_testing);
   setupBufferPoolConfig(
       asic, bufferPoolCfgMap, buffer.globalShared, buffer.globalHeadroom);
   cfg.bufferPoolConfigs() = std::move(bufferPoolCfgMap);

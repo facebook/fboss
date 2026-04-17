@@ -502,6 +502,9 @@ sai_status_t get_switch_attribute_fn(
       case SAI_SWITCH_ATTR_AVAILABLE_NEXT_HOP_GROUP_MEMBER_ENTRY:
       case SAI_SWITCH_ATTR_AVAILABLE_IPV4_NEIGHBOR_ENTRY:
       case SAI_SWITCH_ATTR_AVAILABLE_IPV6_NEIGHBOR_ENTRY:
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+      case SAI_SWITCH_ATTR_AVAILABLE_MY_SID_ENTRY:
+#endif
         // Why not
         attr[i].value.u32 = 1'000'000;
         break;

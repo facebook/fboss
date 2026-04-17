@@ -5,8 +5,8 @@ After=platform_manager.service
 After=rc-local.service
 Wants=fboss_init.service
 After=fboss_init.service
-StartLimitIntervalSec=600
-StartLimitBurst=5
+# Unlimited restarts (no start limit hit within a given time period)
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -21,7 +21,7 @@ WorkingDirectory=/opt/fboss
 ExecStart=/bin/bash -c 'source /opt/fboss/bin/setup_fboss_env && exec /opt/fboss/bin/qsfp_service --fsdb_client_ssl_preferred=false --thrift_ssl_policy=disabled'
 
 Restart=always
-RestartSec=30
+RestartSec=3
 TimeoutStartSec=180s
 
 StandardOutput=append:/var/facebook/logs/fboss/qsfp_service.log

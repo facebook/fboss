@@ -35,6 +35,24 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
   }
 
  public:
+  void waitForL2EntryAgedOut(MacAddress macAddr) {
+    WITH_RETRIES_N_TIMED(60, std::chrono::seconds(1), {
+      std::vector<L2EntryThrift> l2Entries;
+      facebook::fboss::ThriftHandler handler(getSw());
+      handler.getL2Table(l2Entries);
+      bool found = false;
+      for (const auto& entry : l2Entries) {
+        if (*entry.mac() == macAddr.toString()) {
+          found = true;
+          break;
+        }
+      }
+      XLOG(DBG2) << "Stale L2 entry for " << macAddr
+                 << " in HW: " << (found ? "present" : "absent");
+      EXPECT_EVENTUALLY_FALSE(found);
+    });
+  }
+
   void updateL2Aging(int ageout) {
     getSw()->updateStateBlocking("update L2 aging", [ageout](auto state) {
       auto newState = state->clone();
@@ -139,6 +157,10 @@ class AgentEnsembleMacLearningTest : public AgentEnsembleLinkTest {
 TEST_F(AgentEnsembleMacLearningTest, l2EntryFlap) {
   auto verify = [this]() {
     auto macAddr = MacAddress("02:00:00:00:00:05");
+    // After warm boot, the ASIC may still have a stale FDB entry for this
+    // MAC from the cold boot run.
+    // Wait for the stale entry to age out before proceeding.
+    waitForL2EntryAgedOut(macAddr);
     auto connectedPair = *getConnectedPairs().begin();
     auto txPort = connectedPair.first;
     auto rxPort = connectedPair.second;

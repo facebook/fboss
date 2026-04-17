@@ -9,6 +9,7 @@
  */
 
 #include "fboss/agent/hw/test/ProdConfigFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
@@ -247,7 +248,7 @@ cfg::SwitchConfig createProdRswConfig(
     const std::vector<PortID>& masterLogicalPortIds,
     bool isSai,
     bool enableStrictPriority) {
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsicForTesting(asics);
   auto numUplinks = uplinksCountFromSwitch(platformType);
 
   // its the same speed used for the uplink and downlink for now

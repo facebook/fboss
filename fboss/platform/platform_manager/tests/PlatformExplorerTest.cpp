@@ -129,10 +129,28 @@ TEST(PlatformExplorerTest, PublishHardwareVersions) {
 
   // Directly populate the hardware versions in the dataStore
   // This simulates what updateHardwareVersions() does when reading from EEPROM
-  dataStore.updateHardwareVersion(PlatformExplorer::kChassisEepromVersion, "5");
-  dataStore.updateHardwareVersion(PlatformExplorer::kProductionState, "GA");
-  dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "V3");
-  dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "A2");
+  dataStore.updateHardwareVersion(PlatformExplorer::kChassisEepromVersion, "6");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionState, "4");
+  dataStore.updateHardwareVersion(PlatformExplorer::kProductionSubState, "3");
+  dataStore.updateHardwareVersion(PlatformExplorer::kVariantVersion, "1");
+
+  // Populate PmUnit versions
+  PmUnitVersion version1;
+  version1.productProductionState() = 2;
+  version1.productVersion() = 13;
+  version1.productSubVersion() = 1;
+  dataStore.updatePmUnitName("/MCB_SLOT@0", "MCB");
+  dataStore.updatePmUnitVersion("/MCB_SLOT@0", version1);
+
+  PmUnitVersion version2;
+  version2.productProductionState() = 4;
+  version2.productVersion() = 3;
+  version2.productSubVersion() = 2;
+  dataStore.updatePmUnitName("/SCM_SLOT@0", "SCM");
+  dataStore.updatePmUnitVersion("/SCM_SLOT@0", version2);
+
+  // PmUnit without version should produce an "unspecified" counter
+  dataStore.updatePmUnitName("/FAN_SLOT@0", "FAN");
 
   PlatformExplorer explorer(platformConfig, dataStore, platformFsUtils);
 
@@ -140,10 +158,27 @@ TEST(PlatformExplorerTest, PublishHardwareVersions) {
   explorer.publishHardwareVersions();
 
   // Verify the hardware versions were published to ODS counters
-  expectHardwareVersion(PlatformExplorer::kChassisEepromVersionODS, "5");
-  expectHardwareVersion(PlatformExplorer::kProductionStateODS, "GA");
-  expectHardwareVersion(PlatformExplorer::kProductionSubStateODS, "V3");
-  expectHardwareVersion(PlatformExplorer::kVariantVersionODS, "A2");
+  expectHardwareVersion(PlatformExplorer::kChassisEepromVersionODS, "6");
+  expectHardwareVersion(PlatformExplorer::kProductionStateODS, "4");
+  expectHardwareVersion(PlatformExplorer::kProductionSubStateODS, "3");
+  expectHardwareVersion(PlatformExplorer::kVariantVersionODS, "1");
+  expectHardwareVersion(PlatformExplorer::kFullVersionODS, "4.3.1");
+
+  // Verify per-PmUnit version counters
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          fmt::format(PlatformExplorer::kPmUnitVersionODS, "MCB", "2.13.1")),
+      1);
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          fmt::format(PlatformExplorer::kPmUnitVersionODS, "SCM", "4.3.2")),
+      1);
+  // FAN has no version, so it should report "unspecified"
+  EXPECT_EQ(
+      facebook::fb303::fbData->getCounter(
+          fmt::format(
+              PlatformExplorer::kPmUnitVersionODS, "FAN", "unspecified")),
+      1);
 }
 
 TEST(PlatformExplorerTest, SymlinkExceptionHandling) {

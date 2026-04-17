@@ -1,21 +1,10 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "fboss/platform/sensor_service/Utils.h"
 
-using namespace ::testing;
 namespace facebook::fboss::platform::sensor_service {
-class MockPmUnitInfoFetcher : public PmUnitInfoFetcher {
- public:
-  explicit MockPmUnitInfoFetcher() : PmUnitInfoFetcher() {}
-  MOCK_METHOD(
-      (std::optional<std::array<int16_t, 3>>),
-      fetch,
-      (const std::string&),
-      (const));
-};
 
 class UtilsTests : public testing::Test {
  public:
@@ -29,12 +18,22 @@ class UtilsTests : public testing::Test {
     versionedPmSensor.productSubVersion() = productSubVersion;
     return versionedPmSensor;
   }
+  platform_manager::PmUnitInfo
+  createPmUnitInfo(int16_t pps, int16_t pv, int16_t psv) {
+    platform_manager::PmUnitInfo info;
+    info.name() = "TestUnit";
+    platform_manager::PmUnitVersion version;
+    version.productProductionState() = pps;
+    version.productVersion() = pv;
+    version.productSubVersion() = psv;
+    info.version() = version;
+    return info;
+  }
   bool isEqual(VersionedPmSensor s1, VersionedPmSensor s2) {
     return s1.productProductionState() == s2.productProductionState() &&
         s1.productVersion() == s2.productVersion() &&
         s1.productSubVersion() == s2.productSubVersion();
   }
-  MockPmUnitInfoFetcher fetcher_;
   std::string slotPath_;
 };
 
@@ -55,49 +54,57 @@ TEST_F(UtilsTests, Equal) {
       0.0019354839);
 }
 
-TEST_F(UtilsTests, PmUnitInfoFetcherTest) {
+TEST_F(UtilsTests, ResolveVersionedSensors) {
   std::optional<VersionedPmSensor> resolvedVersionedSensor;
   // Case-0: Empty version config
   EXPECT_EQ(
-      Utils().resolveVersionedSensors(fetcher_, slotPath_, {}), std::nullopt);
-  // Case-1: Fail to fetch PmUnitInfo
-  EXPECT_CALL(fetcher_, fetch(_)).WillOnce(Return(std::nullopt));
+      Utils().resolveVersionedSensors(std::nullopt, slotPath_, {}),
+      std::nullopt);
+  // Case-1: Fail to fetch PmUnitInfo (RPC error)
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_,
+      std::nullopt,
       slotPath_,
       {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(2, 0, 1)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 0, 1)));
+  // Case-1b: PmUnitInfo returned but no version (no IDPROM)
+  {
+    platform_manager::PmUnitInfo infoNoVersion;
+    infoNoVersion.name() = "TestUnit";
+    resolvedVersionedSensor = Utils().resolveVersionedSensors(
+        infoNoVersion,
+        slotPath_,
+        {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(2, 0, 1)});
+    EXPECT_NE(resolvedVersionedSensor, std::nullopt);
+    EXPECT_TRUE(
+        isEqual(*resolvedVersionedSensor, createVersionedPmSensor(2, 0, 1)));
+  }
   // Case-2: Non-matching VersionedPmSensor
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{1, 0, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)});
+      createPmUnitInfo(1, 0, 20),
+      slotPath_,
+      {createVersionedPmSensor(1, 1, 2)});
   EXPECT_EQ(resolvedVersionedSensor, std::nullopt);
   // Case-3a: Matching Single VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{1, 1, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_, slotPath_, {createVersionedPmSensor(1, 1, 2)});
+      createPmUnitInfo(1, 1, 20),
+      slotPath_,
+      {createVersionedPmSensor(1, 1, 2)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 2)));
   // Case-3b: Matching Multiple VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{1, 1, 20}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_,
+      createPmUnitInfo(1, 1, 20),
       slotPath_,
       {createVersionedPmSensor(1, 1, 2), createVersionedPmSensor(1, 1, 4)});
   EXPECT_NE(resolvedVersionedSensor, std::nullopt);
   EXPECT_TRUE(
       isEqual(*resolvedVersionedSensor, createVersionedPmSensor(1, 1, 4)));
   // Case-4: Matching Unordered VersionedPmSensors
-  EXPECT_CALL(fetcher_, fetch(_))
-      .WillOnce(Return(std::array<int16_t, 3>{2, 4, 10}));
   resolvedVersionedSensor = Utils().resolveVersionedSensors(
-      fetcher_,
+      createPmUnitInfo(2, 4, 10),
       slotPath_,
       {createVersionedPmSensor(3, 1, 20),
        createVersionedPmSensor(2, 1, 20),

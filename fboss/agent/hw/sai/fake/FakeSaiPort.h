@@ -101,6 +101,7 @@ struct FakePort {
   sai_uint32_t interFrameGap{96};
 #endif
   bool linkTrainingEnable{false};
+  sai_int32_t linkTrainingRxStatus{0}; // NOT_TRAINED
   bool fdrEnable{false};
   bool rxLaneSquelchEnable{false};
   std::optional<std::vector<sai_map_t>> pfcTcDldInterval{};

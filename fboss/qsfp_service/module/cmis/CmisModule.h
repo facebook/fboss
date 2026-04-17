@@ -736,6 +736,11 @@ class CmisModule : public QsfpModule {
       const std::vector<HostLaneSettings>& hostLaneSettings) override;
 
   /*
+   * Disable TX and RX squelch on all lanes for tunable optics modules.
+   */
+  void disableTxRxSquelchForTunableOptics();
+
+  /*
    * Check if the module has accepted the lane configuration specified by
    * ApSel or other settings like RxEqualizer setting. In case of config
    * rejection the function returns false

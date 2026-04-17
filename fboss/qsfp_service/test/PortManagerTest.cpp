@@ -1091,11 +1091,12 @@ TEST_F(PortManagerTest, setTransceiverEnabledStatusInCache) {
       std::find(tcvrIds.begin(), tcvrIds.end(), TransceiverID(1)) !=
       tcvrIds.end());
 
-  // Test Case 3: Try to add the same transceiver again (should throw)
-  EXPECT_THROW(
-      portManager_->setTransceiverEnabledStatusInCache(
-          PortID(1), TransceiverID(0)),
-      FbossError);
+  // Test Case 3: Adding the same transceiver again is idempotent (no throw)
+  EXPECT_NO_THROW(portManager_->setTransceiverEnabledStatusInCache(
+      PortID(1), TransceiverID(0)));
+  // Verify cache size unchanged (no duplicate added)
+  tcvrIds = portManager_->getInitializedTransceiverIdsForPort(PortID(1));
+  EXPECT_EQ(tcvrIds.size(), 2);
 
   // Test Case 4: Try to add transceiver for invalid port (should throw)
   EXPECT_THROW(

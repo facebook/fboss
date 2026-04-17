@@ -56,7 +56,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
     std::vector<PortID> ports = {ensemble.masterLogicalInterfacePortIds()[0]};
 
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
 
     auto config =
         (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_CHENAB)
@@ -119,7 +119,7 @@ BENCHMARK(RxSlowPathArpBenchmark) {
   std::map<int, CpuPortStats> cpuStatsBefore;
   ensemble->getSw()->getAllCpuPortStats(cpuStatsBefore);
   auto statsBefore = cpuStatsBefore[0];
-  auto hwAsic = checkSameAndGetAsic(ensemble->getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
   auto [pktsBefore, bytesBefore] = utility::getCpuQueueOutPacketsAndBytes(
       *statsBefore.portStats_(), utility::getCoppHighPriQueueId(hwAsic));
   auto timeBefore = std::chrono::steady_clock::now();

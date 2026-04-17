@@ -422,7 +422,8 @@ class AgentAclCounterTest : public AgentHwTest {
         if (isSupportedOnAllAsics(HwAsic::Feature::ACL_BYTE_COUNTER)) {
           // TODO ruinanhu: Remove this once we have a fix for TH6 counter
           // problem
-          auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+          auto hwAsic =
+              checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
           auto extraBytes =
               (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) ? 4
                                                                             : 0;
@@ -454,7 +455,7 @@ class AgentAclCounterTest : public AgentHwTest {
     aclEntry.actionType() = aclActionType_;
     auto* acl = &aclEntry;
     auto l3Asics = getAgentEnsemble()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     bool isSai = getAgentEnsemble()->isSai();
     switch (aclType) {
       case AclType::TCP_TTLD:

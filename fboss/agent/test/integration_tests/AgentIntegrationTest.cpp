@@ -16,6 +16,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/hw/test/HwTestPacketUtils.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/integration_tests/AgentIntegrationTest.h"
 #include "fboss/lib/config/PlatformConfigUtils.h"
 
@@ -30,7 +31,7 @@ cfg::SwitchConfig AgentIntegrationTest::initialConfig(
   cfg::SwitchConfig cfg;
   std::vector<PortID> ports;
   auto hwAsics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
   auto subsidiaryPortMap =
       utility::getSubsidiaryPortIDs(ensemble.getPlatformPorts());

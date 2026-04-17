@@ -62,7 +62,7 @@ class AgentPacketStreamHandlerTest : public AgentHwTest {
  protected:
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     auto cfg = AgentHwTest::initialConfig(ensemble);
     utility::setDefaultCpuTrafficPolicyConfig(cfg, {asic}, ensemble.isSai());
     utility::addCpuQueueConfig(cfg, {asic}, ensemble.isSai());

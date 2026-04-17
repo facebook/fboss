@@ -16,6 +16,7 @@
 #include "fboss/agent/SwAgentInitializer.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/test/AgentEnsemble.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/DsfConfigUtils.h"
 #include "fboss/agent/test/utils/LoadBalancerTestUtils.h"
@@ -26,14 +27,6 @@
 #include <folly/IPAddress.h>
 
 namespace facebook::fboss {
-
-RouteNextHopSet makeNextHops(const std::vector<std::string>& ipsAsStrings) {
-  RouteNextHopSet nhops;
-  for (const std::string& ipAsString : ipsAsStrings) {
-    nhops.emplace(UnresolvedNextHop(folly::IPAddress(ipAsString), ECMP_WEIGHT));
-  }
-  return nhops;
-}
 
 /*
  * Collect stats 10K times (100 time for VOQ) and benchmark that.
@@ -128,7 +121,8 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
     // 100 iterations.
     iterations = 100;
   } else if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches()) {
-    if (checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
+    if (checkSameAndGetAsicForTesting(
+            ensemble->getSw()->getHwAsicTable()->getL3Asics())
             ->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
       // TODO(Chenab): 10'000 iterations take 30 minutes on Chenab. Debug this
       // slowness
@@ -142,7 +136,8 @@ inline void runStatsCollectionBenchmark(bool alwaysCollectVoqStats = false) {
 
   int maxRouteCounters = numRouteCounters;
   if (ensemble->getSw()->getSwitchInfoTable().haveL3Switches() &&
-      checkSameAndGetAsic(ensemble->getSw()->getHwAsicTable()->getL3Asics())
+      checkSameAndGetAsicForTesting(
+          ensemble->getSw()->getHwAsicTable()->getL3Asics())
               ->getAsicType() == cfg::AsicType::ASIC_TYPE_EBRO) {
     // MT-762: counter Id 254 is preserved internally in SDK
     // >= 24.8.3001 for EBRO

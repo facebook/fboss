@@ -72,8 +72,11 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithValidVersion) {
   auto result = fetcher.fetch("/test/slot");
 
   ASSERT_TRUE(result.has_value());
-  const std::array<int16_t, 3> expected{1, 2, 3};
-  EXPECT_EQ(*result, expected);
+  EXPECT_EQ(*result->name(), "TestPmUnit");
+  ASSERT_TRUE(result->version().has_value());
+  EXPECT_EQ(*result->version()->productProductionState(), 1);
+  EXPECT_EQ(*result->version()->productVersion(), 2);
+  EXPECT_EQ(*result->version()->productSubVersion(), 3);
 }
 
 TEST_F(PmUnitInfoFetcherTest, FetchWithoutVersion) {
@@ -90,7 +93,9 @@ TEST_F(PmUnitInfoFetcherTest, FetchWithoutVersion) {
       std::static_pointer_cast<PmClientFactory>(mockFactory_));
   auto result = fetcher.fetch("/test/slot");
 
-  EXPECT_FALSE(result.has_value());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result->name(), "TestPmUnitNoVersion");
+  EXPECT_FALSE(result->version().has_value());
 }
 
 TEST_F(PmUnitInfoFetcherTest, FetchWithPlatformManagerError) {

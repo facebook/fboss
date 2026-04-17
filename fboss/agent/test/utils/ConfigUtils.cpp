@@ -16,6 +16,7 @@
 #include "fboss/agent/FbossError.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/test/TestEnsembleIf.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/PortTestUtils.h"
@@ -584,7 +585,7 @@ cfg::SwitchConfig onePortPerInterfaceConfigImpl(
   for (const auto& switchId : switchIds) {
     asics.push_back(swSwitch->getHwAsicTable()->getHwAsic(switchId));
   }
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsicForTesting(asics);
   return onePortPerInterfaceConfigImpl(
       swSwitch->getPlatformMapping(),
       asic,
@@ -1148,7 +1149,7 @@ cfg::SwitchInfo generateSwitchInfo(
 cfg::SwitchConfig
 oneL3IntfTwoPortConfig(const SwSwitch* sw, PortID port1, PortID port2) {
   std::vector<PortID> ports{port1, port2};
-  auto asic = checkSameAndGetAsic(sw->getHwAsicTable()->getL3Asics());
+  auto asic = checkSameAndGetAsicForTesting(sw->getHwAsicTable()->getL3Asics());
   return oneL3IntfTwoPortConfig(
       sw->getPlatformMapping(),
       asic,
@@ -1256,7 +1257,7 @@ cfg::SwitchConfig twoL3IntfConfig(
     PortID port2,
     const std::map<cfg::PortType, cfg::PortLoopbackMode>& lbModeMap,
     cfg::InterfaceType intfType) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsicForTesting(asics);
   std::map<PortID, VlanID> port2vlan;
   std::vector<PortID> ports{port1, port2};
   std::vector<VlanID> vlans;

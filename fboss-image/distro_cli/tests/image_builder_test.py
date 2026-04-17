@@ -76,9 +76,10 @@ class TestImageBuilder(unittest.TestCase):
         mock_run_container.return_value = 0
 
         # Mock _build_base_image and _move_distro_file to avoid file operations
-        with patch.object(
-            self.builder, "_build_base_image"
-        ) as mock_build_base, patch.object(self.builder, "_move_distro_file"):
+        with (
+            patch.object(self.builder, "_build_base_image") as mock_build_base,
+            patch.object(self.builder, "_move_distro_file"),
+        ):
             self.builder.build_all()
 
         # Verify _build_base_image was called (we mock it to avoid file writes)
@@ -166,8 +167,9 @@ class TestImageBuilder(unittest.TestCase):
         mock_run_container.return_value = 0
 
         # Mock _build_base_image and _move_distro_file to avoid file operations
-        with patch.object(self.builder, "_build_base_image"), patch.object(
-            self.builder, "_move_distro_file"
+        with (
+            patch.object(self.builder, "_build_base_image"),
+            patch.object(self.builder, "_move_distro_file"),
         ):
             # Build all (which keeps artifacts uncompressed)
             self.builder.build_all()

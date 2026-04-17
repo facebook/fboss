@@ -255,6 +255,7 @@ cpp_library(
         "//fboss/agent/state:state",
         "//fboss/agent/test:test_ensemble_if",
         "//fboss/agent/test:trunk_utils",
+        "//fboss/agent/test:utils",
         "//fboss/lib/config:fboss_config_utils",
         "//folly:format",
         "//folly:network_address",
@@ -346,6 +347,7 @@ cpp_library(
         "//fboss/agent:fboss-types",
         "//fboss/agent:hw_asic_table",
         "//fboss/agent:switch_config-cpp2-types",
+        "//fboss/agent/test:utils",
     ],
 )
 

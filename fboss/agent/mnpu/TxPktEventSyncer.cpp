@@ -85,8 +85,13 @@ void TxPktEventSyncer::TxPacketEventHandler(
 
   if (txPkt.port().has_value()) {
     PortID portId(*txPkt.port());
-    hw->sendPacketOutOfPortAsync(
-        std::move(pkt), portId, txPkt.queue().to_optional());
+    if (*txPkt.packetType() != PacketType::DEFAULT) {
+      hw->sendPacketOutOfPortSyncForPktType(
+          std::move(pkt), portId, *txPkt.packetType());
+    } else {
+      hw->sendPacketOutOfPortAsync(
+          std::move(pkt), portId, txPkt.queue().to_optional());
+    }
   } else {
     hw->sendPacketSwitchedAsync(std::move(pkt));
   }

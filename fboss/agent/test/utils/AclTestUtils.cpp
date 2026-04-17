@@ -299,7 +299,8 @@ void addDefaultAclTable(
       *cfg.dsfNodes());
   // TODO (pshaikh): create a method to return AclTables for a given asic type
   // and acl stage and retire this check
-  auto asic = checkSameAndGetAsic(asicTable.getL3Asics());
+  auto asic =
+      checkSameAndGetAsic(asicTable.getL3Asics(), FLAGS_switch_id_for_testing);
   auto split = asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB;
 
   /* Create default ACL table similar to whats being done in Agent today */
@@ -591,7 +592,7 @@ void addAclEcmpHashCancelAction(
 
 std::vector<cfg::CounterType> getAclCounterTypes(
     const std::vector<const HwAsic*>& asics) {
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   // At times, it is non-trivial for SAI implementations to support enabling
   // bytes counters only or packet counters only. In such cases, SAI
   // implementations enable bytes as well as packet counters even if only

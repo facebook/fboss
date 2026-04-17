@@ -13,7 +13,7 @@ std::vector<std::string> FsdbSensorSubscriber::getQsfpDataStatsPath() {
 }
 
 std::vector<std::string> FsdbSensorSubscriber::getQsfpDataStatePath() {
-  return {"qsfp_service", "state", "tcvrState"};
+  return {"qsfp_service", "state", "tcvrStates"};
 }
 
 std::vector<std::string> FsdbSensorSubscriber::getAgentDataStatsPath() {

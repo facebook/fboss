@@ -21,6 +21,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/RouteScaleGenerators.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/integration_tests/AgentIntegrationTest.h"
 #include "fboss/fsdb/common/Flags.h"
 #include "fboss/lib/CommonUtils.h"
@@ -344,7 +345,7 @@ TEST_F(BgpIntegrationTest, bgpRestart) {
 TEST_F(BgpIntegrationTest, routeScaleTest) {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
   auto npu = asic->getAsicType();
   switch (npu) {

@@ -7,6 +7,8 @@ After=qsfp_service.service
 After=rc-local.service
 Wants=fboss_init.service
 After=fboss_init.service
+# Unlimited restarts (no start limit hit within a given time period)
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple

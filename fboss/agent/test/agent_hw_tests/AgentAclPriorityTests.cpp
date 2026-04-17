@@ -13,6 +13,7 @@
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/state/SwitchState.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/QueuePerHostTestUtils.h"
@@ -64,7 +65,8 @@ class AgentAclPriorityTest : public AgentHwTest {
 
   void addDenyPortAcl(cfg::SwitchConfig& cfg, const std::string& aclName) {
     auto acl = cfg::AclEntry();
-    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
     *acl.name() = aclName;
     *acl.actionType() = cfg::AclActionType::DENY;
     acl.dscp() = 0x24;
@@ -77,7 +79,8 @@ class AgentAclPriorityTest : public AgentHwTest {
       const std::string& aclName,
       folly::IPAddress ip) {
     auto acl = cfg::AclEntry();
-    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
     acl.name() = aclName;
     acl.actionType() = cfg::AclActionType::PERMIT;
     acl.dstIp() = ip.str();
