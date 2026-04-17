@@ -43,6 +43,7 @@ cpp_binary(
         "DeleteInterfaceIpv6NdpTest.cpp",
         "Fboss2IntegrationTest.cpp",
         "//fboss/cli/fboss2:cmd-list-config-impl",
+        "ConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
     ],
     deps = [
         "fbsource//third-party/fmt:fmt",
