@@ -12,6 +12,7 @@ cpp_unittest(
         "CmdDeleteInterfaceIpv6NdTest.cpp",
         "CmdDeleteInterfaceTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
+        "CmdConfigInterfaceSwitchportTrunkAllowedVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
         "CmdConfigQosBufferPoolTest.cpp",

@@ -376,6 +376,12 @@ CLI::App* CmdSubcommands::addCommand(
               "of: description, mtu, profile, loopback-mode, flow-control-rx, "
               "flow-control-tx, lldp-expected-value, type, shutdown, no-shutdown");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_TRUNK_VLAN_ACTION:
+          subCmd->add_option(
+              "vlan_action",
+              args,
+              "VLAN trunk action: add|remove <vlan-id-list>");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;

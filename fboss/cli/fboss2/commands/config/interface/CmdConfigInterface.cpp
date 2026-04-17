@@ -295,7 +295,6 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
-  // If no attributes provided, this is a pass-through to subcommands
   if (!interfaceConfig.hasAttributes()) {
     throw std::runtime_error(
         "Incomplete command. Either provide attributes (description, mtu, profile, "
@@ -306,10 +305,8 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
 
   std::vector<std::string> results;
 
-  // Process each attribute
   for (const auto& [attr, value] : attributes) {
     if (attr == "description") {
-      // Set description for all ports
       for (const utils::Intf& intf : interfaces) {
         cfg::Port* port = intf.getPort();
         if (port) {
@@ -318,7 +315,6 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
       }
       results.push_back(fmt::format("description=\"{}\"", value));
     } else if (attr == "mtu") {
-      // Validate and set MTU for all interfaces
       int32_t mtu = 0;
       try {
         mtu = folly::to<int32_t>(value);
@@ -410,7 +406,6 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     }
   }
 
-  // Save the updated config
   ConfigSession::getInstance().saveConfig();
 
   std::string interfaceList = folly::join(", ", interfaces.getNames());

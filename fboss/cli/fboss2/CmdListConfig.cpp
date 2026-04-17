@@ -22,6 +22,9 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
@@ -158,18 +161,40 @@ const CommandTree& kConfigCommandTree() {
                commandHandler<CmdConfigInterfaceSwitchport>,
                argTypeHandler<CmdConfigInterfaceSwitchportTraits>,
                {{
-                   "access",
-                   "Configure access mode settings",
-                   commandHandler<CmdConfigInterfaceSwitchportAccess>,
-                   argTypeHandler<CmdConfigInterfaceSwitchportAccessTraits>,
-                   {{
-                       "vlan",
-                       "Set access VLAN (ingressVlan) for the interface",
-                       commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
-                       argTypeHandler<
-                           CmdConfigInterfaceSwitchportAccessVlanTraits>,
-                   }},
-               }},
+                    "access",
+                    "Configure access mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportAccess>,
+                    argTypeHandler<CmdConfigInterfaceSwitchportAccessTraits>,
+                    {{
+                        "vlan",
+                        "Set access VLAN (ingressVlan) for the interface",
+                        commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
+                        argTypeHandler<
+                            CmdConfigInterfaceSwitchportAccessVlanTraits>,
+                    }},
+                },
+                {
+                    "trunk",
+                    "Configure trunk mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportTrunk>,
+                    argTypeHandler<CmdConfigInterfaceSwitchportTrunkTraits>,
+                    {{
+                        "allowed",
+                        "Configure allowed VLANs for trunk",
+                        commandHandler<
+                            CmdConfigInterfaceSwitchportTrunkAllowed>,
+                        argTypeHandler<
+                            CmdConfigInterfaceSwitchportTrunkAllowedTraits>,
+                        {{
+                            "vlan",
+                            "Add or remove VLANs from trunk allowed list",
+                            commandHandler<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlan>,
+                            argTypeHandler<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlanTraits>,
+                        }},
+                    }},
+                }},
            }},
       },
 
