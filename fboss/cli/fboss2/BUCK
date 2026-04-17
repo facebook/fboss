@@ -972,6 +972,7 @@ cpp_library(
         "CmdListConfig.cpp",
         "commands/config/CmdConfigAppliedInfo.cpp",
         "commands/config/CmdConfigReload.cpp",
+        "commands/config/arp/CmdConfigArp.cpp",
         "commands/config/history/CmdConfigHistory.cpp",
         "commands/config/interface/CmdConfigInterface.cpp",
         "commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp",
@@ -1068,6 +1069,7 @@ cpp_library(
     headers = [
         "commands/config/CmdConfigAppliedInfo.h",
         "commands/config/CmdConfigReload.h",
+        "commands/config/arp/CmdConfigArp.h",
         "commands/config/history/CmdConfigHistory.h",
         "commands/config/interface/CmdConfigInterface.h",
         "commands/config/interface/CmdConfigInterfaceQueuingPolicy.h",

@@ -346,6 +346,13 @@ CLI::App* CmdSubcommands::addCommand(
               "<port-list> [<attr> <value> ...] where <attr> is one "
               "of: description, mtu");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ARP_CONFIG:
+          subCmd->add_option(
+              "arp_attr_value",
+              args,
+              "<attr> <value> where <attr> is one of: "
+              "timeout, age-interval, max-probes, stale-interval");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
