@@ -318,6 +318,17 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     set<switch_state_tags::l4DstPort>(port);
   }
 
+  std::optional<cfg::Range> getL4DstPortRange() const {
+    if (auto l4DstPortRange = cref<switch_state_tags::l4DstPortRange>()) {
+      return l4DstPortRange->toThrift();
+    }
+    return std::nullopt;
+  }
+
+  void setL4DstPortRange(const cfg::Range& range) {
+    set<switch_state_tags::l4DstPortRange>(range);
+  }
+
   std::optional<cfg::AclLookupClass> getLookupClassL2() const {
     if (auto lookupClassL2 = cref<switch_state_tags::lookupClassL2>()) {
       return lookupClassL2->cref();
@@ -440,11 +451,11 @@ class AclEntry : public ThriftStructNode<AclEntry, state::AclEntryFields> {
     return getSrcIp().first || getDstIp().first || getProto() ||
         getTcpFlagsBitMap() || getSrcPort() || getDstPort() || getIpFrag() ||
         getIcmpType() || getDscp() || getIpType() || getTtl() || getDstMac() ||
-        getL4SrcPort() || getL4DstPort() || getLookupClassL2() ||
-        getLookupClassNeighbor() || getLookupClassRoute() ||
-        getPacketLookupResult() || getEtherType() || getVlanID() ||
-        getUdfGroups() || getRoceOpcode() || getRoceBytes() || getRoceMask() ||
-        getUdfTable();
+        getL4SrcPort() || getL4DstPort() || getL4DstPortRange() ||
+        getLookupClassL2() || getLookupClassNeighbor() ||
+        getLookupClassRoute() || getPacketLookupResult() || getEtherType() ||
+        getVlanID() || getUdfGroups() || getRoceOpcode() || getRoceBytes() ||
+        getRoceMask() || getUdfTable();
   }
 
   std::set<cfg::AclTableQualifier> getRequiredAclTableQualifiers() const;
