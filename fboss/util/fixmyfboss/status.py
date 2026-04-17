@@ -7,6 +7,8 @@ from fboss.util.fixmyfboss.utils import Color
 
 
 class Status:
+    color: Color = Color.YELLOW
+
     def __str__(self) -> str:
         if self.info is not None:
             return self.info
