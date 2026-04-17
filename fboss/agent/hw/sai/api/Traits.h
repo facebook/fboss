@@ -322,6 +322,14 @@ using AclEntryFieldU8List = AclEntryField<
 using AclEntryFieldSaiObjectIdT =
     AclEntryField<std::pair<sai_object_id_t, sai_uint32_t>>;
 
+/*
+ * sai_acl_field_data_mask_t has no objlist member — mask is not applicable
+ * for object list fields (see SAI spec saitypes.h). The mask vector is
+ * always empty.
+ */
+using AclEntryFieldSaiObjectIdList = AclEntryField<
+    std::pair<std::vector<sai_object_id_t>, std::vector<sai_object_id_t>>>;
+
 template <typename T>
 class AclEntryAction {
  public:
