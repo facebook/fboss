@@ -940,8 +940,6 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         if (aclEntry.etherType().has_value() &&
             *aclEntry.etherType() == cfg::EtherType::IPv6) {
           addQualier(aclEntry.proto().has_value(), qualifier);
-        } else {
-          addQualier(aclEntry.proto().has_value(), qualifier);
         }
         break;
 
