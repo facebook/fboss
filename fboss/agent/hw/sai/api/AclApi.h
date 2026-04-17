@@ -23,6 +23,17 @@ extern "C" {
 #include <sai.h>
 }
 
+inline bool operator==(const sai_u32_range_t& a, const sai_u32_range_t& b) {
+  return a.min == b.min && a.max == b.max;
+}
+
+inline std::size_t hash_value(const sai_u32_range_t& r) {
+  std::size_t seed = 0;
+  boost::hash_combine(seed, r.min);
+  boost::hash_combine(seed, r.max);
+  return seed;
+}
+
 namespace facebook::fboss {
 
 class AclApi;
