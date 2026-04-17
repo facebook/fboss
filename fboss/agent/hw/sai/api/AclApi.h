@@ -755,6 +755,25 @@ SAI_ATTRIBUTE_NAME(AclCounter, EnableByteCount);
 SAI_ATTRIBUTE_NAME(AclCounter, CounterPackets);
 SAI_ATTRIBUTE_NAME(AclCounter, CounterBytes);
 
+struct SaiAclRangeTraits {
+  static constexpr sai_object_type_t ObjectType = SAI_OBJECT_TYPE_ACL_RANGE;
+  using SaiApiT = AclApi;
+  struct Attributes {
+    using EnumType = sai_acl_range_attr_t;
+
+    using Type = SaiAttribute<EnumType, SAI_ACL_RANGE_ATTR_TYPE, sai_int32_t>;
+    using Limit =
+        SaiAttribute<EnumType, SAI_ACL_RANGE_ATTR_LIMIT, sai_u32_range_t>;
+  };
+
+  using AdapterKey = AclRangeSaiId;
+  using AdapterHostKey = std::tuple<Attributes::Type, Attributes::Limit>;
+  using CreateAttributes = std::tuple<Attributes::Type, Attributes::Limit>;
+};
+
+SAI_ATTRIBUTE_NAME(AclRange, Type);
+SAI_ATTRIBUTE_NAME(AclRange, Limit);
+
 class AclApi : public SaiApi<AclApi> {
  public:
   static constexpr sai_api_t ApiType = SAI_API_ACL;
@@ -808,6 +827,14 @@ class AclApi : public SaiApi<AclApi> {
     return api_->create_acl_counter(rawSaiId(id), switch_id, count, attr_list);
   }
 
+  sai_status_t _create(
+      AclRangeSaiId* id,
+      sai_object_id_t switch_id,
+      size_t count,
+      sai_attribute_t* attr_list) const {
+    return api_->create_acl_range(rawSaiId(id), switch_id, count, attr_list);
+  }
+
   sai_status_t _remove(AclTableGroupSaiId id) const {
     return api_->remove_acl_table_group(id);
   }
@@ -826,6 +853,10 @@ class AclApi : public SaiApi<AclApi> {
 
   sai_status_t _remove(AclCounterSaiId id) const {
     return api_->remove_acl_counter(id);
+  }
+
+  sai_status_t _remove(AclRangeSaiId id) const {
+    return api_->remove_acl_range(id);
   }
 
   sai_status_t _getAttribute(AclTableGroupSaiId id, sai_attribute_t* attr)
@@ -848,6 +879,10 @@ class AclApi : public SaiApi<AclApi> {
 
   sai_status_t _getAttribute(AclCounterSaiId id, sai_attribute_t* attr) const {
     return api_->get_acl_counter_attribute(id, 1, attr);
+  }
+
+  sai_status_t _getAttribute(AclRangeSaiId id, sai_attribute_t* attr) const {
+    return api_->get_acl_range_attribute(id, 1, attr);
   }
 
   sai_status_t _setAttribute(AclTableGroupSaiId id, const sai_attribute_t* attr)
@@ -874,6 +909,11 @@ class AclApi : public SaiApi<AclApi> {
   sai_status_t _setAttribute(AclCounterSaiId id, const sai_attribute_t* attr)
       const {
     return api_->set_acl_counter_attribute(id, attr);
+  }
+
+  sai_status_t _setAttribute(AclRangeSaiId id, const sai_attribute_t* attr)
+      const {
+    return api_->set_acl_range_attribute(id, attr);
   }
 
   sai_acl_api_t* api_;
