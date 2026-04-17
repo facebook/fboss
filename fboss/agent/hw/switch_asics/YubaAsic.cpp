@@ -99,6 +99,7 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::SAI_SET_TC_WITH_USER_DEFINED_TRAP_CPU_ACTION:
     case HwAsic::Feature::RESOURCE_USAGE_STATS:
       return true;
+    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
     case HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER:
       return isSrv6Supported();
     case HwAsic::Feature::ACL_BYTE_COUNTER:
@@ -244,7 +245,6 @@ bool YubaAsic::isSupportedNonFabric(Feature feature) const {
     case HwAsic::Feature::VIRTUAL_ARS_GROUP:
     case HwAsic::Feature::CUT_THROUGH_FORWARDING:
     case HwAsic::Feature::ECN_PROBABILISTIC_MARKING:
-    case HwAsic::Feature::SRV6_MYSID_RESOURCE_COUNTER:
       return false;
   }
   return false;
