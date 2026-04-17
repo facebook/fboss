@@ -644,6 +644,7 @@ class SaiStore {
       SaiObjectStore<SaiAclTableTraits>,
       SaiObjectStore<SaiAclEntryTraits>,
       SaiObjectStore<SaiAclCounterTraits>,
+      SaiObjectStore<SaiAclRangeTraits>,
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       SaiObjectStore<SaiArsTraits>,
       SaiObjectStore<SaiArsProfileTraits>,
