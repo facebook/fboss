@@ -328,14 +328,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       auto egressStatsAfter = this->getLatestPortStats(egressPort);
       EXPECT_EVENTUALLY_GT(
           *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
-      if (this->isSupportedOnAllAsics(
-              HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
-        EXPECT_EVENTUALLY_TRUE(
-            portStatsAfter.inSrv6MySidDiscards_().has_value());
-        EXPECT_EVENTUALLY_GT(
-            portStatsAfter.inSrv6MySidDiscards_().value_or(0),
-            portStatsBefore.inSrv6MySidDiscards_().value_or(0));
-      }
+      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
       // Packet should not be forwarded out the egress port.
       EXPECT_EVENTUALLY_EQ(
           *egressStatsAfter.outBytes_(), *egressStatsBefore.outBytes_());
