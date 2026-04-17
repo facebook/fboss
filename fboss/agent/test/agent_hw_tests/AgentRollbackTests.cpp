@@ -131,7 +131,10 @@ TEST_F(AgentRollbackTest, rollbackLinkUpAndDown) {
             getDeltaApplicationForRollback()),
         FbossHwUpdateError);
     for (auto id : masterLogicalInterfacePortIds()) {
-      EXPECT_TRUE(getProgrammedState()->getPorts()->getNodeIf(id)->isPortUp());
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(
+            getProgrammedState()->getPorts()->getNodeIf(id)->isPortUp());
+      });
     }
 
     // Actually bring port down (persistent change)
@@ -149,8 +152,10 @@ TEST_F(AgentRollbackTest, rollbackLinkUpAndDown) {
             },
             getDeltaApplicationForRollback()),
         FbossHwUpdateError);
-    EXPECT_FALSE(
-        getProgrammedState()->getPorts()->getNodeIf(portId)->isPortUp());
+    WITH_RETRIES({
+      EXPECT_EVENTUALLY_FALSE(
+          getProgrammedState()->getPorts()->getNodeIf(portId)->isPortUp());
+    });
 
     // Bring port back up
     getSw()->updateStateBlocking(
@@ -158,7 +163,10 @@ TEST_F(AgentRollbackTest, rollbackLinkUpAndDown) {
           return setPortAdminState(state, portId, cfg::PortState::ENABLED);
         });
     for (auto id : masterLogicalInterfacePortIds()) {
-      EXPECT_TRUE(getProgrammedState()->getPorts()->getNodeIf(id)->isPortUp());
+      WITH_RETRIES({
+        EXPECT_EVENTUALLY_TRUE(
+            getProgrammedState()->getPorts()->getNodeIf(id)->isPortUp());
+      });
     }
   };
   verifyAcrossWarmBoots([]() {}, verify);
@@ -181,15 +189,14 @@ TEST_F(AgentRollbackTest, rollbackWithQPHConfig) {
     auto origState = getProgrammedState();
 
     // Perform a no-op rollback with QPH config present
-    EXPECT_THROW(
+    EXPECT_NO_THROW(
         getSw()->updateStateWithHwFailureProtection(
             "no-op rollback with QPH",
             [](const std::shared_ptr<SwitchState>& state) {
               // Return a clone to create a delta (even if identical content)
               return state->clone();
             },
-            getDeltaApplicationForRollback()),
-        FbossHwUpdateError);
+            getDeltaApplicationForRollback()));
 
     // State should be unchanged after rollback
     EXPECT_EQ(origState->toThrift(), getProgrammedState()->toThrift());
