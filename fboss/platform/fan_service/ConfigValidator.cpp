@@ -22,7 +22,8 @@ std::unordered_set<std::string> opticTypes = {
     constants::OPTIC_TYPE_100_GENERIC(),
     constants::OPTIC_TYPE_200_GENERIC(),
     constants::OPTIC_TYPE_400_GENERIC(),
-    constants::OPTIC_TYPE_800_GENERIC()};
+    constants::OPTIC_TYPE_800_GENERIC(),
+    constants::OPTIC_TYPE_800_ZR()};
 
 std::unordered_set<std::string> opticAggregationTypes = {
     constants::OPTIC_AGGREGATION_TYPE_MAX(),

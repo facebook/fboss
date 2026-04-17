@@ -59,9 +59,10 @@ std::optional<std::string> getOpticTypeFromMediaCode(
     case MediaInterfaceCode::DR4_2x400G:
     case MediaInterfaceCode::FR8_800G:
     case MediaInterfaceCode::LR4_2x400G_10KM:
-    case MediaInterfaceCode::ZR_800G:
     case MediaInterfaceCode::CR8_800G:
       return constants::OPTIC_TYPE_800_GENERIC();
+    case MediaInterfaceCode::ZR_800G:
+      return constants::OPTIC_TYPE_800_ZR();
     default:
       return std::nullopt;
   }
