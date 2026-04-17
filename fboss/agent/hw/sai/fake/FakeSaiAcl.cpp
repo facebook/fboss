@@ -1356,28 +1356,67 @@ sai_status_t remove_acl_counter_fn(sai_object_id_t acl_counter_id) {
 }
 
 sai_status_t create_acl_range_fn(
-    sai_object_id_t* /*acl_range_id */,
+    sai_object_id_t* acl_range_id,
     sai_object_id_t /*switch_id*/,
-    uint32_t /*attr_count*/,
-    const sai_attribute_t* /*attr_list*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+    uint32_t attr_count,
+    const sai_attribute_t* attr_list) {
+  auto fs = FakeSai::getInstance();
+
+  std::optional<sai_int32_t> type;
+  sai_u32_range_t limit{0, 0};
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_RANGE_ATTR_TYPE:
+        type = attr_list[i].value.s32;
+        break;
+      case SAI_ACL_RANGE_ATTR_LIMIT:
+        limit = attr_list[i].value.u32range;
+        break;
+    }
+  }
+
+  if (!type) {
+    return SAI_STATUS_INVALID_PARAMETER;
+  }
+
+  *acl_range_id = fs->aclRangeManager.create(type.value(), limit);
+
+  return SAI_STATUS_SUCCESS;
 }
 
-sai_status_t remove_acl_range_fn(sai_object_id_t /*acl_range_id*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+sai_status_t remove_acl_range_fn(sai_object_id_t acl_range_id) {
+  auto fs = FakeSai::getInstance();
+  fs->aclRangeManager.remove(acl_range_id);
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t set_acl_range_attribute_fn(
     sai_object_id_t /*acl_range_id*/,
     const sai_attribute_t* /*attr*/) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  return SAI_STATUS_NOT_SUPPORTED;
 }
 
 sai_status_t get_acl_range_attribute_fn(
     sai_object_id_t acl_range_id,
     uint32_t attr_count,
     sai_attribute_t* attr_list) {
-  return SAI_STATUS_NOT_IMPLEMENTED;
+  auto fs = FakeSai::getInstance();
+  auto& aclRange = fs->aclRangeManager.get(acl_range_id);
+
+  for (int i = 0; i < attr_count; ++i) {
+    switch (attr_list[i].id) {
+      case SAI_ACL_RANGE_ATTR_TYPE:
+        attr_list[i].value.s32 = aclRange.type;
+        break;
+      case SAI_ACL_RANGE_ATTR_LIMIT:
+        attr_list[i].value.u32range = aclRange.limit;
+        break;
+      default:
+        return SAI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  return SAI_STATUS_SUCCESS;
 }
 
 sai_status_t create_acl_table_group_fn(
