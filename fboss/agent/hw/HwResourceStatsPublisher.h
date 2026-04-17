@@ -73,6 +73,7 @@ constexpr folly::StringPiece kEmCountersUsed{"em_counters_used"};
 constexpr folly::StringPiece kEmCountersFree{"em_counters_free"};
 constexpr folly::StringPiece kSystemPortsFree{"system_ports_free"};
 constexpr folly::StringPiece kVoqsFree{"voqs_free"};
+constexpr folly::StringPiece kMySidEntriesFree{"my_sid_entries_free"};
 
 class HwResourceStatsPublisher {
  public:
