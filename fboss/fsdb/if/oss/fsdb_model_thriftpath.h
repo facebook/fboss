@@ -2526,7 +2526,8 @@ std::pair<apache::thrift::ident::udfGroups, ChildThriftPath<::std::vector<::std:
 std::pair<apache::thrift::ident::roceOpcode, Child<::std::int8_t, ::apache::thrift::type_class::integral, ::apache::thrift::type::byte_t>>,
 std::pair<apache::thrift::ident::roceBytes, ChildThriftPath<::std::vector<::std::int8_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
 std::pair<apache::thrift::ident::roceMask, ChildThriftPath<::std::vector<::std::int8_t>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
-std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::facebook::fboss::cfg::AclUdfEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
+std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::facebook::fboss::cfg::AclUdfEntry>, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>,
+std::pair<apache::thrift::ident::l4DstPortRange, ChildThriftPath<::facebook::fboss::cfg::Range, ::facebook::fboss::fsdb::FsdbOperStateRoot, Self>>>;
 
   template <typename Name>
   using TypeFor = typename Children::template type_of<Name>;
@@ -2564,6 +2565,7 @@ std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::faceb
     STRUCT_CHILD_GETTERS(roceBytes, 33);
     STRUCT_CHILD_GETTERS(roceMask, 34);
     STRUCT_CHILD_GETTERS(udfTable, 35);
+    STRUCT_CHILD_GETTERS(l4DstPortRange, 36);
 
   template <apache::thrift::FieldId __id>
   auto operator()(const std::integral_constant<apache::thrift::FieldId, __id>&) {
@@ -2599,6 +2601,7 @@ std::pair<apache::thrift::ident::udfTable, ChildThriftPath<::std::vector<::faceb
     else if constexpr (__id == apache::thrift::FieldId{33}) { return roceBytes(); }
     else if constexpr (__id == apache::thrift::FieldId{34}) { return roceMask(); }
     else if constexpr (__id == apache::thrift::FieldId{35}) { return udfTable(); }
+    else if constexpr (__id == apache::thrift::FieldId{36}) { return l4DstPortRange(); }
   }
 };
 

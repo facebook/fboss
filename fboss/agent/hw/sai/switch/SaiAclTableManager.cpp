@@ -2028,6 +2028,12 @@ bool SaiAclTableManager::isQualifierSupported(
 #else
       return false;
 #endif
+    case cfg::AclTableQualifier::L4_DST_PORT_RANGE: {
+      auto field = std::get<
+          std::optional<SaiAclTableTraits::Attributes::FieldAclRangeType>>(
+          attributes);
+      return field.has_value();
+    }
     case cfg::AclTableQualifier::UDF:
       /* not supported */
       return false;

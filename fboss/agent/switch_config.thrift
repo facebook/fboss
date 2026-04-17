@@ -653,6 +653,8 @@ struct AclEntry {
   34: optional list<byte> roceMask;
 
   35: optional list<AclUdfEntry> udfTable;
+
+  36: optional Range l4DstPortRange;
 }
 
 enum AclTableActionType {
@@ -696,6 +698,7 @@ enum AclTableQualifier {
   UDF = 24,
   BTH_OPCODE = 25,
   IPV6_NEXT_HEADER = 26,
+  L4_DST_PORT_RANGE = 27,
 }
 
 struct AclTable {

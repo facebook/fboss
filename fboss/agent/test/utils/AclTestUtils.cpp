@@ -851,6 +851,10 @@ std::set<cfg::AclTableQualifier> getRequiredQualifers(
         addQualier(aclEntry.l4DstPort().has_value(), qualifier);
         break;
 
+      case cfg::AclTableQualifier::L4_DST_PORT_RANGE:
+        addQualier(aclEntry.l4DstPortRange().has_value(), qualifier);
+        break;
+
       case cfg::AclTableQualifier::IP_PROTOCOL_NUMBER:
         if (aclEntry.etherType().has_value() &&
             *aclEntry.etherType() == cfg::EtherType::IPv4) {
