@@ -261,6 +261,7 @@ class AclTableStoreTest : public SaiStoreTest {
             true, // neighbor meta
             true, // ethertype
             true, // outer vlan id
+            std::nullopt, // aclRangeType
             true, // bth opcode
             true, // ipv6 next header
             kUdfGroupId(), // udf group 0
@@ -303,6 +304,7 @@ class AclTableStoreTest : public SaiStoreTest {
             AclEntryFieldU32(this->kNeighborDstUserMeta()),
             AclEntryFieldU16(this->kEtherType()),
             AclEntryFieldU16(this->kOuterVlanId()),
+            std::nullopt, // fieldAclRangeType
             AclEntryFieldU8(this->kBthOpcode()),
             AclEntryFieldU8(this->kIpv6NextHeader()),
             AclEntryFieldU8List(this->kUdfGroupData()),
@@ -448,6 +450,7 @@ TEST_P(AclTableStoreParamTest, aclTableCtorCreate) {
       true, // neighbor meta
       true, // ethertype
       true, // outer vlan id
+      std::nullopt, // aclRangeType
       true, // bth opcode
       true, // ipv6 next header
       kUdfGroupId(), // udf group 0
@@ -497,6 +500,7 @@ TEST_P(AclTableStoreParamTest, AclEntryCreateCtor) {
       this->kNeighborDstUserMeta(),
       this->kEtherType(),
       this->kOuterVlanId(),
+      std::nullopt, // fieldAclRangeType
       this->kBthOpcode(),
       this->kIpv6NextHeader(),
       this->kUdfGroupData(),

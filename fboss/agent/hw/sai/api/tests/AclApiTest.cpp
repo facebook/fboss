@@ -410,6 +410,7 @@ class AclApiTest : public ::testing::Test {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+            std::nullopt, // aclRangeType
             true, // bth opcode
             true, // ipv6 next header
             kUserDefinedFieldGroup0(), // udf group 0
@@ -567,6 +568,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldNeighborDstUserMetaAttribute,
          aclFieldEtherTypeAttribute,
          aclFieldOuterVlanIdAttribute,
+         std::nullopt, // fieldAclRangeType
          aclFieldBthOpcodeAttribute,
          aclFieldIpv6NextHeaderAttribute,
          aclUserDefinedGroup0,

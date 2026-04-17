@@ -227,6 +227,7 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
+      std::nullopt, // FieldAclRangeType: TODO
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif

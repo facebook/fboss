@@ -258,6 +258,22 @@ class AclEntryField {
       }
 
       return retStr.str();
+    } else if constexpr (std::is_same_v<
+                             T,
+                             std::pair<
+                                 std::vector<sai_object_id_t>,
+                                 std::vector<sai_object_id_t>>>) {
+      std::ostringstream retStr;
+
+      if (!dataAndMask_.first.empty()) {
+        retStr << "data: ";
+        std::copy(
+            dataAndMask_.first.begin(),
+            dataAndMask_.first.end(),
+            std::ostream_iterator<sai_object_id_t>(retStr, ", "));
+      }
+
+      return retStr.str();
     } else {
       return folly::to<std::string>(
           "data: ", dataAndMask_.first, " mask: ", dataAndMask_.second);

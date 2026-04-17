@@ -265,7 +265,8 @@ struct SaiAclTableTraits {
       std::optional<Attributes::FieldRouteDstUserMeta>,
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
-      std::optional<Attributes::FieldOuterVlanId>
+      std::optional<Attributes::FieldOuterVlanId>,
+      std::optional<Attributes::FieldAclRangeType>
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       ,
       std::optional<Attributes::FieldBthOpcode>
@@ -603,6 +604,7 @@ struct SaiAclEntryTraits {
       std::optional<Attributes::FieldNeighborDstUserMeta>,
       std::optional<Attributes::FieldEthertype>,
       std::optional<Attributes::FieldOuterVlanId>,
+      std::optional<Attributes::FieldAclRangeType>,
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       std::optional<Attributes::FieldBthOpcode>,
 #endif

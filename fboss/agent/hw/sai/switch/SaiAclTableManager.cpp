@@ -1420,6 +1420,8 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
+      std::optional<SaiAclEntryTraits::Attributes::FieldAclRangeType>{
+          std::nullopt},
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       fieldBthOpcode,
 #endif

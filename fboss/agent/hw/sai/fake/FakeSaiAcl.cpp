@@ -71,6 +71,8 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldEthertype;
     case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
       return fieldOuterVlanId;
+    case SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE:
+      return !fieldAclRangeType.empty();
     case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
       return fieldBthOpcode;
     case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
@@ -136,6 +138,7 @@ sai_status_t create_acl_table_fn(
   bool fieldNeighborDstUserMeta = 0;
   bool fieldEthertype = 0;
   bool fieldOuterVlanId = 0;
+  std::vector<sai_int32_t> fieldAclRangeType;
   bool fieldBthOpcode = 0;
   bool fieldIpv6NextHeader = 0;
   sai_object_id_t userDefinedFieldGroupMin = SAI_NULL_OBJECT_ID;
@@ -233,6 +236,11 @@ sai_status_t create_acl_table_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
         fieldOuterVlanId = attr_list[i].value.booldata;
         break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE:
+        fieldAclRangeType.assign(
+            attr_list[i].value.s32list.list,
+            attr_list[i].value.s32list.list + attr_list[i].value.s32list.count);
+        break;
       case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
         fieldBthOpcode = attr_list[i].value.booldata;
         break;
@@ -291,6 +299,7 @@ sai_status_t create_acl_table_fn(
       fieldNeighborDstUserMeta,
       fieldEthertype,
       fieldOuterVlanId,
+      fieldAclRangeType,
       fieldBthOpcode,
       fieldIpv6NextHeader,
       userDefinedFieldGroupMin,
@@ -475,6 +484,18 @@ sai_status_t get_acl_table_attribute_fn(
       case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
         attr[i].value.booldata = aclTable.fieldOuterVlanId;
+      } break;
+      case SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE: {
+        const auto& aclTable = fs->aclTableManager.get(acl_table_id);
+        if (aclTable.fieldAclRangeType.size() > attr[i].value.s32list.count) {
+          attr[i].value.s32list.count = aclTable.fieldAclRangeType.size();
+          return SAI_STATUS_BUFFER_OVERFLOW;
+        }
+        attr[i].value.s32list.count = aclTable.fieldAclRangeType.size();
+        int j = 0;
+        for (const auto& rangeType : aclTable.fieldAclRangeType) {
+          attr[i].value.s32list.list[j++] = rangeType;
+        }
       } break;
       case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE: {
         const auto& aclTable = fs->aclTableManager.get(acl_table_id);
@@ -720,6 +741,17 @@ sai_status_t set_acl_entry_attribute_fn(
       aclEntry.fieldOuterVlanIdEnable = attr->value.aclfield.enable;
       aclEntry.fieldOuterVlanIdData = attr->value.aclfield.data.u16;
       aclEntry.fieldOuterVlanIdMask = attr->value.aclfield.mask.u16;
+      res = SAI_STATUS_SUCCESS;
+      break;
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE:
+      aclEntry.fieldAclRangeTypeEnable = attr->value.aclfield.enable;
+      aclEntry.fieldAclRangeTypeData.resize(
+          attr->value.aclfield.data.objlist.count);
+      std::copy(
+          attr->value.aclfield.data.objlist.list,
+          attr->value.aclfield.data.objlist.list +
+              attr->value.aclfield.data.objlist.count,
+          std::begin(aclEntry.fieldAclRangeTypeData));
       res = SAI_STATUS_SUCCESS;
       break;
     case SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE:
@@ -1036,6 +1068,13 @@ sai_status_t get_acl_entry_attribute_fn(
         attr_list[i].value.aclfield.enable = aclEntry.fieldOuterVlanIdEnable;
         attr_list[i].value.aclfield.data.u16 = aclEntry.fieldOuterVlanIdData;
         attr_list[i].value.aclfield.mask.u16 = aclEntry.fieldOuterVlanIdMask;
+        break;
+      case SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE:
+        attr_list[i].value.aclfield.enable = aclEntry.fieldAclRangeTypeEnable;
+        attr_list[i].value.aclfield.data.objlist.count =
+            aclEntry.fieldAclRangeTypeData.size();
+        attr_list[i].value.aclfield.data.objlist.list =
+            aclEntry.fieldAclRangeTypeData.data();
         break;
       case SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE:
         attr_list[i].value.aclfield.enable = aclEntry.fieldBthOpcodeEnable;
