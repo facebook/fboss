@@ -178,8 +178,12 @@ class DeviceUpdater:
                     f"Failed to create remote directory: {result.stderr.decode()}"
                 )
 
-            # SCP artifact and update script to device
-            scp_files = [str(artifact_path), str(UPDATE_SCRIPT_PATH)]
+            # SCP artifact(s) and update script to device
+            # Handle both single artifact (Path) and multiple artifacts (list of Paths)
+            artifacts = (
+                artifact_path if isinstance(artifact_path, list) else [artifact_path]
+            )
+            scp_files = [str(a) for a in artifacts] + [str(UPDATE_SCRIPT_PATH)]
 
             result = subprocess.run(
                 [
