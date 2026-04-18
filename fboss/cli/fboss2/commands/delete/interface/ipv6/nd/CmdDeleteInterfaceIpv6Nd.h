@@ -36,7 +36,7 @@ namespace facebook::fboss {
 class NdpDeleteAttrs : public utils::BaseObjectArgType<std::string> {
  public:
   // NOLINTNEXTLINE(google-explicit-constructor)
-  /* implicit */ NdpDeleteAttrs(std::vector<std::string> v);
+  /* implicit */ NdpDeleteAttrs(const std::vector<std::string>& v);
 
   const std::vector<std::string>& getAttributes() const {
     return attributes_;

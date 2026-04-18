@@ -48,15 +48,15 @@ const std::unordered_set<std::string> kKnownNdDeleteAttrs = {
 // NdpDeleteAttrs constructor — validates token list against known attr names
 // ---------------------------------------------------------------------------
 
-NdpDeleteAttrs::NdpDeleteAttrs(std::vector<std::string> v) {
+NdpDeleteAttrs::NdpDeleteAttrs(const std::vector<std::string>& v) {
   if (v.empty()) {
     throw std::invalid_argument(
         "No NDP attribute provided. Valid attributes: " +
         folly::join(", ", kKnownNdDeleteAttrs));
   }
 
-  for (size_t i = 0; i < v.size(); ++i) {
-    std::string attrLower = v[i];
+  for (const auto& attr : v) {
+    std::string attrLower = attr;
     std::transform(
         attrLower.begin(), attrLower.end(), attrLower.begin(), ::tolower);
 
@@ -64,7 +64,7 @@ NdpDeleteAttrs::NdpDeleteAttrs(std::vector<std::string> v) {
       throw std::invalid_argument(
           fmt::format(
               "Unknown nd attribute '{}'. Valid attributes: {}",
-              v[i],
+              attr,
               folly::join(", ", kKnownNdDeleteAttrs)));
     }
 
@@ -84,6 +84,8 @@ CmdDeleteInterfaceIpv6NdTraits::RetType CmdDeleteInterfaceIpv6Nd::queryClient(
     throw std::invalid_argument("No interface name provided");
   }
 
+  const cfg::NdpConfig kDefaultNdp;
+
   for (const utils::Intf& intf : interfaces) {
     cfg::Interface* iface = intf.getInterface();
     if (!iface || !iface->ndp().has_value()) {
@@ -93,19 +95,24 @@ CmdDeleteInterfaceIpv6NdTraits::RetType CmdDeleteInterfaceIpv6Nd::queryClient(
 
     for (const auto& attr : ndpAttrs.getAttributes()) {
       if (attr == "ra-interval") {
-        iface->ndp()->routerAdvertisementSeconds() = 0;
+        iface->ndp()->routerAdvertisementSeconds() =
+            *kDefaultNdp.routerAdvertisementSeconds();
       } else if (attr == "hop-limit") {
-        iface->ndp()->curHopLimit() = 255;
+        iface->ndp()->curHopLimit() = *kDefaultNdp.curHopLimit();
       } else if (attr == "ra-lifetime") {
-        iface->ndp()->routerLifetime() = 1800;
+        iface->ndp()->routerLifetime() = *kDefaultNdp.routerLifetime();
       } else if (attr == "prefix-valid-lifetime") {
-        iface->ndp()->prefixValidLifetimeSeconds() = 2592000;
+        iface->ndp()->prefixValidLifetimeSeconds() =
+            *kDefaultNdp.prefixValidLifetimeSeconds();
       } else if (attr == "prefix-preferred-lifetime") {
-        iface->ndp()->prefixPreferredLifetimeSeconds() = 604800;
+        iface->ndp()->prefixPreferredLifetimeSeconds() =
+            *kDefaultNdp.prefixPreferredLifetimeSeconds();
       } else if (attr == "managed-config-flag") {
-        iface->ndp()->routerAdvertisementManagedBit() = false;
+        iface->ndp()->routerAdvertisementManagedBit() =
+            *kDefaultNdp.routerAdvertisementManagedBit();
       } else if (attr == "other-config-flag") {
-        iface->ndp()->routerAdvertisementOtherBit() = false;
+        iface->ndp()->routerAdvertisementOtherBit() =
+            *kDefaultNdp.routerAdvertisementOtherBit();
       } else if (attr == "ra-address") {
         iface->ndp()->routerAddress().reset();
       }

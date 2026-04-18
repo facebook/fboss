@@ -704,15 +704,12 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
-<<<<<<< HEAD
-=======
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
   fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp
   fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h
   fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.cpp
   fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.h
->>>>>>> 89099b21ac (NOS-5739: Add config and delete interface ipv6 nd CLI commands)
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
