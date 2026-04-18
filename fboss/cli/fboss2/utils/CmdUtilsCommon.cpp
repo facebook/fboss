@@ -14,7 +14,6 @@
 #endif
 
 #include <folly/String.h>
-#include <folly/gen/Base.h>
 #include <folly/logging/LogConfig.h>
 #include <folly/logging/LoggerDB.h>
 #include <folly/logging/xlog.h>
@@ -22,6 +21,7 @@
 
 #include <chrono>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 using folly::ByteRange;
