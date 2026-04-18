@@ -53,6 +53,59 @@ TEST(MySidTest, ModifyType) {
   EXPECT_EQ(mySid->getType(), MySidType::DECAPSULATE_AND_LOOKUP);
 }
 
+TEST(MySidTest, AdjacencyInterfaceId) {
+  auto mySid = makeMySid();
+  EXPECT_FALSE(mySid->getAdjacencyInterfaceId().has_value());
+
+  mySid->setAdjacencyInterfaceId(2001);
+  EXPECT_EQ(mySid->getAdjacencyInterfaceId().value(), 2001);
+
+  // Verify serialization round-trip preserves the field
+  auto serialized = mySid->toThrift();
+  auto mySidBack = std::make_shared<MySid>(serialized);
+  EXPECT_EQ(mySidBack->getAdjacencyInterfaceId().value(), 2001);
+
+  // Clear the field
+  mySid->setAdjacencyInterfaceId(std::nullopt);
+  EXPECT_FALSE(mySid->getAdjacencyInterfaceId().has_value());
+}
+
+TEST(MySidTest, ClientId) {
+  auto mySid = makeMySid();
+  // Default is TE_AGENT
+  EXPECT_EQ(mySid->getClientId(), ClientID::TE_AGENT);
+
+  mySid->setClientId(ClientID::STATIC_ROUTE);
+  EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
+
+  // Serialization round-trip
+  auto serialized = mySid->toThrift();
+  auto mySidBack = std::make_shared<MySid>(serialized);
+  EXPECT_EQ(mySidBack->getClientId(), ClientID::STATIC_ROUTE);
+}
+
+TEST(MySidTest, IsV6) {
+  auto mySid = makeMySid();
+  // Default is nullopt (not set)
+  EXPECT_FALSE(mySid->getIsV6().has_value());
+
+  mySid->setIsV6(true);
+  EXPECT_TRUE(mySid->getIsV6().has_value());
+  EXPECT_TRUE(mySid->getIsV6().value());
+
+  mySid->setIsV6(false);
+  EXPECT_EQ(mySid->getIsV6().value(), false);
+
+  // Serialization round-trip
+  auto serialized = mySid->toThrift();
+  auto mySidBack = std::make_shared<MySid>(serialized);
+  EXPECT_EQ(mySidBack->getIsV6().value(), false);
+
+  // Clear
+  mySid->setIsV6(std::nullopt);
+  EXPECT_FALSE(mySid->getIsV6().has_value());
+}
+
 TEST(MySidTest, Inequality) {
   auto mySid0 = makeMySid(makeSidPrefix("fc00:100::1", 48));
   auto mySid1 = makeMySid(makeSidPrefix("fc00:200::1", 48));

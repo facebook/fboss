@@ -675,6 +675,12 @@ enum ClientID {
    * Routes from Open/R daemon on the box
    */
   OPENR = 786,
+
+  /**
+   * Routes and MySid entries programmed via Thrift RPC by the TE agent /
+   * controller (e.g. addUnicastRoutes, addMySidEntries).
+   */
+  TE_AGENT = 800,
 }
 
 struct AclEntryThrift {
