@@ -4,6 +4,9 @@
 
 #include <folly/IPAddressV6.h>
 #include <string>
+#include <unordered_map>
+
+#include "fboss/agent/types.h"
 
 namespace facebook::fboss {
 
@@ -16,5 +19,13 @@ folly::IPAddressV6 buildSidAddress(
     const folly::IPAddressV6& locatorAddr,
     uint8_t locatorPrefixLen,
     const std::string& functionId);
+
+// Build a map from port name to InterfaceID for all physical and aggregate
+// ports in the switch config.
+// Physical ports: port.name → InterfaceID(port.ingressVlan), defaulting to
+// "port-<logicalID>" when name is unset.
+// Aggregate ports: aggPort.name → InterfaceID(aggPort.key)
+std::unordered_map<std::string, InterfaceID> buildPortNameToInterfaceIdMap(
+    const cfg::SwitchConfig& config);
 
 } // namespace facebook::fboss

@@ -43,4 +43,20 @@ folly::IPAddressV6 buildSidAddress(
   return folly::IPAddressV6(bytes);
 }
 
+std::unordered_map<std::string, InterfaceID> buildPortNameToInterfaceIdMap(
+    const cfg::SwitchConfig& config) {
+  std::unordered_map<std::string, InterfaceID> portNameToIntfId;
+  for (const auto& port : *config.ports()) {
+    auto name = port.name().has_value() && !port.name()->empty()
+        ? *port.name()
+        : folly::to<std::string>("port-", *port.logicalID());
+    portNameToIntfId[name] = InterfaceID(static_cast<int>(*port.ingressVlan()));
+  }
+  for (const auto& aggPort : *config.aggregatePorts()) {
+    portNameToIntfId[*aggPort.name()] =
+        InterfaceID(static_cast<int>(*aggPort.key()));
+  }
+  return portNameToIntfId;
+}
+
 } // namespace facebook::fboss
