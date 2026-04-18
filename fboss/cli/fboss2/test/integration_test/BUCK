@@ -20,6 +20,7 @@ cpp_binary(
         "ConfigArpTest.cpp",
         "ConfigInterfaceDescriptionTest.cpp",
         "ConfigInterfaceMtuTest.cpp",
+        "ConfigLoadBalancingTest.cpp",
         "ConfigQosPolicyMapTest.cpp",
         "ConfigSessionClearTest.cpp",
         "ConfigSessionRestartTest.cpp",
