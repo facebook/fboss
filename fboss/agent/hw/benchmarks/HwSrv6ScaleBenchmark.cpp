@@ -63,6 +63,7 @@ AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
 void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
   folly::BenchmarkSuspender suspender;
 
+  FLAGS_ecmp_resource_percentage = 100;
   auto ensemble = createAgentEnsemble(
       makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
   ensemble->applyNewState(
