@@ -3,6 +3,9 @@
 
 set -e
 
+# shellcheck source=/opt/fboss/bin/setup_fboss_env
+source /opt/fboss/bin/setup_fboss_env
+
 FBOSS_SHARE="/opt/fboss/share"
 COOP_DIR="/etc/coop"
 FRUID_FILE="/var/facebook/fboss/fruid.json"
@@ -61,11 +64,12 @@ generate_fruid() {
 
   mkdir -p "$(dirname "$FRUID_FILE")"
 
-  if /opt/fboss/bin/weutil --json >"$FRUID_FILE" 2>/dev/null; then
+  if weutil --json >"$FRUID_FILE"; then
     log "Generated fruid.json: $FRUID_FILE"
   else
     error "Failed to generate fruid.json"
     rm -f "$FRUID_FILE"
+    return 1
   fi
 }
 
@@ -125,7 +129,9 @@ main() {
 
   create_distro_base_snapshot
   setup_coop_configs "$platform_dir"
-  generate_fruid
+  if ! generate_fruid; then
+    exit 1
+  fi
   enable_hw_agents "$platform_dir"
 
   log "FBOSS initialization complete"
