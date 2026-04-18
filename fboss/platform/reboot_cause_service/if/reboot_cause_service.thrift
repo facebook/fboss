@@ -32,21 +32,34 @@ struct RebootCauseProvider {
   3: list<RebootCauseData> causes;
 }
 
+// RebootCauseResultLogFile models the log file for a reboot cause result
+// filePath: the path to the log file on disk
+// fileVersion: the version of the log file format
+struct RebootCauseResultLogFile {
+  1: string filePath;
+  2: i16 fileVersion;
+}
+
 // RebootCauseResult models the result of a reboot cause investigation
 // date: the human-readable date string of when investigation ran
 // determinedCause: cause determined to be responsible for reboot
 // determinedCauseProvider: the name of the provider of the determined reboot cause
 // providers: all providers that reported causes for this investigation
+// logFile: the log file for this result
 struct RebootCauseResult {
   1: string date;
   2: RebootCauseData determinedCause;
   3: string determinedCauseProvider;
   4: list<RebootCauseProvider> providers;
+  5: RebootCauseResultLogFile logFile;
 }
 
 // RebootCauseService is the service API
 // getLastRebootCause: returns the result of the last reboot cause investigation
+// getRebootCauseHistory: returns the history of reboot cause investigations
 service RebootCauseService {
   RebootCauseResult getLastRebootCause()
+    throws (1: fboss.FbossBaseError error);
+  list<RebootCauseResult> getRebootCauseHistory()
     throws (1: fboss.FbossBaseError error);
 }

@@ -18,6 +18,9 @@ class RebootCauseServiceThriftHandler : public RebootCauseServiceSvIf {
   void getLastRebootCause(
       reboot_cause_service::RebootCauseResult& result) override;
 
+  void getRebootCauseHistory(
+      std::vector<reboot_cause_service::RebootCauseResult>& result) override;
+
  private:
   std::shared_ptr<RebootCauseServiceImpl> serviceImpl_;
 };

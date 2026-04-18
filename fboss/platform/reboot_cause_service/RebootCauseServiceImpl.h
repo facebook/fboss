@@ -18,12 +18,15 @@ class RebootCauseServiceImpl {
   // Called at startup when --determine_reboot_cause is set.
   void determineRebootCause();
 
-  // Return the result of the last investigation.
+  // Return the result of the last reboot cause investigation.
   reboot_cause_service::RebootCauseResult getLastRebootCause() const;
 
+  // Return all persisted reboot cause results, most recent first.
+  std::vector<reboot_cause_service::RebootCauseResult> getRebootCauseHistory()
+      const;
+
  private:
-  reboot_cause_config::RebootCauseConfig config_;
-  std::optional<reboot_cause_service::RebootCauseResult> lastResult_;
+  const reboot_cause_config::RebootCauseConfig config_;
 
   reboot_cause_service::RebootCauseProvider readProvider(
       const std::string& name,
@@ -34,6 +37,9 @@ class RebootCauseServiceImpl {
 
   reboot_cause_service::RebootCauseResult investigate(
       const std::vector<reboot_cause_service::RebootCauseProvider>& providers);
+
+  // Persist result to history dir and set logFile field.
+  void persistResult(reboot_cause_service::RebootCauseResult& result);
 };
 
 } // namespace facebook::fboss::platform::reboot_cause_service
