@@ -353,6 +353,34 @@ CLI::App* CmdSubcommands::addCommand(
               "<port-list> [<attr> <value> ...] where <attr> is one "
               "of: description, mtu");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_COPP_CPU_QUEUE_CONFIG:
+          subCmd->add_option(
+              "cpu_queue_config",
+              args,
+              "<id> [<sub-cmd> <value>] where <sub-cmd> is one of: "
+              "name <string>, rate-limit kbps <max>, rate-limit pps <max>");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_COPP_REASON_CONFIG:
+          // required() + expected(3) forces CLI11 to route positionals to
+          // this option even when they would otherwise classify as a
+          // subcommand. _parse_subcommand() checks
+          // `_count_remaining_positionals(required=true) > 0` and if so
+          // routes the token to positional instead. Without this, `config
+          // copp reason arp queue 0` sees CLI11 reclassify "arp" as the
+          // sibling `config arp` subcommand (via _valid_subcommand
+          // recursing up the ancestor chain) and leaves reason's option
+          // empty. See CLI11's App.hpp _parse_subcommand, around the check
+          // on _count_remaining_positionals.
+          subCmd
+              ->add_option(
+                  "copp_reason_config",
+                  args,
+                  "<reason-name> queue <id> where <reason-name> is a "
+                  "cfg::PacketRxReason (e.g. arp, ndp, bgp, bgpv6, lacp, "
+                  "lldp, dhcp, dhcpv6, ttl_1, ...)")
+              ->required()
+              ->expected(3);
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
