@@ -26,6 +26,7 @@
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
+#include "fboss/cli/fboss2/commands/config/load_balancing/CmdConfigLoadBalancing.h"
 #include "fboss/cli/fboss2/commands/config/mac/CmdConfigMac.h"
 #include "fboss/cli/fboss2/commands/config/mac/aging_time/CmdConfigMacAgingTime.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
@@ -232,6 +233,24 @@ const CommandTree& kConfigCommandTree() {
               commandHandler<CmdConfigMacAgingTime>,
               argRegistrar<CmdConfigMacAgingTimeTraits>,
           }},
+      },
+
+      {
+          "config",
+          "load-balancing",
+          "Configure load-balancing (ECMP/LAG) settings",
+          {{
+               "ecmp",
+               "Configure ECMP hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingEcmp>,
+               argRegistrar<CmdConfigLoadBalancingEcmpTraits>,
+           },
+           {
+               "lag",
+               "Configure LAG hash fields, algorithm, and seed",
+               commandHandler<CmdConfigLoadBalancingLag>,
+               argRegistrar<CmdConfigLoadBalancingLagTraits>,
+           }},
       },
 
       {

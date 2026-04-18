@@ -24,6 +24,7 @@ cpp_binary(
         "ConfigInterfaceMtuTest.cpp",
         "ConfigInterfaceProfileTest.cpp",
         "ConfigL2LearningModeTest.cpp",
+        "ConfigLoadBalancingTest.cpp",
         "ConfigMacTest.cpp",
         "ConfigPfcTest.cpp",
         "ConfigPortQueueConfigTest.cpp",
