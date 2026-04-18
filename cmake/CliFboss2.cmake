@@ -152,6 +152,13 @@ add_fbthrift_cpp_library(
 )
 
 add_fbthrift_cpp_library(
+  show_reboot_cause_model
+  fboss/cli/fboss2/commands/show/reboot_cause/model.thrift
+  OPTIONS
+    json
+)
+
+add_fbthrift_cpp_library(
   show_aggregateport_model
   fboss/cli/fboss2/commands/show/aggregateport/model.thrift
   OPTIONS
@@ -502,6 +509,10 @@ add_library(fboss2_lib
   fboss/cli/fboss2/commands/show/product/CmdShowProduct.cpp
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.h
   fboss/cli/fboss2/commands/show/product/CmdShowProductDetails.cpp
+  fboss/cli/fboss2/commands/show/reboot_cause/CmdShowRebootCause.h
+  fboss/cli/fboss2/commands/show/reboot_cause/CmdShowRebootCause.cpp
+  fboss/cli/fboss2/commands/show/reboot_cause/CmdShowRebootCauseHistory.h
+  fboss/cli/fboss2/commands/show/reboot_cause/CmdShowRebootCauseHistory.cpp
   fboss/cli/fboss2/commands/show/route/utils.cpp
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.h
   fboss/cli/fboss2/commands/show/route/CmdShowRouteDetails.cpp
@@ -643,6 +654,8 @@ target_link_libraries(fboss2_lib
   show_ndp_model
   show_port_model
   show_product_model
+  show_reboot_cause_model
+  reboot_cause_service_cpp2
   show_transceiver_model
   show_interface_model
   show_interface_flaps
