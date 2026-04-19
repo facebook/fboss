@@ -1,6 +1,6 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
-#include "fboss/agent/MySidConfigUtils.h"
+#include "fboss/agent/rib/MySidConfigUtils.h"
 
 #include "fboss/agent/AddressUtil.h"
 #include "fboss/agent/FbossError.h"

@@ -51,6 +51,7 @@ cpp_unittest(
         "MacTableManagerTests.cpp",
         "MacTableUtilsTests.cpp",
         "MirrorManagerTest.cpp",
+        "MySidConfigUtilsTest.cpp",
         "NDPTest.cpp",
         "OperDeltaFilterTests.cpp",
         "PacketStreamHandlerTest.cpp",

@@ -5,6 +5,7 @@
 
 add_library(standalone_rib
   fboss/agent/rib/ConfigApplier.cpp
+  fboss/agent/rib/MySidConfigUtils.cpp
   fboss/agent/rib/RibMySidUpdater.cpp
   fboss/agent/rib/RibRouteWeightNormalizer.cpp
   fboss/agent/rib/RouteUpdater.cpp

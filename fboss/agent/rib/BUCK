@@ -29,6 +29,7 @@ cpp_library(
     name = "standalone_rib",
     srcs = [
         "ConfigApplier.cpp",
+        "MySidConfigUtils.cpp",
         "RibMySidUpdater.cpp",
         "RibRouteWeightNormalizer.cpp",
         "RouteUpdater.cpp",
