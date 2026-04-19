@@ -836,6 +836,21 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
                 addedAclEntry->getL4DstPort().value(), kL4PortMask))};
   }
 
+  std::optional<SaiAclEntryTraits::Attributes::FieldAclRangeType>
+      fieldAclRangeType{std::nullopt};
+  std::shared_ptr<SaiAclRange> dstPortRangeObj;
+  if (addedAclEntry->getL4DstPortRange()) {
+    auto range = addedAclEntry->getL4DstPortRange().value();
+    dstPortRangeObj = getOrCreateAclRange(
+        SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE,
+        *range.minimum(),
+        *range.maximum());
+    std::vector<sai_object_id_t> rangeOids{dstPortRangeObj->adapterKey()};
+    fieldAclRangeType = SaiAclEntryTraits::Attributes::FieldAclRangeType{
+        AclEntryFieldSaiObjectIdList(
+            std::make_pair(rangeOids, std::vector<sai_object_id_t>{}))};
+  }
+
   bool matchV4 = !addedAclEntry->getEtherType().has_value() ||
       addedAclEntry->getEtherType().value() == cfg::EtherType::IPv4;
 #if !defined(TAJO_SDK) && !defined(BRCM_SAI_SDK_XGS)
@@ -1348,14 +1363,15 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
        fieldSrcIpV4.has_value() || fieldDstIpV4.has_value() ||
        fieldSrcPort.has_value() || fieldOutPort.has_value() ||
        fieldL4SrcPort.has_value() || fieldL4DstPort.has_value() ||
-       fieldIpProtocol.has_value() || fieldTcpFlags.has_value() ||
-       fieldIpFrag.has_value() || fieldIcmpV4Type.has_value() ||
-       fieldIcmpV4Code.has_value() || fieldIcmpV6Type.has_value() ||
-       fieldIcmpV6Code.has_value() || fieldDscp.has_value() ||
-       fieldDstMac.has_value() || fieldIpType.has_value() ||
-       fieldTtl.has_value() || fieldFdbDstUserMeta.has_value() ||
-       fieldRouteDstUserMeta.has_value() || fieldEtherType.has_value() ||
-       fieldNeighborDstUserMeta.has_value() || fieldOuterVlanId.has_value() ||
+       fieldAclRangeType.has_value() || fieldIpProtocol.has_value() ||
+       fieldTcpFlags.has_value() || fieldIpFrag.has_value() ||
+       fieldIcmpV4Type.has_value() || fieldIcmpV4Code.has_value() ||
+       fieldIcmpV6Type.has_value() || fieldIcmpV6Code.has_value() ||
+       fieldDscp.has_value() || fieldDstMac.has_value() ||
+       fieldIpType.has_value() || fieldTtl.has_value() ||
+       fieldFdbDstUserMeta.has_value() || fieldRouteDstUserMeta.has_value() ||
+       fieldEtherType.has_value() || fieldNeighborDstUserMeta.has_value() ||
+       fieldOuterVlanId.has_value() ||
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
        fieldBthOpcode.has_value() ||
 #endif
@@ -1433,8 +1449,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
       fieldNeighborDstUserMeta,
       fieldEtherType,
       fieldOuterVlanId,
-      std::optional<SaiAclEntryTraits::Attributes::FieldAclRangeType>{
-          std::nullopt},
+      fieldAclRangeType,
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       fieldBthOpcode,
 #endif
@@ -1478,6 +1493,7 @@ AclEntrySaiId SaiAclTableManager::addAclEntry(
 
   auto saiAclEntry = aclEntryStore.setObject(adapterHostKey, attributes);
   auto entryHandle = std::make_unique<SaiAclEntryHandle>();
+  entryHandle->dstPortRange = dstPortRangeObj;
   entryHandle->aclEntry = saiAclEntry;
   entryHandle->aclCounter = saiAclCounter;
   entryHandle->aclCounterTypeAndName = aclCounterTypeAndName;
