@@ -68,6 +68,9 @@ std::vector<cfg::AclTableQualifier> genAclQualifiersConfig(
       asicType == cfg::AsicType::ASIC_TYPE_CHENAB2) {
     qualifiers.push_back(cfg::AclTableQualifier::ETHER_TYPE);
   }
+  if (asicType == cfg::AsicType::ASIC_TYPE_FAKE) {
+    qualifiers.push_back(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
+  }
 
   return qualifiers;
 }
