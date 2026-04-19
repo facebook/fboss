@@ -1723,6 +1723,8 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_JERICHO4;
   bool isQumran4d =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_QUMRAN4D;
+  bool isFake =
+      platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_FAKE;
   bool isTomahawk5 =
       platform_->getAsic()->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK5;
   bool isTomahawk6 =
@@ -1878,6 +1880,9 @@ std::set<cfg::AclTableQualifier> SaiAclTableManager::getSupportedQualifierSet(
     // ETHER_TYPE required for Aifm controller packets using 0x88B6
     if (isTomahawk6) {
       bcmQualifiers.insert(cfg::AclTableQualifier::ETHER_TYPE);
+    }
+    if (isFake) {
+      bcmQualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
     }
 
     return bcmQualifiers;

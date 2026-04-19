@@ -67,15 +67,15 @@ bool FakeAclTable::entryFieldSupported(const sai_attribute_t& attr) const {
       return fieldRouteDstUserMeta;
     case SAI_ACL_ENTRY_ATTR_FIELD_NEIGHBOR_DST_USER_META:
       return fieldNeighborDstUserMeta;
-    case SAI_ACL_TABLE_ATTR_FIELD_ETHER_TYPE:
+    case SAI_ACL_ENTRY_ATTR_FIELD_ETHER_TYPE:
       return fieldEthertype;
-    case SAI_ACL_TABLE_ATTR_FIELD_OUTER_VLAN_ID:
+    case SAI_ACL_ENTRY_ATTR_FIELD_OUTER_VLAN_ID:
       return fieldOuterVlanId;
-    case SAI_ACL_TABLE_ATTR_FIELD_ACL_RANGE_TYPE:
+    case SAI_ACL_ENTRY_ATTR_FIELD_ACL_RANGE_TYPE:
       return !fieldAclRangeType.empty();
-    case SAI_ACL_TABLE_ATTR_FIELD_BTH_OPCODE:
+    case SAI_ACL_ENTRY_ATTR_FIELD_BTH_OPCODE:
       return fieldBthOpcode;
-    case SAI_ACL_TABLE_ATTR_FIELD_IPV6_NEXT_HEADER:
+    case SAI_ACL_ENTRY_ATTR_FIELD_IPV6_NEXT_HEADER:
       return fieldIpv6NextHeader;
     case SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN:
     case (SAI_ACL_ENTRY_ATTR_USER_DEFINED_FIELD_GROUP_MIN + 1):
