@@ -1885,6 +1885,9 @@ vector<string> SaiTracer::setAttrList(
     case SAI_OBJECT_TYPE_ACL_COUNTER:
       setAclCounterAttributes(attr_list, attr_count, attrLines, rv);
       break;
+    case SAI_OBJECT_TYPE_ACL_RANGE:
+      setAclRangeAttributes(attr_list, attr_count, attrLines, rv);
+      break;
     case SAI_OBJECT_TYPE_ACL_ENTRY:
       setAclEntryAttributes(attr_list, attr_count, attrLines, rv);
       break;
@@ -2500,6 +2503,7 @@ void SaiTracer::writeFooter() {
 
 void SaiTracer::initVarCounts() {
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_COUNTER, 0);
+  varCounts_.emplace(SAI_OBJECT_TYPE_ACL_RANGE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_ENTRY, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE, 0);
   varCounts_.emplace(SAI_OBJECT_TYPE_ACL_TABLE_GROUP, 0);
