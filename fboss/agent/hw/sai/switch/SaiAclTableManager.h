@@ -37,6 +37,7 @@ struct SaiHostifUserDefinedTrapHandle;
 using SaiAclTable = SaiObject<SaiAclTableTraits>;
 using SaiAclEntry = SaiObject<SaiAclEntryTraits>;
 using SaiAclCounter = SaiObject<SaiAclCounterTraits>;
+using SaiAclRange = SaiObject<SaiAclRangeTraits>;
 
 #if (                                                                  \
     (SAI_API_VERSION >= SAI_VERSION(1, 14, 0) ||                       \
@@ -76,6 +77,7 @@ struct SaiAclEntryHandle {
    * Declare SaiAclCounter before SaiAclEntry as class members are destructed
    * in the reverse order of declaration.
    */
+  std::shared_ptr<SaiAclRange> dstPortRange;
   std::shared_ptr<SaiHostifUserDefinedTrapHandle> userDefinedTrap;
   std::shared_ptr<SaiAclCounter> aclCounter;
   std::shared_ptr<SaiAclEntry> aclEntry;
@@ -307,6 +309,9 @@ class SaiAclTableManager {
       MirrorDirection direction,
       MirrorAction action,
       const std::optional<std::string>& mirrorId);
+
+  std::shared_ptr<SaiAclRange>
+  getOrCreateAclRange(sai_int32_t rangeType, uint32_t min, uint32_t max);
 
   void recreateAclTable(
       std::shared_ptr<SaiAclTable>& exisitingTable,

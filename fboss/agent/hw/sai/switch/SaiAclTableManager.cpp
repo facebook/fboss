@@ -674,6 +674,19 @@ void SaiAclTableManager::updateUdfGroupAttributes(
 }
 #endif
 
+std::shared_ptr<SaiAclRange> SaiAclTableManager::getOrCreateAclRange(
+    sai_int32_t rangeType,
+    uint32_t min,
+    uint32_t max) {
+  sai_u32_range_t limit{.min = min, .max = max};
+  SaiAclRangeTraits::Attributes::Type typeAttr{rangeType};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  SaiAclRangeTraits::AdapterHostKey key{typeAttr, limitAttr};
+  SaiAclRangeTraits::CreateAttributes attrs{typeAttr, limitAttr};
+  auto& store = saiStore_->get<SaiAclRangeTraits>();
+  return store.setObject(key, attrs);
+}
+
 AclEntrySaiId SaiAclTableManager::addAclEntry(
     const std::shared_ptr<AclEntry>& addedAclEntry,
     const std::string& aclTableName) {
