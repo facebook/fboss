@@ -227,7 +227,11 @@ std::
       qualifierExistsFn(cfg::AclTableQualifier::LOOKUP_CLASS_NEIGHBOR),
       qualifierExistsFn(cfg::AclTableQualifier::ETHER_TYPE),
       qualifierExistsFn(cfg::AclTableQualifier::OUTER_VLAN),
-      std::nullopt, // FieldAclRangeType: TODO
+      qualifierExistsFn(cfg::AclTableQualifier::L4_DST_PORT_RANGE)
+          ? std::optional<
+                SaiAclTableTraits::Attributes::FieldAclRangeType>{std::vector<
+                sai_int32_t>{SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE}}
+          : std::nullopt, // FieldAclRangeType
 #if !defined(TAJO_SDK) || defined(TAJO_SDK_GTE_24_8_3001)
       qualifierExistsFn(cfg::AclTableQualifier::BTH_OPCODE),
 #endif
