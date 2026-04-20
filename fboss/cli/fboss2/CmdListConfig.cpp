@@ -89,6 +89,7 @@
 #include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicy.h"
 #include "fboss/cli/fboss2/commands/config/qos/queuing_policy/CmdConfigQosQueuingPolicyQueueId.h"
 #include "fboss/cli/fboss2/commands/config/rollback/CmdConfigRollback.h"
+#include "fboss/cli/fboss2/commands/config/routing/CmdConfigRouting.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionClear.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionCommit.h"
 #include "fboss/cli/fboss2/commands/config/session/CmdConfigSessionDiff.h"
@@ -728,6 +729,12 @@ const CommandTree& kConfigCommandTree() {
        "Rollback to a previous config revision",
        commandHandler<CmdConfigRollback>,
        argTypeHandler<CmdConfigRollbackTraits>},
+
+      {"config",
+       "routing",
+       "Configure routing settings",
+       commandHandler<CmdConfigRouting>,
+       argTypeHandler<CmdConfigRoutingTraits>},
 
       {
           "config",

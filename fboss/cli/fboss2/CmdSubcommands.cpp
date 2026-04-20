@@ -353,6 +353,13 @@ CLI::App* CmdSubcommands::addCommand(
               "<port-list> [<attr> <value> ...] where <attr> is one "
               "of: description, mtu");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ROUTING_CONFIG:
+          subCmd->add_option(
+              "routing_attr_value",
+              args,
+              "<attr> <value> where <attr> is one of: "
+              "max-route-counter-ids");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
