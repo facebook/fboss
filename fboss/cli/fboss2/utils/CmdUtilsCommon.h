@@ -85,6 +85,8 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_NDP_CONFIG_ATTRS,
   // NDP (IPv6 Neighbor Discovery) delete (reset-to-default) argument types
   OBJECT_ARG_TYPE_ID_NDP_DELETE_ATTRS,
+  // Interface delete (reset-to-default) argument types
+  OBJECT_ARG_TYPE_ID_INTERFACE_DELETE_ATTRS,
   // Queuing policy argument types
   OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME,
   OBJECT_ARG_TYPE_ID_QUEUE_ID,

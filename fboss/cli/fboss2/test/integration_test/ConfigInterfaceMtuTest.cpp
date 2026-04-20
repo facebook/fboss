@@ -36,13 +36,21 @@ class ConfigInterfaceMtuTest : public Fboss2IntegrationTest {
 };
 
 TEST_F(ConfigInterfaceMtuTest, SetAndVerifyMtu) {
-  // Step 1: Find an interface to test with
-  XLOG(INFO) << "[Step 1] Finding an interface to test...";
-  Interface interface = findFirstEthInterface();
+  // Step 1: Find an interface with an existing MTU (requires a configured L3
+  // interface so that 'show interface' reports mtu and 'config interface mtu'
+  // has a cfg::Interface to update).
+  XLOG(INFO) << "[Step 1] Finding an interface with a configured MTU...";
+  auto maybeInterface = findFirstEthInterfaceWithMtu();
+  if (!maybeInterface.has_value()) {
+    GTEST_SKIP()
+        << "No ethernet interface with a configured MTU found — "
+           "skipping MTU test (no L3 cfg::Interface present on this switch)";
+  }
+  const Interface& interface = *maybeInterface;
   XLOG(INFO) << "  Using interface: " << interface.name << " (VLAN: "
              << (interface.vlan.has_value() ? std::to_string(*interface.vlan)
                                             : "none")
-             << ")";
+             << ", MTU: " << interface.mtu << ")";
 
   // Step 2: Get the current MTU
   XLOG(INFO) << "[Step 2] Getting current MTU...";

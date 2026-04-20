@@ -98,11 +98,23 @@ TEST_F(ConfigInterfaceIpv6NdTest, SetManagedConfigFlag) {
 // ---------------------------------------------------------------------------
 
 TEST_F(ConfigInterfaceIpv6NdTest, SetRaAddress) {
-  XLOG(INFO) << "[Step 1] Finding an interface to test...";
+  XLOG(INFO) << "[Step 1] Finding an interface with an IPv6 address...";
   Interface iface = findFirstEthInterface();
   XLOG(INFO) << "  Using interface: " << iface.name;
 
-  const std::string raAddr = "2001:db8::1";
+  // ra-address must be one of the interface's own addresses, so pick the
+  // first IPv6 address configured on this interface.
+  std::string raAddr;
+  for (const auto& addr : iface.addresses) {
+    if (addr.find(':') != std::string::npos) {
+      raAddr = addr.substr(0, addr.find('/'));
+      break;
+    }
+  }
+  if (raAddr.empty()) {
+    GTEST_SKIP() << "No IPv6 address on interface " << iface.name;
+  }
+  XLOG(INFO) << "  Using ra-address: " << raAddr;
 
   XLOG(INFO) << "[Step 2] Setting ra-address to " << raAddr << "...";
   setNdAttr(iface.name, "ra-address", raAddr);

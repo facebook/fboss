@@ -812,6 +812,26 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsProfile) {
   for (const auto& port : ports) {
     if (*port.name() == "eth1/1/1") {
       EXPECT_EQ(*port.profileID(), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+    } // if eth1/1/1
+  } // for ports
+} // queryClientSetsProfile
+
+// loopback-mode tests
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeNone) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 loopback-mode none");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "loopback-mode", "none"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("loopback-mode=none"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::NONE);
     }
   }
 }
@@ -837,6 +857,36 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsProfileDefault) {
     if (*port.name() == "eth1/1/1") {
       EXPECT_EQ(*port.profileID(), cfg::PortProfileID::PROFILE_DEFAULT);
       EXPECT_EQ(*port.speed(), cfg::PortSpeed::DEFAULT);
+    } // if eth1/1/1
+  } // for ports
+} // queryClientSetsProfileDefault
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModePHY) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 loopback-mode PHY");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "loopback-mode", "PHY"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::PHY);
+    }
+  }
+
+  // Also test lowercase "phy"
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 loopback-mode phy");
+  auto cmd2 = CmdConfigInterface();
+  InterfacesConfig config2({"eth1/1/1", "loopback-mode", "phy"});
+  auto result2 = cmd2.queryClient(localhost(), config2);
+  EXPECT_THAT(result2, HasSubstr("Successfully configured"));
+  auto& session2 = ConfigSession::getInstance();
+  auto& ports2 = *session2.getAgentConfig().sw()->ports();
+  for (const auto& port : ports2) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::PHY);
     }
   }
 }
@@ -845,7 +895,8 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetsProfileDefault) {
 TEST_F(CmdConfigInterfaceTestFixture, queryClientProfileUnsupportedThrows) {
   setupTestableConfigSession();
   auto cmd = CmdConfigInterface();
-  // PROFILE_100G_4_NRZ_RS528_COPPER is not in our mock PlatformMapping
+  // PROFILE_100G_4_NRZ_RS528_COPPER is not in our mock
+  // PlatformMapping
   InterfacesConfig config(
       {"eth1/1/1", "profile", "PROFILE_100G_4_NRZ_RS528_COPPER"});
 
@@ -859,7 +910,8 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientProfileUnsupportedThrows) {
   }
 }
 
-// Test invalid profile string throws before validator is constructed
+// Test invalid profile string throws before validator is
+// constructed
 TEST_F(CmdConfigInterfaceTestFixture, queryClientProfileInvalidStringThrows) {
   setupTestableConfigSession();
   auto cmd = CmdConfigInterface();
@@ -926,6 +978,590 @@ TEST_F(CmdConfigInterfaceTestFixture, queryClientSetProfileAndDescription) {
   for (const auto& port : ports) {
     if (*port.name() == "eth1/1/1") {
       EXPECT_EQ(*port.profileID(), cfg::PortProfileID::PROFILE_100G_4_NRZ_CL91);
+    } // if eth1/1/1
+  } // for ports
+} // queryClientSetProfileAndDescription
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeNIF) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 loopback-mode NIF");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "loopback-mode", "NIF"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::NIF);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeMAC) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 loopback-mode MAC");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "loopback-mode", "MAC"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::MAC);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeCaseInsensitive) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 loopback-mode pHy");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "loopback-mode", "pHy"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::PHY);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeInvalid) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "loopback-mode", "loop"});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeMultiPort) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 eth1/2/1 loopback-mode PHY");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "eth1/2/1", "loopback-mode", "PHY"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::PHY);
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLoopbackModeCombinedWithDescription) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 loopback-mode MAC description testport");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "loopback-mode", "MAC", "description", "testport"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("loopback-mode=MAC"));
+  EXPECT_THAT(result, HasSubstr("description="));
+  EXPECT_THAT(result, HasSubstr("testport"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.loopbackMode(), cfg::PortLoopbackMode::MAC);
+      EXPECT_EQ(*port.description(), "testport");
+    }
+  }
+}
+
+// ============================================================================
+// flow-control-rx / flow-control-tx tests
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlRxEnable) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-rx enable");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-rx", "enable"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("flow-control-rx=enable"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_TRUE(*port.pause()->rx());
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlRxDisable) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-rx disable");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-rx", "disable"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("flow-control-rx=disable"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_FALSE(*port.pause()->rx());
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlTxEnable) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-tx enable");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-tx", "enable"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("flow-control-tx=enable"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_TRUE(*port.pause()->tx());
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlTxDisable) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-tx disable");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-tx", "disable"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("flow-control-tx=disable"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_FALSE(*port.pause()->tx());
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlRxCaseInsensitive) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-rx ENABLE");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-rx", "ENABLE"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_TRUE(*port.pause()->rx());
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlRxInvalid) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-rx", "yes"});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlTxInvalid) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "flow-control-tx", "no"});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlRxAndTxIndependent) {
+  // Set rx=enable first
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-rx enable");
+  auto cmd1 = CmdConfigInterface();
+  InterfacesConfig config1({"eth1/1/1", "flow-control-rx", "enable"});
+  cmd1.queryClient(localhost(), config1);
+
+  auto& session1 = ConfigSession::getInstance();
+  auto& ports1 = *session1.getAgentConfig().sw()->ports();
+  for (const auto& port : ports1) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_TRUE(*port.pause()->rx());
+      EXPECT_FALSE(*port.pause()->tx()); // tx should remain false (default)
+    }
+  }
+
+  // Set tx=enable independently
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 flow-control-tx enable");
+  auto cmd2 = CmdConfigInterface();
+  InterfacesConfig config2({"eth1/1/1", "flow-control-tx", "enable"});
+  cmd2.queryClient(localhost(), config2);
+
+  auto& session2 = ConfigSession::getInstance();
+  auto& ports2 = *session2.getAgentConfig().sw()->ports();
+  for (const auto& port : ports2) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_TRUE(*port.pause()->tx());
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetFlowControlMultiPort) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 eth1/2/1 flow-control-rx enable");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "eth1/2/1", "flow-control-rx", "enable"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    EXPECT_TRUE(*port.pause()->rx());
+  }
+}
+
+// ============================================================================
+// lldp-expected-value tests
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedValue) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-value ge-0/0/0");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-value", "ge-0/0/0"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("lldp-expected-value="));
+  EXPECT_THAT(result, HasSubstr("ge-0/0/0"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::PORT);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "ge-0/0/0");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedValueOverwrites) {
+  // Set value first time
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-value ge-0/0/0");
+  auto cmd1 = CmdConfigInterface();
+  InterfacesConfig config1({"eth1/1/1", "lldp-expected-value", "ge-0/0/0"});
+  cmd1.queryClient(localhost(), config1);
+
+  // Overwrite with new value
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-value xe-0/0/1");
+  auto cmd2 = CmdConfigInterface();
+  InterfacesConfig config2({"eth1/1/1", "lldp-expected-value", "xe-0/0/1"});
+  cmd2.queryClient(localhost(), config2);
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::PORT);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "xe-0/0/1");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedValueEmpty) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  // Construct config manually to bypass InterfacesConfig
+  // validation (empty string is a valid value token, just
+  // rejected by queryClient)
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-value", ""});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedValueMultiPort) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 eth1/2/1 lldp-expected-value ge-0/0/0");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "eth1/2/1", "lldp-expected-value", "ge-0/0/0"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    const auto& lldpMap = *port.expectedLLDPValues();
+    auto it = lldpMap.find(cfg::LLDPTag::PORT);
+    ASSERT_NE(it, lldpMap.end());
+    EXPECT_EQ(it->second, "ge-0/0/0");
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedValueOnlySetsPORTTag) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-value testvalue");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-value", "testvalue"});
+  cmd.queryClient(localhost(), config);
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      // Only PORT tag should be present
+      EXPECT_EQ(lldpMap.size(), 1u);
+      auto it = lldpMap.find(cfg::LLDPTag::PORT);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "testvalue");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedChassis) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-chassis switch1");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-chassis", "switch1"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::CHASSIS);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "switch1");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedTtl) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 lldp-expected-ttl 120");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-ttl", "120"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::TTL);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "120");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedPortDesc) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-port-desc uplink");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-port-desc", "uplink"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::PORT_DESC);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "uplink");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedSystemName) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-system-name spine1");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-system-name", "spine1"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::SYSTEM_NAME);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "spine1");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedSystemDesc) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 lldp-expected-system-desc \"Spine router\"");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "lldp-expected-system-desc", "Spine router"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      auto it = lldpMap.find(cfg::LLDPTag::SYSTEM_DESC);
+      ASSERT_NE(it, lldpMap.end());
+      EXPECT_EQ(it->second, "Spine router");
+    }
+  }
+}
+
+TEST_F(
+    CmdConfigInterfaceTestFixture,
+    SetLldpExpectedMultipleTagsStoreIndependently) {
+  // Set several tag types in separate commands; each must be
+  // stored under its own key in the expectedLLDPValues map.
+  setupTestableConfigSession(
+      cmdPrefix_,
+      "eth1/1/1 lldp-expected-value ge-0/0/0 lldp-expected-system-name spine1");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1",
+       "lldp-expected-value",
+       "ge-0/0/0",
+       "lldp-expected-system-name",
+       "spine1"});
+  cmd.queryClient(localhost(), config);
+
+  auto& ports = *ConfigSession::getInstance().getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      const auto& lldpMap = *port.expectedLLDPValues();
+      EXPECT_EQ(lldpMap.at(cfg::LLDPTag::PORT), "ge-0/0/0");
+      EXPECT_EQ(lldpMap.at(cfg::LLDPTag::SYSTEM_NAME), "spine1");
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetLldpExpectedChassisEmptyIsRejected) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "lldp-expected-chassis", ""});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+// ============================================================================
+// type tests
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceTestFixture, SetTypeRoutedPort) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 type routed-port");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "type", "routed-port"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("type=routed-port"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+
+  // Port fields
+  for (const auto& port : *swConfig.ports()) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.portType(), cfg::PortType::INTERFACE_PORT);
+      EXPECT_TRUE(*port.routable());
+      EXPECT_EQ(*port.ingressVlan(), 0);
+    }
+  }
+
+  // eth1/1/1 (logicalID=1) vlanPort entry must be removed;
+  // eth1/2/1 must remain
+  const auto& vps = *swConfig.vlanPorts();
+  EXPECT_EQ(vps.size(), 1u);
+  EXPECT_EQ(*vps[0].logicalPort(), 2);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetTypeCaseInsensitive) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 type ROUTED-PORT");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "type", "ROUTED-PORT"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.portType(), cfg::PortType::INTERFACE_PORT);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetTypeInvalid) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "type", "fabric-port"});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetTypeInvalidEmpty) {
+  setupTestableConfigSession();
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "type", ""});
+  EXPECT_THROW(cmd.queryClient(localhost(), config), std::invalid_argument);
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetTypeMultiPort) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 eth1/2/1 type routed-port");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "eth1/2/1", "type", "routed-port"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+
+  for (const auto& port : *swConfig.ports()) {
+    EXPECT_EQ(*port.portType(), cfg::PortType::INTERFACE_PORT);
+    EXPECT_TRUE(*port.routable());
+    EXPECT_EQ(*port.ingressVlan(), 0);
+  }
+
+  // All vlanPort entries must be removed
+  EXPECT_TRUE(swConfig.vlanPorts()->empty());
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, SetTypeWithDescription) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 type routed-port description uplink");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config(
+      {"eth1/1/1", "type", "routed-port", "description", "uplink"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("type=routed-port"));
+  EXPECT_THAT(result, HasSubstr("description="));
+  EXPECT_THAT(result, HasSubstr("uplink"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& swConfig = *session.getAgentConfig().sw();
+  for (const auto& port : *swConfig.ports()) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.portType(), cfg::PortType::INTERFACE_PORT);
+      EXPECT_TRUE(*port.routable());
+      EXPECT_EQ(*port.ingressVlan(), 0);
       EXPECT_EQ(*port.description(), "uplink");
     }
   }
@@ -945,6 +1581,165 @@ TEST_F(
   } catch (const std::runtime_error& e) {
     EXPECT_THAT(e.what(), HasSubstr("profile"));
   }
+}
+
+TEST_F(
+    CmdConfigInterfaceTestFixture,
+    SetTypeRoutedPortLeavesOtherVlanPortsIntact) {
+  // Only eth1/1/1 (logicalID=1) is made routed; eth1/2/1
+  // (logicalID=2) must retain its vlanPort entry.
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 type routed-port");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "type", "routed-port"});
+  cmd.queryClient(localhost(), config);
+
+  const auto& vps =
+      *ConfigSession::getInstance().getAgentConfig().sw()->vlanPorts();
+  ASSERT_EQ(vps.size(), 1u);
+  EXPECT_EQ(*vps[0].logicalPort(), 2);
+  EXPECT_EQ(*vps[0].vlanID(), 2);
+}
+
+// ============================================================================
+// shutdown / no-shutdown Tests (NOS-6133)
+// ============================================================================
+
+TEST_F(CmdConfigInterfaceTestFixture, ShutdownSetsStateDisabled) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 shutdown");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "shutdown"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("state=disabled"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.state(), cfg::PortState::DISABLED);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, NoShutdownSetsStateEnabled) {
+  // Start with a disabled port and bring it up
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 no-shutdown");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "no-shutdown"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("state=enabled"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.state(), cfg::PortState::ENABLED);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, ShutdownMultiPort) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 eth1/2/1 shutdown");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "eth1/2/1", "shutdown"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    EXPECT_EQ(*port.state(), cfg::PortState::DISABLED);
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, NoShutdownMultiPort) {
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 eth1/2/1 no-shutdown");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "eth1/2/1", "no-shutdown"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("eth1/1/1"));
+  EXPECT_THAT(result, HasSubstr("eth1/2/1"));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    EXPECT_EQ(*port.state(), cfg::PortState::ENABLED);
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, ShutdownThenNoShutdown) {
+  // First disable the port
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 shutdown");
+  {
+    auto cmd = CmdConfigInterface();
+    InterfacesConfig config({"eth1/1/1", "shutdown"});
+    cmd.queryClient(localhost(), config);
+  }
+  auto& session1 = ConfigSession::getInstance();
+  for (const auto& port : *session1.getAgentConfig().sw()->ports()) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.state(), cfg::PortState::DISABLED);
+    }
+  }
+
+  // Now re-enable it
+  setupTestableConfigSession(cmdPrefix_, "eth1/1/1 no-shutdown");
+  {
+    auto cmd2 = CmdConfigInterface();
+    InterfacesConfig config2({"eth1/1/1", "no-shutdown"});
+    cmd2.queryClient(localhost(), config2);
+  }
+  auto& session2 = ConfigSession::getInstance();
+  for (const auto& port : *session2.getAgentConfig().sw()->ports()) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.state(), cfg::PortState::ENABLED);
+    }
+  }
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, ShutdownWithDescription) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 shutdown description downlink");
+  auto cmd = CmdConfigInterface();
+  InterfacesConfig config({"eth1/1/1", "shutdown", "description", "downlink"});
+  auto result = cmd.queryClient(localhost(), config);
+  EXPECT_THAT(result, HasSubstr("Successfully configured"));
+  EXPECT_THAT(result, HasSubstr("state=disabled"));
+  EXPECT_THAT(result, HasSubstr("description=\"downlink\""));
+
+  auto& session = ConfigSession::getInstance();
+  auto& ports = *session.getAgentConfig().sw()->ports();
+  for (const auto& port : ports) {
+    if (*port.name() == "eth1/1/1") {
+      EXPECT_EQ(*port.state(), cfg::PortState::DISABLED);
+      EXPECT_EQ(*port.description(), "downlink");
+    }
+  }
+}
+
+// Valueless attribute parser tests
+TEST_F(CmdConfigInterfaceTestFixture, ShutdownParserRecognizedAsValueless) {
+  setupTestableConfigSession();
+  // "shutdown" should parse as a valueless attribute with
+  // empty value
+  InterfacesConfig config({"eth1/1/1", "shutdown"});
+  EXPECT_TRUE(config.hasAttributes());
+  ASSERT_EQ(config.getAttributes().size(), 1);
+  EXPECT_EQ(config.getAttributes()[0].first, "shutdown");
+  EXPECT_EQ(config.getAttributes()[0].second, "");
+}
+
+TEST_F(CmdConfigInterfaceTestFixture, NoShutdownParserRecognizedAsValueless) {
+  setupTestableConfigSession();
+  InterfacesConfig config({"eth1/1/1", "no-shutdown"});
+  EXPECT_TRUE(config.hasAttributes());
+  ASSERT_EQ(config.getAttributes().size(), 1);
+  EXPECT_EQ(config.getAttributes()[0].first, "no-shutdown");
+  EXPECT_EQ(config.getAttributes()[0].second, "");
 }
 
 } // namespace facebook::fboss

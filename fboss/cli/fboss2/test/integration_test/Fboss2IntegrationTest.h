@@ -99,6 +99,14 @@ class Fboss2IntegrationTest : public ::testing::Test {
   Interface findFirstEthInterface() const;
 
   /**
+   * Find the first ethernet interface that has a non-zero MTU reported by
+   * 'show interface'. This implies the interface has a configured L3
+   * cfg::Interface entry in the agent, making it suitable for MTU tests.
+   * Returns std::nullopt if no such interface exists (test should GTEST_SKIP).
+   */
+  std::optional<Interface> findFirstEthInterfaceWithMtu() const;
+
+  /**
    * Commit the current configuration session.
    */
   void commitConfig() const;

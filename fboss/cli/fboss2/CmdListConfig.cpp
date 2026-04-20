@@ -784,25 +784,25 @@ const CommandTree& kConfigCommandTree() {
            }},
       },
 
-      {
-          "delete",
-          "interface",
-          "Delete (reset to default) interface settings",
-          commandHandler<CmdDeleteInterface>,
-          argTypeHandler<CmdDeleteInterfaceTraits>,
-          {{
-              "ipv6",
-              "Delete (reset to default) IPv6 settings for interface",
-              commandHandler<CmdDeleteInterfaceIpv6>,
-              argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
-              {{
-                  "nd",
-                  "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
-                  commandHandler<CmdDeleteInterfaceIpv6Nd>,
-                  argTypeHandler<CmdDeleteInterfaceIpv6NdTraits>,
-              }},
-          }},
-      },
+      {"delete",
+       "interface",
+       "Delete (reset to default) interface settings",
+       commandHandler<CmdDeleteInterface>,
+       argTypeHandler<CmdDeleteInterfaceTraits>,
+       {
+           {
+               "ipv6",
+               "Delete (reset to default) IPv6 settings for interface",
+               commandHandler<CmdDeleteInterfaceIpv6>,
+               argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+               {{
+                   "nd",
+                   "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                   commandHandler<CmdDeleteInterfaceIpv6Nd>,
+                   argTypeHandler<CmdDeleteInterfaceIpv6NdTraits>,
+               }},
+           },
+       }},
 
       {"delete",
        "config",

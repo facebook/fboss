@@ -20,10 +20,11 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/cli/fboss2/commands/config/interface/ProfileValidation.h"
@@ -40,7 +41,26 @@ const std::unordered_set<std::string> kKnownAttributes = {
     "description",
     "mtu",
     "profile",
+    "loopback-mode",
+    "flow-control-rx",
+    "flow-control-tx",
+    "lldp-expected-value",
+    "lldp-expected-chassis",
+    "lldp-expected-ttl",
+    "lldp-expected-port-desc",
+    "lldp-expected-system-name",
+    "lldp-expected-system-desc",
+    "type",
+    "shutdown",
+    "no-shutdown",
 };
+
+// Attributes that take no value token (boolean/action flags)
+const std::unordered_set<std::string> kValuelessAttributes = {
+    "shutdown",
+    "no-shutdown",
+};
+
 } // namespace
 
 bool InterfacesConfig::isKnownAttribute(const std::string& s) {
@@ -76,15 +96,29 @@ InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
   // Extract port names
   std::vector<std::string> portNames(v.begin(), v.begin() + attrStart);
 
-  // Parse attribute-value pairs
-  for (size_t i = attrStart; i < v.size(); i += 2) {
+  // Parse attribute-value pairs (valueless attributes consume no value token)
+  for (size_t i = attrStart; i < v.size();) {
     const std::string& attr = v[i];
 
     if (!isKnownAttribute(attr)) {
       throw std::invalid_argument(
           fmt::format(
-              "Unknown attribute '{}'. Valid attributes are: description, mtu, profile",
+              "Unknown attribute '{}'. Valid attributes are: description, mtu, profile, "
+              "loopback-mode, flow-control-rx, flow-control-tx, lldp-expected-*, "
+              "type, shutdown, no-shutdown",
               attr));
+    }
+
+    // Normalize attribute name to lowercase
+    std::string attrLower = attr;
+    std::transform(
+        attrLower.begin(), attrLower.end(), attrLower.begin(), ::tolower);
+
+    // Valueless attributes (e.g. shutdown / no-shutdown) take no value token
+    if (kValuelessAttributes.count(attrLower)) {
+      attributes_.emplace_back(attrLower, "");
+      ++i;
+      continue;
     }
 
     if (i + 1 >= v.size()) {
@@ -103,11 +137,8 @@ InterfacesConfig::InterfacesConfig(std::vector<std::string> v)
               value));
     }
 
-    // Normalize attribute name to lowercase
-    std::string attrLower = attr;
-    std::transform(
-        attrLower.begin(), attrLower.end(), attrLower.begin(), ::tolower);
     attributes_.emplace_back(attrLower, value);
+    i += 2;
   }
 
   // Now resolve the port names to InterfaceList
@@ -162,6 +193,98 @@ std::string applyProfile(
       "profile={}, speed={}", upperValue, static_cast<int64_t>(profileSpeed));
 }
 
+// Configures a port as a routed (L3) port.
+void configureAsRoutedPort(cfg::Port& port, cfg::SwitchConfig& swConfig) {
+  port.portType() = cfg::PortType::INTERFACE_PORT;
+  port.routable() = true;
+  port.ingressVlan() = 0;
+
+  const int32_t logicalId = *port.logicalID();
+  auto& vps = *swConfig.vlanPorts();
+  vps.erase(
+      std::remove_if(
+          vps.begin(),
+          vps.end(),
+          [logicalId](const cfg::VlanPort& vp) {
+            return *vp.logicalPort() == logicalId;
+          }),
+      vps.end());
+}
+
+// Applies flow-control enable/disable to all ports for the given attribute
+// ("flow-control-rx" or "flow-control-tx").
+void applyFlowControl(
+    const std::string& attr,
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  std::string valueLower = value;
+  std::transform(
+      valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+  bool enabled = false;
+  if (valueLower == "enable") {
+    enabled = true;
+  } else if (valueLower == "disable") {
+    enabled = false;
+  } else {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid {} value '{}'. Valid values: enable, disable",
+            attr,
+            value));
+  }
+
+  const bool isRx = (attr == "flow-control-rx");
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      if (isRx) {
+        port->pause()->rx() = enabled;
+      } else {
+        port->pause()->tx() = enabled;
+      }
+    }
+  }
+}
+
+// Validates that value is "routed-port" and applies configureAsRoutedPort.
+void applyPortType(
+    const std::string& value,
+    const utils::InterfaceList& interfaces) {
+  std::string valueLower = value;
+  std::transform(
+      valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+  if (valueLower != "routed-port") {
+    throw std::invalid_argument(
+        fmt::format(
+            "Invalid type value '{}'. Valid value: routed-port", value));
+  }
+
+  auto& swConfig = *ConfigSession::getInstance().getAgentConfig().sw();
+  for (const utils::Intf& intf : interfaces) {
+    cfg::Port* port = intf.getPort();
+    if (port) {
+      configureAsRoutedPort(*port, swConfig);
+    }
+  }
+}
+
+// Maps an lldp-expected-* attribute name to its LLDPTag enum value.
+// Returns nullopt if attr is not a recognised lldp-expected-* attribute.
+std::optional<cfg::LLDPTag> lldpTagForAttr(const std::string& attr) {
+  static const std::unordered_map<std::string, cfg::LLDPTag> kAttrToTag = {
+      {"lldp-expected-value", cfg::LLDPTag::PORT},
+      {"lldp-expected-chassis", cfg::LLDPTag::CHASSIS},
+      {"lldp-expected-ttl", cfg::LLDPTag::TTL},
+      {"lldp-expected-port-desc", cfg::LLDPTag::PORT_DESC},
+      {"lldp-expected-system-name", cfg::LLDPTag::SYSTEM_NAME},
+      {"lldp-expected-system-desc", cfg::LLDPTag::SYSTEM_DESC},
+  };
+  auto it = kAttrToTag.find(attr);
+  return it != kAttrToTag.end() ? std::make_optional(it->second) : std::nullopt;
+}
+
 CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
     const HostInfo& hostInfo,
     const ObjectArgType& interfaceConfig) {
@@ -175,7 +298,9 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
   // If no attributes provided, this is a pass-through to subcommands
   if (!interfaceConfig.hasAttributes()) {
     throw std::runtime_error(
-        "Incomplete command. Either provide attributes (description, mtu, profile) "
+        "Incomplete command. Either provide attributes (description, mtu, profile, "
+        "loopback-mode, flow-control-rx, flow-control-tx, lldp-expected-*, type, "
+        "shutdown, no-shutdown) "
         "or use a subcommand (switchport)");
   }
 
@@ -220,6 +345,68 @@ CmdConfigInterfaceTraits::RetType CmdConfigInterface::queryClient(
       results.push_back(fmt::format("mtu={}", mtu));
     } else if (attr == "profile") {
       results.push_back(applyProfile(hostInfo, interfaces, value));
+    } else if (attr == "loopback-mode") {
+      // Parse loopback mode (case-insensitive)
+      std::string valueLower = value;
+      std::transform(
+          valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+      cfg::PortLoopbackMode loopbackMode{cfg::PortLoopbackMode::NONE};
+      if (valueLower == "none") {
+        loopbackMode = cfg::PortLoopbackMode::NONE;
+      } else if (valueLower == "phy") {
+        loopbackMode = cfg::PortLoopbackMode::PHY;
+      } else if (valueLower == "nif") {
+        loopbackMode = cfg::PortLoopbackMode::NIF;
+      } else if (valueLower == "mac") {
+        loopbackMode = cfg::PortLoopbackMode::MAC;
+      } else {
+        throw std::invalid_argument(
+            fmt::format(
+                "Invalid loopback-mode value '{}'. Valid values: none, PHY, NIF, MAC",
+                value));
+      }
+
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->loopbackMode() = loopbackMode;
+        }
+      }
+      results.push_back(fmt::format("loopback-mode={}", value));
+    } else if (attr == "flow-control-rx" || attr == "flow-control-tx") {
+      applyFlowControl(attr, value, interfaces);
+      results.push_back(fmt::format("{}={}", attr, value));
+    } else if (auto lldpTag = lldpTagForAttr(attr); lldpTag.has_value()) {
+      if (value.empty()) {
+        throw std::invalid_argument(fmt::format("{} cannot be empty", attr));
+      }
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->expectedLLDPValues()[*lldpTag] = value;
+        }
+      }
+      results.push_back(fmt::format("{}=\"{}\"", attr, value));
+    } else if (attr == "type") {
+      applyPortType(value, interfaces);
+      results.push_back(fmt::format("type={}", value));
+    } else if (attr == "shutdown") {
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->state() = cfg::PortState::DISABLED;
+        }
+      }
+      results.emplace_back("state=disabled");
+    } else if (attr == "no-shutdown") {
+      for (const utils::Intf& intf : interfaces) {
+        cfg::Port* port = intf.getPort();
+        if (port) {
+          port->state() = cfg::PortState::ENABLED;
+        }
+      }
+      results.emplace_back("state=enabled");
     }
   }
 

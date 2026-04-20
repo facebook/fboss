@@ -12,7 +12,6 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include "fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.h"
 #include "fboss/cli/fboss2/session/ConfigSession.h"
@@ -267,6 +266,21 @@ TEST_F(CmdConfigInterfaceIpv6NdTestFixture, queryClientSetsRaAddress) {
   auto& ifaces =
       *ConfigSession::getInstance().getAgentConfig().sw()->interfaces();
   EXPECT_EQ(*ifaces[0].ndp()->routerAddress(), "2001:db8::1");
+}
+
+TEST_F(CmdConfigInterfaceIpv6NdTestFixture, queryClientRaAddressInvalidFormat) {
+  setupTestableConfigSession(
+      cmdPrefix_, "eth1/1/1 ipv6 nd ra-address not-an-ip");
+  auto cmd = CmdConfigInterfaceIpv6Nd();
+  utils::InterfaceList interfaces({"eth1/1/1"});
+  NdpConfigAttrs attrs({"ra-address", "not-an-ip"});
+
+  try {
+    cmd.queryClient(localhost(), interfaces, attrs);
+    FAIL() << "Expected std::invalid_argument";
+  } catch (const std::invalid_argument& e) {
+    EXPECT_THAT(e.what(), HasSubstr("Invalid IPv6 address"));
+  }
 }
 
 // ---------------------------------------------------------------------------

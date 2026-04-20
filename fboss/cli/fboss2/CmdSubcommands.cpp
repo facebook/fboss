@@ -55,7 +55,7 @@ const std::map<std::string, std::string>& kSupportedVerbs() {
 using facebook::fboss::CmdSubcommands;
 static folly::Singleton<CmdSubcommands, singleton_tag_type> cmdSubcommands{};
 std::shared_ptr<CmdSubcommands> CmdSubcommands::getInstance() {
-  return cmdSubcommands.try_get();
+  return folly::Singleton<CmdSubcommands, singleton_tag_type>::try_get();
 }
 
 namespace facebook::fboss {
@@ -317,6 +317,15 @@ CLI::App* CmdSubcommands::addCommand(
               "prefix-valid-lifetime, prefix-preferred-lifetime, "
               "managed-config-flag, other-config-flag, ra-address");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACE_DELETE_ATTRS:
+          subCmd->add_option(
+              "interface_delete_attrs",
+              args,
+              "<port-list> [<attr> ...] where <attr> is one of: "
+              "loopback-mode, lldp-expected-value, lldp-expected-chassis, "
+              "lldp-expected-ttl, lldp-expected-port-desc, "
+              "lldp-expected-system-name, lldp-expected-system-desc");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME:
           subCmd->add_option(
               "queuing_policy_name", args, "Queuing policy name");
@@ -363,8 +372,9 @@ CLI::App* CmdSubcommands::addCommand(
           subCmd->add_option(
               "interface_config",
               args,
-              "<port-list> [<attr> <value> ...] where <attr> is one "
-              "of: description, mtu, profile");
+              "<port-list> [<attr> [<value>] ...] where <attr> is one "
+              "of: description, mtu, profile, loopback-mode, flow-control-rx, "
+              "flow-control-tx, lldp-expected-value, type, shutdown, no-shutdown");
           break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:

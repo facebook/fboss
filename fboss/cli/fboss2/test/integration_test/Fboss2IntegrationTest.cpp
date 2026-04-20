@@ -14,7 +14,6 @@
 #include <folly/logging/xlog.h>
 #include <gtest/gtest.h>
 #include <chrono>
-#include <map>
 #include <thread>
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -159,7 +158,9 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
   if (data.count("vlan") && !data["vlan"].isNull()) {
     intf.vlan = static_cast<int>(data["vlan"].asInt());
   }
-  intf.mtu = static_cast<int>(data["mtu"].asInt());
+  if (data.count("mtu")) {
+    intf.mtu = static_cast<int>(data["mtu"].asInt());
+  }
 
   // Parse prefixes
   if (data.count("prefixes")) {
@@ -231,6 +232,20 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
 
   throw std::runtime_error(
       "No suitable ethernet interface found with VLAN > 1");
+}
+
+std::optional<Fboss2IntegrationTest::Interface>
+Fboss2IntegrationTest::findFirstEthInterfaceWithMtu() const {
+  auto interfaces = getAllInterfaces();
+
+  for (const auto& [name, intf] : interfaces) {
+    if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1 &&
+        intf.mtu > 0) {
+      return intf;
+    }
+  }
+
+  return std::nullopt;
 }
 
 void Fboss2IntegrationTest::commitConfig() const {
