@@ -129,13 +129,7 @@ ServiceHandler::ActiveSubscriptions FsdbTestServer::getActiveSubscriptions()
 
 void FsdbTestServer::startTestServer(uint16_t port) {
   ServiceHandler::Options options;
-#ifdef IS_OSS
-  // TODO: Enabling serveIdPathSubs causes serve subscriptions to fail with
-  // P2015402468
-  options.serveIdPathSubs = false;
-#else
   options.serveIdPathSubs = true;
-#endif
   handler_ = std::make_shared<ServiceHandler>(config_, options);
 
   impl_ = createPlatformSpecificImpl(handler_, port);
