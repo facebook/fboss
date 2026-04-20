@@ -40,12 +40,16 @@
 #include "fboss/agent/hw/mock/MockRxPacket.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
+#include "fboss/agent/rib/SwitchStateNextHopIdUpdater.h"
 #include "fboss/agent/state/AclMap.h"
 #include "fboss/agent/state/AggregatePort.h"
 #include "fboss/agent/state/AggregatePortMap.h"
 #include "fboss/agent/state/ArpEntry.h"
 #include "fboss/agent/state/ArpTable.h"
 #include "fboss/agent/state/DeltaFunctions.h"
+#include "fboss/agent/state/FibInfo.h"
+#include "fboss/agent/state/FibInfoMap.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/InterfaceMap.h"
 #include "fboss/agent/state/LabelForwardingEntry.h"
@@ -3252,6 +3256,132 @@ void ThriftHandler::getTeFlowTableDetails(
     std::vector<TeFlowDetails>& /*flowTable*/) {
   auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
   throw FbossError("getTeFlowTableDetails is deprecated");
+}
+
+void ThriftHandler::addOrUpdateNamedNextHopGroups(
+    std::unique_ptr<std::vector<NamedNextHopGroup>> nextHopGroups) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto* rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+
+  std::vector<std::pair<std::string, RouteNextHopSet>> groups;
+  for (const auto& group : *nextHopGroups) {
+    groups.emplace_back(
+        *group.name(),
+        util::toRouteNextHopSet(
+            *group.nexthops(), true /* allowV6NonLinkLocal */));
+  }
+
+  // RIB handles allocation + state update atomically on the RIB thread
+  rib->addOrUpdateNamedNextHopGroups(
+      groups, [this](const NextHopIDManager* mgr) {
+        SwitchStateNextHopIdUpdater updater(mgr);
+        sw_->updateStateBlocking(
+            "addOrUpdateNamedNextHopGroups",
+            [&updater](const std::shared_ptr<SwitchState>& state) {
+              return updater(state);
+            });
+      });
+}
+
+void ThriftHandler::deleteNamedNextHopGroups(
+    std::unique_ptr<std::vector<std::string>> names) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto* rib = sw_->getRib();
+  if (!rib) {
+    throw FbossError("RIB not initialized");
+  }
+
+  // RIB handles deallocation + state update atomically on the RIB thread
+  rib->deleteNamedNextHopGroups(*names, [this](const NextHopIDManager* mgr) {
+    SwitchStateNextHopIdUpdater updater(mgr);
+    sw_->updateStateBlocking(
+        "deleteNamedNextHopGroups",
+        [&updater](const std::shared_ptr<SwitchState>& state) {
+          return updater(state);
+        });
+  });
+}
+
+void ThriftHandler::getNextHopGroups(
+    std::vector<NamedNextHopGroup>& result,
+    std::unique_ptr<std::vector<std::string>> names) {
+  auto log = LOG_THRIFT_CALL_WITH_STATS(DBG1, sw_->stats());
+  ensureConfigured(__func__);
+
+  auto state = sw_->getState();
+  auto fibInfoMap = state->getFibsInfoMap();
+
+  std::unordered_set<std::string> nameFilter;
+  if (names && !names->empty()) {
+    nameFilter.insert(names->begin(), names->end());
+  }
+
+  // Use the first FibInfo (all switches share the same mappings)
+  auto fibInfoIt = fibInfoMap->cbegin();
+  if (fibInfoIt == fibInfoMap->cend()) {
+    return;
+  }
+  const auto& fibInfo = fibInfoIt->second;
+
+  // Named groups
+  auto nameToNextHopSetId = fibInfo->getNameToNextHopSetId();
+  std::unordered_set<NextHopSetId> namedSetIds;
+  for (const auto& [name, nextHopSetId] : nameToNextHopSetId) {
+    namedSetIds.insert(nextHopSetId);
+    if (!nameFilter.empty() && !nameFilter.count(name)) {
+      continue;
+    }
+    NamedNextHopGroup thriftGroup;
+    thriftGroup.name() = name;
+    try {
+      auto nextHops = fibInfo->resolveNextHopSetFromId(nextHopSetId);
+      std::vector<NextHopThrift> nexthopsThrift;
+      nexthopsThrift.reserve(nextHops.size());
+      for (const auto& hop : nextHops) {
+        nexthopsThrift.push_back(hop.toThrift());
+      }
+      thriftGroup.nexthops() = std::move(nexthopsThrift);
+      result.push_back(std::move(thriftGroup));
+    } catch (const FbossError& e) {
+      XLOG(ERR) << "Failed to resolve nexthops for named group '" << name
+                << "' with NextHopSetId " << nextHopSetId << ": " << e.what();
+    }
+  }
+
+  // Unnamed groups (only when no name filter is applied)
+  if (nameFilter.empty()) {
+    auto idToNextHopIdSetMap = fibInfo->getIdToNextHopIdSetMap();
+    if (idToNextHopIdSetMap) {
+      auto idSetMapThrift = idToNextHopIdSetMap->toThrift();
+      for (const auto& [setId, _nhIds] : idSetMapThrift) {
+        if (namedSetIds.count(setId)) {
+          continue;
+        }
+        NamedNextHopGroup thriftGroup;
+        thriftGroup.name() = folly::to<std::string>(setId);
+        try {
+          auto nextHops = fibInfo->resolveNextHopSetFromId(setId);
+          std::vector<NextHopThrift> nexthopsThrift;
+          nexthopsThrift.reserve(nextHops.size());
+          for (const auto& hop : nextHops) {
+            nexthopsThrift.push_back(hop.toThrift());
+          }
+          thriftGroup.nexthops() = std::move(nexthopsThrift);
+          result.push_back(std::move(thriftGroup));
+        } catch (const FbossError& e) {
+          XLOG(ERR) << "Failed to resolve nexthops for NextHopSetId " << setId
+                    << ": " << e.what();
+        }
+      }
+    }
+  }
 }
 
 void ThriftHandler::getFabricReachability(

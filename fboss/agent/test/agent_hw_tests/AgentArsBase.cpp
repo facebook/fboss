@@ -53,12 +53,12 @@ cfg::SwitchConfig AgentArsBase::initialConfig(
 }
 
 bool AgentArsBase::isChenab(const AgentEnsemble& ensemble) const {
-  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
   return (hwAsic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB);
 }
 
 bool AgentArsBase::isTH3(const AgentEnsemble& ensemble) const {
-  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
   return (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK3);
 }
 
@@ -192,7 +192,7 @@ void AgentArsBase::resolveMirror(
 void AgentArsBase::generateApplyConfig(AclType aclType) {
   const auto& ensemble = *getAgentEnsemble();
   auto newCfg{initialConfig(ensemble)};
-  auto hwAsic = checkSameAndGetAsic(ensemble.getL3Asics());
+  auto hwAsic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
   auto streamType =
       *hwAsic->getQueueStreamTypes(cfg::PortType::INTERFACE_PORT).begin();
   utility::addNetworkAIQueueConfig(
@@ -331,7 +331,8 @@ auto AgentArsBase::verifyAclType(bool bumpOnHit, AclType aclType) {
       // At most we should get a pkt bump of 2
       EXPECT_EVENTUALLY_LE(aclPktCountAfter, aclPktCountBefore + 2);
       // TODO ruinanhu: Remove this once we have a fix for TH6 counter problem
-      auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto hwAsic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       auto extraBytes =
           (hwAsic->getAsicType() == cfg::AsicType::ASIC_TYPE_TOMAHAWK6) ? 4 : 0;
 
@@ -475,7 +476,8 @@ void AgentArsBase::addRoceAcl(
   if (aclName == getAclName(AclType::UDF_FLOWLET)) {
     acl->proto() = 17;
     acl->l4DstPort() = 4791;
-    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
     utility::addEtherTypeToAcl(asic, acl, cfg::EtherType::IPv6);
   }
   if (aclName == getAclName(AclType::ECMP_HASH_CANCEL)) {
@@ -792,7 +794,8 @@ void AgentArsBase::verifyFwdSwitchingMode(
 }
 
 uint32_t AgentArsBase::getMaxArsGroups() const {
-  auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+  auto asic =
+      checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
   auto maxArsGroups = asic->getMaxArsGroups();
   CHECK(maxArsGroups.has_value());
   return maxArsGroups.value();

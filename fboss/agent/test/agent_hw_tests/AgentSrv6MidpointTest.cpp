@@ -81,12 +81,11 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     }
     // Trap packets with the rewritten outer dst so the snooper can capture
     // the forwarded (uSID-shifted) packet.
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
         &cfg,
-        // change mask to 128 when uSid shift is working
-        std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 32}});
+        std::set<folly::CIDRNetwork>{{folly::IPAddress("3001:db8:2::"), 128}});
     return cfg;
   }
 
@@ -229,7 +228,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       PortID egressPort,
       bool ecnMarked,
       bool isV4,
-      const utility::EthFrame& origFrame) {
+      std::optional<PortID> injectPort = std::nullopt) {
     constexpr uint8_t kHopLimit{24};
     constexpr uint8_t kTc{42};
 
@@ -239,9 +238,7 @@ class AgentSrv6MidpointTest : public AgentHwTest {
     utility::SwSwitchPacketSnooper snooper(
         this->getSw(), "srv6MidpointSnooper");
 
-    // Re-send so snooper can capture — caller already sent once for stats,
-    // but snooper needs its own send.
-    sendMidpointPacket(ecnMarked, isV4);
+    auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
 
     auto frameRx = snooper.waitForPacket(1);
     WITH_RETRIES({
@@ -293,8 +290,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       bool ecnMarked,
       bool isV4,
       std::optional<PortID> injectPort = std::nullopt) {
-    auto origFrame = sendMidpointPacket(ecnMarked, isV4, injectPort);
-    assertMidpointForwarding(egressPort, ecnMarked, isV4, origFrame);
+    XLOG(DBG2) << "verifyMidpointForwarding: inner=" << (isV4 ? "v4" : "v6")
+               << " ecn=" << (ecnMarked ? "marked" : "unmarked")
+               << " send=" << (injectPort.has_value() ? "front-panel" : "cpu");
+    assertMidpointForwarding(egressPort, ecnMarked, isV4, injectPort);
   }
 
   void verifyMidpointCpuAndFrontPanel(PortID egressPort) {
@@ -315,6 +314,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       bool isV4,
       std::optional<PortID> sendPort = std::nullopt,
       std::optional<folly::IPAddressV6> outerDst = std::nullopt) {
+    XLOG(DBG2) << "verifyMidpointDrop: inner=" << (isV4 ? "v4" : "v6")
+               << " send=" << (sendPort.has_value() ? "front-panel" : "cpu")
+               << " outerDst="
+               << (outerDst.has_value() ? outerDst->str() : "default");
     auto portStatsBefore = this->getLatestPortStats(injectPort);
     auto egressStatsBefore = this->getLatestPortStats(egressPort);
 
@@ -325,14 +328,10 @@ class AgentSrv6MidpointTest : public AgentHwTest {
       auto egressStatsAfter = this->getLatestPortStats(egressPort);
       EXPECT_EVENTUALLY_GT(
           *portStatsAfter.inDiscards_(), *portStatsBefore.inDiscards_());
-      if (this->isSupportedOnAllAsics(
-              HwAsic::Feature::SRV6_MYSID_DISCARD_COUNTER)) {
-        EXPECT_EVENTUALLY_TRUE(
-            portStatsAfter.inSrv6MySidDiscards_().has_value());
-        EXPECT_EVENTUALLY_GT(
-            portStatsAfter.inSrv6MySidDiscards_().value_or(0),
-            portStatsBefore.inSrv6MySidDiscards_().value_or(0));
-      }
+      EXPECT_EVENTUALLY_TRUE(portStatsAfter.inSrv6MySidDiscards_().has_value());
+      EXPECT_EVENTUALLY_GT(
+          portStatsAfter.inSrv6MySidDiscards_().value_or(0),
+          portStatsBefore.inSrv6MySidDiscards_().value_or(0));
       // Packet should not be forwarded out the egress port.
       EXPECT_EVENTUALLY_EQ(
           *egressStatsAfter.outBytes_(), *egressStatsBefore.outBytes_());

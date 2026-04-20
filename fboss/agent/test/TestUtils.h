@@ -706,6 +706,8 @@ HwSwitchInitFn mockHwSwitchInitFn(SwSwitch* sw);
 /*
  * Test-only wrappers that use FLAGS_switch_id_for_testing as the switchId.
  */
+const HwAsic* checkSameAndGetAsicForTesting(
+    const std::vector<const HwAsic*>& asics);
 folly::MacAddress getMacForFirstInterfaceWithPortsForTesting(
     const std::shared_ptr<SwitchState>& state);
 InterfaceID firstInterfaceIDWithPortsForTesting(

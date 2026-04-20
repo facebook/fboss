@@ -38,13 +38,29 @@ using namespace facebook::fboss::platform::fan_service;
 namespace constants =
     facebook::fboss::platform::fan_service::fan_service_config_constants;
 
+// Fallback table: if an optic type's thermal profile is not defined in the
+// config, fall back to the mapped profile instead.
+const std::unordered_map<std::string, std::string> kOpticTypeFallbacks = {
+    {constants::OPTIC_TYPE_800_ZR(), constants::OPTIC_TYPE_800_GENERIC()},
+};
+
 template <typename T>
 std::optional<T> getConfigOpticData(
     const std::string& opticType,
     const std::map<std::string, T>& dataMap) {
-  for (const auto& [tableType, data] : dataMap) {
-    if (tableType == opticType) {
-      return data;
+  auto it = dataMap.find(opticType);
+  if (it != dataMap.end()) {
+    return it->second;
+  }
+  auto fallbackIt = kOpticTypeFallbacks.find(opticType);
+  if (fallbackIt != kOpticTypeFallbacks.end()) {
+    auto dataIt = dataMap.find(fallbackIt->second);
+    if (dataIt != dataMap.end()) {
+      XLOG(INFO) << fmt::format(
+          "Optic type {} not found in config, falling back to {}",
+          opticType,
+          fallbackIt->second);
+      return dataIt->second;
     }
   }
   return std::nullopt;

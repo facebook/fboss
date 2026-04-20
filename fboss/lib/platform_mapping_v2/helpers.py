@@ -579,8 +579,8 @@ def _format_custom_collection_json(custom_collection: Dict[str, List[int]]) -> s
                         },
                         "value": value,
                     }
-                    for key, value in custom_collection.items()
                 }
+                for key, value in custom_collection.items()
             ]
         }
     )

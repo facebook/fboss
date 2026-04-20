@@ -276,7 +276,7 @@ inline CpuLatencyBenchmarkSetup createCpuLatencyEnsemble() {
   // Add DstIP-based trap ACL with TRAP action (DstMac not supported on
   // Gibraltar/Graphene200).
   auto config = ensemble->getCurrentConfig();
-  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+  auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
   utility::addTrapPacketAcl(
       asic, &config, folly::CIDRNetwork(kDstIp, 128), cfg::ToCpuAction::TRAP);
 
@@ -495,7 +495,7 @@ inline MultiPortCpuLatencySetup createAllPortCpuLatencyEnsemble() {
   // Per-port /128 TRAP ACL for each port's IP.
   // addTrapPacketAcl discards prefix length, so /64 doesn't work.
   auto config = ensemble->getCurrentConfig();
-  auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+  auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
   for (auto& [portId, ip] : portToIp) {
     utility::addTrapPacketAcl(
         asic, &config, folly::CIDRNetwork(ip, 128), cfg::ToCpuAction::TRAP);

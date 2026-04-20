@@ -3326,4 +3326,86 @@ TEST_F(PortStateMachineTest, PrematureRemediationBlockedByLastDownTime) {
   }
 }
 
+/*
+ * Test for race condition where a non-lowest-indexed port becomes the
+ * orchestrator for IPHY programming because the lowest-indexed port hasn't
+ * been initialized yet. When the lowest-indexed port later initializes and
+ * tries to orchestrate, programInternalPhyPorts() throws because the
+ * transceiver is already in the initialized cache.
+ *
+ * This mimics a production failure where during cold boot:
+ * 1. Port 19 (higher-indexed) initializes before Port 17 (lowest-indexed)
+ * 2. Port 19 becomes orchestrator, calls programInternalPhyPorts() for the
+ *    transceiver, populating the cache for ALL ports on that transceiver
+ * 3. Port 17 initializes later, tries to orchestrate (being lowest-indexed)
+ * 4. programInternalPhyPorts() throws "already exists in initialized
+ *    transceivers cache" because the cache was already populated by Port 19
+ * 5. Port 17 is permanently stuck in INITIALIZED state, blocking ports 21/23
+ *    that depend on it as their orchestrator
+ */
+TEST_F(PortStateMachineTest, iphyProgrammingRaceWhenNonLowestPortInitFirst) {
+  initManagers(FakeTestPlatformMappingType::STANDARD);
+
+  // Set up multi-port transceiver override so both portId1_ and portId3_
+  // are mapped to tcvrId1_
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      overrideMultiPortTcvrToPortAndProfile_);
+
+  xcvr1_ =
+      overrideTransceiver(true /* multiPort */, false /* isMock */, tcvrId1_);
+
+  // overrideTransceiver() clears the override config, so re-set it
+  transceiverManager_->setOverrideTcvrToPortAndProfileForTesting(
+      overrideMultiPortTcvrToPortAndProfile_);
+
+  // Step 1: Initialize ONLY portId3_ (the higher-indexed port).
+  // This mimics the race condition where the lowest-indexed port (portId1_)
+  // hasn't been initialized yet.
+  portManager_->setOverrideAgentPortStatusForTesting(
+      {portId3_} /* upPortIds */, {portId3_} /* enabledPortIds */);
+  transceiverManager_->refreshTransceivers();
+  portManager_->updateTransceiverPortStatus();
+
+  // Verify: portId3_ is INITIALIZED, portId1_ is still UNINITIALIZED
+  EXPECT_EQ(
+      portManager_->getPortState(portId3_), PortStateMachineState::INITIALIZED);
+  EXPECT_EQ(
+      portManager_->getPortState(portId1_),
+      PortStateMachineState::UNINITIALIZED);
+
+  // Step 2: Trigger IPHY programming. Since portId3_ is the only initialized
+  // port, it becomes the orchestrator and calls programInternalPhyPorts().
+  // This populates the initialized transceivers cache for ALL ports on tcvr.
+  portManager_->triggerProgrammingEvents();
+
+  // Verify: portId3_ should reach IPHY_PORTS_PROGRAMMED
+  EXPECT_EQ(
+      portManager_->getPortState(portId3_),
+      PortStateMachineState::IPHY_PORTS_PROGRAMMED);
+
+  // Step 3: Now initialize portId1_ (the lowest-indexed port).
+  // This mimics the delayed initialization in production.
+  portManager_->setOverrideAgentPortStatusForTesting(
+      {portId1_, portId3_} /* upPortIds */,
+      {portId1_, portId3_} /* enabledPortIds */);
+  portManager_->updateTransceiverPortStatus();
+
+  // Verify: portId1_ is now INITIALIZED
+  EXPECT_EQ(
+      portManager_->getPortState(portId1_), PortStateMachineState::INITIALIZED);
+
+  // Step 4: Trigger IPHY programming again. portId1_ is now the lowest
+  // initialized port, so it tries to orchestrate. The cache already has
+  // entries from portId3_'s earlier call, but
+  // setTransceiverEnabledStatusInCache is now idempotent (skips duplicates
+  // instead of throwing), so programInternalPhyPorts succeeds and portId1_
+  // progresses.
+  portManager_->triggerProgrammingEvents();
+
+  EXPECT_EQ(
+      portManager_->getPortState(portId1_),
+      PortStateMachineState::IPHY_PORTS_PROGRAMMED)
+      << "portId1_ should progress to IPHY_PORTS_PROGRAMMED";
+}
+
 } // namespace facebook::fboss

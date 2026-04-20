@@ -20,6 +20,7 @@
 #include "fboss/agent/gen-cpp2/agent_stats_types.h"
 #include "fboss/agent/types.h"
 #include "fboss/lib/CommonUtils.h"
+#include "fboss/lib/ThriftCallDurationLogger.h"
 
 namespace facebook::fboss {
 
@@ -32,7 +33,7 @@ using AggregatePortStatsMap = folly::
 using InterfaceStatsMap =
     folly::ConcurrentHashMap<InterfaceID, std::unique_ptr<InterfaceStats>>;
 
-class SwitchStats : public boost::noncopyable {
+class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
  public:
   // Method to update the tunnelInterfacePacketDrop counter
   void updateTxBufferLimitExceededDrops() {
@@ -342,7 +343,7 @@ class SwitchStats : public boost::noncopyable {
     pendingStateUpdateCount_.addValue(value);
   }
 
-  void thriftRequestCompletionTimeMs(std::chrono::milliseconds ms) {
+  void thriftRequestCompletionTimeMs(std::chrono::milliseconds ms) override {
     thriftRequestCompletionTimeMs_.addValue(ms.count());
   }
 

@@ -185,7 +185,9 @@ void addQueueMatcher(
       std::nullopt,
       *config->dsfNodes());
   cfg::MatchAction matchAction = utility::getToQueueAction(
-      checkSameAndGetAsic(asicTable.getL3Asics()), queueId, isSai);
+      checkSameAndGetAsic(asicTable.getL3Asics(), FLAGS_switch_id_for_testing),
+      queueId,
+      isSai);
 
   if (counterName.has_value()) {
     matchAction.counter() = counterName.value();

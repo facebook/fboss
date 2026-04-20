@@ -2079,11 +2079,10 @@ void PortManager::setTransceiverEnabledStatusInCache(
   auto initializedTcvrs = initializedTcvrsIt->second->wlock();
   if (std::find(initializedTcvrs->begin(), initializedTcvrs->end(), tcvrId) !=
       initializedTcvrs->end()) {
-    throw FbossError(
-        "Transceiver ",
-        tcvrId,
-        " already exists in initialized transceivers cache for port ",
-        portId);
+    XLOG(WARN) << "Transceiver " << tcvrId
+               << " already exists in initialized transceivers cache for port "
+               << portId;
+    return;
   }
 
   initializedTcvrs->push_back(tcvrId);

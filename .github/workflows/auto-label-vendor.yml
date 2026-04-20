@@ -26,6 +26,7 @@ jobs:
               'arista',
               'cisco',
               'nvidia',
+              'meta',
             ];
 
             // Extract company name from first [...]

@@ -14,6 +14,7 @@
 #include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/packet/Ethertype.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/MirrorTestUtils.h"
 #include "fboss/agent/test/utils/OlympicTestUtils.h"
@@ -192,7 +193,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
   void sendPacketWithPcp(uint8_t pcp, PortID ingressPort) {
     // For priority-tagged mode, use VLAN ID 0; otherwise use the actual VLAN ID
     auto ensemble = getAgentEnsemble();
-    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
     auto vlanId = isPriorityTaggingMode(asic) ? VlanID(0) : getTestVlanId();
 
     // Send 10 packets with the specified PCP value
@@ -240,7 +241,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
 
   void configureTrapAcl(cfg::SwitchConfig* config, const PortID& portId) {
     auto ensemble = getAgentEnsemble();
-    auto asic = checkSameAndGetAsic(ensemble->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble->getL3Asics());
     utility::configureTrapAcl(asic, *config, portId);
   }
 
@@ -293,7 +294,7 @@ class AgentDot1qMappingTest : public AgentHwTest {
         folly::copy(getLatestPortStats(egressPort).queueOutPackets_().value());
 
     auto expectedEgressPcp = getExpectedEgressPcp(pcp);
-    auto expectedVlanId = isPriorityTaggingMode(checkSameAndGetAsic(
+    auto expectedVlanId = isPriorityTaggingMode(checkSameAndGetAsicForTesting(
                               getAgentEnsemble()->getL3Asics()))
         ? 0
         : static_cast<int>(getTestVlanId());

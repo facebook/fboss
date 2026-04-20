@@ -91,6 +91,7 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _PortMap{
     SAI_ATTR_MAP(Port, RxSNR),
 #endif
     SAI_ATTR_MAP(Port, LinkTrainingEnable),
+    SAI_ATTR_MAP(Port, LinkTrainingRxStatus),
     SAI_ATTR_MAP(Port, FabricAttached),
     SAI_ATTR_MAP(Port, FabricAttachedPortIndex),
     SAI_ATTR_MAP(Port, FabricAttachedSwitchId),

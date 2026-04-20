@@ -88,7 +88,7 @@ class AgentSrv6EncapTest : public AgentHwTest {
       }
     }
     addSrv6TunnelConfig(cfg);
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     utility::addTrapPacketAcl(
         asic,
         &cfg,

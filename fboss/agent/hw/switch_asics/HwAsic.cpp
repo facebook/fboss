@@ -81,6 +81,42 @@ int HwAsic::getDefaultACLGroupID() const {
   }
 }
 
+int HwAsic::getBufferDynThreshFromScalingFactor(
+    cfg::MMUScalingFactor scalingFactor) const {
+  switch (scalingFactor) {
+    case cfg::MMUScalingFactor::ONE_128TH:
+      return -7;
+    case cfg::MMUScalingFactor::ONE_64TH:
+      return -6;
+    case cfg::MMUScalingFactor::ONE_32TH:
+      return -5;
+    case cfg::MMUScalingFactor::ONE_16TH:
+      return -4;
+    case cfg::MMUScalingFactor::ONE_8TH:
+      return -3;
+    case cfg::MMUScalingFactor::ONE_QUARTER:
+      return -2;
+    case cfg::MMUScalingFactor::ONE_HALF:
+      return -1;
+    case cfg::MMUScalingFactor::ONE:
+      return 0;
+    case cfg::MMUScalingFactor::TWO:
+      return 1;
+    case cfg::MMUScalingFactor::FOUR:
+      return 2;
+    case cfg::MMUScalingFactor::EIGHT:
+      return 3;
+    case cfg::MMUScalingFactor::ONE_32768TH:
+    case cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT:
+      throw FbossError(
+          "Unsupported scaling factor: ",
+          apache::thrift::util::enumNameSafe(scalingFactor));
+  }
+  throw FbossError(
+      "Unknown scaling factor: ",
+      apache::thrift::util::enumNameSafe(scalingFactor));
+}
+
 std::unique_ptr<HwAsic> HwAsic::makeAsic(
     int64_t switchId,
     const cfg::SwitchInfo& switchInfo,

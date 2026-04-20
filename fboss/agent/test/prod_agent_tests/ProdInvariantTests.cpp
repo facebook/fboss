@@ -146,7 +146,7 @@ void ProdInvariantTest::setupConfigFlag() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   cfg::AgentConfig testConfig;
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsicForTesting(hwAsics);
   utility::setPortToDefaultProfileIDMap(
       std::make_shared<MultiSwitchPortMap>(),
       ensemble->getPlatformMapping(),
@@ -260,7 +260,7 @@ void ProdInvariantTest::verifyLoadBalancing(int numPackets) {
 void ProdInvariantTest::verifyDscpToQueueMapping() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
   if (!asic->isSupported(HwAsic::Feature::L3_QOS)) {
     return;
@@ -362,7 +362,7 @@ void ProdInvariantTest::verifySafeDiagCommands() {
   AgentEnsemble* ensemble = getAgentEnsemble();
   std::set<std::string> diagCmds;
   auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-  auto asic = checkSameAndGetAsic(hwAsics);
+  auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
   switch (asic->getAsicType()) {
     case cfg::AsicType::ASIC_TYPE_FAKE:
@@ -775,7 +775,7 @@ class ProdInvariantStswTest : public ProdInvariantRtswTest {
                                  is_mmu_lossless_mode())
                                  .second;
     auto hwAsics = ensemble->getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(hwAsics);
+    auto asic = checkSameAndGetAsicForTesting(hwAsics);
 
     for (auto& downlinkPort : ecmpDownlinkPorts) {
       ecmpPorts_.emplace_back(downlinkPort);

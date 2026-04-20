@@ -5,6 +5,7 @@
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/packet/PktUtil.h"
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/CoppTestUtils.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
@@ -114,7 +115,7 @@ TEST_F(AgentPfcWatchdogGranularityTest, verifyPfcWatchdogTimerGranularity) {
     portCfg->pfc().ensure().watchdog() = pfcWatchdog;
 
     // Try different combinations of granularity and detection time.
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     // TH3 does not support granularity of 1ms
     if (asic->getAsicType() != cfg::AsicType::ASIC_TYPE_TOMAHAWK3) {
       cfg.switchSettings()->pfcWatchdogTimerGranularityMsec() = 1;

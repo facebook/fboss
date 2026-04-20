@@ -60,6 +60,9 @@ std::map<int32_t, std::pair<std::string, std::size_t>> _SwitchMap{
     SAI_ATTR_MAP(Switch, AvailableNextHopGroupMemberEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv4NeighborEntry),
     SAI_ATTR_MAP(Switch, AvailableIpv6NeighborEntry),
+#if SAI_API_VERSION >= SAI_VERSION(1, 9, 0)
+    SAI_ATTR_MAP(Switch, AvailableMySidEntry),
+#endif
     SAI_ATTR_MAP(Switch, IngressAcl),
     SAI_ATTR_MAP(Switch, EgressAcl),
     SAI_ATTR_MAP(Switch, TamObject),

@@ -115,37 +115,44 @@ cfg::LoadBalancer getFullHashWithFlowLabelConfig(
 cfg::LoadBalancer getEcmpFullWithFlowLabelHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashWithFlowLabelConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getTrunkFullWithFlowLabelHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashWithFlowLabelConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getTrunkFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::AGGREGATE_PORT);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::AGGREGATE_PORT);
 }
 cfg::LoadBalancer getEcmpHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getHalfHashConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getEcmpFullHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::ECMP);
 }
 cfg::LoadBalancer getEcmpFullUdfHashConfig(
     const std::vector<const HwAsic*>& asics) {
   return getFullHashUdfConfig(
-      *checkSameAndGetAsic(asics), cfg::LoadBalancerID::ECMP);
+      *checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing),
+      cfg::LoadBalancerID::ECMP);
 }
 std::vector<cfg::LoadBalancer> getEcmpFullTrunkHalfHashConfig(
     const std::vector<const HwAsic*>& asics) {

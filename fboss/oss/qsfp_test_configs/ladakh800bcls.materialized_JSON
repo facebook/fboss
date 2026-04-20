@@ -1,6 +1,5 @@
 {
   "defaultCommandLineArgs": {
-    "enable_xphy_link_training": "true",
     "firmware_upgrade_on_coldboot": "true",
     "firmware_upgrade_on_link_down": "false",
     "firmware_upgrade_on_tcvr_insert": "true",
@@ -10,7 +9,8 @@
     "publish_state_to_fsdb": "true",
     "publish_stats_to_fsdb": "true",
     "remediation_enabled": "false",
-    "subscribe_to_state_from_fsdb": "true"
+    "subscribe_to_state_from_fsdb": "true",
+    "test_fixture": "true"
   },
   "transceiverConfigOverrides": [
     
@@ -1790,6 +1790,14 @@
             }
           ]
       },
+      "T-OL8CNH-NFB": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
       "T-OL8CNH-NFL": {
           "versions": [
             {
@@ -1799,6 +1807,30 @@
           ]
       },
       "T-OL8CNH-NFM": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NFY": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NST": {
+          "versions": [
+            {
+              "fwType": 1,
+              "version": "114.149"
+            }
+          ]
+      },
+      "T-OL8CNH-NYT": {
           "versions": [
             {
               "fwType": 1,

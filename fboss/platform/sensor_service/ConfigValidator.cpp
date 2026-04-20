@@ -11,7 +11,6 @@ namespace facebook::fboss::platform::sensor_service {
 using namespace sensor_config;
 
 const std::unordered_set<std::string> kTempThresholdViolators = {
-    "ICECUBE",
     "ICETEA",
     "LEH800BCLS",
     "MONTBLANC",

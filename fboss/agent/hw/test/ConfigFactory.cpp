@@ -8,6 +8,7 @@
  *
  */
 #include "fboss/agent/hw/test/ConfigFactory.h"
+#include "fboss/agent/test/TestUtils.h"
 
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/FbossError.h"
@@ -96,7 +97,7 @@ cfg::SwitchConfig oneL3IntfConfig(
     bool supportsAddRemovePort,
     int baseVlanId) {
   std::vector<PortID> ports{port};
-  auto asic = checkSameAndGetAsic(asics);
+  auto asic = checkSameAndGetAsicForTesting(asics);
   return oneL3IntfNPortConfig(
       platformMapping,
       asic,

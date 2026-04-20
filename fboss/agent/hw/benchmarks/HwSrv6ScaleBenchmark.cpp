@@ -8,6 +8,7 @@
 #include "fboss/agent/state/RouteNextHop.h"
 #include "fboss/agent/test/AgentEnsemble.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
 #include "fboss/agent/test/utils/Srv6TestUtils.h"
@@ -27,7 +28,7 @@ constexpr int kPortsPerLag = 2;
 
 AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
   return [](const AgentEnsemble& ensemble) {
-    auto asic = checkSameAndGetAsic(ensemble.getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(ensemble.getL3Asics());
     // Ensure even number of ports for 2-port LAGs
     auto allPorts = ensemble.masterLogicalPortIds();
     auto numPorts = (allPorts.size() / kPortsPerLag) * kPortsPerLag;
@@ -62,6 +63,7 @@ AgentEnsembleSwitchConfigFn makeSrv6ConfigFn() {
 void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
   folly::BenchmarkSuspender suspender;
 
+  FLAGS_ecmp_resource_percentage = 100;
   auto ensemble = createAgentEnsemble(
       makeSrv6ConfigFn(), false /*disableLinkStateToggler*/);
   ensemble->applyNewState(
@@ -83,13 +85,13 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
     return ecmpHelper.resolveNextHops(in, numNhops);
   });
 
-  // Timed: program all routes with unique SRv6 nhops per group
-  constexpr int kBatchSize = 64;
+  // Timed: program and unprogram all routes in one shot
   suspender.dismiss();
-  for (int batch = 0; batch < numGroups; batch += kBatchSize) {
+
+  // Program all routes with unique SRv6 nhops per group
+  {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    auto batchEnd = std::min(batch + kBatchSize, numGroups);
-    for (int group = batch; group < batchEnd; ++group) {
+    for (int group = 0; group < numGroups; ++group) {
       RouteNextHopSet nhops;
       for (int member = 0; member < membersPerGroup; ++member) {
         auto globalIndex = group * membersPerGroup + member;
@@ -115,13 +117,11 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
     }
     routeUpdater.program();
   }
-  suspender.rehire();
 
-  // Cleanup: unprogram all routes (untimed)
-  for (int batch = 0; batch < numGroups; batch += kBatchSize) {
+  // Unprogram all routes
+  {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    auto batchEnd = std::min(batch + kBatchSize, numGroups);
-    for (int group = batch; group < batchEnd; ++group) {
+    for (int group = 0; group < numGroups; ++group) {
       routeUpdater.delRoute(
           RouterID(0),
           folly::IPAddress(
@@ -131,6 +131,8 @@ void srv6EcmpGroupScaleBenchmark(int numGroups, int membersPerGroup) {
     }
     routeUpdater.program();
   }
+
+  suspender.rehire();
 }
 
 // Benchmark: route scale with shared SRv6 nhops.
@@ -201,15 +203,13 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
         std::string("srv6Tunnel0")));
   }
 
-  // Timed: program all routes
-  constexpr int kBatchSize = 512;
+  // Timed: program and unprogram all routes in one shot
   suspender.dismiss();
 
-  // Program IPv6 routes in batches
-  for (int batch = 0; batch < numV6Routes; batch += kBatchSize) {
+  // Program all IPv6 routes
+  {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    auto batchEnd = std::min(batch + kBatchSize, numV6Routes);
-    for (int i = batch; i < batchEnd; ++i) {
+    for (int i = 0; i < numV6Routes; ++i) {
       routeUpdater.addRoute(
           RouterID(0),
           folly::IPAddressV6(
@@ -221,11 +221,10 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
     routeUpdater.program();
   }
 
-  // Program IPv4 routes in batches
-  for (int batch = 0; batch < numV4Routes; batch += kBatchSize) {
+  // Program all IPv4 routes
+  {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    auto batchEnd = std::min(batch + kBatchSize, numV4Routes);
-    for (int i = batch; i < batchEnd; ++i) {
+    for (int i = 0; i < numV4Routes; ++i) {
       auto byte1 = ((i >> 8) & 0xFF) + 1;
       auto byte2 = i & 0xFF;
       routeUpdater.addRoute(
@@ -238,13 +237,10 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
     routeUpdater.program();
   }
 
-  suspender.rehire();
-
-  // Cleanup: unprogram all routes (untimed)
-  for (int batch = 0; batch < numV6Routes; batch += kBatchSize) {
+  // Delete all IPv6 routes
+  {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    auto batchEnd = std::min(batch + kBatchSize, numV6Routes);
-    for (int i = batch; i < batchEnd; ++i) {
+    for (int i = 0; i < numV6Routes; ++i) {
       routeUpdater.delRoute(
           RouterID(0),
           folly::IPAddress(
@@ -256,10 +252,11 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
     }
     routeUpdater.program();
   }
-  for (int batch = 0; batch < numV4Routes; batch += kBatchSize) {
+
+  // Delete all IPv4 routes
+  {
     auto routeUpdater = ensemble->getSw()->getRouteUpdater();
-    auto batchEnd = std::min(batch + kBatchSize, numV4Routes);
-    for (int i = batch; i < batchEnd; ++i) {
+    for (int i = 0; i < numV4Routes; ++i) {
       auto byte1 = ((i >> 8) & 0xFF) + 1;
       auto byte2 = i & 0xFF;
       routeUpdater.delRoute(
@@ -271,6 +268,8 @@ void srv6RouteScaleBenchmark(int numV6Routes, int numV4Routes) {
     }
     routeUpdater.program();
   }
+
+  suspender.rehire();
 }
 
 } // namespace

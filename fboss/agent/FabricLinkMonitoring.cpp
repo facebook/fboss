@@ -97,31 +97,66 @@ int FabricLinkMonitoring::calculateParallelLinkOffset(
 int FabricLinkMonitoring::getSwitchIdOffset(
     const SwitchID& localSwitchId,
     const SwitchID& remoteSwitchId) {
+  // Leaf-L1 offset: the leaf term is divided by 4 (kNumSwitchIdsPerLeafSwitch)
+  // to normalize multi-ASIC switch IDs to a contiguous index, but the L1 term
+  // is NOT divided. This is because the leaf (J3) has a single ASIC requiring
+  // globally unique LinkSwitchIDs across all ports and VDs. The raw L1 switch
+  // ID difference (step of 4 between consecutive L1 switches, e.g. 3012, 3016)
+  // naturally spaces offsets apart by 4, which accommodates 4 VDs per L1 switch
+  // without collision.
+  // Example for rdsw007 (leafSid=1336) connecting to fdsw034 (l1Sid=3012):
+  //   offset = (1336 - 0) / 4 + (3012 - 2560) = 334 + 452 = 786
+  //   The next L1 switch (l1Sid=3016) gives offset 334 + 456 = 790, leaving
+  //   a gap of 4 for the 4 VDs (786, 787, 788, 789) to stay unique.
   auto getLeafL1SwitchIdOffset = [this](
                                      const SwitchID& leafSwitchId,
                                      const SwitchID& l1SwitchId) {
-    constexpr int kNumSwitchIdsPerLeafSwitch{4}; // Switch IDs per leaf switch
+    constexpr int kNumSwitchIdsPerLeafSwitch{4};
     return (leafSwitchId - lowestLeafSwitchId_) / kNumSwitchIdsPerLeafSwitch +
         l1SwitchId - lowestL1SwitchId_;
   };
+  // L1-L2 offset: both terms are divided by 4 (kNumSwitchIdsPerL1/L2Switch).
+  // Unlike leaf-L1, both L1 and L2 are fabric switches (R3 ASIC) with 4 VDs,
+  // where LinkSwitchID uniqueness is required only per-VD, not globally. Since
+  // VD is added separately in the final formula, the offset only needs to be
+  // unique per (L1, L2) pair within a VD. Dividing by 4 normalizes the step
+  // from 4 to 1, yielding contiguous offset values that maximize utilization
+  // of the available ID space (e.g. 128 unique values in 200 slots per VD).
+  // Without dividing, the step-4 spacing would cause offset % maxNumSwitchIds
+  // to wrap and collide (e.g. only 50 unique values out of 200 slots).
+  // Example for fdsw034 (l1Sid=3012) connecting to sdsw022 (l2Sid=3444):
+  //   offset = (3012 - 2560) / 4 + (3444 - 3360) / 4 = 113 + 21 = 134
   auto getL1L2SwitchIdOffset =
       [this](const SwitchID& l1SwitchId, const SwitchID& l2SwitchId) {
-        constexpr int kNumSwitchIdsPerL1Switch{4}; // Switch IDs per L1 switch
+        constexpr int kNumSwitchIdsPerL1Switch{4};
+        constexpr int kNumSwitchIdsPerL2Switch{4};
         return (l1SwitchId - lowestL1SwitchId_) / kNumSwitchIdsPerL1Switch +
-            l2SwitchId - lowestL2SwitchId_;
+            (l2SwitchId - lowestL2SwitchId_) / kNumSwitchIdsPerL2Switch;
       };
 
-  // Leaf switch ID < L1 switch ID < L2 switch ID
-  if (localSwitchId < lowestL1SwitchId_ || remoteSwitchId < lowestL1SwitchId_) {
-    // We are dealing with leaf-L1 switches
-    return localSwitchId < lowestL1SwitchId_
-        ? getLeafL1SwitchIdOffset(localSwitchId, remoteSwitchId)
-        : getLeafL1SwitchIdOffset(remoteSwitchId, localSwitchId);
+  // Determine link type from DSF node layer classification
+  // instead of relying on switch ID ordering (VOQ < L1 < L2).
+  auto localLayerIt = switchId2DsfSwitchLayer_.find(localSwitchId);
+  auto remoteLayerIt = switchId2DsfSwitchLayer_.find(remoteSwitchId);
+  CHECK(localLayerIt != switchId2DsfSwitchLayer_.end())
+      << "FabricLinkMon: Node layer not found for switch ID: " << localSwitchId;
+  CHECK(remoteLayerIt != switchId2DsfSwitchLayer_.end())
+      << "FabricLinkMon: Node layer not found for switch ID: "
+      << remoteSwitchId;
+
+  bool hasLeaf =
+      (localLayerIt->second == DsfSwitchLayer::LEAF ||
+       remoteLayerIt->second == DsfSwitchLayer::LEAF);
+  if (hasLeaf) {
+    // Leaf-L1 link: route leaf switch ID as the first argument
+    bool localIsLeaf = (localLayerIt->second == DsfSwitchLayer::LEAF);
+    return localIsLeaf ? getLeafL1SwitchIdOffset(localSwitchId, remoteSwitchId)
+                       : getLeafL1SwitchIdOffset(remoteSwitchId, localSwitchId);
   } else {
-    // We are dealing with L1-L2 switches
-    return localSwitchId < lowestL2SwitchId_
-        ? getL1L2SwitchIdOffset(localSwitchId, remoteSwitchId)
-        : getL1L2SwitchIdOffset(remoteSwitchId, localSwitchId);
+    // L1-L2 link: route L1 switch ID as the first argument
+    bool localIsL1 = (localLayerIt->second == DsfSwitchLayer::L1_FABRIC);
+    return localIsL1 ? getL1L2SwitchIdOffset(localSwitchId, remoteSwitchId)
+                     : getL1L2SwitchIdOffset(remoteSwitchId, localSwitchId);
   }
 }
 
@@ -138,7 +173,19 @@ void FabricLinkMonitoring::allocateSwitchIdForPorts(
     const cfg::SwitchConfig* config) {
   CHECK(config->switchSettings()->switchId().has_value())
       << "FabricLinkMon: Local switch ID missing in switch settings!";
-  SwitchID localSwitchId = SwitchID(*config->switchSettings()->switchId());
+  // Use the lowest switch ID for the local switch name. Multi-ASIC switches
+  // have multiple switch IDs (e.g. 3012, 3014) but the remote side resolves
+  // the switch name to the lowest one. Using the lowest here ensures both
+  // sides compute the same switch ID offset for cross-link matching.
+  auto localDsfNodeIter =
+      config->dsfNodes()->find(*config->switchSettings()->switchId());
+  CHECK(localDsfNodeIter != config->dsfNodes()->end())
+      << "FabricLinkMon: Local switch DSF node missing!";
+  auto localSwitchNameIter =
+      switchName2SwitchId_.find(*localDsfNodeIter->second.name());
+  CHECK(localSwitchNameIter != switchName2SwitchId_.end())
+      << "FabricLinkMon: Local switch name not found in switch name mapping!";
+  SwitchID localSwitchId = localSwitchNameIter->second;
   bool isDualStageNetwork = utility::isDualStage(*config);
 
   for (const auto& port : *config->ports()) {
@@ -254,11 +301,14 @@ void FabricLinkMonitoring::updateLowestSwitchIds(
     const int fabricLevel) {
   if (*dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
     lowestLeafSwitchId_ = std::min(nodeSwitchId, lowestLeafSwitchId_);
+    switchId2DsfSwitchLayer_[nodeSwitchId] = DsfSwitchLayer::LEAF;
   } else {
     if (fabricLevel == 1) {
       lowestL1SwitchId_ = std::min(nodeSwitchId, lowestL1SwitchId_);
+      switchId2DsfSwitchLayer_[nodeSwitchId] = DsfSwitchLayer::L1_FABRIC;
     } else if (fabricLevel == 2) {
       lowestL2SwitchId_ = std::min(nodeSwitchId, lowestL2SwitchId_);
+      switchId2DsfSwitchLayer_[nodeSwitchId] = DsfSwitchLayer::L2_FABRIC;
     } else {
       throw FbossError(
           "FabricLinkMon: DSF node should be one of interface node, l1 or l2 fabric switch!");

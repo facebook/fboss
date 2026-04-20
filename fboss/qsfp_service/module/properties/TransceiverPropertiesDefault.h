@@ -294,6 +294,13 @@ constexpr auto kDefaultTransceiverPropertiesJson = R"({
           ]
         },
         {
+          "combinationName": "2x400G-DR4",
+          "ports": [
+            {"speed": 400000, "hostLanes": {"start": 0, "count": 4}, "mediaLanes": {"start": 0, "count": 4}, "mediaLaneCode": {"smfCode": 0x1C}, "mediaInterfaceCode": 14},
+            {"speed": 400000, "hostLanes": {"start": 4, "count": 4}, "mediaLanes": {"start": 4, "count": 4}, "mediaLaneCode": {"smfCode": 0x1C}, "mediaInterfaceCode": 14}
+          ]
+        },
+        {
           "combinationName": "8x100G-DR1",
           "ports": [
             {"speed": 100000, "hostLanes": {"start": 0, "count": 1}, "mediaLanes": {"start": 0, "count": 1}, "mediaLaneCode": {"smfCode": 0x14}, "mediaInterfaceCode": 28},

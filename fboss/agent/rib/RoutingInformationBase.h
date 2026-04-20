@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fboss/agent/FbossError.h"
 #include "fboss/agent/FbossEventBase.h"
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
@@ -83,6 +84,14 @@ class RibRouteTables {
           return nullptr;
         });
   }
+
+  void addOrUpdateNamedNextHopGroups(
+      const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void deleteNamedNextHopGroups(
+      const std::vector<std::string>& names,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   template <typename RouteType, typename RouteIdType>
   void update(
@@ -251,6 +260,14 @@ class RibRouteTables {
       void* cookie);
   template <typename RibUpdateFn>
   void updateRibMySids(const RibUpdateFn& updateRibFn);
+
+  /*
+   * Named next-hop group updates
+   */
+  template <typename RibUpdateFn>
+  void updateRibNamedNextHopGroups(const RibUpdateFn& updateRibFn);
+  void updateFibNamedNextHopGroups(
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
   /*
    * Currently, route updates to separate VRFs are made to be sequential. In the
@@ -481,6 +498,17 @@ class RoutingInformationBase {
   std::unique_ptr<NextHopIDManager> getNextHopIDManagerCopy() const {
     return ribTables_.getNextHopIDManagerCopy();
   }
+
+  // Named next-hop group operations. These run on the RIB thread to ensure
+  // thread-safe access to NextHopIDManager. Allocation/deallocation is followed
+  // by a state update callback (under rlock) to sync switch state.
+  void addOrUpdateNamedNextHopGroups(
+      const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
+
+  void deleteNamedNextHopGroups(
+      const std::vector<std::string>& names,
+      const std::function<void(const NextHopIDManager*)>& stateUpdateFn);
 
  private:
   void ensureRunning() const;

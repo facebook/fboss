@@ -122,6 +122,23 @@ std::vector<NextHop> FibInfo::resolveNextHopSetFromName(
   return resolveNextHopSetFromId(*idOpt);
 }
 
+std::map<std::string, NextHopSetId> FibInfo::getNameToNextHopSetId() const {
+  std::map<std::string, NextHopSetId> result;
+  auto nameToIdMap = safe_cref<switch_state_tags::nameToNextHopSetId>();
+  if (!nameToIdMap) {
+    return result;
+  }
+  for (const auto& [name, idNode] : std::as_const(*nameToIdMap)) {
+    result[name] = idNode->toThrift();
+  }
+  return result;
+}
+
+void FibInfo::setNameToNextHopSetId(
+    const std::map<std::string, NextHopSetId>& nameToSetId) {
+  set<switch_state_tags::nameToNextHopSetId>(nameToSetId);
+}
+
 template struct ThriftStructNode<FibInfo, state::FibInfoFields>;
 
 } // namespace facebook::fboss

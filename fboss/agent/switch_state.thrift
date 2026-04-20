@@ -260,6 +260,7 @@ struct AclEntryFields {
   30: optional list<byte> roceBytes;
   31: optional list<byte> roceMask;
   32: optional list<switch_config.AclUdfEntry> udfTable;
+  33: optional switch_config.Range l4DstPortRange;
 }
 
 enum NeighborState {
@@ -614,6 +615,17 @@ struct MySidFields {
   2: Address.IPPrefix mySid;
   3: optional i64 unresolveNextHopsId;
   4: optional i64 resolvedNextHopsId;
+  # For ADJACENCY_MICRO_SID: the interface ID to resolve next hops from.
+  # When neighbors resolve on this interface, the MySID entry's next hop
+  # is updated accordingly.
+  5: optional i32 adjacencyInterfaceId;
+  # Client that programmed this entry. STATIC_ROUTE for config-driven,
+  # TE_AGENT for Thrift RPC-driven. Default TE_AGENT for backward
+  # compatibility with existing RPC-programmed entries.
+  6: ctrl.ClientID clientId = ctrl.ClientID.TE_AGENT;
+  # For ADJACENCY_MICRO_SID: whether to resolve IPv6 (NDP) or IPv4 (ARP)
+  # neighbors. Only applicable to uA entries.
+  7: optional bool isV6;
 }
 
 struct QosPolicyFields {

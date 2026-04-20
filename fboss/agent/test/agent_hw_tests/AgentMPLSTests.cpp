@@ -27,6 +27,7 @@
 #include "fboss/agent/state/StateUtils.h"
 #include "fboss/agent/test/AgentHwTest.h"
 #include "fboss/agent/test/EcmpSetupHelper.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/TrunkUtils.h"
 #include "fboss/agent/test/utils/AclTestUtils.h"
 #include "fboss/agent/test/utils/ConfigUtils.h"
@@ -126,7 +127,7 @@ class AgentMPLSTest : public AgentHwTest {
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto masterLogicalPorts = ensemble.masterLogicalPortIds();
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),

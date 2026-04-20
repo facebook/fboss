@@ -3311,3 +3311,204 @@ TEST_F(ThriftTestWithNhopIdMgr, getMySidEntriesNodeAndAdjacencyTypesViaRib) {
         folly::IPAddress(kNhopAddrB));
   }
 }
+
+namespace {
+
+NextHopThrift makeNextHopThrift(const std::string& ip, int weight = 0) {
+  NextHopThrift nhop;
+  nhop.address() = toBinaryAddress(folly::IPAddress(ip));
+  nhop.weight() = weight;
+  return nhop;
+}
+
+NamedNextHopGroup makeGroup(
+    const std::string& name,
+    const std::vector<std::string>& nhopIps) {
+  NamedNextHopGroup group;
+  group.name() = name;
+  std::vector<NextHopThrift> nhops;
+  nhops.reserve(nhopIps.size());
+  for (const auto& ip : nhopIps) {
+    nhops.push_back(makeNextHopThrift(ip));
+  }
+  group.nexthops() = std::move(nhops);
+  return group;
+}
+
+} // unnamed namespace
+
+class NamedNextHopGroupThriftTest : public ::testing::Test {
+ public:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    auto config = testConfigA();
+    handle_ = createTestHandle(&config);
+    sw_ = handle_->getSw();
+    sw_->initialConfigApplied(std::chrono::steady_clock::now());
+  }
+
+  void TearDown() override {
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+
+  SwSwitch* sw_;
+  std::unique_ptr<HwTestHandle> handle_;
+};
+
+TEST_F(NamedNextHopGroupThriftTest, addAndGetNextHopGroup) {
+  ThriftHandler handler(sw_);
+
+  // Add a named next-hop group
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup(
+      "group1", {"2401:db00:2110:3001::2", "2401:db00:2110:3001::3"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Get group by name filter
+  std::vector<NamedNextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("group1");
+  handler.getNextHopGroups(result, std::move(nameFilter));
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(*result[0].name(), "group1");
+  EXPECT_EQ(result[0].nexthops()->size(), 2);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, addMultipleGroups) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup("groupA", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("groupB", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Query both named groups by filter
+  std::vector<NamedNextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("groupA");
+  nameFilter->push_back("groupB");
+  handler.getNextHopGroups(result, std::move(nameFilter));
+  ASSERT_EQ(result.size(), 2);
+
+  std::set<std::string> names;
+  for (const auto& g : result) {
+    names.insert(*g.name());
+  }
+  EXPECT_EQ(names.count("groupA"), 1);
+  EXPECT_EQ(names.count("groupB"), 1);
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getNextHopGroupsByName) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup("groupA", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("groupB", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Query only groupA
+  std::vector<NamedNextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("groupA");
+  handler.getNextHopGroups(result, std::move(nameFilter));
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(*result[0].name(), "groupA");
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getEmptyResult) {
+  ThriftHandler handler(sw_);
+
+  // Query a specific name that doesn't exist
+  std::vector<NamedNextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("nonexistent");
+  handler.getNextHopGroups(result, std::move(nameFilter));
+  EXPECT_TRUE(result.empty());
+}
+
+TEST_F(NamedNextHopGroupThriftTest, getNonExistentGroupByName) {
+  ThriftHandler handler(sw_);
+
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup("groupA", {"2401:db00:2110:3001::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Query a name that doesn't exist
+  std::vector<NamedNextHopGroup> result;
+  auto nameFilter = std::make_unique<std::vector<std::string>>();
+  nameFilter->push_back("nonexistent");
+  handler.getNextHopGroups(result, std::move(nameFilter));
+  EXPECT_TRUE(result.empty());
+}
+
+TEST_F(NamedNextHopGroupThriftTest, removeNextHopGroup) {
+  ThriftHandler handler(sw_);
+
+  // Add two groups
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup("groupA", {"2401:db00:2110:3001::2"}));
+  groups->push_back(makeGroup("groupB", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Remove groupA
+  auto names = std::make_unique<std::vector<std::string>>();
+  names->push_back("groupA");
+  handler.deleteNamedNextHopGroups(std::move(names));
+
+  // groupA should be gone, groupB should remain
+  std::vector<NamedNextHopGroup> resultA;
+  auto filterA = std::make_unique<std::vector<std::string>>();
+  filterA->push_back("groupA");
+  handler.getNextHopGroups(resultA, std::move(filterA));
+  EXPECT_TRUE(resultA.empty());
+
+  std::vector<NamedNextHopGroup> resultB;
+  auto filterB = std::make_unique<std::vector<std::string>>();
+  filterB->push_back("groupB");
+  handler.getNextHopGroups(resultB, std::move(filterB));
+  ASSERT_EQ(resultB.size(), 1);
+  EXPECT_EQ(*resultB[0].name(), "groupB");
+}
+
+TEST_F(NamedNextHopGroupThriftTest, removeNonExistentGroup) {
+  ThriftHandler handler(sw_);
+
+  // Removing a non-existent group should not throw
+  auto names = std::make_unique<std::vector<std::string>>();
+  names->push_back("nonexistent");
+  EXPECT_NO_THROW(handler.deleteNamedNextHopGroups(std::move(names)));
+}
+
+TEST_F(NamedNextHopGroupThriftTest, addRemoveAddGroup) {
+  ThriftHandler handler(sw_);
+
+  // Add
+  auto groups = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups->push_back(makeGroup("group1", {"2401:db00:2110:3001::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups));
+
+  // Remove
+  auto names = std::make_unique<std::vector<std::string>>();
+  names->push_back("group1");
+  handler.deleteNamedNextHopGroups(std::move(names));
+
+  // Verify removed
+  std::vector<NamedNextHopGroup> result;
+  auto filter = std::make_unique<std::vector<std::string>>();
+  filter->push_back("group1");
+  handler.getNextHopGroups(result, std::move(filter));
+  EXPECT_TRUE(result.empty());
+
+  // Re-add with different nexthops
+  auto groups2 = std::make_unique<std::vector<NamedNextHopGroup>>();
+  groups2->push_back(makeGroup("group1", {"2401:db00:2110:3055::2"}));
+  handler.addOrUpdateNamedNextHopGroups(std::move(groups2));
+
+  // Verify re-added
+  result.clear();
+  auto filter2 = std::make_unique<std::vector<std::string>>();
+  filter2->push_back("group1");
+  handler.getNextHopGroups(result, std::move(filter2));
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(*result[0].name(), "group1");
+}

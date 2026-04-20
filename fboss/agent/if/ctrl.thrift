@@ -307,6 +307,15 @@ struct FabricLinkMonPortStats {
 }
 
 /*
+ * Per-port statistics for CPU latency monitoring.
+ * Tracks round-trip latency of ICMPv6 probe packets sent out ethernet
+ * ports and received back via the IP2ME (CPU_IS_NHOP) trap mechanism.
+ */
+struct CpuLatencyPortStats {
+  1: double latencyMs;
+}
+
+/*
  * Fabric monitoring detail for a single fabric port
  */
 struct FabricMonitoringDetail {
@@ -675,6 +684,12 @@ enum ClientID {
    * Routes from Open/R daemon on the box
    */
   OPENR = 786,
+
+  /**
+   * Routes and MySid entries programmed via Thrift RPC by the TE agent /
+   * controller (e.g. addUnicastRoutes, addMySidEntries).
+   */
+  TE_AGENT = 800,
 }
 
 struct AclEntryThrift {
@@ -1399,14 +1414,14 @@ service FbossCtrl extends phy.FbossCommonPhyCtrl {
   /*
    * API to add named next hop groups, named next hop group with same name will be replaced
    */
-  void addOrUpdateNextHopGroups(
+  void addOrUpdateNamedNextHopGroups(
     1: list<common.NamedNextHopGroup> nextHopGroups,
   ) throws (1: fboss.FbossBaseError error);
 
   /*
    * API to remove named next hop groups
    */
-  void removeNextHopGroups(1: list<string> name) throws (
+  void deleteNamedNextHopGroups(1: list<string> name) throws (
     1: fboss.FbossBaseError error,
   );
 

@@ -11,6 +11,7 @@
 
 #include <folly/MacAddress.h>
 #include <folly/logging/xlog.h>
+#include "fboss/agent/CpuLatencyManager.h"
 #include "fboss/agent/DHCPv6Handler.h"
 #include "fboss/agent/FibHelpers.h"
 #include "fboss/agent/NeighborUpdater.h"
@@ -366,6 +367,11 @@ unique_ptr<RxPacket> IPv6Handler::handleICMPv6Packet(
       sw_->portStats(pkt)->ipv6NdpPkt();
       // TODO: Do we need to bother handling this yet?
       sw_->portStats(pkt)->pktDropped();
+      return nullptr;
+    case ICMPv6Type::ICMPV6_TYPE_CPU_LATENCY_PROBE:
+      if (auto* mgr = sw_->getCpuLatencyManager()) {
+        mgr->handlePacket(std::move(pkt));
+      }
       return nullptr;
     default:
       break;

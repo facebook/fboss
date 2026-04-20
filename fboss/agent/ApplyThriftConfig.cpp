@@ -4139,6 +4139,27 @@ void ThriftConfigApplier::checkAcl(const cfg::AclEntry* config) const {
           std::to_string(AclEntry::kMaxL4Port));
     }
   }
+  if (auto l4DstPortRange = config->l4DstPortRange()) {
+    if (*l4DstPortRange->minimum() < 0 ||
+        *l4DstPortRange->minimum() > AclEntry::kMaxL4Port) {
+      throw FbossError(
+          "L4 destination port range minimum must be between 0 and ",
+          std::to_string(AclEntry::kMaxL4Port));
+    }
+    if (*l4DstPortRange->maximum() < 0 ||
+        *l4DstPortRange->maximum() > AclEntry::kMaxL4Port) {
+      throw FbossError(
+          "L4 destination port range maximum must be between 0 and ",
+          std::to_string(AclEntry::kMaxL4Port));
+    }
+    if (*l4DstPortRange->minimum() > *l4DstPortRange->maximum()) {
+      throw FbossError(
+          "L4 destination port range minimum must not exceed maximum");
+    }
+    if (config->l4DstPort()) {
+      throw FbossError("l4DstPort and l4DstPortRange cannot both be set");
+    }
+  }
   if (config->icmpCode() && !config->icmpType()) {
     throw FbossError("icmp type must be set when icmp code is set");
   }
@@ -4222,6 +4243,9 @@ shared_ptr<AclEntry> ThriftConfigApplier::createAcl(
   }
   if (auto l4DstPort = config->l4DstPort()) {
     newAcl->setL4DstPort(*l4DstPort);
+  }
+  if (auto l4DstPortRange = config->l4DstPortRange()) {
+    newAcl->setL4DstPortRange(*l4DstPortRange);
   }
   if (auto ipFrag = config->ipFrag()) {
     newAcl->setIpFrag(*ipFrag);

@@ -29,6 +29,10 @@ class Qumran4DAsic : public Jericho3Asic {
   uint32_t getNumCores() const override {
     return 8;
   }
+
+  uint32_t getNumDies() const override {
+    return 2;
+  }
 };
 
 } // namespace facebook::fboss

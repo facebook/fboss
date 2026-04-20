@@ -3366,6 +3366,13 @@ void CmisModule::ensureRxOutputSquelchEnabled(
   }
 }
 
+void CmisModule::disableTxRxSquelchForTunableOptics() {
+  uint8_t squelchDisableValue = 0xFF;
+  writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
+  writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
+  QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch for tunable optics";
+}
+
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
   lock_guard<std::mutex> g(qsfpModuleMutex_);
   auto currTransmitterTechnology = getQsfpTransmitterTechnology();
@@ -3531,6 +3538,8 @@ void CmisModule::programTunableModule(
   const auto& centerFreq = freqConfig->centerFrequencyConfig();
 
   QSFP_LOG(INFO, this) << "Program tunable optics module";
+  // Disable TX and RX squelch on all lanes
+  disableTxRxSquelchForTunableOptics();
 
   switch (centerFreq->getType()) {
     case cfg::CenterFrequencyConfig::Type::frequencyMhz: {

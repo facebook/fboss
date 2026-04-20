@@ -99,8 +99,9 @@ class AgentMmuTuningTest : public AgentHwTest {
 
  private:
   void sendUdpPkts(uint8_t lowPriDscp, uint8_t highPriDscp) {
-    auto mmuSizeBytes = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())
-                            ->getMMUSizeBytes();
+    auto mmuSizeBytes =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getMMUSizeBytes();
     auto bytesSent = 0;
     // Send high pri DSCP packet followed by low pri DSCP packet
     // since in cases where MMU is split evenly (viz. tuning reserved
@@ -186,7 +187,7 @@ class AgentMmuTuningTest : public AgentHwTest {
   void addQueueConfig(
       cfg::SwitchConfig* config,
       const std::vector<const HwAsic*>& asics) const {
-    auto asic = checkSameAndGetAsic(asics);
+    auto asic = checkSameAndGetAsicForTesting(asics);
     auto streamType =
         *(utility::getStreamType(cfg::PortType::INTERFACE_PORT, asics).begin());
     bool scalingFactorSupported =

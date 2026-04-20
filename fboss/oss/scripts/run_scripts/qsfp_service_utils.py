@@ -6,7 +6,6 @@ import os
 import subprocess
 import typing as t
 
-
 _DEFAULT_OSS_QSFP_SERVICE_PATH = "/opt/fboss/bin/qsfp_service"
 _DEFAULT_OSS_LOG_DIR = "/opt/fboss/logs/"
 _PLATFORM_MAPPING_OVERRIDE_PATH_ARG = "--platform_mapping_override_path"
@@ -49,12 +48,11 @@ if $programname == "{_QSFP_SERVICE_OSS}" then {_DEFAULT_OSS_LOG_DIR}/{_QSFP_SERV
 
 
 def _cleanup_qsfp_service_rsyslog_conf() -> None:
-    subprocess.run(f"rm {_QSFP_SERVICE_RSYSLOG_CONF_PATH}", shell=True)
-    subprocess.run("systemctl restart rsyslog", shell=True)
+    subprocess.run(f"rm {_QSFP_SERVICE_RSYSLOG_CONF_PATH}", check=False, shell=True)
+    subprocess.run("systemctl restart rsyslog", check=False, shell=True)
 
 
 def _setup_qsfp_service(
-    qsfp_service_bin_path: t.Optional[str] = None,
     qsfp_service_config_path: t.Optional[str] = None,
     platform_mapping_override_path: t.Optional[str] = None,
     bsp_platform_mapping_override_path: t.Optional[str] = None,
@@ -63,8 +61,7 @@ def _setup_qsfp_service(
     print(f"Setting up {_QSFP_SERVICE_OSS}")
 
     # Prepare qsfp_service binary and config file
-    if not qsfp_service_bin_path:
-        qsfp_service_bin_path = _DEFAULT_OSS_QSFP_SERVICE_PATH
+    qsfp_service_bin_path = _DEFAULT_OSS_QSFP_SERVICE_PATH
     if not os.path.exists(qsfp_service_bin_path):
         raise Exception(f"qsfp_service binary: {qsfp_service_bin_path} does not exist")
     print(f"qsfp_service binary path: {qsfp_service_bin_path}")
@@ -114,13 +111,16 @@ def _setup_qsfp_service(
     with open(_QSFP_SERVICE_RSYSLOG_CONF_PATH, "w") as f:
         f.write(_QSFP_SERVICE_RSYSLOG_CONF_CONTENT)
         f.flush()
-    subprocess.run("systemctl restart rsyslog; sleep 5", shell=True)
+    subprocess.run("systemctl restart rsyslog; sleep 5", check=False, shell=True)
 
 
 def _setup_qsfp_service_coldboot() -> None:
-    subprocess.run(f"mkdir -p {_DEFAULT_QSFP_SERVICE_VOLATIRE_DIR}", shell=True)
+    subprocess.run(
+        f"mkdir -p {_DEFAULT_QSFP_SERVICE_VOLATIRE_DIR}", check=False, shell=True
+    )
     subprocess.run(
         f"touch {_DEFAULT_QSFP_SERVICE_VOLATIRE_DIR}/{_QSFP_SERVICE_COLD_BOOT_FILE}",
+        check=False,
         shell=True,
     )
 
@@ -133,13 +133,16 @@ def _start_qsfp_service(is_warm_boot: bool = False) -> None:
     if not is_warm_boot:
         _setup_qsfp_service_coldboot()
 
-    subprocess.run(f"systemctl enable {_QSFP_SERVICE_UNIT_FILE_PATH}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
-    subprocess.run(f"systemctl start {_QSFP_SERVICE_OSS}; sleep 10", shell=True)
+    subprocess.run(
+        f"systemctl enable {_QSFP_SERVICE_UNIT_FILE_PATH}", check=False, shell=True
+    )
+    subprocess.run("systemctl daemon-reload", check=False, shell=True)
+    subprocess.run(
+        f"systemctl start {_QSFP_SERVICE_OSS}; sleep 10", check=False, shell=True
+    )
 
 
 def setup_and_start_qsfp_service(
-    qsfp_service_bin_path: t.Optional[str] = None,
     qsfp_service_config_path: t.Optional[str] = None,
     platform_mapping_override_path: t.Optional[str] = None,
     bsp_platform_mapping_override_path: t.Optional[str] = None,
@@ -148,7 +151,6 @@ def setup_and_start_qsfp_service(
 ) -> None:
     # First setup qsfp_service unit file for systemd and rsyslog config for logging
     _setup_qsfp_service(
-        qsfp_service_bin_path,
         qsfp_service_config_path,
         platform_mapping_override_path,
         bsp_platform_mapping_override_path,
@@ -166,14 +168,16 @@ def cleanup_qsfp_service() -> None:
     """
     print(f"Cleaning up {_QSFP_SERVICE_OSS}")
 
-    subprocess.run(f"systemctl stop {_QSFP_SERVICE_PROD}", shell=True)
-    subprocess.run(f"systemctl stop {_QSFP_SERVICE_FOR_TESTING}", shell=True)
-    subprocess.run(f"systemctl stop {_QSFP_SERVICE_OSS}", shell=True)
-    subprocess.run(f"systemctl disable {_QSFP_SERVICE_OSS}", shell=True)
-    subprocess.run("systemctl daemon-reload", shell=True)
+    subprocess.run(f"systemctl stop {_QSFP_SERVICE_PROD}", check=False, shell=True)
+    subprocess.run(
+        f"systemctl stop {_QSFP_SERVICE_FOR_TESTING}", check=False, shell=True
+    )
+    subprocess.run(f"systemctl stop {_QSFP_SERVICE_OSS}", check=False, shell=True)
+    subprocess.run(f"systemctl disable {_QSFP_SERVICE_OSS}", check=False, shell=True)
+    subprocess.run("systemctl daemon-reload", check=False, shell=True)
     # Just wanna be safe, also use pkill in case systemctl stop gets stuck
-    subprocess.run(f"pkill -f {_QSFP_SERVICE_PROD}", shell=True)
-    subprocess.run(f"pkill -f {_QSFP_SERVICE_FOR_TESTING}", shell=True)
-    subprocess.run(f"pkill -f {_QSFP_SERVICE_OSS}", shell=True)
+    subprocess.run(f"pkill -f {_QSFP_SERVICE_PROD}", check=False, shell=True)
+    subprocess.run(f"pkill -f {_QSFP_SERVICE_FOR_TESTING}", check=False, shell=True)
+    subprocess.run(f"pkill -f {_QSFP_SERVICE_OSS}", check=False, shell=True)
 
     _cleanup_qsfp_service_rsyslog_conf()

@@ -69,6 +69,13 @@ class G202xAsic : public TajoAsic {
     // Concept of scaling factor does not apply returning the same value TH3
     return cfg::MMUScalingFactor::TWO;
   }
+  bool scalingFactorBasedDynamicThresholdSupported() const override {
+    return true;
+  }
+  int getBufferDynThreshFromScalingFactor(
+      cfg::MMUScalingFactor scalingFactor) const override {
+    return HwAsic::getBufferDynThreshFromScalingFactor(scalingFactor);
+  }
   const std::map<cfg::PortType, cfg::PortLoopbackMode>& desiredLoopbackModes()
       const override;
   int getMaxNumLogicalPorts() const override {

@@ -348,6 +348,14 @@ TEST_F(PortStoreTest, portSetDisableLinkTraining) {
       portId, SaiPortTraits::Attributes::LinkTrainingEnable{}));
 }
 
+TEST_F(PortStoreTest, portGetLinkTrainingRxStatus) {
+  auto portId = createPort(0);
+  SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);
+  auto rxStatus = saiApiTable->portApi().getAttribute(
+      portId, SaiPortTraits::Attributes::LinkTrainingRxStatus{});
+  EXPECT_EQ(rxStatus, 0); // NOT_TRAINED default
+}
+
 TEST_F(PortStoreTest, portGetPortPgPktDropStatus) {
   auto portId = createPort(0);
   SaiObject<SaiPortTraits> portObj = createObj<SaiPortTraits>(portId);

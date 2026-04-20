@@ -1323,7 +1323,8 @@ TEST_P(AgentMirrorOnDropDnxTest, VoqReject) {
     // Add neighbor on remote system port. The remoteSwitchId formula must be
     // in sync with the logic in addRemoteIntfNodeCfg().
     SwitchID remoteSwitchId = static_cast<SwitchID>(
-        checkSameAndGetAsic(getAgentEnsemble()->getL3Asics())->getNumCores() *
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics())
+            ->getNumCores() *
         getAgentEnsemble()->getNumL3Asics());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return utility::addRemoteSysPort(
@@ -2054,7 +2055,8 @@ TEST_F(AgentMirrorOnDropXgsTest, XgsModMmuDrop) {
     // Lossy PG (headroom=0) with larger globalShared (kModGlobalSharedBytes)
     // to ensure enough shared buffer for the MoD pool (2580 cells) after PG
     // min guarantees, but small enough to trigger MMU drops quickly.
-    auto hwAsic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto hwAsic =
+        checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     utility::setupPfcBuffers(
         getAgentEnsemble(),
         config,

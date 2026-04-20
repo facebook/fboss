@@ -571,7 +571,6 @@ cpp_library(
         "AsicUtils.cpp",
     ],
     exported_deps = [
-        ":agent_features",
         "//fboss/agent/hw/switch_asics:switch_asics",
     ],
 )
@@ -706,6 +705,7 @@ cpp_library(
         "//fb303/detail:quantile_stat_wrappers",
         "//fboss/agent/state:state",
         "//fboss/lib:common_utils",
+        "//fboss/lib:thrift_call_duration_logger",
         "//folly:memory",
         "//folly:range",
         "//folly:utility",
@@ -878,12 +878,31 @@ cpp_library(
 )
 
 cpp_library(
+    name = "cpu_latency_manager",
+    headers = [
+        "CpuLatencyManager.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        ":fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:network_address",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
         "ApplyThriftConfig.cpp",
         "ArpCache.cpp",
         "ArpHandler.cpp",
+        "CpuLatencyManager.cpp",
         "DHCPv4Handler.cpp",
         "DHCPv6Handler.cpp",
         "DsfSession.cpp",
@@ -973,6 +992,7 @@ cpp_library(
     exported_deps = [
         "fbsource//third-party/glog:glog",
         "fbsource//third-party/googletest:gtest",
+        "fbsource//third-party/googletest:gtest_headers",
         "fbsource//third-party/re2:re2",
         ":address_utils",
         ":agent_dir_util",
@@ -1073,6 +1093,7 @@ cpp_library(
         "//fboss/lib:hw_write_behavior",
         "//fboss/lib:radix_tree",
         "//fboss/lib:thread_heartbeat",
+        "//fboss/lib:thrift_call_duration_logger",
         "//fboss/lib:thrift_service_utils",
         "//fboss/lib/config:fboss_config_utils",
         "//fboss/lib/link_snapshots:async_filewriter_factory",
@@ -1163,6 +1184,8 @@ cpp_library(
         "//fboss/agent/if:ctrl-cpp2-services",
         "//fboss/agent/if:ctrl-cpp2-types",
         "//fboss/agent/platforms/common:platform_mapping",
+        "//fboss/agent/rib:fib_updater",
+        "//fboss/agent/rib:standalone_rib",
         "//fboss/agent/state:nodebase",
         "//fboss/agent/state:state",
         "//fboss/agent/state:state_utils",

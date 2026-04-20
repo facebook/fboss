@@ -53,6 +53,7 @@ fboss_fbpkg_builder(
             "fbcode.enable_distributed_thinlto": "true",
             "fbcode.split-dwarf": "true",
         },
+        num_threads = 20,
     ),
     fail_on_redundant_configerator_fbpkg = False,
     override_log_paths = [
@@ -88,3 +89,9 @@ build_hw_agent_artifacts_fbpkgs(product_lines = [
     ProductLine.SAI_SDK_BCM,
     ProductLine.BCM_DSF_SDK,
 ])
+
+#Build DSF multinode test artifacts fbpkg
+build_test_artifacts_fbpkgs(
+    product_lines = [ProductLine.BCM_DSF_SDK],
+    test_types = ["multinode_test"],
+)

@@ -8058,7 +8058,7 @@
           "test_name_regex": "HwHashTrunk8x3PolarizationTests.FullHalfxFullHalf$"
         }
     ],
-    "leaba/25.11.5210/25.11.5210/graphene202x": [
+    "leaba/25.11.4210/25.11.4210/graphene202x": [
         {
           "test_name_regex": "HwTrafficPfcTest.*"
         },
@@ -8412,9 +8412,6 @@
         },
         {
           "test_name_regex": "HwTrunkLoadBalancerTest.*"
-        },
-        {
-          "test_name_regex": "HwTest_PROFILE*"
         },
         {
           "test_name_regex": "SaiAclTableRecreateTests.AclEntryCount"

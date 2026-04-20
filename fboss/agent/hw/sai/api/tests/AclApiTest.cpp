@@ -410,6 +410,7 @@ class AclApiTest : public ::testing::Test {
             true, // neighbor meta
             true, // ether type
             true, // outer vlan id
+            std::nullopt, // aclRangeType
             true, // bth opcode
             true, // ipv6 next header
             kUserDefinedFieldGroup0(), // udf group 0
@@ -567,6 +568,7 @@ class AclApiTest : public ::testing::Test {
          aclFieldNeighborDstUserMetaAttribute,
          aclFieldEtherTypeAttribute,
          aclFieldOuterVlanIdAttribute,
+         std::nullopt, // fieldAclRangeType
          aclFieldBthOpcodeAttribute,
          aclFieldIpv6NextHeaderAttribute,
          aclUserDefinedGroup0,
@@ -1494,6 +1496,67 @@ TEST_F(AclApiTest, setAclCounterAttribute) {
 #endif
   EXPECT_EQ(aclCounterPacketsGot, 10);
   EXPECT_EQ(aclCounterBytesGot, 20);
+}
+
+TEST_F(AclApiTest, createAclRange) {
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  auto aclRangeId =
+      aclApi->create<SaiAclRangeTraits>({typeAttr, limitAttr}, kSwitchID());
+  EXPECT_EQ(aclRangeId, fs->aclRangeManager.get(aclRangeId).id);
+}
+
+TEST_F(AclApiTest, removeAclRange) {
+  sai_u32_range_t limit{.min = 1000, .max = 2000};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  auto aclRangeId =
+      aclApi->create<SaiAclRangeTraits>({typeAttr, limitAttr}, kSwitchID());
+  EXPECT_EQ(aclRangeId, fs->aclRangeManager.get(aclRangeId).id);
+  aclApi->remove(aclRangeId);
+}
+
+TEST_F(AclApiTest, getAclRangeAttributes) {
+  sai_u32_range_t limit{.min = 500, .max = 65535};
+  SaiAclRangeTraits::Attributes::Type typeAttr{
+      SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE};
+  SaiAclRangeTraits::Attributes::Limit limitAttr{limit};
+  auto aclRangeId =
+      aclApi->create<SaiAclRangeTraits>({typeAttr, limitAttr}, kSwitchID());
+
+  auto typeGot =
+      aclApi->getAttribute(aclRangeId, SaiAclRangeTraits::Attributes::Type{});
+  EXPECT_EQ(typeGot, SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE);
+
+  auto limitGot =
+      aclApi->getAttribute(aclRangeId, SaiAclRangeTraits::Attributes::Limit{});
+  EXPECT_EQ(limitGot.min, 500);
+  EXPECT_EQ(limitGot.max, 65535);
+}
+
+TEST_F(AclApiTest, multipleAclRanges) {
+  sai_u32_range_t limit1{.min = 100, .max = 200};
+  sai_u32_range_t limit2{.min = 300, .max = 400};
+  auto rangeId1 = aclApi->create<SaiAclRangeTraits>(
+      {SaiAclRangeTraits::Attributes::Type{
+           SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE},
+       SaiAclRangeTraits::Attributes::Limit{limit1}},
+      kSwitchID());
+  auto rangeId2 = aclApi->create<SaiAclRangeTraits>(
+      {SaiAclRangeTraits::Attributes::Type{
+           SAI_ACL_RANGE_TYPE_L4_DST_PORT_RANGE},
+       SaiAclRangeTraits::Attributes::Limit{limit2}},
+      kSwitchID());
+  EXPECT_NE(rangeId1, rangeId2);
+}
+
+TEST_F(AclApiTest, formatAclRangeAttribute) {
+  SaiAclRangeTraits::Attributes::Type type{0};
+  std::string expected("Type: 0");
+  EXPECT_EQ(expected, fmt::format("{}", type));
 }
 
 TEST_F(AclApiTest, formatAclTableStageAttribute) {

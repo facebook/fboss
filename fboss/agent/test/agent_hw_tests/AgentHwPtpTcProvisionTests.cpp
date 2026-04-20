@@ -62,7 +62,7 @@ class AgentHwPtpTcProvisionTests
   cfg::SwitchConfig initialConfig(
       const AgentEnsemble& ensemble) const override {
     auto l3Asics = ensemble.getSw()->getHwAsicTable()->getL3Asics();
-    auto asic = checkSameAndGetAsic(l3Asics);
+    auto asic = checkSameAndGetAsicForTesting(l3Asics);
     auto config = utility::onePortPerInterfaceConfig(
         ensemble.getSw(),
         ensemble.masterLogicalPortIds(),

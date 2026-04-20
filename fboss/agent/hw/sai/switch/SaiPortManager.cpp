@@ -466,7 +466,7 @@ void fillHwPortStats(
         break;
       }
 #endif
-#if defined(CHENAB_SAI_SDK)
+#if defined(CHENAB_SAI_SDK) && !defined(CHENAB_SAI_SDK_VERSION_2511_6_0_8_ea)
       case SAI_PORT_STAT_IF_OUT_DISCARDS_SLL:
         hwPortStats.outDiscardsSll_() = value;
         break;
@@ -1288,11 +1288,11 @@ void SaiPortManager::processPortBufferPoolConfigs(
 
   // Currently only supported in Chenab. The various scaling factors
   // and min guarantees configured per profile is capture in the google
-  // sheet https://fburl.com/gsheet/jahz9e6m
+  // sheet, v12 https://fburl.com/gsheet/mlecs9mi
   const cfg::MMUScalingFactor kIngressPortPoolScalingFactor{
-      cfg::MMUScalingFactor::EIGHT};
+      cfg::MMUScalingFactor::TWO};
   const cfg::MMUScalingFactor kEgressPortLossyPoolScalingFactor{
-      cfg::MMUScalingFactor::EIGHT};
+      cfg::MMUScalingFactor::TWO};
   const cfg::MMUScalingFactor kEgressPortLosslessPoolScalingFactor{
       cfg::MMUScalingFactor::ONE_HUNDRED_TWENTY_EIGHT};
   const int kPoolPortReservedBytes{0};
@@ -2401,14 +2401,31 @@ void SaiPortManager::updateStats(
   setUninitializedStatsToZero(*curPortStats.inDiscardsRaw_());
   setUninitializedStatsToZero(*curPortStats.inPause_());
 
+  const auto& portName = portStatItr->second->portName();
+  // Helper to add port name and counter group info to stats error messages.
+  // Without this, failures only show the opaque PortSaiId.
+  auto collectStats = [&](const std::vector<sai_stat_id_t>& counterIds,
+                          sai_stats_mode_t mode,
+                          const char* statsGroup) -> bool {
+    try {
+      handle->port->updateStats(counterIds, mode);
+      return true;
+    } catch (const SaiApiError& e) {
+      XLOG(ERR) << "Failed to get " << statsGroup << " for port " << portName
+                << " (portId: " << portId << "): " << e.what();
+      return false;
+    }
+  };
   curPortStats.timestamp_() = now.count();
-  handle->port->updateStats(supportedStats(portId), SAI_STATS_MODE_READ);
+  collectStats(
+      supportedStats(portId), SAI_STATS_MODE_READ, "basic port counters");
 #if defined(BRCM_SAI_SDK_DNX_GTE_12_0)
   if (updateWatermarks &&
       platform_->getAsic()->isSupported(HwAsic::Feature::FAST_LLFC_COUNTER)) {
-    handle->port->updateStats(
+    collectStats(
         {SAI_PORT_STAT_FAST_LLFC_TRIGGER_STATUS},
-        SAI_STATS_MODE_READ_AND_CLEAR);
+        SAI_STATS_MODE_READ_AND_CLEAR,
+        "fast LLFC trigger status");
   }
 #endif
 #if defined(BRCM_SAI_SDK_DNX_GTE_11_7) && !defined(BRCM_SAI_SDK_DNX_GTE_13_0)
@@ -2420,16 +2437,18 @@ void SaiPortManager::updateStats(
     // that to identify a TX stuck case which can result in RCI
     // getting stuck. So these watermark counters are read every
     // polling cycle and not just when updateWatermarks is set.
-    handle->port->updateStats(
+    collectStats(
         {SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MIN_WM,
          SAI_PORT_STAT_MAC_TX_DATA_QUEUE_MAX_WM},
-        SAI_STATS_MODE_READ_AND_CLEAR);
+        SAI_STATS_MODE_READ_AND_CLEAR,
+        "MAC TX data queue watermarks");
   }
 #endif
 
   auto supportedPfcDurationStats = getSupportedPfcDurationStats(portId);
   if (supportedPfcDurationStats.size()) {
-    handle->port->updateStats(supportedPfcDurationStats, SAI_STATS_MODE_READ);
+    collectStats(
+        supportedPfcDurationStats, SAI_STATS_MODE_READ, "PFC duration stats");
   }
 
   bool updateFecStats = false;
@@ -2437,18 +2456,20 @@ void SaiPortManager::updateStats(
   if (lastFecReadTimeIt == lastFecCounterReadTime_.end() ||
       (now.count() - lastFecReadTimeIt->second) >=
           FLAGS_fec_counters_update_interval_s) {
-    lastFecCounterReadTime_[portId] = now.count();
-    updateFecStats = true;
+    bool fecCollectionSucceeded = true;
     if (fecStatsSupported(portId)) {
-      handle->port->updateStats(
+      fecCollectionSucceeded &= collectStats(
           {SAI_PORT_STAT_IF_IN_FEC_CORRECTABLE_FRAMES,
            SAI_PORT_STAT_IF_IN_FEC_NOT_CORRECTABLE_FRAMES},
-          SAI_STATS_MODE_READ_AND_CLEAR);
+          SAI_STATS_MODE_READ_AND_CLEAR,
+          "FEC correctable/uncorrectable frames");
     }
 #if SAI_API_VERSION >= SAI_VERSION(1, 13, 0)
     if (fecCorrectedBitsSupported(portId)) {
-      handle->port->updateStats(
-          {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS}, SAI_STATS_MODE_READ);
+      fecCollectionSucceeded &= collectStats(
+          {SAI_PORT_STAT_IF_IN_FEC_CORRECTED_BITS},
+          SAI_STATS_MODE_READ,
+          "FEC corrected bits");
     }
 #endif
 #if SAI_API_VERSION >= SAI_VERSION(1, 11, 0)
@@ -2465,9 +2486,14 @@ void SaiPortManager::updateStats(
            counterId++) {
         fecCodewordsToRead.push_back(static_cast<sai_stat_id_t>(counterId));
       }
-      handle->port->updateStats(fecCodewordsToRead, SAI_STATS_MODE_READ);
+      fecCollectionSucceeded &= collectStats(
+          fecCodewordsToRead, SAI_STATS_MODE_READ, "FEC codeword errors");
     }
 #endif
+    if (fecCollectionSucceeded) {
+      lastFecCounterReadTime_[portId] = now.count();
+      updateFecStats = true;
+    }
   }
   const auto& counters = handle->port->getStats();
   fillHwPortStats(

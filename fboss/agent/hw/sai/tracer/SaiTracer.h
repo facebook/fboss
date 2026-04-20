@@ -469,6 +469,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE, "aclTable_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "aclTableGroup_"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "aclTableGroupMember_"},
+      {SAI_OBJECT_TYPE_ACL_RANGE, "aclRange_"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       {SAI_OBJECT_TYPE_ARS, "ars_"},
       {SAI_OBJECT_TYPE_ARS_PROFILE, "arsProfile_"},
@@ -545,6 +546,7 @@ class SaiTracer {
       {SAI_OBJECT_TYPE_ACL_TABLE, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP, "acl_api->"},
       {SAI_OBJECT_TYPE_ACL_TABLE_GROUP_MEMBER, "acl_api->"},
+      {SAI_OBJECT_TYPE_ACL_RANGE, "acl_api->"},
 #if SAI_API_VERSION >= SAI_VERSION(1, 14, 0)
       {SAI_OBJECT_TYPE_ARS, "ars_api->"},
       {SAI_OBJECT_TYPE_ARS_PROFILE, "ars_profile_api->"},
@@ -676,15 +678,18 @@ class SaiTracer {
       "    .profile_get_next_value = saiProfileGetNextValue,\n"
       "};\n"
       "\n"
+      "__attribute__((unused))\n"
       "inline void rvCheck(int rv, int expected, int count) {\n"
       "  if (rv != expected) printf(\"Unexpected rv at %d with status %d\\n\", count, rv);\n"
       "  else if (rv != 0) printf(\"Non 0 rv at %d with status %d\\n\", count, rv);\n"
       "}\n"
       "\n"
+      "__attribute__((unused))\n"
       "inline void attrCheck(sai_attribute_t *expected, sai_attribute_t *actual, int32_t num, int count) {\n"
       "  if (memcmp((void*)expected, (void*)actual, ATTR_SIZE * num)) printf(\"Diff in GET attribute %d\\n\", count);\n"
       "}\n"
       "\n"
+      "__attribute__((unused))\n"
       "sai_object_id_t assignObject(sai_object_key_t* object_list, int object_count, int i, sai_object_id_t default_id) {\n"
       "  if (i < object_count) {\n"
       "    return object_list[i].key.object_id;\n"

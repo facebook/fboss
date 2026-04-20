@@ -101,15 +101,90 @@ std::map<std::string, SensorData> SensorServiceImpl::getAllSensorData() {
 
 void SensorServiceImpl::fetchSensorData() {
   std::map<std::string, SensorData> polledData;
+
+  // Pre-fetch all PmUnit versions from PlatformManager
+  std::map<std::string, std::optional<platform_manager::PmUnitInfo>>
+      pmUnitInfoMap;
+  XLOG(INFO) << "Getting versions of PmUnits from PlatformManager";
+  for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
+    if (pmUnitSensors.versionedSensors()->empty()) {
+      continue;
+    }
+    const auto& slotPath = *pmUnitSensors.slotPath();
+    if (pmUnitInfoMap.count(slotPath)) {
+      continue;
+    }
+    auto pmUnitInfo = pmUnitInfoFetcher_.fetch(slotPath);
+    pmUnitInfoMap[slotPath] = pmUnitInfo;
+    if (pmUnitInfo && pmUnitInfo->version()) {
+      XLOG(INFO) << fmt::format(
+          "Found v{}.{}.{} of {} at {}",
+          *pmUnitInfo->version()->productProductionState(),
+          *pmUnitInfo->version()->productVersion(),
+          *pmUnitInfo->version()->productSubVersion(),
+          *pmUnitInfo->name(),
+          slotPath);
+    } else if (pmUnitInfo) {
+      XLOG(INFO) << fmt::format(
+          "No version found for {} at {}. The unit may not have an IDPROM",
+          *pmUnitInfo->name(),
+          slotPath);
+    }
+  }
+
   XLOG(INFO) << fmt::format(
       "Reading SensorData for {} PMUnits",
       sensorConfig_.pmUnitSensorsList()->size());
   for (const auto& pmUnitSensors : *sensorConfig_.pmUnitSensorsList()) {
-    auto pmSensors = resolveSensors(pmUnitSensors);
-    XLOG(INFO) << fmt::format(
-        "Processing {} PMUnit: {} sensors",
-        *pmUnitSensors.pmUnitName(),
-        pmSensors.size());
+    const auto& slotPath = *pmUnitSensors.slotPath();
+    auto it = pmUnitInfoMap.find(slotPath);
+    const auto& pmUnitInfo = (it != pmUnitInfoMap.end())
+        ? it->second
+        : std::optional<platform_manager::PmUnitInfo>{};
+
+    // Resolve versioned sensors and merge with base sensors
+    auto pmSensors = *pmUnitSensors.sensors();
+    auto versionedPmSensors = utils_->resolveVersionedSensors(
+        pmUnitInfo, slotPath, *pmUnitSensors.versionedSensors());
+    if (versionedPmSensors) {
+      publishVersionedSensorStats(
+          *pmUnitSensors.pmUnitName(),
+          *versionedPmSensors->productProductionState(),
+          *versionedPmSensors->productVersion(),
+          *versionedPmSensors->productSubVersion());
+      pmSensors.insert(
+          pmSensors.end(),
+          versionedPmSensors->sensors()->begin(),
+          versionedPmSensors->sensors()->end());
+    }
+
+    // Log with platform version and resolved VersionedSensor version
+    if (pmUnitInfo && pmUnitInfo->version() && versionedPmSensors) {
+      XLOG(INFO) << fmt::format(
+          "Processing {} PMUnit (v{}.{}.{}). "
+          "Using VersionedPmSensor v{}.{}.{}: {} sensors",
+          *pmUnitSensors.pmUnitName(),
+          *pmUnitInfo->version()->productProductionState(),
+          *pmUnitInfo->version()->productVersion(),
+          *pmUnitInfo->version()->productSubVersion(),
+          *versionedPmSensors->productProductionState(),
+          *versionedPmSensors->productVersion(),
+          *versionedPmSensors->productSubVersion(),
+          pmSensors.size());
+    } else if (versionedPmSensors) {
+      XLOG(INFO) << fmt::format(
+          "Processing {} PMUnit. Using VersionedSensor v{}.{}.{}: {} sensors",
+          *pmUnitSensors.pmUnitName(),
+          *versionedPmSensors->productProductionState(),
+          *versionedPmSensors->productVersion(),
+          *versionedPmSensors->productSubVersion(),
+          pmSensors.size());
+    } else {
+      XLOG(INFO) << fmt::format(
+          "Processing {} PMUnit: {} sensors",
+          *pmUnitSensors.pmUnitName(),
+          pmSensors.size());
+    }
     for (const auto& sensor : pmSensors) {
       const auto& sensorName = *sensor.name();
       auto sensorData = fetchSensorDataImpl(
@@ -156,6 +231,22 @@ void SensorServiceImpl::fetchSensorData() {
   }
 }
 
+std::vector<PmSensor> SensorServiceImpl::resolveSensors(
+    const PmUnitSensors& pmUnitSensors) {
+  auto pmUnitInfo = pmUnitInfoFetcher_.fetch(*pmUnitSensors.slotPath());
+  auto pmSensors = *pmUnitSensors.sensors();
+  if (auto versionedPmSensors = utils_->resolveVersionedSensors(
+          pmUnitInfo,
+          *pmUnitSensors.slotPath(),
+          *pmUnitSensors.versionedSensors())) {
+    pmSensors.insert(
+        pmSensors.end(),
+        versionedPmSensors->sensors()->begin(),
+        versionedPmSensors->sensors()->end());
+  }
+  return pmSensors;
+}
+
 void SensorServiceImpl::publishVersionedSensorStats(
     const std::string& pmUnitName,
     int16_t productProductionState,
@@ -169,33 +260,6 @@ void SensorServiceImpl::publishVersionedSensorStats(
           productVersion,
           productSubVersion),
       1);
-}
-
-std::vector<PmSensor> SensorServiceImpl::resolveSensors(
-    const PmUnitSensors& pmUnitSensors) {
-  auto pmSensors = *pmUnitSensors.sensors();
-  if (auto versionedPmSensors = utils_->resolveVersionedSensors(
-          pmUnitInfoFetcher_,
-          *pmUnitSensors.slotPath(),
-          *pmUnitSensors.versionedSensors())) {
-    XLOG(INFO) << fmt::format(
-        "Resolved to versionedPmSensors config with version {}.{}.{} for pmUnit {} at {}",
-        *versionedPmSensors->productProductionState(),
-        *versionedPmSensors->productVersion(),
-        *versionedPmSensors->productSubVersion(),
-        *pmUnitSensors.pmUnitName(),
-        *pmUnitSensors.slotPath());
-    publishVersionedSensorStats(
-        *pmUnitSensors.pmUnitName(),
-        *versionedPmSensors->productProductionState(),
-        *versionedPmSensors->productVersion(),
-        *versionedPmSensors->productSubVersion());
-    pmSensors.insert(
-        pmSensors.end(),
-        versionedPmSensors->sensors()->begin(),
-        versionedPmSensors->sensors()->end());
-  }
-  return pmSensors;
 }
 
 SensorData SensorServiceImpl::fetchSensorDataImpl(

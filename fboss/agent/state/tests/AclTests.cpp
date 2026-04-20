@@ -1345,3 +1345,124 @@ TEST(Acl, GetRequiredAclTableQualifiers) {
   EXPECT_EQ(q0, qualifiers0);
   EXPECT_EQ(q1, qualifiers1);
 }
+
+TEST(Acl, L4DstPortRangeSerialization) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("stat0"));
+  cfg::Range range;
+  range.minimum() = 1000;
+  range.maximum() = 2000;
+  entry->setL4DstPortRange(range);
+  auto action = MatchAction();
+  auto counter = cfg::TrafficCounter();
+  counter.name() = "stat0.c";
+  action.setTrafficCounter(counter);
+  entry->setAclAction(action);
+
+  auto serialized = entry->toThrift();
+  auto entryBack = std::make_shared<AclEntry>(serialized);
+  validateNodeSerialization(*entry);
+
+  EXPECT_TRUE(*entry == *entryBack);
+  EXPECT_TRUE(entryBack->getL4DstPortRange());
+  EXPECT_EQ(*entryBack->getL4DstPortRange()->minimum(), 1000);
+  EXPECT_EQ(*entryBack->getL4DstPortRange()->maximum(), 2000);
+}
+
+TEST(Acl, L4DstPortRangeHasMatcher) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("acl0"));
+  EXPECT_FALSE(entry->hasMatcher());
+  cfg::Range range;
+  range.minimum() = 80;
+  range.maximum() = 443;
+  entry->setL4DstPortRange(range);
+  EXPECT_TRUE(entry->hasMatcher());
+}
+
+TEST(Acl, L4DstPortRangeQualifier) {
+  auto entry = std::make_unique<AclEntry>(0, std::string("acl0"));
+  cfg::Range range;
+  range.minimum() = 80;
+  range.maximum() = 443;
+  entry->setL4DstPortRange(range);
+  auto qualifiers = entry->getRequiredAclTableQualifiers();
+  EXPECT_TRUE(
+      qualifiers.find(cfg::AclTableQualifier::L4_DST_PORT_RANGE) !=
+      qualifiers.end());
+}
+
+TEST(Acl, L4DstPortRangeValidation) {
+  FLAGS_enable_acl_table_group = false;
+  auto platform = createMockPlatform();
+  auto stateV0 = make_shared<SwitchState>();
+  registerPort(stateV0, PortID(1), "port1", scope());
+
+  auto makeConfig = []() {
+    cfg::SwitchConfig config;
+    config.ports()->resize(1);
+    preparedMockPortConfig(config.ports()[0], 1);
+    config.acls()->resize(1);
+    *config.acls()[0].name() = "acl0";
+    *config.acls()[0].actionType() = cfg::AclActionType::DENY;
+    return config;
+  };
+
+  // min > max
+  {
+    auto config = makeConfig();
+    cfg::Range range;
+    range.minimum() = 2000;
+    range.maximum() = 1000;
+    config.acls()[0].l4DstPortRange() = range;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  }
+
+  // minimum out of bounds
+  {
+    auto config = makeConfig();
+    cfg::Range range;
+    range.minimum() = 65536;
+    range.maximum() = 65536;
+    config.acls()[0].l4DstPortRange() = range;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  }
+
+  // maximum out of bounds
+  {
+    auto config = makeConfig();
+    cfg::Range range;
+    range.minimum() = 0;
+    range.maximum() = 65536;
+    config.acls()[0].l4DstPortRange() = range;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  }
+
+  // mutual exclusivity with l4DstPort
+  {
+    auto config = makeConfig();
+    config.acls()[0].l4DstPort() = 80;
+    cfg::Range range;
+    range.minimum() = 80;
+    range.maximum() = 443;
+    config.acls()[0].l4DstPortRange() = range;
+    EXPECT_THROW(
+        publishAndApplyConfig(stateV0, &config, platform.get()), FbossError);
+  }
+
+  // valid range succeeds
+  {
+    auto config = makeConfig();
+    cfg::Range range;
+    range.minimum() = 1000;
+    range.maximum() = 2000;
+    config.acls()[0].l4DstPortRange() = range;
+    auto stateV1 = publishAndApplyConfig(stateV0, &config, platform.get());
+    auto acl = stateV1->getAcl("acl0");
+    ASSERT_NE(nullptr, acl);
+    EXPECT_TRUE(acl->getL4DstPortRange());
+    EXPECT_EQ(*acl->getL4DstPortRange()->minimum(), 1000);
+    EXPECT_EQ(*acl->getL4DstPortRange()->maximum(), 2000);
+  }
+}

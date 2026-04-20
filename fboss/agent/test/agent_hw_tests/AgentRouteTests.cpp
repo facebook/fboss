@@ -757,7 +757,8 @@ TYPED_TEST(AgentClassIDRouteTest, VerifyClassIDForConnectedRoute) {
     auto routeInfo = utility::getRouteInfo(
         ipAddr.network(), ipAddr.mask(), *this->getAgentEnsemble());
     EXPECT_TRUE(*routeInfo.exists());
-    auto asic = checkSameAndGetAsic(this->getAgentEnsemble()->getL3Asics());
+    auto asic =
+        checkSameAndGetAsicForTesting(this->getAgentEnsemble()->getL3Asics());
     if (asic->getAsicVendor() != HwAsic::AsicVendor::ASIC_VENDOR_TAJO) {
       if (FLAGS_set_classid_for_my_subnet_and_ip_routes) {
         this->verifyClassIDHelper(

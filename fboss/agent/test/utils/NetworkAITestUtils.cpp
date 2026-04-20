@@ -36,7 +36,7 @@ void addNetworkAIQosMaps(
     cfg::SwitchConfig& cfg,
     const std::vector<const HwAsic*>& asics) {
   std::string qosPolicyName = "network_ai_v2";
-  auto hwAsic = checkSameAndGetAsic(asics);
+  auto hwAsic = checkSameAndGetAsic(asics, FLAGS_switch_id_for_testing);
   cfg::QosMap qosMap;
   qosMap.dscpMaps()->resize(kNetworkAIQueueToDscp().size());
   ssize_t qosMapIdx = 0;

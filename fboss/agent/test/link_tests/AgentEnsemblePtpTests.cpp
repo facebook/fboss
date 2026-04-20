@@ -9,6 +9,7 @@
 #include "fboss/agent/packet/PTPHeader.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/SwitchState.h"
+#include "fboss/agent/test/TestUtils.h"
 #include "fboss/agent/test/link_tests/AgentEnsembleLinkTest.h"
 #include "fboss/agent/test/utils/PacketSnooper.h"
 #include "fboss/agent/test/utils/PacketTestUtils.h"
@@ -130,7 +131,8 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
       auto srcMac = ethHdr.getSrcMac();
       auto dstMac = ethHdr.getDstMac();
 
-      auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+      auto asic =
+          checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
       if (hopLimit == kStartTtl) {
         if (asic->getAsicVendor() == HwAsic::AsicVendor::ASIC_VENDOR_CHENAB) {
           // On chenab, the first packet is also timestamped,
@@ -192,7 +194,7 @@ class AgentEnsemblePtpTests : public AgentEnsembleLinkTest {
 
   void trapPackets(const folly::CIDRNetwork& prefix) {
     cfg::SwitchConfig cfg = getSw()->getConfig();
-    auto asic = checkSameAndGetAsic(getAgentEnsemble()->getL3Asics());
+    auto asic = checkSameAndGetAsicForTesting(getAgentEnsemble()->getL3Asics());
     utility::addTrapPacketAcl(asic, &cfg, prefix);
     getSw()->applyConfig("trapPackets", cfg);
   }

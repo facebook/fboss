@@ -4,6 +4,8 @@ Description=FBOSS Wedge Agent
 After=platform_manager.service
 After=qsfp_service.service
 After=rc-local.service
+# Unlimited restarts (no start limit hit within a given time period)
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple

@@ -431,6 +431,12 @@ DEFINE_bool(
     "Enable fabric link monitoring feature in DSF");
 
 DEFINE_bool(
+    enable_cpu_latency_monitoring,
+    false,
+    "Enable CpuLatencyManager for always-on CPU round-trip latency monitoring "
+    "via IP2ME probe packets on ethernet ports");
+
+DEFINE_bool(
     lldp_port_drain_state,
     false,
     "Enable sending and receiving port drain state in LLDP packets");

@@ -133,6 +133,14 @@ class ThriftHandler : virtual public FbossCtrlSvIf,
   void syncTeFlows(
       std::unique_ptr<std::vector<FlowEntry>> teFlowEntries) override;
 
+  void addOrUpdateNamedNextHopGroups(
+      std::unique_ptr<std::vector<NamedNextHopGroup>> nextHopGroups) override;
+  void deleteNamedNextHopGroups(
+      std::unique_ptr<std::vector<std::string>> names) override;
+  void getNextHopGroups(
+      std::vector<NamedNextHopGroup>& result,
+      std::unique_ptr<std::vector<std::string>> names) override;
+
   SwSwitch* getSw() const {
     return sw_;
   }
