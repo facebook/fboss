@@ -2,7 +2,11 @@
 
 #include "fboss/agent/CpuLatencyManager.h"
 
+#include <folly/IPAddressV6.h>
+#include <folly/MacAddress.h>
+#include <folly/io/Cursor.h>
 #include <gtest/gtest.h>
+#include "fboss/agent/TxPacket.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/NdpTable.h"
 #include "fboss/agent/state/Port.h"
@@ -67,4 +71,26 @@ class CpuLatencyManagerTest : public ::testing::Test {
   SwSwitch* sw_{nullptr};
 };
 
+// Verify the 8-byte probe payload (timestamp) is at the correct byte offset.
+// Packet layout: Ethernet(14) + IPv6(40) + ICMPv6(4) + unused(4) = 62 header
+// bytes, then:
+//   [0..7]   txTimestampNs (uint64_t, big-endian — any non-zero value)
+TEST_F(CpuLatencyManagerTest, PacketFormat_PayloadFieldsAtCorrectOffsets) {
+  auto mgr = std::make_unique<CpuLatencyManager>(sw_);
+
+  const folly::IPAddressV6 dstIp("2001:db8::1");
+  const folly::MacAddress neighborMac("02:00:00:00:00:01");
+  const folly::MacAddress srcMac("02:00:00:00:00:02");
+
+  auto pkt = mgr->createLatencyPacket(dstIp, neighborMac, srcMac, std::nullopt);
+
+  ASSERT_NE(pkt, nullptr);
+
+  folly::io::Cursor cursor(pkt->buf());
+  // Ethernet(14) + IPv6(40) + ICMPv6 hdr(4) + unused(4) = 62
+  cursor.skip(62);
+
+  const uint64_t txTs = cursor.readBE<uint64_t>();
+  EXPECT_GT(txTs, 0u); // timestamp must be non-zero
+}
 } // namespace facebook::fboss

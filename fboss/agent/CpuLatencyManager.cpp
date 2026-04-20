@@ -5,6 +5,8 @@
 #include "fboss/agent/RxPacket.h"
 #include "fboss/agent/SwSwitch.h"
 #include "fboss/agent/TxPacket.h"
+#include "fboss/agent/packet/ICMPHdr.h"
+#include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
 #include "fboss/agent/state/SwitchState.h"
@@ -94,12 +96,62 @@ CpuLatencyManager::getAllCpuLatencyPortStats() const {
 
 void CpuLatencyManager::sendProbePackets() {}
 
+// Probe packet layout (8-byte ICMPv6 payload, big-endian):
+//   [0..7]   uint64_t txTimestampNs   — steady_clock nanoseconds at send time
+//
+// ICMPv6 type = ICMPV6_TYPE_CPU_LATENCY_PROBE (160), code = 0.
+// The 4-byte unused field between the ICMPv6 header and the payload is
+// set to zero (standard ICMPv6 layout).
+//
+// IP layout: srcIp = dstIp = the switch's own interface IP on this port.
+// Using the interface IP as source passes uRPF checks on the router neighbor.
+// dstIp triggers IP2ME (CPU_IS_NHOP) trap on return.
 std::unique_ptr<TxPacket> CpuLatencyManager::createLatencyPacket(
-    const folly::IPAddressV6&,
-    const folly::MacAddress&,
-    const folly::MacAddress&,
-    const std::optional<VlanID>&) {
-  return nullptr;
+    const folly::IPAddressV6& dstIp,
+    const folly::MacAddress& neighborMac,
+    const folly::MacAddress& srcMac,
+    const std::optional<VlanID>& vlanId) {
+  // 8-byte payload: txTimestampNs(8)
+  constexpr uint32_t kPayloadLen = 8;
+  // ICMPv6 body = 4-byte unused/reserved + 8-byte payload
+  constexpr uint32_t kIcmpBodyLen = 4 + kPayloadLen;
+
+  IPv6Hdr ipv6;
+  ipv6.version = 6;
+  ipv6.trafficClass = 0;
+  ipv6.flowLabel = 0;
+  ipv6.payloadLength = ICMPHdr::SIZE + kIcmpBodyLen;
+  ipv6.nextHeader = static_cast<uint8_t>(IP_PROTO::IP_PROTO_IPV6_ICMP);
+  ipv6.hopLimit = 2;
+  ipv6.srcAddr = dstIp;
+  ipv6.dstAddr = dstIp;
+
+  ICMPHdr icmp6(
+      static_cast<uint8_t>(ICMPv6Type::ICMPV6_TYPE_CPU_LATENCY_PROBE), 0, 0);
+
+  auto totalLen =
+      ICMPHdr::computeTotalLengthV6(kIcmpBodyLen, vlanId.has_value());
+  auto pkt = sw_->allocatePacket(totalLen);
+  folly::io::RWPrivateCursor cursor(pkt->buf());
+
+  icmp6.serializeFullPacket(
+      &cursor,
+      neighborMac,
+      srcMac,
+      vlanId,
+      ipv6,
+      kIcmpBodyLen,
+      [&](folly::io::RWPrivateCursor* c) {
+        // 4 bytes unused/reserved (standard ICMPv6 layout)
+        c->writeBE<uint32_t>(0);
+        // 8-byte probe payload: send timestamp in nanoseconds
+        c->writeBE<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch())
+                .count());
+      });
+
+  return pkt;
 }
 
 void CpuLatencyManager::handlePacket(std::unique_ptr<RxPacket>) {}
