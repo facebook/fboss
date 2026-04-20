@@ -8,6 +8,7 @@ cpp_unittest(
     srcs = [
         "BgpConfigSessionTest.cpp",
         "CmdConfigAclRuleTest.cpp",
+        "CmdConfigAclTest.cpp",
         "CmdConfigAdminDistanceTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigArpTest.cpp",

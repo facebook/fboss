@@ -14,6 +14,8 @@
 #include "fboss/cli/fboss2/commands/config/CmdConfigReload.h"
 #include "fboss/cli/fboss2/commands/config/acl/CmdConfigAcl.h"
 #include "fboss/cli/fboss2/commands/config/acl/rule/CmdConfigAclRule.h"
+#include "fboss/cli/fboss2/commands/config/acl/table/CmdConfigAclTable.h"
+#include "fboss/cli/fboss2/commands/config/acl/table_group/CmdConfigAclTableGroup.h"
 #include "fboss/cli/fboss2/commands/config/arp/CmdConfigArp.h"
 #include "fboss/cli/fboss2/commands/config/copp/CmdConfigCopp.h"
 #include "fboss/cli/fboss2/commands/config/dhcp/CmdConfigDhcp.h"
@@ -207,11 +209,23 @@ const CommandTree& kConfigCommandTree() {
           commandHandler<CmdConfigAcl>,
           argRegistrar<CmdConfigAclTraits>,
           {{
-              "rule",
-              "Configure an ACL rule (e.g. match fields on an AclEntry)",
-              commandHandler<CmdConfigAclRule>,
-              argRegistrar<CmdConfigAclRuleTraits>,
-          }},
+               "rule",
+               "Configure an ACL rule (e.g. match fields on an AclEntry)",
+               commandHandler<CmdConfigAclRule>,
+               argRegistrar<CmdConfigAclRuleTraits>,
+           },
+           {
+               "table",
+               "Configure an ACL table within a group (e.g. set priority)",
+               commandHandler<CmdConfigAclTable>,
+               argRegistrar<CmdConfigAclTableTraits>,
+           },
+           {
+               "table-group",
+               "Configure an ACL table group (e.g. set stage)",
+               commandHandler<CmdConfigAclTableGroup>,
+               argRegistrar<CmdConfigAclTableGroupTraits>,
+           }},
       },
 
       {
