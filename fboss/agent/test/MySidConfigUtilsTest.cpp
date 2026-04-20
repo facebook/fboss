@@ -77,7 +77,7 @@ TEST(MySidConfigUtilsTest, ConvertDecapConfig) {
   config.locatorPrefix() = "3001:db8::/32";
   cfg::MySidEntryConfig entryConfig;
   cfg::DecapMySidConfig decapConfig;
-  entryConfig.decap_ref() = decapConfig;
+  entryConfig.decap() = decapConfig;
   config.entries()[0x7fff] = entryConfig;
 
   auto result = convertMySidConfig(config, /*portNameToInterfaceId*/ {});
@@ -99,7 +99,7 @@ TEST(MySidConfigUtilsTest, ConvertNodeConfig) {
   cfg::MySidEntryConfig entryConfig;
   cfg::NodeMySidConfig nodeConfig;
   nodeConfig.nodeAddress() = "fc00:100::1";
-  entryConfig.node_ref() = nodeConfig;
+  entryConfig.node() = nodeConfig;
   config.entries()[3] = entryConfig;
 
   auto result = convertMySidConfig(config, /*portNameToInterfaceId*/ {});
@@ -123,7 +123,7 @@ TEST(MySidConfigUtilsTest, ConvertAdjacencyConfig) {
   cfg::MySidEntryConfig entryConfig;
   cfg::AdjacencyMySidConfig adjConfig;
   adjConfig.portName() = "eth1/1/1";
-  entryConfig.adjacency_ref() = adjConfig;
+  entryConfig.adjacency() = adjConfig;
   config.entries()[1] = entryConfig;
 
   auto result = convertMySidConfig(config, portNameToIntfId);
@@ -143,7 +143,7 @@ TEST(MySidConfigUtilsTest, ConvertAdjacencyConfigUnknownPortThrows) {
   cfg::MySidEntryConfig entryConfig;
   cfg::AdjacencyMySidConfig adjConfig;
   adjConfig.portName() = "missing-port";
-  entryConfig.adjacency_ref() = adjConfig;
+  entryConfig.adjacency() = adjConfig;
   config.entries()[1] = entryConfig;
 
   EXPECT_THROW(
@@ -160,28 +160,28 @@ TEST(MySidConfigUtilsTest, ConvertMixedConfig) {
 
   // Decap entry
   cfg::MySidEntryConfig decapEntry;
-  decapEntry.decap_ref() = cfg::DecapMySidConfig{};
+  decapEntry.decap() = cfg::DecapMySidConfig{};
   config.entries()[0x7fff] = decapEntry;
 
   // Adjacency via physical port
   cfg::MySidEntryConfig adjEntry;
   cfg::AdjacencyMySidConfig adjConfig;
   adjConfig.portName() = "eth1/1/1";
-  adjEntry.adjacency_ref() = adjConfig;
+  adjEntry.adjacency() = adjConfig;
   config.entries()[1] = adjEntry;
 
   // Adjacency via LAG
   cfg::MySidEntryConfig lagEntry;
   cfg::AdjacencyMySidConfig lagConfig;
   lagConfig.portName() = "Port-Channel301";
-  lagEntry.adjacency_ref() = lagConfig;
+  lagEntry.adjacency() = lagConfig;
   config.entries()[2] = lagEntry;
 
   // Node entry
   cfg::MySidEntryConfig nodeEntry;
   cfg::NodeMySidConfig nodeConfig;
   nodeConfig.nodeAddress() = "fc00:200::1";
-  nodeEntry.node_ref() = nodeConfig;
+  nodeEntry.node() = nodeConfig;
   config.entries()[3] = nodeEntry;
 
   auto result = convertMySidConfig(config, portNameToIntfId);
