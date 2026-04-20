@@ -878,6 +878,24 @@ cpp_library(
 )
 
 cpp_library(
+    name = "cpu_latency_manager",
+    headers = [
+        "CpuLatencyManager.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/googletest:gtest_headers",
+        ":fboss-types",
+        "//fboss/agent/if:ctrl-cpp2-types",
+        "//folly:network_address",
+        "//folly:synchronized",
+        "//folly/io/async:async_base",
+    ],
+    exported_external_deps = [
+        "gflags",
+    ],
+)
+
+cpp_library(
     name = "core",
     srcs = [
         "AclNexthopHandler.cpp",
