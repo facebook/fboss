@@ -9,6 +9,7 @@
 #include "fboss/agent/packet/IPv6Hdr.h"
 #include "fboss/agent/state/Interface.h"
 #include "fboss/agent/state/Port.h"
+#include "fboss/agent/state/PortDescriptor.h"
 #include "fboss/agent/state/SwitchState.h"
 
 #include <folly/io/Cursor.h>
@@ -52,27 +53,12 @@ void CpuLatencyManager::timeoutExpired() noexcept {
   scheduleTimeout(intervalMsecs_);
 }
 
-// A port qualifies for monitoring if it is an INTERFACE_PORT, operationally
-// UP, and has expected neighbor reachability entries.
+// A port qualifies for monitoring if it is an INTERFACE_PORT and operationally
+// UP.
 bool CpuLatencyManager::isEligiblePort(
     const std::shared_ptr<Port>& port) const {
-  if (port->getPortType() != cfg::PortType::INTERFACE_PORT) {
-    XLOG(INFO) << "CpuLatency: port " << port->getID()
-               << " skipped — not INTERFACE_PORT (type="
-               << static_cast<int>(port->getPortType()) << ")";
-    return false;
-  }
-  if (!port->isPortUp()) {
-    XLOG(INFO) << "CpuLatency: port " << port->getID()
-               << " skipped — port not UP";
-    return false;
-  }
-  if (port->getExpectedNeighborValues()->empty()) {
-    XLOG(INFO) << "CpuLatency: port " << port->getID()
-               << " skipped — no expectedNeighborReachability";
-    return false;
-  }
-  return true;
+  return port->getPortType() == cfg::PortType::INTERFACE_PORT &&
+      port->isPortUp();
 }
 
 // ---------- Accessors ----------
@@ -92,9 +78,83 @@ CpuLatencyManager::getAllCpuLatencyPortStats() const {
   return *portStats_.rlock();
 }
 
-// ---------- Stubs — implemented in later diffs ----------
+// Walk switch state each tick, check eligibility, resolve interface/IP/MAC/VLAN
+// fresh, and send — all in one pass (LldpManager pattern). Ports that come up
+// after start(), or ports that flex/merge, are handled automatically.
+void CpuLatencyManager::sendProbePackets() {
+  const auto state = sw_->getState();
+  for (const auto& portMap : std::as_const(*state->getPorts())) {
+    for (const auto& [_, port] : std::as_const(*portMap.second)) {
+      if (!isEligiblePort(port)) {
+        XLOG(DBG3) << "CpuLatency: port " << port->getID()
+                   << "invalid, skipped send";
+        continue;
+      }
+      const PortID portId = port->getID();
 
-void CpuLatencyManager::sendProbePackets() {}
+      // Find an interface with a non-link-local IPv6 address for this port.
+      std::shared_ptr<Interface> intf;
+      folly::IPAddressV6 interfaceIp;
+      bool foundIp = false;
+      for (const auto intfId : port->getInterfaceIDs()) {
+        auto candidate = state->getInterfaces()->getNodeIf(InterfaceID(intfId));
+        if (!candidate) {
+          continue;
+        }
+        for (const auto& [addr, mask] : candidate->getAddressesCopy()) {
+          if (addr.isV6() && !addr.isLinkLocal()) {
+            intf = candidate;
+            interfaceIp = addr.asV6();
+            foundIp = true;
+            break;
+          }
+        }
+        if (foundIp) {
+          break;
+        }
+      }
+      if (!foundIp) {
+        continue;
+      }
+
+      const folly::MacAddress srcMac = intf->getMac();
+
+      // Resolve VLAN via the interface type (follows NDP/RA pattern).
+      std::optional<VlanID> vlanId;
+      if (intf->getType() == cfg::InterfaceType::VLAN) {
+        vlanId = intf->getVlanID();
+      }
+
+      // Resolve neighbor MAC from the NDP table, filtering by port so each
+      // port sends to the neighbor actually reachable via that port.
+      folly::MacAddress neighborMac;
+      bool foundNeighbor = false;
+      for (const auto& [ip, entry] : std::as_const(*intf->getNdpTable())) {
+        if (entry->isReachable() &&
+            entry->getPort() == PortDescriptor(portId)) {
+          neighborMac = entry->getMac();
+          foundNeighbor = true;
+          break;
+        }
+      }
+      if (!foundNeighbor) {
+        XLOG(DBG4) << "CpuLatency: port " << portId
+                   << " skipped send — NDP neighbor not yet reachable";
+        continue;
+      }
+
+      auto pkt = createLatencyPacket(interfaceIp, neighborMac, srcMac, vlanId);
+
+      if (pkt) {
+        sw_->sendPacketOutOfPortAsync(std::move(pkt), portId);
+
+        XLOG(DBG3) << "CpuLatency: port " << portId << " probe sent to "
+                   << interfaceIp << " via neighbor " << neighborMac << " vlan="
+                   << (vlanId ? folly::to<std::string>(*vlanId) : "none");
+      }
+    }
+  }
+}
 
 // Probe packet layout (8-byte ICMPv6 payload, big-endian):
 //   [0..7]   uint64_t txTimestampNs   — steady_clock nanoseconds at send time

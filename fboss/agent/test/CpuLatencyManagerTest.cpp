@@ -93,4 +93,30 @@ TEST_F(CpuLatencyManagerTest, PacketFormat_PayloadFieldsAtCorrectOffsets) {
   const uint64_t txTs = cursor.readBE<uint64_t>();
   EXPECT_GT(txTs, 0u); // timestamp must be non-zero
 }
+
+// sendProbePackets() walks switch state and sends on eligible ports.
+// Stats entries are not created until receive (handlePacket), so after
+// a send cycle the stats map should still be empty.
+TEST_F(CpuLatencyManagerTest, PortDiscovery_EligiblePortsRegistered) {
+  auto mgr = std::make_unique<CpuLatencyManager>(sw_);
+  mgr->start();
+  mgr->sendProbePackets();
+
+  // Stats are created on receive, not send — map is empty after send only.
+  const auto stats = mgr->getAllCpuLatencyPortStats();
+  EXPECT_EQ(stats.size(), 0u);
+  mgr->stop();
+}
+
+// sendProbePackets() completes without error on eligible ports.
+TEST_F(CpuLatencyManagerTest, TxPath_SendProbePackets) {
+  auto mgr = std::make_unique<CpuLatencyManager>(sw_);
+  mgr->start();
+
+  // Should not throw — sends probes on ports 1 and 2 (eligible),
+  // skips ports 3-20 (no neighbor reachability).
+  EXPECT_NO_THROW(mgr->sendProbePackets());
+  mgr->stop();
+}
+
 } // namespace facebook::fboss
