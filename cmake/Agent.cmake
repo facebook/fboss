@@ -277,6 +277,7 @@ add_library(core
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
   fboss/agent/BufferUtils.cpp
+  fboss/agent/CpuLatencyManager.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSession.cpp
@@ -439,20 +440,6 @@ set(core_libs
 )
 
 target_link_libraries(core ${core_libs})
-
-add_library(cpu_latency_manager
-  fboss/agent/CpuLatencyManager.cpp
-)
-
-target_link_libraries(cpu_latency_manager
-  core
-  fboss_types
-  packet
-  ctrl_cpp2
-  state
-  Folly::folly
-  gflags
-)
 
 add_library(thrifthandler_utils
   fboss/agent/ThriftHandlerUtils.cpp

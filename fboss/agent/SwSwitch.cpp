@@ -18,6 +18,7 @@
 #include "fboss/agent/ArpHandler.h"
 #include "fboss/agent/AsicUtils.h"
 #include "fboss/agent/Constants.h"
+#include "fboss/agent/CpuLatencyManager.h"
 #include "fboss/agent/EcmpResourceManager.h"
 #include "fboss/agent/FabricLinkMonitoringManager.h"
 #include "fboss/agent/FbossError.h"
@@ -616,6 +617,10 @@ void SwSwitch::stop(bool isGracefulStop, bool revertToMinAlpmState) {
 
   if (fabricLinkMonitoringManager_) {
     fabricLinkMonitoringManager_->stop();
+  }
+
+  if (cpuLatencyManager_) {
+    cpuLatencyManager_->stop();
   }
 
   // Need to destroy IPv6Handler as it is a state observer,
@@ -1599,6 +1604,10 @@ void SwSwitch::initialConfigApplied(
 
   if (fabricLinkMonitoringManager_) {
     fabricLinkMonitoringManager_->start();
+  }
+
+  if (cpuLatencyManager_) {
+    cpuLatencyManager_->start();
   }
 
   // Send neighbor solicitation for configured interfaces after
@@ -2942,6 +2951,7 @@ void SwSwitch::startThreads() {
 void SwSwitch::postInit() {
   initLldpManager();
   initFabricLinkMonitoringManager();
+  initCpuLatencyManager();
   publishBootTypeStats();
   initThreadHeartbeats();
   startHeartbeatWatchdog();
@@ -2973,6 +2983,12 @@ void SwSwitch::initFabricLinkMonitoringManager() {
       XLOG(DBG3) << "Fabric Link Monitoring Manager packet send/receive is not"
                     " enabled on single stage fabric and dual stage L2 fabric!";
     }
+  }
+}
+
+void SwSwitch::initCpuLatencyManager() {
+  if (FLAGS_enable_cpu_latency_monitoring) {
+    cpuLatencyManager_ = std::make_unique<CpuLatencyManager>(this);
   }
 }
 
