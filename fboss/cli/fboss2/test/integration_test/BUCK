@@ -16,6 +16,7 @@ oncall("fboss_oss")
 cpp_binary(
     name = "fboss2_integration_test",
     srcs = [
+        "ConfigAclTest.cpp",
         "ConfigAdminDistanceTest.cpp",
         "ConfigArpTest.cpp",
         "ConfigConcurrentSessionsTest.cpp",
