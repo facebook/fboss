@@ -134,17 +134,29 @@ int FabricLinkMonitoring::getSwitchIdOffset(
             (l2SwitchId - lowestL2SwitchId_) / kNumSwitchIdsPerL2Switch;
       };
 
-  // Leaf switch ID < L1 switch ID < L2 switch ID
-  if (localSwitchId < lowestL1SwitchId_ || remoteSwitchId < lowestL1SwitchId_) {
-    // We are dealing with leaf-L1 switches
-    return localSwitchId < lowestL1SwitchId_
-        ? getLeafL1SwitchIdOffset(localSwitchId, remoteSwitchId)
-        : getLeafL1SwitchIdOffset(remoteSwitchId, localSwitchId);
+  // Determine link type from DSF node layer classification
+  // instead of relying on switch ID ordering (VOQ < L1 < L2).
+  auto localLayerIt = switchId2DsfSwitchLayer_.find(localSwitchId);
+  auto remoteLayerIt = switchId2DsfSwitchLayer_.find(remoteSwitchId);
+  CHECK(localLayerIt != switchId2DsfSwitchLayer_.end())
+      << "FabricLinkMon: Node layer not found for switch ID: " << localSwitchId;
+  CHECK(remoteLayerIt != switchId2DsfSwitchLayer_.end())
+      << "FabricLinkMon: Node layer not found for switch ID: "
+      << remoteSwitchId;
+
+  bool hasLeaf =
+      (localLayerIt->second == DsfSwitchLayer::LEAF ||
+       remoteLayerIt->second == DsfSwitchLayer::LEAF);
+  if (hasLeaf) {
+    // Leaf-L1 link: route leaf switch ID as the first argument
+    bool localIsLeaf = (localLayerIt->second == DsfSwitchLayer::LEAF);
+    return localIsLeaf ? getLeafL1SwitchIdOffset(localSwitchId, remoteSwitchId)
+                       : getLeafL1SwitchIdOffset(remoteSwitchId, localSwitchId);
   } else {
-    // We are dealing with L1-L2 switches
-    return localSwitchId < lowestL2SwitchId_
-        ? getL1L2SwitchIdOffset(localSwitchId, remoteSwitchId)
-        : getL1L2SwitchIdOffset(remoteSwitchId, localSwitchId);
+    // L1-L2 link: route L1 switch ID as the first argument
+    bool localIsL1 = (localLayerIt->second == DsfSwitchLayer::L1_FABRIC);
+    return localIsL1 ? getL1L2SwitchIdOffset(localSwitchId, remoteSwitchId)
+                     : getL1L2SwitchIdOffset(remoteSwitchId, localSwitchId);
   }
 }
 
@@ -289,11 +301,14 @@ void FabricLinkMonitoring::updateLowestSwitchIds(
     const int fabricLevel) {
   if (*dsfNode.type() == cfg::DsfNodeType::INTERFACE_NODE) {
     lowestLeafSwitchId_ = std::min(nodeSwitchId, lowestLeafSwitchId_);
+    switchId2DsfSwitchLayer_[nodeSwitchId] = DsfSwitchLayer::LEAF;
   } else {
     if (fabricLevel == 1) {
       lowestL1SwitchId_ = std::min(nodeSwitchId, lowestL1SwitchId_);
+      switchId2DsfSwitchLayer_[nodeSwitchId] = DsfSwitchLayer::L1_FABRIC;
     } else if (fabricLevel == 2) {
       lowestL2SwitchId_ = std::min(nodeSwitchId, lowestL2SwitchId_);
+      switchId2DsfSwitchLayer_[nodeSwitchId] = DsfSwitchLayer::L2_FABRIC;
     } else {
       throw FbossError(
           "FabricLinkMon: DSF node should be one of interface node, l1 or l2 fabric switch!");
