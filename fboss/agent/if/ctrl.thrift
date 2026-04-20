@@ -307,6 +307,15 @@ struct FabricLinkMonPortStats {
 }
 
 /*
+ * Per-port statistics for CPU latency monitoring.
+ * Tracks round-trip latency of ICMPv6 probe packets sent out ethernet
+ * ports and received back via the IP2ME (CPU_IS_NHOP) trap mechanism.
+ */
+struct CpuLatencyPortStats {
+  1: double latencyMs;
+}
+
+/*
  * Fabric monitoring detail for a single fabric port
  */
 struct FabricMonitoringDetail {
