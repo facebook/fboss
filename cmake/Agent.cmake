@@ -440,6 +440,20 @@ set(core_libs
 
 target_link_libraries(core ${core_libs})
 
+add_library(cpu_latency_manager
+  fboss/agent/CpuLatencyManager.cpp
+)
+
+target_link_libraries(cpu_latency_manager
+  core
+  fboss_types
+  packet
+  ctrl_cpp2
+  state
+  Folly::folly
+  gflags
+)
+
 add_library(thrifthandler_utils
   fboss/agent/ThriftHandlerUtils.cpp
 )
