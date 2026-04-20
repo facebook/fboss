@@ -261,16 +261,6 @@ class FsdbPubSubManagerTest : public ::testing::Test {
     return kPublishRoot;
   }
   std::vector<ExtendedOperPath> extSubscriptionPaths() const {
-#ifdef IS_OSS
-    // OSS sets serveIdPathSubs to false since it has an issue with serving IDs
-    ExtendedOperPath path = ext_path_builder::raw("agent")
-                                .raw("config")
-                                .raw("defaultCommandLineArgs")
-                                .any()
-                                .get();
-#else
-    // Internal: Use field IDs since serveIdPathSubs = true in internal test
-    // server
     ExtendedOperPath path =
         ext_path_builder::raw(
             apache::thrift::op::
@@ -285,7 +275,6 @@ class FsdbPubSubManagerTest : public ::testing::Test {
 
             .any()
             .get();
-#endif
     return {std::move(path)};
   }
 
