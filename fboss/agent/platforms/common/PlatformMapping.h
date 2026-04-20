@@ -207,6 +207,9 @@ class PlatformMapping {
 
   std::vector<PortID> getPlatformPorts(cfg::PortType portType) const;
 
+  // Returns the minimum fabric port ID for the given virtualDeviceId.
+  PortID getFirstFabricPortForVirtualDevice(int32_t virtualDeviceId) const;
+
  protected:
   std::map<int32_t, cfg::PlatformPortEntry> platformPorts_;
   std::vector<cfg::PlatformPortProfileConfigEntry> platformSupportedProfiles_;
