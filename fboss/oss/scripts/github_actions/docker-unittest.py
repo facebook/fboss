@@ -176,10 +176,17 @@ def find_tests(output_dir, excludes=None):
     return tests
 
 
+def is_python_dir_test(path: str) -> bool:
+    return os.path.isdir(path) and os.path.isfile(os.path.join(path, "__main__.py"))
+
+
 def is_test(path: str) -> bool:
     match = TEST_PATH_REGEX.match(path)
     if not match:
         return False
+
+    if is_python_dir_test(path):
+        return True
 
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
@@ -225,7 +232,16 @@ def run_test(test: str, output_dir: str) -> bool:
     cmd_args.append("--network=host")
     cmd_args.append(f"{FBOSS_IMAGE_NAME}:latest")
     test_path = os.path.join(output_dir, "bin", test)
-    cmd_args.append(test_path)
+    if is_python_dir_test(test_path):
+        cmd_args.extend(
+            [
+                "bash",
+                "-c",
+                f"LD_LIBRARY_PATH={lib_path}:/usr/local/lib64 python3 {test_path}",
+            ]
+        )
+    else:
+        cmd_args.append(test_path)
     cp = subprocess.run(cmd_args, check=False)
     return cp.returncode == 0
 
@@ -235,8 +251,13 @@ def run_test_local(test: str, output_dir: str) -> bool:
     lib_path = os.path.join(output_dir, "lib")
     test_path = os.path.join(output_dir, "bin", test)
     env = os.environ.copy()
-    env["LD_LIBRARY_PATH"] = lib_path
-    cp = subprocess.run([test_path], env=env, check=False)
+    if is_python_dir_test(test_path):
+        env["LD_LIBRARY_PATH"] = f"{lib_path}:/usr/local/lib64"
+        cmd = ["python3", test_path]
+    else:
+        env["LD_LIBRARY_PATH"] = lib_path
+        cmd = [test_path]
+    cp = subprocess.run(cmd, env=env, check=False)
     return cp.returncode == 0
 
 
@@ -244,10 +265,19 @@ def run_test_exec(test: str, output_dir: str) -> bool:
     use_stable_hashes()
     cmd_args = _docker_cmd() + ["exec"]
     lib_path = os.path.join(output_dir, "lib")
+    test_path = os.path.join(output_dir, "bin", test)
     cmd_args.extend(["-e", f"LD_LIBRARY_PATH={lib_path}"])
     cmd_args.append(FBOSS_CONTAINER_NAME)
-    test_path = os.path.join(output_dir, "bin", test)
-    cmd_args.append(test_path)
+    if is_python_dir_test(test_path):
+        cmd_args.extend(
+            [
+                "bash",
+                "-c",
+                f"LD_LIBRARY_PATH={lib_path}:/usr/local/lib64 python3 {test_path}",
+            ]
+        )
+    else:
+        cmd_args.append(test_path)
     cp = subprocess.run(cmd_args, check=False)
     return cp.returncode == 0
 

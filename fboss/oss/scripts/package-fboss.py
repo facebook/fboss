@@ -247,6 +247,14 @@ class PackageFboss:
 
                 for binary in effective_binaries:
                     bin_abs_path = os.path.join(project_dir, binary)
+                    if self._is_python_dir_executable(bin_abs_path):
+                        dst = os.path.join(bin_pkg_path, binary)
+                        shutil.copytree(
+                            bin_abs_path, dst, symlinks=True, dirs_exist_ok=True
+                        )
+                        print(f"Copied directory executable {bin_abs_path} to {dst}")
+                        continue
+
                     try:
                         shutil.copy(bin_abs_path, bin_pkg_path)
                         print(f"Copied {bin_abs_path} to {bin_pkg_path}")
@@ -269,6 +277,10 @@ class PackageFboss:
         self._copy_known_bad_tests(tmp_dir_name)
         self._copy_unsupported_tests(tmp_dir_name)
         self._copy_production_features(tmp_dir_name)
+
+    @staticmethod
+    def _is_python_dir_executable(path: str) -> bool:
+        return os.path.isdir(path) and os.path.isfile(os.path.join(path, "__main__.py"))
 
     def _update_ld_library_path(self) -> None:
         find_cmd = [
