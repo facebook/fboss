@@ -56,15 +56,33 @@ void ReconnectingThriftClient::scheduleTimeout() {
 }
 
 void ReconnectingThriftClient::setState(State state) {
+  // Check if object is being cancelled/destroyed before accessing member
+  // variables. This prevents crashes when setState() is called from service
+  // loop while object is being destroyed.
+  // IMPORTANT: We must check cancelling_ BEFORE accessing ANY member variables,
+  // including state_.wlock(), because the object might be in the process of
+  // being destroyed.
+  if (cancelling_.load() && state != State::CANCELLED) {
+    // Object is being destroyed and this is not the setState(CANCELLED) call
+    // from the destructor. Return immediately without accessing any member
+    // variables.
+    return;
+  }
+
   State oldState;
+  bool isCancelling = cancelling_.load();
   {
     auto stateLocked = state_.wlock();
     oldState = *stateLocked;
     if (oldState == state) {
-      STREAM_XLOG(INFO) << "State not changing, skipping";
+      // Don't use STREAM_XLOG for CANCELLED state or when cancelling to avoid
+      // accessing member variables during destruction
+      if (state != State::CANCELLED && !isCancelling) {
+        STREAM_XLOG(INFO) << "State not changing, skipping";
+      }
       return;
     } else if (oldState == State::CANCELLED) {
-      STREAM_XLOG(INFO) << "Old state is CANCELLED, will not try to reconnect";
+      // Don't use STREAM_XLOG when old state is CANCELLED
       return;
     }
     *stateLocked = state;
@@ -74,7 +92,9 @@ void ReconnectingThriftClient::setState(State state) {
     serviceLoopScope_.add(co_withExecutor(streamEvb_, serviceLoopWrapper()));
 #endif
   } else if (state == State::CONNECTED) {
-    fb303::fbData->setCounter(getConnectedCounterName(), 1);
+    if (!isCancelling) {
+      fb303::fbData->setCounter(getConnectedCounterName(), 1);
+    }
   } else if (state == State::CANCELLED) {
 #if FOLLY_HAS_COROUTINES
     onCancellation();
@@ -86,11 +106,15 @@ void ReconnectingThriftClient::setState(State state) {
 #endif
     fb303::fbData->setCounter(getConnectedCounterName(), 0);
   } else if (state == State::DISCONNECTED) {
-    disconnectEvents_.add(1);
-    aggDisconnectEvents_.add(1);
-    fb303::fbData->setCounter(getConnectedCounterName(), 0);
+    if (!isCancelling) {
+      disconnectEvents_.add(1);
+      aggDisconnectEvents_.add(1);
+      fb303::fbData->setCounter(getConnectedCounterName(), 0);
+    }
   }
-  stateChangeCb_(oldState, state);
+  if (stateChangeCb_ && !isCancelling) {
+    stateChangeCb_(oldState, state);
+  }
 }
 
 void ReconnectingThriftClient::setConnectionOptions(
@@ -115,6 +139,12 @@ void ReconnectingThriftClient::cancel() {
   connRetryEvb_->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this] { timer_->cancelTimeout(); });
   setState(State::CANCELLED);
+
+  // Set cancelling flag AFTER setState(CANCELLED) to allow the state change
+  // callback to be called. This prevents service loop from accessing member
+  // variables after cancellation is complete.
+  cancelling_.store(true);
+
   streamEvb_->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
       [this] { resetClient(); });
   STREAM_XLOG(DBG2) << "Cancelled";
