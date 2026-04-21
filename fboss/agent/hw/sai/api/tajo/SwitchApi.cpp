@@ -148,6 +148,16 @@ const std::vector<sai_stat_id_t>& SaiSwitchTraits::deletedCredits() {
   return stats;
 }
 
+const std::vector<sai_stat_id_t>& SaiSwitchTraits::deviceWatermarkBytes() {
+#if !defined(TAJO_SDK_VERSION_1_42_8)
+  static const std::vector<sai_stat_id_t> stats{
+      SAI_SWITCH_STAT_DEVICE_WATERMARK_BYTES};
+#else
+  static const std::vector<sai_stat_id_t> stats;
+#endif
+  return stats;
+}
+
 const std::vector<sai_stat_id_t>&
 SaiSwitchTraits::egressCoreBufferWatermarkBytes() {
   static const std::vector<sai_stat_id_t> stats;
