@@ -14,6 +14,8 @@
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 
+#include <fmt/color.h>
+
 namespace facebook::fboss {
 
 CmdBounceInterface::RetType CmdBounceInterface::queryClient(

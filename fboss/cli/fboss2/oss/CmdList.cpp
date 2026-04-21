@@ -19,14 +19,14 @@ const CommandTree& kBaseAdditionalCommandTree() {
              {"agent",
               "Show Agent running config",
               commandHandler<CmdShowConfigRunningAgent>,
-              argTypeHandler<CmdShowConfigDynamicTraits>},
+              argRegistrar<CmdShowConfigDynamicTraits>},
          }},
         {"history",
          "Show history of changes to the current config",
          {{"agent",
            "Show history of changes to the current Agent config",
            commandHandler<CmdShowConfigHistoryAgent>,
-           argTypeHandler<CmdShowConfigTraits>}}}}},
+           argRegistrar<CmdShowConfigTraits>}}}}},
   };
   return tree;
 }

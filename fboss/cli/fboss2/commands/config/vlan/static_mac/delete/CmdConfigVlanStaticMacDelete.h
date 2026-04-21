@@ -41,17 +41,15 @@ class MacAddressArg : public utils::BaseObjectArgType<std::string> {
     return macAddress_;
   }
 
-  const static utils::ObjectArgTypeId id =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
-
  private:
   std::string macAddress_;
 };
 
 struct CmdConfigVlanStaticMacDeleteTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigVlanStaticMac;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_MESSAGE;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("msg", args, "Message");
+  }
   using ObjectArgType = MacAddressArg;
   using RetType = std::string;
 };

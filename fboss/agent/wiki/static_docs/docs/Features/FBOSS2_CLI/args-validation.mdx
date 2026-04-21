@@ -13,19 +13,17 @@ In this article, we will look at how argument parsing of subcommand works and ho
 
 The below shows a step-by-step instruction on how to add a new type of argument.
 
-1. Define a new type of argument id in [CmdCommonUtils.h::ObjectArgTypeId](https://www.internalfb.com/code/fbsource/[e5984a8d19eebbaac834e47b5372e9a6a39bd41b]/fbcode/fboss/cli/fboss2/utils/CmdCommonUtils.h?lines=33).
+1. Subclass `utils::BaseObjectArgType` and implement validation rules in the class constructor.
 
-2. Subclass [BaseObjectArgType](https://www.internalfb.com/code/fbsource/[e5984a8d19eebbaac834e47b5372e9a6a39bd41b]/fbcode/fboss/cli/fboss2/utils/CmdCommonUtils.h?lines=60) with the argument id defined in step 1 and implement validation rules in the class constructor.
+2. Add unit test for the newly created argument type in `CmdArgsTest.cpp`.
 
-3. Add unit test for the newly created argument type in `CmdArgsTest.cpp` (For example [D37385960](https://www.internalfb.com/diff/D37385960)/[D37329534](https://www.internalfb.com/diff/D37329534)).
+3. Register your command in `fboss/cli/fboss2/CmdList.cpp`.
 
-4. Register your command in `fboss/cli/fboss2/CmdList.cpp`.
-
-5. Use the newly created type in your command file (For example [D37411284](https://www.internalfb.com/diff/D37411284)). Be sure to specify ObjectArgTypeId in the command traits class with the new argument type.
-Although the `BaseObjectArgType` has implemented interface including `empty()`, `size()`, iterator and indexing, you could also access the original data and utilize the feature of `std::vector` by calling `.data()`.
-For old type migration, you will need to modify `ObjectArgType` under `CmdXXXTraits` and adjust the argument type in `queryClient`.
-
-6. Add a subcommand option to process the new argument type in [CmdSubcommands.cpp](https://www.internalfb.com/code/fbsource/[29256fef57b039281881805f7698decb12d688a3]/fbcode/fboss/cli/fboss2/CmdSubcommands.cpp?lines=49).
+4. In the command's traits struct, set `ObjectArgType` to the new class and
+   add a `static void addCliArg(CLI::App& cmd, std::vector<std::string>& args)`
+   method that registers the positional option with CLI11 (e.g.
+   `cmd.add_option("ports", args, "Port(s)")`). There is no central enum or
+   switch — each command owns its argument registration.
 
 
 ## How Subcommand Arg Parsing Works
@@ -40,16 +38,16 @@ In this section, we will use the command`fboss2 set interface prbs state [OPTION
   "interface",
   "Set Interface information",
   commandHandler<CmdSetInterface>,
-  argTypeHandler<CmdSetInterfaceTraits>,
+  argRegistrar<CmdSetInterfaceTraits>,
   {{
     "prbs",
     "Set PRBS properties",
     commandHandler<CmdSetInterfacePrbs>,
-    argTypeHandler<CmdSetInterfacePrbsTraits>,
+    argRegistrar<CmdSetInterfacePrbsTraits>,
     {{"state",
       "Set PRBS state",
       commandHandler<CmdSetInterfacePrbsState>,
-      argTypeHandler<CmdSetInterfacePrbsStateTraits>}},
+      argRegistrar<CmdSetInterfacePrbsStateTraits>}},
   }},
 }
 ```
@@ -62,25 +60,32 @@ By specifying `ParentCmd`, the subcommands are able to inherit the argument from
 ```
 // fboss/cli/fboss2/commands/set/interface/CmdSetInterface.h
 struct CmdSetInterfaceTraits : public BaseCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_PORT_LIST;
-  using ObjectArgType = utils::PortList; // used to be std::vector<std::string>;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("ports", args, "Port(s)");
+  }
+  using ObjectArgType = utils::PortList;
   using RetType = std::string;
 };
 // fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbs.h
 struct CmdSetInterfacePrbsTraits : public BaseCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_COMPONENT;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option(
+        "component",
+        args,
+        "name(s) of PRBS component, one or multiple of "
+        "asic/xphy_system/xphy_line/transceiver_system/transceiver_line");
+  }
   using ParentCmd = CmdSetInterface;
-  using ObjectArgType = utils::PrbsComponent; // used to be std::vector<std::string>
+  using ObjectArgType = utils::PrbsComponent;
   using RetType = std::string;
 };
 // fboss/cli/fboss2/commands/set/interface/prbs/CmdSetInterfacePrbsState.h
 struct CmdSetInterfacePrbsStateTraits : public BaseCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_PRBS_STATE;
+  static void addCliArg(CLI::App& cmd, std::vector<std::string>& args) {
+    cmd.add_option("state", args, "PRBS state to set");
+  }
   using ParentCmd = CmdSetInterfacePrbs;
-  using ObjectArgType = utils::PrbsState; // used to be std::vector<std::string>
+  using ObjectArgType = utils::PrbsState;
   using RetType = std::string;
 };
 ```

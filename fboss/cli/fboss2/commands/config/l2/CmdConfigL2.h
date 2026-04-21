@@ -15,8 +15,6 @@
 namespace facebook::fboss {
 
 struct CmdConfigL2Traits : public WriteCommandTraits {
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = utils::NoneArgType;
   using RetType = std::string;
 };

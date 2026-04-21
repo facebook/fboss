@@ -17,8 +17,6 @@ namespace facebook::fboss {
 
 struct CmdConfigProtocolBgpTraits : public WriteCommandTraits {
   using ParentCmd = CmdConfigProtocol;
-  static constexpr utils::ObjectArgTypeId ObjectArgTypeId =
-      utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE;
   using ObjectArgType = std::monostate;
   using RetType = std::string;
 };
