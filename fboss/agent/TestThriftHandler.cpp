@@ -147,19 +147,37 @@ void TestThriftHandler::ungracefullyRestartService(
   // Use ';' (not '&&') so that if pkill kills the current process
   // (e.g. agent), the orphaned shell still executes systemctl restart.
   std::string cmd;
-  if (*serviceName == "fboss_sw_agent_test") {
-    std::string fileToCreate = "/dev/shm/fboss/warm_boot/cold_boot_once_0";
-    cmd = folly::to<std::string>(
-        "pkill -9 ",
-        it->second,
-        " ; touch ",
-        fileToCreate,
-        " ; systemctl restart ",
-        *serviceName);
+  if (*serviceName == kSwAgentTestService && FLAGS_multi_switch) {
+    // In multi-switch mode, kill all hw_agents first, then restart all,
+    // to simulate an atomic crash. No explicit warm boot cleanup needed.
+    // Agents cold boot naturally after SIGKILL since they don't save warm boot
+    // state on crash.
+    auto switchIndices = getSwitchIndicesImpl(getSw());
+    CHECK(!switchIndices.empty())
+        << "No switch indices found in multi-switch mode";
+
+    // Use "systemctl kill --signal=KILL" instead of pkill because the
+    // binary name (e.g. fboss_hw_agent-sai_impl) differs from the service
+    // name. Killing hw_agent causes sw_agent to exit on its own via
+    // exit_for_any_hw_disconnect; we then restart hw_agent(s) first, then
+    // sw_agent.
+    for (auto index : switchIndices) {
+      if (!cmd.empty()) {
+        cmd += " ; ";
+      }
+      cmd += folly::to<std::string>(
+          "systemctl kill --signal=KILL ", kHwAgentTestServicePrefix, index);
+    }
+    for (auto index : switchIndices) {
+      cmd += folly::to<std::string>(
+          " ; systemctl restart ", kHwAgentTestServicePrefix, index);
+    }
+    cmd += folly::to<std::string>(" ; systemctl restart ", *serviceName);
   } else {
     cmd = folly::to<std::string>(
         "pkill -9 ", it->second, " ; systemctl restart ", *serviceName);
   }
+  XLOG(INFO) << "Ungraceful restart cmd: " << cmd;
   runShellCmd(cmd);
 }
 
