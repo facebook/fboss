@@ -8,6 +8,8 @@ cpp_unittest(
         "BgpConfigSessionTest.cpp",
         "CmdConfigAppliedInfoTest.cpp",
         "CmdConfigHistoryTest.cpp",
+        "CmdConfigInterfaceIpv6NdTest.cpp",
+        "CmdDeleteInterfaceIpv6NdTest.cpp",
         "CmdConfigInterfaceSwitchportAccessVlanTest.cpp",
         "CmdConfigInterfaceTest.cpp",
         "CmdConfigL2LearningModeTest.cpp",
