@@ -1066,7 +1066,7 @@ TEST_F(AgentVoqShelSwitchTest, init) {
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &routeUpdater,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             std::make_move_iterator(localSysPortDescs.begin()),
             std::make_move_iterator(localSysPortDescs.end())));
 
@@ -1125,7 +1125,7 @@ TEST_F(AgentVoqShelSwitchTest, routeChurn) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto localSysPortDescs = resolveLocalNhops(ecmpHelper);
-    auto portDescriptors = flat_set<PortDescriptor>(
+    auto portDescriptors = boost::container::flat_set<PortDescriptor>(
         std::make_move_iterator(localSysPortDescs.begin()),
         std::make_move_iterator(localSysPortDescs.end()));
     auto routeUpdater = getSw()->getRouteUpdater();
@@ -1181,7 +1181,7 @@ TEST_F(AgentVoqShelWBEnableTest, wbEnable) {
     auto routeUpdater = getSw()->getRouteUpdater();
     ecmpHelper.programRoutes(
         &routeUpdater,
-        flat_set<PortDescriptor>(
+        boost::container::flat_set<PortDescriptor>(
             std::make_move_iterator(localSysPortDescs.begin()),
             std::make_move_iterator(localSysPortDescs.end())));
 

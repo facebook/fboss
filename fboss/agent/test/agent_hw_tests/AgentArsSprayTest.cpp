@@ -49,7 +49,7 @@ class AgentArsSprayTest : public AgentArsBase {
  protected:
   void generateTestPrefixes(
       std::vector<RoutePrefixV6>& testPrefixes,
-      std::vector<flat_set<PortDescriptor>>& testNhopSets) {
+      std::vector<boost::container::flat_set<PortDescriptor>>& testNhopSets) {
     generatePrefixes();
     testPrefixes = prefixes;
     testNhopSets = nhopSets;
@@ -108,7 +108,7 @@ class AgentArsSprayTest : public AgentArsBase {
 
 TEST_F(AgentArsSprayTest, VerifyArsEnable) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets);
 
   // Find a nhopSet index with size >= 2 for meaningful shrink/expand testing
@@ -152,7 +152,7 @@ TEST_F(AgentArsSprayTest, VerifyArsEnable) {
 
 TEST_F(AgentArsSprayTest, VerifyPortFlowletConfigChange) {
   std::vector<RoutePrefixV6> testPrefixes;
-  std::vector<flat_set<PortDescriptor>> testNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets;
   generateTestPrefixes(testPrefixes, testNhopSets);
 
   auto setup = [=, this]() {

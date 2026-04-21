@@ -18,9 +18,10 @@
 #include "fboss/agent/state/Thrifty.h"
 #include "fboss/agent/types.h"
 
-#include <boost/container/flat_set.hpp>
 #include <folly/MacAddress.h>
 #include <folly/Range.h>
+#include <map>
+#include <set>
 
 namespace facebook::fboss {
 
@@ -54,11 +55,9 @@ struct LegacyAggregatePortFields {
    * natural in BcmTrunk::program(...) when taking diffs between AggregatePort
    * objects.
    */
-  using SubportToForwardingState =
-      boost::container::flat_map<PortID, Forwarding>;
+  using SubportToForwardingState = std::map<PortID, Forwarding>;
 
-  using SubportToPartnerState =
-      boost::container::flat_map<PortID, ParticipantInfo>;
+  using SubportToPartnerState = std::map<PortID, ParticipantInfo>;
 
   struct Subport {
     Subport() = default;
@@ -84,7 +83,7 @@ struct LegacyAggregatePortFields {
       return !(*this == rhs);
     }
 
-    // Needed for boost::container::flat_set
+    // Needed for std::set
     bool operator<(const Subport& rhs) const {
       return portID < rhs.portID;
     }
@@ -115,7 +114,7 @@ struct LegacyAggregatePortFields {
     uint16_t holdTimerMulitiplier{
         cfg::switch_config_constants::DEFAULT_LACP_HOLD_TIMER_MULTIPLIER()};
   };
-  using Subports = boost::container::flat_set<Subport>;
+  using Subports = std::set<Subport>;
 };
 
 /*
@@ -138,13 +137,11 @@ class AggregatePort
   using ThriftType = state::AggregatePortFields;
   using Base = ThriftStructNode<AggregatePort, state::AggregatePortFields>;
   using Base::modify;
-  using Subports = boost::container::flat_set<Subport>;
+  using Subports = std::set<Subport>;
 
-  using SubportToForwardingState =
-      boost::container::flat_map<PortID, Forwarding>;
+  using SubportToForwardingState = std::map<PortID, Forwarding>;
 
-  using SubportToPartnerState =
-      boost::container::flat_map<PortID, ParticipantInfo>;
+  using SubportToPartnerState = std::map<PortID, ParticipantInfo>;
 
   AggregatePort(
       AggregatePortID id,

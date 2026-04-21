@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <boost/container/flat_map.hpp>
+#include <map>
 
 #include "fboss/agent/state/NodeBase.h"
 #include "fboss/agent/state/NodeMapIterator.h"
@@ -65,8 +65,7 @@ template <
     typename KeyT,
     typename NodeT,
     typename ExtraT = NodeMapNoExtraFields,
-    typename NodeContainerT =
-        boost::container::flat_map<KeyT, std::shared_ptr<NodeT>>>
+    typename NodeContainerT = std::map<KeyT, std::shared_ptr<NodeT>>>
 struct NodeMapTraits {
   using KeyType = KeyT;
   using Node = NodeT;

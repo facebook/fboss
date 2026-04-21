@@ -156,9 +156,9 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
   // Take a nhopSet and expand it to kPrefixesPerNhopSet times
   // when used with programRoutes, this will program kPrefixesPerNhopSet number
   // of prefixes per nhopSet
-  std::vector<flat_set<PortDescriptor>> expandNhopSets(
-      const std::vector<flat_set<PortDescriptor>>& nhopSets) {
-    std::vector<flat_set<PortDescriptor>> out;
+  std::vector<boost::container::flat_set<PortDescriptor>> expandNhopSets(
+      const std::vector<boost::container::flat_set<PortDescriptor>>& nhopSets) {
+    std::vector<boost::container::flat_set<PortDescriptor>> out;
     for (const auto& nhopSet : nhopSets) {
       for (auto i = 0; i < kPrefixesPerNhopSet; i++) {
         out.push_back(nhopSet);
@@ -167,11 +167,11 @@ class AgentEcmpSpilloverTest : public AgentArsBase {
     return out;
   }
 
-  std::vector<flat_set<PortDescriptor>> dynamicNhopSets;
-  std::vector<flat_set<PortDescriptor>> dynamicNhopSets2;
+  std::vector<boost::container::flat_set<PortDescriptor>> dynamicNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> dynamicNhopSets2;
   std::vector<RoutePrefixV6> dynamicPrefixes;
-  std::vector<flat_set<PortDescriptor>> spilloverNhopSets;
-  std::vector<flat_set<PortDescriptor>> spilloverNhopSets2;
+  std::vector<boost::container::flat_set<PortDescriptor>> spilloverNhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> spilloverNhopSets2;
   std::vector<RoutePrefixV6> spilloverPrefixes;
   std::vector<RoutePrefixV6> spilloverPrefixes2;
   static inline constexpr auto kMaxSpilloverCount = 32;
@@ -497,8 +497,9 @@ TEST_F(AgentEcmpSpilloverTest, VerifySpilloverPrefixChangeToPrimaryGroupNhops) {
     // update spillover prefixes to nhops from dynamic range
     {
       auto wrapper = getSw()->getRouteUpdater();
-      std::vector<flat_set<PortDescriptor>> first32DynamicNhopSets = {
-          nhopSets.begin(), nhopSets.begin() + getMaxSpilloverCount()};
+      std::vector<boost::container::flat_set<PortDescriptor>>
+          first32DynamicNhopSets = {
+              nhopSets.begin(), nhopSets.begin() + getMaxSpilloverCount()};
       auto nhopSetsExpanded = expandNhopSets(first32DynamicNhopSets);
       helper_->programRoutes(&wrapper, nhopSetsExpanded, spilloverPrefixes);
     }
@@ -540,13 +541,13 @@ TEST_F(AgentEcmpSpilloverTest, VerifyEcmpDecompressByPrefixCount) {
       newPrefixes.end(), newPrefixes_32_64.begin(), newPrefixes_32_64.end());
 
   // merge the 2 spillover nhopSets
-  std::vector<flat_set<PortDescriptor>> nhopSet64;
+  std::vector<boost::container::flat_set<PortDescriptor>> nhopSet64;
   nhopSet64.insert(
       nhopSet64.end(), spilloverNhopSets.begin(), spilloverNhopSets.end());
   nhopSet64.insert(
       nhopSet64.end(), spilloverNhopSets2.begin(), spilloverNhopSets2.end());
 
-  std::vector<flat_set<PortDescriptor>> nhopSetExpanded;
+  std::vector<boost::container::flat_set<PortDescriptor>> nhopSetExpanded;
   for (auto i = 0; i < 64; i++) {
     for (int j = 0; j <= i; j++) {
       nhopSetExpanded.push_back(nhopSet64[i]);
