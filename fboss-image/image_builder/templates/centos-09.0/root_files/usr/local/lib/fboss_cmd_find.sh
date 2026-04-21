@@ -3,10 +3,6 @@
 # Usage: fboss_cmd_find.sh <binary_name> [args...]
 set -e
 
-# Install locations during image build
-default_forwarding_stack_path="/opt/fboss/bin"
-default_platform_stack_path="/opt/fboss/bin"
-
 if [ -z "$1" ]; then
   echo "No command specified" >&2
   exit 1
@@ -18,12 +14,12 @@ shift
 case "$cmd" in
 fboss2 | fboss2-dev | diag_shell_client)
   # Forwarding stack commands
-  stack_path=${default_forwarding_stack_path}
+  update_prefix="fboss-forwarding"
   ;;
 
-fw_util | sensor_service_client | showtech | weutil)
+fw_util | sensor_service_client | rma-showtech | weutil)
   # Platform stack commands
-  stack_path=${default_platform_stack_path}
+  update_prefix="fboss-platform_stack"
   ;;
 
 *)
@@ -32,4 +28,24 @@ fw_util | sensor_service_client | showtech | weutil)
   ;;
 esac
 
-exec "${stack_path}/${cmd}" "$@"
+update_path=$(ls -1 /updates/${update_prefix}-*/opt/fboss/bin/${cmd} 2>/dev/null | head -n 1)
+if [ -x "$update_path" ]; then
+  update_base=$(dirname "$(dirname "$update_path")")
+  if [ -f "${update_base}/bin/setup_fboss_env" ]; then
+    pushd "$update_base" >/dev/null
+    # shellcheck source=/opt/fboss/bin/setup_fboss_env
+    source ./bin/setup_fboss_env
+    popd >/dev/null
+  fi
+  exec "$update_path" "$@"
+else
+  if [ -f /opt/fboss/bin/setup_fboss_env ]; then
+    pushd /opt/fboss >/dev/null
+    # shellcheck source=/opt/fboss/bin/setup_fboss_env
+    source ./bin/setup_fboss_env
+    popd >/dev/null
+  fi
+  exec "/opt/fboss/bin/${cmd}" "$@"
+fi
+echo "Failed to find fboss command"
+exit 1
