@@ -109,6 +109,7 @@ class AgentHwTest : public ::testing::Test {
   }
   SwSwitch* getSw() const;
   SwitchID getCurrentSwitchIdForTesting() const;
+  int16_t getCurrentSwitchIndexForTesting() const;
   static SwitchID getSwitchIdUnderTest(const AgentEnsemble& ensemble);
   const std::map<SwitchID, const HwAsic*> getAsics() const;
   std::vector<const HwAsic*> getL3Asics() const {
