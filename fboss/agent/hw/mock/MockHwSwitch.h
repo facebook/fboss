@@ -176,6 +176,7 @@ class MockHwSwitch : public HwSwitch {
   }
 
   MOCK_CONST_METHOD0(getResourceStats, HwResourceStats());
+  MOCK_CONST_METHOD0(getHwSwitchCounterStats, HwSwitchCounterStats());
 
   MOCK_METHOD1(
       getFwdSwitchingMode,

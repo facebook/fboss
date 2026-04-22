@@ -5665,6 +5665,11 @@ HwResourceStats SaiSwitch::getResourceStats() const {
   return hwResourceStats_;
 }
 
+HwSwitchCounterStats SaiSwitch::getHwSwitchCounterStats() const {
+  std::lock_guard<std::mutex> lock(saiSwitchMutex_);
+  return managerTable_->counterManager().getHwSwitchCounterStats();
+}
+
 // TODO: add support in SAI
 bool SaiSwitch::getArsExhaustionStatus() {
   return false;
