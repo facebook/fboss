@@ -1055,7 +1055,7 @@
       "pmUnitName": "NETLAKE",
       "sensors": [
         {
-          "name": "COME_U18_INLET_SENSOR_LM75_TEMP",
+          "name": "COME_U18_INLET_SENSOR_TMP75_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_INLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
@@ -1065,7 +1065,7 @@
           "compute": "@/1000.0"
         },
         {
-          "name": "COME_U39_OUTLET_SENSOR_LM75_TEMP",
+          "name": "COME_U39_OUTLET_SENSOR_TMP75_TEMP",
           "sysfsPath": "/run/devmap/sensors/COME_OUTLET_TSENSOR/temp1_input",
           "type": 3,
           "thresholds": {
