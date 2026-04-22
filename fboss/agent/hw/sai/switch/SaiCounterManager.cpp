@@ -61,8 +61,19 @@ void SaiCounterManager::updateStats() {
         {SAI_COUNTER_STAT_BYTES}, SAI_STATS_MODE_READ);
 #endif
     auto& stats = counterHandle->counter->getStats();
-    routeStats_->updateStat(now, counterName, stats.begin()->second);
+    auto bytes = stats.begin()->second;
+    routeStats_->updateStat(now, counterName, bytes);
+    counterHandle->hwSwitchCounter.bytes() = bytes;
   }
+}
+
+HwSwitchCounterStats SaiCounterManager::getHwSwitchCounterStats() const {
+  HwSwitchCounterStats counterStats;
+  for (const auto& counter : routeCounters_) {
+    auto counterHandle = counter.second.lock();
+    counterStats.hwCounters()[counter.first] = counterHandle->hwSwitchCounter;
+  }
+  return counterStats;
 }
 
 uint64_t SaiCounterManager::getStats(std::string counterID) const {
