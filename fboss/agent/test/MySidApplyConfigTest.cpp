@@ -266,3 +266,25 @@ TEST_F(MySidApplyConfigTest, InvalidPortNameThrows) {
   // No MySid entries should have been added
   EXPECT_EQ(getMySidCount(), 0);
 }
+
+TEST_F(MySidApplyConfigTest, AdjacencyEntryHasInterfaceId) {
+  // Set ingressVlan on port1 so resolvePortNameToInterfaceId works
+  auto config = baseConfig_;
+  config.ports()[0].ingressVlan() = 1;
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = "3001:db8::/32";
+  cfg::MySidEntryConfig entry;
+  cfg::AdjacencyMySidConfig adjConfig;
+  adjConfig.portName() = "port1";
+  entry.adjacency_ref() = adjConfig;
+  mySidConfig.entries()[1] = entry;
+  config.mySidConfig() = mySidConfig;
+  applyConfig(config);
+
+  auto mySid = getMySid("3001:db8:1::/48");
+  ASSERT_NE(mySid, nullptr);
+  EXPECT_EQ(mySid->getType(), MySidType::ADJACENCY_MICRO_SID);
+  EXPECT_EQ(mySid->getClientId(), ClientID::STATIC_ROUTE);
+  ASSERT_TRUE(mySid->getAdjacencyInterfaceId().has_value());
+  EXPECT_EQ(mySid->getAdjacencyInterfaceId().value(), 1);
+}
