@@ -674,6 +674,39 @@ class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
       sendPacketSwitchedAsync(std::move(txPacket));
     }
   }
+
+  void verifyL4DstPortRangeAclCounter(
+      const std::string& name,
+      bool isFrontPanel,
+      bool isV6,
+      bool expectHit,
+      const std::vector<int>& l4DstPorts) {
+    SCOPED_TRACE(name);
+    auto egressPort = helper_->ecmpPortDescriptorAt(0).phyPortID();
+    auto pktsBefore = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+    auto aclPktCountBefore = getRangeAclPacketCounter();
+    for (auto l4DstPort : l4DstPorts) {
+      sendPacketWithDstPort(isFrontPanel, isV6, l4DstPort);
+    }
+
+    WITH_RETRIES({
+      auto aclPktCountAfter = getRangeAclPacketCounter();
+      auto pktsAfter = *getNextUpdatedPortStats(egressPort).outUnicastPkts_();
+      XLOG(DBG2) << "\n"
+                 << "PacketCounter: " << pktsBefore << " -> " << pktsAfter
+                 << "\n"
+                 << "aclPacketCounter(" << kL4DstPortRangeAclCounterName
+                 << "): " << aclPktCountBefore << " -> " << aclPktCountAfter;
+      if (expectHit) {
+        EXPECT_EVENTUALLY_GE(
+            aclPktCountAfter, aclPktCountBefore + l4DstPorts.size());
+        EXPECT_EVENTUALLY_LE(
+            aclPktCountAfter, aclPktCountBefore + (2 * l4DstPorts.size()));
+      } else {
+        EXPECT_EVENTUALLY_EQ(aclPktCountBefore, aclPktCountAfter);
+      }
+    });
+  }
 };
 
 // Verify that traffic arrive on a front panel port increments ACL counter.
@@ -696,6 +729,33 @@ TEST_F(
       true /* bump on hit */,
       true /* front panel port */,
       {AclType::L4_DST_PORT});
+}
+
+TEST_F(AgentAclCounterL4DstPortRangeTest, VerifyL4DstPortRangeAcl) {
+  auto setup = [this]() { setupRangeAclCounterTest(); };
+  auto verify = [this]() {
+    auto matchingPorts = getMatchingL4DstPorts();
+    for (auto isFrontPanel : {true, false}) {
+      for (auto isV6 : {false, true}) {
+        const auto trafficSrc = isFrontPanel ? "front-panel" : "cpu";
+        const auto ipFamily = isV6 ? "IPv6" : "IPv4";
+        verifyL4DstPortRangeAclCounter(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", hit"),
+            isFrontPanel,
+            isV6,
+            true,
+            matchingPorts);
+        verifyL4DstPortRangeAclCounter(
+            folly::to<std::string>(trafficSrc, ", ", ipFamily, ", miss"),
+            isFrontPanel,
+            isV6,
+            false,
+            {kL4DstPortRangeMiss});
+      }
+    }
+  };
+
+  verifyAcrossWarmBoots(setup, verify);
 }
 
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
