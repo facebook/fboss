@@ -14,6 +14,7 @@ import argparse
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 import sysconfig
@@ -33,6 +34,7 @@ ARG_NPU_SAI_IMPL = "--npu-sai-impl"
 ARG_NPU_SAI_VERSION = "--npu-sai-version"
 ARG_NPU_SAI_SDK_VERSION = "--npu-sai-sdk-version"
 ARG_NPU_LIBSAI_IMPL_PATH = "--npu-libsai-impl-path"
+ARG_NPU_LIBSAI_IMPL_TARBALL = "--npu-libsai-impl-tarball"
 ARG_NPU_EXPERIMENTS_PATH = "--npu-experiments-path"
 ARG_PHY_SAI_IMPL = "--phy-sai-impl"
 
@@ -127,6 +129,13 @@ def parse_args():
         help="Full path to libsai_impl.a.",
     )
     parser.add_argument(
+        ARG_NPU_LIBSAI_IMPL_TARBALL,
+        required=False,
+        help="Full path to a pre-built libsai_impl.tar.gz containing lib/ and include/ "
+        f"subdirectories. Mutually exclusive with {ARG_NPU_LIBSAI_IMPL_PATH} and "
+        f"{ARG_NPU_EXPERIMENTS_PATH}.",
+    )
+    parser.add_argument(
         ARG_NPU_EXPERIMENTS_PATH,
         required=False,
         help="Full path to SAI spec experiments directory.",
@@ -191,8 +200,8 @@ def detect_toolchain():
             timeout=5,
             check=False,
         )
-    except (subprocess.TimeoutExpired, OSError) as e:
-        print_info(f"Warning: Could not detect compiler: {e}")
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        print(f"Warning: Could not detect compiler: {e}", file=sys.stderr)
         return None
 
     if gxx_version.returncode != 0:
@@ -342,7 +351,6 @@ def setup_clang_environment(toolchain_info):
         print_info("Warning: Could not determine target triple")
         return
 
-    # Read clang-specific CXXFLAGS from CMakeLists.txt using regex
     cxxflags = _extract_clang_cxxflags()
     if cxxflags is None:
         return
@@ -481,6 +489,53 @@ def _conditionally_prepare_sdk_artifacts(libsai_impl_path, experiments_path):
     )
 
 
+def _get_scratch_path(getdeps_args):
+    """Extract --scratch-path from getdeps args, or return the conventional default."""
+    for i, arg in enumerate(getdeps_args):
+        if arg == "--scratch-path" and i + 1 < len(getdeps_args):
+            return getdeps_args[i + 1]
+        if arg.startswith("--scratch-path="):
+            return arg.split("=", 1)[1]
+    return "/var/FBOSS/tmp_bld_dir"
+
+
+def _prepare_sdk_from_tarball(tarball_path, scratch_path):
+    """Extract a pre-built SDK tarball and prepend its root to CMAKE_PREFIX_PATH.
+
+    The tarball must contain lib/ and include/ subdirectories, as produced by
+    build-helper.py (tar czvf libsai_impl.tar.gz -C output_path lib include).
+
+    Files are extracted to <scratch_path>/installed/sai_impl_tarball/ so they
+    live alongside other getdeps-installed packages rather than in /tmp.
+    """
+    if not os.path.isfile(tarball_path):
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} path does not exist "
+            f"or is not a file: {tarball_path}"
+        )
+        sys.exit(1)
+    if os.path.getsize(tarball_path) == 0:
+        print_error(
+            f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} file is empty: {tarball_path}"
+        )
+        sys.exit(1)
+
+    extract_dir = os.path.join(scratch_path, "installed", "sai_impl_tarball")
+    if os.path.exists(extract_dir):
+        shutil.rmtree(extract_dir)
+    os.makedirs(extract_dir)
+    subprocess.run(
+        ["tar", "xzf", tarball_path, "-C", extract_dir],
+        check=True,
+    )
+    print_info(f"Extracted SDK tarball {tarball_path} to {extract_dir}")
+
+    existing = os.environ.get("CMAKE_PREFIX_PATH", "")
+    os.environ["CMAKE_PREFIX_PATH"] = (
+        f"{extract_dir}:{existing}" if existing else extract_dir
+    )
+
+
 def _warn_if_unsupported(flag_name, value, supported_values):
     """Print an info message if value is not in the set of officially supported values."""
     if value not in supported_values:
@@ -563,9 +618,23 @@ def main():
 
     _set_build_env_vars(args)
 
-    _conditionally_prepare_sdk_artifacts(
-        args.npu_libsai_impl_path, args.npu_experiments_path
-    )
+    if args.npu_libsai_impl_tarball is not None:
+        if (
+            args.npu_libsai_impl_path is not None
+            or args.npu_experiments_path is not None
+        ):
+            print_error(
+                f"Error: {ARG_NPU_LIBSAI_IMPL_TARBALL} is mutually exclusive with "
+                f"{ARG_NPU_LIBSAI_IMPL_PATH} and {ARG_NPU_EXPERIMENTS_PATH}."
+            )
+            sys.exit(1)
+        _prepare_sdk_from_tarball(
+            args.npu_libsai_impl_tarball, _get_scratch_path(args.getdeps_args)
+        )
+    else:
+        _conditionally_prepare_sdk_artifacts(
+            args.npu_libsai_impl_path, args.npu_experiments_path
+        )
 
     if args.npu_sai_version is not None:
         _edit_libsai_manifest(args.npu_sai_version)
