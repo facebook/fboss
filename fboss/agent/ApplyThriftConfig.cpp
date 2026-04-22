@@ -880,12 +880,12 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticIp2MplsRoutes(),
         *cfg_->staticMplsRoutesWithNhops(),
         *cfg_->staticMplsRoutesToNull(),
-        *cfg_->staticMplsRoutesToCPU());
+        *cfg_->staticMplsRoutesToCPU(),
+        std::move(staticMySids));
   } else if (rib_) {
     auto newFibInfo = updateForwardingInformationBaseInfo();
     if (newFibInfo) {
       auto newFibInfoMap = std::make_shared<MultiSwitchFibInfoMap>();
-      // Get the scope for the FibInfo using the new scope resolver
       newFibInfoMap->updateFibInfo(
           newFibInfo, scopeResolver_.scope(newFibInfo));
       new_->resetFibsInfoMap(newFibInfoMap);
