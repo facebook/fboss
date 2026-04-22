@@ -16,10 +16,15 @@
 #include "fboss/cli/fboss2/commands/config/history/CmdConfigHistory.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h"
 #include "fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.h"
 #include "fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/CmdConfigInterfaceSwitchport.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/CmdConfigInterfaceSwitchportAccess.h"
 #include "fboss/cli/fboss2/commands/config/interface/switchport/access/vlan/CmdConfigInterfaceSwitchportAccessVlan.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/CmdConfigInterfaceSwitchportTrunk.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/CmdConfigInterfaceSwitchportTrunkAllowed.h"
+#include "fboss/cli/fboss2/commands/config/interface/switchport/trunk/allowed/vlan/CmdConfigInterfaceSwitchportTrunkAllowedVlan.h"
 #include "fboss/cli/fboss2/commands/config/l2/CmdConfigL2.h"
 #include "fboss/cli/fboss2/commands/config/l2/learning_mode/CmdConfigL2LearningMode.h"
 #include "fboss/cli/fboss2/commands/config/protocol/CmdConfigProtocol.h"
@@ -100,6 +105,9 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
 #include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h"
+#include "fboss/cli/fboss2/commands/delete/interface/ipv6/nd/CmdDeleteInterfaceIpv6Nd.h"
 
 namespace facebook::fboss {
 
@@ -136,23 +144,57 @@ const CommandTree& kConfigCommandTree() {
                argTypeHandler<CmdConfigInterfaceQueuingPolicyTraits>,
            },
            {
+               "ipv6",
+               "Configure IPv6 settings for interface",
+               commandHandler<CmdConfigInterfaceIpv6>,
+               argTypeHandler<CmdConfigInterfaceIpv6Traits>,
+               {{
+                   "nd",
+                   "Configure IPv6 Neighbor Discovery (NDP/RA) settings",
+                   commandHandler<CmdConfigInterfaceIpv6Nd>,
+                   argTypeHandler<CmdConfigInterfaceIpv6NdTraits>,
+               }},
+           },
+           {
                "switchport",
                "Configure switchport settings",
                commandHandler<CmdConfigInterfaceSwitchport>,
                argTypeHandler<CmdConfigInterfaceSwitchportTraits>,
                {{
-                   "access",
-                   "Configure access mode settings",
-                   commandHandler<CmdConfigInterfaceSwitchportAccess>,
-                   argTypeHandler<CmdConfigInterfaceSwitchportAccessTraits>,
-                   {{
-                       "vlan",
-                       "Set access VLAN (ingressVlan) for the interface",
-                       commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
-                       argTypeHandler<
-                           CmdConfigInterfaceSwitchportAccessVlanTraits>,
-                   }},
-               }},
+                    "access",
+                    "Configure access mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportAccess>,
+                    argTypeHandler<CmdConfigInterfaceSwitchportAccessTraits>,
+                    {{
+                        "vlan",
+                        "Set access VLAN (ingressVlan) for the interface",
+                        commandHandler<CmdConfigInterfaceSwitchportAccessVlan>,
+                        argTypeHandler<
+                            CmdConfigInterfaceSwitchportAccessVlanTraits>,
+                    }},
+                },
+                {
+                    "trunk",
+                    "Configure trunk mode settings",
+                    commandHandler<CmdConfigInterfaceSwitchportTrunk>,
+                    argTypeHandler<CmdConfigInterfaceSwitchportTrunkTraits>,
+                    {{
+                        "allowed",
+                        "Configure allowed VLANs for trunk",
+                        commandHandler<
+                            CmdConfigInterfaceSwitchportTrunkAllowed>,
+                        argTypeHandler<
+                            CmdConfigInterfaceSwitchportTrunkAllowedTraits>,
+                        {{
+                            "vlan",
+                            "Add or remove VLANs from trunk allowed list",
+                            commandHandler<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlan>,
+                            argTypeHandler<
+                                CmdConfigInterfaceSwitchportTrunkAllowedVlanTraits>,
+                        }},
+                    }},
+                }},
            }},
       },
 
@@ -766,6 +808,26 @@ const CommandTree& kConfigCommandTree() {
                 }},
            }},
       },
+
+      {"delete",
+       "interface",
+       "Delete (reset to default) interface settings",
+       commandHandler<CmdDeleteInterface>,
+       argTypeHandler<CmdDeleteInterfaceTraits>,
+       {
+           {
+               "ipv6",
+               "Delete (reset to default) IPv6 settings for interface",
+               commandHandler<CmdDeleteInterfaceIpv6>,
+               argTypeHandler<CmdDeleteInterfaceIpv6Traits>,
+               {{
+                   "nd",
+                   "Reset IPv6 Neighbor Discovery (NDP/RA) settings to defaults",
+                   commandHandler<CmdDeleteInterfaceIpv6Nd>,
+                   argTypeHandler<CmdDeleteInterfaceIpv6NdTraits>,
+               }},
+           },
+       }},
 
       {"delete",
        "config",

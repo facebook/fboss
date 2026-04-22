@@ -17,17 +17,17 @@
 #include <re2/re2.h>
 #include <stdexcept>
 #include <string>
-#include <variant>
+#include <variant> // NOLINT(misc-include-cleaner)
 
 #include "fboss/agent/if/gen-cpp2/FbossCtrlAsyncClient.h"
-#include "fboss/cli/fboss2/CmdGlobalOptions.h"
-#include "fboss/cli/fboss2/gen-cpp2/cli_types.h"
-#include "fboss/cli/fboss2/utils/CmdClientUtils.h"
+#include "fboss/cli/fboss2/CmdGlobalOptions.h" // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/gen-cpp2/cli_types.h" // NOLINT(misc-include-cleaner)
+#include "fboss/cli/fboss2/utils/CmdClientUtils.h" // NOLINT(misc-include-cleaner)
 #include "fboss/cli/fboss2/utils/CmdUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/HostInfo.h"
 #include "fboss/cli/fboss2/utils/PrbsUtils.h"
 #include "fboss/cli/fboss2/utils/Table.h"
-#include "fboss/fsdb/if/gen-cpp2/FsdbService.h"
+#include "fboss/fsdb/if/gen-cpp2/FsdbService.h" // NOLINT(misc-include-cleaner)
 #include "fboss/lib/phy/gen-cpp2/phy_types.h"
 #include "fboss/lib/phy/gen-cpp2/prbs_types.h"
 
@@ -182,6 +182,31 @@ class VlanIdValue : public BaseObjectArgType<int32_t> {
   }
 
   const static ObjectArgTypeId id = ObjectArgTypeId::OBJECT_ARG_TYPE_VLAN_ID;
+};
+
+// Custom type for trunk VLAN action (add/remove VLANs from trunk port)
+class TrunkVlanAction : public BaseObjectArgType<int32_t> {
+ public:
+  /* implicit */ TrunkVlanAction( // NOLINT(google-explicit-constructor)
+      std::vector<std::string> v);
+
+  bool isAdd() const {
+    return isAdd_;
+  }
+
+  bool isRemove() const {
+    return !isAdd_;
+  }
+
+  const std::vector<int32_t>& getVlanIds() const {
+    return data_;
+  }
+
+  const static ObjectArgTypeId id =
+      ObjectArgTypeId::OBJECT_ARG_TYPE_TRUNK_VLAN_ACTION;
+
+ private:
+  bool isAdd_{true};
 };
 
 class VipInjectorID : public BaseObjectArgType<std::string> {
@@ -460,8 +485,10 @@ class MirrorList : public BaseObjectArgType<std::string> {
 
 class RevisionList : public BaseObjectArgType<std::string> {
  public:
-  /* implicit */ RevisionList() : BaseObjectArgType() {}
-  /* implicit */ RevisionList(std::vector<std::string> v);
+  /* implicit */ RevisionList()
+      : BaseObjectArgType() {} // NOLINT(google-explicit-constructor)
+  /* implicit */ RevisionList( // NOLINT(google-explicit-constructor)
+      const std::vector<std::string>& v);
 
   const static ObjectArgTypeId id =
       ObjectArgTypeId::OBJECT_ARG_TYPE_ID_REVISION_LIST;

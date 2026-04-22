@@ -289,7 +289,7 @@ TEST_F(PortMapTest, InterfacesWithoutPortMapping) {
 }
 
 // Test that duplicate port mappings are rejected
-TEST_F(PortMapTest, DuplicatePortMappingRejected) {
+TEST_F(PortMapTest, DuplicatePortMappingKeepsFirst) {
   // Load a valid config
   auto config =
       loadConfig("fboss/oss/link_test_configs/minipack3n.materialized_JSON");
@@ -300,12 +300,20 @@ TEST_F(PortMapTest, DuplicatePortMappingRejected) {
   if (interfaces.size() >= 2) {
     // Get the portID from the first interface
     auto firstInterfacePortId = interfaces[0].portID();
+    auto firstInterfaceId = InterfaceID(*interfaces[0].intfID());
     if (firstInterfacePortId.has_value()) {
       // Make the second interface point to the same port
       interfaces[1].portID() = *firstInterfacePortId;
 
-      // Building the PortMap should throw an exception
-      EXPECT_THROW({ PortMap portMap(config); }, std::runtime_error);
+      // Building the PortMap should succeed (no exception thrown).
+      // This supports trunk ports where a single port is associated with
+      // multiple VLANs (and thus multiple interfaces). The first mapping
+      // is kept and subsequent ones are skipped.
+      PortMap portMap(config);
+
+      // The first interface mapping should be kept
+      auto portName = portMap.getPortNameForInterface(firstInterfaceId);
+      EXPECT_TRUE(portName.has_value());
     }
   }
 }
@@ -315,7 +323,7 @@ class PortMapAllConfigsTest : public ::testing::TestWithParam<std::string> {};
 
 // Test that we can successfully build a PortMap for all config files
 TEST_P(PortMapAllConfigsTest, CanLoadConfig) {
-  std::string relativePath = GetParam();
+  const std::string& relativePath = GetParam();
 
   // Load the config
   auto config = loadConfig(relativePath);
