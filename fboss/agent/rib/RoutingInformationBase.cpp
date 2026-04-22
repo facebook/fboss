@@ -1341,18 +1341,6 @@ void RibRouteTables::updateFibNamedNextHopGroups(
 void RibRouteTables::addOrUpdateNamedNextHopGroups(
     const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
     const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
-  // Pre-validate all groups before mutating state. If any group is invalid,
-  // throw before any partial state is written. This matches the MySid batch
-  // validation pattern (mySidFromEntry pre-validates all entries).
-  for (const auto& [name, nextHopSet] : groups) {
-    if (name.empty()) {
-      throw FbossError("Named next-hop group name cannot be empty");
-    }
-    if (nextHopSet.empty()) {
-      throw FbossError(
-          "Named next-hop group '", name, "' has empty nexthop set");
-    }
-  }
   updateRibNamedNextHopGroups([&](NextHopIDManager* nextHopIDManager) {
     for (const auto& [name, nextHopSet] : groups) {
       nextHopIDManager->allocateNamedNextHopGroup(name, nextHopSet);
@@ -1377,6 +1365,19 @@ void RibRouteTables::deleteNamedNextHopGroups(
 void RoutingInformationBase::addOrUpdateNamedNextHopGroups(
     const std::vector<std::pair<std::string, RouteNextHopSet>>& groups,
     const std::function<void(const NextHopIDManager*)>& stateUpdateFn) {
+  // Pre-validate all groups before entering the RIB thread. If any group is
+  // invalid, throw before any state is mutated. This matches the MySid batch
+  // validation pattern (mySidFromEntry pre-validates all entries before
+  // updateRibMySids is called).
+  for (const auto& [name, nextHopSet] : groups) {
+    if (name.empty()) {
+      throw FbossError("Named next-hop group name cannot be empty");
+    }
+    if (nextHopSet.empty()) {
+      throw FbossError(
+          "Named next-hop group '", name, "' has empty nexthop set");
+    }
+  }
   updateStateInRibThread([&]() {
     ribTables_.addOrUpdateNamedNextHopGroups(groups, stateUpdateFn);
   });

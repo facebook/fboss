@@ -203,4 +203,60 @@ TEST_F(NamedNextHopGroupRibTest, AddAndDeleteMultipleGroups) {
   EXPECT_TRUE(deleteCalled);
 }
 
+TEST_F(NamedNextHopGroupRibTest, invalidEntryInBatchDoesNotPartiallyMutate) {
+  // Verify that if any entry in the batch is invalid, pre-validation throws
+  // before any state is mutated. This matches the MySid batch validation
+  // pattern (invalidEntryInBatchDoesNotPartiallyMutateMySidTable).
+  auto rib = sw_->getRib();
+  ASSERT_NE(rib, nullptr);
+
+  // Seed the table with a known-good entry
+  std::vector<std::pair<std::string, RouteNextHopSet>> seed;
+  seed.emplace_back("existing", makeResolvedNextHops({"1.1.1.10"}));
+  rib->addOrUpdateNamedNextHopGroups(seed, [](const NextHopIDManager*) {});
+
+  // Batch: valid group first, then invalid group with empty nexthop set.
+  // Without pre-validation, the valid group would be allocated before the
+  // invalid group throws, leaving partial state.
+  std::vector<std::pair<std::string, RouteNextHopSet>> batch;
+  batch.emplace_back("validNew", makeResolvedNextHops({"2.2.2.10"}));
+  batch.emplace_back("badGroup", RouteNextHopSet{}); // invalid: empty
+
+  EXPECT_THROW(
+      rib->addOrUpdateNamedNextHopGroups(batch, [](const NextHopIDManager*) {}),
+      FbossError);
+
+  // Only the seed entry should exist — the valid entry from the failed
+  // batch must not have been inserted (no partial mutation)
+  auto manager = rib->getNextHopIDManagerCopy();
+  EXPECT_TRUE(manager->hasNamedNextHopGroup("existing"));
+  EXPECT_FALSE(manager->hasNamedNextHopGroup("validNew"));
+  EXPECT_FALSE(manager->hasNamedNextHopGroup("badGroup"));
+}
+
+TEST_F(NamedNextHopGroupRibTest, emptyNameInBatchDoesNotPartiallyMutate) {
+  auto rib = sw_->getRib();
+  ASSERT_NE(rib, nullptr);
+
+  // Seed the table with a known-good entry
+  std::vector<std::pair<std::string, RouteNextHopSet>> seed;
+  seed.emplace_back("existing", makeResolvedNextHops({"1.1.1.10"}));
+  rib->addOrUpdateNamedNextHopGroups(seed, [](const NextHopIDManager*) {});
+
+  // Batch: valid group first, then invalid group with empty name
+  std::vector<std::pair<std::string, RouteNextHopSet>> batch;
+  batch.emplace_back("validNew", makeResolvedNextHops({"2.2.2.10"}));
+  batch.emplace_back(
+      "", makeResolvedNextHops({"1.1.1.20"})); // invalid: empty name
+
+  EXPECT_THROW(
+      rib->addOrUpdateNamedNextHopGroups(batch, [](const NextHopIDManager*) {}),
+      FbossError);
+
+  // Only the seed entry should exist — no partial mutation
+  auto manager = rib->getNextHopIDManagerCopy();
+  EXPECT_TRUE(manager->hasNamedNextHopGroup("existing"));
+  EXPECT_FALSE(manager->hasNamedNextHopGroup("validNew"));
+}
+
 } // namespace facebook::fboss
