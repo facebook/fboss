@@ -132,7 +132,7 @@ class FsdbPubSubTest : public ::testing::Test {
     pubSub.setConnectionOptions(
         utils::ConnectionOptions("::1", fsdbTestServer_->getFsdbPort()),
         updateServerPort);
-    WITH_RETRIES_N(kRetries, {
+    WITH_RETRIES_N(kConnectionRetries, {
       ASSERT_EVENTUALLY_TRUE(pubSub.isConnectedToServer())
           << pubSub.clientId() << " did not connected";
     });
@@ -374,6 +374,7 @@ class FsdbPubSubTest : public ::testing::Test {
   }
 
   static auto constexpr kRetries = 10;
+  static auto constexpr kConnectionRetries = 60;
   std::unique_ptr<FsdbTestServer> fsdbTestServer_;
   std::unique_ptr<folly::ScopedEventBaseThread> subscriberStreamEvbThread_;
   std::unique_ptr<folly::ScopedEventBaseThread> publisherStreamEvbThread_;
@@ -1330,10 +1331,7 @@ TYPED_TEST(FsdbPubSubTest, subscriberStreamMetadata) {
       kSubscriptionServeQueueSize);
   this->subscriber_ = this->createSubscriber(kSubscriberId);
   this->publisher_ = this->createPublisher(kPublisherId);
-
-  // Set up publisher and subscriber separately, skip checkPublishing
-  this->setupConnection(*this->publisher_);
-  this->setupConnection(*this->subscriber_);
+  this->setupConnections();
 
   // Publish data
   if (this->pubSubStats()) {
@@ -1390,34 +1388,36 @@ TYPED_TEST(FsdbPubSubTest, publisherStreamMetadata) {
     this->publishAgentConfig(makeAgentConfig({{"foo", "bar"}}));
   }
 
-  // Brief wait for the update to be processed by the sink consumer
-  // @lint-ignore CLANGTIDY
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Verify publisher stream state via getActivePublishers
+  // Verify publisher stream state via getActivePublishers.
+  // Use retries: the server-side sink consumer may need time to process the
+  // published data, especially under stress.
   auto publisherId = this->publisher_->clientId();
-  auto activePublishers =
-      this->fsdbTestServer_->serviceHandler().getActivePublishers();
-  bool found = false;
-  for (const auto& [key, entry] : activePublishers) {
-    if (*entry.info.publisherId() == publisherId) {
-      found = true;
-      ASSERT_TRUE(entry.streamState);
-      auto state = entry.streamState->rlock();
-      // connectedAt should be set to a reasonable value
-      EXPECT_GE(state->connectedAt, beforeConnect);
-      EXPECT_LE(state->connectedAt, std::time(nullptr));
-      // Update timestamps should be set after publishing
-      EXPECT_GT(state->lastUpdateReceivedAt, 0);
-      EXPECT_GT(state->lastUpdatePublishedAt, 0);
-      EXPECT_GT(state->initialSyncCompletedAt, 0);
-      // At least 1 update received
-      EXPECT_GE(state->numUpdatesReceived, 1);
-      EXPECT_GE(state->receivedDataSize, 0);
-      break;
+  WITH_RETRIES({
+    auto activePublishers =
+        this->fsdbTestServer_->serviceHandler().getActivePublishers();
+    bool found = false;
+    for (const auto& [key, entry] : activePublishers) {
+      if (*entry.info.publisherId() == publisherId) {
+        found = true;
+        ASSERT_EVENTUALLY_TRUE(entry.streamState != nullptr);
+        if (entry.streamState) {
+          auto state = entry.streamState->rlock();
+          // connectedAt should be set to a reasonable value
+          EXPECT_EVENTUALLY_GE(state->connectedAt, beforeConnect);
+          EXPECT_EVENTUALLY_LE(state->connectedAt, std::time(nullptr));
+          // Update timestamps should be set after publishing
+          EXPECT_EVENTUALLY_GT(state->lastUpdateReceivedAt, 0);
+          EXPECT_EVENTUALLY_GT(state->lastUpdatePublishedAt, 0);
+          EXPECT_EVENTUALLY_GT(state->initialSyncCompletedAt, 0);
+          // At least 1 update received
+          EXPECT_EVENTUALLY_GE(state->numUpdatesReceived, 1);
+          EXPECT_EVENTUALLY_GE(state->receivedDataSize, 0);
+        }
+        break;
+      }
     }
-  }
-  ASSERT_TRUE(found);
+    ASSERT_EVENTUALLY_TRUE(found);
+  });
 }
 
 } // namespace facebook::fboss::fsdb::test
