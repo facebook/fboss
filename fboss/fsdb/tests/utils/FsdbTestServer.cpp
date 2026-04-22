@@ -41,16 +41,31 @@ void FsdbTestServerImpl::checkServerStart(uint16_t& fsdbPort) {
   XLOG(INFO) << "Started thrift server on port " << fsdbPort;
 }
 
-std::unique_ptr<apache::thrift::Client<FsdbService>>
+std::shared_ptr<apache::thrift::Client<FsdbService>>
 FsdbTestServerImpl::getClient() {
-  // Instead of using apache::thrift::makeTestClient, use exactly the same way
-  // as we do for ThriftServiceClient::createFsdbClient() to create a client
-  auto channel = apache::thrift::RocketClientChannel::newChannel(
-      folly::AsyncSocket::newSocket(
-          folly::EventBaseManager::get()->getEventBase(),
-          server_->getAddress()));
-  return std::make_unique<apache::thrift::Client<FsdbService>>(
-      std::move(channel));
+  // Create the client on the dedicated IO thread's EventBase.
+  // AsyncSocket must be constructed on the EventBase's thread, and the
+  // EventBase must be actively looped so that socket IO callbacks fire.
+  // Using the calling thread's EventBase deadlocks because blockingWait()
+  // does not drive it — Task<T> is a SemiAwaitable, so blockingWait
+  // creates an internal BlockingWaitExecutor that only drives its own
+  // queue, not the thread-local EventBase. The RPC response callback
+  // (registered on the EventBase) never fires, causing an indefinite hang.
+  apache::thrift::Client<FsdbService>* rawClient = nullptr;
+  auto* evb = clientEvbThread_->getEventBase();
+  evb->runImmediatelyOrRunInEventBaseThreadAndWait([&] {
+    auto channel = apache::thrift::RocketClientChannel::newChannel(
+        folly::AsyncSocket::newSocket(evb, server_->getAddress()));
+    rawClient = new apache::thrift::Client<FsdbService>(std::move(channel));
+  });
+  // Prevent use-after-free: capture the shared_ptr so the EventBase thread
+  // stays alive even if this FsdbTestServerImpl is destroyed first.
+  return std::shared_ptr<apache::thrift::Client<FsdbService>>(
+      rawClient,
+      [evbThread = clientEvbThread_](apache::thrift::Client<FsdbService>* p) {
+        evbThread->getEventBase()->runImmediatelyOrRunInEventBaseThreadAndWait(
+            [p] { delete p; });
+      });
 }
 
 FsdbTestServer::FsdbTestServer(
@@ -95,7 +110,7 @@ FsdbTestServer::~FsdbTestServer() {
   stopTestServer();
 }
 
-std::unique_ptr<apache::thrift::Client<FsdbService>>
+std::shared_ptr<apache::thrift::Client<FsdbService>>
 FsdbTestServer::getClient() {
   return impl_->getClient();
 }
