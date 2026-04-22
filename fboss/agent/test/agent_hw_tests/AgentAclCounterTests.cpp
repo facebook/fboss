@@ -40,7 +40,14 @@ enum AclType {
   // UDF flowlet also matches on udf in addtion to FLOWLET fields
   UDF_FLOWLET,
 };
-}
+
+constexpr auto kL4DstPortRangeAclTableName = "l4-dst-port-range-acl-table";
+constexpr auto kL4DstPortRangeAclName = "l4-dst-port-range-acl";
+constexpr auto kL4DstPortRangeAclCounterName = "l4-dst-port-range-acl-stats";
+constexpr auto kL4DstPortRangeMin = 100;
+constexpr auto kL4DstPortRangeMax = 200;
+constexpr auto kL4DstPortRangeMiss = kL4DstPortRangeMax + 1;
+} // namespace
 
 namespace facebook::fboss {
 
@@ -310,6 +317,14 @@ class AgentAclCounterTest : public AgentHwTest {
     return folly::IPAddressV6("2620:0:1cfe:face:b00c::10");
   }
 
+  folly::IPAddressV4 kSrcIPv4() {
+    return folly::IPAddressV4("10.0.0.1");
+  }
+
+  folly::IPAddressV4 kDstIPv4() {
+    return folly::IPAddressV4("100.100.100.1");
+  }
+
   int kL4DstPort2() const {
     return 8002;
   }
@@ -545,6 +560,122 @@ class AgentL4DstPortAclCounterTest : public AgentAclCounterTest {
   }
 };
 
+class AgentAclCounterL4DstPortRangeTest : public AgentAclCounterTest {
+ public:
+  std::vector<ProductionFeature> getProductionFeaturesVerified()
+      const override {
+    return {
+        ProductionFeature::ACL_COUNTER,
+        ProductionFeature::MULTI_ACL_TABLE,
+        ProductionFeature::L4_DST_PORT_RANGE};
+  }
+
+ protected:
+  cfg::SwitchConfig initialConfig(
+      const AgentEnsemble& ensemble) const override {
+    auto cfg = AgentAclCounterTest::initialConfig(ensemble);
+    if (!FLAGS_enable_acl_table_group) {
+      return cfg;
+    }
+
+    utility::addAclTable(
+        &cfg,
+        kL4DstPortRangeAclTableName,
+        1 /* priority */,
+        {
+            cfg::AclTableActionType::PACKET_ACTION,
+            cfg::AclTableActionType::COUNTER,
+        },
+        {cfg::AclTableQualifier::L4_DST_PORT_RANGE});
+
+    auto acl = makeL4DstPortRangeAcl();
+    utility::addAclEntry(
+        &cfg, acl, kL4DstPortRangeAclTableName, cfg::AclStage::INGRESS);
+    utility::addAclStat(
+        &cfg,
+        kL4DstPortRangeAclName,
+        kL4DstPortRangeAclCounterName,
+        {cfg::CounterType::PACKETS, cfg::CounterType::BYTES});
+    return cfg;
+  }
+
+  cfg::AclEntry makeL4DstPortRangeAcl() const {
+    cfg::AclEntry acl;
+    acl.name() = kL4DstPortRangeAclName;
+    acl.actionType() = cfg::AclActionType::PERMIT;
+    cfg::Range range;
+    range.minimum() = kL4DstPortRangeMin;
+    range.maximum() = kL4DstPortRangeMax;
+    acl.l4DstPortRange() = range;
+    return acl;
+  }
+
+  void setupRangeAclCounterTest() {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return helper_->resolveNextHops(in, 2);
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    helper_->programRoutes(&wrapper, kDefaultEcmpWidth);
+    applyNewConfig(initialConfig(*getAgentEnsemble()));
+  }
+
+  uint64_t getRangeAclPacketCounter() const {
+    return utility::getAclInOutPackets(getSw(), kL4DstPortRangeAclCounterName);
+  }
+
+  std::vector<int> getMatchingL4DstPorts() const {
+    std::vector<int> l4DstPorts;
+    l4DstPorts.reserve(kL4DstPortRangeMax - kL4DstPortRangeMin + 1);
+    for (auto l4DstPort = kL4DstPortRangeMin; l4DstPort <= kL4DstPortRangeMax;
+         ++l4DstPort) {
+      l4DstPorts.push_back(l4DstPort);
+    }
+    return l4DstPorts;
+  }
+
+  void sendPacketWithDstPort(bool frontPanel, bool isV6, int l4DstPort) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+
+    std::unique_ptr<TxPacket> txPacket;
+    if (isV6) {
+      txPacket = utility::makeTCPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac, // src mac
+          intfMac, // dst mac
+          kSrcIP(),
+          kDstIP(),
+          kTestSrcPort,
+          l4DstPort,
+          0,
+          255);
+    } else {
+      txPacket = utility::makeTCPTxPacket(
+          getSw(),
+          vlanId,
+          srcMac, // src mac
+          intfMac, // dst mac
+          kSrcIPv4(),
+          kDstIPv4(),
+          kTestSrcPort,
+          l4DstPort,
+          0,
+          255);
+    }
+
+    if (frontPanel) {
+      auto outPort =
+          helper_->ecmpPortDescriptorAt(kDefaultEcmpWidth).phyPortID();
+      getSw()->sendPacketOutOfPortAsync(std::move(txPacket), outPort);
+    } else {
+      sendPacketSwitchedAsync(std::move(txPacket));
+    }
+  }
+};
+
 // Verify that traffic arrive on a front panel port increments ACL counter.
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnTtlHitFrontPanel) {
   this->counterBumpOnHitHelper(
@@ -566,6 +697,7 @@ TEST_F(
       true /* front panel port */,
       {AclType::L4_DST_PORT});
 }
+
 TEST_F(AgentAclCounterTest, VerifyCounterBumpOnSportHitFrontPanelWithDrop) {
   this->aclActionType_ = cfg::AclActionType::DENY;
   this->counterBumpOnHitHelper(
