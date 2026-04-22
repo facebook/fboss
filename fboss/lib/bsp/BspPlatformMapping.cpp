@@ -1,19 +1,19 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/lib/bsp/BspPlatformMapping.h"
+
+#include <utility>
+
+#include "fboss/lib/bsp/BuildFromXcvrLib.h"
 #include "fboss/lib/bsp/gen-cpp2/bsp_platform_mapping_types.h"
 
 namespace facebook {
 namespace fboss {
 
 BspPlatformMapping::BspPlatformMapping(BspPlatformMappingThrift bspMapping)
-    : bspMapping_(bspMapping) {
-  for (auto pim : *bspMapping_.pimMapping()) {
-    auto pimID = pim.first;
-    auto pimInfo = pim.second;
-    for (auto tcvr : *pimInfo.tcvrMapping()) {
-      auto tcvrID = tcvr.first;
-      auto tcvrInfo = tcvr.second;
+    : bspMapping_(std::move(bspMapping)) {
+  for (const auto& [pimID, pimInfo] : *bspMapping_.pimMapping()) {
+    for (const auto& [tcvrID, tcvrInfo] : *pimInfo.tcvrMapping()) {
       // Confirm that we haven't seen the same tcvrID before
       CHECK(tcvrToPimMapping_.find(tcvrID) == tcvrToPimMapping_.end());
       tcvrToPimMapping_[tcvrID] = pimID;
@@ -21,6 +21,9 @@ BspPlatformMapping::BspPlatformMapping(BspPlatformMappingThrift bspMapping)
     }
   }
 }
+
+BspPlatformMapping::BspPlatformMapping(const std::string& platformName)
+    : BspPlatformMapping(buildFromXcvrLib(platformName)) {}
 
 int BspPlatformMapping::getPimIDFromTcvrID(int tcvrID) const {
   CHECK(tcvrToPimMapping_.find(tcvrID) != tcvrToPimMapping_.end());

@@ -109,7 +109,7 @@ std::vector<PortID> AgentArsBase::getTestPorts() const {
 
 void AgentArsBase::setup(int ecmpWidth) {
   std::vector<PortID> portIds = getTestPorts();
-  flat_set<PortDescriptor> portDescs;
+  boost::container::flat_set<PortDescriptor> portDescs;
   std::vector<PortDescriptor> tempPortDescs;
   for (size_t w = 0; w < ecmpWidth; ++w) {
     tempPortDescs.emplace_back(portIds[w]);
@@ -770,7 +770,7 @@ void AgentArsBase::generatePrefixes() {
       [&portDescriptorIds, this](const std::shared_ptr<SwitchState>& in) {
         return helper_->resolveNextHops(
             in,
-            flat_set<PortDescriptor>(
+            boost::container::flat_set<PortDescriptor>(
                 std::make_move_iterator(portDescriptorIds.begin()),
                 std::make_move_iterator(portDescriptorIds.end())));
       });
@@ -899,7 +899,7 @@ void AgentArsBase::setupEcmpGroups(int numEcmp) {
   generatePrefixes();
   std::vector<RoutePrefixV6> testPrefixes = {
       prefixes.begin(), prefixes.begin() + numEcmp};
-  std::vector<flat_set<PortDescriptor>> testNhopSets = {
+  std::vector<boost::container::flat_set<PortDescriptor>> testNhopSets = {
       nhopSets.begin(), nhopSets.begin() + numEcmp};
   auto wrapper = getSw()->getRouteUpdater();
   helper_->programRoutes(&wrapper, testNhopSets, testPrefixes);

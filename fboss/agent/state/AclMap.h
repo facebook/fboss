@@ -114,8 +114,7 @@ struct PrioAclMapTraits {
   using KeyType = int;
   using Node = AclEntry;
   using ExtraFields = NodeMapNoExtraFields;
-  using NodeContainer =
-      boost::container::flat_map<KeyType, std::shared_ptr<Node>>;
+  using NodeContainer = std::map<KeyType, std::shared_ptr<Node>>;
 
   static KeyType getKey(const std::shared_ptr<Node>& entry) {
     return entry->getPriority();

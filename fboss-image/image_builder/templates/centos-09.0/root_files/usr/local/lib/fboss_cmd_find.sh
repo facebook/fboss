@@ -17,7 +17,7 @@ fboss2 | fboss2-dev | diag_shell_client)
   update_prefix="fboss-forwarding"
   ;;
 
-fw_util | sensor_service_client | showtech | weutil)
+fw_util | sensor_service_client | rma-showtech | weutil)
   # Platform stack commands
   update_prefix="fboss-platform_stack"
   ;;
@@ -30,8 +30,21 @@ esac
 
 update_path=$(ls -1 /updates/${update_prefix}-*/opt/fboss/bin/${cmd} 2>/dev/null | head -n 1)
 if [ -x "$update_path" ]; then
-  echo exec "$update_path" "$@"
+  update_base=$(dirname "$(dirname "$update_path")")
+  if [ -f "${update_base}/bin/setup_fboss_env" ]; then
+    pushd "$update_base" >/dev/null
+    # shellcheck source=/opt/fboss/bin/setup_fboss_env
+    source ./bin/setup_fboss_env
+    popd >/dev/null
+  fi
+  exec "$update_path" "$@"
 else
+  if [ -f /opt/fboss/bin/setup_fboss_env ]; then
+    pushd /opt/fboss >/dev/null
+    # shellcheck source=/opt/fboss/bin/setup_fboss_env
+    source ./bin/setup_fboss_env
+    popd >/dev/null
+  fi
   exec "/opt/fboss/bin/${cmd}" "$@"
 fi
 echo "Failed to find fboss command"

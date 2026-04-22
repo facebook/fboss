@@ -115,6 +115,7 @@ class RemoteNeighborUpdater;
 class EcmpResourceManager;
 class ShelManager;
 class FabricLinkMonitoringManager;
+class CpuLatencyManager;
 class StateUpdateValidator;
 
 inline static const int kHiPriorityBufferSize{1000};
@@ -806,6 +807,10 @@ class SwSwitch : public HwSwitchCallback {
     return fabricLinkMonitoringManager_.get();
   }
 
+  CpuLatencyManager* getCpuLatencyManager() {
+    return cpuLatencyManager_.get();
+  }
+
   const EcmpResourceManager* getEcmpResourceManager() const {
     return ecmpResourceManager_.get();
   }
@@ -1184,6 +1189,7 @@ class SwSwitch : public HwSwitchCallback {
   void initLldpManager();
 
   void initFabricLinkMonitoringManager();
+  void initCpuLatencyManager();
 
   void publishBootTypeStats();
 
@@ -1407,6 +1413,7 @@ class SwSwitch : public HwSwitchCallback {
   std::unique_ptr<EcmpResourceManager> ecmpResourceManager_;
   std::unique_ptr<ShelManager> shelManager_;
   std::unique_ptr<FabricLinkMonitoringManager> fabricLinkMonitoringManager_;
+  std::unique_ptr<CpuLatencyManager> cpuLatencyManager_;
   std::unique_ptr<StateUpdateValidator> stateUpdateValidator_;
 
   folly::Synchronized<ConfigAppliedInfo> configAppliedInfo_;

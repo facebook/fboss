@@ -398,6 +398,8 @@ class AgentEnsemble : public TestEnsembleIf {
   }
 
  private:
+  void interleavePortsAcrossDies(
+      const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts);
   void setConfigFiles(const std::string& fileName);
   void setBootType();
   void overrideConfigFlag(const std::string& fileName);

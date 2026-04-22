@@ -4,6 +4,7 @@
     "counter_refresh_interval": "0",
     "disable_neighbor_updates": "true",
     "ecmp_width": "128",
+    "enable_acl_table_group": "true",
     "enable_replayer": "true",
     "intf_nbr_tables": "true",
     "log_variable_name": "true",
@@ -24,7 +25,7 @@
         "name": "eth1/3/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -37,12 +38,12 @@
           "2": "eth1/4/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -60,7 +61,7 @@
         "name": "eth1/4/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -73,12 +74,12 @@
           "2": "eth1/3/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -96,7 +97,7 @@
         "name": "eth1/7/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -109,12 +110,12 @@
           "2": "eth1/8/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -132,7 +133,7 @@
         "name": "eth1/7/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -145,12 +146,12 @@
           "2": "eth1/8/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -168,7 +169,7 @@
         "name": "eth1/8/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -181,12 +182,12 @@
           "2": "eth1/7/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -204,7 +205,7 @@
         "name": "eth1/8/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -217,12 +218,12 @@
           "2": "eth1/7/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 45,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -240,7 +241,7 @@
         "name": "eth1/11/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -253,12 +254,12 @@
           "2": "eth1/12/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -276,7 +277,7 @@
         "name": "eth1/11/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -289,12 +290,12 @@
           "2": "eth1/12/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -312,7 +313,7 @@
         "name": "eth1/11/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -325,12 +326,12 @@
           "2": "eth1/12/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -348,7 +349,7 @@
         "name": "eth1/11/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -361,12 +362,12 @@
           "2": "eth1/12/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -384,7 +385,7 @@
         "name": "eth1/12/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -397,12 +398,12 @@
           "2": "eth1/11/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -420,7 +421,7 @@
         "name": "eth1/12/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -433,12 +434,12 @@
           "2": "eth1/11/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -456,7 +457,7 @@
         "name": "eth1/12/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -469,12 +470,12 @@
           "2": "eth1/11/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -492,7 +493,7 @@
         "name": "eth1/12/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -505,12 +506,12 @@
           "2": "eth1/11/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 54,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -528,7 +529,7 @@
         "name": "eth1/15/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -541,12 +542,12 @@
           "2": "eth1/16/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -564,7 +565,7 @@
         "name": "eth1/15/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -577,12 +578,12 @@
           "2": "eth1/16/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -600,7 +601,7 @@
         "name": "eth1/16/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -613,12 +614,12 @@
           "2": "eth1/15/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -636,7 +637,7 @@
         "name": "eth1/16/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -649,12 +650,12 @@
           "2": "eth1/15/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 24,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -672,7 +673,7 @@
         "name": "eth1/19/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -685,12 +686,12 @@
           "2": "eth1/20/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -708,7 +709,7 @@
         "name": "eth1/19/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -721,12 +722,12 @@
           "2": "eth1/20/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -744,7 +745,7 @@
         "name": "eth1/19/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -757,12 +758,12 @@
           "2": "eth1/20/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -780,7 +781,7 @@
         "name": "eth1/19/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -793,12 +794,12 @@
           "2": "eth1/20/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -816,7 +817,7 @@
         "name": "eth1/20/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -829,12 +830,12 @@
           "2": "eth1/19/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -852,7 +853,7 @@
         "name": "eth1/20/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -865,12 +866,12 @@
           "2": "eth1/19/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -888,7 +889,7 @@
         "name": "eth1/20/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -901,12 +902,12 @@
           "2": "eth1/19/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -924,7 +925,7 @@
         "name": "eth1/20/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -937,12 +938,12 @@
           "2": "eth1/19/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 55,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -960,7 +961,7 @@
         "name": "eth1/23/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -973,12 +974,12 @@
           "2": "eth1/27/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -996,7 +997,7 @@
         "name": "eth1/23/2",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1009,12 +1010,12 @@
           "2": "eth1/27/2"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1032,7 +1033,7 @@
         "name": "eth1/23/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1045,12 +1046,12 @@
           "2": "eth1/27/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1068,7 +1069,7 @@
         "name": "eth1/23/4",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1081,12 +1082,12 @@
           "2": "eth1/27/4"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1104,7 +1105,7 @@
         "name": "eth1/23/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1117,12 +1118,12 @@
           "2": "eth1/27/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1140,7 +1141,7 @@
         "name": "eth1/23/6",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1153,12 +1154,12 @@
           "2": "eth1/27/6"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1176,7 +1177,7 @@
         "name": "eth1/23/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1189,12 +1190,12 @@
           "2": "eth1/27/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1212,7 +1213,7 @@
         "name": "eth1/23/8",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1225,12 +1226,12 @@
           "2": "eth1/27/8"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1248,7 +1249,7 @@
         "name": "eth1/24/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1261,12 +1262,12 @@
           "2": "eth1/28/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1284,7 +1285,7 @@
         "name": "eth1/27/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1297,12 +1298,12 @@
           "2": "eth1/23/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1320,7 +1321,7 @@
         "name": "eth1/27/2",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1333,12 +1334,12 @@
           "2": "eth1/23/2"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1356,7 +1357,7 @@
         "name": "eth1/27/3",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1369,12 +1370,12 @@
           "2": "eth1/23/3"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1392,7 +1393,7 @@
         "name": "eth1/27/4",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1405,12 +1406,12 @@
           "2": "eth1/23/4"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1428,7 +1429,7 @@
         "name": "eth1/27/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1441,12 +1442,12 @@
           "2": "eth1/23/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1464,7 +1465,7 @@
         "name": "eth1/27/6",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1477,12 +1478,12 @@
           "2": "eth1/23/6"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1500,7 +1501,7 @@
         "name": "eth1/27/7",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1513,12 +1514,12 @@
           "2": "eth1/23/7"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1536,7 +1537,7 @@
         "name": "eth1/27/8",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1549,12 +1550,12 @@
           "2": "eth1/23/8"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 56,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1572,7 +1573,7 @@
         "name": "eth1/28/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1585,12 +1586,12 @@
           "2": "eth1/24/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 50,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1608,7 +1609,7 @@
         "name": "eth1/31/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1621,12 +1622,12 @@
           "2": "eth1/32/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1644,7 +1645,7 @@
         "name": "eth1/31/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1657,12 +1658,12 @@
           "2": "eth1/32/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1680,7 +1681,7 @@
         "name": "eth1/32/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1693,12 +1694,12 @@
           "2": "eth1/31/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1716,7 +1717,7 @@
         "name": "eth1/32/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1729,12 +1730,12 @@
           "2": "eth1/31/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 22,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1752,7 +1753,7 @@
         "name": "eth1/33/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1765,12 +1766,12 @@
           "2": "eth1/33/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 4,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1788,7 +1789,7 @@
         "name": "eth1/1/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1801,12 +1802,12 @@
           "2": "eth1/2/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1824,7 +1825,7 @@
         "name": "eth1/1/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1837,12 +1838,12 @@
           "2": "eth1/2/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1860,7 +1861,7 @@
         "name": "eth1/2/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1873,12 +1874,12 @@
           "2": "eth1/1/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1896,7 +1897,7 @@
         "name": "eth1/2/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1909,12 +1910,12 @@
           "2": "eth1/1/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1932,7 +1933,7 @@
         "name": "eth1/5/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1945,12 +1946,12 @@
           "2": "eth1/6/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -1968,7 +1969,7 @@
         "name": "eth1/5/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -1981,12 +1982,12 @@
           "2": "eth1/6/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2004,7 +2005,7 @@
         "name": "eth1/6/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2017,12 +2018,12 @@
           "2": "eth1/5/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2040,7 +2041,7 @@
         "name": "eth1/6/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2053,12 +2054,12 @@
           "2": "eth1/5/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2076,7 +2077,7 @@
         "name": "eth1/9/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2089,12 +2090,12 @@
           "2": "eth1/10/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2112,7 +2113,7 @@
         "name": "eth1/9/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2125,12 +2126,12 @@
           "2": "eth1/10/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2148,7 +2149,7 @@
         "name": "eth1/10/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2161,12 +2162,12 @@
           "2": "eth1/9/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2184,7 +2185,7 @@
         "name": "eth1/10/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2197,12 +2198,12 @@
           "2": "eth1/9/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2220,7 +2221,7 @@
         "name": "eth1/13/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2233,12 +2234,12 @@
           "2": "eth1/14/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2256,7 +2257,7 @@
         "name": "eth1/13/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2269,12 +2270,12 @@
           "2": "eth1/14/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2292,7 +2293,7 @@
         "name": "eth1/14/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2305,12 +2306,12 @@
           "2": "eth1/13/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2328,7 +2329,7 @@
         "name": "eth1/14/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2341,12 +2342,12 @@
           "2": "eth1/13/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 23,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2364,7 +2365,7 @@
         "name": "eth1/17/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2377,12 +2378,12 @@
           "2": "eth1/18/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2400,7 +2401,7 @@
         "name": "eth1/17/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2413,12 +2414,12 @@
           "2": "eth1/18/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2436,7 +2437,7 @@
         "name": "eth1/18/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2449,12 +2450,12 @@
           "2": "eth1/17/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2472,7 +2473,7 @@
         "name": "eth1/18/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2485,12 +2486,12 @@
           "2": "eth1/17/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2508,7 +2509,7 @@
         "name": "eth1/21/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2521,12 +2522,12 @@
           "2": "eth1/22/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2544,7 +2545,7 @@
         "name": "eth1/21/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2557,12 +2558,12 @@
           "2": "eth1/22/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2580,7 +2581,7 @@
         "name": "eth1/22/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2593,12 +2594,12 @@
           "2": "eth1/21/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 25,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2616,7 +2617,7 @@
         "name": "eth1/22/5",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2629,12 +2630,12 @@
           "2": "eth1/21/5"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 38,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2652,7 +2653,7 @@
         "name": "eth1/25/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2665,12 +2666,12 @@
           "2": "eth1/26/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2688,7 +2689,7 @@
         "name": "eth1/26/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2701,12 +2702,12 @@
           "2": "eth1/25/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2724,7 +2725,7 @@
         "name": "eth1/29/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2737,12 +2738,12 @@
           "2": "eth1/30/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2760,7 +2761,7 @@
         "name": "eth1/30/1",
         "description": "",
         "queues_DEPRECATED": [
-          
+
         ],
         "pause": {
           "tx": false,
@@ -2773,12 +2774,12 @@
           "2": "eth1/29/1"
         },
         "lookupClasses": [
-          
+
         ],
         "profileID": 39,
         "portType": 0,
         "expectedNeighborReachability": [
-          
+
         ],
         "drainState": 0,
         "scope": 0,
@@ -2792,7 +2793,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2801,7 +2802,7 @@
         "recordStats": true,
         "routable": false,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2810,7 +2811,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2819,7 +2820,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2828,7 +2829,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2837,7 +2838,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2846,7 +2847,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2855,7 +2856,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2864,7 +2865,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2873,7 +2874,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2882,7 +2883,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2891,7 +2892,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2900,7 +2901,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2909,7 +2910,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2918,7 +2919,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2927,7 +2928,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2936,7 +2937,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2945,7 +2946,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2954,7 +2955,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2963,7 +2964,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2972,7 +2973,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2981,7 +2982,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2990,7 +2991,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -2999,7 +3000,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3008,7 +3009,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3017,7 +3018,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3026,7 +3027,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3035,7 +3036,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3044,7 +3045,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3053,7 +3054,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3062,7 +3063,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3071,7 +3072,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3080,7 +3081,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3089,7 +3090,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3098,7 +3099,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3107,7 +3108,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3116,7 +3117,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3125,7 +3126,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3134,7 +3135,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3143,7 +3144,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3152,7 +3153,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3161,7 +3162,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3170,7 +3171,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3179,7 +3180,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3188,7 +3189,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3197,7 +3198,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3206,7 +3207,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3215,7 +3216,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3224,7 +3225,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3233,7 +3234,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3242,7 +3243,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3251,7 +3252,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3260,7 +3261,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3269,7 +3270,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3278,7 +3279,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3287,7 +3288,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3296,7 +3297,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3305,7 +3306,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3314,7 +3315,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3323,7 +3324,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3332,7 +3333,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3341,7 +3342,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3350,7 +3351,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3359,7 +3360,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3368,7 +3369,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3377,7 +3378,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3386,7 +3387,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3395,7 +3396,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3404,7 +3405,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3413,7 +3414,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3422,7 +3423,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3431,7 +3432,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3440,7 +3441,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3449,7 +3450,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3458,7 +3459,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3467,7 +3468,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3476,7 +3477,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3485,7 +3486,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       },
       {
@@ -3494,7 +3495,7 @@
         "recordStats": true,
         "routable": true,
         "ipAddresses": [
-          
+
         ]
       }
     ],
@@ -5062,13 +5063,13 @@
     "arpAgerInterval": 5,
     "proactiveArp": false,
     "staticRoutesWithNhops": [
-      
+
     ],
     "staticRoutesToNull": [
-      
+
     ],
     "staticRoutesToCPU": [
-      
+
     ],
     "acls": [
       {
@@ -5170,7 +5171,7 @@
     "maxNeighborProbes": 300,
     "staleEntryInterval": 10,
     "aggregatePorts": [
-      
+
     ],
     "clientIdToAdminDistance": {
       "0": 20,
@@ -5182,7 +5183,7 @@
       "786": 10
     },
     "sFlowCollectors": [
-      
+
     ],
     "cpuQueues": [
       {
@@ -5394,10 +5395,10 @@
             2
           ],
           "mplsFields": [
-            
+
           ],
           "udfGroups": [
-            
+
           ]
         },
         "algorithm": 1
@@ -5414,13 +5415,13 @@
             2
           ],
           "transportFields": [
-            
+
           ],
           "mplsFields": [
-            
+
           ],
           "udfGroups": [
-            
+
           ]
         },
         "algorithm": 1
@@ -5461,7 +5462,7 @@
       ]
     },
     "mirrors": [
-      
+
     ],
     "trafficCounters": [
       {
@@ -5501,25 +5502,25 @@
       }
     ],
     "qosPolicies": [
-      
+
     ],
     "defaultPortQueues": [
-      
+
     ],
     "staticMplsRoutesWithNhops": [
-      
+
     ],
     "staticMplsRoutesToNull": [
-      
+
     ],
     "staticMplsRoutesToCPU": [
-      
+
     ],
     "staticIp2MplsRoutes": [
-      
+
     ],
     "portQueueConfigs": {
-      
+
     },
     "switchSettings": {
       "l2LearningMode": 0,
@@ -5528,17 +5529,17 @@
       "l2AgeTimerSeconds": 300,
       "maxRouteCounterIDs": 0,
       "blockNeighbors": [
-        
+
       ],
       "macAddrsToBlock": [
-        
+
       ],
       "switchType": 0,
       "exactMatchTableConfigs": [
-        
+
       ],
       "switchIdToSwitchType_DEPRECATED": {
-        
+
       },
       "switchDrainState": 0,
       "switchIdToSwitchInfo": {
@@ -5551,15 +5552,15 @@
               "maximum": 2047
             },
             "firmwareNameToFirmwareInfo": {
-              
+
             }
         }
       },
       "vendorMacOuis": [
-        
+
       ],
       "metaMacOuis": [
-        
+
       ]
     },
     "sdkVersion": {
@@ -5567,25 +5568,25 @@
       "saiSdk": "sai"
     },
     "dsfNodes": {
-      
+
     },
     "defaultVoqConfig": [
-      
+
     ],
     "mirrorOnDropReports": [
-      
+
     ]
   },
   "platform": {
     "chip": {
       "asicConfig": {
         "common": {
-          "yamlConfig": "---\ndevice:\n  0:\n    PC_PM_CORE:\n      ?\n        PC_PM_ID: 1\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFF\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 2\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAA\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 3\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x45670123\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x66\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x55\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 4\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x00\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 5\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x56127430\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x02561347\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x7F\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 6\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21473065\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742156\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x2A\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 7\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x76135402\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x65127430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xEE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA6\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 8\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14725603\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x64105723\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xBB\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x4B\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 9\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30652147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32750146\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD2\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 10\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21473065\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742156\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x6A\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 11\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x76135402\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x65127430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xEE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA6\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 12\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14725603\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x64105723\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xBB\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x4B\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 13\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30652147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32750146\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD2\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 14\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21473065\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742156\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x6A\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 15\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x76135402\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x65127430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xEE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA6\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 16\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14725603\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x64105723\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xBB\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x4B\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 49\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x75324601\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x87\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 50\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47216530\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305621\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x65\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 51\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x13760254\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12653074\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x44\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 52\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x72140356\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x10642357\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x11\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xE1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 53\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x75324601\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x87\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 54\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47216530\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305621\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x65\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 55\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x13760254\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12653074\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x44\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 56\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x72140356\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x10642357\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x11\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xE1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 57\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x75324601\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x87\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 58\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47216530\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305621\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x65\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 59\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x13760254\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12653074\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x44\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x52\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 60\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x07436521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x31742065\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x04\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 61\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x55\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 62\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x33\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x00\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 63\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xFF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 64\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23016745\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xE6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 65\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x3210\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x3210\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0F\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x0F\n        TX_POLARITY_FLIP_AUTO: 0\n...\n---\ndevice:\n  0:\n    PC_PORT_PHYS_MAP:\n      ?\n        PORT_ID: 1\n      :\n        PC_PHYS_PORT_ID: 1\n      ?\n        PORT_ID: 5\n      :\n        PC_PHYS_PORT_ID: 9\n      ?\n        PORT_ID: 11\n      :\n        PC_PHYS_PORT_ID: 17\n      ?\n        PORT_ID: 15\n      :\n        PC_PHYS_PORT_ID: 25\n      ?\n        PORT_ID: 22\n      :\n        PC_PHYS_PORT_ID: 33\n      ?\n        PORT_ID: 26\n      :\n        PC_PHYS_PORT_ID: 41\n      ?\n        PORT_ID: 33\n      :\n        PC_PHYS_PORT_ID: 49\n      ?\n        PORT_ID: 37\n      :\n        PC_PHYS_PORT_ID: 57\n      ?\n        PORT_ID: 44\n      :\n        PC_PHYS_PORT_ID: 65\n      ?\n        PORT_ID: 48\n      :\n        PC_PHYS_PORT_ID: 73\n      ?\n        PORT_ID: 55\n      :\n        PC_PHYS_PORT_ID: 81\n      ?\n        PORT_ID: 59\n      :\n        PC_PHYS_PORT_ID: 89\n      ?\n        PORT_ID: 66\n      :\n        PC_PHYS_PORT_ID: 97\n      ?\n        PORT_ID: 70\n      :\n        PC_PHYS_PORT_ID: 105\n      ?\n        PORT_ID: 77\n      :\n        PC_PHYS_PORT_ID: 113\n      ?\n        PORT_ID: 81\n      :\n        PC_PHYS_PORT_ID: 121\n      ?\n        PORT_ID: 264\n      :\n        PC_PHYS_PORT_ID: 385\n      ?\n        PORT_ID: 268\n      :\n        PC_PHYS_PORT_ID: 393\n      ?\n        PORT_ID: 275\n      :\n        PC_PHYS_PORT_ID: 401\n      ?\n        PORT_ID: 279\n      :\n        PC_PHYS_PORT_ID: 409\n      ?\n        PORT_ID: 286\n      :\n        PC_PHYS_PORT_ID: 417\n      ?\n        PORT_ID: 290\n      :\n        PC_PHYS_PORT_ID: 425\n      ?\n        PORT_ID: 297\n      :\n        PC_PHYS_PORT_ID: 433\n      ?\n        PORT_ID: 301\n      :\n        PC_PHYS_PORT_ID: 441\n      ?\n        PORT_ID: 308\n      :\n        PC_PHYS_PORT_ID: 449\n      ?\n        PORT_ID: 312\n      :\n        PC_PHYS_PORT_ID: 457\n      ?\n        PORT_ID: 319\n      :\n        PC_PHYS_PORT_ID: 465\n      ?\n        PORT_ID: 323\n      :\n        PC_PHYS_PORT_ID: 473\n      ?\n        PORT_ID: 330\n      :\n        PC_PHYS_PORT_ID: 481\n      ?\n        PORT_ID: 334\n      :\n        PC_PHYS_PORT_ID: 489\n      ?\n        PORT_ID: 341\n      :\n        PC_PHYS_PORT_ID: 497\n      ?\n        PORT_ID: 345\n      :\n        PC_PHYS_PORT_ID: 505\n      ?\n        PORT_ID: 0\n      :\n        PC_PHYS_PORT_ID: 0\n      ?\n        PORT_ID: 76\n      :\n        PC_PHYS_PORT_ID: 513\n...\n---\ndevice:\n  0:\n    PC_PORT:\n      ?\n        PORT_ID: 0\n      :\n        ENABLE: 1\n        SPEED: 10000\n        NUM_LANES: 1\n      ?\n        PORT_ID: [[1, 1], [5, 5], [11, 11], [15, 15], [22, 22], [26, 26], [33, 33],\n        [37, 37], [44, 44], [48, 48], [55, 55], [59, 59], [66, 66], [70, 70], [77,\n        77], [81, 81], [264, 264], [268, 268], [275, 275], [279, 279], [286, 286],\n        [290, 290], [297, 297], [301, 301], [308, 308], [312, 312], [319, 319], [323,\n        323], [330, 330], [334, 334], [341, 341], [345, 345]]\n      :\n        ENABLE: 0\n        SPEED: 800000\n        NUM_LANES: 8\n        FEC_MODE: PC_FEC_RS544_2XN\n        MAX_FRAME_SIZE: 9416\n      ?\n        PORT_ID: 76\n      :\n        ENABLE: 0\n        SPEED: 100000\n        NUM_LANES: 4\n        FEC_MODE: PC_FEC_RS528\n        MAX_FRAME_SIZE: 9416\n...\n---\ndevice:\n  0:\n    PORT_CONFIG:\n      PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE: 1\n...\n---\nbcm_device:\n  0:\n    global:\n      l3_alpm_template: 1\n      l3_alpm_hit_mode: 1\n      ipv6_lpm_128b_enable: 1\n      pktio_driver_type: 1\n      qos_map_multi_get_mode: 1\n      rx_cosq_mapping_management_mode: 0\n      l3_iif_reservation_skip: 0\n      pcie_host_intf_timeout_purge_enable: 0\n      macro_flow_hash_shuffle_random_seed: 34345645\n      bcm_linkscan_interval: 25000\n      sai_common_hash_crc: 0x1\n      sai_disable_srcmacqedstmac_ctrl: 0x1\n      sai_acl_qset_optimization: 0x1\n      sai_optimized_mmu: 0x1\n      sai_pkt_rx_custom_cfg: 1\n      sai_pkt_rx_pkt_size: 16512\n      sai_pkt_rx_cfg_ppc: 16\n      sai_async_fdb_nbr_enable: 0x1\n      sai_pfc_defaults_disable: 0x1\n      sai_ifp_enable_on_cpu_tx: 0x1\n      sai_vfp_smac_drop_filter_disable: 1\n      sai_macro_flow_based_hash: 1\n      sai_mmu_qgroups_default: 1\n      sai_dis_ctr_incr_on_port_ln_dn: 0\n      custom_feature_mesh_topology_sync_mode: 1\n      sai_ecmp_group_members_increment: 1\n      sai_field_group_auto_prioritize: 1\n      bcm_tunnel_term_compatible_mode: 1\n      sai_l2_cpu_fdb_event_suppress: 1\n      sai_port_phy_time_sync_en: 1\n      sai_stats_support_mask: 0x802\n      sai_disable_internal_port_serdes: 1\n      stat_custom_receive0_management_mode: 1\n      sai_stats_disable_mask: 0x800\n      global_flexctr_ing_action_num_reserved: 20\n      global_flexctr_ing_pool_num_reserved: 8\n      global_flexctr_ing_op_profile_num_reserved: 20\n      global_flexctr_ing_group_num_reserved: 2\n      global_flexctr_egr_action_num_reserved: 8\n      global_flexctr_egr_pool_num_reserved: 5\n      global_flexctr_egr_op_profile_num_reserved: 10\n      global_flexctr_egr_group_num_reserved: 1\n      sai_uncached_port_stats: 0x1\n      ecmp_dlb_port_speeds: 1\n      l3_ecmp_member_secondary_mem_size: 4096\n...\n---\ndevice:\n  0:\n    TM_THD_CONFIG:\n      THRESHOLD_MODE: LOSSY\n...\n---\ndevice:\n  0:\n    PORT:\n      ?\n        PORT_ID: [[1, 1], [5, 5], [11, 11], [15, 15], [22, 22], [26, 26], [33, 33],\n        [37, 37], [44, 44], [48, 48], [55, 55], [59, 59], [66, 66], [70, 70], [77,\n        77], [81, 81], [264, 264], [268, 268], [275, 275], [279, 279], [286, 286],\n        [290, 290], [297, 297], [301, 301], [308, 308], [312, 312], [319, 319], [323,\n        323], [330, 330], [334, 334], [341, 341], [345, 345]]\n      :\n        MTU: 9416\n        MTU_CHECK: 1\n...\n---\ndevice:\n  0:\n    DEVICE_CONFIG:\n      AUTOLOAD_BOARD_SETTINGS: 0\n...\n---\ndevice:\n  0:\n    FP_CONFIG:\n      FP_ING_OPERMODE: GLOBAL_PIPE_AWARE\n...\n---\ndevice:\n  0:\n    CTR_EFLEX_CONFIG:\n      CTR_ING_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n...\n"
+          "yamlConfig": "---\ndevice:\n  0:\n    PC_PM_CORE:\n      ?\n        PC_PM_ID: 1\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xB3\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xFF\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 2\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xAA\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 3\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x45670123\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x66\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x55\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 4\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x00\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 5\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x56127430\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x02561347\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x7F\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 6\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21473065\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742156\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x2A\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 7\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x76135402\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x65127430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xEE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA6\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 8\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14725603\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x64105723\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xBB\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x4B\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 9\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30652147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32750146\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD2\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 10\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21473065\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742156\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x6A\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 11\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x76135402\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x65127430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xEE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA6\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 12\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14725603\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x64105723\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xBB\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x4B\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 13\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x30652147\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32750146\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD2\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 14\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x21473065\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x30742156\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x6A\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 15\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x76135402\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x65127430\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xEE\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xA6\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 16\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x14725603\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x64105723\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xBB\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x4B\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 49\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x75324601\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x87\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 50\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47216530\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305621\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x65\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 51\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x13760254\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12653074\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x44\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 52\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x72140356\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x10642357\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x11\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xE1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 53\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x75324601\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x87\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 54\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47216530\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305621\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x65\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 55\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x13760254\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12653074\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x44\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x56\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 56\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x72140356\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x10642357\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x11\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xE1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 57\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x65304721\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x75324601\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x88\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x87\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 58\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x47216530\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x74305621\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xDD\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x65\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 59\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x13760254\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x12653074\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x44\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x52\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 60\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x07436521\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x31742065\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x04\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xD1\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 61\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x55\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xCC\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 62\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x23016745\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x54761032\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x33\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x00\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 63\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x32107654\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xFF\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x66\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 64\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x45670123\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x23016745\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0xE6\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0xAA\n        TX_POLARITY_FLIP_AUTO: 0\n      ?\n        PC_PM_ID: 65\n        CORE_INDEX: 0\n      :\n        RX_LANE_MAP: 0x3210\n        RX_LANE_MAP_AUTO: 0\n        TX_LANE_MAP: 0x3210\n        TX_LANE_MAP_AUTO: 0\n        RX_POLARITY_FLIP: 0x0F\n        RX_POLARITY_FLIP_AUTO: 0\n        TX_POLARITY_FLIP: 0x0F\n        TX_POLARITY_FLIP_AUTO: 0\n...\n---\ndevice:\n  0:\n    PC_PORT_PHYS_MAP:\n      ?\n        PORT_ID: 1\n      :\n        PC_PHYS_PORT_ID: 1\n      ?\n        PORT_ID: 5\n      :\n        PC_PHYS_PORT_ID: 9\n      ?\n        PORT_ID: 11\n      :\n        PC_PHYS_PORT_ID: 17\n      ?\n        PORT_ID: 15\n      :\n        PC_PHYS_PORT_ID: 25\n      ?\n        PORT_ID: 22\n      :\n        PC_PHYS_PORT_ID: 33\n      ?\n        PORT_ID: 26\n      :\n        PC_PHYS_PORT_ID: 41\n      ?\n        PORT_ID: 33\n      :\n        PC_PHYS_PORT_ID: 49\n      ?\n        PORT_ID: 37\n      :\n        PC_PHYS_PORT_ID: 57\n      ?\n        PORT_ID: 44\n      :\n        PC_PHYS_PORT_ID: 65\n      ?\n        PORT_ID: 48\n      :\n        PC_PHYS_PORT_ID: 73\n      ?\n        PORT_ID: 55\n      :\n        PC_PHYS_PORT_ID: 81\n      ?\n        PORT_ID: 59\n      :\n        PC_PHYS_PORT_ID: 89\n      ?\n        PORT_ID: 66\n      :\n        PC_PHYS_PORT_ID: 97\n      ?\n        PORT_ID: 70\n      :\n        PC_PHYS_PORT_ID: 105\n      ?\n        PORT_ID: 77\n      :\n        PC_PHYS_PORT_ID: 113\n      ?\n        PORT_ID: 81\n      :\n        PC_PHYS_PORT_ID: 121\n      ?\n        PORT_ID: 264\n      :\n        PC_PHYS_PORT_ID: 385\n      ?\n        PORT_ID: 268\n      :\n        PC_PHYS_PORT_ID: 393\n      ?\n        PORT_ID: 275\n      :\n        PC_PHYS_PORT_ID: 401\n      ?\n        PORT_ID: 279\n      :\n        PC_PHYS_PORT_ID: 409\n      ?\n        PORT_ID: 286\n      :\n        PC_PHYS_PORT_ID: 417\n      ?\n        PORT_ID: 290\n      :\n        PC_PHYS_PORT_ID: 425\n      ?\n        PORT_ID: 297\n      :\n        PC_PHYS_PORT_ID: 433\n      ?\n        PORT_ID: 301\n      :\n        PC_PHYS_PORT_ID: 441\n      ?\n        PORT_ID: 308\n      :\n        PC_PHYS_PORT_ID: 449\n      ?\n        PORT_ID: 312\n      :\n        PC_PHYS_PORT_ID: 457\n      ?\n        PORT_ID: 319\n      :\n        PC_PHYS_PORT_ID: 465\n      ?\n        PORT_ID: 323\n      :\n        PC_PHYS_PORT_ID: 473\n      ?\n        PORT_ID: 330\n      :\n        PC_PHYS_PORT_ID: 481\n      ?\n        PORT_ID: 334\n      :\n        PC_PHYS_PORT_ID: 489\n      ?\n        PORT_ID: 341\n      :\n        PC_PHYS_PORT_ID: 497\n      ?\n        PORT_ID: 345\n      :\n        PC_PHYS_PORT_ID: 505\n      ?\n        PORT_ID: 0\n      :\n        PC_PHYS_PORT_ID: 0\n      ?\n        PORT_ID: 76\n      :\n        PC_PHYS_PORT_ID: 513\n...\n---\ndevice:\n  0:\n    PC_PORT:\n      ?\n        PORT_ID: 0\n      :\n        ENABLE: 1\n        SPEED: 10000\n        NUM_LANES: 1\n      ?\n        PORT_ID: [[1, 1], [5, 5], [11, 11], [15, 15], [22, 22], [26, 26], [33, 33],\n        [37, 37], [44, 44], [48, 48], [55, 55], [59, 59], [66, 66], [70, 70], [77,\n        77], [81, 81], [264, 264], [268, 268], [275, 275], [279, 279], [286, 286],\n        [290, 290], [297, 297], [301, 301], [308, 308], [312, 312], [319, 319], [323,\n        323], [330, 330], [334, 334], [341, 341], [345, 345]]\n      :\n        ENABLE: 0\n        SPEED: 800000\n        NUM_LANES: 8\n        FEC_MODE: PC_FEC_RS544_2XN\n        MAX_FRAME_SIZE: 9416\n      ?\n        PORT_ID: 76\n      :\n        ENABLE: 0\n        SPEED: 100000\n        NUM_LANES: 4\n        FEC_MODE: PC_FEC_RS528\n        MAX_FRAME_SIZE: 9416\n...\n---\ndevice:\n  0:\n    PORT_CONFIG:\n      PORT_SYSTEM_PROFILE_OPERMODE_PIPEUNIQUE: 1\n...\n---\nbcm_device:\n  0:\n    global:\n      l3_alpm_template: 1\n      l3_alpm_hit_mode: 1\n      ipv6_lpm_128b_enable: 1\n      pktio_driver_type: 1\n      qos_map_multi_get_mode: 1\n      rx_cosq_mapping_management_mode: 0\n      l3_iif_reservation_skip: 0\n      pcie_host_intf_timeout_purge_enable: 0\n      macro_flow_hash_shuffle_random_seed: 34345645\n      bcm_linkscan_interval: 25000\n      sai_common_hash_crc: 0x1\n      sai_disable_srcmacqedstmac_ctrl: 0x1\n      sai_acl_qset_optimization: 0x1\n      sai_optimized_mmu: 0x1\n      sai_pkt_rx_custom_cfg: 1\n      sai_pkt_rx_pkt_size: 16512\n      sai_pkt_rx_cfg_ppc: 16\n      sai_async_fdb_nbr_enable: 0x1\n      sai_pfc_defaults_disable: 0x1\n      sai_ifp_enable_on_cpu_tx: 0x1\n      sai_vfp_smac_drop_filter_disable: 1\n      sai_macro_flow_based_hash: 1\n      sai_mmu_qgroups_default: 1\n      sai_dis_ctr_incr_on_port_ln_dn: 0\n      custom_feature_mesh_topology_sync_mode: 1\n      sai_ecmp_group_members_increment: 1\n      sai_field_group_auto_prioritize: 1\n      bcm_tunnel_term_compatible_mode: 1\n      sai_l2_cpu_fdb_event_suppress: 1\n      sai_port_phy_time_sync_en: 1\n      sai_stats_support_mask: 0x802\n      sai_disable_internal_port_serdes: 1\n      stat_custom_receive0_management_mode: 1\n      sai_stats_disable_mask: 0x800\n      global_flexctr_ing_action_num_reserved: 20\n      global_flexctr_ing_pool_num_reserved: 8\n      global_flexctr_ing_op_profile_num_reserved: 20\n      global_flexctr_ing_group_num_reserved: 2\n      global_flexctr_egr_action_num_reserved: 8\n      global_flexctr_egr_pool_num_reserved: 5\n      global_flexctr_egr_op_profile_num_reserved: 10\n      global_flexctr_egr_group_num_reserved: 1\n      sai_uncached_port_stats: 0x1\n      ecmp_dlb_port_speeds: 1\n      l3_ecmp_member_secondary_mem_size: 4096\n      sai_eapol_trap_use_bcast_mac: 1\n...\n---\ndevice:\n  0:\n    TM_THD_CONFIG:\n      THRESHOLD_MODE: LOSSY\n...\n---\ndevice:\n  0:\n    PORT:\n      ?\n        PORT_ID: [[1, 1], [5, 5], [11, 11], [15, 15], [22, 22], [26, 26], [33, 33],\n        [37, 37], [44, 44], [48, 48], [55, 55], [59, 59], [66, 66], [70, 70], [77,\n        77], [81, 81], [264, 264], [268, 268], [275, 275], [279, 279], [286, 286],\n        [290, 290], [297, 297], [301, 301], [308, 308], [312, 312], [319, 319], [323,\n        323], [330, 330], [334, 334], [341, 341], [345, 345]]\n      :\n        MTU: 9416\n        MTU_CHECK: 1\n...\n---\ndevice:\n  0:\n    DEVICE_CONFIG:\n      AUTOLOAD_BOARD_SETTINGS: 0\n...\n---\ndevice:\n  0:\n    FP_CONFIG:\n      FP_ING_OPERMODE: GLOBAL_PIPE_AWARE\n...\n---\ndevice:\n  0:\n    CTR_EFLEX_CONFIG:\n      CTR_ING_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_ING_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPEUNIQUE: 1\n      CTR_EGR_EFLEX_OPERMODE_PIPE_INSTANCE_UNIQUE: 1\n...\n"
         }
       }
     }
   },
   "thriftApiToRateLimitInQps": {
-    
+
   }
 }

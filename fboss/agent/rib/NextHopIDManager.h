@@ -331,6 +331,9 @@ class NextHopIDManager {
   FRIEND_TEST(
       RibMySidUpdaterTest,
       twoEntriesSameNhops_resolvedSetIdSharedAndRefCountIsTwo);
+  FRIEND_TEST(
+      RibMySidNextHopTest,
+      replaceNodeMySidWithDecapReleasesBothUnresolvedAndResolvedIds);
 };
 
 } // namespace facebook::fboss

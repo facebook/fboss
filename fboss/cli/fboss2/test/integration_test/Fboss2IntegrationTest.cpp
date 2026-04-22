@@ -16,6 +16,7 @@
 #include <chrono>
 #include <thread>
 
+#include "fboss/cli/fboss2/CmdArgsLists.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
 
 namespace fs = std::filesystem;
@@ -65,6 +66,12 @@ void Fboss2IntegrationTest::discardSession() const {
 
 Fboss2IntegrationTest::Result Fboss2IntegrationTest::executeCliCommand(
     const std::vector<std::string>& args) const {
+  // CLI11 add_option() appends to the vector it's bound to rather than
+  // replacing it. CmdArgsLists is a process-wide singleton, so without this
+  // reset args from a previous executeCliCommand() call would bleed into the
+  // current parse and typically cause nonsensical positional arg values.
+  CmdArgsLists::getInstance()->clear();
+
   // Create a new CLI::App for this command
   CLI::App app{"FBOSS CLI Test"};
   utils::initApp(app);

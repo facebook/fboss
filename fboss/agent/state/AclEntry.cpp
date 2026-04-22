@@ -99,6 +99,9 @@ std::set<cfg::AclTableQualifier> AclEntry::getRequiredAclTableQualifiers()
   if (getL4DstPort()) {
     qualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT);
   }
+  if (getL4DstPortRange()) {
+    qualifiers.insert(cfg::AclTableQualifier::L4_DST_PORT_RANGE);
+  }
   if (getLookupClassL2()) {
     qualifiers.insert(cfg::AclTableQualifier::LOOKUP_CLASS_L2);
   }

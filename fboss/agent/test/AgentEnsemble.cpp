@@ -126,6 +126,10 @@ void AgentEnsemble::setupEnsemble(
     switchId2PortIds_[switchId].push_back(port.first);
   }
 
+  // For multi-die ASICs (e.g. Q4D), interleave ports across dies so that
+  // tests using 2+ ports automatically exercise both dies.
+  interleavePortsAcrossDies(platformPorts);
+
   for (auto switchId : getSw()->getHwAsicTable()->getSwitchIDs()) {
     HwAsic* asic = getHwAsicTable()->getHwAsicIf(switchId);
     utility::setPortToDefaultProfileIDMap(
@@ -158,6 +162,69 @@ void AgentEnsemble::setupEnsemble(
 
   for (const auto& switchId : getSw()->getSwitchInfoTable().getL3SwitchIDs()) {
     ensureHwSwitchConnected(switchId);
+  }
+}
+
+void AgentEnsemble::interleavePortsAcrossDies(
+    const std::map<int32_t, cfg::PlatformPortEntry>& platformPorts) {
+  bool needsReorder = false;
+  for (auto& [switchId, portIds] : switchId2PortIds_) {
+    auto* asic = getHwAsicTable()->getHwAsicIf(switchId);
+    if (!asic || asic->getNumDies() <= 1) {
+      continue;
+    }
+    needsReorder = true;
+    auto numDies = asic->getNumDies();
+    // Separate non-interface ports (keep original order) from interface ports
+    // (interleave across dies). Non-interface ports (recycle, management) may
+    // have unequal counts per die which skews the round-robin if included.
+    std::vector<PortID> nonInterfacePorts;
+    std::vector<std::vector<PortID>> interfacePortsByDie(numDies);
+    for (auto portId : portIds) {
+      auto platformPortIter = platformPorts.find(static_cast<int32_t>(portId));
+      if (platformPortIter == platformPorts.end()) {
+        continue;
+      }
+      auto portType = *platformPortIter->second.mapping()->portType();
+      if (portType != cfg::PortType::INTERFACE_PORT) {
+        nonInterfacePorts.push_back(portId);
+      } else if (platformPortIter->second.mapping()
+                     ->attachedCoreId()
+                     .has_value()) {
+        auto coreId = *platformPortIter->second.mapping()->attachedCoreId();
+        auto dieId = asic->getDieIdForCore(coreId);
+        interfacePortsByDie[dieId < numDies ? dieId : 0].push_back(portId);
+      } else {
+        // No core info available, default to die 0
+        interfacePortsByDie[0].push_back(portId);
+      }
+    }
+    // Build reordered list: non-interface ports first, then round-robin
+    // interface ports across dies: die0[0], die1[0], die0[1], die1[1], ...
+    std::vector<PortID> reordered;
+    reordered.reserve(portIds.size());
+    reordered.insert(
+        reordered.end(), nonInterfacePorts.begin(), nonInterfacePorts.end());
+    size_t maxSize = 0;
+    for (const auto& diePorts : interfacePortsByDie) {
+      maxSize = std::max(maxSize, diePorts.size());
+    }
+    for (size_t i = 0; i < maxSize; ++i) {
+      for (uint32_t die = 0; die < numDies; ++die) {
+        if (i < interfacePortsByDie[die].size()) {
+          reordered.push_back(interfacePortsByDie[die][i]);
+        }
+      }
+    }
+    portIds = std::move(reordered);
+  }
+  if (needsReorder) {
+    // Rebuild masterLogicalPortIds_ from the reordered per-switch lists
+    masterLogicalPortIds_.clear();
+    for (const auto& [switchId, portIds] : switchId2PortIds_) {
+      masterLogicalPortIds_.insert(
+          masterLogicalPortIds_.end(), portIds.begin(), portIds.end());
+    }
   }
 }
 

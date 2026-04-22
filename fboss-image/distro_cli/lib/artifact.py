@@ -181,12 +181,12 @@ class ArtifactStore:
         """
         dest_path = dest_dir / source.name
         if source.is_dir():
-            # For directories, move the entire tree
+            # For directories, copy the entire tree
             if dest_path.exists():
                 shutil.rmtree(dest_path)
             shutil.copytree(str(source), str(dest_path))
         else:
-            # For files, move directly
+            # For files, copy directly
             shutil.copy(str(source), str(dest_path))
 
     def invalidate(self, store_key: str) -> None:

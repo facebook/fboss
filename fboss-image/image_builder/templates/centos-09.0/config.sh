@@ -9,6 +9,11 @@ mkdir -p "$LOCAL_RPM_REPO_DIR"
 sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="FBOSS Distro Image"/' /usr/lib/os-release
 sed -i 's/^NAME=.*/NAME="FBOSS Distro Image"/' /usr/lib/os-release
 
+echo "Creating FBOSS log directories..."
+mkdir -p /var/facebook/logs/fboss/sdk
+semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
+restorecon -Rv /var/facebook/logs/fboss
+
 # Default to python 3.12, also simulate the Debian python-is-python3 package
 update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
@@ -371,11 +376,6 @@ systemctl enable fsdb.service
 systemctl enable qsfp_service.service
 systemctl enable fboss_sw_agent.service
 systemctl enable fboss_hw_agents.target
-
-echo "Creating FBOSS log directories..."
-mkdir -p /var/facebook/logs/fboss/sdk
-semanage fcontext -a -t var_log_t '/var/facebook/logs/fboss(/.*)?'
-restorecon -Rv /var/facebook/logs/fboss
 
 # 8. Fix NetworkManager connection profile permissions
 # NM ignores profiles that are world-readable

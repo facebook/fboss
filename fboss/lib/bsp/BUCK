@@ -23,6 +23,22 @@ thrift_library(
 )
 
 cpp_library(
+    name = "build_from_xcvr_lib",
+    srcs = [
+        "BuildFromXcvrLib.cpp",
+    ],
+    headers = [
+        "BuildFromXcvrLib.h",
+    ],
+    exported_deps = [
+        ":bsp_platform_mapping-cpp2-types",
+        "//fboss/lib/led:led_mapping-cpp2-types",
+        "//fboss/platform/xcvr_lib:xcvr_lib",
+        "//folly/logging:logging",
+    ],
+)
+
+cpp_library(
     name = "bsp_platform_mapping_lib",
     srcs = [
         "BspPlatformMapping.cpp",
@@ -32,6 +48,7 @@ cpp_library(
     ],
     exported_deps = [
         ":bsp_platform_mapping-cpp2-types",
+        ":build_from_xcvr_lib",
     ],
 )
 
@@ -89,6 +106,7 @@ cpp_library(
     ],
     exported_deps = [
         ":bsp_platform_mapping-cpp2-types",
+        ":build_from_xcvr_lib",
         "//fboss/agent:fboss-error",
         "//fboss/lib:common_file_utils",
         "//fboss/lib:gpiod_line",

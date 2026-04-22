@@ -658,7 +658,7 @@ TEST_F(AgentVoqSwitchTest, localSystemPortEcmp) {
     utility::EcmpSetupTargetedPorts6 ecmpHelper(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     auto prefix = RoutePrefixV6{folly::IPAddressV6("1::1"), 128};
-    flat_set<PortDescriptor> localSysPorts;
+    boost::container::flat_set<PortDescriptor> localSysPorts;
     for (auto& systemPortMap :
          std::as_const(*getProgrammedState()->getSystemPorts())) {
       for (auto& [_, localSysPort] : std::as_const(*systemPortMap.second)) {

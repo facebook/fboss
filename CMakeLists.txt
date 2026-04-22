@@ -1246,7 +1246,6 @@ endif()
 
 if (BUILD_SAI_FAKE_LINK_TEST)
 add_dependencies(fboss_fake_agent_test_targets
-  sai_link_test-fake
   sai_mono_link_test-fake
   sai_multi_link_test-fake
 )

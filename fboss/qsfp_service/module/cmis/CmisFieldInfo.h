@@ -67,6 +67,11 @@ enum FieldMasks : uint8_t {
   CDB_FW_DOWNLOAD_EPL_SUPPORTED = 0x10,
   CDB_FW_DOWNLOAD_LPL_EPL_SUPPORTED = 0x11,
   BER_CTRL_RESET_STAT_MASK = 0x20,
+  // Page 38h, Byte 137, Bits 7-4 (rxConsAct):
+  //   0001 = insert LF (media to host direction)
+  RX_CONS_ACT_INSERT_LF = 0x10,
+  // Page 45h, Byte 129, Bit 1: rxConsActImpl
+  RX_CONS_ACT_IMPL_MASK = 0x02,
 };
 
 enum FieldBitShift : uint8_t {

@@ -10,6 +10,7 @@
 #include "fboss/agent/hw/test/HwTestPfcUtils.h"
 #include <gtest/gtest.h>
 #include <cmath>
+#include "fboss/agent/hw/sai/api/SaiVersion.h"
 #include "fboss/agent/hw/sai/switch/SaiPortManager.h"
 #include "fboss/agent/hw/sai/switch/SaiSwitch.h"
 
@@ -162,11 +163,20 @@ cfg::PfcWatchdog getExpectedPfcWatchdogProgrammingInHwFromConfig(
                       ->getAsic()
                       ->getAsicType();
   cfg::PfcWatchdog expectedWd{configuredWd};
-  // Modify the fields that we expect to be different from config
+  // Modify the fields that we expect to be different from config.
+  // For DNX ASICs (J2, J3), SDK 14.x changed the behavior:
+  // instead of returning the HW rounded timer value for PFC detection,
+  // it returns the SW configured value as-is. So for SDK >= 14.0,
+  // we expect the configured value without rounding.
   if (asicType == cfg::AsicType::ASIC_TYPE_JERICHO2 ||
       asicType == cfg::AsicType::ASIC_TYPE_JERICHO3) {
+#if defined(BRCM_SAI_SDK_DNX_GTE_14_0)
+    // SDK 14.x+ returns the SW configured value as-is for VOQ ASICs
+    expectedWd.detectionTimeMsecs() = *configuredWd.detectionTimeMsecs();
+#else
     expectedWd.detectionTimeMsecs() = findExpectedHwTimerClosestToConfiguredDnx(
         asicType, *configuredWd.detectionTimeMsecs());
+#endif
   } else {
     expectedWd.detectionTimeMsecs() = *configuredWd.detectionTimeMsecs();
   }

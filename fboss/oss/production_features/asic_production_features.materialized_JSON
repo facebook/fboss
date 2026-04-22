@@ -483,7 +483,8 @@
         86,
         99,
         101,
-        94
+        94,
+        105
     ],
     "tomahawkultra1": [
         2,
@@ -1085,7 +1086,8 @@
         "CLASS_ID_FOR_NEIGHBOR",
         "VIRTUAL_ARS_GROUP",
         "AIFM_PACKET_STREAM_HANDLER",
-        "L2_QOS"
+        "L2_QOS",
+        "L4_DST_PORT_RANGE"
     ],
     "tomahawkultra1": [
         "CPU_RX_TX",

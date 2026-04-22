@@ -11,6 +11,7 @@
 #pragma once
 
 #include <fboss/agent/hw/HwFb303Stats.h>
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
 #include "fboss/agent/hw/sai/store/SaiObjectWithCounters.h"
@@ -34,6 +35,7 @@ struct SaiCounterHandle {
   std::shared_ptr<SaiCounter> counter;
   std::string counterName;
   std::shared_ptr<HwFb303Stats> statsMap;
+  HwSwitchCounter hwSwitchCounter;
   SaiCounterHandle(std::string name, std::shared_ptr<HwFb303Stats> map)
       : counterName(name), statsMap(map) {}
   ~SaiCounterHandle() {
@@ -72,6 +74,7 @@ class SaiCounterManager {
   }
   uint64_t getStats(std::string counterID) const;
   void updateStats();
+  HwSwitchCounterStats getHwSwitchCounterStats() const;
 
  private:
   SaiStore* saiStore_;

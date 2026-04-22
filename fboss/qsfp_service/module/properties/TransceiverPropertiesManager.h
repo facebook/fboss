@@ -127,13 +127,13 @@ template <typename InterfaceCode>
 static InterfaceCode extractFromMediaInterfaceUnion(
     const MediaInterfaceUnion& u) {
   if constexpr (std::is_same_v<InterfaceCode, SMFMediaInterfaceCode>) {
-    if (auto v = u.smfCode_ref()) {
+    if (auto v = u.smfCode()) {
       return *v;
     }
   } else if constexpr (std::is_same_v<
                            InterfaceCode,
                            ActiveCuHostInterfaceCode>) {
-    if (auto v = u.activeCuCode_ref()) {
+    if (auto v = u.activeCuCode()) {
       return *v;
     }
   }

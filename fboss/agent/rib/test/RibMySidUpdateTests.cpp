@@ -22,7 +22,7 @@
 
 DECLARE_bool(enable_nexthop_id_manager);
 
-using namespace facebook::fboss;
+namespace facebook::fboss {
 
 namespace {
 
@@ -300,7 +300,7 @@ TEST(RibMySidUpdate, deleteMySidEntry) {
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:100::1", 48)};
   rib.update(
       scopeResolver(),
-      {},
+      std::vector<MySidEntry>{},
       toDelete,
       "delete mysid",
       mySidToSwitchStateUpdate,
@@ -342,7 +342,7 @@ TEST(RibMySidUpdate, deleteNonExistentMySidEntry) {
   std::vector<IpPrefix> toDelete = {toIpPrefix("fc00:999::1", 48)};
   rib.update(
       scopeResolver(),
-      {},
+      std::vector<MySidEntry>{},
       toDelete,
       "delete nonexistent mysid",
       mySidToSwitchStateUpdate,
@@ -633,7 +633,7 @@ TEST(RibMySidUpdate, switchStateUpdatedOnDelete) {
   // Delete one
   rib.update(
       scopeResolver(),
-      {},
+      std::vector<MySidEntry>{},
       {toIpPrefix("fc00:100::1", 48)},
       "delete mysid",
       mySidToSwitchStateUpdate,
@@ -775,7 +775,7 @@ TEST(RibMySidUpdate, rollbackDeleteRestoresEntries) {
   EXPECT_THROW(
       rib.update(
           scopeResolver(),
-          {},
+          std::vector<MySidEntry>{},
           {toIpPrefix("fc00:100::1", 48)},
           "fail delete",
           failUpdate,
@@ -826,8 +826,8 @@ TEST(RibMySidUpdate, emptyUpdate) {
   // Empty update should be a no-op
   rib.update(
       scopeResolver(),
-      {},
-      {},
+      std::vector<MySidEntry>{},
+      std::vector<IpPrefix>{},
       "empty mysid update",
       mySidToSwitchStateUpdate,
       &switchState);
@@ -978,7 +978,7 @@ TEST_F(RibMySidNextHopTest, deleteMySidWithNextHopsReleasesNextHopSetId) {
 
   rib_->update(
       scopeResolver(),
-      {},
+      std::vector<MySidEntry>{},
       {toIpPrefix("fc00:100::1", 48)},
       "delete mysid",
       mySidToSwitchStateUpdate,
@@ -1083,6 +1083,7 @@ TEST_F(
       {},
       {},
       {},
+      {} /* staticMySids */,
       noopFibUpdate,
       &switchState_);
 
@@ -1141,6 +1142,105 @@ TEST_F(
   EXPECT_FALSE(manager->getNextHopsIf(oldId).has_value());
   // New next hop set should still be allocated
   EXPECT_TRUE(manager->getNextHopsIf(newId).has_value());
+}
+
+// Replacing a uN MySid (with both unresolved and resolved next-hop IDs)
+// with a decap MySid (no next hops) must decrement the manager's
+// reference for BOTH the old unresolveNextHopsId and the old
+// resolvedNextHopsId.
+//
+// The resolvedId for a route-resolved gateway is shared with the matching
+// route's own next-hop set, so the SetID entry stays alive after the MySid
+// release (held by the route). We pin the decrement contract via the
+// per-NextHop refcount: each MySid set contributes +1 to each NextHop in
+// its set, so after replacing the MySid the resolved NextHop's refcount
+// must drop by 1. Without the fix the MySid's reference is never
+// released, the NextHop refcount stays flat — that's the leak.
+TEST_F(
+    RibMySidNextHopTest,
+    replaceNodeMySidWithDecapReleasesBothUnresolvedAndResolvedIds) {
+  // Inject an interface route that the gateway nexthop will resolve via.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  // Add a NODE_MICRO_SID with a gateway next hop that resolves through the
+  // interface route — this populates BOTH unresolveNextHopsId and
+  // resolvedNextHopsId on the entry.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("fc00:100::1", 48, {"2001:db8::1"})},
+      {},
+      "add uN mysid with resolvable gateway nexthop",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("fc00:100::1", 48);
+  const auto entryBefore = rib_->getMySidTableCopy().at(prefix);
+  ASSERT_TRUE(entryBefore.unresolveNextHopsId().has_value());
+  ASSERT_TRUE(entryBefore.resolvedNextHopsId().has_value())
+      << "Test setup: NODE_MICRO_SID gateway should have resolved through "
+         "the interface route";
+
+  // Capture per-NextHop refcounts before the replace. The interface route
+  // contributes 1 ref to the resolved nexthop; the MySid's resolved set
+  // contributes a second ref. The unresolved gateway nexthop is held only
+  // by the MySid's unresolved set.
+  const ResolvedNextHop resolvedNextHop{
+      folly::IPAddress("2001:db8::1"), InterfaceID(1), NextHopWeight(1)};
+  const UnresolvedNextHop unresolvedNextHop{
+      folly::IPAddress("2001:db8::1"), ECMP_WEIGHT};
+  uint32_t resolvedRefBefore = 0;
+  uint32_t unresolvedRefBefore = 0;
+  {
+    auto manager = rib_->getNextHopIDManagerCopy();
+    ASSERT_NE(manager, nullptr);
+    resolvedRefBefore = manager->getNextHopRefCount(resolvedNextHop);
+    unresolvedRefBefore = manager->getNextHopRefCount(unresolvedNextHop);
+    EXPECT_GE(resolvedRefBefore, 2u)
+        << "Test setup: resolved NextHop should be shared by route + MySid";
+    EXPECT_GE(unresolvedRefBefore, 1u)
+        << "Test setup: unresolved gateway NextHop should be held by MySid";
+  }
+
+  // Replace with a DECAP entry (no next hops at all). The fix releases
+  // both of the old MySid's NextHop set references.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:100::1", 48, MySidType::DECAPSULATE_AND_LOOKUP)},
+      {},
+      "replace with decap mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // The new entry should have neither id set.
+  const auto entryAfter = rib_->getMySidTableCopy().at(prefix);
+  EXPECT_FALSE(entryAfter.unresolveNextHopsId().has_value());
+  EXPECT_FALSE(entryAfter.resolvedNextHopsId().has_value());
+
+  // Both NextHop refcounts must have decreased by exactly one. Without
+  // the fix, resolvedRefAfter would equal resolvedRefBefore — the leak.
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_EQ(manager->getNextHopRefCount(resolvedNextHop), resolvedRefBefore - 1)
+      << "Resolved NextHop refcount didn't drop on MySid replace — "
+         "resolvedNextHopsId leak persists";
+  EXPECT_EQ(
+      manager->getNextHopRefCount(unresolvedNextHop), unresolvedRefBefore - 1)
+      << "Unresolved NextHop refcount didn't drop on MySid replace";
 }
 
 // Test fixture that sets up a SwitchState with a FibInfo node so that
@@ -1215,7 +1315,7 @@ TEST_F(RibMySidFibInfoTest, deleteMySidClearsFibInfoNextHopSetId) {
 
   rib_->update(
       scopeResolver(),
-      {},
+      std::vector<MySidEntry>{},
       {toIpPrefix("fc00:100::1", 48)},
       "delete mysid",
       mySidToSwitchStateUpdateViaRibUpdater,
@@ -1271,6 +1371,7 @@ TEST_F(RibMySidFibInfoTest, resolvedNextHopSetIdReflectedInFibInfo) {
       {},
       {},
       {},
+      {} /* staticMySids */,
       noopFibUpdate,
       &switchState_);
 
@@ -1355,3 +1456,5 @@ TEST_F(RibMySidNextHopTest, routeDeleteUnresolvesMySidNextHops) {
   EXPECT_FALSE(
       rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
 }
+
+} // namespace facebook::fboss

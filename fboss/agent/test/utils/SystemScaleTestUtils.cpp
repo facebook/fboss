@@ -346,7 +346,7 @@ void configureMaxRouteEntries(
   std::vector<std::vector<PortDescriptor>> allCombinations =
       utility::generateEcmpGroupScale(
           portDescriptorIds, kMaxEcmpGropus, portDescriptorIds.size());
-  std::vector<flat_set<PortDescriptor>> nhopSets;
+  std::vector<boost::container::flat_set<PortDescriptor>> nhopSets;
   for (const auto& combination : allCombinations) {
     nhopSets.emplace_back(combination.begin(), combination.end());
   }
@@ -369,7 +369,7 @@ void configureMaxRouteEntries(
        &ecmpHelper](const std::shared_ptr<SwitchState>& in) {
         return ecmpHelper.resolveNextHops(
             in,
-            flat_set<PortDescriptor>(
+            boost::container::flat_set<PortDescriptor>(
                 std::make_move_iterator(portDescriptorIds.begin()),
                 std::make_move_iterator(portDescriptorIds.end())));
       },
@@ -555,7 +555,7 @@ std::pair<uint64_t, uint64_t> startRxMeasure(AgentEnsemble* ensemble) {
       ensemble->getProgrammedState(),
       ensemble->needL2EntryForNeighbor(),
       dstMac);
-  flat_set<PortDescriptor> IntfPorts;
+  boost::container::flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(PortDescriptor(
       ensemble->masterLogicalInterfacePortIds()[kRxMeasurePortIdx]));
 
@@ -640,7 +640,7 @@ void startTxMeasure(AgentEnsemble* ensemble, int& pps, int& bytesPerSec) {
       ensemble->getProgrammedState(),
       ensemble->needL2EntryForNeighbor(),
       dstMac);
-  flat_set<PortDescriptor> IntfPorts;
+  boost::container::flat_set<PortDescriptor> IntfPorts;
   IntfPorts.insert(PortDescriptor(
       ensemble->masterLogicalInterfacePortIds()[kTxMeasurePortIdx]));
 

@@ -194,6 +194,7 @@ DEFINE_extract(facebook::fboss::AclEntryFieldIpV4, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldMac, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldU8List, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryFieldSaiObjectIdT, aclfield);
+DEFINE_extract(facebook::fboss::AclEntryFieldSaiObjectIdList, aclfield);
 DEFINE_extract(facebook::fboss::AclEntryActionBool, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU8, aclaction);
 DEFINE_extract(facebook::fboss::AclEntryActionU32, aclaction);
@@ -484,6 +485,28 @@ inline void _fill(
 
 inline void _fill(
     const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldSaiObjectIdList& dst) {
+  std::vector<sai_object_id_t> data(src.data.objlist.count);
+  std::copy(
+      src.data.objlist.list,
+      src.data.objlist.list + src.data.objlist.count,
+      std::begin(data));
+  dst.setDataAndMask(
+      std::make_pair(std::move(data), std::vector<sai_object_id_t>{}));
+}
+
+inline void _fill(
+    const facebook::fboss::AclEntryFieldSaiObjectIdList& src,
+    sai_acl_field_data_t& dst) {
+  dst.enable = true;
+  const auto& dataAndMask = src.getDataAndMask();
+  dst.data.objlist.count = dataAndMask.first.size();
+  dst.data.objlist.list = const_cast<sai_object_id_t*>(
+      reinterpret_cast<const sai_object_id_t*>(dataAndMask.first.data()));
+}
+
+inline void _fill(
+    const sai_acl_field_data_t& src,
     facebook::fboss::AclEntryFieldSaiObjectIdT& dst) {
   /*
    * Mask is not needed for sai_object_id_t Acl Entry field.
@@ -604,6 +627,14 @@ inline void _realloc(
   dstData.resize(src.data.u8list.count);
   dstMask.resize(src.mask.u8list.count);
   dst.setDataAndMask(std::make_pair(std::move(dstData), std::move(dstMask)));
+}
+
+inline void _realloc(
+    const sai_acl_field_data_t& src,
+    facebook::fboss::AclEntryFieldSaiObjectIdList& dst) {
+  std::vector<sai_object_id_t> dstData(src.data.objlist.count);
+  dst.setDataAndMask(
+      std::make_pair(std::move(dstData), std::vector<sai_object_id_t>{}));
 }
 
 template <typename SaiListT, typename T>

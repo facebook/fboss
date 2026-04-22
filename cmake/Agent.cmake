@@ -277,6 +277,7 @@ add_library(core
   fboss/agent/ArpCache.cpp
   fboss/agent/ArpHandler.cpp
   fboss/agent/BufferUtils.cpp
+  fboss/agent/CpuLatencyManager.cpp
   fboss/agent/DHCPv4Handler.cpp
   fboss/agent/DHCPv6Handler.cpp
   fboss/agent/DsfSession.cpp

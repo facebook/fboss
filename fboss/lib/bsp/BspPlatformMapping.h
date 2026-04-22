@@ -12,6 +12,7 @@ namespace fboss {
 class BspPlatformMapping {
  public:
   explicit BspPlatformMapping(BspPlatformMappingThrift bspMapping);
+  explicit BspPlatformMapping(const std::string& platformName);
 
   const BspTransceiverMapping& getTcvrMapping(int tcvrID) const;
   std::map<int, BspPimMapping> getPimMappings() const;

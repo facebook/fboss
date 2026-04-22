@@ -77,7 +77,9 @@ class AgentEcmpTest : public AgentHwTest {
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.resolveNextHops(
-          in, flat_set<PortDescriptor>(portDescs.begin(), portDescs.end()));
+          in,
+          boost::container::flat_set<PortDescriptor>(
+              portDescs.begin(), portDescs.end()));
     });
   }
   void unresolveNhops(int numNhops) {
@@ -92,7 +94,9 @@ class AgentEcmpTest : public AgentHwTest {
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
     applyNewState([&](const std::shared_ptr<SwitchState>& in) {
       return ecmpHelper.unresolveNextHops(
-          in, flat_set<PortDescriptor>(portDescs.begin(), portDescs.end()));
+          in,
+          boost::container::flat_set<PortDescriptor>(
+              portDescs.begin(), portDescs.end()));
     });
   }
   void programRouteWithUnresolvedNhops(int numNhops = kNumNextHops) {

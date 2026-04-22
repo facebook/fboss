@@ -1,8 +1,7 @@
 // (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
 #include "fboss/thrift_cow/visitors/PatchHelpers.h"
-#include "fboss/thrift_cow/gen-cpp2/patch_visitation.h"
-
+#include <thrift/lib/cpp2/op/Get.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 
 namespace {
@@ -33,10 +32,9 @@ void decompressChildren(Patch& patch) {
 namespace facebook::fboss::thrift_cow {
 
 void compressPatch(PatchNode& node) {
-  apache::thrift::visit_union(
+  apache::thrift::op::visit_union_with_tag(
       node,
-      [&](const apache::thrift::metadata::ThriftField& /* meta */,
-          auto& patch) {
+      [&](auto, auto& patch) {
         auto compress = folly::overload(
             [](Empty& /* b */) {},
             [](ByteBuffer& /* b */) {},
@@ -46,15 +44,15 @@ void compressPatch(PatchNode& node) {
             [&](SetPatch& patch) { compressChildren(patch); },
             [&](VariantPatch& patch) {});
         compress(patch);
-      });
+      },
+      []() {});
 }
 
 void decompressPatch(PatchNode& node) {
-  apache::thrift::visit_union(
+  apache::thrift::op::visit_union_with_tag(
       node,
-      [&](const apache::thrift::metadata::ThriftField& /* meta */,
-          auto& patch) {
-        auto compress = folly::overload(
+      [&](auto, auto& patch) {
+        auto decompress = folly::overload(
             [](Empty& /* b */) {},
             [](ByteBuffer& /* b */) {},
             [&](StructPatch& patch) { decompressChildren(patch); },
@@ -62,8 +60,9 @@ void decompressPatch(PatchNode& node) {
             [&](MapPatch& patch) { decompressChildren(patch); },
             [&](SetPatch& patch) { decompressChildren(patch); },
             [&](VariantPatch& patch) {});
-        compress(patch);
-      });
+        decompress(patch);
+      },
+      []() {});
 }
 
 } // namespace facebook::fboss::thrift_cow

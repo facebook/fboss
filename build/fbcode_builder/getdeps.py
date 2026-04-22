@@ -1091,6 +1091,9 @@ class GenerateGitHubActionsCmd(ProjectCmdBase):
         override_build_type = args.build_type or manifest.get(
             "github.actions", "build_type", ctx=manifest_ctx
         )
+        timeout_minutes = (
+            manifest.get("github.actions", "timeout_minutes", ctx=manifest_ctx) or "60"
+        )
         if run_tests:
             manifest_ctx.set("test", "on")
         run_on = self.get_run_on(args)
@@ -1109,11 +1112,9 @@ class GenerateGitHubActionsCmd(ProjectCmdBase):
         if builder_name == "nop":
             return None
 
-        # We want to be sure that we're running things with python 3
-        # but python versioning is honestly a bit of a frustrating mess.
-        # `python` may be version 2 or version 3 depending on the system.
-        # python3 may not be a thing at all!
-        # Assume an optimistic default
+        # The interpreter name varies across runners, so resolve it per-OS
+        # below. Default to `python3`, which works on Linux and macOS GHA
+        # runners.
         py3 = "python3"
 
         if build_opts.is_linux():
@@ -1130,8 +1131,8 @@ class GenerateGitHubActionsCmd(ProjectCmdBase):
                 runs_on = args.runs_on
             else:
                 runs_on = "windows-2022"
-            # The windows runners are python 3 by default; python2.exe
-            # is available if needed.
+            # On Windows GHA runners the python 3 interpreter is exposed as
+            # `python`, not `python3`.
             py3 = "python"
         else:
             artifacts = "mac"
@@ -1177,10 +1178,37 @@ jobs:
 
             out.write("  build:\n")
             out.write("    runs-on: %s\n" % runs_on)
+            out.write(f"    timeout-minutes: {timeout_minutes}\n")
             if use_sccache:
                 out.write("    env:\n")
                 out.write('      SCCACHE_GHA_ENABLED: "on"\n')
             out.write("    steps:\n")
+
+            if build_opts.is_linux():
+                out.write("    - name: Show runner info\n")
+                out.write("      run: |\n")
+                out.write('        echo "CPU cores: $(nproc)"\n')
+                out.write("        cat /proc/cpuinfo | grep 'model name' | head -1\n")
+                out.write("        free -h\n")
+            elif build_opts.is_darwin():
+                out.write("    - name: Show runner info\n")
+                out.write("      run: |\n")
+                out.write('        echo "CPU cores: $(sysctl -n hw.ncpu)"\n')
+                out.write("        sysctl -n machdep.cpu.brand_string\n")
+                out.write(
+                    "        sysctl -n hw.memsize | "
+                    'awk \'{print "Memory: " $1/1073741824 " GB"}\'\n'
+                )
+            elif build_opts.is_windows():
+                out.write("    - name: Show runner info\n")
+                out.write("      run: |\n")
+                out.write('        echo "CPU cores: $env:NUMBER_OF_PROCESSORS"\n')
+                out.write("        (Get-CimInstance Win32_Processor).Name\n")
+                out.write(
+                    "        [math]::Round((Get-CimInstance Win32_ComputerSystem)"
+                    '.TotalPhysicalMemory / 1GB, 1).ToString() + " GB RAM"\n'
+                )
+                out.write("      shell: pwsh\n")
 
             if build_opts.is_windows():
                 # cmake relies on BOOST_ROOT but GH deliberately don't set it in order
@@ -1208,11 +1236,20 @@ jobs:
 
             out.write("    - uses: actions/checkout@v6\n")
 
+            extra_cmake_defines = {}
             if use_sccache:
                 out.write("    - name: Set up sccache\n")
                 out.write("      uses: mozilla-actions/sccache-action@v0.0.9\n")
                 out.write("      with:\n")
                 out.write('        version: "v0.14.0"\n')
+                extra_cmake_defines["CMAKE_CXX_COMPILER_LAUNCHER"] = "sccache"
+
+            if extra_cmake_defines:
+                extra_cmake_arg = (
+                    " --extra-cmake-defines '" + json.dumps(extra_cmake_defines) + "'"
+                )
+            else:
+                extra_cmake_arg = ""
 
             build_type_arg = ""
             if override_build_type:
@@ -1220,10 +1257,6 @@ jobs:
 
             if args.shared_libs:
                 build_type_arg += "--shared-libs "
-
-            sccache_defines = ""
-            if use_sccache:
-                sccache_defines = ' --extra-cmake-defines \'{"CMAKE_CXX_COMPILER_LAUNCHER":"sccache"}\''
 
             if build_opts.free_up_disk:
                 free_up_disk = "--free-up-disk "
@@ -1355,7 +1388,7 @@ jobs:
                             f"      if: ${{{{ steps.paths.outputs.{m.name}_SOURCE }}}}\n"
                         )
                 out.write(
-                    f"      run: {getdepscmd}{allow_sys_arg} build {build_type_arg}{src_dir_arg}{free_up_disk}--no-tests {m.name}{sccache_defines}\n"
+                    f"      run: {getdepscmd}{allow_sys_arg} build {build_type_arg}{src_dir_arg}{free_up_disk}--no-tests {m.name}{extra_cmake_arg}\n"
                 )
 
                 if args.use_build_cache and not src_dir_arg:
@@ -1396,7 +1429,7 @@ jobs:
                 no_deps_arg = "--no-deps "
 
             out.write(
-                f"      run: {getdepscmd}{allow_sys_arg} build {build_type_arg}{tests_arg}{no_deps_arg}--src-dir=. {manifest.name}{project_prefix}{sccache_defines}\n"
+                f"      run: {getdepscmd}{allow_sys_arg} build {build_type_arg}{tests_arg}{no_deps_arg}--src-dir=. {manifest.name}{project_prefix}{extra_cmake_arg}\n"
             )
 
             if use_sccache:
