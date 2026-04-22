@@ -47,7 +47,7 @@ void CpuLatencyManager::stop() {
 }
 
 void CpuLatencyManager::timeoutExpired() noexcept {
-  XLOG(INFO) << "CpuLatency: timeoutExpired fired, interval="
+  XLOG(DBG3) << "CpuLatency: timeoutExpired fired, interval="
              << intervalMsecs_.count() << "ms";
   sendProbePackets();
   scheduleTimeout(intervalMsecs_);
@@ -214,6 +214,68 @@ std::unique_ptr<TxPacket> CpuLatencyManager::createLatencyPacket(
   return pkt;
 }
 
-void CpuLatencyManager::handlePacket(std::unique_ptr<RxPacket>) {}
+void CpuLatencyManager::handlePacket(std::unique_ptr<RxPacket> pkt) {
+  const PortID srcPort = pkt->getSrcPort();
+  XLOG(DBG3) << "CpuLatency: handlePacket received on port " << srcPort;
+
+  // Validate the source port still exists and is UP. Ports can be
+  // merged/removed/brought down between send and receive.
+  const auto state = sw_->getState();
+  const auto port = state->getPorts()->getNodeIf(srcPort);
+  if (!port || !port->isPortUp()) {
+    XLOG(DBG3) << "CpuLatency: rx on port " << srcPort
+               << " dropped — port not found or down";
+    return;
+  }
+
+  // pkt->buf() points to the start of the Ethernet frame.
+  // Skip to the probe timestamp payload:
+  //   No VLAN:   Ethernet(14) + IPv6(40) + ICMPv6 hdr(4) + unused(4) = 62 bytes
+  //   With VLAN: Ethernet(14) + VLAN(4) + IPv6(40) + ICMPv6 hdr(4) + unused(4)
+  //   = 66 bytes
+  // Minimum valid probe length depends on VLAN presence:
+  //   No VLAN:   62 + 8 (timestamp) = 70 bytes
+  //   With VLAN: 66 + 8 (timestamp) = 74 bytes
+  // We need at least 14 bytes (Ethernet header) to inspect the ethertype,
+  // then apply the correct minimum after determining VLAN presence.
+  const auto pktLen = pkt->buf()->computeChainDataLength();
+  folly::io::Cursor cursor(pkt->buf());
+  cursor.skip(12); // skip dst(6) + src(6) MAC
+  auto ethertype = cursor.readBE<uint16_t>();
+  // Consumed 14 bytes so far (12 skipped + 2 read).
+  const bool isVlan = (ethertype == 0x8100);
+  const size_t kMinProbeLen = isVlan ? 74 : 70;
+  if (pktLen < kMinProbeLen) {
+    XLOG(DBG3) << "CpuLatency: rx on port " << srcPort
+               << " dropped — packet too short (" << pktLen << " bytes)";
+    return;
+  }
+  // VLAN tag = TPID 0x8100 (2, already read) + TCI (2) = 4 bytes total.
+  //   With VLAN: 66 - 14 = 52 remaining (VLAN TCI(2) + ethertype(2) + IPv6(40)
+  //   + ICMPv6(4) + unused(4)) No VLAN:   62 - 14 = 48 remaining (IPv6(40) +
+  //   ICMPv6(4) + unused(4))
+  cursor.skip(isVlan ? 52 : 48);
+
+  const uint64_t txTimestampNs = cursor.readBE<uint64_t>();
+  const uint64_t rxTimestampNs =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+          std::chrono::steady_clock::now().time_since_epoch())
+          .count();
+  if (txTimestampNs > rxTimestampNs) {
+    XLOG(DBG3) << "CpuLatency: rx port=" << srcPort
+               << " txTimestampNs=" << txTimestampNs
+               << " > rxTimestampNs=" << rxTimestampNs
+               << " — dropping bogus timestamp";
+    return;
+  }
+  const double latencyMs =
+      static_cast<double>(rxTimestampNs - txTimestampNs) / 1'000'000.0;
+
+  XLOG(DBG3) << "CpuLatency: tx port=" << srcPort << " txTs=" << txTimestampNs
+             << " rxTs=" << rxTimestampNs << " latency=" << latencyMs << "ms";
+
+  auto statsLocked = portStats_.wlock();
+  (*statsLocked)[srcPort].latencyMs() = latencyMs;
+}
 
 } // namespace facebook::fboss

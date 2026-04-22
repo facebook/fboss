@@ -92,6 +92,8 @@ class CpuLatencyManager : private folly::AsyncTimeout {
   FRIEND_TEST(CpuLatencyManagerTest, TxPath_SendProbePackets);
   FRIEND_TEST(CpuLatencyManagerTest, HandlePacket_LatencyUpdated);
   FRIEND_TEST(CpuLatencyManagerTest, HandlePacket_PortDownDropped);
+  FRIEND_TEST(CpuLatencyManagerTest, HandlePacket_NoVlanLatencyUpdated);
+  FRIEND_TEST(CpuLatencyManagerTest, HandlePacket_BogusTimestampDropped);
 };
 
 } // namespace facebook::fboss
