@@ -16,8 +16,12 @@
 #include <chrono>
 #include <thread>
 
+#include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
+#include "fboss/agent/if/gen-cpp2/ctrl_types.h"
 #include "fboss/cli/fboss2/CmdArgsLists.h"
+#include "fboss/cli/fboss2/utils/CmdClientUtilsCommon.h"
 #include "fboss/cli/fboss2/utils/CmdInitUtils.h"
+#include "fboss/cli/fboss2/utils/HostInfo.h"
 
 namespace fs = std::filesystem;
 
@@ -154,7 +158,9 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::parseInterfaceJson(
   if (data.count("vlan") && !data["vlan"].isNull()) {
     intf.vlan = static_cast<int>(data["vlan"].asInt());
   }
-  intf.mtu = static_cast<int>(data["mtu"].asInt());
+  if (data.count("mtu")) {
+    intf.mtu = static_cast<int>(data["mtu"].asInt());
+  }
 
   // Parse prefixes
   if (data.count("prefixes")) {
@@ -228,6 +234,20 @@ Fboss2IntegrationTest::Interface Fboss2IntegrationTest::findFirstEthInterface()
       "No suitable ethernet interface found with VLAN > 1");
 }
 
+std::optional<Fboss2IntegrationTest::Interface>
+Fboss2IntegrationTest::findFirstEthInterfaceWithMtu() const {
+  auto interfaces = getAllInterfaces();
+
+  for (const auto& [name, intf] : interfaces) {
+    if (name.rfind("eth", 0) == 0 && intf.vlan.has_value() && *intf.vlan > 1 &&
+        intf.mtu > 0) {
+      return intf;
+    }
+  }
+
+  return std::nullopt;
+}
+
 void Fboss2IntegrationTest::commitConfig() const {
   auto result = runCli({"config", "session", "commit"});
   ASSERT_EQ(result.exitCode, 0) << "Failed to commit config: " << result.stderr;
@@ -283,6 +303,89 @@ int Fboss2IntegrationTest::getKernelInterfaceMtu(int vlanId) const {
   }
 
   return static_cast<int>(json[0]["mtu"].asInt());
+}
+
+Fboss2IntegrationTest::Interface Fboss2IntegrationTest::waitForInterfaceInfo(
+    const std::string& interfaceName,
+    const std::function<bool(const Interface&)>& condition,
+    std::chrono::seconds timeout,
+    std::chrono::seconds interval) const {
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+  Interface last{};
+  do {
+    last = getInterfaceInfo(interfaceName);
+    if (condition(last)) {
+      return last;
+    }
+    XLOG(DBG1) << "Condition not yet met for interface " << interfaceName
+               << ", retrying in " << interval.count() << "s...";
+    std::this_thread::sleep_for(interval);
+  } while (std::chrono::steady_clock::now() < deadline);
+  XLOG(INFO) << "Timeout waiting for condition on interface " << interfaceName;
+  return last;
+}
+
+int Fboss2IntegrationTest::waitForKernelMtu(
+    int vlanId,
+    const std::function<bool(int)>& condition,
+    std::chrono::seconds timeout,
+    std::chrono::seconds interval) const {
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+  int last = 0;
+  do {
+    last = getKernelInterfaceMtu(vlanId);
+    if (condition(last)) {
+      return last;
+    }
+    XLOG(DBG1) << "Kernel MTU condition not yet met for fboss" << vlanId
+               << " (mtu=" << last << "), retrying in " << interval.count()
+               << "s...";
+    std::this_thread::sleep_for(interval);
+  } while (std::chrono::steady_clock::now() < deadline);
+  XLOG(INFO) << "Timeout waiting for kernel MTU condition on fboss" << vlanId
+             << " — last observed: " << last;
+  return last;
+}
+
+Fboss2IntegrationTest::PortRunningInfo
+Fboss2IntegrationTest::getPortRunningInfo(const std::string& portName) const {
+  HostInfo hostInfo("localhost");
+  auto client =
+      utils::createClient<apache::thrift::Client<FbossCtrl>>(hostInfo);
+  std::map<int32_t, PortInfoThrift> portEntries;
+  client->sync_getAllPortInfo(portEntries);
+  for (const auto& [portId, portInfo] : portEntries) {
+    if (*portInfo.name() == portName) {
+      return PortRunningInfo{*portInfo.speedMbps(), *portInfo.profileID()};
+    }
+  }
+  throw std::runtime_error(
+      fmt::format("Port '{}' not found in getAllPortInfo", portName));
+}
+
+Fboss2IntegrationTest::PortRunningInfo
+Fboss2IntegrationTest::waitForPortRunningInfo(
+    const std::string& portName,
+    const std::function<bool(const PortRunningInfo&)>& condition,
+    std::chrono::seconds timeout,
+    std::chrono::seconds interval) const {
+  auto deadline = std::chrono::steady_clock::now() + timeout;
+  PortRunningInfo last{};
+  do {
+    last = getPortRunningInfo(portName);
+    if (condition(last)) {
+      return last;
+    }
+    XLOG(DBG1) << "Condition not yet met for port " << portName
+               << " (profile=" << last.profileId << ", speed=" << last.speedMbps
+               << " Mbps)"
+               << ", retrying in " << interval.count() << "s...";
+    std::this_thread::sleep_for(interval);
+  } while (std::chrono::steady_clock::now() < deadline);
+  XLOG(INFO) << "Timeout waiting for condition on port " << portName
+             << " — last observed: profile=" << last.profileId
+             << ", speed=" << last.speedMbps << " Mbps";
+  return last;
 }
 
 } // namespace facebook::fboss

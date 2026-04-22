@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <CLI/App.hpp>
 #include <bits/types/struct_timeval.h>
 #include <folly/IPAddress.h>
 #include <folly/stop_watch.h>
@@ -82,6 +81,12 @@ enum class ObjectArgTypeId : uint8_t {
   OBJECT_ARG_TYPE_ID_SCALING_FACTOR,
   // PFC config argument types
   OBJECT_ARG_TYPE_ID_PFC_CONFIG_ATTRS,
+  // NDP (IPv6 Neighbor Discovery) config argument types
+  OBJECT_ARG_TYPE_ID_NDP_CONFIG_ATTRS,
+  // NDP (IPv6 Neighbor Discovery) delete (reset-to-default) argument types
+  OBJECT_ARG_TYPE_ID_NDP_DELETE_ATTRS,
+  // Interface delete (reset-to-default) argument types
+  OBJECT_ARG_TYPE_ID_INTERFACE_DELETE_ATTRS,
   // Queuing policy argument types
   OBJECT_ARG_TYPE_ID_QUEUING_POLICY_NAME,
   OBJECT_ARG_TYPE_ID_QUEUE_ID,

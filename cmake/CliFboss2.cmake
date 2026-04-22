@@ -411,6 +411,12 @@ add_library(fboss2_lib
   fboss/cli/fboss2/CmdLocalOptions.cpp
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h
   fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.cpp
+  fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h
+  fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.cpp
+  fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.h
+  fboss/cli/fboss2/commands/delete/interface/ipv6/CmdDeleteInterfaceIpv6.cpp
+  fboss/cli/fboss2/commands/delete/interface/ipv6/nd/CmdDeleteInterfaceIpv6Nd.h
+  fboss/cli/fboss2/commands/delete/interface/ipv6/nd/CmdDeleteInterfaceIpv6Nd.cpp
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.h
   fboss/cli/fboss2/commands/get/pcap/CmdGetPcap.cpp
   fboss/cli/fboss2/commands/set/fanhold/CmdSetFanHold.h
@@ -698,8 +704,15 @@ add_library(fboss2_config_lib
   fboss/cli/fboss2/commands/config/CmdConfigReload.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.cpp
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterface.h
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
   fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.cpp
-  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h
+  fboss/cli/fboss2/commands/config/interface/CmdConfigInterfaceQueuingPolicy.h  fboss/cli/fboss2/commands/config/interface/ProfileValidation.cpp
+  fboss/cli/fboss2/commands/config/interface/ProfileValidation.h
+  fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.cpp
+  fboss/cli/fboss2/commands/config/interface/ipv6/CmdConfigInterfaceIpv6.h
+  fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.cpp
+  fboss/cli/fboss2/commands/config/interface/ipv6/nd/CmdConfigInterfaceIpv6Nd.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.cpp
   fboss/cli/fboss2/commands/config/interface/pfc_config/CmdConfigInterfacePfcConfig.h
   fboss/cli/fboss2/commands/config/interface/pfc_config/PfcConfigUtils.h
@@ -891,6 +904,7 @@ target_link_libraries(fboss2_config_lib
   common_file_utils
   switch_config_cpp2
   switchinfo_utils
+  platform_mapping
   Folly::folly
 )
 
