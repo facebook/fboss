@@ -276,6 +276,9 @@ void CpuLatencyManager::handlePacket(std::unique_ptr<RxPacket> pkt) {
 
   auto statsLocked = portStats_.wlock();
   (*statsLocked)[srcPort].latencyMs() = latencyMs;
+
+  // Record in SwitchStats histogram for fb303 export (P50/P99/avg).
+  sw_->stats()->cpuLatencyMs(latencyMs);
 }
 
 } // namespace facebook::fboss

@@ -275,6 +275,10 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
     ribRouteProgrammingTimeUs_.addValue(us.count());
   }
 
+  void cpuLatencyMs(double latencyMs) {
+    cpuLatencyMs_.addValue(static_cast<int>(latencyMs));
+  }
+
   void bgHeartbeatDelay(int delay) {
     bgHeartbeatDelay_.addValue(delay);
   }
@@ -987,6 +991,11 @@ class SwitchStats : public boost::noncopyable, public ThriftCallDurationLogger {
    * Histogram for DSF subscription serve delay watermark (milliseconds)
    */
   fb303::detail::QuantileStatWrapper dsfSubscriptionServeDelayWatermark_;
+
+  /**
+   * CPU latency probe round-trip time (ms).
+   */
+  TLHistogram cpuLatencyMs_;
 
   /**
    * Background thread heartbeat delay (ms)
