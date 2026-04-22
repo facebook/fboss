@@ -406,6 +406,15 @@ static const QsfpFieldInfo<CmisField, CmisPages>::QsfpFieldMap cmisFields = {
     {CmisField::PAGE_UPPER34H, {CmisPages::PAGE34, 128, 128}},
     // Page 35h - Lane Link Performance Monitoring (C-CMIS)
     {CmisField::PAGE_UPPER35H, {CmisPages::PAGE35, 128, 128}},
+    // Page 38h - Data Path Host Interface Configuration
+    {CmisField::PAGE_UPPER38H, {CmisPages::PAGE38, 128, 128}},
+    // Page 38h, Byte 137 - Consequent Action control
+    // Bits 7-4 (rxConsAct), Bits 3-0 (txConsAct)
+    {CmisField::CONS_ACT_CONTROL, {CmisPages::PAGE38, 137, 1}},
+    // Page 45h - Host Lane Provisioning Advertisement
+    {CmisField::PAGE_UPPER45H, {CmisPages::PAGE45, 128, 128}},
+    // Page 45h, Byte 129 - Host Lane Provisioning Advertisement
+    {CmisField::HOST_LANE_PROV_AD, {CmisPages::PAGE45, 129, 1}},
 };
 
 CmisField laneToAppSelField(const std::set<uint8_t>& lanes) {
@@ -2339,6 +2348,12 @@ CmisModule::getQsfpValuePtr(int dataAddress, int offset, int length) const {
       case CmisPages::PAGE35:
         CHECK_LE(offset + length, sizeof(page35_));
         return (page35_ + offset);
+      case CmisPages::PAGE38:
+        CHECK_LE(offset + length, sizeof(page38_));
+        return (page38_ + offset);
+      case CmisPages::PAGE45:
+        CHECK_LE(offset + length, sizeof(page45_));
+        return (page45_ + offset);
       default:
         throw FbossError("Invalid Data Address 0x%d", dataAddress);
     }
@@ -3366,11 +3381,46 @@ void CmisModule::ensureRxOutputSquelchEnabled(
   }
 }
 
+bool CmisModule::isRxConsActImplSupported() const {
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, CmisField::HOST_LANE_PROV_AD);
+  const uint8_t* data =
+      getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+  // Page 45h (Host Lane Provisioning Advertisement), Byte 129, Bit 1:
+  // rxConsActImpl - indicates Rx Consequent Action is implemented
+  return (*data & RX_CONS_ACT_IMPL_MASK) != 0;
+}
+
 void CmisModule::disableTxRxSquelchForTunableOptics() {
   uint8_t squelchDisableValue = 0xFF;
   writeCmisField(CmisField::TX_SQUELCH_DISABLE, &squelchDisableValue);
+  QSFP_LOG(INFO, this) << "Disabled TX Squelch for tunable optics";
+
+  if (!isRxConsActImplSupported()) {
+    QSFP_LOG(WARN, this)
+        << "Module does not advertise rxConsActImpl "
+        << "(Page 45h, Byte 129, Bit 1). Keeping squelch enabled.";
+    return;
+  }
+  // Enable Rx Consequent Action (LF insertion) before disabling squelch
+  enableRxLfInsertionForTunableOptics();
+
   writeCmisField(CmisField::RX_SQUELCH_DISABLE, &squelchDisableValue);
-  QSFP_LOG(DBG1, this) << "Disabled TX and RX Squelch for tunable optics";
+  QSFP_LOG(INFO, this) << "Disabled RX Squelch for tunable optics";
+}
+
+void CmisModule::enableRxLfInsertionForTunableOptics() {
+  // Read current value to preserve txConsAct (Bits 3-0)
+  auto info = QsfpFieldInfo<CmisField, CmisPages>::getQsfpFieldAddress(
+      cmisFields, CmisField::CONS_ACT_CONTROL);
+  const uint8_t* data =
+      getQsfpValuePtr(info.dataAddress, info.offset, info.length);
+  // Set Bits 7-4 (rxConsAct) to 0001 = insert LF, preserve Bits 3-0
+  uint8_t lfInsertValue =
+      (*data & LOWER_FOUR_BITS_MASK) | RX_CONS_ACT_INSERT_LF;
+  writeCmisField(CmisField::CONS_ACT_CONTROL, &lfInsertValue);
+  QSFP_LOG(INFO, this)
+      << "Enabled Rx LF insertion (rxConsAct=0x1) for tunable optics";
 }
 
 bool CmisModule::tcvrPortStateSupported(TransceiverPortState& portState) const {
@@ -5023,10 +5073,13 @@ void CmisModule::updateVdmCacheLocked() {
   if (vdmSupportedGroupsMax_ >= 1) {
     staticPagesCached_ = true;
   }
-  // Read C-CMIS PM pages for coherent optics
+  // Read C-CMIS PM pages, Rx Consequent Action control, and Host Lane
+  // Provisioning Advertisement for coherent optics
   if (isTunableOptics()) {
     readCmisField(CmisField::PAGE_UPPER34H, page34_);
     readCmisField(CmisField::PAGE_UPPER35H, page35_);
+    readCmisField(CmisField::PAGE_UPPER38H, page38_);
+    readCmisField(CmisField::PAGE_UPPER45H, page45_);
   }
 }
 
