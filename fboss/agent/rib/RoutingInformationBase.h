@@ -62,6 +62,14 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
     const NextHopIDManager* nextHopIDManager,
     const MySidTable& mySidTable,
     void* cookie)>;
+
+// Each pair is (MySid state object, its unresolved next-hop set). The
+// next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
+// entries; populated for NODE_MICRO_SID. Bundling them in a pair keeps the
+// two pieces of data inseparable across all RIB / ConfigApplier call sites
+// that consume config-derived MySid state.
+using MySidWithNextHops = std::pair<std::shared_ptr<MySid>, RouteNextHopSet>;
+
 /*
  * RibRouteTables provides a thread safe abstraction for maintaining Rib data
  * structures and programming them down to the FIB. Its designed to abstract
@@ -109,6 +117,13 @@ class RibRouteTables {
   void update(
       const SwitchIdScopeResolver* resolver,
       const std::vector<MySidEntry>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
       const std::vector<IpPrefix>& toDelete,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
@@ -294,6 +309,14 @@ class RibRouteTables {
       const std::shared_ptr<MultiSwitchFibInfoMap>& fibsInfoMap,
       const std::shared_ptr<MultiLabelForwardingInformationBase>& labelFibs);
 
+  // Shared implementation for both MySid update() overloads.
+  void updateMySidsImpl(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie);
+
   RouterIDToRouteTable constructRouteTables(
       const SynchronizedRouteTables::WLockedPtr& lockedRouteTables,
       const RouterIDAndNetworkToInterfaceRoutes&
@@ -376,6 +399,20 @@ class RoutingInformationBase {
       const std::vector<IpPrefix>& toDelete,
       folly::StringPiece updateType,
       const RibMySidToSwitchStateFunction ribMySidToSwitchStateFunc,
+      void* cookie);
+  /*
+   * Update mySids in RIB and switchState from pre-built MySid state objects.
+   * Used by the config-driven path (SwSwitch::applyMySidConfig).
+   * Each entry in toAdd is (MySid state object, its unresolved next-hop set).
+   * The next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
+   * entries; populated for NODE_MICRO_SID.
+   */
+  void update(
+      const SwitchIdScopeResolver* resolver,
+      const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<IpPrefix>& toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
