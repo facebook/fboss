@@ -17,16 +17,9 @@ mkdir -p /var/FBOSS/pai_impl/include
 cp -r /opt/sdk/PAI_3.15/inc/sai /var/FBOSS/pai_impl/include
 cp -r /opt/sdk/PAI_3.15/inc/pai_macsec /var/FBOSS/pai_impl/include
 
-# Set environment variables to build the qsfp targets with the BRCM PAI
-# Make sure to unset any existing variables to link with ASIC SDK as PHY
-# SDK needs different sai
-unset SAI_BRCM_IMPL
-unset CHENAB_SAI_SDK
-unset SAI_TAJO_IMPL
-export SAI_BRCM_PAI_IMPL=1
-
 # Start the build with specific cmake-target `qsfp_targets`
 time ./fboss/oss/scripts/run-getdeps.py \
+  --phy-sai-impl SAI_BRCM_PAI_IMPL \
   build \
   --allow-system-packages \
   --build-type MinSizeRel \
