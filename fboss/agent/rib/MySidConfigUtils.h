@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
+#include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/MySid.h"
 #include "fboss/agent/state/RouteNextHopEntry.h"
 #include "fboss/agent/types.h"
@@ -31,19 +32,12 @@ folly::IPAddressV6 buildSidAddress(
 std::unordered_map<std::string, InterfaceID> buildPortNameToInterfaceIdMap(
     const cfg::SwitchConfig& config);
 
-// Result of converting MySidConfig to MySid state objects.
-struct MySidConfigResult {
-  // Pre-built MySid state objects with clientId=STATIC_ROUTE and
-  // adjacencyInterfaceId set for ADJACENCY entries.
-  std::vector<std::shared_ptr<MySid>> mySids;
-  // Parallel to mySids: unresolved next hops for NextHopIDManager allocation.
-  // Empty for DECAPSULATE_AND_LOOKUP and ADJACENCY_MICRO_SID entries.
-  std::vector<RouteNextHopSet> unresolvedNextHops;
-};
-
-// Convert MySidConfig (switch_config.thrift) to MySid state objects using a
-// precomputed port-name → InterfaceID map (see buildPortNameToInterfaceIdMap).
-MySidConfigResult convertMySidConfig(
+// Convert MySidConfig (switch_config.thrift) to (MySid state, unresolved
+// next-hop set) pairs using a precomputed port-name → InterfaceID map (see
+// buildPortNameToInterfaceIdMap). The next-hop set is empty for
+// DECAPSULATE_AND_LOOKUP and ADJACENCY_MICRO_SID entries; populated for
+// NODE_MICRO_SID.
+std::vector<MySidWithNextHops> convertMySidConfig(
     const cfg::MySidConfig& config,
     const std::unordered_map<std::string, InterfaceID>& portNameToInterfaceId);
 

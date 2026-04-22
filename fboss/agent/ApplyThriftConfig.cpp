@@ -40,6 +40,7 @@
 #include "fboss/agent/gen-cpp2/switch_config_types.h"
 #include "fboss/agent/if/gen-cpp2/mpls_types.h"
 #include "fboss/agent/platforms/common/PlatformMapping.h"
+#include "fboss/agent/rib/MySidConfigUtils.h"
 #include "fboss/agent/rib/NextHopIDManager.h"
 #include "fboss/agent/rib/RoutingInformationBase.h"
 #include "fboss/agent/state/AclEntry.h"
@@ -858,6 +859,18 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
     changed = true;
   }
 
+  // Convert mySidConfig to (MySid state, unresolved next-hops) pairs up
+  // front. Building the port-name -> InterfaceID map and resolving
+  // adjacency entries happens here in the ApplyConfig caller thread, so any
+  // config errors (e.g., unknown port name) surface before we hand work off
+  // to the RIB event-base thread, and the RIB layer doesn't have to know
+  // about cfg::MySidConfig at all.
+  std::vector<MySidWithNextHops> staticMySids;
+  if (auto mySidConfig = cfg_->mySidConfig().to_optional()) {
+    staticMySids =
+        convertMySidConfig(*mySidConfig, buildPortNameToInterfaceIdMap(*cfg_));
+  }
+
   if (routeUpdater_) {
     routeUpdater_->setRoutesToConfig(
         intfRouteTables_,
@@ -889,6 +902,7 @@ shared_ptr<SwitchState> ThriftConfigApplier::run() {
         *cfg_->staticMplsRoutesWithNhops(),
         *cfg_->staticMplsRoutesToNull(),
         *cfg_->staticMplsRoutesToCPU(),
+        staticMySids,
         &updateFibFromConfig,
         static_cast<void*>(&new_));
   } else {

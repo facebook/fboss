@@ -392,6 +392,7 @@ class GetRouteAndNextHopsTest : public ::testing::Test {
         {},
         {},
         {},
+        {} /* staticMySids */,
         ribToSwitchStateUpdate,
         &switchState_);
 

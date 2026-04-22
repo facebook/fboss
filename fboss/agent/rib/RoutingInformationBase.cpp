@@ -276,6 +276,7 @@ void RibRouteTables::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+    const std::vector<MySidWithNextHops>& /* staticMySids */,
     RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   // Config application is accomplished in the following sequence of steps:
@@ -868,6 +869,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
     const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+    const std::vector<MySidWithNextHops>& staticMySids,
     RibToSwitchStateFunction ribToSwitchStateFunc,
     void* cookie) {
   ensureRunning();
@@ -882,6 +884,7 @@ void RoutingInformationBase::reconfigure(
         staticMplsRoutesWithNextHops,
         staticMplsRoutesToNull,
         staticMplsRoutesToCpu,
+        staticMySids,
         ribToSwitchStateFunc,
         cookie);
   };

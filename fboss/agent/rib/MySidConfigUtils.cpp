@@ -61,10 +61,10 @@ std::unordered_map<std::string, InterfaceID> buildPortNameToInterfaceIdMap(
   return portNameToIntfId;
 }
 
-MySidConfigResult convertMySidConfig(
+std::vector<MySidWithNextHops> convertMySidConfig(
     const cfg::MySidConfig& config,
     const std::unordered_map<std::string, InterfaceID>& portNameToInterfaceId) {
-  MySidConfigResult result;
+  std::vector<MySidWithNextHops> result;
 
   auto locatorNetwork =
       folly::IPAddress::createNetwork(*config.locatorPrefix());
@@ -119,8 +119,7 @@ MySidConfigResult convertMySidConfig(
     auto mySid = std::make_shared<MySid>(fields);
     mySid->setUnresolveNextHopsId(std::nullopt);
     mySid->setResolvedNextHopsId(std::nullopt);
-    result.mySids.push_back(std::move(mySid));
-    result.unresolvedNextHops.push_back(std::move(nhops));
+    result.emplace_back(std::move(mySid), std::move(nhops));
   }
 
   return result;

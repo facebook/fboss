@@ -1083,6 +1083,7 @@ TEST_F(
       {},
       {},
       {},
+      {} /* staticMySids */,
       noopFibUpdate,
       &switchState_);
 
@@ -1172,6 +1173,7 @@ TEST_F(
       {},
       {},
       {},
+      {} /* staticMySids */,
       noopFibUpdate,
       &switchState_);
 
@@ -1369,6 +1371,7 @@ TEST_F(RibMySidFibInfoTest, resolvedNextHopSetIdReflectedInFibInfo) {
       {},
       {},
       {},
+      {} /* staticMySids */,
       noopFibUpdate,
       &switchState_);
 

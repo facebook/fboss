@@ -171,6 +171,7 @@ class RibRouteTables {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+      const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
@@ -438,6 +439,7 @@ class RoutingInformationBase {
           staticMplsRoutesWithNextHops,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToNull,
       const std::vector<cfg::StaticMplsRouteNoNextHops>& staticMplsRoutesToCpu,
+      const std::vector<MySidWithNextHops>& staticMySids,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       void* cookie);
 
