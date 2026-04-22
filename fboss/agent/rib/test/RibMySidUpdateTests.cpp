@@ -6,6 +6,7 @@
 #include "fboss/agent/SwitchIdScopeResolver.h"
 #include "fboss/agent/if/gen-cpp2/FbossCtrl.h"
 #include "fboss/agent/rib/FibUpdateHelpers.h"
+#include "fboss/agent/rib/MySidConfigUtils.h"
 #include "fboss/agent/rib/MySidMapUpdater.h"
 #include "fboss/agent/rib/NetworkToRouteMap.h"
 #include "fboss/agent/rib/RibToSwitchStateUpdater.h"
@@ -163,6 +164,33 @@ class FailWithMySidInAppliedState {
  private:
   MySidTable mySidEntriesToInject_;
 };
+
+// Locator with nonzero second 16-bit group so the resulting SID address
+// has an unambiguous IPv6 string form (e.g., "3001:db8:100::" rather
+// than the IPv6-compacted "fc00:0:100::" for an all-zero second group).
+constexpr folly::StringPiece kTestLocatorPrefix = "3001:db8::/32";
+
+cfg::MySidConfig makeDecapMySidConfig(int16_t functionId) {
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::MySidEntryConfig entry;
+  entry.set_decap(cfg::DecapMySidConfig{});
+  mySidConfig.entries()->emplace(functionId, std::move(entry));
+  return mySidConfig;
+}
+
+cfg::MySidConfig makeNodeMySidConfig(
+    int16_t functionId,
+    const std::string& nodeAddress) {
+  cfg::MySidConfig mySidConfig;
+  mySidConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::NodeMySidConfig node;
+  node.nodeAddress() = nodeAddress;
+  cfg::MySidEntryConfig entry;
+  entry.set_node(std::move(node));
+  mySidConfig.entries()->emplace(functionId, std::move(entry));
+  return mySidConfig;
+}
 
 std::shared_ptr<MySid> makeMySid(
     const folly::CIDRNetworkV6& prefix,
@@ -847,6 +875,23 @@ class RibMySidNextHopTest : public ::testing::Test {
     rib_->ensureVrf(kRid);
   }
 
+  // Materialize the unresolveNextHopsId for `prefix` into a value to dodge
+  // the thrift `field_ref` lifetime trap: getMySidTableCopy() returns a
+  // temporary, and the field_ref returned by unresolveNextHopsId() points
+  // into it.
+  std::optional<int64_t> getUnresolveId(
+      const folly::CIDRNetworkV6& prefix) const {
+    const auto table = rib_->getMySidTableCopy();
+    auto it = table.find(prefix);
+    if (it == table.end()) {
+      return std::nullopt;
+    }
+    if (auto v = it->second.unresolveNextHopsId()) {
+      return *v;
+    }
+    return std::nullopt;
+  }
+
   std::unique_ptr<RoutingInformationBase> rib_;
   std::shared_ptr<SwitchState> switchState_;
 };
@@ -1455,6 +1500,670 @@ TEST_F(RibMySidNextHopTest, routeDeleteUnresolvesMySidNextHops) {
 
   EXPECT_FALSE(
       rib_->getMySidTableCopy().at(prefix).resolvedNextHopsId().has_value());
+}
+
+// Tests for MySid programming via reconfigure() — ensures config-driven
+// MySid entries passed through reconfigure reach the RIB mySidTable.
+
+TEST_F(RibMySidNextHopTest, reconfigureAddsMySidToRibTable) {
+  auto mySidConfig = makeDecapMySidConfig(0x100);
+
+  rib_->reconfigure(
+      scopeResolver(),
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  ASSERT_NE(table.find(prefix), table.end());
+  EXPECT_EQ(table.at(prefix).type().value(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_EQ(table.at(prefix).clientId().value(), ClientID::STATIC_ROUTE);
+}
+
+TEST_F(RibMySidNextHopTest, reconfigureDeletesMySidFromRibTable) {
+  // Keep kRid alive across both reconfigure calls — production callers
+  // always pass at least one VRF in configRouterIDToInterfaceRoutes.
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  auto mySidConfig = makeDecapMySidConfig(0x100);
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+  {
+    const auto tableAfterAdd = rib_->getMySidTableCopy();
+    ASSERT_NE(
+        tableAfterAdd.find(makeSidPrefix("3001:db8:100::", 48)),
+        tableAfterAdd.end());
+  }
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  const auto tableAfterDelete = rib_->getMySidTableCopy();
+  EXPECT_EQ(
+      tableAfterDelete.find(makeSidPrefix("3001:db8:100::", 48)),
+      tableAfterDelete.end());
+}
+
+TEST_F(RibMySidNextHopTest, reconfigureMySidWithNextHopsAllocatesId) {
+  auto mySidConfig = makeNodeMySidConfig(0x100, "2001:db8::1");
+
+  rib_->reconfigure(
+      scopeResolver(),
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  ASSERT_NE(table.find(prefix), table.end());
+  EXPECT_TRUE(table.at(prefix).unresolveNextHopsId().has_value());
+}
+
+TEST_F(RibMySidNextHopTest, reconfigureMySidAndRoutesTogetherBothInstalled) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("10.0.0.0"), 24}] = {
+      InterfaceID(1), folly::IPAddress("10.0.0.1")};
+
+  auto mySidConfig = makeDecapMySidConfig(0x100);
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  ASSERT_NE(table.find(prefix), table.end());
+  EXPECT_EQ(table.at(prefix).clientId().value(), ClientID::STATIC_ROUTE);
+  EXPECT_NE(
+      rib_->longestMatch<folly::IPAddressV4>(
+          folly::IPAddressV4("10.0.0.1"), kRid),
+      nullptr);
+}
+
+TEST_F(RibMySidNextHopTest, reconfigureNodeMySidWithRouteResolved) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid][{folly::IPAddress("2001:db8::"), 32}] = {
+      InterfaceID(1), folly::IPAddress("2001:db8::1")};
+
+  auto mySidConfig = makeNodeMySidConfig(0x100, "2001:db8::1");
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  ASSERT_NE(table.find(prefix), table.end());
+  EXPECT_TRUE(table.at(prefix).unresolveNextHopsId().has_value());
+  // Route is present, so MySid should be resolved via LPM
+  EXPECT_TRUE(table.at(prefix).resolvedNextHopsId().has_value());
+}
+
+// Non-STATIC_ROUTE MySid entries (default ClientID = TE_AGENT) must not be
+// removed by a reconfigure() that supplies an empty mySidConfig.
+TEST_F(RibMySidNextHopTest, reconfigurePreservesTeAgentMySid) {
+  // Add an entry via the RPC path (clientId defaults to TE_AGENT).
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntry("fc00:200::1", 48)},
+      {},
+      "add te_agent mysid",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  ASSERT_NE(
+      rib_->getMySidTableCopy().find(makeSidPrefix("fc00:200::1", 48)),
+      rib_->getMySidTableCopy().end());
+
+  // reconfigure with no mySidConfig should clear STATIC_ROUTE only — leave
+  // the TE_AGENT entry intact.
+  rib_->reconfigure(
+      scopeResolver(),
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {} /* staticMySids */,
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  EXPECT_NE(table.find(makeSidPrefix("fc00:200::1", 48)), table.end());
+}
+
+// Reconfigure with the same prefix but a different MySid type — second
+// reconfigure must overwrite the first entry, not coexist or skip.
+TEST_F(RibMySidNextHopTest, reconfigureUpdatesMySidType) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  // First reconfigure: install DECAP entry.
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(makeDecapMySidConfig(0x100), {}),
+      noopFibUpdate,
+      &switchState_);
+  {
+    const auto table = rib_->getMySidTableCopy();
+    const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+    ASSERT_NE(table.find(prefix), table.end());
+    EXPECT_EQ(
+        table.at(prefix).type().value(), MySidType::DECAPSULATE_AND_LOOKUP);
+    EXPECT_FALSE(table.at(prefix).unresolveNextHopsId().has_value());
+  }
+
+  // Second reconfigure: same prefix (functionId 0x100) but NODE type with
+  // a next hop. Must replace the DECAP entry and allocate a new nhopId.
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(makeNodeMySidConfig(0x100, "2001:db8::1"), {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  ASSERT_NE(table.find(prefix), table.end());
+  EXPECT_EQ(table.at(prefix).type().value(), MySidType::NODE_MICRO_SID);
+  EXPECT_EQ(table.at(prefix).clientId().value(), ClientID::STATIC_ROUTE);
+  EXPECT_TRUE(table.at(prefix).unresolveNextHopsId().has_value());
+}
+
+// Reconfigure with multiple STATIC entries, then with a subset — only the
+// removed prefix is gone; the kept prefix survives.
+TEST_F(RibMySidNextHopTest, reconfigurePartiallyDeletesMySid) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  // Install two DECAP entries.
+  cfg::MySidConfig twoEntries;
+  twoEntries.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::MySidEntryConfig decap;
+  decap.set_decap(cfg::DecapMySidConfig{});
+  twoEntries.entries()->emplace(0x100, decap);
+  twoEntries.entries()->emplace(0x200, decap);
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(twoEntries, {}),
+      noopFibUpdate,
+      &switchState_);
+  {
+    const auto table = rib_->getMySidTableCopy();
+    EXPECT_NE(table.find(makeSidPrefix("3001:db8:100::", 48)), table.end());
+    EXPECT_NE(table.find(makeSidPrefix("3001:db8:200::", 48)), table.end());
+  }
+
+  // Reconfigure with only one of the two entries — the dropped one must
+  // disappear, the kept one must remain.
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(makeDecapMySidConfig(0x100), {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  EXPECT_NE(table.find(makeSidPrefix("3001:db8:100::", 48)), table.end());
+  EXPECT_EQ(table.find(makeSidPrefix("3001:db8:200::", 48)), table.end());
+}
+
+// Reconfigure with multiple MySid entries of mixed types in a single call —
+// every entry should land with the correct type and clientId.
+TEST_F(RibMySidNextHopTest, reconfigureMultipleMySidEntries) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  cfg::MySidConfig multiConfig;
+  multiConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::MySidEntryConfig decap;
+  decap.set_decap(cfg::DecapMySidConfig{});
+  multiConfig.entries()->emplace(0x100, decap);
+  multiConfig.entries()->emplace(0x200, decap);
+
+  cfg::NodeMySidConfig node;
+  node.nodeAddress() = "2001:db8::1";
+  cfg::MySidEntryConfig nodeEntry;
+  nodeEntry.set_node(std::move(node));
+  multiConfig.entries()->emplace(0x300, std::move(nodeEntry));
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(multiConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto p100 = makeSidPrefix("3001:db8:100::", 48);
+  const auto p200 = makeSidPrefix("3001:db8:200::", 48);
+  const auto p300 = makeSidPrefix("3001:db8:300::", 48);
+  ASSERT_NE(table.find(p100), table.end());
+  ASSERT_NE(table.find(p200), table.end());
+  ASSERT_NE(table.find(p300), table.end());
+  EXPECT_EQ(table.at(p100).type().value(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_EQ(table.at(p200).type().value(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_EQ(table.at(p300).type().value(), MySidType::NODE_MICRO_SID);
+  EXPECT_EQ(table.at(p100).clientId().value(), ClientID::STATIC_ROUTE);
+  EXPECT_EQ(table.at(p200).clientId().value(), ClientID::STATIC_ROUTE);
+  EXPECT_EQ(table.at(p300).clientId().value(), ClientID::STATIC_ROUTE);
+  EXPECT_FALSE(table.at(p100).unresolveNextHopsId().has_value());
+  EXPECT_FALSE(table.at(p200).unresolveNextHopsId().has_value());
+  EXPECT_TRUE(table.at(p300).unresolveNextHopsId().has_value());
+}
+
+// Re-applying an identical mySidConfig must NOT churn next-hop IDs: the
+// existing entry should be left in place (same unresolveNextHopsId) and
+// no new id should be allocated for the same nhop set. This is the
+// no-op-replace contract that prevents unnecessary HW deltas + nhop-id
+// waste on every reconfigure.
+TEST_F(RibMySidNextHopTest, reconfigureIdenticalMySidIsNoOp) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  auto mySidConfig = makeNodeMySidConfig(0x100, "2001:db8::1");
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  const auto idBefore = getUnresolveId(prefix);
+  ASSERT_TRUE(idBefore.has_value());
+
+  // Re-apply the exact same config. The id must be preserved.
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(mySidConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto idAfter = getUnresolveId(prefix);
+  ASSERT_TRUE(idAfter.has_value());
+  EXPECT_EQ(*idAfter, *idBefore)
+      << "Identical reconfigure churned the unresolveNextHopsId — "
+         "applyStaticMySids should leave unchanged entries alone";
+}
+
+// Mixed reconfigure: changing only one of several entries should churn
+// only that one. The unchanged entry's id stays put; the changed entry's
+// id is reallocated.
+TEST_F(RibMySidNextHopTest, reconfigureOnlyChangedMySidChurnsId) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  // Install two NODE entries.
+  cfg::MySidConfig firstConfig;
+  firstConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  cfg::NodeMySidConfig nodeA;
+  nodeA.nodeAddress() = "2001:db8::1";
+  cfg::MySidEntryConfig entryA;
+  entryA.set_node(nodeA);
+  firstConfig.entries()->emplace(0x100, entryA);
+
+  cfg::NodeMySidConfig nodeB;
+  nodeB.nodeAddress() = "2001:db8::2";
+  cfg::MySidEntryConfig entryB;
+  entryB.set_node(nodeB);
+  firstConfig.entries()->emplace(0x200, entryB);
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(firstConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto p100 = makeSidPrefix("3001:db8:100::", 48);
+  const auto p200 = makeSidPrefix("3001:db8:200::", 48);
+  const auto idAOldOpt = getUnresolveId(p100);
+  const auto idBOldOpt = getUnresolveId(p200);
+  ASSERT_TRUE(idAOldOpt.has_value());
+  ASSERT_TRUE(idBOldOpt.has_value());
+
+  // Re-apply with entry A unchanged but entry B's nodeAddress flipped.
+  cfg::MySidConfig secondConfig;
+  secondConfig.locatorPrefix() = kTestLocatorPrefix.str();
+  secondConfig.entries()->emplace(0x100, entryA);
+  cfg::NodeMySidConfig nodeBNew;
+  nodeBNew.nodeAddress() = "2001:db8::99";
+  cfg::MySidEntryConfig entryBNew;
+  entryBNew.set_node(nodeBNew);
+  secondConfig.entries()->emplace(0x200, entryBNew);
+
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(secondConfig, {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto idANewOpt = getUnresolveId(p100);
+  const auto idBNewOpt = getUnresolveId(p200);
+  ASSERT_TRUE(idANewOpt.has_value());
+  ASSERT_TRUE(idBNewOpt.has_value());
+  // A is unchanged → same id.
+  EXPECT_EQ(*idANewOpt, *idAOldOpt);
+  // B changed → its old id is gone (released) and a new id allocated.
+  EXPECT_NE(*idBNewOpt, *idBOldOpt);
+  // Old id for B should have been deallocated from the manager.
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_FALSE(manager->getNextHopsIf(NextHopSetID(*idBOldOpt)).has_value())
+      << "Old next-hop set for changed entry B was not released";
+}
+
+// Identical DECAP reconfigure (no next hops) must hit the "both empty"
+// branch of mySidEntryUnchanged and be a no-op — covers the 0-nhop fast
+// path that the NODE-only no-op test does not exercise.
+TEST_F(RibMySidNextHopTest, reconfigureIdenticalDecapMySidIsNoOp) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+  auto mySidConfig = makeDecapMySidConfig(0x100);
+  auto applyOnce = [&]() {
+    rib_->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        convertMySidConfig(mySidConfig, {}),
+        noopFibUpdate,
+        &switchState_);
+  };
+  applyOnce();
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  const auto table1 = rib_->getMySidTableCopy();
+  ASSERT_NE(table1.find(prefix), table1.end());
+  const auto type1 = table1.at(prefix).type().value();
+
+  applyOnce();
+  const auto table2 = rib_->getMySidTableCopy();
+  ASSERT_NE(table2.find(prefix), table2.end());
+  EXPECT_EQ(table2.at(prefix).type().value(), type1);
+  EXPECT_FALSE(table2.at(prefix).unresolveNextHopsId().has_value());
+}
+
+// Reconfigure that flips isV6 on the same prefix must churn the entry,
+// not be skipped — covers the isV6 branch of mySidEntryUnchanged.
+TEST_F(RibMySidNextHopTest, reconfigureChangedIsV6ChurnsEntry) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+  auto mkConfigWithIsV6 = [&](bool isV6) {
+    cfg::MySidConfig cfg;
+    cfg.locatorPrefix() = kTestLocatorPrefix.str();
+    cfg::AdjacencyMySidConfig adj;
+    adj.portName() = "Port-Channel301";
+    adj.isV6() = isV6;
+    cfg::MySidEntryConfig entry;
+    entry.set_adjacency(std::move(adj));
+    cfg.entries()->emplace(0x100, std::move(entry));
+    return cfg;
+  };
+  // portName -> InterfaceID map: convertMySidConfig requires it for adjacency.
+  std::unordered_map<std::string, InterfaceID> portMap{
+      {"Port-Channel301", InterfaceID(301)}};
+  auto applyWithIsV6 = [&](bool isV6) {
+    rib_->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        convertMySidConfig(mkConfigWithIsV6(isV6), portMap),
+        noopFibUpdate,
+        &switchState_);
+  };
+  applyWithIsV6(true);
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  ASSERT_NE(
+      rib_->getMySidTableCopy().find(prefix), rib_->getMySidTableCopy().end());
+  EXPECT_TRUE(rib_->getMySidTableCopy().at(prefix).isV6().value_or(false));
+
+  applyWithIsV6(false);
+  EXPECT_FALSE(rib_->getMySidTableCopy().at(prefix).isV6().value_or(true))
+      << "Changing isV6 should churn the entry; smart diff should NOT skip";
+}
+
+// Reconfigure that flips adjacencyInterfaceId on the same prefix must
+// churn the entry — covers the adjacencyInterfaceId branch.
+TEST_F(RibMySidNextHopTest, reconfigureChangedAdjacencyInterfaceIdChurnsEntry) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+  auto mkConfigWithPort = [&](const std::string& portName) {
+    cfg::MySidConfig cfg;
+    cfg.locatorPrefix() = kTestLocatorPrefix.str();
+    cfg::AdjacencyMySidConfig adj;
+    adj.portName() = portName;
+    adj.isV6() = true;
+    cfg::MySidEntryConfig entry;
+    entry.set_adjacency(std::move(adj));
+    cfg.entries()->emplace(0x100, std::move(entry));
+    return cfg;
+  };
+  std::unordered_map<std::string, InterfaceID> portMap{
+      {"Port-Channel301", InterfaceID(301)},
+      {"Port-Channel302", InterfaceID(302)}};
+  auto applyWithPort = [&](const std::string& portName) {
+    rib_->reconfigure(
+        scopeResolver(),
+        interfaceRoutes,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        convertMySidConfig(mkConfigWithPort(portName), portMap),
+        noopFibUpdate,
+        &switchState_);
+  };
+  applyWithPort("Port-Channel301");
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  EXPECT_EQ(
+      rib_->getMySidTableCopy().at(prefix).adjacencyInterfaceId().value_or(0),
+      301);
+
+  applyWithPort("Port-Channel302");
+  EXPECT_EQ(
+      rib_->getMySidTableCopy().at(prefix).adjacencyInterfaceId().value_or(0),
+      302)
+      << "Changing adjacencyInterfaceId should churn the entry";
+}
+
+// Pass 2's "non-STATIC_ROUTE entry at same CIDR" overwrite path. Existing
+// reconfigurePreservesTeAgentMySid uses a different prefix and so does
+// not exercise this branch. Here we put a TE_AGENT entry (with nhops) at
+// the exact prefix the next config reconfigure targets, and verify:
+//   - the old TE_AGENT entry's nhop id is released (no leak)
+//   - the new entry has STATIC_ROUTE clientId
+TEST_F(RibMySidNextHopTest, reconfigureOverwritesTeAgentAtSamePrefix) {
+  RoutingInformationBase::RouterIDAndNetworkToInterfaceRoutes interfaceRoutes;
+  interfaceRoutes[kRid] = {};
+
+  // 1. Install a TE_AGENT (default clientId) entry with nhops at the prefix
+  //    that the next reconfigure will target.
+  rib_->update(
+      scopeResolver(),
+      {makeMySidEntryWithNextHops("3001:db8:100::", 48, {"2001:db8::1"})},
+      {},
+      "seed te_agent at config-target prefix",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const auto prefix = makeSidPrefix("3001:db8:100::", 48);
+  const auto teAgentIdOpt = getUnresolveId(prefix);
+  ASSERT_TRUE(teAgentIdOpt.has_value())
+      << "Test setup: TE_AGENT entry should have an unresolveNextHopsId";
+
+  // 2. Reconfigure with a STATIC_ROUTE DECAP entry at the same prefix —
+  //    Pass 2 in applyStaticMySids should release the TE_AGENT entry's id
+  //    and install the DECAP entry.
+  rib_->reconfigure(
+      scopeResolver(),
+      interfaceRoutes,
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      convertMySidConfig(makeDecapMySidConfig(0x100), {}),
+      noopFibUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  ASSERT_NE(table.find(prefix), table.end());
+  EXPECT_EQ(table.at(prefix).clientId().value(), ClientID::STATIC_ROUTE);
+  EXPECT_EQ(table.at(prefix).type().value(), MySidType::DECAPSULATE_AND_LOOKUP);
+  EXPECT_FALSE(table.at(prefix).unresolveNextHopsId().has_value());
+
+  // The TE_AGENT entry's old id must have been released (refcount 1 → 0).
+  auto manager = rib_->getNextHopIDManagerCopy();
+  ASSERT_NE(manager, nullptr);
+  EXPECT_FALSE(manager->getNextHopsIf(NextHopSetID(*teAgentIdOpt)).has_value())
+      << "Pass 2 silently leaked the overwritten TE_AGENT entry's nhop id";
 }
 
 } // namespace facebook::fboss
