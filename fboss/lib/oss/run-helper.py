@@ -17,10 +17,9 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
-def get_command_line_args() -> Tuple[str, List[str]]:
+def get_command_line_args() -> tuple[str, list[str]]:
     parser = argparse.ArgumentParser(
         description="OSS FBOSS build and run helper script."
     )
@@ -40,14 +39,14 @@ def main() -> None:
             "Please run the script from the root of the FBOSS repository",
             file=sys.stderr,
         )
-        exit(1)
+        sys.exit(1)
     expected_path = parents[3].absolute().as_posix()
     if run_path != expected_path:
         error_string = f"""Please executed the script from the root of the FBOSS repository
 Expected run path: {expected_path}
 Current run path: {run_path}"""
         print(error_string, file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     get_deps_paths = [
         expected_path + "/opensource/fbcode_builder/getdeps.py",
@@ -60,7 +59,7 @@ Current run path: {run_path}"""
             get_deps_path = maybe_path
     if get_deps_path is None:
         print("Could not find getdeps.py", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
     else:
         print(get_deps_path)
 
@@ -75,6 +74,7 @@ Current run path: {run_path}"""
         f"""{get_deps_path} build """
         + '--allow-system-packages --num-jobs 32 --extra-cmake-defines=\'{"CMAKE_BUILD_TYPE": "MinSizeRel", "CMAKE_CXX_STANDARD": "20"}\' --cmake-target'
         + f" {target} fboss",
+        check=False,
         shell=True,
     )
 
@@ -82,6 +82,7 @@ Current run path: {run_path}"""
 
     show_build_dir_proc = subprocess.run(
         f"""{get_deps_path} show-build-dir fboss""",
+        check=False,
         shell=True,
         capture_output=True,
         text=True,
@@ -96,15 +97,16 @@ Current run path: {run_path}"""
 
     result = subprocess.run(
         fboss_oss_target,
+        check=False,
         shell=True,
     )
 
     if result.returncode != 0:
         print(f"Failed to run target {target}", file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
     print("Configs have been written to specified output directory")
-    exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
