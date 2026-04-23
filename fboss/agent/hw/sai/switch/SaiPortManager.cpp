@@ -2474,6 +2474,25 @@ void SaiPortManager::updateStats(
         "MAC TX data queue watermarks");
   }
 #endif
+#if defined(BRCM_SAI_SDK_DNX_GTE_13_0)
+  if (portType == cfg::PortType::FABRIC_PORT &&
+      platform_->getAsic()->isSupported(
+          HwAsic::Feature::FABRIC_LINK_MONITORING)) {
+    std::vector<sai_stat_id_t> fabricControlStats;
+    fabricControlStats.insert(
+        fabricControlStats.end(),
+        SaiPortTraits::fabricControlRxPacketStats().begin(),
+        SaiPortTraits::fabricControlRxPacketStats().end());
+    fabricControlStats.insert(
+        fabricControlStats.end(),
+        SaiPortTraits::fabricControlTxPacketStats().begin(),
+        SaiPortTraits::fabricControlTxPacketStats().end());
+    collectStats(
+        fabricControlStats,
+        SAI_STATS_MODE_READ_AND_CLEAR,
+        "fabric control packet stats");
+  }
+#endif
 
   auto supportedPfcDurationStats = getSupportedPfcDurationStats(portId);
   if (supportedPfcDurationStats.size()) {
