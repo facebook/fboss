@@ -35,3 +35,18 @@ repos:
       # Ruff formatter for all Python files in fboss/
       - id: ruff-format
         files: ^fboss/
+  - repo: local
+    hooks:
+      - id: do-not-change-fboss-manifests
+        name: Prevent sai_impl in fboss manifest
+        language: system
+        entry: >-
+          bash -c 'if git diff --cached -- build/fbcode_builder/manifests/fboss
+          | grep -q "^+.*sai_impl"; then echo "ERROR: Do not commit changes to
+          build/fbcode_builder/manifests (common mistake with git commit -a)"
+          >&2; exit 1; fi'
+        pass_filenames: false
+        # always_run is required because the top-level "exclude: ^build/.*"
+        # would suppress this hook if we used "files:" to scope it instead.
+        # The git diff --cached inside the entry does the scoping itself.
+        always_run: true
