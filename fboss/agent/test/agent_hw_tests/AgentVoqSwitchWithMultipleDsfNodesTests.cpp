@@ -1025,7 +1025,7 @@ class AgentVoqShelSwitchTest : public AgentVoqSwitchWithMultipleDsfNodesTest {
 
   void verifyShelPortState(bool enabled) {
     WITH_RETRIES({
-      auto stats = getHwSwitchStats();
+      auto stats = getAllHwSwitchStats();
       auto state = getProgrammedState();
       for (const auto& portMap : std::as_const(*state->getPorts())) {
         for (const auto& port : std::as_const(*portMap.second)) {
