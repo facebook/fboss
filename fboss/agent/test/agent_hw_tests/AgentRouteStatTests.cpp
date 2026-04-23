@@ -169,10 +169,12 @@ TEST_F(AgentRouteStatTest, CounterModify) {
         kCounterID2);
   };
   auto verify = [this]() {
+    auto origRoutePort = masterLogicalInterfacePortIds()[0];
+    auto newRoutePort = masterLogicalInterfacePortIds()[1];
     // verify counter works
     {
       auto countBefore = getRouteCounterValue(*kCounterID1);
-      sendL3Packet(kAddr1, masterLogicalInterfacePortIds()[1]);
+      sendL3Packet(kAddr1, newRoutePort);
       WITH_RETRIES({
         auto countAfter = getRouteCounterValue(*kCounterID1);
         EXPECT_EVENTUALLY_GT(countAfter, countBefore);
@@ -180,14 +182,10 @@ TEST_F(AgentRouteStatTest, CounterModify) {
     }
 
     // modify the route - no change to counter id
-    addRoute(
-        kAddr1,
-        120,
-        PortDescriptor(masterLogicalInterfacePortIds()[1]),
-        kCounterID1);
+    addRoute(kAddr1, 120, PortDescriptor(newRoutePort), kCounterID1);
     {
       auto countBefore = getRouteCounterValue(*kCounterID1);
-      sendL3Packet(kAddr1, masterLogicalInterfacePortIds()[1]);
+      sendL3Packet(kAddr1, origRoutePort);
       WITH_RETRIES({
         auto countAfter = getRouteCounterValue(*kCounterID1);
         EXPECT_EVENTUALLY_GT(countAfter, countBefore);
@@ -195,14 +193,10 @@ TEST_F(AgentRouteStatTest, CounterModify) {
     }
 
     // modify the counter id
-    addRoute(
-        kAddr1,
-        120,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        kCounterID2);
+    addRoute(kAddr1, 120, PortDescriptor(newRoutePort), kCounterID2);
     {
       auto countBefore = getRouteCounterValue(*kCounterID2);
-      sendL3Packet(kAddr1, masterLogicalInterfacePortIds()[1]);
+      sendL3Packet(kAddr1, origRoutePort);
       WITH_RETRIES({
         auto countAfter = getRouteCounterValue(*kCounterID2);
         EXPECT_EVENTUALLY_GT(countAfter, countBefore);
@@ -211,35 +205,24 @@ TEST_F(AgentRouteStatTest, CounterModify) {
 
     // counter id changing from valid to null
     auto countBefore = getRouteCounterValue(*kCounterID2);
-    addRoute(
-        kAddr1,
-        120,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        std::nullopt);
-    sendL3Packet(kAddr1, masterLogicalInterfacePortIds()[1]);
+    addRoute(kAddr1, 120, PortDescriptor(newRoutePort), std::nullopt);
+    sendL3Packet(kAddr1, origRoutePort);
     auto countAfter = getRouteCounterValue(*kCounterID2);
     EXPECT_EQ(countAfter, countBefore);
 
     // counter id changing from null to valid
-    addRoute(
-        kAddr1,
-        120,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        kCounterID2);
+    addRoute(kAddr1, 120, PortDescriptor(newRoutePort), kCounterID2);
     {
       auto cb = getRouteCounterValue(*kCounterID2);
-      sendL3Packet(kAddr1, masterLogicalInterfacePortIds()[1]);
+      sendL3Packet(kAddr1, origRoutePort);
       WITH_RETRIES({
         auto ca = getRouteCounterValue(*kCounterID2);
         EXPECT_EVENTUALLY_GT(ca, cb);
       });
     }
-
-    addRoute(
-        kAddr1,
-        120,
-        PortDescriptor(masterLogicalInterfacePortIds()[0]),
-        kCounterID1);
+    // Restore the route to original state, so verify
+    // can be run multiple times
+    addRoute(kAddr1, 120, PortDescriptor(origRoutePort), kCounterID1);
   };
   verifyAcrossWarmBoots(setup, verify);
 }
