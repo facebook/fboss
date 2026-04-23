@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <fboss/agent/hw/HwFb303Stats.h>
 #include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/hw/sai/api/CounterApi.h"
 #include "fboss/agent/hw/sai/store/SaiObject.h"
@@ -34,16 +33,8 @@ using SaiCounter = SaiObjectWithCounters<SaiCounterTraits>;
 struct SaiCounterHandle {
   std::shared_ptr<SaiCounter> counter;
   std::string counterName;
-  std::shared_ptr<HwFb303Stats> statsMap;
   HwSwitchCounter hwSwitchCounter;
-  SaiCounterHandle(std::string name, std::shared_ptr<HwFb303Stats> map)
-      : counterName(name), statsMap(map) {}
-  ~SaiCounterHandle() {
-    if (counter) {
-      counter.reset();
-      statsMap->removeStat(counterName);
-    }
-  }
+  explicit SaiCounterHandle(std::string name) : counterName(name) {}
   SaiCounterHandle(const SaiCounterHandle&) = delete;
   SaiCounterHandle& operator=(const SaiCounterHandle&) = delete;
   SaiCounterHandle(SaiCounterHandle&&) = delete;
@@ -59,14 +50,8 @@ class SaiCounterManager {
       SaiStore* saiStore,
       SaiManagerTable* managerTable,
       SaiPlatform* platform)
-      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {
-    routeStats_ =
-        std::make_shared<HwFb303Stats>(platform->getMultiSwitchStatsPrefix());
-  }
+      : saiStore_(saiStore), managerTable_(managerTable), platform_(platform) {}
 
-  std::shared_ptr<HwFb303Stats> getRouteStatsMapRef() {
-    return routeStats_;
-  }
   std::shared_ptr<SaiCounterHandle> incRefOrAddRouteCounter(
       std::string counterID);
   void setMaxRouteCounterIDs(uint32_t count) {
@@ -81,7 +66,6 @@ class SaiCounterManager {
   SaiManagerTable* managerTable_;
   SaiPlatform* platform_;
   FlatRefMap<RouteCounterID, SaiCounterHandle> routeCounters_;
-  std::shared_ptr<HwFb303Stats> routeStats_;
   uint32_t maxRouteCounterIDs_;
 };
 
