@@ -2166,4 +2166,166 @@ TEST_F(RibMySidNextHopTest, reconfigureOverwritesTeAgentAtSamePrefix) {
       << "Pass 2 silently leaked the overwritten TE_AGENT entry's nhop id";
 }
 
+// Tests for the update(MySidWithNextHops) / updateAsync(MySidWithNextHops)
+// overloads — pre-built MySid state objects + parallel next-hop sets, used by
+// the config + neighbor-observer paths.
+class RibMySidWithNextHopsUpdateTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    FLAGS_enable_nexthop_id_manager = true;
+    rib_ = std::make_unique<RoutingInformationBase>();
+    switchState_ = std::make_shared<SwitchState>();
+    switchState_->publish();
+    rib_->ensureVrf(kRid);
+  }
+
+  void TearDown() override {
+    // Reset the global gflag we toggled in SetUp so it doesn't leak into
+    // tests that follow in the same binary.
+    FLAGS_enable_nexthop_id_manager = false;
+  }
+
+  std::vector<MySidWithNextHops> makePair(
+      const std::string& addr,
+      uint8_t len,
+      MySidType type = MySidType::DECAPSULATE_AND_LOOKUP,
+      RouteNextHopSet nhops = {}) {
+    auto mySid = makeMySid(makeSidPrefix(addr, len), type);
+    mySid->setClientId(ClientID::STATIC_ROUTE);
+    return {{std::move(mySid), std::move(nhops)}};
+  }
+
+  std::unique_ptr<RoutingInformationBase> rib_;
+  std::shared_ptr<SwitchState> switchState_;
+};
+
+TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAddsEntry) {
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48),
+      {} /* toDelete */,
+      "syncAdd",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  EXPECT_EQ(table.size(), 1);
+  EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAllocatesNextHopSetId) {
+  RouteNextHopSet nhops{
+      UnresolvedNextHop(folly::IPAddress("2001:db8::1"), ECMP_WEIGHT)};
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48, MySidType::NODE_MICRO_SID, std::move(nhops)),
+      {},
+      "syncAddWithNhops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  const auto table = rib_->getMySidTableCopy();
+  const auto p = makeSidPrefix("3001:db8:1::", 48);
+  ASSERT_NE(table.find(p), table.end());
+  EXPECT_TRUE(table.at(p).unresolveNextHopsId().has_value());
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48),
+      {},
+      "add",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  ASSERT_EQ(rib_->getMySidTableCopy().size(), 1);
+
+  rib_->update(
+      scopeResolver(),
+      std::vector<MySidWithNextHops>{},
+      {toIpPrefix("3001:db8:1::", 48)},
+      "delete",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdatePropagatesException) {
+  // Sync update must rethrow exceptions raised on the rib event-base thread —
+  // captured via std::exception_ptr since folly's runInFbossEventBaseThread-
+  // AndWait does not propagate.
+  FailMySidUpdate failUpdate;
+  EXPECT_THROW(
+      rib_->update(
+          scopeResolver(),
+          makePair("3001:db8:1::", 48),
+          {},
+          "syncFail",
+          failUpdate,
+          &switchState_),
+      FbossHwUpdateError);
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateAddsEntryAfterDrain) {
+  rib_->updateAsync(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48),
+      {},
+      "asyncAdd",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  // updateAsync is fire-and-forget — drain the rib event base before
+  // observing state.
+  rib_->waitForRibUpdates();
+
+  const auto table = rib_->getMySidTableCopy();
+  EXPECT_EQ(table.size(), 1);
+  EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
+  // Seed an entry synchronously
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48),
+      {},
+      "syncAdd",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  ASSERT_EQ(rib_->getMySidTableCopy().size(), 1);
+
+  rib_->updateAsync(
+      scopeResolver(),
+      std::vector<MySidWithNextHops>{},
+      {toIpPrefix("3001:db8:1::", 48)},
+      "asyncDelete",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  rib_->waitForRibUpdates();
+
+  EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdatesAreSerialized) {
+  // Multiple async updates run sequentially on the same event-base thread and
+  // are observable after a single drain.
+  for (int i = 1; i <= 3; ++i) {
+    rib_->updateAsync(
+        scopeResolver(),
+        makePair(folly::sformat("3001:db8:{}::", i), 48),
+        {},
+        folly::sformat("asyncAdd{}", i),
+        mySidToSwitchStateUpdate,
+        &switchState_);
+  }
+  rib_->waitForRibUpdates();
+
+  const auto table = rib_->getMySidTableCopy();
+  EXPECT_EQ(table.size(), 3);
+  EXPECT_NE(table.find(makeSidPrefix("3001:db8:1::", 48)), table.end());
+  EXPECT_NE(table.find(makeSidPrefix("3001:db8:2::", 48)), table.end());
+  EXPECT_NE(table.find(makeSidPrefix("3001:db8:3::", 48)), table.end());
+}
+
 } // namespace facebook::fboss
