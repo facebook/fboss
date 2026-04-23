@@ -154,16 +154,9 @@ void BcmStatUpdater::updateAclStats() {
 }
 
 void BcmStatUpdater::updateRouteCounters() {
-  auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
-  auto lockedRouteCounters = routeStats_.wlock();
   auto lockedState = routeCounterState_.wlock();
-  for (auto& entry : *lockedRouteCounters) {
-    auto bytes = getRouteTrafficStats(entry.first);
-    entry.second->updateValue(now, bytes);
-    auto it = lockedState->find(entry.first);
-    if (it != lockedState->end()) {
-      it->second.bytes = bytes;
-    }
+  for (auto& [bcmCounterId, state] : *lockedState) {
+    state.bytes = getRouteTrafficStats(bcmCounterId);
   }
 }
 
@@ -229,29 +222,23 @@ void BcmStatUpdater::refreshRouteCounters() {
     return;
   }
 
-  auto lockedRouteCounters = routeStats_.wlock();
   auto lockedState = routeCounterState_.wlock();
 
   while (!toBeProcessedRouteCounters_.empty()) {
-    // Check whether route stat already exists
     auto id = toBeProcessedRouteCounters_.front().id;
     const auto& routeStatName =
         toBeProcessedRouteCounters_.front().routeStatName;
     auto addCounter = toBeProcessedRouteCounters_.front().addCounter;
-    auto itr = lockedRouteCounters->find(id);
+    auto itr = lockedState->find(id);
     if (addCounter) {
-      if (itr != lockedRouteCounters->end()) {
+      if (itr != lockedState->end()) {
         throw FbossError("Duplicate Route stat ", id.str());
       } else {
-        lockedRouteCounters->operator[](id) =
-            std::make_unique<MonotonicCounter>(
-                routeStatName, fb303::SUM, fb303::RATE);
         (*lockedState)[id] = RouteCounterState{routeStatName, 0};
       }
     } else {
-      if (itr != lockedRouteCounters->end()) {
-        lockedRouteCounters->erase(itr++);
-        lockedState->erase(id);
+      if (itr != lockedState->end()) {
+        lockedState->erase(itr);
       } else {
         throw FbossError("Cannot find Route stat ", id.str());
       }

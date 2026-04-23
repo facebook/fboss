@@ -191,10 +191,7 @@ class BcmStatUpdater : public folly::NonCopyableNonMovable {
     bool addCounter;
   };
   std::queue<BcmRouteCounterActionDescriptor> toBeProcessedRouteCounters_;
-  folly::Synchronized<
-      std::map<BcmRouteCounterID, std::unique_ptr<MonotonicCounter>>>
-      routeStats_;
-  // Cached route counter state: logical name + last-read byte count.
+  // Route counter state: logical name + last-read byte count.
   // Updated by refreshRouteCounters() (add/remove) and updateRouteCounters()
   // (bytes). Read by getHwSwitchCounterStats().
   struct RouteCounterState {
