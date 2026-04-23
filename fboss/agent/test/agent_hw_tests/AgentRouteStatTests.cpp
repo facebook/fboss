@@ -3,7 +3,6 @@
 #include <folly/IPAddressV6.h>
 
 #include "fboss/agent/TxPacket.h"
-#include "fboss/agent/hw/switch_asics/HwAsic.h"
 #include "fboss/agent/hw/test/ConfigFactory.h"
 #include "fboss/agent/packet/PktFactory.h"
 #include "fboss/agent/state/RouteNextHop.h"
@@ -103,20 +102,10 @@ class AgentRouteStatTest : public AgentHwTest {
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
 
-  bool skipTest() const {
-    return !isSupportedOnAllAsics(HwAsic::Feature::ROUTE_COUNTERS);
-  }
-
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
 };
 
 TEST_F(AgentRouteStatTest, RouteEntryTest) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
   auto setup = [this]() {
     setupEcmpHelper();
     addRoute(
@@ -166,12 +155,6 @@ TEST_F(AgentRouteStatTest, RouteEntryTest) {
 }
 
 TEST_F(AgentRouteStatTest, CounterModify) {
-  if (skipTest()) {
-#if defined(GTEST_SKIP)
-    GTEST_SKIP();
-#endif
-    return;
-  }
   auto setup = [this]() {
     setupEcmpHelper();
     addRoute(
