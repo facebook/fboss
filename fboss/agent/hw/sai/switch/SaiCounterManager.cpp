@@ -53,7 +53,8 @@ void SaiCounterManager::updateStats() {
     auto counterHandle = counter.second.lock();
 #if SAI_API_VERSION >= SAI_VERSION(1, 10, 0)
     counterHandle->counter->updateStats(
-        {SAI_COUNTER_STAT_BYTES}, SAI_STATS_MODE_READ);
+        {SAI_COUNTER_STAT_BYTES, SAI_COUNTER_STAT_PACKETS},
+        SAI_STATS_MODE_READ);
 #endif
     auto& stats = counterHandle->counter->getStats();
     counterHandle->hwSwitchCounter.bytes() = stats.begin()->second;
