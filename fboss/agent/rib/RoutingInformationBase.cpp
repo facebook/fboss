@@ -1276,26 +1276,41 @@ void RoutingInformationBase::update(
   }
 }
 
-void RoutingInformationBase::update(
+void RoutingInformationBase::updateMySidImpl(
     const SwitchIdScopeResolver* resolver,
-    const std::vector<MySidWithNextHops>& toAdd,
-    const std::vector<IpPrefix>& toDelete,
-    folly::StringPiece /*updateType*/,
+    std::vector<MySidWithNextHops> toAdd,
+    std::vector<IpPrefix> toDelete,
+    folly::StringPiece updateType,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
-    void* cookie) {
+    void* cookie,
+    bool async) {
   ensureRunning();
-  std::exception_ptr updateException;
-  auto updateFn = [&]() {
+  auto updateException = std::make_shared<std::exception_ptr>();
+  auto updateFn = [resolver,
+                   toAdd = std::move(toAdd),
+                   toDelete = std::move(toDelete),
+                   ribMySidToSwitchStateFunc,
+                   cookie,
+                   async,
+                   updateException,
+                   this]() {
     try {
       ribTables_.update(
           resolver, toAdd, toDelete, ribMySidToSwitchStateFunc, cookie);
     } catch (const std::exception&) {
-      updateException = std::current_exception();
+      if (async) {
+        throw;
+      }
+      *updateException = std::current_exception();
     }
   };
+  if (async) {
+    ribUpdateEventBase_.runInFbossEventBaseThread(std::move(updateFn));
+    return;
+  }
   ribUpdateEventBase_.runInFbossEventBaseThreadAndWait(updateFn);
-  if (updateException) {
-    std::rethrow_exception(updateException);
+  if (*updateException) {
+    std::rethrow_exception(*updateException);
   }
 }
 

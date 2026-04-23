@@ -407,14 +407,47 @@ class RoutingInformationBase {
    * Each entry in toAdd is (MySid state object, its unresolved next-hop set).
    * The next-hop set is empty for DECAPSULATE_AND_LOOKUP / ADJACENCY_MICRO_SID
    * entries; populated for NODE_MICRO_SID.
+   *
+   * The synchronous overload blocks until the rib event-base thread finishes
+   * applying the update and rethrows any exception on the caller's thread.
+   * The async overload enqueues the update fire-and-forget on the rib event
+   * base — required for callers that must not block (e.g., StateObservers
+   * running on the SwSwitch update thread, where a synchronous rib update
+   * would deadlock with the rib's own state-update callbacks).
    */
   void update(
       const SwitchIdScopeResolver* resolver,
-      const std::vector<MySidWithNextHops>& toAdd,
-      const std::vector<IpPrefix>& toDelete,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<IpPrefix> toDelete,
       folly::StringPiece updateType,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
-      void* cookie);
+      void* cookie) {
+    updateMySidImpl(
+        resolver,
+        std::move(toAdd),
+        std::move(toDelete),
+        updateType,
+        ribMySidToSwitchStateFunc,
+        cookie,
+        false /* async */);
+  }
+
+  void updateAsync(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
+      void* cookie) {
+    updateMySidImpl(
+        resolver,
+        std::move(toAdd),
+        std::move(toDelete),
+        updateType,
+        ribMySidToSwitchStateFunc,
+        cookie,
+        true /* async */);
+  }
   /*
    * VrfAndNetworkToInterfaceRoute is conceptually a mapping from the pair
    * (RouterID, folly::CIDRNetwork) to the pair (Interface(1),
@@ -557,6 +590,18 @@ class RoutingInformationBase {
       const std::vector<folly::CIDRNetwork>& prefixes,
       RibToSwitchStateFunction ribToSwitchStateFunc,
       std::optional<cfg::AclLookupClass> classId,
+      void* cookie,
+      bool async);
+  // Shared body for update(MySidWithNextHops) and
+  // updateAsync(MySidWithNextHops). Sync mode (async=false) blocks the caller
+  // and rethrows any exception. Async mode (async=true) enqueues the update
+  // fire-and-forget; failures are logged on the rib event-base thread.
+  void updateMySidImpl(
+      const SwitchIdScopeResolver* resolver,
+      std::vector<MySidWithNextHops> toAdd,
+      std::vector<IpPrefix> toDelete,
+      folly::StringPiece updateType,
+      const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie,
       bool async);
 
