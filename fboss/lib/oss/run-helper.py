@@ -88,12 +88,13 @@ Current run path: {run_path}"""
         text=True,
     )
 
-    fboss_oss_target = (
-        show_build_dir_proc.stdout.rstrip()
-        + f"/{target}"
-        + " "
-        + " ".join(command_line_args)
-    )
+    build_dir = show_build_dir_proc.stdout.rstrip()
+    target_basename = target.removesuffix(".GEN_PY_EXE")
+    output_path = f"{build_dir}/{target_basename}"
+
+    # Thrift python output is a directory; everything else is a native executable
+    python_prefix = "python3 " if os.path.isdir(output_path) else ""
+    fboss_oss_target = f"{python_prefix}{output_path} {' '.join(command_line_args)}"
 
     result = subprocess.run(
         fboss_oss_target,
