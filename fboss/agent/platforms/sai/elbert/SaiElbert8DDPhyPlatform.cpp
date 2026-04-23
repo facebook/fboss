@@ -15,10 +15,15 @@
 #include "fboss/agent/platforms/common/elbert/facebook/Elbert8DDPimPlatformMapping.h"
 #include "fboss/lib/phy/CredoSdkVersion.h"
 
+DEFINE_string(
+    credo_f104_firmware_dir,
+    "/lib/firmware/fboss/credo/f104/",
+    "Directory containing Credo F104 xphy firmware files");
+
 namespace facebook::fboss {
 
 const std::string& SaiElbert8DDPhyPlatform::getFirmwareDirectory() {
-  static const std::string kFirmwareDir = "/lib/firmware/fboss/credo/f104/";
+  static const std::string kFirmwareDir = FLAGS_credo_f104_firmware_dir;
   return kFirmwareDir;
 }
 
