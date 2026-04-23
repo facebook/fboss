@@ -1399,6 +1399,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.55,
+            "maxAlarmVal": 3.432,
+            "minAlarmVal": 3.003,
             "lowerCriticalVal": 2.937
           },
           "compute": "@/1000*0.05735"
@@ -1409,6 +1411,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 14.4,
+            "maxAlarmVal": 12.48,
+            "minAlarmVal": 10.2,
             "lowerCriticalVal": 9.6
           },
           "compute": "@/1000*0.2078"
@@ -1418,8 +1422,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage5_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1428,8 +1432,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage6_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1438,8 +1442,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage7_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1448,8 +1452,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB0_LTC2497_0X4C/in_voltage8_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1459,6 +1463,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 3.55,
+            "maxAlarmVal": 3.432,
+            "minAlarmVal": 3.003,
             "lowerCriticalVal": 2.937
           },
           "compute": "@/1000*0.05735"
@@ -1469,6 +1475,8 @@
           "type": 1,
           "thresholds": {
             "upperCriticalVal": 14.4,
+            "maxAlarmVal": 12.48,
+            "minAlarmVal": 10.2,
             "lowerCriticalVal": 9.6
           },
           "compute": "@/1000*0.2078"
@@ -1478,8 +1486,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage5_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1488,8 +1496,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage6_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1498,8 +1506,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage7_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         },
@@ -1508,8 +1516,8 @@
           "sysfsPath": "/run/devmap/sensors/FCB1_LTC2497_0X4C/in_voltage8_raw",
           "type": 2,
           "thresholds": {
-            "upperCriticalVal": 10,
-            "lowerCriticalVal": 0.1
+            "upperCriticalVal": 20,
+            "maxAlarmVal": 20
           },
           "compute": "@/1000*0.2670288"
         }
