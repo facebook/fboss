@@ -242,6 +242,8 @@ add_executable(multi_switch_agent_hw_test
   fboss/agent/test/agent_hw_tests/MultiSwitchAgentHwTest.cpp
 )
 
+add_sai_sdk_dependencies(multi_switch_agent_hw_test)
+
 target_link_libraries(multi_switch_agent_hw_test
   -Wl,--whole-archive
   acl_test_utils
