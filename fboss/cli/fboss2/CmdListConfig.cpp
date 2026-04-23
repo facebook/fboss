@@ -80,6 +80,8 @@
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerV4OverV6Nh.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningLimit.h"
 #include "fboss/cli/fboss2/commands/config/protocol/bgp/peer/CmdConfigProtocolBgpPeerWarningOnly.h"
+#include "fboss/cli/fboss2/commands/config/protocol/static/CmdConfigProtocolStatic.h"
+#include "fboss/cli/fboss2/commands/config/protocol/static/route/add/CmdConfigProtocolStaticRouteAdd.h"
 #include "fboss/cli/fboss2/commands/config/qos/CmdConfigQos.h"
 #include "fboss/cli/fboss2/commands/config/qos/buffer_pool/CmdConfigQosBufferPool.h"
 #include "fboss/cli/fboss2/commands/config/qos/policy/CmdConfigQosPolicy.h"
@@ -99,7 +101,10 @@
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/CmdConfigVlanStaticMac.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/add/CmdConfigVlanStaticMacAdd.h"
 #include "fboss/cli/fboss2/commands/config/vlan/static_mac/delete/CmdConfigVlanStaticMacDelete.h"
-#include "fboss/cli/fboss2/commands/delete/config/CmdDeleteConfig.h"
+#include "fboss/cli/fboss2/commands/delete/interface/CmdDeleteInterface.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/CmdDeleteProtocol.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/static/CmdDeleteProtocolStatic.h"
+#include "fboss/cli/fboss2/commands/delete/protocol/static/route/CmdDeleteProtocolStaticRoute.h"
 
 namespace facebook::fboss {
 
@@ -636,6 +641,34 @@ const CommandTree& kConfigCommandTree() {
                       },
                   },
               },
+              {
+                  "static",
+                  "Configure static routing",
+                  commandHandler<CmdConfigProtocolStatic>,
+                  argTypeHandler<CmdConfigProtocolStaticTraits>,
+                  {{
+                       "ip",
+                       "Configure IPv4 static routes",
+                       {{
+                           "route",
+                           "Add an IPv4 static route",
+                           commandHandler<CmdConfigProtocolStaticIpRouteAdd>,
+                           argTypeHandler<
+                               CmdConfigProtocolStaticIpRouteAddTraits>,
+                       }},
+                   },
+                   {
+                       "ipv6",
+                       "Configure IPv6 static routes",
+                       {{
+                           "route",
+                           "Add an IPv6 static route",
+                           commandHandler<CmdConfigProtocolStaticIpv6RouteAdd>,
+                           argTypeHandler<
+                               CmdConfigProtocolStaticIpv6RouteAddTraits>,
+                       }},
+                   }},
+              },
           },
       },
 
@@ -767,11 +800,47 @@ const CommandTree& kConfigCommandTree() {
            }},
       },
 
-      {"delete",
-       "config",
-       "Delete config objects",
-       commandHandler<CmdDeleteConfig>,
-       argTypeHandler<CmdDeleteConfigTraits>},
+      {
+          "delete",
+          "interface",
+          "Delete interface configuration (syntax: <interface-name> <ip-address|ipv6-address> <value>)",
+          commandHandler<CmdDeleteInterface>,
+          argTypeHandler<CmdDeleteInterfaceTraits>,
+      },
+
+      {
+          "delete",
+          "protocol",
+          "Delete protocol objects",
+          commandHandler<CmdDeleteProtocol>,
+          argTypeHandler<CmdDeleteProtocolTraits>,
+          {{
+              "static",
+              "Delete static routing configuration",
+              commandHandler<CmdDeleteProtocolStatic>,
+              argTypeHandler<CmdDeleteProtocolStaticTraits>,
+              {{
+                   "ip",
+                   "Delete IPv4 static routes",
+                   {{
+                       "route",
+                       "Delete IPv4 static route",
+                       commandHandler<CmdDeleteProtocolStaticIpRoute>,
+                       argTypeHandler<CmdDeleteProtocolStaticIpRouteTraits>,
+                   }},
+               },
+               {
+                   "ipv6",
+                   "Delete IPv6 static routes",
+                   {{
+                       "route",
+                       "Delete IPv6 static route",
+                       commandHandler<CmdDeleteProtocolStaticIpv6Route>,
+                       argTypeHandler<CmdDeleteProtocolStaticIpv6RouteTraits>,
+                   }},
+               }},
+          }},
+      },
   };
   sort(root.begin(), root.end());
   return root;

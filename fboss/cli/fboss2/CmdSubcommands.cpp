@@ -346,6 +346,40 @@ CLI::App* CmdSubcommands::addCommand(
               "<port-list> [<attr> <value> ...] where <attr> is one "
               "of: description, mtu");
           break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_INTERFACE_DELETE_CONFIG:
+          subCmd->add_option(
+              "interface_delete_config",
+              args,
+              "<interface> <ip-address|ipv6-address> <value>");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_IP_ADDRESS_PREFIX:
+          subCmd->add_option(
+              "ipPrefix", args, "IP address with prefix (e.g., 10.0.0.1/24)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_STATIC_ROUTE:
+          subCmd->add_option(
+              "static_route",
+              args,
+              "<prefix> <nexthop|null0|cpu> - Add a static route");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_STATIC_ROUTE_PREFIX:
+          subCmd->add_option(
+              "prefix",
+              args,
+              "Route prefix in CIDR notation (e.g., 10.0.0.0/8)");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_STATIC_ROUTE_V6:
+          subCmd->add_option(
+              "static_route",
+              args,
+              "<prefix> <nexthop|null0|cpu> - Add an IPv6 static route");
+          break;
+        case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_STATIC_ROUTE_PREFIX_V6:
+          subCmd->add_option(
+              "prefix",
+              args,
+              "IPv6 route prefix in CIDR notation (e.g., 2001:db8::/32)");
+          break;
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_UNINITIALIZE:
         case utils::ObjectArgTypeId::OBJECT_ARG_TYPE_ID_NONE:
           break;
