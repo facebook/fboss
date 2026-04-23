@@ -218,6 +218,7 @@ cpp_library(
         "AgentRouteOverDifferentAddressFamilyNhopTests.cpp",
         "AgentRouteOverflowTests.cpp",
         "AgentRouteRollbackTests.cpp",
+        "AgentRouteStatTests.cpp",
         "AgentRouteTests.cpp",
         "AgentRouterInterfaceCounterTest.cpp",
         "AgentRxReasonTests.cpp",
