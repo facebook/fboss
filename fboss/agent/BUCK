@@ -938,6 +938,7 @@ cpp_library(
         "MultiHwSwitchHandler.cpp",
         "MultiSwitchFb303Stats.cpp",
         "MultiSwitchPacketStreamMap.cpp",
+        "MySidNeighborObserver.cpp",
         "NdpCache.cpp",
         "NeighborUpdater.cpp",
         "NeighborUpdaterImpl.cpp",
