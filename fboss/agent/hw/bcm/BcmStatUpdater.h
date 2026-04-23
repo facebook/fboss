@@ -15,6 +15,7 @@
 #include "fboss/agent/hw/bcm/BcmTableStats.h"
 #include "fboss/agent/hw/bcm/types.h"
 #include "fboss/agent/hw/common/PrbsStatsEntry.h"
+#include "fboss/agent/hw/gen-cpp2/hardware_stats_types.h"
 #include "fboss/agent/types.h"
 
 #include <boost/container/flat_map.hpp>
@@ -114,6 +115,8 @@ class BcmStatUpdater : public folly::NonCopyableNonMovable {
 
   AclStats getAclStats() const;
 
+  HwSwitchCounterStats getHwSwitchCounterStats() const;
+
  private:
   void updateAclStats();
   BcmTrafficCounterStats getAclTrafficStats(
@@ -191,6 +194,15 @@ class BcmStatUpdater : public folly::NonCopyableNonMovable {
   folly::Synchronized<
       std::map<BcmRouteCounterID, std::unique_ptr<MonotonicCounter>>>
       routeStats_;
+  // Cached route counter state: logical name + last-read byte count.
+  // Updated by refreshRouteCounters() (add/remove) and updateRouteCounters()
+  // (bytes). Read by getHwSwitchCounterStats().
+  struct RouteCounterState {
+    std::string name;
+    uint64_t bytes{0};
+  };
+  folly::Synchronized<std::map<BcmRouteCounterID, RouteCounterState>>
+      routeCounterState_;
   std::unordered_map<PortID, time_t> portId2LastPrbsReadTime_;
 }; // namespace facebook::fboss
 

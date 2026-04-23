@@ -156,9 +156,26 @@ void BcmStatUpdater::updateAclStats() {
 void BcmStatUpdater::updateRouteCounters() {
   auto now = duration_cast<seconds>(system_clock::now().time_since_epoch());
   auto lockedRouteCounters = routeStats_.wlock();
+  auto lockedState = routeCounterState_.wlock();
   for (auto& entry : *lockedRouteCounters) {
-    entry.second->updateValue(now, getRouteTrafficStats(entry.first));
+    auto bytes = getRouteTrafficStats(entry.first);
+    entry.second->updateValue(now, bytes);
+    auto it = lockedState->find(entry.first);
+    if (it != lockedState->end()) {
+      it->second.bytes = bytes;
+    }
   }
+}
+
+HwSwitchCounterStats BcmStatUpdater::getHwSwitchCounterStats() const {
+  HwSwitchCounterStats counterStats;
+  auto lockedState = routeCounterState_.rlock();
+  for (const auto& [bcmCounterId, state] : *lockedState) {
+    HwSwitchCounter hwCounter;
+    hwCounter.bytes() = state.bytes;
+    counterStats.hwCounters()[state.name] = hwCounter;
+  }
+  return counterStats;
 }
 
 uint64_t BcmStatUpdater::getBcmFlexRouteTrafficStats(
@@ -213,6 +230,7 @@ void BcmStatUpdater::refreshRouteCounters() {
   }
 
   auto lockedRouteCounters = routeStats_.wlock();
+  auto lockedState = routeCounterState_.wlock();
 
   while (!toBeProcessedRouteCounters_.empty()) {
     // Check whether route stat already exists
@@ -228,10 +246,12 @@ void BcmStatUpdater::refreshRouteCounters() {
         lockedRouteCounters->operator[](id) =
             std::make_unique<MonotonicCounter>(
                 routeStatName, fb303::SUM, fb303::RATE);
+        (*lockedState)[id] = RouteCounterState{routeStatName, 0};
       }
     } else {
       if (itr != lockedRouteCounters->end()) {
         lockedRouteCounters->erase(itr++);
+        lockedState->erase(id);
       } else {
         throw FbossError("Cannot find Route stat ", id.str());
       }

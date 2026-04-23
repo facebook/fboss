@@ -4365,7 +4365,7 @@ HwResourceStats BcmSwitch::getResourceStats() const {
 }
 
 HwSwitchCounterStats BcmSwitch::getHwSwitchCounterStats() const {
-  return HwSwitchCounterStats{};
+  return getStatUpdater()->getHwSwitchCounterStats();
 }
 
 HwHighFrequencyStats BcmSwitch::zeroHighFrequencyStatsTimestamp(
