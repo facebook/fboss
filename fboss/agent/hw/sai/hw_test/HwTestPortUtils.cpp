@@ -133,6 +133,57 @@ std::string buildLegacyFecErrorInjScript(
   return script;
 }
 
+std::string buildFecErrorInjScript(
+    const std::vector<int>& hwPorts,
+    bool injectCorrectable) {
+  std::string script = R"(
+  cint_reset();
+  bcm_port_phy_fec_error_inject_config_t config;
+  bcm_port_phy_fec_error_inject_enable_t enable;
+  int unit = 0;
+  int rv = 0;
+  )";
+  for (auto hwPortID : hwPorts) {
+    script += folly::sformat(
+        R"(
+  sal_memset(&enable, 0, sizeof(enable));
+  print bcm_port_phy_fec_error_inject_enable_set(unit, {}, enable);
+  sal_memset(&config, 0, sizeof(config));
+)",
+        hwPortID);
+    if (injectCorrectable) {
+      script += R"(
+  config.error_mask_bit_31_0 = 0x1;
+  config.block_offset = 0;
+  config.contiguous_blocks_count = 1;
+  config.error_injection_freq = 0;
+)";
+    } else {
+      script += R"(
+  config.error_mask_bit_31_0 = 0xFFFFFFFF;
+  config.error_mask_bit_63_32 = 0xFFFFFFFF;
+  config.block_offset = 0;
+  config.contiguous_blocks_count = 20;
+  config.error_injection_freq = 0;
+)";
+    }
+    script += folly::sformat(
+        R"(
+  print bcm_port_phy_fec_error_inject_config_set(unit, {0}, config);
+  sal_memset(&enable, 0, sizeof(enable));
+  enable.codeword_1_enable = 1;
+  print bcm_port_phy_fec_error_inject_enable_set(unit, {0}, enable);
+)",
+        hwPortID);
+  }
+  return script;
+}
+
+bool useLegacyFecErrorInj(cfg::AsicType asicType) {
+  return asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK3 ||
+      asicType == cfg::AsicType::ASIC_TYPE_TOMAHAWK4;
+}
+
 } // namespace
 
 void injectFecError(
@@ -143,7 +194,10 @@ void injectFecError(
       HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
     throw FbossError("FEC error injection only supported on BCM ASICs");
   }
-  auto script = buildLegacyFecErrorInjScript(hwPorts, injectCorrectable);
+  auto asicType = hw->getPlatform()->getAsic()->getAsicType();
+  auto script = useLegacyFecErrorInj(asicType)
+      ? buildLegacyFecErrorInjScript(hwPorts, injectCorrectable)
+      : buildFecErrorInjScript(hwPorts, injectCorrectable);
   executeCintScript(static_cast<const SaiSwitch*>(hw), script);
 }
 
