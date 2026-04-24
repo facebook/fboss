@@ -259,6 +259,7 @@ struct I2cDeviceConfig {
   13: bool isEeprom;
   14: optional i16 eepromOffset;
   15: optional list<CpldSysfsAttr> cpldSysfsAttrs;
+  16: optional i32 pca9548Mode;
 }
 
 // Configs for sensors which are embedded (eg within CPU).
