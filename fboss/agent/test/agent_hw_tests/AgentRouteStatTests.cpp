@@ -97,6 +97,55 @@ class AgentRouteStatTest : public AgentHwTest {
     return it->second.bytes().value_or(0);
   }
 
+  // Send packets and verify that the specified counters increment.
+  // Each entry in packets is (dst address, counter ID to check).
+  // Multiple packets can map to the same counter ID (shared counters).
+  void sendAndVerifyCounterIncrement(
+      const std::vector<std::pair<folly::IPAddressV6, RouteCounterID>>& packets,
+      PortID srcPort) {
+    // Snapshot all unique counters before sending
+    std::map<RouteCounterID, uint64_t> countersBefore;
+    for (const auto& [dst, counterID] : packets) {
+      if (!countersBefore.count(counterID)) {
+        countersBefore[counterID] = getRouteCounterValue(counterID);
+      }
+    }
+
+    // Send all packets
+    for (const auto& [dst, counterID] : packets) {
+      sendL3Packet(dst, srcPort);
+    }
+
+    // Verify all counters incremented
+    WITH_RETRIES({
+      for (const auto& [counterID, before] : countersBefore) {
+        auto after = getRouteCounterValue(counterID);
+        EXPECT_EVENTUALLY_GT(after, before);
+      }
+    });
+  }
+
+  // Send packets and verify that the specified counters do NOT increment.
+  void sendAndVerifyCounterUnchanged(
+      const std::vector<std::pair<folly::IPAddressV6, RouteCounterID>>& packets,
+      PortID srcPort) {
+    std::map<RouteCounterID, uint64_t> countersBefore;
+    for (const auto& [dst, counterID] : packets) {
+      if (!countersBefore.count(counterID)) {
+        countersBefore[counterID] = getRouteCounterValue(counterID);
+      }
+    }
+
+    for (const auto& [dst, counterID] : packets) {
+      sendL3Packet(dst, srcPort);
+    }
+
+    for (const auto& [counterID, before] : countersBefore) {
+      auto after = getRouteCounterValue(counterID);
+      EXPECT_EQ(after, before);
+    }
+  }
+
   void setupEcmpHelper() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
@@ -125,27 +174,17 @@ TEST_F(AgentRouteStatTest, RouteEntryTest) {
         kCounterID2);
   };
   auto verify = [this]() {
+    auto srcPort = masterLogicalInterfacePortIds()[1];
+
     // verify unique counters
-    auto count1Before = getRouteCounterValue(*kCounterID1);
-    auto count2Before = getRouteCounterValue(*kCounterID2);
-    sendL3Packet(kAddr1, masterLogicalInterfacePortIds()[1]);
-    sendL3Packet(kAddr2, masterLogicalInterfacePortIds()[1]);
-    WITH_RETRIES({
-      auto count1After = getRouteCounterValue(*kCounterID1);
-      auto count2After = getRouteCounterValue(*kCounterID2);
-      EXPECT_EVENTUALLY_GT(count1After, count1Before);
-      EXPECT_EVENTUALLY_GT(count2After, count2Before);
-    });
+    sendAndVerifyCounterIncrement(
+        {{kAddr1, *kCounterID1}, {kAddr2, *kCounterID2}}, srcPort);
 
-    // verify shared route counters
-    auto countBefore = getRouteCounterValue(*kCounterID2);
-    sendL3Packet(kAddr2, masterLogicalInterfacePortIds()[1]);
-    sendL3Packet(kAddr3, masterLogicalInterfacePortIds()[1]);
-    WITH_RETRIES({
-      auto countAfter = getRouteCounterValue(*kCounterID2);
-      EXPECT_EVENTUALLY_GT(countAfter, countBefore);
-    });
+    // verify shared route counters (two routes share kCounterID2)
+    sendAndVerifyCounterIncrement(
+        {{kAddr2, *kCounterID2}, {kAddr3, *kCounterID2}}, srcPort);
 
+    // verify counters exist in stats
     auto hwSwitchStats = getHwSwitchStats();
     auto& hwCounters = *hwSwitchStats.counterStats()->hwCounters();
     EXPECT_TRUE(hwCounters.count(*kCounterID1));
@@ -171,55 +210,26 @@ TEST_F(AgentRouteStatTest, CounterModify) {
   auto verify = [this]() {
     auto origRoutePort = masterLogicalInterfacePortIds()[0];
     auto newRoutePort = masterLogicalInterfacePortIds()[1];
+
     // verify counter works
-    {
-      auto countBefore = getRouteCounterValue(*kCounterID1);
-      sendL3Packet(kAddr1, newRoutePort);
-      WITH_RETRIES({
-        auto countAfter = getRouteCounterValue(*kCounterID1);
-        EXPECT_EVENTUALLY_GT(countAfter, countBefore);
-      });
-    }
+    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID1}}, newRoutePort);
 
     // modify the route - no change to counter id
     addRoute(kAddr1, 120, PortDescriptor(newRoutePort), kCounterID1);
-    {
-      auto countBefore = getRouteCounterValue(*kCounterID1);
-      sendL3Packet(kAddr1, origRoutePort);
-      WITH_RETRIES({
-        auto countAfter = getRouteCounterValue(*kCounterID1);
-        EXPECT_EVENTUALLY_GT(countAfter, countBefore);
-      });
-    }
+    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID1}}, origRoutePort);
 
     // modify the counter id
     addRoute(kAddr1, 120, PortDescriptor(newRoutePort), kCounterID2);
-    {
-      auto countBefore = getRouteCounterValue(*kCounterID2);
-      sendL3Packet(kAddr1, origRoutePort);
-      WITH_RETRIES({
-        auto countAfter = getRouteCounterValue(*kCounterID2);
-        EXPECT_EVENTUALLY_GT(countAfter, countBefore);
-      });
-    }
+    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID2}}, origRoutePort);
 
     // counter id changing from valid to null
-    auto countBefore = getRouteCounterValue(*kCounterID2);
     addRoute(kAddr1, 120, PortDescriptor(newRoutePort), std::nullopt);
-    sendL3Packet(kAddr1, origRoutePort);
-    auto countAfter = getRouteCounterValue(*kCounterID2);
-    EXPECT_EQ(countAfter, countBefore);
+    sendAndVerifyCounterUnchanged({{kAddr1, *kCounterID2}}, origRoutePort);
 
     // counter id changing from null to valid
     addRoute(kAddr1, 120, PortDescriptor(newRoutePort), kCounterID2);
-    {
-      auto cb = getRouteCounterValue(*kCounterID2);
-      sendL3Packet(kAddr1, origRoutePort);
-      WITH_RETRIES({
-        auto ca = getRouteCounterValue(*kCounterID2);
-        EXPECT_EVENTUALLY_GT(ca, cb);
-      });
-    }
+    sendAndVerifyCounterIncrement({{kAddr1, *kCounterID2}}, origRoutePort);
+
     // Restore the route to original state, so verify
     // can be run multiple times
     addRoute(kAddr1, 120, PortDescriptor(origRoutePort), kCounterID1);
