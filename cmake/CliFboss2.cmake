@@ -593,6 +593,8 @@ add_library(fboss2_lib
   fboss/cli/fboss2/utils/CmdUtilsCommon.h
   fboss/cli/fboss2/utils/FilterUtils.h
   fboss/cli/fboss2/utils/PrbsUtils.cpp
+  fboss/cli/fboss2/utils/SafetyPromptUtils.h
+  fboss/cli/fboss2/utils/SafetyPromptUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdClientUtils.cpp
   fboss/cli/fboss2/utils/oss/CmdUtils.cpp
   fboss/cli/fboss2/options/OutputFormat.h
