@@ -22103,6 +22103,9 @@
           "test_name_regex": "AgentMplsLabelSwitchTest.*$"
         },
         {
+          "test_name_regex": "AgentMplsTrunkIp2MplsLoadBalancerTest.*$"
+        },
+        {
           "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
         },
         {
@@ -22390,6 +22393,9 @@
           "test_name_regex": "AgentMplsLabelSwitchTest.*$"
         },
         {
+          "test_name_regex": "AgentMplsTrunkIp2MplsLoadBalancerTest.*$"
+        },
+        {
           "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
         },
         {
@@ -22636,6 +22642,9 @@
         },
         {
           "test_name_regex": "AgentMplsLabelSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMplsTrunkIp2MplsLoadBalancerTest.*$"
         },
         {
           "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
@@ -22890,6 +22899,9 @@
         },
         {
           "test_name_regex": "AgentMplsLabelSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMplsTrunkIp2MplsLoadBalancerTest.*$"
         },
         {
           "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
@@ -23940,6 +23952,9 @@
           "test_name_regex": "AgentMplsLabelSwitchTest.*$"
         },
         {
+          "test_name_regex": "AgentMplsTrunkIp2MplsLoadBalancerTest.*$"
+        },
+        {
           "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
         },
         {
@@ -24120,6 +24135,9 @@
         },
         {
           "test_name_regex": "AgentMplsLabelSwitchTest.*$"
+        },
+        {
+          "test_name_regex": "AgentMplsTrunkIp2MplsLoadBalancerTest.*$"
         },
         {
           "test_name_regex": "AgentMPLSTest/[01].Pop2Cpu$"
