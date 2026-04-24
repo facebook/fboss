@@ -72,6 +72,7 @@ class MySidRibUpdateTest : public ::testing::Test {
     rib->update(
         sw_->getScopeResolver(),
         std::vector<MySidWithNextHops>{{mySid, std::move(nhops)}},
+        std::vector<MySidNeighborRemoved>{} /* toUnresolveIfMatch */,
         std::vector<IpPrefix>{} /* toDelete */,
         "addConfigMySid",
         ribMySidFunc,
@@ -104,6 +105,7 @@ class MySidRibUpdateTest : public ::testing::Test {
     rib->update(
         sw_->getScopeResolver(),
         std::vector<MySidWithNextHops>{},
+        std::vector<MySidNeighborRemoved>{} /* toUnresolveIfMatch */,
         std::vector<IpPrefix>{prefix},
         "deleteConfigMySid",
         ribMySidFunc,

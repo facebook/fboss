@@ -1163,6 +1163,7 @@ void RibRouteTables::update(
   updateMySidsImpl(
       resolver,
       mySidsWithNextHops,
+      {} /* toUnresolveIfMatch */,
       toDelete,
       ribMySidToSwitchStateFunc,
       cookie);
@@ -1171,6 +1172,7 @@ void RibRouteTables::update(
 void RibRouteTables::update(
     const SwitchIdScopeResolver* resolver,
     const std::vector<MySidWithNextHops>& toAdd,
+    const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
     const std::vector<IpPrefix>& toDelete,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
@@ -1182,18 +1184,63 @@ void RibRouteTables::update(
     cloned.emplace_back(mySid->clone(), nhops);
   }
   updateMySidsImpl(
-      resolver, cloned, toDelete, ribMySidToSwitchStateFunc, cookie);
+      resolver,
+      cloned,
+      toUnresolveIfMatch,
+      toDelete,
+      ribMySidToSwitchStateFunc,
+      cookie);
 }
 
 void RibRouteTables::updateMySidsImpl(
     const SwitchIdScopeResolver* resolver,
     const std::vector<MySidWithNextHops>& toAdd,
+    const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
     const std::vector<IpPrefix>& toDelete,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
     void* cookie) {
   updateRibMySids([&](const RibMySidUpdater::VrfRouteTables& routeTables,
                       MySidTable* mySidTable,
                       NextHopIDManager* nextHopIDManager) {
+    // Conditional unresolve runs first so that any same-prefix entry
+    // appearing in both vectors (observer-driven IP-change path) gets
+    // clear-then-add semantics — toAdd's freshly-allocated nhop id can
+    // never be matched and rolled back by a stale toUnresolveIfMatch
+    // entry below.
+    for (const auto& [cidrV6, removedIp] : toUnresolveIfMatch) {
+      if (!nextHopIDManager) {
+        continue;
+      }
+      auto it = mySidTable->find(cidrV6);
+      if (it == mySidTable->end()) {
+        continue;
+      }
+      const auto& existing = it->second;
+      const auto unresolvedIdOpt = existing->getUnresolveNextHopsId();
+      if (!unresolvedIdOpt.has_value()) {
+        continue;
+      }
+      // Direct membership check — avoids materializing the entire
+      // RouteNextHopSet just to scan it.
+      if (!nextHopIDManager->nextHopSetContainsAddr(
+              *unresolvedIdOpt, removedIp)) {
+        continue;
+      }
+      // Snapshot the ids before mutating the table; `existing` becomes
+      // invalid after the assignment below.
+      const NextHopSetID oldUnresolvedId = *unresolvedIdOpt;
+      const auto oldResolvedIdOpt = existing->getResolvedNextHopsId();
+      auto cloned = existing->clone();
+      cloned->setUnresolveNextHopsId(std::nullopt);
+      if (oldResolvedIdOpt.has_value()) {
+        cloned->setResolvedNextHopsId(std::nullopt);
+      }
+      (*mySidTable)[cidrV6] = std::move(cloned);
+      nextHopIDManager->decrOrDeallocRouteNextHopSetID(oldUnresolvedId);
+      if (oldResolvedIdOpt.has_value()) {
+        nextHopIDManager->decrOrDeallocRouteNextHopSetID(*oldResolvedIdOpt);
+      }
+    }
     std::set<folly::CIDRNetwork> addedPrefixes;
     for (const auto& [mySidIn, unresolvedNextHops] : toAdd) {
       auto mySid = mySidIn;
@@ -1279,6 +1326,7 @@ void RoutingInformationBase::update(
 void RoutingInformationBase::updateMySidImpl(
     const SwitchIdScopeResolver* resolver,
     std::vector<MySidWithNextHops> toAdd,
+    std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
     std::vector<IpPrefix> toDelete,
     folly::StringPiece updateType,
     const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
@@ -1288,6 +1336,7 @@ void RoutingInformationBase::updateMySidImpl(
   auto updateException = std::make_shared<std::exception_ptr>();
   auto updateFn = [resolver,
                    toAdd = std::move(toAdd),
+                   toUnresolveIfMatch = std::move(toUnresolveIfMatch),
                    toDelete = std::move(toDelete),
                    ribMySidToSwitchStateFunc,
                    cookie,
@@ -1296,7 +1345,12 @@ void RoutingInformationBase::updateMySidImpl(
                    this]() {
     try {
       ribTables_.update(
-          resolver, toAdd, toDelete, ribMySidToSwitchStateFunc, cookie);
+          resolver,
+          toAdd,
+          toUnresolveIfMatch,
+          toDelete,
+          ribMySidToSwitchStateFunc,
+          cookie);
     } catch (const std::exception&) {
       if (async) {
         throw;

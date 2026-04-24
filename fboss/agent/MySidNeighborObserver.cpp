@@ -58,6 +58,7 @@ void MySidNeighborObserver::flushPendingResolutions() {
   rib->updateAsync(
       sw_->getScopeResolver(),
       std::move(resolutions),
+      std::vector<MySidNeighborRemoved>{} /* toUnresolveIfMatch */,
       std::vector<IpPrefix>{} /* toDelete */,
       "mySidNeighborResolve",
       createRibMySidToSwitchStateFunction(std::nullopt),

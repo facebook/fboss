@@ -70,6 +70,13 @@ using RibMySidToSwitchStateFunction = std::function<StateDelta(
 // that consume config-derived MySid state.
 using MySidWithNextHops = std::pair<std::shared_ptr<MySid>, RouteNextHopSet>;
 
+// (prefix-key for the MySid, IP of the removed neighbor). Used by the
+// observer-driven neighbor-removal path: RIB clears unresolveNextHopsId
+// + resolvedNextHopsId iff the materialized unresolved next-hop set
+// contains a next-hop with this IP. The match check happens RIB-side
+// because only the rib's NextHopIDManager can materialize a NextHopSetID.
+using MySidNeighborRemoved = std::pair<folly::CIDRNetworkV6, folly::IPAddress>;
+
 /*
  * RibRouteTables provides a thread safe abstraction for maintaining Rib data
  * structures and programming them down to the FIB. Its designed to abstract
@@ -124,6 +131,7 @@ class RibRouteTables {
   void update(
       const SwitchIdScopeResolver* resolver,
       const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
       const std::vector<IpPrefix>& toDelete,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
@@ -314,6 +322,7 @@ class RibRouteTables {
   void updateMySidsImpl(
       const SwitchIdScopeResolver* resolver,
       const std::vector<MySidWithNextHops>& toAdd,
+      const std::vector<MySidNeighborRemoved>& toUnresolveIfMatch,
       const std::vector<IpPrefix>& toDelete,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
       void* cookie);
@@ -418,6 +427,7 @@ class RoutingInformationBase {
   void update(
       const SwitchIdScopeResolver* resolver,
       std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
       std::vector<IpPrefix> toDelete,
       folly::StringPiece updateType,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
@@ -425,6 +435,7 @@ class RoutingInformationBase {
     updateMySidImpl(
         resolver,
         std::move(toAdd),
+        std::move(toUnresolveIfMatch),
         std::move(toDelete),
         updateType,
         ribMySidToSwitchStateFunc,
@@ -435,6 +446,7 @@ class RoutingInformationBase {
   void updateAsync(
       const SwitchIdScopeResolver* resolver,
       std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
       std::vector<IpPrefix> toDelete,
       folly::StringPiece updateType,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,
@@ -442,6 +454,7 @@ class RoutingInformationBase {
     updateMySidImpl(
         resolver,
         std::move(toAdd),
+        std::move(toUnresolveIfMatch),
         std::move(toDelete),
         updateType,
         ribMySidToSwitchStateFunc,
@@ -599,6 +612,7 @@ class RoutingInformationBase {
   void updateMySidImpl(
       const SwitchIdScopeResolver* resolver,
       std::vector<MySidWithNextHops> toAdd,
+      std::vector<MySidNeighborRemoved> toUnresolveIfMatch,
       std::vector<IpPrefix> toDelete,
       folly::StringPiece updateType,
       const RibMySidToSwitchStateFunction& ribMySidToSwitchStateFunc,

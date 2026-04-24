@@ -2203,6 +2203,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAddsEntry) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
+      {} /* toUnresolveIfMatch */,
       {} /* toDelete */,
       "syncAdd",
       mySidToSwitchStateUpdate,
@@ -2219,6 +2220,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateAllocatesNextHopSetId) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48, MySidType::NODE_MICRO_SID, std::move(nhops)),
+      {} /* toUnresolveIfMatch */,
       {},
       "syncAddWithNhops",
       mySidToSwitchStateUpdate,
@@ -2234,6 +2236,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
+      {} /* toUnresolveIfMatch */,
       {},
       "add",
       mySidToSwitchStateUpdate,
@@ -2243,6 +2246,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdateDeletesEntry) {
   rib_->update(
       scopeResolver(),
       std::vector<MySidWithNextHops>{},
+      {} /* toUnresolveIfMatch */,
       {toIpPrefix("3001:db8:1::", 48)},
       "delete",
       mySidToSwitchStateUpdate,
@@ -2259,6 +2263,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, syncUpdatePropagatesException) {
       rib_->update(
           scopeResolver(),
           makePair("3001:db8:1::", 48),
+          {} /* toUnresolveIfMatch */,
           {},
           "syncFail",
           failUpdate,
@@ -2270,6 +2275,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateAddsEntryAfterDrain) {
   rib_->updateAsync(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
+      {} /* toUnresolveIfMatch */,
       {},
       "asyncAdd",
       mySidToSwitchStateUpdate,
@@ -2289,6 +2295,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
   rib_->update(
       scopeResolver(),
       makePair("3001:db8:1::", 48),
+      {} /* toUnresolveIfMatch */,
       {},
       "syncAdd",
       mySidToSwitchStateUpdate,
@@ -2298,6 +2305,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
   rib_->updateAsync(
       scopeResolver(),
       std::vector<MySidWithNextHops>{},
+      {} /* toUnresolveIfMatch */,
       {toIpPrefix("3001:db8:1::", 48)},
       "asyncDelete",
       mySidToSwitchStateUpdate,
@@ -2307,6 +2315,128 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdateDeletesEntryAfterDrain) {
   EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
 }
 
+// Tests for the toUnresolveIfMatch update path used by the
+// MySidNeighborObserver when a neighbor goes down. RIB only clears the
+// MySid's unresolved+resolved ids when the materialized unresolved set
+// actually contains the removed neighbor's IP — observer can't do this
+// match itself because it only sees a NextHopSetID.
+
+TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchClearsWhenIpMatches) {
+  const folly::IPAddress neigh1("2001:db8::1");
+  RouteNextHopSet nhops{UnresolvedNextHop(neigh1, ECMP_WEIGHT)};
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48, MySidType::NODE_MICRO_SID, std::move(nhops)),
+      {} /* toUnresolveIfMatch */,
+      {},
+      "seedWithNhops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const auto prefix = makeSidPrefix("3001:db8:1::", 48);
+  ASSERT_TRUE(rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId());
+
+  rib_->update(
+      scopeResolver(),
+      {} /* toAdd */,
+      {{prefix, neigh1}} /* toUnresolveIfMatch */,
+      {} /* toDelete */,
+      "neighborDown",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+}
+
+TEST_F(
+    RibMySidWithNextHopsUpdateTest,
+    unresolveIfMatchSkipsWhenIpDoesNotMatch) {
+  // Materialize the unresolveNextHopsId into a value — the field_ref
+  // returned by unresolveNextHopsId() points into the temporary table,
+  // so it can't outlive a single statement.
+  auto materializeId =
+      [&](const folly::CIDRNetworkV6& p) -> std::optional<int64_t> {
+    const auto t = rib_->getMySidTableCopy();
+    auto it = t.find(p);
+    if (it == t.end()) {
+      return std::nullopt;
+    }
+    if (auto v = it->second.unresolveNextHopsId()) {
+      return *v;
+    }
+    return std::nullopt;
+  };
+
+  const folly::IPAddress neigh1("2001:db8::1");
+  const folly::IPAddress neigh2("2001:db8::2");
+  RouteNextHopSet nhops{UnresolvedNextHop(neigh1, ECMP_WEIGHT)};
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48, MySidType::NODE_MICRO_SID, std::move(nhops)),
+      {} /* toUnresolveIfMatch */,
+      {},
+      "seedWithNhops",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const auto prefix = makeSidPrefix("3001:db8:1::", 48);
+  const auto idBefore = materializeId(prefix);
+  ASSERT_TRUE(idBefore.has_value());
+
+  // Removed IP doesn't match — RIB no-ops.
+  rib_->update(
+      scopeResolver(),
+      {} /* toAdd */,
+      {{prefix, neigh2}} /* toUnresolveIfMatch */,
+      {},
+      "neighborDownNonMatch",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+
+  EXPECT_EQ(materializeId(prefix), idBefore);
+}
+
+TEST_F(RibMySidWithNextHopsUpdateTest, unresolveIfMatchUnknownPrefixIsNoOp) {
+  // No entries at all — match-and-clear must not crash.
+  const folly::IPAddress neigh1("2001:db8::1");
+  rib_->update(
+      scopeResolver(),
+      {},
+      {{makeSidPrefix("3001:db8:42::", 48), neigh1}} /* toUnresolveIfMatch */,
+      {},
+      "neighborDownUnknownPrefix",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_EQ(rib_->getMySidTableCopy().size(), 0);
+}
+
+TEST_F(
+    RibMySidWithNextHopsUpdateTest,
+    unresolveIfMatchOnEntryWithNoUnresolvedIdIsNoOp) {
+  // DECAP entry has no unresolveNextHopsId. Match-and-clear must skip.
+  rib_->update(
+      scopeResolver(),
+      makePair("3001:db8:1::", 48, MySidType::DECAPSULATE_AND_LOOKUP),
+      {} /* toUnresolveIfMatch */,
+      {},
+      "seedDecap",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  const auto prefix = makeSidPrefix("3001:db8:1::", 48);
+  ASSERT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+
+  rib_->update(
+      scopeResolver(),
+      {},
+      {{prefix, folly::IPAddress("2001:db8::1")}} /* toUnresolveIfMatch */,
+      {},
+      "neighborDownNoUnresolved",
+      mySidToSwitchStateUpdate,
+      &switchState_);
+  EXPECT_FALSE(
+      rib_->getMySidTableCopy().at(prefix).unresolveNextHopsId().has_value());
+}
+
 TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdatesAreSerialized) {
   // Multiple async updates run sequentially on the same event-base thread and
   // are observable after a single drain.
@@ -2314,6 +2444,7 @@ TEST_F(RibMySidWithNextHopsUpdateTest, asyncUpdatesAreSerialized) {
     rib_->updateAsync(
         scopeResolver(),
         makePair(folly::sformat("3001:db8:{}::", i), 48),
+        {} /* toUnresolveIfMatch */,
         {},
         folly::sformat("asyncAdd{}", i),
         mySidToSwitchStateUpdate,
