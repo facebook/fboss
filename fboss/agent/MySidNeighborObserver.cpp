@@ -82,37 +82,46 @@ void MySidNeighborObserver::handleMySidAddedOrChanged(
   auto neighborIP = isV6 ? findReachableNeighbor(intf->getNdpTable())
                          : findReachableNeighbor(intf->getArpTable());
   if (neighborIP.has_value()) {
-    queueResolution(newEntry, *neighborIP);
+    queueResolve(newEntry, *neighborIP);
   }
 }
 
-void MySidNeighborObserver::queueResolution(
+void MySidNeighborObserver::queueResolve(
     const std::shared_ptr<MySid>& mySid,
-    std::optional<folly::IPAddress> neighborIP) {
-  RouteNextHopSet nhops;
-  if (neighborIP.has_value()) {
-    nhops.insert(UnresolvedNextHop(*neighborIP, ECMP_WEIGHT));
-  }
+    folly::IPAddress neighborIP) {
+  RouteNextHopSet nhops{UnresolvedNextHop(neighborIP, ECMP_WEIGHT)};
   auto cloned = mySid->clone();
   cloned->setUnresolveNextHopsId(std::nullopt);
   cloned->setResolvedNextHopsId(std::nullopt);
-  pendingResolutions_.emplace_back(std::move(cloned), std::move(nhops));
+  pendingResolves_.emplace_back(std::move(cloned), std::move(nhops));
+}
+
+void MySidNeighborObserver::queueUnresolveIfMatch(
+    const std::shared_ptr<MySid>& mySid,
+    folly::IPAddress removedIp) {
+  const auto cidr = mySid->getMySid();
+  pendingUnresolveIfMatch_.emplace_back(
+      folly::CIDRNetworkV6(cidr.first.asV6(), cidr.second), removedIp);
 }
 
 void MySidNeighborObserver::flushPendingResolutions() {
-  if (pendingResolutions_.empty()) {
+  if (pendingResolves_.empty() && pendingUnresolveIfMatch_.empty()) {
     return;
   }
 
-  auto resolutions = std::move(pendingResolutions_);
-  CHECK(pendingResolutions_.empty());
+  auto resolves = std::move(pendingResolves_);
+  auto unresolves = std::move(pendingUnresolveIfMatch_);
+  CHECK(pendingResolves_.empty());
+  CHECK(pendingUnresolveIfMatch_.empty());
 
   auto* rib = sw_->getRib();
   if (!rib) {
     throw FbossError(
         "MySidNeighborObserver: RIB not available for ",
-        resolutions.size(),
-        " MySid resolution(s)");
+        resolves.size(),
+        " resolve(s) and ",
+        unresolves.size(),
+        " unresolve-if-match(es)");
   }
   // Use updateAsync (not update) — stateUpdated runs on the SwSwitch update
   // thread, and the rib's sync update would block on the RIB event-base
@@ -120,15 +129,16 @@ void MySidNeighborObserver::flushPendingResolutions() {
   // That would deadlock.
   rib->updateAsync(
       sw_->getScopeResolver(),
-      std::move(resolutions),
-      std::vector<MySidNeighborRemoved>{} /* toUnresolveIfMatch */,
+      std::move(resolves),
+      std::move(unresolves),
       std::vector<IpPrefix>{} /* toDelete */,
       "mySidNeighborResolve",
       createRibMySidToSwitchStateFunction(std::nullopt),
       sw_);
 }
 
-// Stub implementations for neighbor callbacks.
+// Stub implementations for neighbor callbacks. The real impls and the
+// neighbor-delta dispatch in stateUpdated() land in the next diff.
 template <typename AddedNeighborEntryT>
 void MySidNeighborObserver::processAdded(
     const std::shared_ptr<SwitchState>& /*switchState*/,

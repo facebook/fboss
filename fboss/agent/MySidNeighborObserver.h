@@ -61,19 +61,28 @@ class MySidNeighborObserver : public StateObserver {
       const std::shared_ptr<SwitchState>& state,
       const std::shared_ptr<MySid>& newEntry);
 
-  // Queue a resolution (or unresolution) for batch dispatch.
-  void queueResolution(
+  // Queue a positive resolution: assign neighborIP as the MySid's
+  // unresolved next hop. RIB unconditionally overwrites.
+  void queueResolve(
       const std::shared_ptr<MySid>& mySid,
-      std::optional<folly::IPAddress> neighborIP);
+      folly::IPAddress neighborIP);
 
-  // Flush all queued resolutions as a single async rib->update() on the
-  // RIB event-base thread.
+  // Queue a conditional unresolve: clear the MySid's unresolved + resolved
+  // ids only if the materialized unresolved next-hop set contains
+  // removedIp. RIB-side check.
+  void queueUnresolveIfMatch(
+      const std::shared_ptr<MySid>& mySid,
+      folly::IPAddress removedIp);
+
+  // Flush all queued resolves and conditional unresolves as a single
+  // async rib->update() on the RIB event-base thread.
   void flushPendingResolutions();
 
   SwSwitch* sw_;
 
   // Accumulated during a single stateUpdated call, flushed at the end.
-  std::vector<MySidWithNextHops> pendingResolutions_;
+  std::vector<MySidWithNextHops> pendingResolves_;
+  std::vector<MySidNeighborRemoved> pendingUnresolveIfMatch_;
 };
 
 } // namespace facebook::fboss
