@@ -2175,12 +2175,15 @@ ci_sandcastle(
         "fbcode/fboss/agent/**",
     ],
     command = "SandcastleUniversalCommand",
+    labels = [ci.overwrite()] + ci.for_schedules(
+        [
+            ci.diff,
+            ci.continuous,
+        ],
+        [ci.linux(ci.dev())],
+    ),
     metadata = {"brr_disable_reason": "NOT_YET_IMPLEMENTED"},  # auto-derived, may be wrong
     oncall = "fboss_agent",
-    schedules = [
-        ci.diff,
-        ci.continuous,
-    ],
 )
 
 cpp_library(
