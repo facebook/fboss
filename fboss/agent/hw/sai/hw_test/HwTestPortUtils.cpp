@@ -83,45 +83,17 @@ void enableTransceiverProgramming(bool enable) {
   FLAGS_skip_transceiver_programming = !enable;
 }
 
-void injectFecError(
-    std::vector<int> hwPorts,
-    const HwSwitch* hw,
-    bool injectCorrectable) {
-  if (hw->getPlatform()->getAsic()->getAsicVendor() !=
-      HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
-    throw FbossError("FEC error injection only supported on BCM ASICs");
-  }
-  auto saiSwitch = static_cast<const SaiSwitch*>(hw);
+namespace {
+
+void executeCintScript(const SaiSwitch* saiSwitch, const std::string& script) {
   auto diagShell = std::make_unique<DiagShell>(saiSwitch);
   auto diagCmdServer =
       std::make_unique<DiagCmdServer>(saiSwitch, diagShell.get());
 
-  constexpr auto kBaseFecErrorInjStr = R"(
-  cint_reset();
-  bcm_port_phy_fec_error_mask_t injection;
-  uint8 error_control_map = 0xFF;
-  int unit = 0;
-  )";
-  std::string kFecErrorInjStr = kBaseFecErrorInjStr;
-  if (injectCorrectable) {
-    kFecErrorInjStr = folly::sformat(
-        "\n{}\n injection.error_mask_bit_63_32=0x1;", kFecErrorInjStr);
-  } else {
-    kFecErrorInjStr = folly::sformat(
-        "\n{}\n injection.error_mask_bit_63_32=0xFFFFFFFF;", kFecErrorInjStr);
-  }
-  for (auto hwPortID : hwPorts) {
-    int portNum = hwPortID;
-    kFecErrorInjStr = folly::sformat(
-        "\n{}\n print bcm_port_phy_fec_error_inject_set(unit, {}, error_control_map, injection);",
-        kFecErrorInjStr,
-        portNum);
-  }
   folly::test::TemporaryFile file;
-  folly::writeFull(
-      file.fd(), kFecErrorInjStr.c_str(), std::strlen(kFecErrorInjStr.c_str()));
+  folly::writeFull(file.fd(), script.c_str(), std::strlen(script.c_str()));
 
-  XLOG(INFO) << "CINT = " << kFecErrorInjStr;
+  XLOG(INFO) << "CINT = " << script;
   ClientInformation clientInfo;
   clientInfo.username() = "hw_test";
   clientInfo.hostname() = "hw_test";
@@ -133,6 +105,46 @@ void injectFecError(
   diagCmdServer->diagCmd(
       std::make_unique<fbstring>("quit\n"),
       std::make_unique<ClientInformation>(clientInfo));
+}
+
+std::string buildLegacyFecErrorInjScript(
+    const std::vector<int>& hwPorts,
+    bool injectCorrectable) {
+  constexpr auto kBaseFecErrorInjStr = R"(
+  cint_reset();
+  bcm_port_phy_fec_error_mask_t injection;
+  uint8 error_control_map = 0xFF;
+  int unit = 0;
+  )";
+  std::string script = kBaseFecErrorInjStr;
+  if (injectCorrectable) {
+    script =
+        folly::sformat("\n{}\n injection.error_mask_bit_63_32=0x1;", script);
+  } else {
+    script = folly::sformat(
+        "\n{}\n injection.error_mask_bit_63_32=0xFFFFFFFF;", script);
+  }
+  for (auto hwPortID : hwPorts) {
+    script = folly::sformat(
+        "\n{}\n print bcm_port_phy_fec_error_inject_set(unit, {}, error_control_map, injection);",
+        script,
+        hwPortID);
+  }
+  return script;
+}
+
+} // namespace
+
+void injectFecError(
+    std::vector<int> hwPorts,
+    const HwSwitch* hw,
+    bool injectCorrectable) {
+  if (hw->getPlatform()->getAsic()->getAsicVendor() !=
+      HwAsic::AsicVendor::ASIC_VENDOR_BCM) {
+    throw FbossError("FEC error injection only supported on BCM ASICs");
+  }
+  auto script = buildLegacyFecErrorInjScript(hwPorts, injectCorrectable);
+  executeCintScript(static_cast<const SaiSwitch*>(hw), script);
 }
 
 } // namespace facebook::fboss::utility
