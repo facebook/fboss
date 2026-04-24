@@ -123,6 +123,7 @@ add_library(agent_hw_test_src
   fboss/agent/test/agent_hw_tests/AgentMacLearningTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMacLearningAndNeighborResolutionTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirrorOnDropTestBase.cpp
+  fboss/agent/test/agent_hw_tests/AgentMirrorOnDropXgsTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMirroringScaleTests.cpp
   fboss/agent/test/agent_hw_tests/AgentMPLSTests.cpp
@@ -228,6 +229,7 @@ target_link_libraries(agent_hw_test_src
   sflow_shim_utils
   udf_test_utils
   pktutil
+  xgs_psamp_mod
   mirror_test_utils
   dsf_config_utils
   voq_test_utils
