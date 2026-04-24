@@ -231,6 +231,20 @@ cpp_library(
 )
 
 cpp_library(
+    name = "safety-prompt-utils",
+    srcs = [
+        "utils/SafetyPromptUtils.cpp",
+    ],
+    headers = [
+        "utils/SafetyPromptUtils.h",
+    ],
+    exported_deps = [
+        "fbsource//third-party/fmt:fmt",
+        ":cmd-local-options",
+    ],
+)
+
+cpp_library(
     name = "table-utils",
     srcs = [
         "utils/Table.cpp",
@@ -747,6 +761,7 @@ cpp_library(
         ":cmd-local-options",
         ":cmd-subcommands",
         ":commands-show-bgp",
+        ":safety-prompt-utils",
         ":table-utils",
         "//common/base:build_info",
         "//common/config:configerator",
