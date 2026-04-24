@@ -1226,6 +1226,8 @@ cpp_binary(
     name = "fboss2-routing-protocol",
     srcs = [
         "Main.cpp",
+        "commands/clear/facebook/bgp/profiler/CmdClearBgpProfiler.cpp",
+        "commands/set/facebook/bgp/profiler/CmdSetBgpProfilerFilter.cpp",
         "commands/show/facebook/CmdShowUtils.cpp",
         "commands/show/facebook/CmdShowVersionBgp.cpp",
         "commands/show/facebook/bgp/CmdShowBgpInitializationEvents.cpp",
@@ -1280,7 +1282,8 @@ cpp_binary(
         "commands/show/facebook/bgp/techsupport/CmdShowBgpTechsupport.cpp",
         "commands/show/facebook/config/CmdShowConfigRawBgp.cpp",
         "commands/show/facebook/config/CmdShowConfigRunningBgp.cpp",
-        "facebook/routing_protocol/CmdHandlerImpl.cpp",
+        "commands/start/facebook/bgp/profiler/CmdStartBgpProfiler.cpp",
+        "commands/stop/facebook/bgp/profiler/CmdStopBgpProfiler.cpp",
         "facebook/routing_protocol/CmdList.cpp",
         "utils/facebook/routing_protocol/CmdClientUtils.cpp",
         "utils/facebook/routing_protocol/CmdUtils.cpp",
@@ -1313,7 +1316,7 @@ cpp_binary(
         ":cmd-init-utils",
         ":cmd-list-header",
         ":cmd-local-options",
-        ":commands-show-bgp",
+        ":commands-show-bgp",  # @manual
         ":table-utils",
         "//common/config:configerator",
         "//common/strings:string_util",
