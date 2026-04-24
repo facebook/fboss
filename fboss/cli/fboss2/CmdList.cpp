@@ -546,7 +546,8 @@ const CommandTree& kCommandTree() {
        {{"state",
          "Set Port state",
          commandHandler<CmdSetPortState>,
-         argTypeHandler<CmdSetPortStateTraits>}}},
+         argTypeHandler<CmdSetPortStateTraits>,
+         localOptionsHandler<CmdSetPortStateTraits>}}},
 
       {"start",
        "pcap",
