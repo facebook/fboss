@@ -5,10 +5,10 @@
     "firmware_upgrade_on_tcvr_insert": "true",
     "firmware_upgrade_supported": "true",
     "mode": "wedge800cact",
-    "remediation_enabled": "false"
+    "remediation_enabled": "true"
   },
   "transceiverConfigOverrides": [
-    
+
   ],
   "qsfpTestConfig": {
     "cabledPortPairs": [
