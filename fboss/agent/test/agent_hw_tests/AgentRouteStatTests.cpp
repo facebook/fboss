@@ -16,10 +16,13 @@ namespace {
 const folly::IPAddressV6 kAddr1{"2401::201:ab00"};
 const folly::IPAddressV6 kAddr2{"2401::201:ac00"};
 const folly::IPAddressV6 kAddr3{"2401::201:ad00"};
+const folly::IPAddressV4 kAddr4{"10.10.10.10"};
 const std::optional<facebook::fboss::RouteCounterID> kCounterID1(
     "route.counter.0");
 const std::optional<facebook::fboss::RouteCounterID> kCounterID2(
     "route.counter.1");
+const std::optional<facebook::fboss::RouteCounterID> kCounterID3(
+    "route.counter.2");
 constexpr int kUdpSrcPort = 4049;
 constexpr int kUdpDstPort = 4050;
 } // namespace
@@ -67,6 +70,43 @@ class AgentRouteStatTest : public AgentHwTest {
         std::move(counterID));
   }
 
+  void addV4Route(
+      folly::IPAddressV4 prefix,
+      uint8_t mask,
+      PortDescriptor port,
+      std::optional<RouteCounterID> counterID) {
+    applyNewState([&](const std::shared_ptr<SwitchState>& in) {
+      return ecmpHelper4_->resolveNextHops(in, {port});
+    });
+    auto wrapper = getSw()->getRouteUpdater();
+    ecmpHelper4_->programRoutes(
+        &wrapper,
+        {port},
+        {RoutePrefixV4{prefix, mask}},
+        {},
+        std::move(counterID));
+  }
+
+  size_t sendV4L3Packet(folly::IPAddressV4 dst, PortID from) {
+    auto vlanId = getVlanIDForTx();
+    auto intfMac =
+        getMacForFirstInterfaceWithPortsForTesting(getProgrammedState());
+    auto srcMac = utility::MacAddressGenerator().get(intfMac.u64HBO() + 1);
+
+    auto pkt = utility::makeUDPTxPacket(
+        getSw(),
+        vlanId,
+        srcMac,
+        intfMac,
+        folly::IPAddressV4("1.0.0.10"),
+        dst,
+        kUdpSrcPort,
+        kUdpDstPort);
+    auto length = pkt->buf()->computeChainDataLength();
+    getSw()->sendPacketOutOfPortAsync(std::move(pkt), from, std::nullopt);
+    return length;
+  }
+
   size_t sendL3Packet(folly::IPAddressV6 dst, PortID from) {
     auto vlanId = getVlanIDForTx();
     auto intfMac =
@@ -100,10 +140,17 @@ class AgentRouteStatTest : public AgentHwTest {
   // Send packets and verify that the specified counters increment.
   // Each entry in packets is (dst address, counter ID to check).
   // Multiple packets can map to the same counter ID (shared counters).
+  void sendPacket(const folly::IPAddress& dst, PortID from) {
+    if (dst.isV6()) {
+      sendL3Packet(dst.asV6(), from);
+    } else {
+      sendV4L3Packet(dst.asV4(), from);
+    }
+  }
+
   void sendAndVerifyCounterIncrement(
-      const std::vector<std::pair<folly::IPAddressV6, RouteCounterID>>& packets,
+      const std::vector<std::pair<folly::IPAddress, RouteCounterID>>& packets,
       PortID srcPort) {
-    // Snapshot all unique counters before sending
     std::map<RouteCounterID, uint64_t> countersBefore;
     for (const auto& [dst, counterID] : packets) {
       if (!countersBefore.count(counterID)) {
@@ -111,12 +158,10 @@ class AgentRouteStatTest : public AgentHwTest {
       }
     }
 
-    // Send all packets
     for (const auto& [dst, counterID] : packets) {
-      sendL3Packet(dst, srcPort);
+      sendPacket(dst, srcPort);
     }
 
-    // Verify all counters incremented
     WITH_RETRIES({
       for (const auto& [counterID, before] : countersBefore) {
         auto after = getRouteCounterValue(counterID);
@@ -125,9 +170,8 @@ class AgentRouteStatTest : public AgentHwTest {
     });
   }
 
-  // Send packets and verify that the specified counters do NOT increment.
   void sendAndVerifyCounterUnchanged(
-      const std::vector<std::pair<folly::IPAddressV6, RouteCounterID>>& packets,
+      const std::vector<std::pair<folly::IPAddress, RouteCounterID>>& packets,
       PortID srcPort) {
     std::map<RouteCounterID, uint64_t> countersBefore;
     for (const auto& [dst, counterID] : packets) {
@@ -137,7 +181,7 @@ class AgentRouteStatTest : public AgentHwTest {
     }
 
     for (const auto& [dst, counterID] : packets) {
-      sendL3Packet(dst, srcPort);
+      sendPacket(dst, srcPort);
     }
 
     for (const auto& [counterID, before] : countersBefore) {
@@ -149,9 +193,12 @@ class AgentRouteStatTest : public AgentHwTest {
   void setupEcmpHelper() {
     ecmpHelper_ = std::make_unique<utility::EcmpSetupTargetedPorts6>(
         getProgrammedState(), getSw()->needL2EntryForNeighbor());
+    ecmpHelper4_ = std::make_unique<utility::EcmpSetupTargetedPorts4>(
+        getProgrammedState(), getSw()->needL2EntryForNeighbor());
   }
 
   std::unique_ptr<utility::EcmpSetupTargetedPorts6> ecmpHelper_;
+  std::unique_ptr<utility::EcmpSetupTargetedPorts4> ecmpHelper4_;
 };
 
 TEST_F(AgentRouteStatTest, RouteEntryTest) {
@@ -172,6 +219,11 @@ TEST_F(AgentRouteStatTest, RouteEntryTest) {
         120,
         PortDescriptor(masterLogicalInterfacePortIds()[0]),
         kCounterID2);
+    addV4Route(
+        kAddr4,
+        24,
+        PortDescriptor(masterLogicalInterfacePortIds()[0]),
+        kCounterID3);
   };
   auto verify = [this]() {
     auto srcPort = masterLogicalInterfacePortIds()[1];
@@ -184,11 +236,16 @@ TEST_F(AgentRouteStatTest, RouteEntryTest) {
     sendAndVerifyCounterIncrement(
         {{kAddr2, *kCounterID2}, {kAddr3, *kCounterID2}}, srcPort);
 
+    // verify v4 route counter
+    sendAndVerifyCounterIncrement(
+        {{folly::IPAddress(kAddr4), *kCounterID3}}, srcPort);
+
     // verify counters exist in stats
     auto hwSwitchStats = getHwSwitchStats();
     auto& hwCounters = *hwSwitchStats.counterStats()->hwCounters();
     EXPECT_TRUE(hwCounters.count(*kCounterID1));
     EXPECT_TRUE(hwCounters.count(*kCounterID2));
+    EXPECT_TRUE(hwCounters.count(*kCounterID3));
   };
   verifyAcrossWarmBoots(setup, verify);
 }
