@@ -1,6 +1,7 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
 #include "fboss/agent/test/AgentHwTest.h"
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/HwAsicTable.h"
 #include "fboss/agent/NeighborUpdater.h"
 #include "fboss/agent/TxPacket.h"
@@ -118,6 +119,10 @@ void AgentHwTest::setCmdLineFlagOverrides() const {
   FLAGS_detect_wrong_fabric_connections = false;
   // Disable DSF subscription on single-box test
   FLAGS_dsf_subscribe = false;
+  // Tests issue diag-shell commands with synthetic client identifiers
+  // (e.g., "agent_ensemble@agent_ensemble"); those rows have no audit
+  // value and pollute the fboss_sai_commands Scuba table.
+  FLAGS_sai_log_diag_cmds_to_scuba = false;
   // Set HW agent connection timeout to 130 seconds
   FLAGS_hw_agent_connection_timeout_ms = 130000;
   FLAGS_update_stats_interval_s = 1;

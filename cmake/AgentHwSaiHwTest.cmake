@@ -24,6 +24,7 @@ add_library(sai_switch_ensemble
 )
 
 target_link_libraries(sai_switch_ensemble
+  agent_features
   core
   setup_thrift
   sai_switch

@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+#include "fboss/agent/AgentFeatures.h"
 #include "fboss/agent/benchmarks/AgentBenchmarksMain.h"
 
 const int64_t kUsecPerSecond = 1000000;
@@ -32,6 +33,10 @@ void setCmdLineFlagOverrides() {
   FLAGS_dsf_subscribe = false;
   FLAGS_hide_fabric_ports = false;
   FLAGS_detect_wrong_fabric_connections = false;
+  // Benchmarks issue diag-shell commands with synthetic client identifiers;
+  // those rows have no audit value and pollute the fboss_sai_commands Scuba
+  // table.
+  FLAGS_sai_log_diag_cmds_to_scuba = false;
 }
 
 int main(int argc, char* argv[]) {

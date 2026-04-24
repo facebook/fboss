@@ -22,6 +22,11 @@ DEFINE_bool(
     false,
     "Flag to use user defined trap when programming ACL action to punt packets to cpu queue.");
 
+DEFINE_bool(
+    sai_log_diag_cmds_to_scuba,
+    true,
+    "Log SAI shell commands and output to the fboss_sai_commands Scuba table");
+
 DEFINE_bool(enable_acl_table_chain_group, false, "Allow ACL table chaining");
 
 DEFINE_int32(

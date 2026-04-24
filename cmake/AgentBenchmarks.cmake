@@ -18,6 +18,7 @@ add_library(mono_sai_agent_benchmarks_main
 )
 
 target_link_libraries(mono_sai_agent_benchmarks_main
+  agent_features
   mono_agent_benchmarks
   Folly::folly
   sai_platform
@@ -35,6 +36,7 @@ add_library(multi_switch_mono_sai_agent_benchmarks_main
 )
 
 target_link_libraries(multi_switch_mono_sai_agent_benchmarks_main
+  agent_features
   multi_switch_agent_benchmarks
   Folly::folly
   sai_platform
