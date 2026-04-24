@@ -1049,17 +1049,19 @@ class QsfpTestRunner(TestRunner):
         return tests
 
 
+_YELLOW = "\033[1;33m"
+_RED = "\033[1;31m"
+_RESET = "\033[0m"
+
+
 def _print_deprecation_banner(lines):
     """Print a highly visible warning banner with color and box formatting."""
-    YELLOW = "\033[1;33m"  # Bold yellow
-    RED = "\033[1;31m"  # Bold red
-    RESET = "\033[0m"
     width = max(len(line) for line in lines) + 4
     border = "*" * width
-    print(f"\n{RED}{border}")
+    print(f"\n{_RED}{border}")
     for line in lines:
-        print(f"* {YELLOW}{line.ljust(width - 4)}{RED} *")
-    print(f"{border}{RESET}\n", flush=True)
+        print(f"* {_YELLOW}{line.ljust(width - 4)}{_RED} *")
+    print(f"{border}{_RESET}\n", flush=True)
 
 
 class LinkTestRunner(TestRunner):
